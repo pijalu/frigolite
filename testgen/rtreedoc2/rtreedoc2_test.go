@@ -164,7 +164,7 @@ func Test_rtreedoc2(t *testing.T) {
 	{ // "1.3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index USING rtree(id, x1,x2, y1,y2);\n  INSERT INTO demo_index VALUES(10, 45,45,  24,24);\n  INSERT INTO demo_index VALUES(20, 50,50,  28,28);\n  INSERT INTO demo_index VALUES(30, 43,43,  22,22);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo_index USING rtree(id, x1,x2, y1,y2);\n  INSERT INTO demo_index VALUES(10, 45,45,  24,24);\n  INSERT INTO demo_index VALUES(20, 50,50,  28,28);\n  INSERT INTO demo_index VALUES(30, 43,43,  22,22);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo_index USING rtree(id, x1,x2, y1,y2);\n  INSERT INTO demo_index VALUES(10, 45,45,  24,24);\n  INSERT INTO demo_index VALUES(20, 50,50,  28,28);\n  INSERT INTO demo_index VALUES(30, 43,43,  22,22);\n")
 		}
 	}
 	{ // "1.3.1"
@@ -221,7 +221,7 @@ func Test_rtreedoc2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE rt1 USING rtree(id, x1,x2);\n  CREATE VIRTUAL TABLE rt2 USING rtree(id, x1,x2, y1,y2);\n  CREATE VIRTUAL TABLE rt3 USING rtree(id, x1,x2, y1,y2, z1,z2);\n\n  INSERT INTO rt1 DEFAULT VALUES;\n  INSERT INTO rt2 DEFAULT VALUES;\n  INSERT INTO rt3 DEFAULT VALUES;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt1 USING rtree(id, x1,x2);\n  CREATE VIRTUAL TABLE rt2 USING rtree(id, x1,x2, y1,y2);\n  CREATE VIRTUAL TABLE rt3 USING rtree(id, x1,x2, y1,y2, z1,z2);\n\n  INSERT INTO rt1 DEFAULT VALUES;\n  INSERT INTO rt2 DEFAULT VALUES;\n  INSERT INTO rt3 DEFAULT VALUES;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt1 USING rtree(id, x1,x2);\n  CREATE VIRTUAL TABLE rt2 USING rtree(id, x1,x2, y1,y2);\n  CREATE VIRTUAL TABLE rt3 USING rtree(id, x1,x2, y1,y2, z1,z2);\n\n  INSERT INTO rt1 DEFAULT VALUES;\n  INSERT INTO rt2 DEFAULT VALUES;\n  INSERT INTO rt3 DEFAULT VALUES;\n")
 		}
 	}
 	// foreach {tn tbl nCoord} "1 rt1 2     \n  2 rt2 4\n  3 rt3 6"
@@ -240,13 +240,13 @@ func Test_rtreedoc2(t *testing.T) {
 			{ // "1." + tn + ".1"
 				_res = db.Exec("\n    SELECT id FROM " + tbl + " WHERE id MATCH box();\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n    SELECT id FROM " + tbl + " WHERE id MATCH box();\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n    SELECT id FROM " + tbl + " WHERE id MATCH box();\n  ")
 				}
 			}
 			{ // do_test "1." + tn + ".2"
 				_ = strconv.Itoa(tclLLength(tclLIndex(box_geom, "0"))) // llength result
 				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), nCoord) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nCoord, _res.Error, "1." + tn + ".2")
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nCoord, resErrString(_res), "1." + tn + ".2")
 				}
 			}
 		}
@@ -254,13 +254,13 @@ func Test_rtreedoc2(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  SELECT * FROM rt2 WHERE id MATCH box(22,23, 24,25); \n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM rt2 WHERE id MATCH box(22,23, 24,25); \n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT * FROM rt2 WHERE id MATCH box(22,23, 24,25); \n")
 			}
 		}
 		{ // "3.0"
 			_res = db.Exec("\n  INSERT INTO rt1 VALUES(10, 10, 10);\n  INSERT INTO rt1 VALUES(11, 11, 11);\n  INSERT INTO rt1 VALUES(12, 12, 12);\n  INSERT INTO rt1 VALUES(13, 13, 13);\n  INSERT INTO rt1 VALUES(14, 14, 14);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO rt1 VALUES(10, 10, 10);\n  INSERT INTO rt1 VALUES(11, 11, 11);\n  INSERT INTO rt1 VALUES(12, 12, 12);\n  INSERT INTO rt1 VALUES(13, 13, 13);\n  INSERT INTO rt1 VALUES(14, 14, 14);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO rt1 VALUES(10, 10, 10);\n  INSERT INTO rt1 VALUES(11, 11, 11);\n  INSERT INTO rt1 VALUES(12, 12, 12);\n  INSERT INTO rt1 VALUES(13, 13, 13);\n  INSERT INTO rt1 VALUES(14, 14, 14);\n")
 			}
 		}
 		// proc definition (not transpiled)
@@ -290,7 +290,7 @@ func Test_rtreedoc2(t *testing.T) {
 		{ // "3.2"
 			_res = db.Exec("\n  SELECT * FROM rt1 WHERE id MATCH box(1,1);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM rt1 WHERE id MATCH box(1,1);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT * FROM rt1 WHERE id MATCH box(1,1);\n")
 			}
 		}
 		{ // do_test "3.3"
@@ -311,7 +311,7 @@ func Test_rtreedoc2(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE r1 USING rtree(id, minX,maxX, minY,maxY);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<120\n  )\n  INSERT INTO r1 SELECT i,i,i+1,  200,201 FROM s;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE r1 USING rtree(id, minX,maxX, minY,maxY);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<120\n  )\n  INSERT INTO r1 SELECT i,i,i+1,  200,201 FROM s;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE r1 USING rtree(id, minX,maxX, minY,maxY);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<120\n  )\n  INSERT INTO r1 SELECT i,i,i+1,  200,201 FROM s;\n")
 			}
 		}
 		ctx = "register_box_geom db box_geom"
@@ -354,7 +354,7 @@ func Test_rtreedoc2(t *testing.T) {
 				{ // "5." + tn + ".1"
 					_res = db.Exec(q)
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, q)
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), q)
 					}
 				}
 				{ // do_test "5." + tn + ".2"
@@ -369,7 +369,7 @@ func Test_rtreedoc2(t *testing.T) {
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE myrtree USING rtree(id, x1,x2);\n  INSERT INTO myrtree VALUES(1, 1, 1);\n  INSERT INTO myrtree VALUES(2, 2, 2);\n  INSERT INTO myrtree VALUES(3, 3, 3);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE myrtree USING rtree(id, x1,x2);\n  INSERT INTO myrtree VALUES(1, 1, 1);\n  INSERT INTO myrtree VALUES(2, 2, 2);\n  INSERT INTO myrtree VALUES(3, 3, 3);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE myrtree USING rtree(id, x1,x2);\n  INSERT INTO myrtree VALUES(1, 1, 1);\n  INSERT INTO myrtree VALUES(2, 2, 2);\n  INSERT INTO myrtree VALUES(3, 3, 3);\n")
 				}
 			}
 			vtab.TclVarSet("box_geom_calls", "", "0")
@@ -420,7 +420,7 @@ func Test_rtreedoc2(t *testing.T) {
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE xyz USING rtree(x, x1,x2, y1,y2);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<15\n  )\n  INSERT INTO xyz SELECT NULL, one.i,one.i+1,  two.i,two.i+1 FROM s one, s two;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE xyz USING rtree(x, x1,x2, y1,y2);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<15\n  )\n  INSERT INTO xyz SELECT NULL, one.i,one.i+1,  two.i,two.i+1 FROM s one, s two;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE xyz USING rtree(x, x1,x2, y1,y2);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<15\n  )\n  INSERT INTO xyz SELECT NULL, one.i,one.i+1,  two.i,two.i+1 FROM s one, s two;\n")
 				}
 			}
 			{ // "6.1"

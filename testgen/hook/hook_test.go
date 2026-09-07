@@ -489,14 +489,14 @@ func Test_hook(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec(" \n  CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		}
 	}
 	{ // "7.1.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  INSERT INTO t1 VALUES('x', 'y')\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('x', 'y')\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES('x', 'y')\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("INSERT main t1 1 1 x y"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("INSERT main t1 1 1 x y"), " "), "7.1.1")
@@ -506,7 +506,7 @@ func Test_hook(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  INSERT INTO t1 SELECT y, x FROM t2;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 SELECT y, x FROM t2;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 SELECT y, x FROM t2;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("INSERT main t1 2 2 b a INSERT main t1 3 3 d c"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("INSERT main t1 2 2 b a INSERT main t1 3 3 d c"), " "), "7.1.2.1")
@@ -516,7 +516,7 @@ func Test_hook(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  INSERT INTO t1 SELECT * FROM t2;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 SELECT * FROM t2;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 SELECT * FROM t2;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("INSERT main t1 4 4 a b INSERT main t1 5 5 c d"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("INSERT main t1 4 4 a b INSERT main t1 5 5 c d"), " "), "7.1.2.2")
@@ -526,7 +526,7 @@ func Test_hook(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t1 1 1   x y\n  INSERT main t1 1 1   1 1\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t1 1 1   x y\n  INSERT main t1 1 1   1 1\n"), " "), "7.1.3")
@@ -556,7 +556,7 @@ func Test_hook(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  DELETE FROM t1 WHERE rowid = 3\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE rowid = 3\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE rowid = 3\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("DELETE main t1 3 3 d c"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("DELETE main t1 3 3 d c"), " "), "7.2.1")
@@ -566,7 +566,7 @@ func Test_hook(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  DELETE FROM t1\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t1 1 1   1 1\n  DELETE main t1 2 2   b a\n  DELETE main t1 4 4   a b\n  DELETE main t1 5 5   c d\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t1 1 1   1 1\n  DELETE main t1 2 2   b a\n  DELETE main t1 4 4   a b\n  DELETE main t1 5 5   c d\n"), " "), "7.2.2")
@@ -575,14 +575,14 @@ func Test_hook(t *testing.T) {
 	{ // "7.3.0"
 		_res = db.Exec(" \n  DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		}
 	}
 	{ // "7.3.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE t2 SET y = y||y;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET y = y||y;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t2 SET y = y||y;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  UPDATE main t2 1 1   a b  a bb\n  UPDATE main t2 2 2   c d  c dd\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  UPDATE main t2 1 1   a b  a bb\n  UPDATE main t2 2 2   c d  c dd\n"), " "), "7.3.1")
@@ -600,7 +600,7 @@ func Test_hook(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t3 2 2   5 25\n  UPDATE main t3 3 3   6 36  5 36\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t3 2 2   5 25\n  UPDATE main t3 3 3   6 36  5 36\n"), " "), "7.3.4.1")
@@ -625,14 +625,14 @@ func Test_hook(t *testing.T) {
 	{ // "7.4.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;\n")
 		}
 	}
 	{ // "7.4.1.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  DELETE FROM t4 WHERE b = 3\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4 WHERE b = 3\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t4 WHERE b = 3\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t4 1 1   a 1\n  DELETE main t4 3 3   c 3\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t4 1 1   a 1\n  DELETE main t4 3 3   c 3\n"), " "), "7.4.1.1")
@@ -641,7 +641,7 @@ func Test_hook(t *testing.T) {
 	{ // "7.4.1.2"
 		_res = db.Exec("\n  INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);\n")
 		}
 	}
 	{ // "hook-7.4.1.3" — skipped: preupdate duplicate DELETE events for REPLACE N-A (SQL side effects only)
@@ -651,14 +651,14 @@ func Test_hook(t *testing.T) {
 	{ // "7.4.2.0"
 		_res = db.Exec("\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;\n")
 		}
 	}
 	{ // "7.4.2.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE t5 SET b = 4 WHERE a = 'c'\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t5 SET b = 4 WHERE a = 'c'\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t5 SET b = 4 WHERE a = 'c'\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t5 1 1   a 1\n  UPDATE main t5 3 3   c 3  c 4\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t5 1 1   a 1\n  UPDATE main t5 3 3   c 3  c 4\n"), " "), "7.4.2.1")
@@ -667,7 +667,7 @@ func Test_hook(t *testing.T) {
 	{ // "7.4.2.2"
 		_res = db.Exec("\n  INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);\n")
 		}
 	}
 	{ // "hook-7.4.2.3" — skipped: preupdate duplicate DELETE events for REPLACE N-A (SQL side effects only)
@@ -677,7 +677,7 @@ func Test_hook(t *testing.T) {
 	{ // "7.5.1.0"
 		_res = db.Exec("\n    CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES('one', 'two');\n    INSERT INTO t7 VALUES('three', 'four');\n    ALTER TABLE t7 ADD COLUMN c DEFAULT NULL;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES('one', 'two');\n    INSERT INTO t7 VALUES('three', 'four');\n    ALTER TABLE t7 ADD COLUMN c DEFAULT NULL;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES('one', 'two');\n    INSERT INTO t7 VALUES('three', 'four');\n    ALTER TABLE t7 ADD COLUMN c DEFAULT NULL;\n  ")
 		}
 	}
 	{ // "hook-7.5.1.1" — skipped: preupdate NULL column rendering N-A (SQL side effects only)
@@ -691,7 +691,7 @@ func Test_hook(t *testing.T) {
 	{ // "7.5.2.0"
 		_res = db.Exec("\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('one', 'two');\n    INSERT INTO t8 VALUES('three', 'four');\n    ALTER TABLE t8 ADD COLUMN c DEFAULT 'xxx';\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('one', 'two');\n    INSERT INTO t8 VALUES('three', 'four');\n    ALTER TABLE t8 ADD COLUMN c DEFAULT 'xxx';\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('one', 'two');\n    INSERT INTO t8 VALUES('three', 'four');\n    ALTER TABLE t8 ADD COLUMN c DEFAULT 'xxx';\n  ")
 		}
 	}
 	if true {
@@ -699,7 +699,7 @@ func Test_hook(t *testing.T) {
 			preupdate = ""
 			_res = db.Exec("\n    DELETE FROM t8 WHERE a = 'one'\n  ")
 			if _res.Error != nil {
-				t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t8 WHERE a = 'one'\n  ")
+				t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t8 WHERE a = 'one'\n  ")
 			}
 			if tclListFlatten(preupdate) != strings.Join(tclSplitList("DELETE main t8 1 1 one two xxx"), " ") {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("DELETE main t8 1 1 one two xxx"), " "), "7.5.2.1")
@@ -713,7 +713,7 @@ func Test_hook(t *testing.T) {
 	{ // "7.6.1"
 		_res = db.Exec(" CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c) ")
 		}
 	}
 	{ // "hook-7.6.2" — skipped: preupdate trigger-interleaved callback order N-A (SQL side effects only)
@@ -742,7 +742,7 @@ func Test_hook(t *testing.T) {
 	{ // "7.6.1"
 		_res = db.Exec(" \n  CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		}
 	}
 	{ // "hook-7.6.2" — skipped: preupdate trigger-interleaved callback order N-A (SQL side effects only)
@@ -760,7 +760,7 @@ func Test_hook(t *testing.T) {
 	{ // "7.6.5"
 		_res = db.Exec(" \n  DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		}
 	}
 	{ // "hook-7.6.6" — skipped: preupdate trigger-interleaved callback order N-A (SQL side effects only)
@@ -823,7 +823,7 @@ func Test_hook(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);\n  ")
 		}
 	}
 	{ // "hook-9.1" — skipped: preupdate rowid alias old/new rendering N-A (SQL side effects only)
@@ -833,7 +833,7 @@ func Test_hook(t *testing.T) {
 	{ // "9.2"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD COLUMN d;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD COLUMN d;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE t1 ADD COLUMN d;\n  ")
 		}
 	}
 	{ // "hook-9.3" — skipped: preupdate rowid alias old/new rendering N-A (SQL side effects only)
@@ -855,7 +855,7 @@ func Test_hook(t *testing.T) {
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t3(a, b INTEGER PRIMARY KEY);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b INTEGER PRIMARY KEY);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b INTEGER PRIMARY KEY);\n")
 		}
 	}
 	{ // "hook-10.1" — skipped: preupdate on WITHOUT ROWID key column N-A (SQL side effects only)
@@ -888,7 +888,7 @@ func Test_hook(t *testing.T) {
 	{ // "11.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		}
 	}
 	db.SetPreupdateHook(func() {
@@ -914,7 +914,7 @@ func Test_hook(t *testing.T) {
 	{ // "11.3"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);\n  ")
 		}
 	}
 	vtab.TclVarSet("res", "", "")
@@ -932,7 +932,7 @@ func Test_hook(t *testing.T) {
 	{ // "12.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n")
 		}
 	}
 	db.SetPreupdateHook(func() {
@@ -969,7 +969,7 @@ func Test_hook(t *testing.T) {
 	{ // "12.5"
 		_res = db.Exec("\n  CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);\n")
 		}
 	}
 	vtab.TclVarSet("res", "", "")
@@ -987,7 +987,7 @@ func Test_hook(t *testing.T) {
 	{ // "12.6"
 		_res = db.Exec("\n  INSERT INTO t4 VALUES('def', 3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t4.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t4.a", _res.Error, "\n  INSERT INTO t4 VALUES('def', 3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t4.a", resErrString(_res), "\n  INSERT INTO t4 VALUES('def', 3);\n")
 		}
 	}
 	db.Close()
@@ -1014,13 +1014,13 @@ func Test_hook(t *testing.T) {
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);\n")
 		}
 	}
 	{ // "13.1"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;\n")
 		}
 	}
 	{ // "hook-13.2" — skipped: preupdate ALTER TABLE ADD COLUMN old/new rendering N-A (SQL side effects only)

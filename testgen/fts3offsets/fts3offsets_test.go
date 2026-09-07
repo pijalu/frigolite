@@ -94,7 +94,7 @@ func Test_fts3offsets(t *testing.T) {
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE xx USING fts3(x);\n  INSERT INTO xx VALUES('A x x x B C x x');\n  INSERT INTO xx VALUES('A B C x B x x C');\n  INSERT INTO xx VALUES('A x x B C x x x');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE xx USING fts3(x);\n  INSERT INTO xx VALUES('A x x x B C x x');\n  INSERT INTO xx VALUES('A B C x B x x C');\n  INSERT INTO xx VALUES('A x x B C x x x');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE xx USING fts3(x);\n  INSERT INTO xx VALUES('A x x x B C x x');\n  INSERT INTO xx VALUES('A B C x B x x C');\n  INSERT INTO xx VALUES('A x x B C x x x');\n")
 		}
 	}
 	{ // "1.1.1"
@@ -112,7 +112,7 @@ func Test_fts3offsets(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  DELETE FROM xx;\n  INSERT INTO xx VALUES('A x x x B C x x');\n  INSERT INTO xx VALUES('A x x C x x x C');\n  INSERT INTO xx VALUES('A x x B C x x x');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM xx;\n  INSERT INTO xx VALUES('A x x x B C x x');\n  INSERT INTO xx VALUES('A x x C x x x C');\n  INSERT INTO xx VALUES('A x x B C x x x');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM xx;\n  INSERT INTO xx VALUES('A x x x B C x x');\n  INSERT INTO xx VALUES('A x x C x x x C');\n  INSERT INTO xx VALUES('A x x B C x x x');\n")
 		}
 	}
 	{ // "1.2.1"
@@ -130,7 +130,7 @@ func Test_fts3offsets(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec("\n  DELETE FROM xx;\n  INSERT INTO xx(rowid, x) VALUES(1, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(2, 'A x');\n  INSERT INTO xx(rowid, x) VALUES(3, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(4, 'A B C x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(5, 'A x x x x x x x x x C');\n  INSERT INTO xx(rowid, x) VALUES(6, 'A x x x x x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(7, 'A B C');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM xx;\n  INSERT INTO xx(rowid, x) VALUES(1, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(2, 'A x');\n  INSERT INTO xx(rowid, x) VALUES(3, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(4, 'A B C x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(5, 'A x x x x x x x x x C');\n  INSERT INTO xx(rowid, x) VALUES(6, 'A x x x x x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(7, 'A B C');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM xx;\n  INSERT INTO xx(rowid, x) VALUES(1, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(2, 'A x');\n  INSERT INTO xx(rowid, x) VALUES(3, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(4, 'A B C x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(5, 'A x x x x x x x x x C');\n  INSERT INTO xx(rowid, x) VALUES(6, 'A x x x x x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(7, 'A B C');\n")
 		}
 	}
 	{ // "1.3.1"
@@ -148,7 +148,7 @@ func Test_fts3offsets(t *testing.T) {
 	{ // "1.4"
 		_res = db.Exec("\n  DELETE FROM xx;\n  INSERT INTO xx(rowid, x) VALUES(7, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(6, 'A x');\n  INSERT INTO xx(rowid, x) VALUES(5, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(4, 'A B C x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(3, 'A x x x x x x x x x C');\n  INSERT INTO xx(rowid, x) VALUES(2, 'A x x x x x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(1, 'A B C');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM xx;\n  INSERT INTO xx(rowid, x) VALUES(7, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(6, 'A x');\n  INSERT INTO xx(rowid, x) VALUES(5, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(4, 'A B C x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(3, 'A x x x x x x x x x C');\n  INSERT INTO xx(rowid, x) VALUES(2, 'A x x x x x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(1, 'A B C');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM xx;\n  INSERT INTO xx(rowid, x) VALUES(7, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(6, 'A x');\n  INSERT INTO xx(rowid, x) VALUES(5, 'A B C');\n  INSERT INTO xx(rowid, x) VALUES(4, 'A B C x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(3, 'A x x x x x x x x x C');\n  INSERT INTO xx(rowid, x) VALUES(2, 'A x x x x x x x x x x x B');\n  INSERT INTO xx(rowid, x) VALUES(1, 'A B C');\n")
 		}
 	}
 	{ // "1.4.1"
@@ -166,7 +166,7 @@ func Test_fts3offsets(t *testing.T) {
 	{ // "1.5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts3(x);\n  INSERT INTO x1 VALUES('A A A');\n  INSERT INTO x1 VALUES('A A A');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts3(x);\n  INSERT INTO x1 VALUES('A A A');\n  INSERT INTO x1 VALUES('A A A');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts3(x);\n  INSERT INTO x1 VALUES('A A A');\n  INSERT INTO x1 VALUES('A A A');\n")
 		}
 	}
 	{ // "1.5.1"

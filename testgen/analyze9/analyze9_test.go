@@ -164,13 +164,13 @@ func Test_analyze9(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n")
 		}
 	}
 	{ // "1.2"
@@ -228,7 +228,7 @@ func Test_analyze9(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  BEGIN;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  BEGIN;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  BEGIN;\n")
 		}
 	}
 	{ // do_test "3.2"
@@ -306,7 +306,7 @@ func Test_analyze9(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(c, b, a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(c, b, a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(c, b, a);\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -471,7 +471,7 @@ func Test_analyze9(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sqlite_master;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	{ // "7.2"
@@ -533,7 +533,7 @@ func Test_analyze9(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1 VALUES('2');\n  INSERT INTO t1 VALUES('3');\n  INSERT INTO t1 VALUES('4');\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1 VALUES('2');\n  INSERT INTO t1 VALUES('3');\n  INSERT INTO t1 VALUES('4');\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1 VALUES('2');\n  INSERT INTO t1 VALUES('3');\n  INSERT INTO t1 VALUES('4');\n  ANALYZE;\n")
 		}
 	}
 	{ // "8.2"
@@ -558,7 +558,7 @@ func Test_analyze9(t *testing.T) {
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d);\n  CREATE INDEX i2 ON t1(e);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d);\n  CREATE INDEX i2 ON t1(e);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d);\n  CREATE INDEX i2 ON t1(e);\n")
 		}
 	}
 	{ // do_test "9.2"
@@ -654,7 +654,7 @@ func Test_analyze9(t *testing.T) {
 	{ // "10.1.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a, b);\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a, b);\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a, b);\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);\n")
 		}
 	}
 	{ // do_test "10.1.2"
@@ -705,7 +705,7 @@ func Test_analyze9(t *testing.T) {
 	{ // "10.2.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(x, a, b);\n  CREATE INDEX t3a ON t3(x, a);\n  CREATE INDEX t3b ON t3(x, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(x, a, b);\n  CREATE INDEX t3a ON t3(x, a);\n  CREATE INDEX t3b ON t3(x, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(x, a, b);\n  CREATE INDEX t3a ON t3(x, a);\n  CREATE INDEX t3b ON t3(x, b);\n")
 		}
 	}
 	{ // do_test "10.2.2"
@@ -1283,7 +1283,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "15.1"
 				_res = db.Exec("\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				}
 			}
 			db.Close()
@@ -1305,7 +1305,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "15.3"
 				_res = db.Exec("\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
 				}
 			}
 			db.Close()
@@ -1327,7 +1327,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "15.5"
 				_res = db.Exec("\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
 				}
 			}
 			db.Close()
@@ -1349,7 +1349,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "15.7"
 				_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
 				}
 			}
 			db.Close()
@@ -1371,7 +1371,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "15.9"
 				_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
 				}
 			}
 			db.Close()
@@ -1393,7 +1393,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "15.11"
 				_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
 				}
 			}
 			db.Close()
@@ -1492,7 +1492,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "17.1.2"
 				_res = db.Exec("\n  ANALYZE temp.t1;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.t1") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.t1", _res.Error, "\n  ANALYZE temp.t1;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.t1", resErrString(_res), "\n  ANALYZE temp.t1;\n")
 				}
 			}
 			{ // "17.2"
@@ -1510,7 +1510,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "17.4"
 				_res = db.Exec("\n  CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;\n")
 				}
 			}
 			{ // "17.5"
@@ -1626,7 +1626,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "20.2"
 				_res = db.Exec(" ANALYZE ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ANALYZE ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ANALYZE ")
 				}
 			}
 			vtab.TclVarSet("i", "", "0")
@@ -1666,7 +1666,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "21.0"
 				_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
 				}
 			}
 			{ // do_test "21.1"
@@ -1719,7 +1719,7 @@ func Test_analyze9(t *testing.T) {
 			{ // "22.1"
 				_res = db.Exec("\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
 				}
 			}
 			// foreach {tn where res} "1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}"
@@ -1744,7 +1744,7 @@ func Test_analyze9(t *testing.T) {
 				{ // "23.0"
 					_res = db.Exec("\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
 					}
 				}
 				{ // "23.1"
@@ -1762,7 +1762,7 @@ func Test_analyze9(t *testing.T) {
 				{ // "24.0"
 					_res = db.Exec("\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
 					}
 				}
 				// foreach {tn where eqp} "1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}"
@@ -1871,7 +1871,7 @@ func Test_analyze9(t *testing.T) {
 					{ // "26.2.1"
 						_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
 						}
 					}
 					{ // "26.2.2"

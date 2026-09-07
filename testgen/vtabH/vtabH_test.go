@@ -135,7 +135,7 @@ func Test_vtabH(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		}
 	}
 	// foreach {tn sql expect} "1 \"SELECT * FROM e6 WHERE b LIKE '8abc'\" {\n      xBestIndex \n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?}\n      xFilter\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?}\n         8ABC 8abd 8abc\n    }\n  \n    2 \"SELECT * FROM e6 WHERE b GLOB '8abc'\" {\n       xBestIndex\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b glob ?}\n       xFilter\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b glob ?}\n         8abc 8abd 8abc\n    }\n    3 \"SELECT * FROM e6 WHERE b LIKE '8e/'\" {\n      xBestIndex {SELECT rowid, a, b FROM 't6' WHERE b like ?}\n      xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8e/\n    }\n    4 \"SELECT * FROM e6 WHERE b GLOB '8e/'\" {\n      xBestIndex {SELECT rowid, a, b FROM 't6' WHERE b glob ?}\n      xFilter {SELECT rowid, a, b FROM 't6' WHERE b glob ?} 8e/\n    }"

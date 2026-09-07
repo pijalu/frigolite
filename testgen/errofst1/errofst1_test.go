@@ -59,13 +59,13 @@ func Test_errofst1(t *testing.T) {
 	{ // "errofst1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1 as select 1 as aa;\n  CREATE VIEW t2 AS\n     WITH t3 AS (SELECT 1 FROM t1 AS bb, t1 AS cc WHERE cc.aa <= sts.aa)\n     SELECT 1 FROM t3 AS dd;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 as select 1 as aa;\n  CREATE VIEW t2 AS\n     WITH t3 AS (SELECT 1 FROM t1 AS bb, t1 AS cc WHERE cc.aa <= sts.aa)\n     SELECT 1 FROM t3 AS dd;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 as select 1 as aa;\n  CREATE VIEW t2 AS\n     WITH t3 AS (SELECT 1 FROM t1 AS bb, t1 AS cc WHERE cc.aa <= sts.aa)\n     SELECT 1 FROM t3 AS dd;\n")
 		}
 	}
 	{ // "errofst1-1.2"
 		_res = db.Exec("\n  SELECT * FROM t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: sts.aa") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: sts.aa", _res.Error, "\n  SELECT * FROM t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: sts.aa", resErrString(_res), "\n  SELECT * FROM t2;\n")
 		}
 	}
 	{ // do_test "errofst1-1.3"

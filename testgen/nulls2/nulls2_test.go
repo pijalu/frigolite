@@ -83,7 +83,7 @@ func Test_nulls2(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c);\n\n    INSERT INTO t1 VALUES(1, 1, NULL);\n    INSERT INTO t1 VALUES(2, 2, NULL);\n\n    CREATE TABLE t2(d NOT NULL, e NOT NULL, f);\n    INSERT INTO t2 VALUES(1, 1, NULL);\n    INSERT INTO t2 VALUES(2, 2, NULL);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c);\n\n    INSERT INTO t1 VALUES(1, 1, NULL);\n    INSERT INTO t1 VALUES(2, 2, NULL);\n\n    CREATE TABLE t2(d NOT NULL, e NOT NULL, f);\n    INSERT INTO t2 VALUES(1, 1, NULL);\n    INSERT INTO t2 VALUES(2, 2, NULL);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b, c);\n\n    INSERT INTO t1 VALUES(1, 1, NULL);\n    INSERT INTO t1 VALUES(2, 2, NULL);\n\n    CREATE TABLE t2(d NOT NULL, e NOT NULL, f);\n    INSERT INTO t2 VALUES(1, 1, NULL);\n    INSERT INTO t2 VALUES(2, 2, NULL);\n  ")
 				}
 			}
 			_res = db.Exec(idx)
@@ -115,7 +115,7 @@ func Test_nulls2(t *testing.T) {
 				{ // "2." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE t1(a, b, c COLLATE nocase);\n    INSERT INTO t1 VALUES('one', 'two', 'THREE');\n    INSERT INTO t1 VALUES('four', 'five', 'SIX');\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c COLLATE nocase);\n    INSERT INTO t1 VALUES('one', 'two', 'THREE');\n    INSERT INTO t1 VALUES('four', 'five', 'SIX');\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b, c COLLATE nocase);\n    INSERT INTO t1 VALUES('one', 'two', 'THREE');\n    INSERT INTO t1 VALUES('four', 'five', 'SIX');\n  ")
 					}
 				}
 				_res = db.Exec(idx)

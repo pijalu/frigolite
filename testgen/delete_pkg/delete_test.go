@@ -666,7 +666,7 @@ func Test_delete(t *testing.T) {
 	{ // do_test "delete-8.1"
 		_res = db.Exec("\n    DELETE FROM t3;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n    DELETE FROM t3;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n    DELETE FROM t3;\n  ")
 		}
 	}
 	{ // do_test "delete-8.2"
@@ -678,7 +678,7 @@ func Test_delete(t *testing.T) {
 	{ // do_test "delete-8.3"
 		_res = db.Exec("\n    DELETE FROM t3 WHERE 1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n    DELETE FROM t3 WHERE 1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n    DELETE FROM t3 WHERE 1;\n  ")
 		}
 	}
 	{ // do_test "delete-8.4"
@@ -690,7 +690,7 @@ func Test_delete(t *testing.T) {
 	{ // do_test "delete-8.5"
 		_res = db.Exec("\n    DELETE FROM t3 WHERE a<100;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n    DELETE FROM t3 WHERE a<100;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n    DELETE FROM t3 WHERE a<100;\n  ")
 		}
 	}
 	{ // do_test "delete-8.6"
@@ -889,7 +889,7 @@ func Test_delete(t *testing.T) {
 	{ // "delete-10.1"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE a='1' AND b='2';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a='1' AND b='2';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE a='1' AND b='2';\n")
 		}
 	}
 	{ // "delete-10.2"

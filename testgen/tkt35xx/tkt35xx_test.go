@@ -92,13 +92,13 @@ func Test_tkt35xx(t *testing.T) {
 	{ // do_test "tkt35xx-1.2.2"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t5(e PRIMARY KEY, f);\n    DROP TABLE t5;\n    INSERT INTO t3(a, b) SELECT c, d FROM t4;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t3.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a", _res.Error, "\n    BEGIN;\n    CREATE TABLE t5(e PRIMARY KEY, f);\n    DROP TABLE t5;\n    INSERT INTO t3(a, b) SELECT c, d FROM t4;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a", resErrString(_res), "\n    BEGIN;\n    CREATE TABLE t5(e PRIMARY KEY, f);\n    DROP TABLE t5;\n    INSERT INTO t3(a, b) SELECT c, d FROM t4;\n  ")
 		}
 	}
 	{ // do_test "tkt35xx-1.2.3"
 		_res = db.Exec("BEGIN")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot start a transaction within a transaction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot start a transaction within a transaction", _res.Error, "BEGIN")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot start a transaction within a transaction", resErrString(_res), "BEGIN")
 		}
 	}
 	{ // do_test "tkt35xx-1.2.4"

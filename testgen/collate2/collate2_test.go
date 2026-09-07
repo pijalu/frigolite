@@ -762,7 +762,7 @@ func Test_collate2(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('b');\n  INSERT INTO t1 VALUES('B');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('b');\n  INSERT INTO t1 VALUES('B');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('b');\n  INSERT INTO t1 VALUES('B');\n")
 		}
 	}
 	{ // "6.2"

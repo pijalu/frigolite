@@ -67,13 +67,13 @@ func Test_index4(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(102));\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   512\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  1024\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  2048\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  4096\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  8192\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 16384\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 32768\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 65536\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(102));\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   512\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  1024\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  2048\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  4096\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  8192\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 16384\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 32768\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 65536\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(102));\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   512\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  1024\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  2048\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  4096\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  8192\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 16384\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 32768\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 65536\n  COMMIT;\n")
 		}
 	}
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE INDEX i1 ON t1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i1 ON t1(x);\n")
 		}
 	}
 	{ // "1.3"
@@ -127,13 +127,13 @@ func Test_index4(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(14);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(15);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(16);\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(14);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(15);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(16);\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(14);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(15);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(16);\n  COMMIT;\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX i3 ON t2(x);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.x", _res.Error, "\n  CREATE UNIQUE INDEX i3 ON t2(x);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.x", resErrString(_res), "\n  CREATE UNIQUE INDEX i3 ON t2(x);\n")
 		}
 	}
 }

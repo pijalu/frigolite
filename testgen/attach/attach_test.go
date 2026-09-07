@@ -141,31 +141,31 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-1.6"
 		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", _res.Error, "\n    SELECT * FROM t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", resErrString(_res), "\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "attach-1.7"
 		_res = db.Exec("\n    SELECT * FROM two.t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: two.t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: two.t2", _res.Error, "\n    SELECT * FROM two.t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: two.t2", resErrString(_res), "\n    SELECT * FROM two.t2;\n  ")
 		}
 	}
 	{ // do_test "attach-1.8"
 		_res = db.Exec("\n    ATTACH DATABASE 'test3.db' AS three;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test3.db' AS three;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH DATABASE 'test3.db' AS three;\n  ")
 		}
 	}
 	{ // do_test "attach-1.9"
 		_res = db.Exec("\n    SELECT * FROM three.sqlite_master;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM three.sqlite_master;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM three.sqlite_master;\n  ")
 		}
 	}
 	{ // do_test "attach-1.10"
 		_res = db.Exec("\n    DETACH DATABASE [three];\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DETACH DATABASE [three];\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DETACH DATABASE [three];\n  ")
 		}
 	}
 	{ // do_test "attach-1.11"
@@ -181,7 +181,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-1.12"
 		_res = db.Exec("\n    ATTACH 'test.db' as db2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database db2 is already in use") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database db2 is already in use", _res.Error, "\n    ATTACH 'test.db' as db2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database db2 is already in use", resErrString(_res), "\n    ATTACH 'test.db' as db2;\n  ")
 		}
 	}
 	{ // do_test "attach-1.12.2"
@@ -189,44 +189,44 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-1.13"
 		_res = db.Exec("\n    ATTACH 'test.db' as db5;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database db5 is already in use") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database db5 is already in use", _res.Error, "\n    ATTACH 'test.db' as db5;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database db5 is already in use", resErrString(_res), "\n    ATTACH 'test.db' as db5;\n  ")
 		}
 	}
 	{ // do_test "attach-1.14"
 		_res = db.Exec("\n    ATTACH 'test.db' as db9;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database db9 is already in use") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database db9 is already in use", _res.Error, "\n    ATTACH 'test.db' as db9;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database db9 is already in use", resErrString(_res), "\n    ATTACH 'test.db' as db9;\n  ")
 		}
 	}
 	{ // "attach-1.15"
 		_res = db.Exec("\n  ATTACH 'test.db' as main;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database main is already in use") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database main is already in use", _res.Error, "\n  ATTACH 'test.db' as main;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database main is already in use", resErrString(_res), "\n  ATTACH 'test.db' as main;\n")
 		}
 	}
 	{ // do_test "attach-1.16"
 		_res = db.Exec("\n      ATTACH 'test.db' as temp;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database temp is already in use") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database temp is already in use", _res.Error, "\n      ATTACH 'test.db' as temp;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database temp is already in use", resErrString(_res), "\n      ATTACH 'test.db' as temp;\n    ")
 		}
 	}
 	{ // "attach-1.17"
 		_res = db.Exec("\n  ATTACH 'test.db' as MAIN;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database MAIN is already in use") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database MAIN is already in use", _res.Error, "\n  ATTACH 'test.db' as MAIN;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database MAIN is already in use", resErrString(_res), "\n  ATTACH 'test.db' as MAIN;\n")
 		}
 	}
 	{ // do_test "attach-1.18"
 		_res = db.Exec("\n    ATTACH 'test.db' as db10;\n    ATTACH 'test.db' as db11;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db' as db10;\n    ATTACH 'test.db' as db11;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH 'test.db' as db10;\n    ATTACH 'test.db' as db11;\n  ")
 		}
 	}
 	if func() bool { SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return SQLITE_MAX_ATTACHED_n == 10 }() {
 		{ // do_test "attach-1.19"
 			_res = db.Exec("\n      ATTACH 'test.db' as db12;\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many attached databases - max 10") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many attached databases - max 10", _res.Error, "\n      ATTACH 'test.db' as db12;\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many attached databases - max 10", resErrString(_res), "\n      ATTACH 'test.db' as db12;\n    ")
 			}
 		}
 		{ // do_test "attach-1.19.1"
@@ -250,14 +250,14 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-1.21"
 		_res = db.Exec("\n    ATTACH 'test.db' as db12;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db' as db12;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH 'test.db' as db12;\n  ")
 		}
 	}
 	if func() bool { SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return SQLITE_MAX_ATTACHED_n == 10 }() {
 		{ // do_test "attach-1.22"
 			_res = db.Exec("\n      ATTACH 'test.db' as db13;\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many attached databases - max 10") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many attached databases - max 10", _res.Error, "\n      ATTACH 'test.db' as db13;\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many attached databases - max 10", resErrString(_res), "\n      ATTACH 'test.db' as db13;\n    ")
 			}
 		}
 		{ // do_test "attach-1.22.1"
@@ -266,37 +266,37 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-1.23"
 		_res = db.Exec("\n    DETACH \"db14\";\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such database: db14") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database: db14", _res.Error, "\n    DETACH \"db14\";\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database: db14", resErrString(_res), "\n    DETACH \"db14\";\n  ")
 		}
 	}
 	{ // do_test "attach-1.24"
 		_res = db.Exec("\n    DETACH db12;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DETACH db12;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DETACH db12;\n  ")
 		}
 	}
 	{ // do_test "attach-1.25"
 		_res = db.Exec("\n    DETACH db12;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such database: db12") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database: db12", _res.Error, "\n    DETACH db12;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database: db12", resErrString(_res), "\n    DETACH db12;\n  ")
 		}
 	}
 	{ // do_test "attach-1.26"
 		_res = db.Exec("\n    DETACH main;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot detach database main") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot detach database main", _res.Error, "\n    DETACH main;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot detach database main", resErrString(_res), "\n    DETACH main;\n  ")
 		}
 	}
 	{ // do_test "attach-1.27"
 		_res = db.Exec("\n      DETACH Temp;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot detach database Temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot detach database Temp", _res.Error, "\n      DETACH Temp;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot detach database Temp", resErrString(_res), "\n      DETACH Temp;\n    ")
 		}
 	}
 	{ // do_test "attach-1.28"
 		_res = db.Exec("\n    DETACH db11;\n    DETACH db10;\n    DETACH db9;\n    DETACH db8;\n    DETACH db7;\n    DETACH db6;\n    DETACH db4;\n    DETACH db3;\n    DETACH db2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DETACH db11;\n    DETACH db10;\n    DETACH db9;\n    DETACH db8;\n    DETACH db7;\n    DETACH db6;\n    DETACH db4;\n    DETACH db3;\n    DETACH db2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DETACH db11;\n    DETACH db10;\n    DETACH db9;\n    DETACH db8;\n    DETACH db7;\n    DETACH db6;\n    DETACH db4;\n    DETACH db3;\n    DETACH db2;\n  ")
 		}
 	}
 	{ // do_test "attach-1.29"
@@ -368,7 +368,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-2.13"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE x>5;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2 WHERE x>5;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2 WHERE x>5;\n  ")
 		}
 	}
 	{ // do_test "attach-2.14"
@@ -410,13 +410,13 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-3.2"
 		_res = db.Exec("\n    SELECT * FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", _res.Error, "\n    SELECT * FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", resErrString(_res), "\n    SELECT * FROM t2\n  ")
 		}
 	}
 	{ // do_test "attach-3.3"
 		_res = db.Exec("\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM t2\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM t2\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM t2\n  ")
 		}
 	}
 	{ // do_test "attach-3.4"
@@ -472,7 +472,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-3.9"
 		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t2")
 		}
 	}
 	{ // do_test "attach-3.10"
@@ -484,7 +484,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-3.11"
 		_res = db.Exec("UPDATE t1 SET a=a+1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=a+1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "UPDATE t1 SET a=a+1")
 		}
 	}
 	{ // do_test "attach-3.12"
@@ -496,7 +496,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-3.13"
 		_res = db.Exec("UPDATE t2 SET x=x+1 WHERE x=50")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "UPDATE t2 SET x=x+1 WHERE x=50")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "UPDATE t2 SET x=x+1 WHERE x=50")
 		}
 	}
 	_res = db.Exec("ROLLBACK")
@@ -506,7 +506,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-3.14"
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t1")
 		}
 	}
 	{ // do_test "attach-3.15"
@@ -629,61 +629,61 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-5.2"
 		_res = db2.Exec("\n    CREATE TABLE t5(x,y);\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(x,y);\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t5(x,y);\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
 		}
 	}
 	{ // do_test "attach-5.3"
 		_res = db2.Exec("\n    DROP TRIGGER r5;\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op' FROM orig.t1;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database orig") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database orig", _res.Error, "\n    DROP TRIGGER r5;\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op' FROM orig.t1;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database orig", resErrString(_res), "\n    DROP TRIGGER r5;\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op' FROM orig.t1;\n    END;\n  ")
 		}
 	}
 	{ // do_test "attach-5.4"
 		_res = db2.Exec("\n      CREATE TEMP TABLE t6(p,q,r);\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM temp.t6;\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", _res.Error, "\n      CREATE TEMP TABLE t6(p,q,r);\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM temp.t6;\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", resErrString(_res), "\n      CREATE TEMP TABLE t6(p,q,r);\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM temp.t6;\n      END;\n    ")
 		}
 	}
 	{ // do_test "attach-5.5"
 		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' || (SELECT * FROM temp.t6);\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", _res.Error, "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' || (SELECT * FROM temp.t6);\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", resErrString(_res), "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' || (SELECT * FROM temp.t6);\n      END;\n    ")
 		}
 	}
 	{ // do_test "attach-5.6"
 		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", _res.Error, "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", resErrString(_res), "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		}
 	}
 	{ // do_test "attach-5.7"
 		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", _res.Error, "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", resErrString(_res), "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		}
 	}
 	{ // do_test "attach-5.7"
 		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", _res.Error, "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", resErrString(_res), "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;\n      END;\n    ")
 		}
 	}
 	{ // do_test "attach-5.8"
 		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5);\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", _res.Error, "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5);\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", resErrString(_res), "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5);\n      END;\n    ")
 		}
 	}
 	{ // do_test "attach-5.9"
 		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r5 cannot reference objects in database temp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", _res.Error, "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r5 cannot reference objects in database temp", resErrString(_res), "\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		}
 	}
 	{ // do_test "attach-6.1"
 		_res = db.Exec("\n    ATTACH DATABASE 'no-such-file' AS nosuch;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'no-such-file' AS nosuch;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH DATABASE 'no-such-file' AS nosuch;\n  ")
 		}
 	}
 	if tcl_platform_platform == "unix" {
@@ -710,7 +710,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-6.3"
 		_res = db.Exec("\n    CREATE TABLE no_such_db.t1(a, b, c);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown database no_such_db") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database no_such_db", _res.Error, "\n    CREATE TABLE no_such_db.t1(a, b, c);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database no_such_db", resErrString(_res), "\n    CREATE TABLE no_such_db.t1(a, b, c);\n  ")
 		}
 	}
 	vtab.TclVarSet("i", "", "2")
@@ -777,7 +777,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-9.2"
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO aux1.t1 VALUES(3, 4);\n      INSERT INTO aux2.t1 VALUES(5, 6);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    BEGIN;\n      INSERT INTO aux1.t1 VALUES(3, 4);\n      INSERT INTO aux2.t1 VALUES(5, 6);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    BEGIN;\n      INSERT INTO aux1.t1 VALUES(3, 4);\n      INSERT INTO aux2.t1 VALUES(5, 6);\n  ")
 		}
 	}
 	{ // do_test "attach-9.3"

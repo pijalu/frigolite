@@ -64,7 +64,7 @@ func Test_unionall2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n\n  CREATE VIEW v1 AS SELECT * FROM t1, t2;\n  CREATE VIEW v2 AS SELECT * FROM t1, t2;\n\n  CREATE VIEW vA AS\n    SELECT * FROM v1, (\n      SELECT * FROM t1 LEFT JOIN t2 ON (a=c)\n    )\n    UNION ALL\n    SELECT * FROM v1, v2\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n\n  CREATE VIEW v1 AS SELECT * FROM t1, t2;\n  CREATE VIEW v2 AS SELECT * FROM t1, t2;\n\n  CREATE VIEW vA AS\n    SELECT * FROM v1, (\n      SELECT * FROM t1 LEFT JOIN t2 ON (a=c)\n    )\n    UNION ALL\n    SELECT * FROM v1, v2\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n\n  CREATE VIEW v1 AS SELECT * FROM t1, t2;\n  CREATE VIEW v2 AS SELECT * FROM t1, t2;\n\n  CREATE VIEW vA AS\n    SELECT * FROM v1, (\n      SELECT * FROM t1 LEFT JOIN t2 ON (a=c)\n    )\n    UNION ALL\n    SELECT * FROM v1, v2\n")
 		}
 	}
 	{ // "1.1"
@@ -76,7 +76,7 @@ func Test_unionall2(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE y1(a INTEGER, b);\n  CREATE TABLE y2(c INTEGER, d);\n\n  CREATE TABLE x3_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE x3_b(c INTEGER PRIMARY KEY, d TEXT);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a INTEGER, b);\n  CREATE TABLE y2(c INTEGER, d);\n\n  CREATE TABLE x3_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE x3_b(c INTEGER PRIMARY KEY, d TEXT);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE y1(a INTEGER, b);\n  CREATE TABLE y2(c INTEGER, d);\n\n  CREATE TABLE x3_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE x3_b(c INTEGER PRIMARY KEY, d TEXT);\n")
 		}
 	}
 	{ // "2.2"

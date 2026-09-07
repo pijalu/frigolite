@@ -1185,7 +1185,7 @@ func Test_like(t *testing.T) {
 	{ // "16.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER COLLATE NOCASE);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(' 1x');\n  INSERT INTO t1 VALUES(' 1-');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER COLLATE NOCASE);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(' 1x');\n  INSERT INTO t1 VALUES(' 1-');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER COLLATE NOCASE);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(' 1x');\n  INSERT INTO t1 VALUES(' 1-');\n")
 		}
 	}
 	{ // "16.1"

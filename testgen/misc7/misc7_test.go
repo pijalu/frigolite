@@ -250,7 +250,7 @@ func Test_misc7(t *testing.T) {
 	{ // "misc7-10.1"
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UPSERT not implemented for virtual table \"t1\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UPSERT not implemented for virtual table \"t1\"", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UPSERT not implemented for virtual table \"t1\"", resErrString(_res), "\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
 		}
 	}
 	{ // do_test "misc7-11"
@@ -284,7 +284,7 @@ func Test_misc7(t *testing.T) {
 	{ // "misc7-14.0"
 		_res = db.Exec("\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n  ")
 		}
 	}
 	{ // "misc7-14.1"

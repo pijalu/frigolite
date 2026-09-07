@@ -64,7 +64,7 @@ func Test_aggfault(t *testing.T) {
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX t1x ON t1(x, x=0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX t1x ON t1(x, x=0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE INDEX t1x ON t1(x, x=0);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

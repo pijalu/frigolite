@@ -69,7 +69,7 @@ func Test_hidden(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(__hidden__a, b);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1(__hidden__a, b) VALUES('x', 'y');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(__hidden__a, b);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1(__hidden__a, b) VALUES('x', 'y');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(__hidden__a, b);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1(__hidden__a, b) VALUES('x', 'y');\n")
 		}
 	}
 	{ // "1.2"
@@ -107,7 +107,7 @@ func Test_hidden(t *testing.T) {
 			{ // "2." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
 				}
 			}
 			_res = db.Exec(" DROP VIEW v1 ")
@@ -180,7 +180,7 @@ func Test_hidden(t *testing.T) {
 		{ // "3.2.1"
 			_res = db.Exec("\n  CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);\n")
 			}
 		}
 		{ // "3.2.2"
@@ -210,7 +210,7 @@ func Test_hidden(t *testing.T) {
 		{ // "3.3.1"
 			_res = db.Exec("\n  CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);\n")
 			}
 		}
 		{ // "3.3.2"
@@ -240,7 +240,7 @@ func Test_hidden(t *testing.T) {
 		{ // "3.4.1"
 			_res = db.Exec("\n  CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);\n")
 			}
 		}
 		{ // "3.4.2"

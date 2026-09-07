@@ -67,7 +67,7 @@ func Test_closure01(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y INTEGER);\n  WITH RECURSIVE\n    cnt(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM cnt LIMIT 131072)\n  INSERT INTO t1(x, y) SELECT i, nullif(i,1)/2 FROM cnt;\n  CREATE INDEX t1y ON t1(y);\n  COMMIT;\n  CREATE VIRTUAL TABLE cx \n   USING transitive_closure(tablename=t1, idcolumn=x, parentcolumn=y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y INTEGER);\n  WITH RECURSIVE\n    cnt(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM cnt LIMIT 131072)\n  INSERT INTO t1(x, y) SELECT i, nullif(i,1)/2 FROM cnt;\n  CREATE INDEX t1y ON t1(y);\n  COMMIT;\n  CREATE VIRTUAL TABLE cx \n   USING transitive_closure(tablename=t1, idcolumn=x, parentcolumn=y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y INTEGER);\n  WITH RECURSIVE\n    cnt(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM cnt LIMIT 131072)\n  INSERT INTO t1(x, y) SELECT i, nullif(i,1)/2 FROM cnt;\n  CREATE INDEX t1y ON t1(y);\n  COMMIT;\n  CREATE VIRTUAL TABLE cx \n   USING transitive_closure(tablename=t1, idcolumn=x, parentcolumn=y);\n")
 		}
 	}
 	{ // "1.1"
@@ -374,19 +374,19 @@ func Test_closure01(t *testing.T) {
 	{ // do_test "4.1"
 		_res = db.Exec("\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t3'\n       AND idcolumn='y'\n       AND parentcolumn='x';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t3", _res.Error, "\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t3'\n       AND idcolumn='y'\n       AND parentcolumn='x';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t3", resErrString(_res), "\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t3'\n       AND idcolumn='y'\n       AND parentcolumn='x';\n  ")
 		}
 	}
 	{ // do_test "4.2"
 		_res = db.Exec("\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='xyz'\n       AND parentcolumn='x';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t2.xyz") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.xyz", _res.Error, "\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='xyz'\n       AND parentcolumn='x';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.xyz", resErrString(_res), "\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='xyz'\n       AND parentcolumn='x';\n  ")
 		}
 	}
 	{ // do_test "4.3"
 		_res = db.Exec("\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='x'\n       AND parentcolumn='pqr';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t2.pqr") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.pqr", _res.Error, "\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='x'\n       AND parentcolumn='pqr';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.pqr", resErrString(_res), "\n    SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='x'\n       AND parentcolumn='pqr';\n  ")
 		}
 	}
 	{ // "5.1"
@@ -404,7 +404,7 @@ func Test_closure01(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t4 (\n    id INTEGER PRIMARY KEY, \n    name TEXT NOT NULL,\n    parent_id INTEGER\n  );\n  CREATE VIRTUAL TABLE vt4 USING transitive_closure (\n    idcolumn=id, parentcolumn=parent_id, tablename=t4\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4 (\n    id INTEGER PRIMARY KEY, \n    name TEXT NOT NULL,\n    parent_id INTEGER\n  );\n  CREATE VIRTUAL TABLE vt4 USING transitive_closure (\n    idcolumn=id, parentcolumn=parent_id, tablename=t4\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4 (\n    id INTEGER PRIMARY KEY, \n    name TEXT NOT NULL,\n    parent_id INTEGER\n  );\n  CREATE VIRTUAL TABLE vt4 USING transitive_closure (\n    idcolumn=id, parentcolumn=parent_id, tablename=t4\n  );\n")
 		}
 	}
 	{ // "6.1"

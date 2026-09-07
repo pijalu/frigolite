@@ -575,43 +575,43 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-5.1.1"
 		_res = db.Exec(" SELECT randomblob(2147483647) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, " SELECT randomblob(2147483647) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), " SELECT randomblob(2147483647) ")
 		}
 	}
 	{ // do_test "sqllimits1-5.1.2"
 		_res = db.Exec(" SELECT zeroblob(2147483647) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, " SELECT zeroblob(2147483647) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), " SELECT zeroblob(2147483647) ")
 		}
 	}
 	{ // do_test "sqllimits1-5.2"
 		_res = db.Exec(" SELECT LENGTH(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT LENGTH(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT LENGTH(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		}
 	}
 	{ // do_test "sqllimits1-5.3"
 		_res = db.Exec(" SELECT quote(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, " SELECT quote(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), " SELECT quote(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		}
 	}
 	{ // do_test "sqllimits1-5.4"
 		_res = db.Exec(" SELECT LENGTH(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT LENGTH(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT LENGTH(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		}
 	}
 	{ // do_test "sqllimits1-5.5"
 		_res = db.Exec(" SELECT quote(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, " SELECT quote(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), " SELECT quote(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		}
 	}
 	{ // do_test "sqllimits1-5.6"
 		_res = db.Exec(" SELECT zeroblob(-1) ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT zeroblob(-1) ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT zeroblob(-1) ")
 		}
 	}
 	{ // do_test "sqllimits1-5.9"
@@ -779,13 +779,13 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-5.16"
 		_res = db.Exec("SELECT '" + strvalue + "' AS x")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT '" + strvalue + "' AS x")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT '" + strvalue + "' AS x")
 		}
 	}
 	{ // do_test "sqllimits1-5.17.1"
 		_res = db.Exec("SELECT 'A" + strvalue + "'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "SELECT 'A" + strvalue + "'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "SELECT 'A" + strvalue + "'")
 		}
 	}
 	{ // do_test "sqllimits1-5.17.2"
@@ -802,13 +802,13 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-5.18"
 		_res = db.Exec("SELECT x'" + blobvalue + "' AS x")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT x'" + blobvalue + "' AS x")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT x'" + blobvalue + "' AS x")
 		}
 	}
 	{ // do_test "sqllimits1-5.19"
 		_res = db.Exec("SELECT '41" + blobvalue + "'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "SELECT '41" + blobvalue + "'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "SELECT '41" + blobvalue + "'")
 		}
 	}
 	strvalue = tclStringRepeat("D", tclExprWith("$SQLITE_LIMIT_LENGTH-11", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH}))
@@ -816,13 +816,13 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-5.20"
 		_res = db.Exec("SELECT strftime('%Y ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT strftime('%Y ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT strftime('%Y ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
 		}
 	}
 	{ // do_test "sqllimits1-5.21"
 		_res = db.Exec("SELECT strftime('%Y-%m-%d ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "SELECT strftime('%Y-%m-%d ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "SELECT strftime('%Y-%m-%d ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
 		}
 	}
 	{ // do_test "sqllimits1-6.1"
@@ -916,13 +916,13 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-7.5"
 		_res = db.Exec("\n    INSERT INTO trig VALUES (1,10);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, "\n    INSERT INTO trig VALUES (1,10);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), "\n    INSERT INTO trig VALUES (1,10);\n  ")
 		}
 	}
 	{ // do_test "sqllimits1-7.6"
 		_res = db.Exec("\n    SELECT COUNT(*) FROM trig;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT COUNT(*) FROM trig;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT COUNT(*) FROM trig;\n  ")
 		}
 	}
 	if tclBool(tclExecSQL(db, "PRAGMA auto_vacuum")) {
@@ -1052,13 +1052,13 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-8.5"
 		_res = db.Exec("SELECT * FROM t1 GROUP BY " + strings.Join(tclSplitList(cols), ","))
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many terms in GROUP BY clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in GROUP BY clause", _res.Error, "SELECT * FROM t1 GROUP BY " + strings.Join(tclSplitList(cols), ","))
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in GROUP BY clause", resErrString(_res), "SELECT * FROM t1 GROUP BY " + strings.Join(tclSplitList(cols), ","))
 		}
 	}
 	{ // do_test "sqllimits1-8.6"
 		_res = db.Exec("SELECT * FROM t1 ORDER BY " + strings.Join(tclSplitList(cols), ","))
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many terms in ORDER BY clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in ORDER BY clause", _res.Error, "SELECT * FROM t1 ORDER BY " + strings.Join(tclSplitList(cols), ","))
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in ORDER BY clause", resErrString(_res), "SELECT * FROM t1 ORDER BY " + strings.Join(tclSplitList(cols), ","))
 		}
 	}
 	{ // do_test "sqllimits1-8.7"
@@ -1245,7 +1245,7 @@ func Test_sqllimits1(t *testing.T) {
 			{ // do_test "sqllimits1-9.4"
 				_res = db.Exec("\n      SELECT a FROM v199\n    ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Expression tree is too large (maximum depth " + SQLITE_MAX_EXPR_DEPTH + ")") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Expression tree is too large (maximum depth " + SQLITE_MAX_EXPR_DEPTH + ")", _res.Error, "\n      SELECT a FROM v199\n    ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Expression tree is too large (maximum depth " + SQLITE_MAX_EXPR_DEPTH + ")", resErrString(_res), "\n      SELECT a FROM v199\n    ")
 				}
 			}
 		}
@@ -1442,7 +1442,7 @@ func Test_sqllimits1(t *testing.T) {
 	{ // "sqllimits1.17.0"
 		_res = db.Exec("\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n    SELECT 1,2,3,4,5,6,7,8,9,10\n  )\n  ))))\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many columns in result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many columns in result set", _res.Error, "\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n    SELECT 1,2,3,4,5,6,7,8,9,10\n  )\n  ))))\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many columns in result set", resErrString(_res), "\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n    SELECT 1,2,3,4,5,6,7,8,9,10\n  )\n  ))))\n")
 		}
 	}
 	// foreach {key value} "array get saved"
@@ -1468,20 +1468,20 @@ func Test_sqllimits1(t *testing.T) {
 		{ // "sqllimits1-17.1"
 			_res = db.Exec("\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
 			}
 		}
 		db.SetLimit("SQLITE_LIMIT_COMPOUND_SELECT", toInt(10))
 		{ // "sqllimits1-18.1"
 			_res = db.Exec("\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
 			}
 		}
 		{ // "sqllimits1-18.2"
 			_res = db.Exec("\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);\n")
 			}
 		}
 		db.Close()

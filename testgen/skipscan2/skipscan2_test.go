@@ -62,13 +62,13 @@ func Test_skipscan2(t *testing.T) {
 	{ // "skipscan2-1.1"
 		_res = db.Exec("\n  CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);\n")
 		}
 	}
 	{ // "skipscan2-1.2"
 		_res = db.Exec("\n  INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);\n")
 		}
 	}
 	{ // "skipscan2-1.3"
@@ -98,7 +98,7 @@ func Test_skipscan2(t *testing.T) {
 	{ // "skipscan2-1.4"
 		_res = db.Exec("\n  ANALYZE;\n  -- We do not have enough people above to actually force the use\n  -- of a skip-scan.  So make a manual adjustment to the stat1 table\n  -- to make it seem like there are many more.\n  UPDATE sqlite_stat1 SET stat='10000 5000 20' WHERE idx='people_idx1';\n  UPDATE sqlite_stat1 SET stat='10000 1' WHERE idx='sqlite_autoindex_people_1';\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  -- We do not have enough people above to actually force the use\n  -- of a skip-scan.  So make a manual adjustment to the stat1 table\n  -- to make it seem like there are many more.\n  UPDATE sqlite_stat1 SET stat='10000 5000 20' WHERE idx='people_idx1';\n  UPDATE sqlite_stat1 SET stat='10000 1' WHERE idx='sqlite_autoindex_people_1';\n  ANALYZE sqlite_master;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n  -- We do not have enough people above to actually force the use\n  -- of a skip-scan.  So make a manual adjustment to the stat1 table\n  -- to make it seem like there are many more.\n  UPDATE sqlite_stat1 SET stat='10000 5000 20' WHERE idx='people_idx1';\n  UPDATE sqlite_stat1 SET stat='10000 1' WHERE idx='sqlite_autoindex_people_1';\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	{ // "skipscan2-1.5"
@@ -260,7 +260,7 @@ func Test_skipscan2(t *testing.T) {
 	{ // "skipscan2-2.4"
 		_res = db.Exec("\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n")
 		}
 	}
 	{ // "skipscan2-2.5"
@@ -290,7 +290,7 @@ func Test_skipscan2(t *testing.T) {
 	{ // "skipscan2-3.1"
 		_res = db.Exec("\n  CREATE TABLE t3(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
 		}
 	}
 	{ // do_test "skipscan2-3.2"

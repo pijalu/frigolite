@@ -145,7 +145,7 @@ func Test_without_rowid1(t *testing.T) {
 	{ // do_test "without_rowid1-1.21"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('dynamic','phone','flipper','harvard');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c, t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c, t1.a", _res.Error, "\n    INSERT INTO t1 VALUES('dynamic','phone','flipper','harvard');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c, t1.a", resErrString(_res), "\n    INSERT INTO t1 VALUES('dynamic','phone','flipper','harvard');\n  ")
 		}
 	}
 	{ // "without_rowid1-1.22"
@@ -293,14 +293,14 @@ func Test_without_rowid1(t *testing.T) {
 	{ // "2.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		}
 	}
 	// do_execsql_test_if_vtab 2.3.2 {\n  SELECT name, coll, key FROM pragma_index_xinfo...} {b BINARY 1 a BINA... (unsupported command, not transpiled)
 	{ // "2.4.1"
 		_res = db.Exec("\n  CREATE TABLE t6 (\n    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t6(a, b, c) VALUES('abc', 'def', 'ghi');\n  UPDATE t6 SET a='ABC', c='ghi';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6 (\n    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t6(a, b, c) VALUES('abc', 'def', 'ghi');\n  UPDATE t6 SET a='ABC', c='ghi';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6 (\n    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t6(a, b, c) VALUES('abc', 'def', 'ghi');\n  UPDATE t6 SET a='ABC', c='ghi';\n")
 		}
 	}
 	{ // "2.4.2"
@@ -326,7 +326,7 @@ func Test_without_rowid1(t *testing.T) {
 	{ // "3.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(b);\n\n  CREATE TABLE t2(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i2 ON t2(b);\n\n  INSERT INTO t1 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'two');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(b);\n\n  CREATE TABLE t2(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i2 ON t2(b);\n\n  INSERT INTO t1 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'two');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(b);\n\n  CREATE TABLE t2(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i2 ON t2(b);\n\n  INSERT INTO t1 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'two');\n")
 		}
 	}
 	{ // "3.1.2"
@@ -356,7 +356,7 @@ func Test_without_rowid1(t *testing.T) {
 	{ // "3.1.4"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES('four', 'four');\n  INSERT INTO t2 VALUES('six', 'two');\n  INSERT INTO t1 SELECT * FROM t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", _res.Error, "\n  INSERT INTO t2 VALUES('four', 'four');\n  INSERT INTO t2 VALUES('six', 'two');\n  INSERT INTO t1 SELECT * FROM t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", resErrString(_res), "\n  INSERT INTO t2 VALUES('four', 'four');\n  INSERT INTO t2 VALUES('six', 'two');\n  INSERT INTO t1 SELECT * FROM t2;\n")
 		}
 	}
 	{ // "3.1.5"
@@ -398,7 +398,7 @@ func Test_without_rowid1(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t45(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE INDEX i45 ON t45(b);\n\n  INSERT INTO t45 VALUES(2, 'one', 'x');\n  INSERT INTO t45 VALUES(4, 'one', 'x');\n  INSERT INTO t45 VALUES(6, 'one', 'x');\n  INSERT INTO t45 VALUES(8, 'one', 'x');\n  INSERT INTO t45 VALUES(10, 'one', 'x');\n\n  INSERT INTO t45 VALUES(1, 'two', 'x');\n  INSERT INTO t45 VALUES(3, 'two', 'x');\n  INSERT INTO t45 VALUES(5, 'two', 'x');\n  INSERT INTO t45 VALUES(7, 'two', 'x');\n  INSERT INTO t45 VALUES(9, 'two', 'x');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t45(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE INDEX i45 ON t45(b);\n\n  INSERT INTO t45 VALUES(2, 'one', 'x');\n  INSERT INTO t45 VALUES(4, 'one', 'x');\n  INSERT INTO t45 VALUES(6, 'one', 'x');\n  INSERT INTO t45 VALUES(8, 'one', 'x');\n  INSERT INTO t45 VALUES(10, 'one', 'x');\n\n  INSERT INTO t45 VALUES(1, 'two', 'x');\n  INSERT INTO t45 VALUES(3, 'two', 'x');\n  INSERT INTO t45 VALUES(5, 'two', 'x');\n  INSERT INTO t45 VALUES(7, 'two', 'x');\n  INSERT INTO t45 VALUES(9, 'two', 'x');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t45(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE INDEX i45 ON t45(b);\n\n  INSERT INTO t45 VALUES(2, 'one', 'x');\n  INSERT INTO t45 VALUES(4, 'one', 'x');\n  INSERT INTO t45 VALUES(6, 'one', 'x');\n  INSERT INTO t45 VALUES(8, 'one', 'x');\n  INSERT INTO t45 VALUES(10, 'one', 'x');\n\n  INSERT INTO t45 VALUES(1, 'two', 'x');\n  INSERT INTO t45 VALUES(3, 'two', 'x');\n  INSERT INTO t45 VALUES(5, 'two', 'x');\n  INSERT INTO t45 VALUES(7, 'two', 'x');\n  INSERT INTO t45 VALUES(9, 'two', 'x');\n")
 		}
 	}
 	{ // "5.1"
@@ -434,7 +434,7 @@ func Test_without_rowid1(t *testing.T) {
 	{ // "5.4"
 		_res = db.Exec("\n  CREATE TABLE t46(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH r(x) AS (\n    SELECT 1 UNION ALL SELECT x+1 FROM r WHERE x<100\n  )\n  INSERT INTO t46 SELECT x / 20, x % 20, x % 10, x FROM r;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t46(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH r(x) AS (\n    SELECT 1 UNION ALL SELECT x+1 FROM r WHERE x<100\n  )\n  INSERT INTO t46 SELECT x / 20, x % 20, x % 10, x FROM r;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t46(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH r(x) AS (\n    SELECT 1 UNION ALL SELECT x+1 FROM r WHERE x<100\n  )\n  INSERT INTO t46 SELECT x / 20, x % 20, x % 10, x FROM r;\n")
 		}
 	}
 	vtab.TclVarSet("queries", "", "\n  1    2    \"c = 5 AND a = 1\"          {i46 (c=? AND a=?)}\n  2    6    \"c = 4 AND a < 3\"          {i46 (c=? AND a<?)}\n  3    4    \"c = 2 AND a >= 3\"         {i46 (c=? AND a>?)}\n  4    1    \"c = 2 AND a = 1 AND b<10\" {i46 (c=? AND a=? AND b<?)}\n  5    1    \"c = 0 AND a = 0 AND b>5\"  {i46 (c=? AND a=? AND b>?)}\n")
@@ -468,7 +468,7 @@ func Test_without_rowid1(t *testing.T) {
 		{ // "5.6"
 			_res = db.Exec("\n  CREATE INDEX i46 ON t46(c);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i46 ON t46(c);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i46 ON t46(c);\n")
 			}
 		}
 		// foreach {tn cnt where eqp} queries
@@ -513,19 +513,19 @@ func Test_without_rowid1(t *testing.T) {
 			{ // "7.1"
 				_res = db.Exec("\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")
 				}
 			}
 			{ // "7.2"
 				_res = db.Exec("\n  INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: rowid!=33") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: rowid!=33", _res.Error, "\n  INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: rowid!=33", resErrString(_res), "\n  INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');\n")
 				}
 			}
 			{ // "7.3"
 				_res = db.Exec("\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
 				}
 			}
 			db.Close()
@@ -547,13 +547,13 @@ func Test_without_rowid1(t *testing.T) {
 			{ // "9.0"
 				_res = db.Exec("\n  CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';\n")
 				}
 			}
 			{ // "10.1"
 				_res = db.Exec("\n  DELETE FROM t2 WHERE b=1\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2 WHERE b=1\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2 WHERE b=1\n")
 				}
 			}
 			db.Close()
@@ -566,37 +566,37 @@ func Test_without_rowid1(t *testing.T) {
 			{ // "10.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
 				}
 			}
 			{ // "10.1"
 				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
 				}
 			}
 			{ // "10.2"
 				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'b');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'b');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'b');\n")
 				}
 			}
 			{ // "10.3"
 				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'a');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'a');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'a');\n")
 				}
 			}
 			{ // "10.4"
 				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'b');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'b');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'b');\n")
 				}
 			}
 			{ // "10.5"
 				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
 				}
 			}
 			{ // "10.6"
@@ -702,19 +702,19 @@ func Test_without_rowid1(t *testing.T) {
 			{ // "16.1"
 				_res = db.Exec("\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
 				}
 			}
 			{ // "16.2"
 				_res = db.Exec("\n  CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;\n")
 				}
 			}
 			{ // "16.3"
 				_res = db.Exec("\n  CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;\n")
 				}
 			}
 }

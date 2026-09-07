@@ -89,7 +89,7 @@ func Test_dbdata(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1(rowid, a ,b) VALUES(5, 'v', 'five');\n  INSERT INTO t1(rowid, a, b) VALUES(10, 'x', 'ten');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1(rowid, a ,b) VALUES(5, 'v', 'five');\n  INSERT INTO t1(rowid, a, b) VALUES(10, 'x', 'ten');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1(rowid, a ,b) VALUES(5, 'v', 'five');\n  INSERT INTO t1(rowid, a, b) VALUES(10, 'x', 'ten');\n")
 		}
 	}
 	{ // "1.1"
@@ -133,7 +133,7 @@ func Test_dbdata(t *testing.T) {
 	{ // "1.4"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(NULL, randomblob(5050));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(NULL, randomblob(5050));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(NULL, randomblob(5050));\n")
 		}
 	}
 	{ // do_test "1.5"
@@ -153,7 +153,7 @@ func Test_dbdata(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT randomblob(900) FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT randomblob(900) FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT randomblob(900) FROM s;\n")
 		}
 	}
 	{ // "2.1"

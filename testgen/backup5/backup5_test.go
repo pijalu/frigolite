@@ -71,7 +71,7 @@ func Test_backup5(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n")
 		}
 	}
 	{ // do_test "1.1"
@@ -156,7 +156,7 @@ func Test_backup5(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(a);\n  ATTACH 'test2.db' AS aux2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(a);\n  ATTACH 'test2.db' AS aux2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(a);\n  ATTACH 'test2.db' AS aux2;\n")
 		}
 	}
 	db2, err = frigolite.Open("test2.db")
@@ -186,7 +186,7 @@ func Test_backup5(t *testing.T) {
 	{ // "2.2"
 		_res = db.Exec("\n  CREATE TABLE aux7.t3(a, b);\n  CREATE TABLE aux7.t4(a, b);\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 2);\n  INSERT INTO t4 VALUES(3, 3);\n  CREATE INDEX aux7.i3 ON t3(a);\n  CREATE INDEX aux7.i4 ON t4(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE aux7.t3(a, b);\n  CREATE TABLE aux7.t4(a, b);\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 2);\n  INSERT INTO t4 VALUES(3, 3);\n  CREATE INDEX aux7.i3 ON t3(a);\n  CREATE INDEX aux7.i4 ON t4(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE aux7.t3(a, b);\n  CREATE TABLE aux7.t4(a, b);\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 2);\n  INSERT INTO t4 VALUES(3, 3);\n  CREATE INDEX aux7.i3 ON t3(a);\n  CREATE INDEX aux7.i4 ON t4(a);\n")
 		}
 	}
 	db2, err = frigolite.Open("test2.db")
@@ -237,7 +237,7 @@ func Test_backup5(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(y, x);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(y, x);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(y, x);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
 		}
 	}
 	os.Remove("test.db2")
@@ -248,7 +248,7 @@ func Test_backup5(t *testing.T) {
 	{ // "3.1"
 		_res = db2.Exec("\n  ATTACH 'test.db3' AS aux;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db3' AS aux;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db3' AS aux;\n")
 		}
 	}
 	{ // do_test "3.2"

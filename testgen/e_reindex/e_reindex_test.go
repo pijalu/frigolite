@@ -94,50 +94,50 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-0.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b, a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b, a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b, a);\n")
 		}
 	}
 	{ // e_reindex-e_reindex-0.1 (do_select_tests)
 		{ // e_reindex-e_reindex-0.1.1
 			_res = db.Exec("REINDEX")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX")
 			}
 		}
 		{ // e_reindex-e_reindex-0.1.2
 			_res = db.Exec("REINDEX nocase")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX nocase")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX nocase")
 			}
 		}
 		{ // e_reindex-e_reindex-0.1.3
 			_res = db.Exec("REINDEX binary")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX binary")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX binary")
 			}
 		}
 		{ // e_reindex-e_reindex-0.1.4
 			_res = db.Exec("REINDEX t1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX t1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX t1")
 			}
 		}
 		{ // e_reindex-e_reindex-0.1.5
 			_res = db.Exec("REINDEX main.t1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX main.t1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX main.t1")
 			}
 		}
 		{ // e_reindex-e_reindex-0.1.6
 			_res = db.Exec("REINDEX i1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX i1")
 			}
 		}
 		{ // e_reindex-e_reindex-0.1.7
 			_res = db.Exec("REINDEX main.i1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX main.i1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX main.i1")
 			}
 		}
 	}
@@ -230,7 +230,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(x);\n  CREATE INDEX i1_a ON t1(x COLLATE collA);\n  CREATE INDEX i1_b ON t1(x COLLATE collB);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');\n  INSERT INTO t1 VALUES('four');\n  INSERT INTO t1 VALUES('five');\n  INSERT INTO t1 VALUES('six');\n  INSERT INTO t1 VALUES('seven');\n  INSERT INTO t1 VALUES('eight');\n\n  CREATE TABLE t2(x);\n  CREATE INDEX i2_a ON t2(x COLLATE collA);\n  CREATE INDEX i2_b ON t2(x COLLATE collB);\n  INSERT INTO t2 SELECT x FROM t1;\n\n  CREATE TABLE aux.t1(x);\n  CREATE INDEX aux.i1_a ON t1(x COLLATE collA);\n  CREATE INDEX aux.i1_b ON t1(x COLLATE collB);\n  INSERT INTO aux.t1 SELECT x FROM main.t1;\n\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(x);\n  CREATE INDEX i1_a ON t1(x COLLATE collA);\n  CREATE INDEX i1_b ON t1(x COLLATE collB);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');\n  INSERT INTO t1 VALUES('four');\n  INSERT INTO t1 VALUES('five');\n  INSERT INTO t1 VALUES('six');\n  INSERT INTO t1 VALUES('seven');\n  INSERT INTO t1 VALUES('eight');\n\n  CREATE TABLE t2(x);\n  CREATE INDEX i2_a ON t2(x COLLATE collA);\n  CREATE INDEX i2_b ON t2(x COLLATE collB);\n  INSERT INTO t2 SELECT x FROM t1;\n\n  CREATE TABLE aux.t1(x);\n  CREATE INDEX aux.i1_a ON t1(x COLLATE collA);\n  CREATE INDEX aux.i1_b ON t1(x COLLATE collB);\n  INSERT INTO aux.t1 SELECT x FROM main.t1;\n\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(x);\n  CREATE INDEX i1_a ON t1(x COLLATE collA);\n  CREATE INDEX i1_b ON t1(x COLLATE collB);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');\n  INSERT INTO t1 VALUES('four');\n  INSERT INTO t1 VALUES('five');\n  INSERT INTO t1 VALUES('six');\n  INSERT INTO t1 VALUES('seven');\n  INSERT INTO t1 VALUES('eight');\n\n  CREATE TABLE t2(x);\n  CREATE INDEX i2_a ON t2(x COLLATE collA);\n  CREATE INDEX i2_b ON t2(x COLLATE collB);\n  INSERT INTO t2 SELECT x FROM t1;\n\n  CREATE TABLE aux.t1(x);\n  CREATE INDEX aux.i1_a ON t1(x COLLATE collA);\n  CREATE INDEX aux.i1_b ON t1(x COLLATE collB);\n  INSERT INTO aux.t1 SELECT x FROM main.t1;\n\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -245,7 +245,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.2.1"
 		_res = db.Exec("REINDEX")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX")
 		}
 	}
 	// test_index 2.2 t1 collA value (unsupported command, not transpiled)
@@ -258,7 +258,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.3.1"
 		_res = db.Exec("REINDEX collA")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX collA")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX collA")
 		}
 	}
 	// test_index 3.2 t1 collA length (unsupported command, not transpiled)
@@ -270,7 +270,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.3.8"
 		_res = db.Exec("REINDEX collB")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX collB")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX collB")
 		}
 	}
 	// test_index 3.9 t1 collA length (unsupported command, not transpiled)
@@ -283,7 +283,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.4.1"
 		_res = db.Exec("REINDEX t1")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX t1")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX t1")
 		}
 	}
 	// test_index 4.2 t1 collA value (unsupported command, not transpiled)
@@ -295,7 +295,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.4.8"
 		_res = db.Exec("REINDEX aux.t1")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX aux.t1")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX aux.t1")
 		}
 	}
 	// test_index 4.9 t1 collA value (unsupported command, not transpiled)
@@ -307,7 +307,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.4.15"
 		_res = db.Exec("REINDEX t2")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX t2")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX t2")
 		}
 	}
 	// test_index 4.16 t1 collA value (unsupported command, not transpiled)
@@ -320,7 +320,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.5.1"
 		_res = db.Exec("REINDEX i1_a")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i1_a")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX i1_a")
 		}
 	}
 	// test_index 5.2 t1 collA length (unsupported command, not transpiled)
@@ -332,7 +332,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.5.8"
 		_res = db.Exec("REINDEX i2_b")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i2_b")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX i2_b")
 		}
 	}
 	// test_index 5.9 t1 collA length (unsupported command, not transpiled)
@@ -344,7 +344,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.5.15"
 		_res = db.Exec("REINDEX aux.i1_b")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX aux.i1_b")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX aux.i1_b")
 		}
 	}
 	// test_index 5.16 t1 collA length (unsupported command, not transpiled)
@@ -356,7 +356,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.5.22"
 		_res = db.Exec("REINDEX i1_b")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i1_b")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX i1_b")
 		}
 	}
 	// test_index 5.23 t1 collA length (unsupported command, not transpiled)
@@ -368,7 +368,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.5.29"
 		_res = db.Exec("REINDEX i2_a")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i2_a")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX i2_a")
 		}
 	}
 	// test_index 5.30 t1 collA length (unsupported command, not transpiled)
@@ -380,7 +380,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.5.36"
 		_res = db.Exec("REINDEX aux.i1_a")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX aux.i1_a")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX aux.i1_a")
 		}
 	}
 	// test_index 5.37 t1 collA length (unsupported command, not transpiled)
@@ -393,7 +393,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.6.0"
 		_res = db.Exec("\n  CREATE TABLE collA(x);\n  CREATE INDEX icolla_a ON collA(x COLLATE collA);\n  CREATE INDEX icolla_b ON collA(x COLLATE collB);\n\n  INSERT INTO collA SELECT x FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE collA(x);\n  CREATE INDEX icolla_a ON collA(x COLLATE collA);\n  CREATE INDEX icolla_b ON collA(x COLLATE collB);\n\n  INSERT INTO collA SELECT x FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE collA(x);\n  CREATE INDEX icolla_a ON collA(x COLLATE collA);\n  CREATE INDEX icolla_b ON collA(x COLLATE collB);\n\n  INSERT INTO collA SELECT x FROM t1;\n")
 		}
 	}
 	// test_index 6.1 collA collA value (unsupported command, not transpiled)
@@ -402,7 +402,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.6.3"
 		_res = db.Exec("REINDEX collA")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX collA")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX collA")
 		}
 	}
 	// test_index 6.4 collA collA length (unsupported command, not transpiled)
@@ -410,7 +410,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.6.3"
 		_res = db.Exec("REINDEX main.collA")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX main.collA")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX main.collA")
 		}
 	}
 	// test_index 6.4 collA collA length (unsupported command, not transpiled)
@@ -419,7 +419,7 @@ func Test_e_reindex(t *testing.T) {
 	{ // "e_reindex-2.6.6"
 		_res = db.Exec("REINDEX main.collA")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX main.collA")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REINDEX main.collA")
 		}
 	}
 	// test_index 6.7 collA collA value (unsupported command, not transpiled)

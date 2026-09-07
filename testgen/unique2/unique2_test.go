@@ -76,7 +76,7 @@ func Test_unique2(t *testing.T) {
 			{ // do_test id + ".2"
 				_res = db.Exec("CREATE UNIQUE INDEX t1y ON t1(y)")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.y") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.y", _res.Error, "CREATE UNIQUE INDEX t1y ON t1(y)")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.y", resErrString(_res), "CREATE UNIQUE INDEX t1y ON t1(y)")
 				}
 			}
 		}
@@ -96,20 +96,20 @@ func Test_unique2(t *testing.T) {
 				{ // do_test id + ".2"
 					_res = db.Exec("CREATE UNIQUE INDEX t1yz ON t1(y,z)")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.y, t1.z") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.y, t1.z", _res.Error, "CREATE UNIQUE INDEX t1yz ON t1(y,z)")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.y, t1.z", resErrString(_res), "CREATE UNIQUE INDEX t1yz ON t1(y,z)")
 					}
 				}
 			}
 			{ // "13.1"
 				_res = db.Exec("\n  CREATE TABLE err1(a,b,c,UNIQUE(rowid));\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE err1(a,b,c,UNIQUE(rowid));\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  CREATE TABLE err1(a,b,c,UNIQUE(rowid));\n")
 				}
 			}
 			{ // "13.2"
 				_res = db.Exec("\n  CREATE TABLE err1(a,b,c,PRIMARY KEY(rowid));\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE err1(a,b,c,PRIMARY KEY(rowid));\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  CREATE TABLE err1(a,b,c,PRIMARY KEY(rowid));\n")
 				}
 			}
 }

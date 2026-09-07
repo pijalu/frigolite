@@ -345,55 +345,55 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-3.2.2"
 		_res = db.Exec("select 'abc")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"'abc\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"'abc\"", _res.Error, "select 'abc")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"'abc\"", resErrString(_res), "select 'abc")
 		}
 	}
 	{ // do_test "main-3.2.3"
 		_res = db.Exec("select \"abc")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"\"abc\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"\"abc\"", _res.Error, "select \"abc")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"\"abc\"", resErrString(_res), "select \"abc")
 		}
 	}
 	{ // do_test "main-3.2.4"
 		_res = db.Exec("select [abc")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"[abc\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"[abc\"", _res.Error, "select [abc")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"[abc\"", resErrString(_res), "select [abc")
 		}
 	}
 	{ // do_test "main-3.2.5"
 		_res = db.Exec("select x'4869")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'4869\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'4869\"", _res.Error, "select x'4869")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'4869\"", resErrString(_res), "select x'4869")
 		}
 	}
 	{ // do_test "main-3.2.6"
 		_res = db.Exec("select x'4869'")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select x'4869'")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select x'4869'")
 		}
 	}
 	{ // do_test "main-3.2.7"
 		_res = db.Exec("select x'48695'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'48695'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'48695'\"", _res.Error, "select x'48695'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'48695'\"", resErrString(_res), "select x'48695'")
 		}
 	}
 	{ // do_test "main-3.2.8"
 		_res = db.Exec("select x'486x'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'486x'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'486x'\"", _res.Error, "select x'486x'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'486x'\"", resErrString(_res), "select x'486x'")
 		}
 	}
 	{ // do_test "main-3.2.9"
 		_res = db.Exec("select $abc(")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"$abc(\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$abc(\"", _res.Error, "select $abc(")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$abc(\"", resErrString(_res), "select $abc(")
 		}
 	}
 	{ // do_test "main-3.2.10"
 		_res = db.Exec("select $abc(x")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"$abc(x\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$abc(x\"", _res.Error, "select $abc(x")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$abc(x\"", resErrString(_res), "select $abc(x")
 		}
 	}
 	vtab.TclVarSet("xyz", "", "123")
@@ -402,20 +402,20 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-3.2.11"
 		_res = db.Exec("select " + sqlLiteral(xyz))
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select " + sqlLiteral(xyz))
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select " + sqlLiteral(xyz))
 		}
 	}
 	testnamespace_xyz = "321"
 	{ // do_test "main-3.2.12"
 		_res = db.Exec("select " + sqlLiteral(testnamespace_xyz))
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select " + sqlLiteral(testnamespace_xyz))
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select " + sqlLiteral(testnamespace_xyz))
 		}
 	}
 	{ // do_test "main-3.2.13"
 		_res = db.Exec("select $(abc)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"$\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$\"", _res.Error, "select $(abc)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$\"", resErrString(_res), "select $(abc)")
 		}
 	}
 	{ // do_test "main-3.2.14"
@@ -427,133 +427,133 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-3.2.15"
 		_res = db.Exec("select 456ሴ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"456ሴ\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"456ሴ\"", _res.Error, "select 456ሴ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"456ሴ\"", resErrString(_res), "select 456ሴ")
 		}
 	}
 	{ // do_test "main-3.2.16"
 		_res = db.Exec("select cast(3.14e+4 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e+4 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e+4 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.17"
 		_res = db.Exec("select cast(3.14e+04 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e+04 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e+04 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.18"
 		_res = db.Exec("select cast(3.14e+004 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e+004 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e+004 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.19"
 		_res = db.Exec("select cast(3.14e4 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e4 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e4 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.20"
 		_res = db.Exec("select cast(3.14e04 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e04 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e04 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.21"
 		_res = db.Exec("select cast(3.14e004 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e004 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e004 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.16"
 		_res = db.Exec("select cast(3.14E+4 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14E+4 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14E+4 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.17"
 		_res = db.Exec("select cast(3.14E+04 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14E+04 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14E+04 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.18"
 		_res = db.Exec("select cast(3.14E+004 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14E+004 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14E+004 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.19"
 		_res = db.Exec("select cast(3.14E4 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14E4 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14E4 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.20"
 		_res = db.Exec("select cast(3.14E04 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14E04 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14E04 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.21"
 		_res = db.Exec("select cast(3.14E004 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14E004 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14E004 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.22"
 		_res = db.Exec("select cast(3.14e-4 * 1e8 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e-4 * 1e8 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e-4 * 1e8 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.23"
 		_res = db.Exec("select cast(3.14E-04 * 1E08 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14E-04 * 1E08 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14E-04 * 1E08 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.24"
 		_res = db.Exec("select cast(3.14e-004 * 01.0E+8 AS integer)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select cast(3.14e-004 * 01.0E+8 AS integer)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select cast(3.14e-004 * 01.0E+8 AS integer)")
 		}
 	}
 	{ // do_test "main-3.2.25"
 		_res = db.Exec("select 123/*abc")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select 123/*abc")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select 123/*abc")
 		}
 	}
 	{ // do_test "main-3.2.26"
 		_res = db.Exec("select 123/***abc")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select 123/***abc")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select 123/***abc")
 		}
 	}
 	{ // do_test "main-3.2.27"
 		_res = db.Exec("select 123/*/*2")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select 123/*/*2")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select 123/*/*2")
 		}
 	}
 	{ // do_test "main-3.2.28"
 		_res = db.Exec("select 123/**/*2")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select 123/**/*2")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select 123/**/*2")
 		}
 	}
 	{ // do_test "main-3.2.29"
 		_res = db.Exec("select 123/")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "incomplete input") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "incomplete input", _res.Error, "select 123/")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "incomplete input", resErrString(_res), "select 123/")
 		}
 	}
 	{ // do_test "main-3.2.30"
 		_res = db.Exec("select 123--5")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "select 123--5")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "select 123--5")
 		}
 	}
 	{ // do_test "main-3.3"
@@ -623,7 +623,7 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-3.6"
 		_res = db.Exec("SELECT 'abc' + #9")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#9\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#9\": syntax error", _res.Error, "SELECT 'abc' + #9")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#9\": syntax error", resErrString(_res), "SELECT 'abc' + #9")
 		}
 	}
 	_putsMsg := tclDbOne(db, "SELECT 'VERSION: ' ||\n                  sqlite_version() || ' ' ||\n                  sqlite_source_id();")

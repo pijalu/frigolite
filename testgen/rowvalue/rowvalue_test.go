@@ -115,7 +115,7 @@ func Test_rowvalue(t *testing.T) {
 	{ // "0.0"
 		_res = db.Exec("\n  CREATE TABLE one(o);\n  INSERT INTO one VALUES(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE one(o);\n  INSERT INTO one VALUES(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE one(o);\n  INSERT INTO one VALUES(1);\n")
 		}
 	}
 	// foreach {tn v1 v2 eq ne is isnot} "1 \"1, 2, 3\"    \"1, 2, 3\"                   1  0     1 0\n  2 \"1, 0, 3\"    \"1, 2, 3\"                   0  1     0 1\n  3 \"1, 2, NULL\" \"1, 2, 3\"                   {} {}    0 1\n  4 \"1, 2, NULL\" \"1, 2, NULL\"                {} {}    1 0\n  5 \"NULL, NULL, NULL\" \"NULL, NULL, NULL\"    {} {}    1 0\n\n  6 \"1, NULL, 1\" \"1, 1, 1\"                   {} {}    0 1\n  7 \"1, NULL, 1\" \"1, 1, 2\"                   0  1     0 1"
@@ -286,7 +286,7 @@ func Test_rowvalue(t *testing.T) {
 				{ // "3.0"
 					_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(3, 5);\n  INSERT INTO t1 VALUES(3, 6);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(3, 5);\n  INSERT INTO t1 VALUES(3, 6);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(3, 5);\n  INSERT INTO t1 VALUES(3, 6);\n")
 					}
 				}
 				// foreach {tn r order} "1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\""
@@ -397,7 +397,7 @@ func Test_rowvalue(t *testing.T) {
 							{ // "6.0"
 								_res = db.Exec("\n  CREATE TABLE hh(a, b, c);\n  INSERT INTO hh VALUES('abc', 1, 'i');\n  INSERT INTO hh VALUES('ABC', 1, 'ii');\n  INSERT INTO hh VALUES('def', 2, 'iii');\n  INSERT INTO hh VALUES('DEF', 2, 'iv');\n  INSERT INTO hh VALUES('GHI', 3, 'v');\n  INSERT INTO hh VALUES('ghi', 3, 'vi');\n\n  CREATE INDEX hh_ab ON hh(a, b); \n")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE hh(a, b, c);\n  INSERT INTO hh VALUES('abc', 1, 'i');\n  INSERT INTO hh VALUES('ABC', 1, 'ii');\n  INSERT INTO hh VALUES('def', 2, 'iii');\n  INSERT INTO hh VALUES('DEF', 2, 'iv');\n  INSERT INTO hh VALUES('GHI', 3, 'v');\n  INSERT INTO hh VALUES('ghi', 3, 'vi');\n\n  CREATE INDEX hh_ab ON hh(a, b); \n")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE hh(a, b, c);\n  INSERT INTO hh VALUES('abc', 1, 'i');\n  INSERT INTO hh VALUES('ABC', 1, 'ii');\n  INSERT INTO hh VALUES('def', 2, 'iii');\n  INSERT INTO hh VALUES('DEF', 2, 'iv');\n  INSERT INTO hh VALUES('GHI', 3, 'v');\n  INSERT INTO hh VALUES('ghi', 3, 'vi');\n\n  CREATE INDEX hh_ab ON hh(a, b); \n")
 								}
 							}
 							{ // "6.1"
@@ -463,13 +463,13 @@ func Test_rowvalue(t *testing.T) {
 							{ // "6.6"
 								_res = db.Exec("\n  SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1) COLLATE nocase;\n")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1) COLLATE nocase;\n")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1) COLLATE nocase;\n")
 								}
 							}
 							{ // "6.7"
 								_res = db.Exec("\n  SELECT c FROM hh WHERE (a, b) = 1;\n")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT c FROM hh WHERE (a, b) = 1;\n")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT c FROM hh WHERE (a, b) = 1;\n")
 								}
 							}
 							{ // "6.8"
@@ -511,7 +511,7 @@ func Test_rowvalue(t *testing.T) {
 							{ // "7.0"
 								_res = db.Exec("\n  CREATE TABLE xy(i INTEGER PRIMARY KEY, j, k);\n  INSERT INTO xy VALUES(1, 1, 1);\n  INSERT INTO xy VALUES(2, 2, 2);\n  INSERT INTO xy VALUES(3, 3, 3);\n  INSERT INTO xy VALUES(4, 4, 4);\n")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xy(i INTEGER PRIMARY KEY, j, k);\n  INSERT INTO xy VALUES(1, 1, 1);\n  INSERT INTO xy VALUES(2, 2, 2);\n  INSERT INTO xy VALUES(3, 3, 3);\n  INSERT INTO xy VALUES(4, 4, 4);\n")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE xy(i INTEGER PRIMARY KEY, j, k);\n  INSERT INTO xy VALUES(1, 1, 1);\n  INSERT INTO xy VALUES(2, 2, 2);\n  INSERT INTO xy VALUES(3, 3, 3);\n  INSERT INTO xy VALUES(4, 4, 4);\n")
 								}
 							}
 							// foreach {tn sql res eqp} "1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\""
@@ -535,14 +535,14 @@ func Test_rowvalue(t *testing.T) {
 									{ // "7." + tn + ".2"
 										_res = db.Exec(sql)
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+											t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 										}
 									}
 								}
 								{ // "8.0"
 									_res = db.Exec("\n  CREATE TABLE j1(a);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE j1(a);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE j1(a);\n")
 									}
 								}
 								{ // "8.1"
@@ -554,7 +554,7 @@ func Test_rowvalue(t *testing.T) {
 								{ // "9.0"
 									_res = db.Exec("\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n  INSERT INTO t2 VALUES(5, 5, 5);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n  INSERT INTO t2 VALUES(5, 5, 5);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n  INSERT INTO t2 VALUES(5, 5, 5);\n")
 									}
 								}
 								// foreach {tn q res} "1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}"
@@ -589,49 +589,49 @@ func Test_rowvalue(t *testing.T) {
 									{ // "11.1"
 										_res = db.Exec("\n  CREATE TABLE t11(a);\n  SELECT * FROM t11 WHERE (a,a)<=1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  CREATE TABLE t11(a);\n  SELECT * FROM t11 WHERE (a,a)<=1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  CREATE TABLE t11(a);\n  SELECT * FROM t11 WHERE (a,a)<=1;\n")
 										}
 									}
 									{ // "11.2"
 										_res = db.Exec("\n  SELECT * FROM t11 WHERE (a,a)<1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM t11 WHERE (a,a)<1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM t11 WHERE (a,a)<1;\n")
 										}
 									}
 									{ // "11.3"
 										_res = db.Exec("\n  SELECT * FROM t11 WHERE (a,a)>=1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM t11 WHERE (a,a)>=1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM t11 WHERE (a,a)>=1;\n")
 										}
 									}
 									{ // "11.4"
 										_res = db.Exec("\n  SELECT * FROM t11 WHERE (a,a)>1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM t11 WHERE (a,a)>1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM t11 WHERE (a,a)>1;\n")
 										}
 									}
 									{ // "11.5"
 										_res = db.Exec("\n  SELECT * FROM t11 WHERE (a,a)==1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM t11 WHERE (a,a)==1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM t11 WHERE (a,a)==1;\n")
 										}
 									}
 									{ // "11.6"
 										_res = db.Exec("\n  SELECT * FROM t11 WHERE (a,a)<>1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM t11 WHERE (a,a)<>1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM t11 WHERE (a,a)<>1;\n")
 										}
 									}
 									{ // "11.7"
 										_res = db.Exec("\n  SELECT * FROM t11 WHERE (a,a) IS 1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM t11 WHERE (a,a) IS 1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM t11 WHERE (a,a) IS 1;\n")
 										}
 									}
 									{ // "11.8"
 										_res = db.Exec("\n  SELECT * FROM t11 WHERE (a,a) IS NOT 1;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM t11 WHERE (a,a) IS NOT 1;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM t11 WHERE (a,a) IS NOT 1;\n")
 										}
 									}
 									{ // "12.1"
@@ -683,14 +683,14 @@ func Test_rowvalue(t *testing.T) {
 											{ // "13." + tn
 												_res = db.Exec(sql)
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, sql)
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), sql)
 												}
 											}
 										}
 										{ // "14.0"
 											_res = db.Exec("\n  CREATE TABLE t12(x);\n  INSERT INTO t12 VALUES(2), (4);\n")
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t12(x);\n  INSERT INTO t12 VALUES(2), (4);\n")
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t12(x);\n  INSERT INTO t12 VALUES(2), (4);\n")
 											}
 										}
 										{ // "14.1"
@@ -768,7 +768,7 @@ func Test_rowvalue(t *testing.T) {
 										{ // "14.1"
 											_res = db.Exec("\n  CREATE TABLE x1(a PRIMARY KEY, b);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b);\n")
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a PRIMARY KEY, b);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b);\n")
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a PRIMARY KEY, b);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b);\n")
 											}
 										}
 										// foreach {tn n sql} "1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\""
@@ -793,38 +793,38 @@ func Test_rowvalue(t *testing.T) {
 												{ // "14.2." + tn
 													_res = db.Exec(sql)
 													if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-														t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, sql)
+														t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), sql)
 													}
 												}
 											}
 											{ // "15.1"
 												_res = db.Exec("\n  DETACH (SELECT * FROM (SELECT 1,2))<3;\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  DETACH (SELECT * FROM (SELECT 1,2))<3;\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  DETACH (SELECT * FROM (SELECT 1,2))<3;\n")
 												}
 											}
 											{ // "15.2"
 												_res = db.Exec("\n  UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;\n")
 												}
 											}
 											{ // "15.3"
 												_res = db.Exec("\n  UPDATE x1 SET a=NULL WHERE  a<(SELECT * FROM (SELECT b,2));\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n  UPDATE x1 SET a=NULL WHERE  a<(SELECT * FROM (SELECT b,2));\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n  UPDATE x1 SET a=NULL WHERE  a<(SELECT * FROM (SELECT b,2));\n")
 												}
 											}
 											{ // "15.4"
 												_res = db.Exec("\n  DELETE FROM x1 WHERE  a<(SELECT * FROM (SELECT b,2));\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n  DELETE FROM x1 WHERE  a<(SELECT * FROM (SELECT b,2));\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n  DELETE FROM x1 WHERE  a<(SELECT * FROM (SELECT b,2));\n")
 												}
 											}
 											{ // "15.5"
 												_res = db.Exec("\n  INSERT INTO x1(a,b) VALUES(1,(SELECT * FROM (SELECT 1,2))<3);\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  INSERT INTO x1(a,b) VALUES(1,(SELECT * FROM (SELECT 1,2))<3);\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  INSERT INTO x1(a,b) VALUES(1,(SELECT * FROM (SELECT 1,2))<3);\n")
 												}
 											}
 											{ // "16.1"
@@ -890,7 +890,7 @@ func Test_rowvalue(t *testing.T) {
 											{ // "17.0"
 												_res = db.Exec("\n  CREATE TABLE b1(a, b);\n  CREATE TABLE b2(x);\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b1(a, b);\n  CREATE TABLE b2(x);\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE b1(a, b);\n  CREATE TABLE b2(x);\n")
 												}
 											}
 											{ // "17.1"
@@ -902,7 +902,7 @@ func Test_rowvalue(t *testing.T) {
 											{ // "18.0"
 												_res = db.Exec("\n  CREATE TABLE b3 ( a, b, PRIMARY KEY (a, b) );\n  CREATE TABLE b4 ( a );\n  CREATE TABLE b5 ( a, b );\n  INSERT INTO b3 VALUES (1, 1), (1, 2);\n  INSERT INTO b4 VALUES (1);\n  INSERT INTO b5 VALUES (1, 1), (1, 2);\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b3 ( a, b, PRIMARY KEY (a, b) );\n  CREATE TABLE b4 ( a );\n  CREATE TABLE b5 ( a, b );\n  INSERT INTO b3 VALUES (1, 1), (1, 2);\n  INSERT INTO b4 VALUES (1);\n  INSERT INTO b5 VALUES (1, 1), (1, 2);\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE b3 ( a, b, PRIMARY KEY (a, b) );\n  CREATE TABLE b4 ( a );\n  CREATE TABLE b5 ( a, b );\n  INSERT INTO b3 VALUES (1, 1), (1, 2);\n  INSERT INTO b4 VALUES (1);\n  INSERT INTO b5 VALUES (1, 1), (1, 2);\n")
 												}
 											}
 											{ // "18.1"
@@ -1364,7 +1364,7 @@ func Test_rowvalue(t *testing.T) {
 											{ // "20.1"
 												_res = db.Exec("\n  SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));\n")
 												if _res.Error != nil {
-													t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));\n")
+													t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));\n")
 												}
 											}
 											{ // "21.0"
@@ -1549,7 +1549,7 @@ func Test_rowvalue(t *testing.T) {
 											{ // "27.10"
 												_res = db.Exec("\n  CREATE TABLE t0(c0 CHECK(((0, 0) > (0, c0))));\n  INSERT INTO t0(c0) VALUES(0) ON CONFLICT(c0) DO UPDATE SET c0 = 3;\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  CREATE TABLE t0(c0 CHECK(((0, 0) > (0, c0))));\n  INSERT INTO t0(c0) VALUES(0) ON CONFLICT(c0) DO UPDATE SET c0 = 3;\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  CREATE TABLE t0(c0 CHECK(((0, 0) > (0, c0))));\n  INSERT INTO t0(c0) VALUES(0) ON CONFLICT(c0) DO UPDATE SET c0 = 3;\n")
 												}
 											}
 											db.Close()
@@ -1562,13 +1562,13 @@ func Test_rowvalue(t *testing.T) {
 											{ // "28.10"
 												_res = db.Exec("\n  CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  CREATE TRIGGER trigger0 BEFORE DELETE ON t0 BEGIN\n   SELECT (SELECT c0,c1  FROM t0)  FROM t0;\n  END ;\n  DELETE FROM t0;\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n  CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  CREATE TRIGGER trigger0 BEFORE DELETE ON t0 BEGIN\n   SELECT (SELECT c0,c1  FROM t0)  FROM t0;\n  END ;\n  DELETE FROM t0;\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n  CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  CREATE TRIGGER trigger0 BEFORE DELETE ON t0 BEGIN\n   SELECT (SELECT c0,c1  FROM t0)  FROM t0;\n  END ;\n  DELETE FROM t0;\n")
 												}
 											}
 											{ // "29.1"
 												_res = db.Exec("\n  SELECT (SELECT 1 WHERE ((SELECT 1 WHERE (2,(2,0)) IS (2,(20))),(2,0)) IS (2,(20))) WHERE (2,(2,0)) IS (2 IN(SELECT 1 WHERE (2,(2,2,0)) IS (2,(20))),(20));\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT (SELECT 1 WHERE ((SELECT 1 WHERE (2,(2,0)) IS (2,(20))),(2,0)) IS (2,(20))) WHERE (2,(2,0)) IS (2 IN(SELECT 1 WHERE (2,(2,2,0)) IS (2,(20))),(20));\n")
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT (SELECT 1 WHERE ((SELECT 1 WHERE (2,(2,0)) IS (2,(20))),(2,0)) IS (2,(20))) WHERE (2,(2,0)) IS (2 IN(SELECT 1 WHERE (2,(2,2,0)) IS (2,(20))),(20));\n")
 												}
 											}
 											db.Close()
@@ -1581,13 +1581,13 @@ func Test_rowvalue(t *testing.T) {
 											{ // "30.0"
 												_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n  CREATE TABLE t2(a, b);\n\n  INSERT INTO t1 VALUES(1000, 2000, 3000);\n  INSERT INTO t2 VALUES(NULL, NULL);\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, z);\n  CREATE TABLE t2(a, b);\n\n  INSERT INTO t1 VALUES(1000, 2000, 3000);\n  INSERT INTO t2 VALUES(NULL, NULL);\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y, z);\n  CREATE TABLE t2(a, b);\n\n  INSERT INTO t1 VALUES(1000, 2000, 3000);\n  INSERT INTO t2 VALUES(NULL, NULL);\n")
 												}
 											}
 											{ // "30.1"
 												_res = db.Exec("\n  UPDATE t2 SET (a,b)=(\n    SELECT max( t1.x ) OVER( PARTITION BY sum( (SELECT t1.y) ) ), 2\n  )\n  FROM t1;\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET (a,b)=(\n    SELECT max( t1.x ) OVER( PARTITION BY sum( (SELECT t1.y) ) ), 2\n  )\n  FROM t1;\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t2 SET (a,b)=(\n    SELECT max( t1.x ) OVER( PARTITION BY sum( (SELECT t1.y) ) ), 2\n  )\n  FROM t1;\n")
 												}
 											}
 											{ // "30.2"
@@ -1612,7 +1612,7 @@ func Test_rowvalue(t *testing.T) {
 											{ // "30.3"
 												_res = db.Exec("\n  CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;\n")
 												}
 											}
 											db.Close()
@@ -1675,7 +1675,7 @@ func Test_rowvalue(t *testing.T) {
 											{ // "33.1"
 												_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a, b) VALUES (0, 1),(15,-7),(3,100);\n  ANALYZE;\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a, b) VALUES (0, 1),(15,-7),(3,100);\n  ANALYZE;\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a, b) VALUES (0, 1),(15,-7),(3,100);\n  ANALYZE;\n")
 												}
 											}
 											{ // "33.2"

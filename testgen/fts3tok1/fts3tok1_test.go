@@ -69,7 +69,7 @@ func Test_fts3tok1(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3tokenize(simple);\n  CREATE VIRTUAL TABLE t2 USING fts3tokenize();\n  CREATE VIRTUAL TABLE t3 USING fts3tokenize(simple, '', 'xyz ');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3tokenize(simple);\n  CREATE VIRTUAL TABLE t2 USING fts3tokenize();\n  CREATE VIRTUAL TABLE t3 USING fts3tokenize(simple, '', 'xyz ');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3tokenize(simple);\n  CREATE VIRTUAL TABLE t2 USING fts3tokenize();\n  CREATE VIRTUAL TABLE t3 USING fts3tokenize(simple, '', 'xyz ');\n")
 		}
 	}
 	// foreach {tn tbl} "1 t1 2 t2 3 t3"
@@ -204,7 +204,7 @@ func Test_fts3tok1(t *testing.T) {
 		{ // "1.13.1"
 			_res = db.Exec("\n  CREATE TABLE c1(x);\n  INSERT INTO c1(x) VALUES('a b c');\n  INSERT INTO c1(x) VALUES('d e f');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(x);\n  INSERT INTO c1(x) VALUES('a b c');\n  INSERT INTO c1(x) VALUES('d e f');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE c1(x);\n  INSERT INTO c1(x) VALUES('a b c');\n  INSERT INTO c1(x) VALUES('d e f');\n")
 			}
 		}
 		{ // "1.13.2"
@@ -222,25 +222,25 @@ func Test_fts3tok1(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE tX USING fts3tokenize(nosuchtokenizer);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown tokenizer: nosuchtokenizer") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer: nosuchtokenizer", _res.Error, "\n  CREATE VIRTUAL TABLE tX USING fts3tokenize(nosuchtokenizer);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer: nosuchtokenizer", resErrString(_res), "\n  CREATE VIRTUAL TABLE tX USING fts3tokenize(nosuchtokenizer);\n")
 			}
 		}
 		{ // "2.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t4 USING fts3tokenize;\n  SELECT * FROM t4;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts3tokenize;\n  SELECT * FROM t4;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  CREATE VIRTUAL TABLE t4 USING fts3tokenize;\n  SELECT * FROM t4;\n")
 			}
 		}
 		{ // "2.2"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
 			}
 		}
 		{ // "2.3"
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE u USING fts4(tokenize=unicode61\"\"); \n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown tokenizer") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer", _res.Error, "\n    CREATE VIRTUAL TABLE u USING fts4(tokenize=unicode61\"\"); \n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer", resErrString(_res), "\n    CREATE VIRTUAL TABLE u USING fts4(tokenize=unicode61\"\"); \n  ")
 			}
 		}
 }

@@ -1317,7 +1317,7 @@ func Test_altercorrupt(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  ALTER TABLE t2 DROP COLUMN e;\n  ALTER TABLE t1 DROP COLUMN f;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  ALTER TABLE t2 DROP COLUMN e;\n  ALTER TABLE t1 DROP COLUMN f;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  ALTER TABLE t2 DROP COLUMN e;\n  ALTER TABLE t1 DROP COLUMN f;\n")
 		}
 	}
 	db.Close()
@@ -2571,7 +2571,7 @@ func Test_altercorrupt(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN a;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN a;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  ALTER TABLE t1 DROP COLUMN a;\n")
 		}
 	}
 }

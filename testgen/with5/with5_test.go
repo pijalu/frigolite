@@ -65,7 +65,7 @@ func Test_with5(t *testing.T) {
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE link(aa INT, bb INT);\n  CREATE INDEX link_f ON link(aa,bb);\n  CREATE INDEX link_t ON link(bb,aa);\n  INSERT INTO link(aa,bb) VALUES\n    (1,3),\n    (5,3),\n    (7,1),\n    (7,9),\n    (9,9),\n    (5,11),\n    (11,7),\n    (2,4),\n    (4,6),\n    (8,6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE link(aa INT, bb INT);\n  CREATE INDEX link_f ON link(aa,bb);\n  CREATE INDEX link_t ON link(bb,aa);\n  INSERT INTO link(aa,bb) VALUES\n    (1,3),\n    (5,3),\n    (7,1),\n    (7,9),\n    (9,9),\n    (5,11),\n    (11,7),\n    (2,4),\n    (4,6),\n    (8,6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE link(aa INT, bb INT);\n  CREATE INDEX link_f ON link(aa,bb);\n  CREATE INDEX link_t ON link(bb,aa);\n  INSERT INTO link(aa,bb) VALUES\n    (1,3),\n    (5,3),\n    (7,1),\n    (7,9),\n    (9,9),\n    (5,11),\n    (11,7),\n    (2,4),\n    (4,6),\n    (8,6);\n")
 		}
 	}
 	{ // "110"
@@ -131,13 +131,13 @@ func Test_with5(t *testing.T) {
 	{ // "120"
 		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION ALL\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: closure") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: closure", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION ALL\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: closure", resErrString(_res), "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION ALL\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
 		}
 	}
 	{ // "121"
 		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION ALL\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: closure") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: closure", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION ALL\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: closure", resErrString(_res), "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION ALL\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
 		}
 	}
 	{ // "130"
@@ -167,7 +167,7 @@ func Test_with5(t *testing.T) {
 	{ // "200"
 		_res = db.Exec("\n  CREATE TABLE linkA(aa1,aa2);\n  INSERT INTO linkA(aa1,aa2) VALUES(1,3),(5,7),(9,11);\n  CREATE TABLE linkB(bb1,bb2);\n  INSERT INTO linkB(bb1,bb2) VALUES(7,9),(11,13),(3,5);\n  CREATE TABLE linkC(cc1,cc2);\n  INSERT INTO linkC(cc1,cc2) VALUES(1,2),(2,4),(6,8);\n  CREATE TABLE linkD(dd1,dd2);\n  INSERT INTO linkD(dd1,dd2) VALUES(4,6),(100,110);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE linkA(aa1,aa2);\n  INSERT INTO linkA(aa1,aa2) VALUES(1,3),(5,7),(9,11);\n  CREATE TABLE linkB(bb1,bb2);\n  INSERT INTO linkB(bb1,bb2) VALUES(7,9),(11,13),(3,5);\n  CREATE TABLE linkC(cc1,cc2);\n  INSERT INTO linkC(cc1,cc2) VALUES(1,2),(2,4),(6,8);\n  CREATE TABLE linkD(dd1,dd2);\n  INSERT INTO linkD(dd1,dd2) VALUES(4,6),(100,110);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE linkA(aa1,aa2);\n  INSERT INTO linkA(aa1,aa2) VALUES(1,3),(5,7),(9,11);\n  CREATE TABLE linkB(bb1,bb2);\n  INSERT INTO linkB(bb1,bb2) VALUES(7,9),(11,13),(3,5);\n  CREATE TABLE linkC(cc1,cc2);\n  INSERT INTO linkC(cc1,cc2) VALUES(1,2),(2,4),(6,8);\n  CREATE TABLE linkD(dd1,dd2);\n  INSERT INTO linkD(dd1,dd2) VALUES(4,6),(100,110);\n")
 		}
 	}
 	{ // "210"
@@ -204,7 +204,7 @@ func Test_with5(t *testing.T) {
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parent INTEGER);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(2, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parent INTEGER);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(2, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parent INTEGER);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(2, 3);\n")
 		}
 	}
 	{ // "310"

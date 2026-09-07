@@ -89,7 +89,7 @@ func Test_memdb2(t *testing.T) {
 			{ // "1." + tn + ".1"
 				_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 				}
 			}
 			{ // "1." + tn + ".2"
@@ -107,13 +107,13 @@ func Test_memdb2(t *testing.T) {
 			{ // "1." + tn + ".3"
 				_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
 				}
 			}
 			{ // "1." + tn + ".4"
 				_res = db.Exec("\n    COMMIT\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    COMMIT\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    COMMIT\n  ")
 				}
 			}
 			{ // "1." + tn + ".5"
@@ -131,7 +131,7 @@ func Test_memdb2(t *testing.T) {
 			{ // "1." + tn + ".6"
 				_res = db.Exec("\n    COMMIT\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    COMMIT\n  ")
 				}
 			}
 			{ // "1." + tn + ".7"

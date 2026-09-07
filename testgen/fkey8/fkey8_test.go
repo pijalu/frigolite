@@ -142,7 +142,7 @@ func Test_fkey8(t *testing.T) {
 		{ // "2.1.2"
 			_res = db.Exec("\n  BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;\n")
 			}
 		}
 		db.Close()
@@ -161,7 +161,7 @@ func Test_fkey8(t *testing.T) {
 		{ // "2.2.1"
 			_res = db.Exec("\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
 			}
 		}
 		db.Close()
@@ -180,7 +180,7 @@ func Test_fkey8(t *testing.T) {
 		{ // "2.3.1"
 			_res = db.Exec("\n  DELETE FROM p3 WHERE a=1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  DELETE FROM p3 WHERE a=1\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  DELETE FROM p3 WHERE a=1\n")
 			}
 		}
 		{ // "3.0"
@@ -192,25 +192,25 @@ func Test_fkey8(t *testing.T) {
 		{ // "3.1"
 			_res = db.Exec("\n  DELETE FROM t2 WHERE a=1;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  DELETE FROM t2 WHERE a=1;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  DELETE FROM t2 WHERE a=1;\n")
 			}
 		}
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);\n")
 			}
 		}
 		{ // "4.1"
 			_res = db.Exec("\n  INSERT OR REPLACE INTO t1 VALUES(10000, 20000);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t1 VALUES(10000, 20000);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO t1 VALUES(10000, 20000);\n")
 			}
 		}
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT OR REPLACE INTO t1 VALUES(20000, 20000);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT OR REPLACE INTO t1 VALUES(20000, 20000);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT OR REPLACE INTO t1 VALUES(20000, 20000);\n")
 			}
 		}
 		db.Close()
@@ -241,7 +241,7 @@ func Test_fkey8(t *testing.T) {
 		{ // "5.2"
 			_res = db.Exec("\n  INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;\n")
 			}
 		}
 		{ // "5.3"
@@ -272,13 +272,13 @@ func Test_fkey8(t *testing.T) {
 		{ // "6.2"
 			_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);\n")
 			}
 		}
 		{ // "6.3"
 			_res = db.Exec("\n  DELETE FROM aux.p1 WHERE a=123;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM aux.p1 WHERE a=123;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM aux.p1 WHERE a=123;\n")
 			}
 		}
 		db.Close()
@@ -297,13 +297,13 @@ func Test_fkey8(t *testing.T) {
 		{ // "7.1"
 			_res = db.Exec("\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);\n")
 			}
 		}
 		{ // "7.2"
 			_res = db.Exec("\n  UPDATE aux.p1 SET pid = pid * 10;\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE aux.p1 SET pid = pid * 10;\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE aux.p1 SET pid = pid * 10;\n")
 			}
 		}
 		{ // "7.3"

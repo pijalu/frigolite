@@ -200,7 +200,7 @@ func Test_e_blobbytes(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE q1(r INTEGER PRIMARY KEY, s TEXT);\n  WITH d(a, b) AS (\n    SELECT 0, '' \n      UNION ALL\n    SELECT a+1, b||'.' FROM d WHERE a<10000\n  )\n  INSERT INTO q1 SELECT * FROM d;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE q1(r INTEGER PRIMARY KEY, s TEXT);\n  WITH d(a, b) AS (\n    SELECT 0, '' \n      UNION ALL\n    SELECT a+1, b||'.' FROM d WHERE a<10000\n  )\n  INSERT INTO q1 SELECT * FROM d;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE q1(r INTEGER PRIMARY KEY, s TEXT);\n  WITH d(a, b) AS (\n    SELECT 0, '' \n      UNION ALL\n    SELECT a+1, b||'.' FROM d WHERE a<10000\n  )\n  INSERT INTO q1 SELECT * FROM d;\n")
 		}
 	}
 	// proc definition (not transpiled)

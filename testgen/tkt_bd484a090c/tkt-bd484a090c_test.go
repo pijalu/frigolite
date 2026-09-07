@@ -66,26 +66,26 @@ func Test_tkt_bd484a090c(t *testing.T) {
 	{ // do_test "1.1"
 		_res = db.Exec(" SELECT datetime('now', 'localtime') ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT datetime('now', 'localtime') ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT datetime('now', 'localtime') ")
 		}
 	}
 	{ // do_test "1.2"
 		_res = db.Exec(" SELECT datetime('now', 'utc') ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT datetime('now', 'utc') ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT datetime('now', 'utc') ")
 		}
 	}
 	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1 (unsupported mode)
 	{ // do_test "2.1"
 		_res = db.Exec(" SELECT datetime('now', 'localtime') ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "local time unavailable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "local time unavailable", _res.Error, " SELECT datetime('now', 'localtime') ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "local time unavailable", resErrString(_res), " SELECT datetime('now', 'localtime') ")
 		}
 	}
 	{ // do_test "2.2"
 		_res = db.Exec(" SELECT datetime('2000-01-01', 'utc') ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "local time unavailable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "local time unavailable", _res.Error, " SELECT datetime('2000-01-01', 'utc') ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "local time unavailable", resErrString(_res), " SELECT datetime('2000-01-01', 'utc') ")
 		}
 	}
 	function.SetLocaltimeHook(nil)

@@ -92,7 +92,7 @@ func Test_stat(t *testing.T) {
 	{ // "stat-0.1a"
 		_res = db.Exec("\n  DROP TABLE dbstat;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table dbstat may not be dropped") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table dbstat may not be dropped", _res.Error, "\n  DROP TABLE dbstat;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table dbstat may not be dropped", resErrString(_res), "\n  DROP TABLE dbstat;\n")
 		}
 	}
 	{ // "stat-0.1b"
@@ -276,7 +276,7 @@ func Test_stat(t *testing.T) {
 	{ // "stat-6.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.s2 USING dbstat(mainx);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such database: mainx") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database: mainx", _res.Error, "\n  CREATE VIRTUAL TABLE temp.s2 USING dbstat(mainx);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database: mainx", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.s2 USING dbstat(mainx);\n")
 		}
 	}
 	os.Remove("test.db2")
@@ -337,7 +337,7 @@ func Test_stat(t *testing.T) {
 	{ // "7.2"
 		_res = db.Exec("\n  DETACH 123;\n  DROP TABLE x2;\n  DROP TABLE x3;\n  ATTACH 'test.db2' AS '123corp';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DETACH 123;\n  DROP TABLE x2;\n  DROP TABLE x3;\n  ATTACH 'test.db2' AS '123corp';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DETACH 123;\n  DROP TABLE x2;\n  DROP TABLE x3;\n  ATTACH 'test.db2' AS '123corp';\n")
 		}
 	}
 	{ // "7.2.1"
@@ -355,7 +355,7 @@ func Test_stat(t *testing.T) {
 	{ // "7.2.2"
 		_res = db.Exec("\n  SELECT * FROM dbstat(123corp);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"123corp\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123corp\"", _res.Error, "\n  SELECT * FROM dbstat(123corp);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123corp\"", resErrString(_res), "\n  SELECT * FROM dbstat(123corp);\n")
 		}
 	}
 	{ // "7.2.3"
@@ -373,13 +373,13 @@ func Test_stat(t *testing.T) {
 	{ // "7.2.4"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x3 USING dbstat(123corp);\n  SELECT * FROM x3;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"123corp\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123corp\"", _res.Error, "\n  CREATE VIRTUAL TABLE x3 USING dbstat(123corp);\n  SELECT * FROM x3;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123corp\"", resErrString(_res), "\n  CREATE VIRTUAL TABLE x3 USING dbstat(123corp);\n  SELECT * FROM x3;\n")
 		}
 	}
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE st4 USING dbstat;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE st4 USING dbstat;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE st4 USING dbstat;\n")
 		}
 	}
 	{ // "8.2"
@@ -416,7 +416,7 @@ func Test_stat(t *testing.T) {
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("(no such table: nosuchdb.dbstat|table dbstat may not be dropped)", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "(no such table: nosuchdb.dbstat|table dbstat may not be dropped)", _res.Error, "\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "(no such table: nosuchdb.dbstat|table dbstat may not be dropped)", resErrString(_res), "\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
 		}
 	}
 }

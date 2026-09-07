@@ -95,7 +95,7 @@ func Test_waloverwrite(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
 				}
 			}
 			{ // do_test "1." + tn + ".1"

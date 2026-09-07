@@ -268,7 +268,7 @@ func Test_cache(t *testing.T) {
 	{ // "cache-2.3.5"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "COMMIT")
 		}
 	}
 	{ // do_test "cache-2.3.6"
@@ -322,7 +322,7 @@ func Test_cache(t *testing.T) {
 	{ // "cache-2.4.5"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "COMMIT")
 		}
 	}
 	{ // do_test "cache-2.4.6"

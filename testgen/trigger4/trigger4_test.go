@@ -115,7 +115,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-3.1"
 		_res = db.Exec("\n    drop table test2;\n    insert into test values(7,8,9);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.test2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.test2", _res.Error, "\n    drop table test2;\n    insert into test values(7,8,9);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.test2", resErrString(_res), "\n    drop table test2;\n    insert into test values(7,8,9);\n  ")
 		}
 	}
 	{ // do_test "trigger4-3.2"
@@ -129,7 +129,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-3.3"
 		_res = db.Exec("\n    update test set a=222 where id=1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.test2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.test2", _res.Error, "\n    update test set a=222 where id=1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.test2", resErrString(_res), "\n    update test set a=222 where id=1;\n  ")
 		}
 	}
 	{ // do_test "trigger4-3.4"
@@ -183,7 +183,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-5.1"
 		_res = db.Exec("delete from vw where a>101 and a<2000")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "delete from vw where a>101 and a<2000")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "delete from vw where a>101 and a<2000")
 		}
 	}
 	{ // do_test "trigger4-5.2"
@@ -195,7 +195,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-6.1"
 		_res = db.Exec("\n\tinsert into vw values(102,1002);\n\tinsert into vw select a+2, b+2 from vw;\n\tinsert into vw select a+4, b+4 from vw;\n\tinsert into vw select a+8, b+8 from vw;\n\tinsert into vw select a+16, b+16 from vw;\n\tinsert into vw select a+32, b+32 from vw;\n\tinsert into vw select a+64, b+64 from vw;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n\tinsert into vw values(102,1002);\n\tinsert into vw select a+2, b+2 from vw;\n\tinsert into vw select a+4, b+4 from vw;\n\tinsert into vw select a+8, b+8 from vw;\n\tinsert into vw select a+16, b+16 from vw;\n\tinsert into vw select a+32, b+32 from vw;\n\tinsert into vw select a+64, b+64 from vw;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n\tinsert into vw values(102,1002);\n\tinsert into vw select a+2, b+2 from vw;\n\tinsert into vw select a+4, b+4 from vw;\n\tinsert into vw select a+8, b+8 from vw;\n\tinsert into vw select a+16, b+16 from vw;\n\tinsert into vw select a+32, b+32 from vw;\n\tinsert into vw select a+64, b+64 from vw;\n    ")
 		}
 	}
 	{ // do_test "trigger4-6.2"
@@ -207,7 +207,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-7.1"
 		_res = db.Exec("update vw set b=b+1000 where a>101 and a<2000")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "update vw set b=b+1000 where a>101 and a<2000")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "update vw set b=b+1000 where a>101 and a<2000")
 		}
 	}
 	{ // do_test "trigger4-7.2"

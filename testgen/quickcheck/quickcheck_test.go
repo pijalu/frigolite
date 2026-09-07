@@ -64,7 +64,7 @@ func Test_quickcheck(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a INTEGER NOT NULL, b INTEGER NOT NULL, c AS (a+1),\n    PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a INTEGER NOT NULL, b INTEGER NOT NULL, c AS (a+1),\n    PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(\n    a INTEGER NOT NULL, b INTEGER NOT NULL, c AS (a+1),\n    PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 		}
 	}
 	{ // "1.1"

@@ -763,13 +763,13 @@ func Test_select1(t *testing.T) {
 	{ // do_test "select1-2.21"
 		_res = db.Exec("\n     SELECT min(f1) AS m FROM test1 GROUP BY f1 HAVING max(m+5)<10\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aliased aggregate m") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aliased aggregate m", _res.Error, "\n     SELECT min(f1) AS m FROM test1 GROUP BY f1 HAVING max(m+5)<10\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aliased aggregate m", resErrString(_res), "\n     SELECT min(f1) AS m FROM test1 GROUP BY f1 HAVING max(m+5)<10\n  ")
 		}
 	}
 	{ // do_test "select1-2.22"
 		_res = db.Exec("\n     SELECT coalesce(min(f1)+5,11) AS m FROM test1\n      GROUP BY f1\n     HAVING max(m+5)<10\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aliased aggregate m") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aliased aggregate m", _res.Error, "\n     SELECT coalesce(min(f1)+5,11) AS m FROM test1\n      GROUP BY f1\n     HAVING max(m+5)<10\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aliased aggregate m", resErrString(_res), "\n     SELECT coalesce(min(f1)+5,11) AS m FROM test1\n      GROUP BY f1\n     HAVING max(m+5)<10\n  ")
 		}
 	}
 	{ // do_test "select1-2.23"
@@ -1069,7 +1069,7 @@ func Test_select1(t *testing.T) {
 	{ // "select1-4.5"
 		_res = db.Exec("\n  INSERT INTO test1(f1) SELECT f1 FROM test1 ORDER BY min(f1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate: min()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: min()", _res.Error, "\n  INSERT INTO test1(f1) SELECT f1 FROM test1 ORDER BY min(f1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: min()", resErrString(_res), "\n  INSERT INTO test1(f1) SELECT f1 FROM test1 ORDER BY min(f1);\n")
 		}
 	}
 	{ // do_test "select1-4.5"
@@ -1105,13 +1105,13 @@ func Test_select1(t *testing.T) {
 	{ // do_test "select1-4.10.1"
 		_res = db.Exec("\n    SELECT * FROM t5 ORDER BY 3;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term out of range - should be between 1 and 2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 2", _res.Error, "\n    SELECT * FROM t5 ORDER BY 3;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 2", resErrString(_res), "\n    SELECT * FROM t5 ORDER BY 3;\n  ")
 		}
 	}
 	{ // do_test "select1-4.10.2"
 		_res = db.Exec("\n    SELECT * FROM t5 ORDER BY -1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term out of range - should be between 1 and 2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 2", _res.Error, "\n    SELECT * FROM t5 ORDER BY -1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 2", resErrString(_res), "\n    SELECT * FROM t5 ORDER BY -1;\n  ")
 		}
 	}
 	{ // do_test "select1-4.11"
@@ -1982,7 +1982,7 @@ func Test_select1(t *testing.T) {
 	{ // do_test "select1-7.9"
 		_res = db.Exec("\n     SELECT f1 FROM test1 LIMIT 5+3 OFFSET 11 ORDER BY f2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ORDER\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ORDER\": syntax error", _res.Error, "\n     SELECT f1 FROM test1 LIMIT 5+3 OFFSET 11 ORDER BY f2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ORDER\": syntax error", resErrString(_res), "\n     SELECT f1 FROM test1 LIMIT 5+3 OFFSET 11 ORDER BY f2;\n  ")
 		}
 	}
 	{ // do_test "select1-8.1"
@@ -2231,13 +2231,13 @@ func Test_select1(t *testing.T) {
 	{ // do_test "select1-11.10"
 		_res = db.Exec("\n    SELECT t5.* FROM t3, t4;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t5", _res.Error, "\n    SELECT t5.* FROM t3, t4;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t5", resErrString(_res), "\n    SELECT t5.* FROM t3, t4;\n  ")
 		}
 	}
 	{ // do_test "select1-11.11"
 		_res = db.Exec("\n    SELECT t3.* FROM t3 AS x, t4;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t3", _res.Error, "\n    SELECT t3.* FROM t3 AS x, t4;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t3", resErrString(_res), "\n    SELECT t3.* FROM t3 AS x, t4;\n  ")
 		}
 	}
 	{ // do_test "select1-11.12"
@@ -2413,13 +2413,13 @@ func Test_select1(t *testing.T) {
 	{ // do_test "select1-16.1"
 		_res = db.Exec("SELECT 1 FROM (SELECT *)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no tables specified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", _res.Error, "SELECT 1 FROM (SELECT *)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", resErrString(_res), "SELECT 1 FROM (SELECT *)")
 		}
 	}
 	{ // "select1-16.2"
 		_res = db.Exec("\n  SELECT 1 FROM sqlite_master LIMIT 1,#1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  SELECT 1 FROM sqlite_master LIMIT 1,#1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", resErrString(_res), "\n  SELECT 1 FROM sqlite_master LIMIT 1,#1;\n")
 		}
 	}
 	{ // "select1-17.1"
@@ -2503,19 +2503,19 @@ func Test_select1(t *testing.T) {
 	{ // "select1-19.10"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
 		}
 	}
 	{ // "select1-19.20"
 		_res = db.Exec("\n  INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7\n    UNION ALL SELECT 1,2,3,4,5,6,7\n    ORDER BY 1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table t1 has 1 columns but 7 values were supplied") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table t1 has 1 columns but 7 values were supplied", _res.Error, "\n  INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7\n    UNION ALL SELECT 1,2,3,4,5,6,7\n    ORDER BY 1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table t1 has 1 columns but 7 values were supplied", resErrString(_res), "\n  INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7\n    UNION ALL SELECT 1,2,3,4,5,6,7\n    ORDER BY 1;\n")
 		}
 	}
 	{ // "select1-19.21"
 		_res = db.Exec("\n  INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    UNION ALL SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    ORDER BY 1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table t1 has 1 columns but 15 values were supplied") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table t1 has 1 columns but 15 values were supplied", _res.Error, "\n  INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    UNION ALL SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    ORDER BY 1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table t1 has 1 columns but 15 values were supplied", resErrString(_res), "\n  INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    UNION ALL SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    ORDER BY 1;\n")
 		}
 	}
 	db.Close()

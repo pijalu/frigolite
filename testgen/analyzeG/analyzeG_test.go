@@ -83,7 +83,7 @@ func Test_analyzeG(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE INDEX t2b ON t2(b);\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t2b ON t2(b);\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t2b ON t2(b);\n  ANALYZE;\n")
 		}
 	}
 	{ // "1.3.1"

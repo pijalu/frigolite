@@ -145,7 +145,7 @@ func Test_orderby5(t *testing.T) {
 	{ // "4.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(b COLLATE nocase);\n  INSERT INTO t4 VALUES('abc');\n  INSERT INTO t4 VALUES('ABC');\n  INSERT INTO t4 VALUES('aBC');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(b COLLATE nocase);\n  INSERT INTO t4 VALUES('abc');\n  INSERT INTO t4 VALUES('ABC');\n  INSERT INTO t4 VALUES('aBC');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(b COLLATE nocase);\n  INSERT INTO t4 VALUES('abc');\n  INSERT INTO t4 VALUES('ABC');\n  INSERT INTO t4 VALUES('aBC');\n")
 		}
 	}
 	{ // "4.1.1"
@@ -175,7 +175,7 @@ func Test_orderby5(t *testing.T) {
 	{ // "4.2.1"
 		_res = db.Exec("\n  CREATE TABLE Records(typeID INTEGER, key TEXT COLLATE nocase, value TEXT);\n  CREATE INDEX RecordsIndex ON Records(typeID, key, value);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE Records(typeID INTEGER, key TEXT COLLATE nocase, value TEXT);\n  CREATE INDEX RecordsIndex ON Records(typeID, key, value);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE Records(typeID INTEGER, key TEXT COLLATE nocase, value TEXT);\n  CREATE INDEX RecordsIndex ON Records(typeID, key, value);\n")
 		}
 	}
 	{ // "orderby5-4.2.2" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
@@ -194,7 +194,7 @@ func Test_orderby5(t *testing.T) {
 	{ // "4.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
 		}
 	}
 	db.Close()
@@ -204,7 +204,7 @@ func Test_orderby5(t *testing.T) {
 	{ // "4.3.2"
 		_res = db.Exec("\n  SELECT a FROM t5 WHERE b='def' ORDER BY b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: hello") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: hello", _res.Error, "\n  SELECT a FROM t5 WHERE b='def' ORDER BY b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: hello", resErrString(_res), "\n  SELECT a FROM t5 WHERE b='def' ORDER BY b;\n")
 		}
 	}
 	{ // "orderby5-4.4.0" — skipped: DISTINCT/LEFT JOIN correlated-subquery test (setup skipped) (SQL side effects only)

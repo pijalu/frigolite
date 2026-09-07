@@ -79,13 +79,13 @@ func Test_join8(t *testing.T) {
 	{ // "join8-1000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT,b,c,d,e,f,g,h,j,k,l,m,n,o,p,q,r,s);\n  CREATE INDEX t1x1 ON t1(g+h,j,k);\n  CREATE INDEX t1x2 ON t1(b);\n  INSERT INTO t1 DEFAULT VALUES;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT,b,c,d,e,f,g,h,j,k,l,m,n,o,p,q,r,s);\n  CREATE INDEX t1x1 ON t1(g+h,j,k);\n  CREATE INDEX t1x2 ON t1(b);\n  INSERT INTO t1 DEFAULT VALUES;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT,b,c,d,e,f,g,h,j,k,l,m,n,o,p,q,r,s);\n  CREATE INDEX t1x1 ON t1(g+h,j,k);\n  CREATE INDEX t1x2 ON t1(b);\n  INSERT INTO t1 DEFAULT VALUES;\n")
 		}
 	}
 	{ // "join8-1010"
 		_res = db.Exec("\n  SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;\n")
 		}
 	}
 	db.Close()
@@ -104,7 +104,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-2010"
 		_res = db.Exec("\n  SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;\n")
 		}
 	}
 	db.Close()
@@ -118,7 +118,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-3000"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c INT);\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, e INT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, g INT);\n  CREATE TABLE t8(id INTEGER PRIMARY KEY, h INT);\n  INSERT INTO t1 SELECT value, 1 FROM generate_series(1,256) WHERE value & 1;\n  INSERT INTO t2 SELECT value, 1 FROM generate_series(1,256) WHERE value & 2;\n  INSERT INTO t3 SELECT value, 1 FROM generate_series(1,256) WHERE value & 4;\n  INSERT INTO t4 SELECT value, 1 FROM generate_series(1,256) WHERE value & 8;\n  INSERT INTO t5 SELECT value, 1 FROM generate_series(1,256) WHERE value & 16;\n  INSERT INTO t6 SELECT value, 1 FROM generate_series(1,256) WHERE value & 32;\n  INSERT INTO t7 SELECT value, 1 FROM generate_series(1,256) WHERE value & 64;\n  INSERT INTO t8 SELECT value, 1 FROM generate_series(1,256) WHERE value & 128;\n  CREATE TABLE t9 AS\n    SELECT id, h, g, f, e, d, c, b, a\n      FROM t1\n      NATURAL FULL JOIN t2\n      NATURAL FULL JOIN t3\n      NATURAL FULL JOIN t4\n      NATURAL FULL JOIN t5\n      NATURAL FULL JOIN t6\n      NATURAL FULL JOIN t7\n      NATURAL FULL JOIN t8;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c INT);\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, e INT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, g INT);\n  CREATE TABLE t8(id INTEGER PRIMARY KEY, h INT);\n  INSERT INTO t1 SELECT value, 1 FROM generate_series(1,256) WHERE value & 1;\n  INSERT INTO t2 SELECT value, 1 FROM generate_series(1,256) WHERE value & 2;\n  INSERT INTO t3 SELECT value, 1 FROM generate_series(1,256) WHERE value & 4;\n  INSERT INTO t4 SELECT value, 1 FROM generate_series(1,256) WHERE value & 8;\n  INSERT INTO t5 SELECT value, 1 FROM generate_series(1,256) WHERE value & 16;\n  INSERT INTO t6 SELECT value, 1 FROM generate_series(1,256) WHERE value & 32;\n  INSERT INTO t7 SELECT value, 1 FROM generate_series(1,256) WHERE value & 64;\n  INSERT INTO t8 SELECT value, 1 FROM generate_series(1,256) WHERE value & 128;\n  CREATE TABLE t9 AS\n    SELECT id, h, g, f, e, d, c, b, a\n      FROM t1\n      NATURAL FULL JOIN t2\n      NATURAL FULL JOIN t3\n      NATURAL FULL JOIN t4\n      NATURAL FULL JOIN t5\n      NATURAL FULL JOIN t6\n      NATURAL FULL JOIN t7\n      NATURAL FULL JOIN t8;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c INT);\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, e INT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, g INT);\n  CREATE TABLE t8(id INTEGER PRIMARY KEY, h INT);\n  INSERT INTO t1 SELECT value, 1 FROM generate_series(1,256) WHERE value & 1;\n  INSERT INTO t2 SELECT value, 1 FROM generate_series(1,256) WHERE value & 2;\n  INSERT INTO t3 SELECT value, 1 FROM generate_series(1,256) WHERE value & 4;\n  INSERT INTO t4 SELECT value, 1 FROM generate_series(1,256) WHERE value & 8;\n  INSERT INTO t5 SELECT value, 1 FROM generate_series(1,256) WHERE value & 16;\n  INSERT INTO t6 SELECT value, 1 FROM generate_series(1,256) WHERE value & 32;\n  INSERT INTO t7 SELECT value, 1 FROM generate_series(1,256) WHERE value & 64;\n  INSERT INTO t8 SELECT value, 1 FROM generate_series(1,256) WHERE value & 128;\n  CREATE TABLE t9 AS\n    SELECT id, h, g, f, e, d, c, b, a\n      FROM t1\n      NATURAL FULL JOIN t2\n      NATURAL FULL JOIN t3\n      NATURAL FULL JOIN t4\n      NATURAL FULL JOIN t5\n      NATURAL FULL JOIN t6\n      NATURAL FULL JOIN t7\n      NATURAL FULL JOIN t8;\n")
 		}
 	}
 	{ // "join8-3010"
@@ -187,7 +187,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-5000"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;\n")
 		}
 	}
 	db.Close()
@@ -235,20 +235,20 @@ func Test_join8(t *testing.T) {
 	{ // "join8-7000"
 		_res = db.Exec("\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
 		}
 	}
 	tcl_nullvalue = "-"
 	{ // "join8-7010"
 		_res = db.Exec("\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
 		}
 	}
 	{ // "join8-7011"
 		_res = db.Exec("\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
 		}
 	}
 	{ // "join8-7020" — skipped: BLOOM FILTER query plan not implemented (G3.INDEX) (SQL side effects only)
@@ -265,7 +265,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-8000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e INT, f INT);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t2 VALUES(3, 4);\n  INSERT INTO t3 VALUES(5, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e INT, f INT);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t2 VALUES(3, 4);\n  INSERT INTO t3 VALUES(5, 6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e INT, f INT);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t2 VALUES(3, 4);\n  INSERT INTO t3 VALUES(5, 6);\n")
 		}
 	}
 	{ // "join8-8010"
@@ -311,7 +311,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-10000"
 		_res = db.Exec("\n  CREATE TABLE t1(c0 INT UNIQUE);\n  CREATE TABLE t2(c0);\n  CREATE TABLE t2i(c0 INT);\n  CREATE TABLE t3(c0 INT);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2i VALUES(2);\n  INSERT INTO t3 VALUES(3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c0 INT UNIQUE);\n  CREATE TABLE t2(c0);\n  CREATE TABLE t2i(c0 INT);\n  CREATE TABLE t3(c0 INT);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2i VALUES(2);\n  INSERT INTO t3 VALUES(3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(c0 INT UNIQUE);\n  CREATE TABLE t2(c0);\n  CREATE TABLE t2i(c0 INT);\n  CREATE TABLE t3(c0 INT);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2i VALUES(2);\n  INSERT INTO t3 VALUES(3);\n")
 		}
 	}
 	{ // "join8-10010"
@@ -489,31 +489,31 @@ func Test_join8(t *testing.T) {
 	{ // "join8-12000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(0),(1);\n  CREATE TABLE t2(a INT);  INSERT INTO t2 VALUES(0),(2);\n  CREATE TABLE t3(a INT);  INSERT INTO t3 VALUES(0),(3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(0),(1);\n  CREATE TABLE t2(a INT);  INSERT INTO t2 VALUES(0),(2);\n  CREATE TABLE t3(a INT);  INSERT INTO t3 VALUES(0),(3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(0),(1);\n  CREATE TABLE t2(a INT);  INSERT INTO t2 VALUES(0),(2);\n  CREATE TABLE t3(a INT);  INSERT INTO t3 VALUES(0),(3);\n")
 		}
 	}
 	{ // "join8-12010"
 		_res = db.Exec("\n  SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous reference to a in USING()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous reference to a in USING()", _res.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous reference to a in USING()", resErrString(_res), "\n  SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;\n")
 		}
 	}
 	{ // "join8-12020"
 		_res = db.Exec("\n  SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous reference to a in USING()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous reference to a in USING()", _res.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous reference to a in USING()", resErrString(_res), "\n  SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
 		}
 	}
 	{ // "join8-12030"
 		_res = db.Exec("\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous reference to a in USING()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous reference to a in USING()", _res.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous reference to a in USING()", resErrString(_res), "\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;\n")
 		}
 	}
 	{ // "join8-12040"
 		_res = db.Exec("\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
 		}
 	}
 	db.Close()
@@ -545,7 +545,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-14010"
 		_res = db.Exec("\n  CREATE TABLE y0(a INT);\n  CREATE TABLE y1(b INT); INSERT INTO y1 VALUES(1), (2);\n  CREATE TABLE y2(c INT); INSERT INTO y2 VALUES(3), (4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y0(a INT);\n  CREATE TABLE y1(b INT); INSERT INTO y1 VALUES(1), (2);\n  CREATE TABLE y2(c INT); INSERT INTO y2 VALUES(3), (4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE y0(a INT);\n  CREATE TABLE y1(b INT); INSERT INTO y1 VALUES(1), (2);\n  CREATE TABLE y2(c INT); INSERT INTO y2 VALUES(3), (4);\n")
 		}
 	}
 	tcl_nullvalue = "-"
@@ -571,7 +571,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-15000"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n")
 		}
 	}
 	{ // "join8-15010"
@@ -627,7 +627,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-16000"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n  CREATE TABLE t3(c TEXT);\n  INSERT INTO t2(b) VALUES ('x');\n  INSERT INTO t3(c) VALUES ('y'), ('z');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n  CREATE TABLE t3(c TEXT);\n  INSERT INTO t2(b) VALUES ('x');\n  INSERT INTO t3(c) VALUES ('y'), ('z');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n  CREATE TABLE t3(c TEXT);\n  INSERT INTO t2(b) VALUES ('x');\n  INSERT INTO t3(c) VALUES ('y'), ('z');\n")
 		}
 	}
 	tcl_nullvalue = "-"
@@ -701,7 +701,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-17000"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x INT, y INT);\n  CREATE TABLE t2(z INT);\n  INSERT INTO t1(id,x,y) VALUES(1, 0, 0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x INT, y INT);\n  CREATE TABLE t2(z INT);\n  INSERT INTO t1(id,x,y) VALUES(1, 0, 0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x INT, y INT);\n  CREATE TABLE t2(z INT);\n  INSERT INTO t1(id,x,y) VALUES(1, 0, 0);\n")
 		}
 	}
 	tcl_nullvalue = "NULL"
@@ -816,7 +816,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-17080"
 		_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t3(a,b) VALUES(1, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t3(a,b) VALUES(1, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t3(a,b) VALUES(1, 3);\n")
 		}
 	}
 	{ // "join8-17090"
@@ -890,7 +890,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-19000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE TABLE t3(d INT);\n\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t2 VALUES(50,51);\n  INSERT INTO t3 VALUES(299);\n\n  CREATE INDEX t2b ON t2( (b IS NOT NULL) );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE TABLE t3(d INT);\n\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t2 VALUES(50,51);\n  INSERT INTO t3 VALUES(299);\n\n  CREATE INDEX t2b ON t2( (b IS NOT NULL) );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE TABLE t3(d INT);\n\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t2 VALUES(50,51);\n  INSERT INTO t3 VALUES(299);\n\n  CREATE INDEX t2b ON t2( (b IS NOT NULL) );\n")
 		}
 	}
 	{ // "join8-19010"
@@ -909,7 +909,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-20000"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1(x) VALUES('aaa');\n  CREATE VIEW v0(y) AS SELECT x FROM t1;\n  CREATE TABLE t2(z TEXT);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1(x) VALUES('aaa');\n  CREATE VIEW v0(y) AS SELECT x FROM t1;\n  CREATE TABLE t2(z TEXT);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1(x) VALUES('aaa');\n  CREATE VIEW v0(y) AS SELECT x FROM t1;\n  CREATE TABLE t2(z TEXT);\n")
 		}
 	}
 	tcl_nullvalue = "-"
@@ -995,7 +995,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-21000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT,b BOOLEAN);\n  CREATE TABLE t2(c INT);  INSERT INTO t2 VALUES(NULL);\n  CREATE TABLE t3(d INT);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT,b BOOLEAN);\n  CREATE TABLE t2(c INT);  INSERT INTO t2 VALUES(NULL);\n  CREATE TABLE t3(d INT);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT,b BOOLEAN);\n  CREATE TABLE t2(c INT);  INSERT INTO t2 VALUES(NULL);\n  CREATE TABLE t3(d INT);\n")
 		}
 	}
 	{ // "join8-21010"
@@ -1019,19 +1019,19 @@ func Test_join8(t *testing.T) {
 	{ // "join8-22030"
 		_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c INTEGER PRIMARY KEY, d INT);\n  CREATE INDEX t3d ON t3(d);\n  INSERT INTO t3 VALUES(0, 0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c INTEGER PRIMARY KEY, d INT);\n  CREATE INDEX t3d ON t3(d);\n  INSERT INTO t3 VALUES(0, 0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c INTEGER PRIMARY KEY, d INT);\n  CREATE INDEX t3d ON t3(d);\n  INSERT INTO t3 VALUES(0, 0);\n")
 		}
 	}
 	{ // "join8-22031"
 		_res = db.Exec("\n  SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE +d = 0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON clause references tables to its right") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", _res.Error, "\n  SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE +d = 0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", resErrString(_res), "\n  SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE +d = 0;\n")
 		}
 	}
 	{ // "join8-22040"
 		_res = db.Exec("\n  SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE d = 0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON clause references tables to its right") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", _res.Error, "\n  SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE d = 0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", resErrString(_res), "\n  SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE d = 0;\n")
 		}
 	}
 	db.Close()
@@ -1058,7 +1058,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-23000"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('c');\n  CREATE TABLE t2(b TEXT, c TEXT NOT NULL);\n  INSERT INTO t2 VALUES('a', 'b');\n  CREATE TABLE t3(d TEXT);\n  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(e TEXT);\n  INSERT INTO t4 VALUES('y');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('c');\n  CREATE TABLE t2(b TEXT, c TEXT NOT NULL);\n  INSERT INTO t2 VALUES('a', 'b');\n  CREATE TABLE t3(d TEXT);\n  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(e TEXT);\n  INSERT INTO t4 VALUES('y');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('c');\n  CREATE TABLE t2(b TEXT, c TEXT NOT NULL);\n  INSERT INTO t2 VALUES('a', 'b');\n  CREATE TABLE t3(d TEXT);\n  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(e TEXT);\n  INSERT INTO t4 VALUES('y');\n")
 		}
 	}
 	{ // "join8-23010"
@@ -1115,7 +1115,7 @@ func Test_join8(t *testing.T) {
 	{ // "join8-25000"
 		_res = db.Exec("\n  CREATE TABLE t1(a1 INT);\n  CREATE TABLE t2(b2 INT);\n  CREATE TABLE t3(c3 INT, d3 INT UNIQUE);\n  CREATE TABLE t4(e4 INT, f4 TEXT);\n  INSERT INTO t3(c3, d3) VALUES (2, 1);\n  INSERT INTO t4(f4) VALUES ('x');\n  CREATE INDEX i0 ON t3(c3) WHERE d3 ISNULL;\n  ANALYZE main;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a1 INT);\n  CREATE TABLE t2(b2 INT);\n  CREATE TABLE t3(c3 INT, d3 INT UNIQUE);\n  CREATE TABLE t4(e4 INT, f4 TEXT);\n  INSERT INTO t3(c3, d3) VALUES (2, 1);\n  INSERT INTO t4(f4) VALUES ('x');\n  CREATE INDEX i0 ON t3(c3) WHERE d3 ISNULL;\n  ANALYZE main;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a1 INT);\n  CREATE TABLE t2(b2 INT);\n  CREATE TABLE t3(c3 INT, d3 INT UNIQUE);\n  CREATE TABLE t4(e4 INT, f4 TEXT);\n  INSERT INTO t3(c3, d3) VALUES (2, 1);\n  INSERT INTO t4(f4) VALUES ('x');\n  CREATE INDEX i0 ON t3(c3) WHERE d3 ISNULL;\n  ANALYZE main;\n")
 		}
 	}
 	tcl_nullvalue = "-"

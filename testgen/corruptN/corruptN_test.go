@@ -1155,7 +1155,7 @@ func Test_corruptN(t *testing.T) {
 		{ // "3.1"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    INSERT INTO t1(y) VALUES('abc');\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    PRAGMA writable_schema = 1;\n    INSERT INTO t1(y) VALUES('abc');\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    PRAGMA writable_schema = 1;\n    INSERT INTO t1(y) VALUES('abc');\n  ")
 			}
 		}
 		db.Close()
@@ -1176,7 +1176,7 @@ func Test_corruptN(t *testing.T) {
 		{ // "4.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
 			}
 		}
 	}
@@ -1203,7 +1203,7 @@ func Test_corruptN(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n  UPDATE t1 SET b=zeroblob(299);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1 SET b=zeroblob(299);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t1 SET b=zeroblob(299);\n")
 		}
 	}
 	db.Close()
@@ -1222,7 +1222,7 @@ func Test_corruptN(t *testing.T) {
 	{ // "6.3"
 		_res = db.Exec("\n  -- Run an UPDATE on t1 that will hit a child of page 136. Have the trigger\n  -- clear page 136 and its children. Assert fails.\n  UPDATE t1 SET x='hello world' WHERE rowid=1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  -- Run an UPDATE on t1 that will hit a child of page 136. Have the trigger\n  -- clear page 136 and its children. Assert fails.\n  UPDATE t1 SET x='hello world' WHERE rowid=1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  -- Run an UPDATE on t1 that will hit a child of page 136. Have the trigger\n  -- clear page 136 and its children. Assert fails.\n  UPDATE t1 SET x='hello world' WHERE rowid=1;\n")
 		}
 	}
 	db.Close()
@@ -1253,13 +1253,13 @@ func Test_corruptN(t *testing.T) {
 	{ // "7.2"
 		_res = db.Exec("\n  SELECT * FROM p1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM p1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM p1;\n")
 		}
 	}
 	{ // "7.3"
 		_res = db.Exec("\n  PRAGMA integrity_check\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA integrity_check\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA integrity_check\n")
 		}
 	}
 }

@@ -84,13 +84,13 @@ func Test_walshared(t *testing.T) {
 	{ // do_test "walshared-1.2"
 		_res = db.Exec(" PRAGMA wal_checkpoint ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", _res.Error, " PRAGMA wal_checkpoint ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", resErrString(_res), " PRAGMA wal_checkpoint ")
 		}
 	}
 	{ // do_test "walshared-1.3"
 		_res = db2.Exec(" PRAGMA wal_checkpoint ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", _res.Error, " PRAGMA wal_checkpoint ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", resErrString(_res), " PRAGMA wal_checkpoint ")
 		}
 	}
 	{ // do_test "walshared-1.4"

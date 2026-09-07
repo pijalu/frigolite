@@ -283,25 +283,25 @@ func Test_istrue(t *testing.T) {
 	{ // "istrue-521"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES(2,false,false,null,null);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: b IS TRUE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b IS TRUE", _res.Error, "\n  INSERT INTO t2 VALUES(2,false,false,null,null);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b IS TRUE", resErrString(_res), "\n  INSERT INTO t2 VALUES(2,false,false,null,null);\n")
 		}
 	}
 	{ // "istrue-522"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES(2,true,true,null,null);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c IS FALSE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c IS FALSE", _res.Error, "\n  INSERT INTO t2 VALUES(2,true,true,null,null);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c IS FALSE", resErrString(_res), "\n  INSERT INTO t2 VALUES(2,true,true,null,null);\n")
 		}
 	}
 	{ // "istrue-523"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES(2,true,false,true,null);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: d IS NOT TRUE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: d IS NOT TRUE", _res.Error, "\n  INSERT INTO t2 VALUES(2,true,false,true,null);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: d IS NOT TRUE", resErrString(_res), "\n  INSERT INTO t2 VALUES(2,true,false,true,null);\n")
 		}
 	}
 	{ // "istrue-524"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES(2,true,false,null,false);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: e IS NOT FALSE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e IS NOT FALSE", _res.Error, "\n  INSERT INTO t2 VALUES(2,true,false,null,false);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e IS NOT FALSE", resErrString(_res), "\n  INSERT INTO t2 VALUES(2,true,false,null,false);\n")
 		}
 	}
 	// foreach {tn val} "1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"
@@ -315,7 +315,7 @@ func Test_istrue(t *testing.T) {
 			{ // "istrue-600." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
 				}
 			}
 			{ // "istrue-600." + tn + ".2" — skipped: prepared-statement binds not implemented
@@ -356,7 +356,7 @@ func Test_istrue(t *testing.T) {
 		{ // "istrue-800"
 			_res = db.Exec("\n  SELECT 9 IN (false.false);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: false.false") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", _res.Error, "\n  SELECT 9 IN (false.false);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", resErrString(_res), "\n  SELECT 9 IN (false.false);\n")
 			}
 		}
 		{ // "istrue-810"
@@ -374,25 +374,25 @@ func Test_istrue(t *testing.T) {
 		{ // "istrue-820"
 			_res = db.Exec("\n  SELECT 9 IN (false.false) FROM t8;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: false.false") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", _res.Error, "\n  SELECT 9 IN (false.false) FROM t8;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", resErrString(_res), "\n  SELECT 9 IN (false.false) FROM t8;\n")
 			}
 		}
 		{ // "istrue-830"
 			_res = db.Exec("\n  CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));\n")
 			}
 		}
 		{ // "istrue-840"
 			_res = db.Exec("\n  INSERT INTO False VALUES(4,5,6);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO False VALUES(4,5,6);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO False VALUES(4,5,6);\n")
 			}
 		}
 		{ // "istrue-841"
 			_res = db.Exec("\n  INSERT INTO False VALUES(5,6,7);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: 5 IN (false.false)") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: 5 IN (false.false)", _res.Error, "\n  INSERT INTO False VALUES(5,6,7);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: 5 IN (false.false)", resErrString(_res), "\n  INSERT INTO False VALUES(5,6,7);\n")
 			}
 		}
 		{ // "istrue-850"

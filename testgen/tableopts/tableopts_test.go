@@ -59,19 +59,19 @@ func Test_tableopts(t *testing.T) {
 	{ // do_test "tableopt-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b) WITHOUT rowid;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "PRIMARY KEY missing on table t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "PRIMARY KEY missing on table t1", _res.Error, "\n    CREATE TABLE t1(a,b) WITHOUT rowid;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "PRIMARY KEY missing on table t1", resErrString(_res), "\n    CREATE TABLE t1(a,b) WITHOUT rowid;\n  ")
 		}
 	}
 	{ // do_test "tableopt-1.1b"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT,b) WITHOUT rowid;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "AUTOINCREMENT not allowed on WITHOUT ROWID tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "AUTOINCREMENT not allowed on WITHOUT ROWID tables", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT,b) WITHOUT rowid;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "AUTOINCREMENT not allowed on WITHOUT ROWID tables", resErrString(_res), "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT,b) WITHOUT rowid;\n  ")
 		}
 	}
 	{ // do_test "tableopt-1.2"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b) WITHOUT unknown2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown table option: unknown2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown table option: unknown2", _res.Error, "\n    CREATE TABLE t1(a,b) WITHOUT unknown2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown table option: unknown2", resErrString(_res), "\n    CREATE TABLE t1(a,b) WITHOUT unknown2;\n  ")
 		}
 	}
 	{ // "tableopt-2.1"
@@ -89,19 +89,19 @@ func Test_tableopts(t *testing.T) {
 	{ // do_test "tableopt-2.1.1"
 		_res = db.Exec("\n    SELECT rowid, * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n    SELECT rowid, * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n    SELECT rowid, * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "tableopt-2.1.2"
 		_res = db.Exec("\n    SELECT _rowid_, * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: _rowid_") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: _rowid_", _res.Error, "\n    SELECT _rowid_, * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: _rowid_", resErrString(_res), "\n    SELECT _rowid_, * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "tableopt-2.1.3"
 		_res = db.Exec("\n    SELECT oid, * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: oid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: oid", _res.Error, "\n    SELECT oid, * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: oid", resErrString(_res), "\n    SELECT oid, * FROM t1;\n  ")
 		}
 	}
 	{ // "tableopt-2.2" — skipped: VACUUM not implemented (P8.VACUUM)

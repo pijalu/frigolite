@@ -89,7 +89,7 @@ func Test_window5(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(4, 'a');\n  INSERT INTO t1 VALUES(6, 'b');\n  INSERT INTO t1 VALUES(1, 'c');\n  INSERT INTO t1 VALUES(5, 'd');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'f');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(4, 'a');\n  INSERT INTO t1 VALUES(6, 'b');\n  INSERT INTO t1 VALUES(1, 'c');\n  INSERT INTO t1 VALUES(5, 'd');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'f');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(4, 'a');\n  INSERT INTO t1 VALUES(6, 'b');\n  INSERT INTO t1 VALUES(1, 'c');\n  INSERT INTO t1 VALUES(5, 'd');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'f');\n")
 		}
 	}
 	{ // "window5-1.1" — skipped: win()/median() registered via sqlite3_create_window_function C API (not available in pure-Go engine) (SQL side effects only)

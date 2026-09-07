@@ -96,14 +96,14 @@ func Test_upfromfault(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE log(t TEXT);\n\n    INSERT INTO t1 VALUES(1, 'i',   'one');\n    INSERT INTO t1 VALUES(2, 'ii',  'two');\n    INSERT INTO t1 VALUES(3, 'iii', 'three');\n    INSERT INTO t1 VALUES(4, 'iv',  'four');\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE log(t TEXT);\n\n    INSERT INTO t1 VALUES(1, 'i',   'one');\n    INSERT INTO t1 VALUES(2, 'ii',  'two');\n    INSERT INTO t1 VALUES(3, 'iii', 'three');\n    INSERT INTO t1 VALUES(4, 'iv',  'four');\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE log(t TEXT);\n\n    INSERT INTO t1 VALUES(1, 'i',   'one');\n    INSERT INTO t1 VALUES(2, 'ii',  'two');\n    INSERT INTO t1 VALUES(3, 'iii', 'three');\n    INSERT INTO t1 VALUES(4, 'iv',  'four');\n  ")
 				}
 			}
 			if tclBool(tn + "!=4 && " + tn + "!=5") {
 				{ // "1." + tn + ".0b"
 					_res = db.Exec("\n      CREATE TRIGGER tr1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.z || '->' || new.z);\n      END;\n      CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.y || '->' || new.y);\n      END;\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER tr1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.z || '->' || new.z);\n      END;\n      CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.y || '->' || new.y);\n      END;\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      CREATE TRIGGER tr1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.z || '->' || new.z);\n      END;\n      CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.y || '->' || new.y);\n      END;\n    ")
 					}
 				}
 			}
@@ -127,7 +127,7 @@ func Test_upfromfault(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n")
 			}
 		}
 		// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -151,7 +151,7 @@ func Test_upfromfault(t *testing.T) {
 		{ // "2.2"
 			_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
 			}
 		}
 		// db_save_and_close: snapshot test.db* under sv_ prefix

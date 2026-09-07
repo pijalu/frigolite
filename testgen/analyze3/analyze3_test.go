@@ -864,7 +864,7 @@ func Test_analyze3(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;\n")
 		}
 	}
 	db.Close()

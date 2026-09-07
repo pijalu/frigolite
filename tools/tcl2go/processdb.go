@@ -999,6 +999,41 @@ func (tp *transpiler) emitMiscRecurseSQLUDF(name, procName string) bool {
 	return false
 }
 
+// emitFormatFunction recognizes `proc NAME {v} { format FMT $v }` — a
+// single printf-style format command over one integer argument (rollback2's
+// int2hex: format %.2X $i) — and emits the equivalent Go closure.
+func (tp *transpiler) emitFormatFunction(name, procName string) bool {
+	if tp.procBodies == nil || name == "" || procName == "" {
+		return false
+	}
+	body, ok := tp.procBodies[procName]
+	if !ok {
+		return false
+	}
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	fields := strings.Fields(body)
+	if len(fields) != 3 || !strings.EqualFold(fields[0], "format") || !strings.HasPrefix(fields[2], "$") {
+		return false
+	}
+	verb := fields[1]
+	switch verb {
+	case "%.2X", "%02X", "%X", "%x", "%d", "%o":
+	default:
+		return false
+	}
+	tp.emitLine("// db func %s %s (format %s)", name, procName, verb)
+	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
+	tp.emitLine("\tn, err := strconv.ParseInt(strings.TrimSpace(tclStr(args[0])), 0, 64)")
+	tp.emitLine("\tif err != nil { return nil, err }")
+	tp.emitLine("\treturn fmt.Sprintf(%q, n), nil", verb)
+	tp.emitLine("}, 1, 1)")
+	return true
+}
+
 // emitRegisteredFunction emits a RegisterFunction call for a recognized
 // test-suite proc pattern. Returns true when a pattern matched.
 func (tp *transpiler) emitRegisteredFunction(name, procName string, rest []tcl.RawWord) bool {
@@ -1053,6 +1088,12 @@ func (tp *transpiler) emitRegisteredFunction(name, procName string, rest []tcl.R
 	// scalar SQL function applying the comparison to its first
 	// argument (numeric).
 	if tp.emitPredFunction(name, procName) {
+		return true
+	}
+	// Format proc: `proc int2hex {i} { format %.2X $i }` (rollback2)
+	// becomes a scalar SQL function applying the printf verb to its
+	// integer argument.
+	if tp.emitFormatFunction(name, procName) {
 		return true
 	}
 	// Error-raising proc: `proc NAME {} { error "MSG" }` becomes a

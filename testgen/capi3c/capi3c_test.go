@@ -546,7 +546,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3-11.3.1"
 			_res = db.Exec("\n    COMMIT;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    COMMIT;\n  ")
 			}
 		}
 		{ // do_test "capi3-11.3.2"
@@ -568,7 +568,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-11.6"
 			_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1;\n  ")
 			}
 		}
 		{ // "capi3c-11.7" (prepare-step internals; SQL side effects only)
@@ -597,7 +597,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-11.9.2"
 			_res = db.Exec("\n    ROLLBACK;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ROLLBACK;\n  ")
 			}
 		}
 		{ // "capi3c-11.9.3" (prepare-step internals; SQL side effects only)
@@ -624,7 +624,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-11.15"
 			_res = db.Exec("\n    ROLLBACK;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rollback - no transaction is active") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rollback - no transaction is active", _res.Error, "\n    ROLLBACK;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rollback - no transaction is active", resErrString(_res), "\n    ROLLBACK;\n  ")
 			}
 		}
 		{ // "capi3c-11.15.1" (prepare-step internals; SQL side effects only)
@@ -657,7 +657,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-11.20"
 			_res = db.Exec("\n    BEGIN;\n    COMMIT;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    COMMIT;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    COMMIT;\n  ")
 			}
 		}
 		{ // do_test "capi3c-11.20"
@@ -679,19 +679,19 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-12.2"
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(3, NULL);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(3, NULL);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(3, NULL);\n  ")
 			}
 		}
 		{ // do_test "capi3c-12.3"
 			_res = db.Exec("\n    INSERT INTO t2 VALUES(4);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(4);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(4);\n  ")
 			}
 		}
 		{ // do_test "capi3c-12.4"
 			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);\n  ")
 			}
 		}
 		{ // do_test "capi3c-12.5"
@@ -1097,7 +1097,7 @@ func Test_capi3c(t *testing.T) {
 		{ // "25.0"
 			_res = db.Exec("\n  CREATE TABLE t11(a VARCHAR(10), b INTEGER);\n  CREATE TABLE t12(a VARCHAR(15), b FLOAT);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t11(a VARCHAR(10), b INTEGER);\n  CREATE TABLE t12(a VARCHAR(15), b FLOAT);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t11(a VARCHAR(10), b INTEGER);\n  CREATE TABLE t12(a VARCHAR(15), b FLOAT);\n")
 			}
 		}
 		// foreach {tn sql} "1 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12\"\n  2 \"SELECT * FROM t11 UNION SELECT * FROM t12\"\n  3 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12\"\n  4 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12\"\n\n  5 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12 ORDER BY 1\"\n  6 \"SELECT * FROM t11 UNION SELECT * FROM t12 ORDER BY 1\"\n  7 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12 ORDER BY 1\"\n  8 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12 ORDER BY 1\""

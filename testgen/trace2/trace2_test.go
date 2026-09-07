@@ -117,7 +117,7 @@ func Test_trace2(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING fts4;\n    INSERT INTO x1 VALUES('Cloudy, with a high near 16');\n    INSERT INTO x1 VALUES('Wind chill values as low as -13');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x1 USING fts4;\n    INSERT INTO x1 VALUES('Cloudy, with a high near 16');\n    INSERT INTO x1 VALUES('Wind chill values as low as -13');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE x1 USING fts4;\n    INSERT INTO x1 VALUES('Cloudy, with a high near 16');\n    INSERT INTO x1 VALUES('Wind chill values as low as -13');\n  ")
 		}
 	}
 	// do_trace_test 2.2 {\n    INSERT INTO x1 VALUES('North northwest wind ...} {\n    "INSERT INTO ... (unsupported command, not transpiled)

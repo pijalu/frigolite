@@ -64,7 +64,7 @@ func Test_windowD(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0, c1) \n    AS SELECT CUME_DIST() OVER (PARTITION BY t0.c0), TRUE FROM t0;\n  INSERT INTO t0 VALUES ('x');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0, c1) \n    AS SELECT CUME_DIST() OVER (PARTITION BY t0.c0), TRUE FROM t0;\n  INSERT INTO t0 VALUES ('x');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0, c1) \n    AS SELECT CUME_DIST() OVER (PARTITION BY t0.c0), TRUE FROM t0;\n  INSERT INTO t0 VALUES ('x');\n")
 		}
 	}
 	{ // "1.1"
@@ -137,7 +137,7 @@ func Test_windowD(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('value');\n  CREATE VIEW v1(a, b, c, d) AS SELECT 1, 2, TRUE, FALSE FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('value');\n  CREATE VIEW v1(a, b, c, d) AS SELECT 1, 2, TRUE, FALSE FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('value');\n  CREATE VIEW v1(a, b, c, d) AS SELECT 1, 2, TRUE, FALSE FROM t1;\n")
 		}
 	}
 	{ // "2.1"
@@ -167,7 +167,7 @@ func Test_windowD(t *testing.T) {
 	{ // "2.4"
 		_res = db.Exec("\n  CREATE VIEW v2 AS SELECT max(x) OVER () AS a, TRUE AS c FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v2 AS SELECT max(x) OVER () AS a, TRUE AS c FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v2 AS SELECT max(x) OVER () AS a, TRUE AS c FROM t1;\n")
 		}
 	}
 	{ // "2.5"

@@ -61,7 +61,7 @@ func Test_parser1(t *testing.T) {
 	{ // "parser1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "syntax error after column name \"b\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"b\"", _res.Error, "\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"b\"", resErrString(_res), "\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );\n")
 		}
 	}
 	db.SetDefensive(false)
@@ -114,13 +114,13 @@ func Test_parser1(t *testing.T) {
 	{ // "parser1-2.1"
 		_res = db.Exec("\n  WITH RECURSIVE\n    c(x COLLATE binary) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "syntax error after column name \"x\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"x\"", _res.Error, "\n  WITH RECURSIVE\n    c(x COLLATE binary) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"x\"", resErrString(_res), "\n  WITH RECURSIVE\n    c(x COLLATE binary) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;\n")
 		}
 	}
 	{ // "parser1-2.2"
 		_res = db.Exec("\n  WITH RECURSIVE\n    c(x ASC) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "syntax error after column name \"x\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"x\"", _res.Error, "\n  WITH RECURSIVE\n    c(x ASC) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"x\"", resErrString(_res), "\n  WITH RECURSIVE\n    c(x ASC) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;\n")
 		}
 	}
 	{ // "parser1-3.1"

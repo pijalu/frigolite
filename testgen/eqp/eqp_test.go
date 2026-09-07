@@ -82,7 +82,7 @@ func Test_eqp(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, ex TEXT);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(a INT, b INT, ex TEXT);\n  CREATE TABLE t3(a INT, b INT, ex TEXT);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT, ex TEXT);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(a INT, b INT, ex TEXT);\n  CREATE TABLE t3(a INT, b INT, ex TEXT);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT, ex TEXT);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(a INT, b INT, ex TEXT);\n  CREATE TABLE t3(a INT, b INT, ex TEXT);\n")
 		}
 	}
 	{ // "1.2"
@@ -184,7 +184,7 @@ func Test_eqp(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT, y INT, ex TEXT);\n\n  CREATE TABLE t2(x INT, y INT, ex TEXT);\n  CREATE INDEX t2i1 ON t2(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INT, y INT, ex TEXT);\n\n  CREATE TABLE t2(x INT, y INT, ex TEXT);\n  CREATE INDEX t2i1 ON t2(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INT, y INT, ex TEXT);\n\n  CREATE TABLE t2(x INT, y INT, ex TEXT);\n  CREATE INDEX t2i1 ON t2(x);\n")
 		}
 	}
 	// det 2.2.1 SELECT DISTINCT min(x), max(x) FROM t1 GROUP BY x ... {\n  QUERY PLAN\n  |... (unsupported command, not transpiled)
@@ -321,28 +321,28 @@ func Test_eqp(t *testing.T) {
 		{ // "5.1.0"
 			_res = db.Exec(" CREATE TABLE t1(a INT, b INT, ex TEXT) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a INT, b INT, ex TEXT) ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t1(a INT, b INT, ex TEXT) ")
 			}
 		}
 		// det 5.1.1 SELECT a, b FROM t1 WHERE a=1 {\n  0 0 0 {SCAN t1}\n} (unsupported command, not transpiled)
 		{ // "5.2.0"
 			_res = db.Exec(" CREATE INDEX i1 ON t1(a) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(a) ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE INDEX i1 ON t1(a) ")
 			}
 		}
 		// det 5.2.1 SELECT a, b FROM t1 WHERE a=1 {\n  0 0 0 {SEARCH t1 USING INDEX i1 (a=?)}\... (unsupported command, not transpiled)
 		{ // "5.3.0"
 			_res = db.Exec(" CREATE INDEX i2 ON t1(a, b) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i2 ON t1(a, b) ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE INDEX i2 ON t1(a, b) ")
 			}
 		}
 		// det 5.3.1 SELECT a, b FROM t1 WHERE a=1 {\n  0 0 0 {SEARCH t1 USING COVERING INDEX i... (unsupported command, not transpiled)
 		{ // "5.4.0"
 			_res = db.Exec("CREATE TABLE t2(c INT, d INT, ex TEXT)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2(c INT, d INT, ex TEXT)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "CREATE TABLE t2(c INT, d INT, ex TEXT)")
 			}
 		}
 		// det 5.4.1 SELECT t1.a, t2.c FROM t1, t2 WHERE t1.a=1 AND t1.... {\n  0 0 0 {SEARCH t... (unsupported command, not transpiled)
@@ -350,7 +350,7 @@ func Test_eqp(t *testing.T) {
 		{ // "5.5.0"
 			_res = db.Exec("CREATE INDEX i3 ON t1(b)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX i3 ON t1(b)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "CREATE INDEX i3 ON t1(b)")
 			}
 		}
 		// det 5.6.1 SELECT a, b FROM t1 WHERE a=1 OR b=2 {\n  0 0 0 {SEARCH t1 USING COVERING ... (unsupported command, not transpiled)
@@ -358,7 +358,7 @@ func Test_eqp(t *testing.T) {
 		{ // "5.8.0"
 			_res = db.Exec("CREATE INDEX i4 ON t2(c)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX i4 ON t2(c)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "CREATE INDEX i4 ON t2(c)")
 			}
 		}
 		// det 5.8.1 SELECT c, d FROM t2 ORDER BY c {\n  0 0 0 {SCAN t2 USING INDEX i4}\n} (unsupported command, not transpiled)
@@ -396,7 +396,7 @@ func Test_eqp(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, ex CHAR(100));\n  CREATE TABLE t2(a INT, b INT, ex CHAR(100));\n  CREATE INDEX i1 ON t2(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT, ex CHAR(100));\n  CREATE TABLE t2(a INT, b INT, ex CHAR(100));\n  CREATE INDEX i1 ON t2(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT, ex CHAR(100));\n  CREATE TABLE t2(a INT, b INT, ex CHAR(100));\n  CREATE INDEX i1 ON t2(a);\n")
 		}
 	}
 	// det 7.1 SELECT count(*) FROM t1 {\n  QUERY PLAN\n  `--SCAN t1\n} (unsupported command, not transpiled)
@@ -404,7 +404,7 @@ func Test_eqp(t *testing.T) {
 	{ // "7.3"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(1, 2);\n  INSERT INTO t1(a,b) VALUES(3, 4);\n\n  INSERT INTO t2(a,b) VALUES(1, 2);\n  INSERT INTO t2(a,b) VALUES(3, 4);\n  INSERT INTO t2(a,b) VALUES(5, 6);\n \n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(1, 2);\n  INSERT INTO t1(a,b) VALUES(3, 4);\n\n  INSERT INTO t2(a,b) VALUES(1, 2);\n  INSERT INTO t2(a,b) VALUES(3, 4);\n  INSERT INTO t2(a,b) VALUES(5, 6);\n \n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1(a,b) VALUES(1, 2);\n  INSERT INTO t1(a,b) VALUES(3, 4);\n\n  INSERT INTO t2(a,b) VALUES(1, 2);\n  INSERT INTO t2(a,b) VALUES(3, 4);\n  INSERT INTO t2(a,b) VALUES(5, 6);\n \n  ANALYZE;\n")
 		}
 	}
 	db.Close()
@@ -434,7 +434,7 @@ func Test_eqp(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE TABLE t2(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE TABLE t2(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE TABLE t2(a, b, c);\n")
 		}
 	}
 	// det 8.1.1 SELECT * FROM t2 {\n  QUERY PLAN\n  `--SCAN t2\n} (unsupported command, not transpiled)
@@ -447,7 +447,7 @@ func Test_eqp(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  -- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  CREATE INDEX event_i1 ON event(mtime);\n  CREATE TABLE private(rid INTEGER PRIMARY KEY);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  CREATE INDEX event_i1 ON event(mtime);\n  CREATE TABLE private(rid INTEGER PRIMARY KEY);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  -- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  CREATE INDEX event_i1 ON event(mtime);\n  CREATE TABLE private(rid INTEGER PRIMARY KEY);\n")
 		}
 	}
 	// optimization_control order-by-subquery off (no PRAGMA equivalent; ignored)

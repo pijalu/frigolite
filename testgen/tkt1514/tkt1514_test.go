@@ -59,7 +59,7 @@ func Test_tkt1514(t *testing.T) {
 	{ // do_test "tkt1514-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    SELECT a FROM t1 WHERE max(b)<10 GROUP BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate: max()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: max()", _res.Error, "\n    CREATE TABLE t1(a,b);\n    SELECT a FROM t1 WHERE max(b)<10 GROUP BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: max()", resErrString(_res), "\n    CREATE TABLE t1(a,b);\n    SELECT a FROM t1 WHERE max(b)<10 GROUP BY a;\n  ")
 		}
 	}
 }

@@ -65,7 +65,7 @@ func Test_countofview(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(f);\n\n  INSERT INTO t2 VALUES(1), (2);\n  INSERT INTO t3 VALUES(3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(f);\n\n  INSERT INTO t2 VALUES(1), (2);\n  INSERT INTO t3 VALUES(3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(f);\n\n  INSERT INTO t2 VALUES(1), (2);\n  INSERT INTO t3 VALUES(3);\n")
 		}
 	}
 	{ // "1.1"
@@ -133,7 +133,7 @@ func Test_countofview(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c)\n    SELECT count(*) FROM c;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "interrupted") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "interrupted", _res.Error, "\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c)\n    SELECT count(*) FROM c;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "interrupted", resErrString(_res), "\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c)\n    SELECT count(*) FROM c;\n  ")
 		}
 	}
 	{ // "4.1"

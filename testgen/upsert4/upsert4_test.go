@@ -102,7 +102,7 @@ func Test_upsert4(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES(1, NULL, 'one');\n    INSERT INTO t1 VALUES(2, NULL, 'two');\n    INSERT INTO t1 VALUES(3, NULL, 'three');\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, NULL, 'one');\n    INSERT INTO t1 VALUES(2, NULL, 'two');\n    INSERT INTO t1 VALUES(3, NULL, 'three');\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, NULL, 'one');\n    INSERT INTO t1 VALUES(2, NULL, 'two');\n    INSERT INTO t1 VALUES(3, NULL, 'three');\n  ")
 				}
 			}
 			{ // "1." + tn + ".1"
@@ -156,7 +156,7 @@ func Test_upsert4(t *testing.T) {
 			{ // "1." + tn + ".5"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET c = 'one';\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n    INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET c = 'one';\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "\n    INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET c = 'one';\n  ")
 				}
 			}
 			{ // "1." + tn + ".6"
@@ -227,7 +227,7 @@ func Test_upsert4(t *testing.T) {
 				{ // "2." + tn + ".1"
 					_res = db.Exec("\n    INSERT INTO xyz VALUES(10, 1, 1, 'one');\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO xyz VALUES(10, 1, 1, 'one');\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO xyz VALUES(10, 1, 1, 'one');\n  ")
 					}
 				}
 				// foreach {tn2 oc res} "1 \"ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING\"   0\n    2 \"ON CONFLICT (b, c, d) DO NOTHING\"                  0\n    3 \"ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING\"   2\n    4 \"ON CONFLICT (a) DO NOTHING\"                        1\n    5 \"ON CONFLICT DO NOTHING\"                            0\n    6 \"ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING\"       0\n    7 \"ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING\"       2\n    8 \"ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING\"   2\n    9 \"ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING\"      0"
@@ -243,7 +243,7 @@ func Test_upsert4(t *testing.T) {
 						{ // "2." + tn + ".2." + tn2
 							_res = db.Exec("\n      INSERT INTO xyz VALUES(11, 1, 1, 'one') " + oc + "\n    ")
 							if !tclCatchsqlMatches(_res, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }())) {
-								t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO xyz VALUES(11, 1, 1, 'one') " + oc + "\n    ")
+								t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO xyz VALUES(11, 1, 1, 'one') " + oc + "\n    ")
 							}
 						}
 					}
@@ -282,7 +282,7 @@ func Test_upsert4(t *testing.T) {
 						{ // "3." + tn + ".1"
 							_res = db.Exec("\n    INSERT INTO abc VALUES(1, 'one', 'two');\n  ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 'one', 'two');\n  ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO abc VALUES(1, 'one', 'two');\n  ")
 							}
 						}
 						// foreach {tn2 oc res} "1 \"ON CONFLICT DO NOTHING\"                             0\n    2 \"ON CONFLICT ('x' || x) DO NOTHING\"                  0\n    3 \"ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING\" 0\n    4 \"ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING\" 2\n    5 \"ON CONFLICT (x || 'x') DO NOTHING\"                  2\n    6 \"ON CONFLICT ((('x' || x))) DO NOTHING\"              0"
@@ -298,7 +298,7 @@ func Test_upsert4(t *testing.T) {
 								{ // "3." + tn + ".2." + tn2
 									_res = db.Exec("\n      INSERT INTO abc VALUES(2, 'one', NULL) " + oc + ";\n    ")
 									if !tclCatchsqlMatches(_res, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }())) {
-										t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO abc VALUES(2, 'one', NULL) " + oc + ";\n    ")
+										t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO abc VALUES(2, 'one', NULL) " + oc + ";\n    ")
 									}
 								}
 							}
@@ -337,7 +337,7 @@ func Test_upsert4(t *testing.T) {
 								{ // "4." + tn + ".1"
 									_res = db.Exec("\n    INSERT INTO abc VALUES(1, 'one', 1);\n    INSERT INTO abc VALUES(2, 'two', 2);\n    INSERT INTO abc VALUES(3, 'xyz', 3);\n    INSERT INTO abc VALUES(4, 'XYZ', 4);\n  ")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 'one', 1);\n    INSERT INTO abc VALUES(2, 'two', 2);\n    INSERT INTO abc VALUES(3, 'xyz', 3);\n    INSERT INTO abc VALUES(4, 'XYZ', 4);\n  ")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO abc VALUES(1, 'one', 1);\n    INSERT INTO abc VALUES(2, 'two', 2);\n    INSERT INTO abc VALUES(3, 'xyz', 3);\n    INSERT INTO abc VALUES(4, 'XYZ', 4);\n  ")
 									}
 								}
 								// foreach {tn2 oc res} "1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    0\n    3 \"ON CONFLICT(x) DO NOTHING\"                              2\n    4 \"ON CONFLICT(x) WHERE y>=0 DO NOTHING\"                   2\n    5 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 1"
@@ -353,7 +353,7 @@ func Test_upsert4(t *testing.T) {
 										{ // "4." + tn + ".2." + tn2
 											_res = db.Exec("\n      INSERT INTO abc VALUES(5, 'one', 10) " + oc + "\n    ")
 											if !tclCatchsqlMatches(_res, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }())) {
-												t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO abc VALUES(5, 'one', 10) " + oc + "\n    ")
+												t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO abc VALUES(5, 'one', 10) " + oc + "\n    ")
 											}
 										}
 									}
@@ -382,7 +382,7 @@ func Test_upsert4(t *testing.T) {
 											{ // "4." + tn + ".2." + tn2
 												_res = db.Exec("\n      INSERT INTO abc VALUES(5, 'xYz', 3) " + oc + "\n    ")
 												if !tclCatchsqlMatches(_res, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }())) {
-													t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO abc VALUES(5, 'xYz', 3) " + oc + "\n    ")
+													t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch res { case "0": return rtbl_0; case "1": return rtbl_1; case "2": return rtbl_2; default: return "" } }()), "\n      INSERT INTO abc VALUES(5, 'xYz', 3) " + oc + "\n    ")
 												}
 											}
 										}
@@ -390,7 +390,7 @@ func Test_upsert4(t *testing.T) {
 									{ // "5.0"
 										_res = db.Exec("\n  CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;\n")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;\n")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;\n")
 										}
 									}
 									// foreach {tn sql} "1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n  }\n  2 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c);\n  }\n  3 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c) WITHOUT ROWID;\n  }"
@@ -447,7 +447,7 @@ func Test_upsert4(t *testing.T) {
 												{ // "6.2." + tn + ".1"
 													_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 1, 1);\n    INSERT INTO t1 VALUES(2, 2, 2);\n  ")
 													if _res.Error != nil {
-														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 1, 1);\n    INSERT INTO t1 VALUES(2, 2, 2);\n  ")
+														t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 1, 1);\n    INSERT INTO t1 VALUES(2, 2, 2);\n  ")
 													}
 												}
 												{ // "6.2." + tn + ".2"
@@ -521,7 +521,7 @@ func Test_upsert4(t *testing.T) {
 													{ // "7." + tn + ".0"
 														_res = db.Exec("\n    INSERT INTO t1 VALUES('a', 1, 1, 1);\n    INSERT INTO t1 VALUES('b', 2, 2, 2);\n  ")
 														if _res.Error != nil {
-															t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES('a', 1, 1, 1);\n    INSERT INTO t1 VALUES('b', 2, 2, 2);\n  ")
+															t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES('a', 1, 1, 1);\n    INSERT INTO t1 VALUES('b', 2, 2, 2);\n  ")
 														}
 													}
 													{ // "7." + tn + ".1"
@@ -595,7 +595,7 @@ func Test_upsert4(t *testing.T) {
 														{ // "8." + tn + ".0"
 															_res = db.Exec("\n    INSERT INTO excluded VALUES('a', 1, 1, 1);\n    INSERT INTO excluded VALUES('b', 2, 2, 2);\n  ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO excluded VALUES('a', 1, 1, 1);\n    INSERT INTO excluded VALUES('b', 2, 2, 2);\n  ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO excluded VALUES('a', 1, 1, 1);\n    INSERT INTO excluded VALUES('b', 2, 2, 2);\n  ")
 															}
 														}
 														{ // "8." + tn + ".1"
@@ -649,14 +649,14 @@ func Test_upsert4(t *testing.T) {
 														{ // "8." + tn + ".5"
 															_res = db.Exec("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n  ")
 															if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: y") {
-																t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: y", _res.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n  ")
+																t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: y", resErrString(_res), "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n  ")
 															}
 														}
 													}
 													{ // "9.0"
 														_res = db.Exec("\n  CREATE TABLE v(x INTEGER);\n  CREATE TABLE hist(x INTEGER PRIMARY KEY, cnt INTEGER);\n  CREATE TRIGGER vt AFTER INSERT ON v BEGIN\n    INSERT INTO hist VALUES(new.x, 1) ON CONFLICT(x) DO\n      UPDATE SET cnt=cnt+1;\n  END;\n")
 														if _res.Error != nil {
-															t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v(x INTEGER);\n  CREATE TABLE hist(x INTEGER PRIMARY KEY, cnt INTEGER);\n  CREATE TRIGGER vt AFTER INSERT ON v BEGIN\n    INSERT INTO hist VALUES(new.x, 1) ON CONFLICT(x) DO\n      UPDATE SET cnt=cnt+1;\n  END;\n")
+															t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE v(x INTEGER);\n  CREATE TABLE hist(x INTEGER PRIMARY KEY, cnt INTEGER);\n  CREATE TRIGGER vt AFTER INSERT ON v BEGIN\n    INSERT INTO hist VALUES(new.x, 1) ON CONFLICT(x) DO\n      UPDATE SET cnt=cnt+1;\n  END;\n")
 														}
 													}
 													{ // "9.1"

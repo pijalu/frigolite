@@ -321,25 +321,25 @@ func Test_limit(t *testing.T) {
 	{ // do_test "limit-7.1.1"
 		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 5 UNION ALL SELECT a FROM t6;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "LIMIT clause should come after UNION ALL not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION ALL not before", _res.Error, "\n    SELECT x FROM t2 LIMIT 5 UNION ALL SELECT a FROM t6;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION ALL not before", resErrString(_res), "\n    SELECT x FROM t2 LIMIT 5 UNION ALL SELECT a FROM t6;\n  ")
 		}
 	}
 	{ // do_test "limit-7.1.2"
 		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 5 UNION SELECT a FROM t6;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "LIMIT clause should come after UNION not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION not before", _res.Error, "\n    SELECT x FROM t2 LIMIT 5 UNION SELECT a FROM t6;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION not before", resErrString(_res), "\n    SELECT x FROM t2 LIMIT 5 UNION SELECT a FROM t6;\n  ")
 		}
 	}
 	{ // do_test "limit-7.1.3"
 		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 5 EXCEPT SELECT a FROM t6 LIMIT 3;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "LIMIT clause should come after EXCEPT not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after EXCEPT not before", _res.Error, "\n    SELECT x FROM t2 LIMIT 5 EXCEPT SELECT a FROM t6 LIMIT 3;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after EXCEPT not before", resErrString(_res), "\n    SELECT x FROM t2 LIMIT 5 EXCEPT SELECT a FROM t6 LIMIT 3;\n  ")
 		}
 	}
 	{ // do_test "limit-7.1.4"
 		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 0,5 INTERSECT SELECT a FROM t6;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "LIMIT clause should come after INTERSECT not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after INTERSECT not before", _res.Error, "\n    SELECT x FROM t2 LIMIT 0,5 INTERSECT SELECT a FROM t6;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after INTERSECT not before", resErrString(_res), "\n    SELECT x FROM t2 LIMIT 0,5 INTERSECT SELECT a FROM t6;\n  ")
 		}
 	}
 	{ // do_test "limit-7.2"
@@ -459,7 +459,7 @@ func Test_limit(t *testing.T) {
 	{ // do_test "limit-9.5"
 		_res = db.Exec("\n      SELECT * FROM t6 LIMIT 3\n      UNION\n      SELECT * FROM t7 LIMIT 3\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "LIMIT clause should come after UNION not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION not before", _res.Error, "\n      SELECT * FROM t6 LIMIT 3\n      UNION\n      SELECT * FROM t7 LIMIT 3\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION not before", resErrString(_res), "\n      SELECT * FROM t6 LIMIT 3\n      UNION\n      SELECT * FROM t7 LIMIT 3\n    ")
 		}
 	}
 	{ // do_test "limit-10.1"
@@ -536,31 +536,31 @@ func Test_limit(t *testing.T) {
 	{ // do_test "limit-12.1"
 		_res = db.Exec("\n     SELECT * FROM t1 LIMIT replace(1)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function replace()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", _res.Error, "\n     SELECT * FROM t1 LIMIT replace(1)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", resErrString(_res), "\n     SELECT * FROM t1 LIMIT replace(1)\n  ")
 		}
 	}
 	{ // do_test "limit-12.2"
 		_res = db.Exec("\n     SELECT * FROM t1 LIMIT 5 OFFSET replace(1)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function replace()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", _res.Error, "\n     SELECT * FROM t1 LIMIT 5 OFFSET replace(1)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", resErrString(_res), "\n     SELECT * FROM t1 LIMIT 5 OFFSET replace(1)\n  ")
 		}
 	}
 	{ // do_test "limit-12.3"
 		_res = db.Exec("\n     SELECT * FROM t1 LIMIT x\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", _res.Error, "\n     SELECT * FROM t1 LIMIT x\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", resErrString(_res), "\n     SELECT * FROM t1 LIMIT x\n  ")
 		}
 	}
 	{ // do_test "limit-12.4"
 		_res = db.Exec("\n     SELECT * FROM t1 LIMIT 1 OFFSET x\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", _res.Error, "\n     SELECT * FROM t1 LIMIT 1 OFFSET x\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", resErrString(_res), "\n     SELECT * FROM t1 LIMIT 1 OFFSET x\n  ")
 		}
 	}
 	{ // do_test "limit-13.1"
 		_res = db.Exec("\n    CREATE TABLE t13(x);\n    INSERT INTO t13 VALUES(1),(2);\n    CREATE VIEW v13a AS SELECT x AS y FROM t13;\n    CREATE VIEW v13b AS SELECT y AS z FROM v13a UNION ALL SELECT y+10 FROM v13a;\n    CREATE VIEW v13c AS SELECT z FROM v13b UNION ALL SELECT z+20 FROM v13b;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t13(x);\n    INSERT INTO t13 VALUES(1),(2);\n    CREATE VIEW v13a AS SELECT x AS y FROM t13;\n    CREATE VIEW v13b AS SELECT y AS z FROM v13a UNION ALL SELECT y+10 FROM v13a;\n    CREATE VIEW v13c AS SELECT z FROM v13b UNION ALL SELECT z+20 FROM v13b;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t13(x);\n    INSERT INTO t13 VALUES(1),(2);\n    CREATE VIEW v13a AS SELECT x AS y FROM t13;\n    CREATE VIEW v13b AS SELECT y AS z FROM v13a UNION ALL SELECT y+10 FROM v13a;\n    CREATE VIEW v13c AS SELECT z FROM v13b UNION ALL SELECT z+20 FROM v13b;\n  ")
 		}
 	}
 	{ // do_test "limit-13.2"

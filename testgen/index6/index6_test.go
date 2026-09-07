@@ -79,37 +79,37 @@ func Test_index6(t *testing.T) {
 	{ // do_test "index6-1.2"
 		_res = db.Exec("\n    CREATE INDEX bad1 ON t1(a,b) WHERE x IS NOT NULL;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", _res.Error, "\n    CREATE INDEX bad1 ON t1(a,b) WHERE x IS NOT NULL;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", resErrString(_res), "\n    CREATE INDEX bad1 ON t1(a,b) WHERE x IS NOT NULL;\n  ")
 		}
 	}
 	{ // do_test "index6-1.3"
 		_res = db.Exec("\n    CREATE INDEX bad1 ON t1(a,b) WHERE EXISTS(SELECT * FROM t1);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "subqueries prohibited in partial index WHERE clauses") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "subqueries prohibited in partial index WHERE clauses", _res.Error, "\n    CREATE INDEX bad1 ON t1(a,b) WHERE EXISTS(SELECT * FROM t1);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "subqueries prohibited in partial index WHERE clauses", resErrString(_res), "\n    CREATE INDEX bad1 ON t1(a,b) WHERE EXISTS(SELECT * FROM t1);\n  ")
 		}
 	}
 	{ // do_test "index6-1.4"
 		_res = db.Exec("\n    CREATE INDEX bad1 ON t1(a,b) WHERE a!=?1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "parameters prohibited in partial index WHERE clauses") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters prohibited in partial index WHERE clauses", _res.Error, "\n    CREATE INDEX bad1 ON t1(a,b) WHERE a!=?1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters prohibited in partial index WHERE clauses", resErrString(_res), "\n    CREATE INDEX bad1 ON t1(a,b) WHERE a!=?1;\n  ")
 		}
 	}
 	{ // do_test "index6-1.5"
 		_res = db.Exec("\n    CREATE INDEX bad1 ON t1(a,b) WHERE a!=random();\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic functions prohibited in partial index WHERE clauses") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic functions prohibited in partial index WHERE clauses", _res.Error, "\n    CREATE INDEX bad1 ON t1(a,b) WHERE a!=random();\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic functions prohibited in partial index WHERE clauses", resErrString(_res), "\n    CREATE INDEX bad1 ON t1(a,b) WHERE a!=random();\n  ")
 		}
 	}
 	{ // do_test "index6-1.6"
 		_res = db.Exec("\n    CREATE INDEX bad1 ON t1(a,b) WHERE a NOT LIKE 'abc%';\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX bad1 ON t1(a,b) WHERE a NOT LIKE 'abc%';\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE INDEX bad1 ON t1(a,b) WHERE a NOT LIKE 'abc%';\n  ")
 		}
 	}
 	{ // "index6-1.7"
 		_res = db.Exec("\n  DROP INDEX IF EXISTS bad1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX IF EXISTS bad1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX IF EXISTS bad1;\n")
 		}
 	}
 	{ // do_test "index6-1.10"
@@ -259,19 +259,19 @@ func Test_index6(t *testing.T) {
 	{ // "index6-3.1"
 		_res = db.Exec("\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 SELECT value, value FROM nums WHERE value<200;\n  UPDATE t3 SET a=999 WHERE b%5!=0;\n  CREATE UNIQUE INDEX t3a ON t3(a) WHERE a<>999;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 SELECT value, value FROM nums WHERE value<200;\n  UPDATE t3 SET a=999 WHERE b%5!=0;\n  CREATE UNIQUE INDEX t3a ON t3(a) WHERE a<>999;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 SELECT value, value FROM nums WHERE value<200;\n  UPDATE t3 SET a=999 WHERE b%5!=0;\n  CREATE UNIQUE INDEX t3a ON t3(a) WHERE a<>999;\n")
 		}
 	}
 	{ // do_test "index6-3.2"
 		_res = db.Exec("\n    INSERT INTO t3(a,b) VALUES(150, 'test1');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t3.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a", _res.Error, "\n    INSERT INTO t3(a,b) VALUES(150, 'test1');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a", resErrString(_res), "\n    INSERT INTO t3(a,b) VALUES(150, 'test1');\n  ")
 		}
 	}
 	{ // do_test "index6-3.3"
 		_res = db.Exec("\n    INSERT INTO t3(a,b) VALUES(999, 'test1'), (999, 'test2');\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t3(a,b) VALUES(999, 'test1'), (999, 'test2');\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t3(a,b) VALUES(999, 'test1'), (999, 'test2');\n  ")
 		}
 	}
 	{ // "index6-3.4"
@@ -381,7 +381,7 @@ func Test_index6(t *testing.T) {
 	{ // "index6-8.0"
 		_res = db.Exec("\n  CREATE TABLE t8a(a,b);\n  CREATE TABLE t8b(x,y);\n  CREATE INDEX i8c ON t8b(y) WHERE x = 'value';\n\n  INSERT INTO t8a VALUES(1, 'one');\n  INSERT INTO t8a VALUES(2, 'two');\n  INSERT INTO t8a VALUES(3, 'three');\n\n  INSERT INTO t8b VALUES('value', 1);\n  INSERT INTO t8b VALUES('dummy', 2);\n  INSERT INTO t8b VALUES('value', 3);\n  INSERT INTO t8b VALUES('dummy', 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8a(a,b);\n  CREATE TABLE t8b(x,y);\n  CREATE INDEX i8c ON t8b(y) WHERE x = 'value';\n\n  INSERT INTO t8a VALUES(1, 'one');\n  INSERT INTO t8a VALUES(2, 'two');\n  INSERT INTO t8a VALUES(3, 'three');\n\n  INSERT INTO t8b VALUES('value', 1);\n  INSERT INTO t8b VALUES('dummy', 2);\n  INSERT INTO t8b VALUES('value', 3);\n  INSERT INTO t8b VALUES('dummy', 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t8a(a,b);\n  CREATE TABLE t8b(x,y);\n  CREATE INDEX i8c ON t8b(y) WHERE x = 'value';\n\n  INSERT INTO t8a VALUES(1, 'one');\n  INSERT INTO t8a VALUES(2, 'two');\n  INSERT INTO t8a VALUES(3, 'three');\n\n  INSERT INTO t8b VALUES('value', 1);\n  INSERT INTO t8b VALUES('dummy', 2);\n  INSERT INTO t8b VALUES('value', 3);\n  INSERT INTO t8b VALUES('dummy', 4);\n")
 		}
 	}
 	{ // "index6-8.1"
@@ -726,7 +726,7 @@ func Test_index6(t *testing.T) {
 	{ // "index6-19.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a) VALUES(2);\n  CREATE TABLE t2(c INT);\n  CREATE INDEX i0 ON t2(c) WHERE c=3;\n  CREATE TABLE t3(d INT);\n  INSERT INTO t3 VALUES(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a) VALUES(2);\n  CREATE TABLE t2(c INT);\n  CREATE INDEX i0 ON t2(c) WHERE c=3;\n  CREATE TABLE t3(d INT);\n  INSERT INTO t3 VALUES(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a) VALUES(2);\n  CREATE TABLE t2(c INT);\n  CREATE INDEX i0 ON t2(c) WHERE c=3;\n  CREATE TABLE t3(d INT);\n  INSERT INTO t3 VALUES(1);\n")
 		}
 	}
 	{ // "index6-19.2"

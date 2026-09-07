@@ -255,7 +255,7 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-2.1"
 		_res = db.Exec("\n    ALTER TABLE none RENAME TO hi;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: none") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: none", _res.Error, "\n    ALTER TABLE none RENAME TO hi;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: none", resErrString(_res), "\n    ALTER TABLE none RENAME TO hi;\n  ")
 		}
 	}
 	{ // do_test "alter-2.2"
@@ -269,25 +269,25 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-2.3"
 		_res = db.Exec("\n    ALTER TABLE [<t2>] RENAME TO i3;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "there is already another table or index with this name: i3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "there is already another table or index with this name: i3", _res.Error, "\n    ALTER TABLE [<t2>] RENAME TO i3;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "there is already another table or index with this name: i3", resErrString(_res), "\n    ALTER TABLE [<t2>] RENAME TO i3;\n  ")
 		}
 	}
 	{ // do_test "alter-2.4"
 		_res = db.Exec("\n    ALTER TABLE SqLiTe_master RENAME TO master;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_master may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_master may not be altered", _res.Error, "\n    ALTER TABLE SqLiTe_master RENAME TO master;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_master may not be altered", resErrString(_res), "\n    ALTER TABLE SqLiTe_master RENAME TO master;\n  ")
 		}
 	}
 	{ // do_test "alter-2.5"
 		_res = db.Exec("\n    ALTER TABLE t3 RENAME TO sqlite_t3;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_t3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_t3", _res.Error, "\n    ALTER TABLE t3 RENAME TO sqlite_t3;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_t3", resErrString(_res), "\n    ALTER TABLE t3 RENAME TO sqlite_t3;\n  ")
 		}
 	}
 	{ // do_test "alter-2.6"
 		_res = db.Exec("\n    ALTER TABLE t3 ADD COLUMN (ALTER TABLE t3 ADD COLUMN);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"(\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"(\": syntax error", _res.Error, "\n    ALTER TABLE t3 ADD COLUMN (ALTER TABLE t3 ADD COLUMN);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"(\": syntax error", resErrString(_res), "\n    ALTER TABLE t3 ADD COLUMN (ALTER TABLE t3 ADD COLUMN);\n  ")
 		}
 	}
 	// proc definition (not transpiled)
@@ -387,61 +387,61 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-3.2.1"
 		_res = db.Exec("\n      ATTACH 'test3.db' AS ON;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", _res.Error, "\n      ATTACH 'test3.db' AS ON;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", resErrString(_res), "\n      ATTACH 'test3.db' AS ON;\n    ")
 		}
 	}
 	{ // do_test "alter-3.2.2"
 		_res = db.Exec("\n      ATTACH 'test3.db' AS 'ON';\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test3.db' AS 'ON';\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      ATTACH 'test3.db' AS 'ON';\n    ")
 		}
 	}
 	{ // do_test "alter-3.2.3"
 		_res = db.Exec("\n      CREATE TABLE ON.t1(a, b, c); \n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", _res.Error, "\n      CREATE TABLE ON.t1(a, b, c); \n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", resErrString(_res), "\n      CREATE TABLE ON.t1(a, b, c); \n    ")
 		}
 	}
 	{ // do_test "alter-3.2.4"
 		_res = db.Exec("\n      CREATE TABLE 'ON'.t1(a, b, c); \n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE 'ON'.t1(a, b, c); \n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      CREATE TABLE 'ON'.t1(a, b, c); \n    ")
 		}
 	}
 	{ // do_test "alter-3.2.4"
 		_res = db.Exec("\n      CREATE TABLE 'ON'.ON(a, b, c); \n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", _res.Error, "\n      CREATE TABLE 'ON'.ON(a, b, c); \n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", resErrString(_res), "\n      CREATE TABLE 'ON'.ON(a, b, c); \n    ")
 		}
 	}
 	{ // do_test "alter-3.2.5"
 		_res = db.Exec("\n      CREATE TABLE 'ON'.'ON'(a, b, c); \n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE 'ON'.'ON'(a, b, c); \n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      CREATE TABLE 'ON'.'ON'(a, b, c); \n    ")
 		}
 	}
 	{ // do_test "alter-3.2.6"
 		_res = db.Exec("\n    CREATE TABLE t10(a, ON, c);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", _res.Error, "\n    CREATE TABLE t10(a, ON, c);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", resErrString(_res), "\n    CREATE TABLE t10(a, ON, c);\n  ")
 		}
 	}
 	{ // do_test "alter-3.2.7"
 		_res = db.Exec("\n    CREATE TABLE t10(a, 'ON', c);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t10(a, 'ON', c);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t10(a, 'ON', c);\n  ")
 		}
 	}
 	{ // do_test "alter-3.2.8"
 		_res = db.Exec("\n    CREATE TRIGGER trig4 AFTER INSERT ON ON BEGIN SELECT 1; END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", _res.Error, "\n    CREATE TRIGGER trig4 AFTER INSERT ON ON BEGIN SELECT 1; END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", resErrString(_res), "\n    CREATE TRIGGER trig4 AFTER INSERT ON ON BEGIN SELECT 1; END;\n  ")
 		}
 	}
 	{ // do_test "alter-3.2.9"
 		_res = db.Exec("\n      CREATE TRIGGER 'on'.trig4 AFTER INSERT ON 'ON' BEGIN SELECT 1; END;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER 'on'.trig4 AFTER INSERT ON 'ON' BEGIN SELECT 1; END;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      CREATE TRIGGER 'on'.trig4 AFTER INSERT ON 'ON' BEGIN SELECT 1; END;\n    ")
 		}
 	}
 	{ // do_test "alter-3.2.10"
@@ -688,7 +688,7 @@ func Test_alter(t *testing.T) {
 		{ // "alter-9.3"
 			_res = db.Exec("\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_table") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_rename_table", _res.Error, "\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_rename_table", resErrString(_res), "\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
 			}
 		}
 		{ // do_test "alter-10.1"
@@ -771,7 +771,7 @@ func Test_alter(t *testing.T) {
 		{ // do_test "alter-12.2"
 			_res = db.Exec("\n    ALTER TABLE v1 RENAME TO v2;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "view v1 may not be altered") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v1 may not be altered", _res.Error, "\n    ALTER TABLE v1 RENAME TO v2;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v1 may not be altered", resErrString(_res), "\n    ALTER TABLE v1 RENAME TO v2;\n  ")
 			}
 		}
 		{ // do_test "alter-12.3"
@@ -793,7 +793,7 @@ func Test_alter(t *testing.T) {
 		{ // do_test "alter-12.5"
 			_res = db.Exec(" \n    ALTER TABLE v1 ADD COLUMN new_column;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a column to a view") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column to a view", _res.Error, " \n    ALTER TABLE v1 ADD COLUMN new_column;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column to a view", resErrString(_res), " \n    ALTER TABLE v1 ADD COLUMN new_column;\n  ")
 			}
 		}
 		{ // do_test "alter-13.1"
@@ -817,13 +817,13 @@ func Test_alter(t *testing.T) {
 		{ // do_test "alter-14.1"
 			_res = db.Exec("\n    CREATE TABLE t3651(a UNIQUE);\n    INSERT INTO t3651 VALUES(5);\n    ALTER TABLE t3651 ADD COLUMN b UNIQUE;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a UNIQUE column") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a UNIQUE column", _res.Error, "\n    CREATE TABLE t3651(a UNIQUE);\n    INSERT INTO t3651 VALUES(5);\n    ALTER TABLE t3651 ADD COLUMN b UNIQUE;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a UNIQUE column", resErrString(_res), "\n    CREATE TABLE t3651(a UNIQUE);\n    INSERT INTO t3651 VALUES(5);\n    ALTER TABLE t3651 ADD COLUMN b UNIQUE;\n  ")
 			}
 		}
 		{ // do_test "alter-14.2"
 			_res = db.Exec("\n    ALTER TABLE t3651 ADD COLUMN b PRIMARY KEY;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a PRIMARY KEY column") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a PRIMARY KEY column", _res.Error, "\n    ALTER TABLE t3651 ADD COLUMN b PRIMARY KEY;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a PRIMARY KEY column", resErrString(_res), "\n    ALTER TABLE t3651 ADD COLUMN b PRIMARY KEY;\n  ")
 			}
 		}
 		vtab.TclVarSet("system_table_list", "", "1 sqlite_master")
@@ -843,13 +843,13 @@ func Test_alter(t *testing.T) {
 				{ // do_test "alter-15." + tn + ".1"
 					_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table " + tbl + " may not be altered") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table " + tbl + " may not be altered", _res.Error, "ALTER TABLE " + tbl + " RENAME TO xyz")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table " + tbl + " may not be altered", resErrString(_res), "ALTER TABLE " + tbl + " RENAME TO xyz")
 					}
 				}
 				{ // do_test "alter-15." + tn + ".2"
 					_res = db.Exec("ALTER TABLE " + tbl + " ADD COLUMN xyz")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table " + tbl + " may not be altered") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table " + tbl + " may not be altered", _res.Error, "ALTER TABLE " + tbl + " ADD COLUMN xyz")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table " + tbl + " may not be altered", resErrString(_res), "ALTER TABLE " + tbl + " ADD COLUMN xyz")
 					}
 				}
 			}
@@ -903,7 +903,7 @@ func Test_alter(t *testing.T) {
 			{ // "alter-18.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: no such table: main.logx") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: no such table: main.logx", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: no such table: main.logx", resErrString(_res), "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
 				}
 			}
 			db.Close()
@@ -916,7 +916,7 @@ func Test_alter(t *testing.T) {
 			{ // "alter-19.1"
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
 				}
 			}
 			{ // "alter-19.2"
@@ -947,25 +947,25 @@ func Test_alter(t *testing.T) {
 			{ // "alter-20.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
 				}
 			}
 			{ // "alter-20.2"
 				_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "type mismatch on DEFAULT") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "type mismatch on DEFAULT", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "type mismatch on DEFAULT", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
 				}
 			}
 			{ // "alter-20.2"
 				_res = db.Exec("\n  DELETE FROM t1;\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
 				}
 			}
 			{ // "alter-20.3"
 				_res = db.Exec("\n  INSERT INTO t1(a) VALUES(45);\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in TEXT column t1.b") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.b", _res.Error, "\n  INSERT INTO t1(a) VALUES(45);\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.b", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(45);\n")
 				}
 			}
 			db.Close()
@@ -978,7 +978,7 @@ func Test_alter(t *testing.T) {
 			{ // "alter-21.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
 				}
 			}
 			{ // "alter-21.2"
@@ -996,7 +996,7 @@ func Test_alter(t *testing.T) {
 			{ // "alter-21.3"
 				_res = db.Exec("\n  DROP TRIGGER r1;\n  CREATE TRIGGER r2 AFTER INSERT ON e BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(a ORDER BY a) FROM (SELECT b FROM t1))) FROM t1;\n  END;\n  ALTER TABLE e RENAME TO t99;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER r1;\n  CREATE TRIGGER r2 AFTER INSERT ON e BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(a ORDER BY a) FROM (SELECT b FROM t1))) FROM t1;\n  END;\n  ALTER TABLE e RENAME TO t99;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TRIGGER r1;\n  CREATE TRIGGER r2 AFTER INSERT ON e BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(a ORDER BY a) FROM (SELECT b FROM t1))) FROM t1;\n  END;\n  ALTER TABLE e RENAME TO t99;\n")
 				}
 			}
 			{ // "alter-21.4"
@@ -1021,13 +1021,13 @@ func Test_alter(t *testing.T) {
 			{ // "alter-22.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n")
 				}
 			}
 			{ // "alter-22.2"
 				_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t1 after add column: no such function: sqlite_fail") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1 after add column: no such function: sqlite_fail", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1 after add column: no such function: sqlite_fail", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));\n")
 				}
 			}
 }

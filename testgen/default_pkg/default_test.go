@@ -73,7 +73,7 @@ func Test_default(t *testing.T) {
 	{ // do_test "default-1.3"
 		_res = db.Exec("\n    CREATE TABLE t3(\n      x INTEGER,\n      y INTEGER DEFAULT (max(x,5))\n    )\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "default value of column [y] is not constant") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [y] is not constant", _res.Error, "\n    CREATE TABLE t3(\n      x INTEGER,\n      y INTEGER DEFAULT (max(x,5))\n    )\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [y] is not constant", resErrString(_res), "\n    CREATE TABLE t3(\n      x INTEGER,\n      y INTEGER DEFAULT (max(x,5))\n    )\n  ")
 		}
 	}
 	{ // do_test "default-2.1"
@@ -155,19 +155,19 @@ func Test_default(t *testing.T) {
 	{ // "default-4.2"
 		_res = db.Exec("\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(:xyz));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "default value of column [b] is not constant") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", _res.Error, "\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(:xyz));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", resErrString(_res), "\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(:xyz));\n")
 		}
 	}
 	{ // "default-4.3"
 		_res = db.Exec("\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(abs(:xyz)));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "default value of column [b] is not constant") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", _res.Error, "\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(abs(:xyz)));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", resErrString(_res), "\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(abs(:xyz)));\n")
 		}
 	}
 	{ // "default-4.4"
 		_res = db.Exec("\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(98+coalesce(5,:xyz)));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "default value of column [b] is not constant") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", _res.Error, "\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(98+coalesce(5,:xyz)));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", resErrString(_res), "\n  CREATE TABLE t2(a TEXT, b TEXT DEFAULT(98+coalesce(5,:xyz)));\n")
 		}
 	}
 	db.Close()
@@ -180,13 +180,13 @@ func Test_default(t *testing.T) {
 	{ // "default-5.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (a,b DEFAULT(random() NOTNULL IN (RAISE(IGNORE),2,3)));\n  INSERT INTO t1(a) VALUES(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "default value of column [b] is not constant") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", _res.Error, "\n  CREATE TABLE t1 (a,b DEFAULT(random() NOTNULL IN (RAISE(IGNORE),2,3)));\n  INSERT INTO t1(a) VALUES(1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [b] is not constant", resErrString(_res), "\n  CREATE TABLE t1 (a,b DEFAULT(random() NOTNULL IN (RAISE(IGNORE),2,3)));\n  INSERT INTO t1(a) VALUES(1);\n")
 		}
 	}
 	{ // "default-5.2"
 		_res = db.Exec("\n  CREATE TABLE Table0 (Col0 DEFAULT (RAISE(IGNORE) )  ) ; \n  INSERT INTO Table0 DEFAULT VALUES ;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "default value of column [Col0] is not constant") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [Col0] is not constant", _res.Error, "\n  CREATE TABLE Table0 (Col0 DEFAULT (RAISE(IGNORE) )  ) ; \n  INSERT INTO Table0 DEFAULT VALUES ;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "default value of column [Col0] is not constant", resErrString(_res), "\n  CREATE TABLE Table0 (Col0 DEFAULT (RAISE(IGNORE) )  ) ; \n  INSERT INTO Table0 DEFAULT VALUES ;\n")
 		}
 	}
 }

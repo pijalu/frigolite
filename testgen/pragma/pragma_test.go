@@ -447,25 +447,25 @@ func Test_pragma(t *testing.T) {
 		{ // "pragma-3.5.2"
 			_res = db.Exec("\n      PRAGMA integrity_check='4'\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: 4") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: 4", _res.Error, "\n      PRAGMA integrity_check='4'\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: 4", resErrString(_res), "\n      PRAGMA integrity_check='4'\n    ")
 			}
 		}
 		{ // "pragma-3.6"
 			_res = db.Exec("\n      PRAGMA integrity_check=xyz\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: xyz") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xyz", _res.Error, "\n      PRAGMA integrity_check=xyz\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xyz", resErrString(_res), "\n      PRAGMA integrity_check=xyz\n    ")
 			}
 		}
 		{ // "pragma-3.6b"
 			_res = db.Exec("\n      PRAGMA integrity_check=t2\n    ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      PRAGMA integrity_check=t2\n    ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      PRAGMA integrity_check=t2\n    ")
 			}
 		}
 		{ // "pragma-3.6c"
 			_res = db.Exec("\n      PRAGMA integrity_check=sqlite_schema\n    ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      PRAGMA integrity_check=sqlite_schema\n    ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      PRAGMA integrity_check=sqlite_schema\n    ")
 			}
 		}
 		{ // do_test "pragma-3.7"
@@ -768,7 +768,7 @@ func Test_pragma(t *testing.T) {
 	{ // do_test "pragma-5.1"
 		_res = db.Exec("\n    BEGIN;\n    pragma synchronous = OFF;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Safety level may not be changed inside a transaction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Safety level may not be changed inside a transaction", _res.Error, "\n    BEGIN;\n    pragma synchronous = OFF;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Safety level may not be changed inside a transaction", resErrString(_res), "\n    BEGIN;\n    pragma synchronous = OFF;\n  ")
 		}
 	}
 	{ // do_test "pragma-5.2"
@@ -1353,7 +1353,7 @@ func Test_pragma(t *testing.T) {
 	{ // do_test "pragma-9.7"
 		_res = db.Exec(" \n      PRAGMA temp_store_directory='/NON/EXISTENT/PATH/FOOBAR';\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not a writable directory") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not a writable directory", _res.Error, " \n      PRAGMA temp_store_directory='/NON/EXISTENT/PATH/FOOBAR';\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not a writable directory", resErrString(_res), " \n      PRAGMA temp_store_directory='/NON/EXISTENT/PATH/FOOBAR';\n    ")
 		}
 	}
 	{ // do_test "pragma-9.8"
@@ -1372,7 +1372,7 @@ func Test_pragma(t *testing.T) {
 		{ // do_test "pragma-9.10"
 			_res = db.Exec("\n          PRAGMA temp_store_directory='" + pwd + "';\n          SELECT * FROM temp_store_directory_test;\n        ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp_store_directory_test") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp_store_directory_test", _res.Error, "\n          PRAGMA temp_store_directory='" + pwd + "';\n          SELECT * FROM temp_store_directory_test;\n        ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp_store_directory_test", resErrString(_res), "\n          PRAGMA temp_store_directory='" + pwd + "';\n          SELECT * FROM temp_store_directory_test;\n        ")
 			}
 		}
 	}
@@ -1403,7 +1403,7 @@ func Test_pragma(t *testing.T) {
 	{ // do_test "pragma-9.15"
 		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n    CREATE TEMP TABLE temp_table(t);\n    INSERT INTO temp_table VALUES('valuable data');\n    PRAGMA temp_store = 1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "temporary storage cannot be changed from within a transaction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "temporary storage cannot be changed from within a transaction", _res.Error, "\n    BEGIN EXCLUSIVE;\n    CREATE TEMP TABLE temp_table(t);\n    INSERT INTO temp_table VALUES('valuable data');\n    PRAGMA temp_store = 1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "temporary storage cannot be changed from within a transaction", resErrString(_res), "\n    BEGIN EXCLUSIVE;\n    CREATE TEMP TABLE temp_table(t);\n    INSERT INTO temp_table VALUES('valuable data');\n    PRAGMA temp_store = 1;\n  ")
 		}
 	}
 	{ // do_test "pragma-9.16"
@@ -1671,25 +1671,25 @@ func Test_pragma(t *testing.T) {
 			{ // do_test "pragma-19.1"
 				_res = db.Exec("PRAGMA error")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "PRAGMA error")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "PRAGMA error")
 				}
 			}
 			{ // do_test "pragma-19.2"
 				_res = db.Exec("PRAGMA error='This is the error message'")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "This is the error message") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "This is the error message", _res.Error, "PRAGMA error='This is the error message'")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "This is the error message", resErrString(_res), "PRAGMA error='This is the error message'")
 				}
 			}
 			{ // do_test "pragma-19.3"
 				_res = db.Exec("PRAGMA error='7 This is the error message'")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "This is the error message") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "This is the error message", _res.Error, "PRAGMA error='7 This is the error message'")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "This is the error message", resErrString(_res), "PRAGMA error='7 This is the error message'")
 				}
 			}
 			{ // do_test "pragma-19.4"
 				_res = db.Exec("PRAGMA error=7")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "out of memory") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "out of memory", _res.Error, "PRAGMA error=7")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "out of memory", resErrString(_res), "PRAGMA error=7")
 				}
 			}
 			{ // do_test "pragma-19.5"
@@ -1704,7 +1704,7 @@ func Test_pragma(t *testing.T) {
 				{ // do_test "pragma-20.1"
 					_res = db.Exec("PRAGMA data_store_directory")
 					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory")
+						t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "PRAGMA data_store_directory")
 					}
 				}
 				{ // do_test "pragma-20.2"
@@ -1716,7 +1716,7 @@ func Test_pragma(t *testing.T) {
 				{ // do_test "pragma-20.3"
 					_res = db.Exec("PRAGMA data_store_directory")
 					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory")
+						t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "PRAGMA data_store_directory")
 					}
 				}
 				{ // do_test "pragma-20.4"
@@ -1754,13 +1754,13 @@ func Test_pragma(t *testing.T) {
 				{ // do_test "pragma-20.7"
 					_res = db.Exec("PRAGMA data_store_directory='';")
 					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory='';")
+						t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "PRAGMA data_store_directory='';")
 					}
 				}
 				{ // do_test "pragma-20.8"
 					_res = db.Exec("PRAGMA data_store_directory")
 					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory")
+						t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "PRAGMA data_store_directory")
 					}
 				}
 				os.Remove("data_dir")

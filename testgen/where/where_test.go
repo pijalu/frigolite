@@ -1127,7 +1127,7 @@ func Test_where(t *testing.T) {
 	{ // "where-21.0"
 		_res = db.Exec("\n  CREATE TABLE t12(a, b, c);\n  CREATE TABLE t13(x);\n  CREATE INDEX t12ab ON t12(b, a);\n  CREATE INDEX t12ac ON t12(c, a);\n\n  INSERT INTO t12 VALUES(4, 0, 1);\n  INSERT INTO t12 VALUES(4, 1, 0);\n  INSERT INTO t12 VALUES(5, 0, 1);\n  INSERT INTO t12 VALUES(5, 1, 0);\n\n  INSERT INTO t13 VALUES(1), (2), (3), (4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t12(a, b, c);\n  CREATE TABLE t13(x);\n  CREATE INDEX t12ab ON t12(b, a);\n  CREATE INDEX t12ac ON t12(c, a);\n\n  INSERT INTO t12 VALUES(4, 0, 1);\n  INSERT INTO t12 VALUES(4, 1, 0);\n  INSERT INTO t12 VALUES(5, 0, 1);\n  INSERT INTO t12 VALUES(5, 1, 0);\n\n  INSERT INTO t13 VALUES(1), (2), (3), (4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t12(a, b, c);\n  CREATE TABLE t13(x);\n  CREATE INDEX t12ab ON t12(b, a);\n  CREATE INDEX t12ac ON t12(c, a);\n\n  INSERT INTO t12 VALUES(4, 0, 1);\n  INSERT INTO t12 VALUES(4, 1, 0);\n  INSERT INTO t12 VALUES(5, 0, 1);\n  INSERT INTO t12 VALUES(5, 1, 0);\n\n  INSERT INTO t13 VALUES(1), (2), (3), (4);\n")
 		}
 	}
 	{ // "where-21.1"
@@ -1179,7 +1179,7 @@ func Test_where(t *testing.T) {
 	{ // "where-24.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n")
 		}
 	}
 	// foreach {tn sql res} "1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}"
@@ -1202,25 +1202,25 @@ func Test_where(t *testing.T) {
 			{ // "where-24." + tn + ".1"
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 			{ // "where-24." + tn + ".2"
 				_res = db.Exec(sql + " ORDER BY rowid")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql + " ORDER BY rowid")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql + " ORDER BY rowid")
 				}
 			}
 			{ // "where-24." + tn + ".3"
 				_res = db.Exec(sql + " ORDER BY rowid DESC")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql + " ORDER BY rowid DESC")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql + " ORDER BY rowid DESC")
 				}
 			}
 			{ // "where-24-" + tn + ".4"
 				_res = db.Exec("\n    BEGIN;\n      DELETE FROM t1;\n      " + sql + ";\n      " + sql + " ORDER BY rowid;\n      " + sql + " ORDER BY rowid DESC;\n    ROLLBACK;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM t1;\n      " + sql + ";\n      " + sql + " ORDER BY rowid;\n      " + sql + " ORDER BY rowid DESC;\n    ROLLBACK;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n      DELETE FROM t1;\n      " + sql + ";\n      " + sql + " ORDER BY rowid;\n      " + sql + " ORDER BY rowid DESC;\n    ROLLBACK;\n  ")
 				}
 			}
 		}
@@ -1265,7 +1265,7 @@ func Test_where(t *testing.T) {
 		{ // "where-25.4"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 WHERE c='iii'\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t1 WHERE c='iii'\n")
 			}
 		}
 		{ // "where-25.5" — skipped: corruption detection not implemented

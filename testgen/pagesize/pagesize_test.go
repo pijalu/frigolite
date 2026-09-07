@@ -327,7 +327,7 @@ func Test_pagesize(t *testing.T) {
 	{ // "pagesize-3.2"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  COMMIT;\n")
 		}
 	}
 	{ // "pagesize-3.3"

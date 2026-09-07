@@ -102,7 +102,7 @@ func Test_fts3conf(t *testing.T) {
 	{ // "1.0.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1(rowid, x) VALUES(1, 'a b c d');\n  INSERT INTO t1(rowid, x) VALUES(2, 'e f g h');\n\n  CREATE TABLE source(a, b);\n  INSERT INTO source VALUES(4, 'z');\n  INSERT INTO source VALUES(2, 'y');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1(rowid, x) VALUES(1, 'a b c d');\n  INSERT INTO t1(rowid, x) VALUES(2, 'e f g h');\n\n  CREATE TABLE source(a, b);\n  INSERT INTO source VALUES(4, 'z');\n  INSERT INTO source VALUES(2, 'y');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1(rowid, x) VALUES(1, 'a b c d');\n  INSERT INTO t1(rowid, x) VALUES(2, 'e f g h');\n\n  CREATE TABLE source(a, b);\n  INSERT INTO source VALUES(4, 'z');\n  INSERT INTO source VALUES(2, 'y');\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -161,13 +161,13 @@ func Test_fts3conf(t *testing.T) {
 			{ // "1." + tn + ".1"
 				_res = db.Exec(sql)
 				if !tclCatchsqlMatches(_res, (func() string { switch constraint { case "0": return R_0; case "1": return R_1; default: return "" } }())) {
-					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, (func() string { switch constraint { case "0": return R_0; case "1": return R_1; default: return "" } }()), sql)
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch constraint { case "0": return R_0; case "1": return R_1; default: return "" } }()), sql)
 				}
 			}
 			{ // "1." + tn + ".2"
 				_res = db.Exec(" SELECT * FROM t1 ")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1 ")
 				}
 			}
 			_res = db.Exec("COMMIT")
@@ -180,20 +180,20 @@ func Test_fts3conf(t *testing.T) {
 		{ // "2.1.1"
 			_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
 			}
 		}
 		// fts3_integrity 2.1.2 db t1 (unsupported command, not transpiled)
 		{ // "2.2.1"
 			_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", resErrString(_res), "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
 			}
 		}
 		{ // "2.2.2"
 			_res = db.Exec(" COMMIT ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 			}
 		}
 		{ // "2.2.3"
@@ -310,13 +310,13 @@ func Test_fts3conf(t *testing.T) {
 		{ // "4.1.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';\n")
 			}
 		}
 		{ // "4.1.2"
 			_res = db.Exec("\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n")
 			}
 		}
 		{ // "4.1.3"
@@ -334,7 +334,7 @@ func Test_fts3conf(t *testing.T) {
 		{ // "4.2.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
 			}
 		}
 		{ // "4.2.2"
@@ -352,7 +352,7 @@ func Test_fts3conf(t *testing.T) {
 		{ // "4.3.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
 			}
 		}
 		{ // "4.3.2"
@@ -364,13 +364,13 @@ func Test_fts3conf(t *testing.T) {
 		{ // "4.4.1"
 			_res = db.Exec("\n  CREATE TABLE A(ID INTEGER PRIMARY KEY, AnotherID INTEGER, Notes TEXT);\n  CREATE VIRTUAL TABLE AFTS USING FTS4 (Notes);\n  CREATE TRIGGER A_DeleteTrigger AFTER DELETE ON A FOR EACH ROW BEGIN \n    DELETE FROM AFTS WHERE rowid=OLD.ID; \n  END;\n  CREATE TABLE B(ID INTEGER PRIMARY KEY,Notes TEXT);\n  CREATE VIRTUAL TABLE BFTS USING FTS3 (Notes);\n  CREATE TRIGGER B_DeleteTrigger AFTER DELETE ON B FOR EACH ROW BEGIN \n    DELETE FROM BFTS WHERE rowid=OLD.ID; \n  END;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE A(ID INTEGER PRIMARY KEY, AnotherID INTEGER, Notes TEXT);\n  CREATE VIRTUAL TABLE AFTS USING FTS4 (Notes);\n  CREATE TRIGGER A_DeleteTrigger AFTER DELETE ON A FOR EACH ROW BEGIN \n    DELETE FROM AFTS WHERE rowid=OLD.ID; \n  END;\n  CREATE TABLE B(ID INTEGER PRIMARY KEY,Notes TEXT);\n  CREATE VIRTUAL TABLE BFTS USING FTS3 (Notes);\n  CREATE TRIGGER B_DeleteTrigger AFTER DELETE ON B FOR EACH ROW BEGIN \n    DELETE FROM BFTS WHERE rowid=OLD.ID; \n  END;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE A(ID INTEGER PRIMARY KEY, AnotherID INTEGER, Notes TEXT);\n  CREATE VIRTUAL TABLE AFTS USING FTS4 (Notes);\n  CREATE TRIGGER A_DeleteTrigger AFTER DELETE ON A FOR EACH ROW BEGIN \n    DELETE FROM AFTS WHERE rowid=OLD.ID; \n  END;\n  CREATE TABLE B(ID INTEGER PRIMARY KEY,Notes TEXT);\n  CREATE VIRTUAL TABLE BFTS USING FTS3 (Notes);\n  CREATE TRIGGER B_DeleteTrigger AFTER DELETE ON B FOR EACH ROW BEGIN \n    DELETE FROM BFTS WHERE rowid=OLD.ID; \n  END;\n")
 			}
 		}
 		{ // "4.4.2"
 			_res = db.Exec("\n  BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;\n")
 			}
 		}
 }

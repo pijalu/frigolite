@@ -1915,7 +1915,7 @@ func Test_incrvacuum(t *testing.T) {
 	{ // "incrvacuum-17.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  PRAGMA incremental_vacuum(10);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  PRAGMA incremental_vacuum(10);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA writable_schema=ON;\n  PRAGMA incremental_vacuum(10);\n")
 		}
 	}
 }

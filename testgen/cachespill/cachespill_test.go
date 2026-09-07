@@ -113,7 +113,7 @@ func Test_cachespill(t *testing.T) {
 	{ // "1.6"
 		_res = db.Exec(" ROLLBACK ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ROLLBACK ")
 		}
 	}
 }

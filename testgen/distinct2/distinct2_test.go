@@ -176,7 +176,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "700"
 		_res = db.Exec("\n  CREATE TABLE t7(a, b, c);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE (i+1)<200\n  )\n  INSERT INTO t7 SELECT i/100, i/50, i FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(a, b, c);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE (i+1)<200\n  )\n  INSERT INTO t7 SELECT i/100, i/50, i FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t7(a, b, c);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE (i+1)<200\n  )\n  INSERT INTO t7 SELECT i/100, i/50, i FROM s;\n")
 		}
 	}
 	{ // "710"
@@ -218,7 +218,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "800"
 		_res = db.Exec("\n  CREATE TABLE t8(a, b, c);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE (i+1)<100\n  )\n  INSERT INTO t8 SELECT i/40, i/20, i/40 FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(a, b, c);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE (i+1)<100\n  )\n  INSERT INTO t8 SELECT i/40, i/20, i/40 FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t8(a, b, c);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE (i+1)<100\n  )\n  INSERT INTO t8 SELECT i/40, i/20, i/40 FROM s;\n")
 		}
 	}
 	{ // "820"
@@ -260,7 +260,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "900"
 		_res = db.Exec("\n  CREATE TABLE t9(v);\n  INSERT INTO t9 VALUES \n    ('abcd'), ('Abcd'), ('aBcd'), ('ABcd'), ('abCd'), ('AbCd'), ('aBCd'), \n    ('ABCd'), ('abcD'), ('AbcD'), ('aBcD'), ('ABcD'), ('abCD'), ('AbCD'), \n    ('aBCD'), ('ABCD'),\n    ('wxyz'), ('Wxyz'), ('wXyz'), ('WXyz'), ('wxYz'), ('WxYz'), ('wXYz'), \n    ('WXYz'), ('wxyZ'), ('WxyZ'), ('wXyZ'), ('WXyZ'), ('wxYZ'), ('WxYZ'), \n    ('wXYZ'), ('WXYZ');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t9(v);\n  INSERT INTO t9 VALUES \n    ('abcd'), ('Abcd'), ('aBcd'), ('ABcd'), ('abCd'), ('AbCd'), ('aBCd'), \n    ('ABCd'), ('abcD'), ('AbcD'), ('aBcD'), ('ABcD'), ('abCD'), ('AbCD'), \n    ('aBCD'), ('ABCD'),\n    ('wxyz'), ('Wxyz'), ('wXyz'), ('WXyz'), ('wxYz'), ('WxYz'), ('wXYz'), \n    ('WXYz'), ('wxyZ'), ('WxyZ'), ('wXyZ'), ('WXyZ'), ('wxYZ'), ('WxYZ'), \n    ('wXYZ'), ('WXYZ');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t9(v);\n  INSERT INTO t9 VALUES \n    ('abcd'), ('Abcd'), ('aBcd'), ('ABcd'), ('abCd'), ('AbCd'), ('aBCd'), \n    ('ABCd'), ('abcD'), ('AbcD'), ('aBcD'), ('ABcD'), ('abCD'), ('AbCD'), \n    ('aBCD'), ('ABCD'),\n    ('wxyz'), ('Wxyz'), ('wXyz'), ('WXyz'), ('wxYz'), ('WxYz'), ('wXYz'), \n    ('WXYz'), ('wxyZ'), ('WxyZ'), ('wXyZ'), ('WXyZ'), ('wxYZ'), ('WxYZ'), \n    ('wXYZ'), ('WXYZ');\n")
 		}
 	}
 	{ // "910"
@@ -345,7 +345,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "2000"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0, c1, c2, PRIMARY KEY (c0, c1));\n  CREATE TABLE t1 (c2);\n  INSERT INTO t0(c2) VALUES (0),(1),(3),(4),(5),(6),(7),(8),(9),(10),(11);\n  INSERT INTO t0(c1) VALUES ('a');\n  INSERT INTO t1(c2) VALUES (0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0, c1, c2, PRIMARY KEY (c0, c1));\n  CREATE TABLE t1 (c2);\n  INSERT INTO t0(c2) VALUES (0),(1),(3),(4),(5),(6),(7),(8),(9),(10),(11);\n  INSERT INTO t0(c1) VALUES ('a');\n  INSERT INTO t1(c2) VALUES (0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0 (c0, c1, c2, PRIMARY KEY (c0, c1));\n  CREATE TABLE t1 (c2);\n  INSERT INTO t0(c2) VALUES (0),(1),(3),(4),(5),(6),(7),(8),(9),(10),(11);\n  INSERT INTO t0(c1) VALUES ('a');\n  INSERT INTO t1(c2) VALUES (0);\n")
 		}
 	}
 	{ // "2010"
@@ -363,7 +363,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n")
 		}
 	}
 	{ // "2020"
@@ -381,7 +381,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "2030"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2ab ON t2(a, b);\n  \n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;\n\n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'two', i%2, 'two' FROM c;\n\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(1);\n\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2ab ON t2(a, b);\n  \n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;\n\n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'two', i%2, 'two' FROM c;\n\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(1);\n\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2ab ON t2(a, b);\n  \n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;\n\n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'two', i%2, 'two' FROM c;\n\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(1);\n\n  ANALYZE;\n")
 		}
 	}
 	{ // "2040"
@@ -406,7 +406,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "3000"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0, c1 NOT NULL DEFAULT 1, c2, PRIMARY KEY (c0, c1));\n  INSERT INTO t0(c2) VALUES (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL);\n  INSERT INTO t0(c2) VALUES('a');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0, c1 NOT NULL DEFAULT 1, c2, PRIMARY KEY (c0, c1));\n  INSERT INTO t0(c2) VALUES (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL);\n  INSERT INTO t0(c2) VALUES('a');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0 (c0, c1 NOT NULL DEFAULT 1, c2, PRIMARY KEY (c0, c1));\n  INSERT INTO t0(c2) VALUES (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL);\n  INSERT INTO t0(c2) VALUES('a');\n")
 		}
 	}
 	{ // "3010"
@@ -424,7 +424,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "3020"
 		_res = db.Exec("\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n")
 		}
 	}
 	{ // "3030"
@@ -449,7 +449,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "4010"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b COLLATE RTRIM);\n  INSERT INTO t1 VALUES(1, ''), (2, ' '), (3, '  ');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b COLLATE RTRIM);\n  INSERT INTO t1 VALUES(1, ''), (2, ' '), (3, '  ');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b COLLATE RTRIM);\n  INSERT INTO t1 VALUES(1, ''), (2, ' '), (3, '  ');\n")
 		}
 	}
 	{ // "distinct2-4020" — skipped: UNION RTRIM dedup keeps last duplicate vs test expects first (SQLite version drift) N-A (SQL side effects only)
@@ -466,7 +466,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "5010"
 		_res = db.Exec("\n  CREATE TABLE cnt(a);\n  WITH RECURSIVE cnt2(x) AS (\n    VALUES(1) UNION ALL SELECT x+1 FROM cnt2 WHERE x<50\n  )\n  INSERT INTO cnt SELECT x FROM cnt2;   \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE cnt(a);\n  WITH RECURSIVE cnt2(x) AS (\n    VALUES(1) UNION ALL SELECT x+1 FROM cnt2 WHERE x<50\n  )\n  INSERT INTO cnt SELECT x FROM cnt2;   \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE cnt(a);\n  WITH RECURSIVE cnt2(x) AS (\n    VALUES(1) UNION ALL SELECT x+1 FROM cnt2 WHERE x<50\n  )\n  INSERT INTO cnt SELECT x FROM cnt2;   \n")
 		}
 	}
 	{ // "5020"
@@ -564,7 +564,7 @@ func Test_distinct2(t *testing.T) {
 	{ // "6000"
 		_res = db.Exec("\n  CREATE TABLE t1(c1 UNIQUE NOT NULL);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0 VALUES(0);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t0(c0) SELECT NULL FROM c;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c1 UNIQUE NOT NULL);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0 VALUES(0);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t0(c0) SELECT NULL FROM c;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(c1 UNIQUE NOT NULL);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0 VALUES(0);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t0(c0) SELECT NULL FROM c;\n")
 		}
 	}
 	{ // "6010"

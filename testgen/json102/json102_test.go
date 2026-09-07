@@ -2186,7 +2186,7 @@ func Test_json102(t *testing.T) {
 	{ // "json102-1100"
 		_res = db.Exec("\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
 		}
 	}
 	_list0 := tclList([]string{"1", "$.id", "123", "1", "$.stuff[0]", "1", "1", "$.stuff[1]", "2", "1", "$.stuff[2]", "3", "1", "$.stuff[3]", "4", "1", "$.partlist[0].uuid", "bb108722-572e-11e5-9320-7f3b63a4ca74", "1", "$.partlist[1].uuid", "c690dc14-572e-11e5-95f9-dfc8861fd535", "1", "$.partlist[2].subassembly[0].uuid", "6fa5181e-5721-11e5-a04e-57f3d7b32808", "2", "$.id", "456", "2", "$.stuff[0]", "hello", "2", "$.stuff[1]", "world", "2", "$.stuff[2]", "xyzzy", "2", "$.partlist[0].uuid", "0", "2", "$.partlist[1].uuid", "c690dc14-572e-11e5-95f9-dfc8861fd535"})
@@ -2419,7 +2419,7 @@ func Test_json102(t *testing.T) {
 		{ // "json102-1700"
 			_res = db.Exec("\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
 			}
 		}
 		{ // "json102-1710"

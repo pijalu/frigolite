@@ -206,7 +206,7 @@ func Test_trigger9(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  CREATE VIEW v1 AS SELECT a, b FROM t1;\n\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n  CREATE TRIGGER tr3 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  CREATE VIEW v1 AS SELECT a, b FROM t1;\n\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n  CREATE TRIGGER tr3 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  CREATE VIEW v1 AS SELECT a, b FROM t1;\n\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n  CREATE TRIGGER tr3 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n")
 		}
 	}
 }

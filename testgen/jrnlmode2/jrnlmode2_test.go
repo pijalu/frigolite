@@ -97,7 +97,7 @@ func Test_jrnlmode2(t *testing.T) {
 	{ // do_test "jrnlmode2-1.6"
 		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "jrnlmode2-1.7"

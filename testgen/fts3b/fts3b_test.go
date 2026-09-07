@@ -191,7 +191,7 @@ func Test_fts3b(t *testing.T) {
 	{ // do_test "fts3b-4.8"
 		_res = db.Exec("\n    INSERT INTO t4 (rowid, docid, c) VALUES (14, 15, 'bad test');\n    SELECT * FROM t4 WHERE docid = 14;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n    INSERT INTO t4 (rowid, docid, c) VALUES (14, 15, 'bad test');\n    SELECT * FROM t4 WHERE docid = 14;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n    INSERT INTO t4 (rowid, docid, c) VALUES (14, 15, 'bad test');\n    SELECT * FROM t4 WHERE docid = 14;\n  ")
 		}
 	}
 	{ // do_test "fts3b-4.9"

@@ -69,13 +69,13 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.1"
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqr") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqr", _res.Error, "\n    SELECT sqr(2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqr", resErrString(_res), "\n    SELECT sqr(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.2"
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: cube") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: cube", _res.Error, "\n    SELECT cube(2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: cube", resErrString(_res), "\n    SELECT cube(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.2.1"
@@ -96,7 +96,7 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.4"
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: cube") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: cube", _res.Error, "\n    SELECT cube(2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: cube", resErrString(_res), "\n    SELECT cube(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.5"
@@ -111,7 +111,7 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.6"
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT cube(2)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT cube(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.7.1"
@@ -129,13 +129,13 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.7.5"
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqr(2)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqr(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.8"
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT cube(2)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT cube(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.9"
@@ -151,7 +151,7 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.10"
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: cube") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: cube", _res.Error, "\n    SELECT cube(2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: cube", resErrString(_res), "\n    SELECT cube(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.11"
@@ -168,7 +168,7 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.12"
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT cube(2)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT cube(2)\n  ")
 		}
 	}
 	{ // "loadext2-1.13" (prepare-step internals; SQL side effects only)
@@ -195,13 +195,13 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.14"
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqr") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqr", _res.Error, "\n    SELECT sqr(2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqr", resErrString(_res), "\n    SELECT sqr(2)\n  ")
 		}
 	}
 	{ // do_test "loadext2-1.15"
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT cube(2)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT cube(2)\n  ")
 		}
 	}
 	// sqlite3_reset_auto_extension (unsupported command, not transpiled)

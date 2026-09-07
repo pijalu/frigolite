@@ -64,7 +64,7 @@ func Test_rtreeconnect(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE r1 USING rtree(id, x1, x2, y1, y2);\n  CREATE TABLE t1(id, x1, x2, y1, y2);\n  CREATE TABLE log(l);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO r1 VALUES(new.id, new.x1, new.x2, new.y1, new.y2);\n    INSERT INTO log VALUES('r1: ' || new.id);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE r1 USING rtree(id, x1, x2, y1, y2);\n  CREATE TABLE t1(id, x1, x2, y1, y2);\n  CREATE TABLE log(l);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO r1 VALUES(new.id, new.x1, new.x2, new.y1, new.y2);\n    INSERT INTO log VALUES('r1: ' || new.id);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE r1 USING rtree(id, x1, x2, y1, y2);\n  CREATE TABLE t1(id, x1, x2, y1, y2);\n  CREATE TABLE log(l);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO r1 VALUES(new.id, new.x1, new.x2, new.y1, new.y2);\n    INSERT INTO log VALUES('r1: ' || new.id);\n  END;\n")
 		}
 	}
 	db.Close()
@@ -82,7 +82,7 @@ func Test_rtreeconnect(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2, 3, 4, 5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 2, 3, 4, 5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(1, 2, 3, 4, 5);\n")
 		}
 	}
 	if db2 != nil { db2.Close() }

@@ -92,7 +92,7 @@ func Test_fts4upfrom(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    INSERT INTO ft(a, b, c) VALUES('a', NULL, 'apple');\n    INSERT INTO ft(a, b, c) VALUES('b', NULL, 'banana');\n    INSERT INTO ft(a, b, c) VALUES('c', NULL, 'cherry');\n    INSERT INTO ft(a, b, c) VALUES('d', NULL, 'damson plum');\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO ft(a, b, c) VALUES('a', NULL, 'apple');\n    INSERT INTO ft(a, b, c) VALUES('b', NULL, 'banana');\n    INSERT INTO ft(a, b, c) VALUES('c', NULL, 'cherry');\n    INSERT INTO ft(a, b, c) VALUES('d', NULL, 'damson plum');\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO ft(a, b, c) VALUES('a', NULL, 'apple');\n    INSERT INTO ft(a, b, c) VALUES('b', NULL, 'banana');\n    INSERT INTO ft(a, b, c) VALUES('c', NULL, 'cherry');\n    INSERT INTO ft(a, b, c) VALUES('d', NULL, 'damson plum');\n  ")
 				}
 			}
 			{ // "1." + tn + ".1"
@@ -110,7 +110,7 @@ func Test_fts4upfrom(t *testing.T) {
 			{ // "1." + tn + ".2"
 				_res = db.Exec("\n    UPDATE ft SET b=o.c FROM ft AS o WHERE (ft.a == char(unicode(o.a)+1))\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE ft SET b=o.c FROM ft AS o WHERE (ft.a == char(unicode(o.a)+1))\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE ft SET b=o.c FROM ft AS o WHERE (ft.a == char(unicode(o.a)+1))\n  ")
 				}
 			}
 			{ // "1." + tn + ".3"
@@ -128,19 +128,19 @@ func Test_fts4upfrom(t *testing.T) {
 			{ // "1." + tn + ".4"
 				_res = db.Exec("\n    UPDATE ft SET c=v FROM changes WHERE a=k;\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: changes") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: changes", _res.Error, "\n    UPDATE ft SET c=v FROM changes WHERE a=k;\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: changes", resErrString(_res), "\n    UPDATE ft SET c=v FROM changes WHERE a=k;\n  ")
 				}
 			}
 			{ // "1." + tn + ".5"
 				_res = db.Exec("\n    create view changes(k, v) AS \n      VALUES( 'd', 'dewberry' ) UNION ALL\n      VALUES( 'c', 'clementine' ) UNION ALL\n      VALUES( 'b', 'blueberry' ) UNION ALL\n      VALUES( 'a', 'apricot' ) \n    ;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    create view changes(k, v) AS \n      VALUES( 'd', 'dewberry' ) UNION ALL\n      VALUES( 'c', 'clementine' ) UNION ALL\n      VALUES( 'b', 'blueberry' ) UNION ALL\n      VALUES( 'a', 'apricot' ) \n    ;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    create view changes(k, v) AS \n      VALUES( 'd', 'dewberry' ) UNION ALL\n      VALUES( 'c', 'clementine' ) UNION ALL\n      VALUES( 'b', 'blueberry' ) UNION ALL\n      VALUES( 'a', 'apricot' ) \n    ;\n  ")
 				}
 			}
 			{ // "1." + tn + ".6"
 				_res = db.Exec("\n    UPDATE ft SET c=v FROM changes WHERE a=k;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE ft SET c=v FROM changes WHERE a=k;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE ft SET c=v FROM changes WHERE a=k;\n  ")
 				}
 			}
 			{ // "1." + tn + ".7"

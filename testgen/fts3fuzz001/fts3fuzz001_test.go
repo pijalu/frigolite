@@ -1312,19 +1312,19 @@ func Test_fts3fuzz001(t *testing.T) {
 	{ // do_test "fts3fuzz001-110"
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('integrity-check');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    INSERT INTO t1(t1) VALUES('integrity-check');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    INSERT INTO t1(t1) VALUES('integrity-check');\n  ")
 		}
 	}
 	{ // do_test "fts3fuzz001-120"
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('optimize');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    INSERT INTO t1(t1) VALUES('optimize');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    INSERT INTO t1(t1) VALUES('optimize');\n  ")
 		}
 	}
 	{ // do_test "fts3fuzz001-121"
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('integrity-check');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    INSERT INTO t1(t1) VALUES('integrity-check');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    INSERT INTO t1(t1) VALUES('integrity-check');\n  ")
 		}
 	}
 	db.Close()
@@ -1337,7 +1337,7 @@ func Test_fts3fuzz001(t *testing.T) {
 	{ // "200"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts3(x);\n\n  INSERT INTO x1 VALUES('braes brag bragged bragger bragging');\n  INSERT INTO x1 VALUES('brags braid braided braiding braids');\n  INSERT INTO x1 VALUES('brain brainchild brained braining brains');\n  INSERT INTO x1 VALUES('brainstem brainstems brainstorm brainstorms');\n  INSERT INTO x1(x1) VALUES('nodesize=24');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts3(x);\n\n  INSERT INTO x1 VALUES('braes brag bragged bragger bragging');\n  INSERT INTO x1 VALUES('brags braid braided braiding braids');\n  INSERT INTO x1 VALUES('brain brainchild brained braining brains');\n  INSERT INTO x1 VALUES('brainstem brainstems brainstorm brainstorms');\n  INSERT INTO x1(x1) VALUES('nodesize=24');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts3(x);\n\n  INSERT INTO x1 VALUES('braes brag bragged bragger bragging');\n  INSERT INTO x1 VALUES('brags braid braided braiding braids');\n  INSERT INTO x1 VALUES('brain brainchild brained braining brains');\n  INSERT INTO x1 VALUES('brainstem brainstems brainstorm brainstorms');\n  INSERT INTO x1(x1) VALUES('nodesize=24');\n")
 		}
 	}
 	{ // "210"
@@ -1355,7 +1355,7 @@ func Test_fts3fuzz001(t *testing.T) {
 	{ // "220"
 		_res = db.Exec("\n  INSERT INTO x1(x1) VALUES('merge=10,2')\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1(x1) VALUES('merge=10,2')\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO x1(x1) VALUES('merge=10,2')\n")
 		}
 	}
 	{ // "220"

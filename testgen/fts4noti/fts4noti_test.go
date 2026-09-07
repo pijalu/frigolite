@@ -79,7 +79,7 @@ func Test_fts4noti(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE cc(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE cc(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE cc(a, b, c);\n")
 		}
 	}
 	// foreach {tn arg res} "1 \"(b, c, notindexed=a)\"                  {1 {no such column: a}}\n  2 \"(a, b, notindexed=a)\"                                   {0 {}}\n  3 \"(a, b, notindexed=a, notindexed=a)\"                     {0 {}}\n  4 \"(notindexed=a, a, b)\"                                   {0 {}}\n  5 \"(notindexed=a, notindexed=b, notindexed=c, a, b, c, d)\" {0 {}}\n  6 \"(notindexed=a, notindexed=B, notindexed=c, a, b, c, d)\" {0 {}}\n  7 \"(notindexed=a, notindexed=b, notindexed=c, a, B, c, d)\" {0 {}}\n  8 \"(notindexed=d, content=cc)\" {1 {no such column: d}}\n  9 \"(notindexed=a, content=cc)\" {0 {}}\n  10 \"(notindexed=a, notindexed=b, a)\" {1 {no such column: b}}\n  11 \"(notindexed=a, notindexed=b, b)\" {1 {no such column: a}}"
@@ -95,7 +95,7 @@ func Test_fts4noti(t *testing.T) {
 			{ // "1." + tn
 				_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
 				if !tclCatchsqlMatches(_res, res) {
-					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, "CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, "CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
 				}
 			}
 			if func() bool { l_n, l_e := strconv.Atoi(tclLIndex(res, "0")); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
@@ -132,7 +132,7 @@ func Test_fts4noti(t *testing.T) {
 				{ // "2." + tn + ".1"
 					_res = db.Exec("\n    INSERT INTO t1(docid,a,b,c) VALUES(1, 'one two', 'three four', 'five six');\n    INSERT INTO t1(docid,a,b,c) VALUES(2, 'three four', 'five six', 'one two');\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(docid,a,b,c) VALUES(1, 'one two', 'three four', 'five six');\n    INSERT INTO t1(docid,a,b,c) VALUES(2, 'three four', 'five six', 'one two');\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1(docid,a,b,c) VALUES(1, 'one two', 'three four', 'five six');\n    INSERT INTO t1(docid,a,b,c) VALUES(2, 'three four', 'five six', 'one two');\n  ")
 					}
 				}
 				{ // "2." + tn + ".2"
@@ -174,7 +174,7 @@ func Test_fts4noti(t *testing.T) {
 				{ // "2." + tn + ".5"
 					_res = db.Exec(" INSERT INTO t1(t1) VALUES('optimize') ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t1(t1) VALUES('optimize') ")
 					}
 				}
 				{ // "2." + tn + ".6"
@@ -217,7 +217,7 @@ func Test_fts4noti(t *testing.T) {
 					{ // "2." + tn + ".9"
 						_res = db.Exec(" INSERT INTO t1(t1) VALUES('rebuild') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('rebuild') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t1(t1) VALUES('rebuild') ")
 						}
 					}
 					{ // "2." + tn + ".10"
@@ -284,14 +284,14 @@ func Test_fts4noti(t *testing.T) {
 				{ // "2.x"
 					_res = db.Exec(" DROP TABLE t1 ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t1 ")
 					}
 				}
 			}
 			{ // "3.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, notindexed=x);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, notindexed=x);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, notindexed=x);\n")
 				}
 			}
 			{ // do_test "3.2"
@@ -353,13 +353,13 @@ func Test_fts4noti(t *testing.T) {
 			{ // "3.x"
 				_res = db.Exec(" DROP TABLE t2 ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t2 ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t2 ")
 				}
 			}
 			{ // "4.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(poi, addr, notindexed=poi);\n  INSERT INTO t2 VALUES(114, 'x x x');\n  INSERT INTO t2 VALUES(X'1234', 'y y y');\n  INSERT INTO t2 VALUES(NULL, 'z z z');\n  INSERT INTO t2 VALUES(113.2, 'w w w');\n  INSERT INTO t2 VALUES('poi', 'v v v');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(poi, addr, notindexed=poi);\n  INSERT INTO t2 VALUES(114, 'x x x');\n  INSERT INTO t2 VALUES(X'1234', 'y y y');\n  INSERT INTO t2 VALUES(NULL, 'z z z');\n  INSERT INTO t2 VALUES(113.2, 'w w w');\n  INSERT INTO t2 VALUES('poi', 'v v v');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4(poi, addr, notindexed=poi);\n  INSERT INTO t2 VALUES(114, 'x x x');\n  INSERT INTO t2 VALUES(X'1234', 'y y y');\n  INSERT INTO t2 VALUES(NULL, 'z z z');\n  INSERT INTO t2 VALUES(113.2, 'w w w');\n  INSERT INTO t2 VALUES('poi', 'v v v');\n")
 				}
 			}
 			{ // "4.2"
@@ -425,13 +425,13 @@ func Test_fts4noti(t *testing.T) {
 			{ // "4.x"
 				_res = db.Exec(" DROP TABLE t2 ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t2 ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t2 ")
 				}
 			}
 			{ // "5.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(\n      notindexed=\"three\", one, two, three, notindexed=\"one\",\n  );\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n  INSERT INTO t2 VALUES('c', 'a', 'b');\n  INSERT INTO t2 VALUES('b', 'c', 'a');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(\n      notindexed=\"three\", one, two, three, notindexed=\"one\",\n  );\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n  INSERT INTO t2 VALUES('c', 'a', 'b');\n  INSERT INTO t2 VALUES('b', 'c', 'a');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4(\n      notindexed=\"three\", one, two, three, notindexed=\"one\",\n  );\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n  INSERT INTO t2 VALUES('c', 'a', 'b');\n  INSERT INTO t2 VALUES('b', 'c', 'a');\n")
 				}
 			}
 			{ // "5.2"
@@ -473,13 +473,13 @@ func Test_fts4noti(t *testing.T) {
 			{ // "5.x"
 				_res = db.Exec(" DROP TABLE t2 ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t2 ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t2 ")
 				}
 			}
 			{ // "6.1.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategoryId\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategoryId\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategoryId\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);\n")
 				}
 			}
 			{ // "6.1.2"
@@ -521,7 +521,7 @@ func Test_fts4noti(t *testing.T) {
 			{ // "6.2.1"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategory\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategory\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategory\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);\n")
 				}
 			}
 			{ // "6.2.2"

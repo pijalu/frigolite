@@ -64,7 +64,7 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 	{ // "tkt-5e10420e8d.2"
 		_res = db.Exec("\n  INSERT INTO t3 VALUES(randomblob(500 + 1024*248));\n  INSERT INTO t1 VALUES(randomblob(1500));\n  INSERT INTO t2 VALUES(randomblob(500 + 1024*248));\n\n  DELETE FROM t3;\n  DELETE FROM t2;\n  DELETE FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES(randomblob(500 + 1024*248));\n  INSERT INTO t1 VALUES(randomblob(1500));\n  INSERT INTO t2 VALUES(randomblob(500 + 1024*248));\n\n  DELETE FROM t3;\n  DELETE FROM t2;\n  DELETE FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3 VALUES(randomblob(500 + 1024*248));\n  INSERT INTO t1 VALUES(randomblob(1500));\n  INSERT INTO t2 VALUES(randomblob(500 + 1024*248));\n\n  DELETE FROM t3;\n  DELETE FROM t2;\n  DELETE FROM t1;\n")
 		}
 	}
 	{ // "tkt-5e10420e8d.3"

@@ -86,7 +86,7 @@ func Test_tkt3442(t *testing.T) {
 	{ // do_test "tkt3442-1.5"
 		_res = db.Exec("\n    SELECT node FROM listhash WHERE id=[5000] LIMIT 1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: 5000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: 5000", _res.Error, "\n    SELECT node FROM listhash WHERE id=[5000] LIMIT 1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: 5000", resErrString(_res), "\n    SELECT node FROM listhash WHERE id=[5000] LIMIT 1;\n  ")
 		}
 	}
 }

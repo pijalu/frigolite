@@ -134,7 +134,7 @@ func Test_lock2(t *testing.T) {
 	{ // do_test "lock2-1.5"
 		_res = db.Exec("\n    COMMIT;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    COMMIT;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "lock2-1.6"
@@ -177,7 +177,7 @@ func Test_lock2(t *testing.T) {
 	{ // do_test "lock2-1.8"
 		_res = db.Exec("\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "lock2-1.9"

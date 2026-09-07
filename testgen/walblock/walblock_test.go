@@ -151,7 +151,7 @@ func Test_walblock(t *testing.T) {
 	{ // "1.2.1"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		}
 	}
 	// tvfs script barrier_callback (unsupported command, not transpiled)

@@ -87,7 +87,7 @@ func Test_fts4content(t *testing.T) {
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('w x', 'x y', 'y z');\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('w x', 'x y', 'y z');\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('w x', 'x y', 'y z');\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1);\n")
 		}
 	}
 	{ // "1.1.2"
@@ -129,7 +129,7 @@ func Test_fts4content(t *testing.T) {
 	{ // "1.1.5"
 		_res = db.Exec(" INSERT INTO ft1(ft1) VALUES('rebuild') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft1(ft1) VALUES('rebuild') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO ft1(ft1) VALUES('rebuild') ")
 		}
 	}
 	{ // "1.1.6"
@@ -177,13 +177,13 @@ func Test_fts4content(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('O S W W F U C R Q I C N P Z Y Y E Y Y E');  -- 1\n  INSERT INTO t2 VALUES('Y X U V L B E H Y J C Y A I A P V F V K');  -- 2\n  INSERT INTO t2 VALUES('P W I N J H I I N I F B K D U Q B Z S F');  -- 3\n  INSERT INTO t2 VALUES('N R O R H J R H G M D I U U B O M P A U');  -- 4\n  INSERT INTO t2 VALUES('Y O V O G T P N G T N F I V B U M J M G');  -- 5\n  INSERT INTO t2 VALUES('J O B N K N E C H Z R K J O U G M K L S');  -- 6\n  INSERT INTO t2 VALUES('S Z S R I Q U A P W R X H K C Z U L S P');  -- 7\n  INSERT INTO t2 VALUES('J C H N R C K R V N M O F Z M Z A I H W');  -- 8\n  INSERT INTO t2 VALUES('O Y G I S J U U W O D Z F J K N R P R L');  -- 9\n  INSERT INTO t2 VALUES('B G L K U R U P V X Z I H V R W C Q A S');  -- 10\n  INSERT INTO t2 VALUES('T F T J F F Y V F W N X K Q A Y L X W G');  -- 11\n  INSERT INTO t2 VALUES('C J U H B Q X L C M M Y E G V F W V Z C');  -- 12\n  INSERT INTO t2 VALUES('B W L T F S G X D P H N G M R I O A X I');  -- 13\n  INSERT INTO t2 VALUES('N G Y O K Q K Z N M H U J E D H U W R K');  -- 14\n  INSERT INTO t2 VALUES('U D T R U Y F J D S J X E H Q G V A S Z');  -- 15\n  INSERT INTO t2 VALUES('M I W P J S H R J D Q I C G P C T P H R');  -- 16\n  INSERT INTO t2 VALUES('J M N I S L X Q C A B F C B Y D H V R J');  -- 17\n  INSERT INTO t2 VALUES('F V Z W J Q L P X Y E W B U Q N H X K T');  -- 18\n  INSERT INTO t2 VALUES('R F S R Y O F Q E I E G H C B H R X Y N');  -- 19\n  INSERT INTO t2 VALUES('U Q Q Q T E P D M F X P J G H X C Q D L');  -- 20\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('O S W W F U C R Q I C N P Z Y Y E Y Y E');  -- 1\n  INSERT INTO t2 VALUES('Y X U V L B E H Y J C Y A I A P V F V K');  -- 2\n  INSERT INTO t2 VALUES('P W I N J H I I N I F B K D U Q B Z S F');  -- 3\n  INSERT INTO t2 VALUES('N R O R H J R H G M D I U U B O M P A U');  -- 4\n  INSERT INTO t2 VALUES('Y O V O G T P N G T N F I V B U M J M G');  -- 5\n  INSERT INTO t2 VALUES('J O B N K N E C H Z R K J O U G M K L S');  -- 6\n  INSERT INTO t2 VALUES('S Z S R I Q U A P W R X H K C Z U L S P');  -- 7\n  INSERT INTO t2 VALUES('J C H N R C K R V N M O F Z M Z A I H W');  -- 8\n  INSERT INTO t2 VALUES('O Y G I S J U U W O D Z F J K N R P R L');  -- 9\n  INSERT INTO t2 VALUES('B G L K U R U P V X Z I H V R W C Q A S');  -- 10\n  INSERT INTO t2 VALUES('T F T J F F Y V F W N X K Q A Y L X W G');  -- 11\n  INSERT INTO t2 VALUES('C J U H B Q X L C M M Y E G V F W V Z C');  -- 12\n  INSERT INTO t2 VALUES('B W L T F S G X D P H N G M R I O A X I');  -- 13\n  INSERT INTO t2 VALUES('N G Y O K Q K Z N M H U J E D H U W R K');  -- 14\n  INSERT INTO t2 VALUES('U D T R U Y F J D S J X E H Q G V A S Z');  -- 15\n  INSERT INTO t2 VALUES('M I W P J S H R J D Q I C G P C T P H R');  -- 16\n  INSERT INTO t2 VALUES('J M N I S L X Q C A B F C B Y D H V R J');  -- 17\n  INSERT INTO t2 VALUES('F V Z W J Q L P X Y E W B U Q N H X K T');  -- 18\n  INSERT INTO t2 VALUES('R F S R Y O F Q E I E G H C B H R X Y N');  -- 19\n  INSERT INTO t2 VALUES('U Q Q Q T E P D M F X P J G H X C Q D L');  -- 20\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('O S W W F U C R Q I C N P Z Y Y E Y Y E');  -- 1\n  INSERT INTO t2 VALUES('Y X U V L B E H Y J C Y A I A P V F V K');  -- 2\n  INSERT INTO t2 VALUES('P W I N J H I I N I F B K D U Q B Z S F');  -- 3\n  INSERT INTO t2 VALUES('N R O R H J R H G M D I U U B O M P A U');  -- 4\n  INSERT INTO t2 VALUES('Y O V O G T P N G T N F I V B U M J M G');  -- 5\n  INSERT INTO t2 VALUES('J O B N K N E C H Z R K J O U G M K L S');  -- 6\n  INSERT INTO t2 VALUES('S Z S R I Q U A P W R X H K C Z U L S P');  -- 7\n  INSERT INTO t2 VALUES('J C H N R C K R V N M O F Z M Z A I H W');  -- 8\n  INSERT INTO t2 VALUES('O Y G I S J U U W O D Z F J K N R P R L');  -- 9\n  INSERT INTO t2 VALUES('B G L K U R U P V X Z I H V R W C Q A S');  -- 10\n  INSERT INTO t2 VALUES('T F T J F F Y V F W N X K Q A Y L X W G');  -- 11\n  INSERT INTO t2 VALUES('C J U H B Q X L C M M Y E G V F W V Z C');  -- 12\n  INSERT INTO t2 VALUES('B W L T F S G X D P H N G M R I O A X I');  -- 13\n  INSERT INTO t2 VALUES('N G Y O K Q K Z N M H U J E D H U W R K');  -- 14\n  INSERT INTO t2 VALUES('U D T R U Y F J D S J X E H Q G V A S Z');  -- 15\n  INSERT INTO t2 VALUES('M I W P J S H R J D Q I C G P C T P H R');  -- 16\n  INSERT INTO t2 VALUES('J M N I S L X Q C A B F C B Y D H V R J');  -- 17\n  INSERT INTO t2 VALUES('F V Z W J Q L P X Y E W B U Q N H X K T');  -- 18\n  INSERT INTO t2 VALUES('R F S R Y O F Q E I E G H C B H R X Y N');  -- 19\n  INSERT INTO t2 VALUES('U Q Q Q T E P D M F X P J G H X C Q D L');  -- 20\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft2 USING fts4(content=t2);\n  INSERT INTO ft2(ft2) VALUES('rebuild');\n\n  -- Modify the backing table a bit: Row 17 is missing and the contents \n  -- of row 20 do not match the FTS index contents. \n  DELETE FROM t2 WHERE rowid = 17;\n  UPDATE t2 SET x = 'a b c d e f g h i j' WHERE rowid = 20;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft2 USING fts4(content=t2);\n  INSERT INTO ft2(ft2) VALUES('rebuild');\n\n  -- Modify the backing table a bit: Row 17 is missing and the contents \n  -- of row 20 do not match the FTS index contents. \n  DELETE FROM t2 WHERE rowid = 17;\n  UPDATE t2 SET x = 'a b c d e f g h i j' WHERE rowid = 20;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft2 USING fts4(content=t2);\n  INSERT INTO ft2(ft2) VALUES('rebuild');\n\n  -- Modify the backing table a bit: Row 17 is missing and the contents \n  -- of row 20 do not match the FTS index contents. \n  DELETE FROM t2 WHERE rowid = 17;\n  UPDATE t2 SET x = 'a b c d e f g h i j' WHERE rowid = 20;\n")
 		}
 	}
 	// foreach {tn match rowidlist} "1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}"
@@ -293,13 +293,13 @@ func Test_fts4content(t *testing.T) {
 					{ // "3.1"
 						_res = db.Exec("\n  CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);\n")
 						}
 					}
 					{ // "3.1.1"
 						_res = db.Exec("\n  INSERT INTO ft3 VALUES('a b c', 'd e f');\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT INTO ft3 VALUES('a b c', 'd e f');\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  INSERT INTO ft3 VALUES('a b c', 'd e f');\n")
 						}
 					}
 					{ // "3.1.2"
@@ -353,7 +353,7 @@ func Test_fts4content(t *testing.T) {
 					{ // "3.2.1"
 						_res = db.Exec("\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
 						}
 					}
 					// foreach {tn match rowidlist} "1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}"
@@ -400,7 +400,7 @@ func Test_fts4content(t *testing.T) {
 						{ // "3.3.1"
 							_res = db.Exec("\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
 							}
 						}
 						// foreach {tn match rowidlist} "1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}"
@@ -447,7 +447,7 @@ func Test_fts4content(t *testing.T) {
 							{ // "3.3.1"
 								_res = db.Exec("\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
 								}
 							}
 							// foreach {tn match rowidlist} "1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}"
@@ -494,13 +494,13 @@ func Test_fts4content(t *testing.T) {
 								{ // "4.0"
 									_res = db.Exec("\n  CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);\n")
 									}
 								}
 								{ // "4.1.1"
 									_res = db.Exec("\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n")
 									}
 								}
 								{ // "4.1.2"
@@ -680,7 +680,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "6.1.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t7") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", _res.Error, "\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n")
 									}
 								}
 								{ // "6.2.1"
@@ -698,7 +698,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "6.2.2"
 									_res = db.Exec("\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
 									}
 								}
 								db.Close()
@@ -720,7 +720,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "6.2.4"
 									_res = db.Exec("\n  SELECT * FROM ft7;\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t7") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", _res.Error, "\n  SELECT * FROM ft7;\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", resErrString(_res), "\n  SELECT * FROM ft7;\n")
 									}
 								}
 								{ // "6.2.5"
@@ -750,19 +750,19 @@ func Test_fts4content(t *testing.T) {
 								{ // "6.2.7"
 									_res = db.Exec("\n  DROP TABLE t7;\n  CREATE TABLE t7(x);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t7;\n  CREATE TABLE t7(x);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t7;\n  CREATE TABLE t7(x);\n")
 									}
 								}
 								{ // "6.2.8"
 									_res = db.Exec("\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
 								{ // "6.2.9"
 									_res = db.Exec("\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
 								db.Close()
@@ -772,19 +772,19 @@ func Test_fts4content(t *testing.T) {
 								{ // "6.2.10"
 									_res = db.Exec("\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									if _res.Error != nil {
-										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+										t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
 								{ // "6.2.11"
 									_res = db.Exec("\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									if _res.Error != nil {
-										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+										t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
 								{ // "7.1.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');\n")
 									}
 								}
 								{ // "7.1.2"
@@ -802,7 +802,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "7.2.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');\n")
 									}
 								}
 								{ // "7.2.2"
@@ -832,13 +832,13 @@ func Test_fts4content(t *testing.T) {
 								{ // "7.2.4"
 									_res = db.Exec("\n  SELECT * FROM ft9 WHERE ft9 MATCH 'N';\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft9 WHERE ft9 MATCH 'N';\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT * FROM ft9 WHERE ft9 MATCH 'N';\n")
 									}
 								}
 								{ // "8.1"
 									_res = db.Exec("\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);\n")
 									}
 								}
 								{ // "8.2"
@@ -850,7 +850,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "8.3"
 									_res = db.Exec(" INSERT INTO ft10(ft10) VALUES('rebuild');        ")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft10(ft10) VALUES('rebuild');        ")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO ft10(ft10) VALUES('rebuild');        ")
 									}
 								}
 								{ // "8.4"
@@ -900,7 +900,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "9.1"
 									_res = db.Exec("\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
 									}
 								}
 								{ // "9.2"
@@ -930,7 +930,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "9.4"
 									_res = db.Exec(" \n  DELETE FROM ft1 WHERE docid=1;\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DELETE FROM ft1 WHERE docid=1;\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  DELETE FROM ft1 WHERE docid=1;\n")
 									}
 								}
 								{ // "9.5"
@@ -1007,7 +1007,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "11.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor called recursively: x1") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor called recursively: x1", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor called recursively: x1", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
 									}
 								}
 								db.Close()
@@ -1020,25 +1020,25 @@ func Test_fts4content(t *testing.T) {
 								{ // "12.1.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
 									}
 								}
 								{ // "12.1.2"
 									_res = db.Exec(" \n  SELECT * FROM t1; \n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1; \n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT * FROM t1; \n")
 									}
 								}
 								{ // "12.1.3"
 									_res = db.Exec(" \n  SELECT * FROM t1('abc'); \n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1('abc'); \n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT * FROM t1('abc'); \n")
 									}
 								}
 								{ // "12.1.4"
 									_res = db.Exec(" \n  SELECT count(*) FROM t1;\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT count(*) FROM t1;\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT count(*) FROM t1;\n")
 									}
 								}
 								db.Close()
@@ -1051,25 +1051,25 @@ func Test_fts4content(t *testing.T) {
 								{ // "12.2.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
 									}
 								}
 								{ // "12.2.2"
 									_res = db.Exec(" \n  SELECT * FROM t1; \n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1; \n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT * FROM t1; \n")
 									}
 								}
 								{ // "12.2.3"
 									_res = db.Exec(" \n  SELECT * FROM t1('abc'); \n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1('abc'); \n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT * FROM t1('abc'); \n")
 									}
 								}
 								{ // "12.2.4"
 									_res = db.Exec(" \n  SELECT count(*) FROM t1;\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT count(*) FROM t1;\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT count(*) FROM t1;\n")
 									}
 								}
 								db.Close()
@@ -1088,7 +1088,7 @@ func Test_fts4content(t *testing.T) {
 								{ // "13.1"
 									_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
 									}
 								}
 								// proc definition (not transpiled)
@@ -1096,13 +1096,13 @@ func Test_fts4content(t *testing.T) {
 								{ // "13.2.0"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
 									}
 								}
 								{ // "13.2.1"
 									_res = db.Exec("\n  INSERT INTO aa VALUES('one two three');\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO aa VALUES('one two three');\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO aa VALUES('one two three');\n")
 									}
 								}
 								{ // "13.2.2" (prepare-step internals; SQL side effects only)

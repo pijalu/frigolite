@@ -121,7 +121,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-2.5"
 		_res = db.Exec("\n    SELECT name FROM t2.sqlite_master;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM t2.sqlite_master;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT name FROM t2.sqlite_master;\n  ")
 		}
 	}
 	{ // do_test "attach2-2.6"
@@ -135,13 +135,13 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-2.7"
 		_res = db.Exec("\n    SELECT name FROM main.sqlite_master;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM main.sqlite_master;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT name FROM main.sqlite_master;\n  ")
 		}
 	}
 	{ // do_test "attach2-2.8"
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(8,9);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(8,9);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    INSERT INTO t1 VALUES(8,9);\n  ")
 		}
 	}
 	{ // do_test "attach2-2.9"
@@ -153,7 +153,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-2.10"
 		_res = db.Exec("\n    INSERT INTO t2.t1 VALUES(1,2);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    INSERT INTO t2.t1 VALUES(1,2);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    INSERT INTO t2.t1 VALUES(1,2);\n  ")
 		}
 	}
 	{ // do_test "attach2-2.11"
@@ -171,7 +171,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-2.12"
 		_res = db.Exec("\n    COMMIT\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot commit - no transaction is active") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", _res.Error, "\n    COMMIT\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", resErrString(_res), "\n    COMMIT\n  ")
 		}
 	}
 	{ // "attach2-3.1" (prepare-step internals; SQL side effects only)
@@ -288,7 +288,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.4"
 		_res = db2.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		}
 	}
 	// lock_status 4.4.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
@@ -310,7 +310,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.6.1"
 		_res = db.Exec("\n    SELECT * FROM file2.t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM file2.t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM file2.t1;\n  ")
 		}
 	}
 	// lock_status 4.6.1.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
@@ -318,7 +318,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.6.2"
 		_res = db.Exec("\n    UPDATE file2.t1 SET a=0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    UPDATE file2.t1 SET a=0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    UPDATE file2.t1 SET a=0;\n  ")
 		}
 	}
 	// lock_status 4.6.2.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
@@ -326,7 +326,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.7"
 		_res = db2.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		}
 	}
 	// lock_status 4.7.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
@@ -342,7 +342,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.9"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		}
 	}
 	// lock_status 4.9.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
@@ -350,7 +350,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.10"
 		_res = db2.Exec("COMMIT")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "COMMIT")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "COMMIT")
 		}
 	}
 	// lock_status 4.10.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
@@ -361,7 +361,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.11"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "COMMIT")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "COMMIT")
 		}
 	}
 	// lock_status 4.11.1 db {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
@@ -369,7 +369,7 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-4.12"
 		_res = db2.Exec("COMMIT")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "COMMIT")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "COMMIT")
 		}
 	}
 	// lock_status 4.12.1 db {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
@@ -436,13 +436,13 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-6.2"
 		_res = db.Exec("\n    ATTACH 'test3.db' as aux2;\n    DETACH aux2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test3.db' as aux2;\n    DETACH aux2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH 'test3.db' as aux2;\n    DETACH aux2;\n  ")
 		}
 	}
 	{ // do_test "attach2-6.3"
 		_res = db.Exec("\n    DETACH aux;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DETACH aux;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DETACH aux;\n  ")
 		}
 	}
 	db.Close()

@@ -122,31 +122,31 @@ func Test_indexedby(t *testing.T) {
 	{ // do_test "indexedby-2.4"
 		_res = db.Exec(" SELECT * FROM t1 INDEXED BY i3 WHERE a = 'one' AND b = 'two'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such index: i3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: i3", _res.Error, " SELECT * FROM t1 INDEXED BY i3 WHERE a = 'one' AND b = 'two'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: i3", resErrString(_res), " SELECT * FROM t1 INDEXED BY i3 WHERE a = 'one' AND b = 'two'")
 		}
 	}
 	{ // do_test "indexedby-2.4.1"
 		_res = db.Exec(" SELECT b FROM t1 INDEXED BY i1 WHERE b = 'two' ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT b FROM t1 INDEXED BY i1 WHERE b = 'two' ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT b FROM t1 INDEXED BY i1 WHERE b = 'two' ")
 		}
 	}
 	{ // do_test "indexedby-2.5"
 		_res = db.Exec(" SELECT * FROM t1 INDEXED BY i5 WHERE a = 'one' AND b = 'two'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such index: i5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: i5", _res.Error, " SELECT * FROM t1 INDEXED BY i5 WHERE a = 'one' AND b = 'two'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: i5", resErrString(_res), " SELECT * FROM t1 INDEXED BY i5 WHERE a = 'one' AND b = 'two'")
 		}
 	}
 	{ // do_test "indexedby-2.6"
 		_res = db.Exec(" SELECT * FROM t1 INDEXED BY WHERE a = 'one' AND b = 'two'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"WHERE\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"WHERE\": syntax error", _res.Error, " SELECT * FROM t1 INDEXED BY WHERE a = 'one' AND b = 'two'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"WHERE\": syntax error", resErrString(_res), " SELECT * FROM t1 INDEXED BY WHERE a = 'one' AND b = 'two'")
 		}
 	}
 	{ // do_test "indexedby-2.7"
 		_res = db.Exec(" SELECT * FROM v1 INDEXED BY i1 WHERE a = 'one' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such index: i1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: i1", _res.Error, " SELECT * FROM v1 INDEXED BY i1 WHERE a = 'one' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: i1", resErrString(_res), " SELECT * FROM v1 INDEXED BY i1 WHERE a = 'one' ")
 		}
 	}
 	{ // "indexedby-3.1"
@@ -182,25 +182,25 @@ func Test_indexedby(t *testing.T) {
 	{ // do_test "indexedby-3.4"
 		_res = db.Exec(" SELECT * FROM t1 INDEXED BY i2 WHERE a = 'one' ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 INDEXED BY i2 WHERE a = 'one' ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1 INDEXED BY i2 WHERE a = 'one' ")
 		}
 	}
 	{ // do_test "indexedby-3.5"
 		_res = db.Exec(" SELECT * FROM t1 INDEXED BY i2 ORDER BY a ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 INDEXED BY i2 ORDER BY a ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1 INDEXED BY i2 ORDER BY a ")
 		}
 	}
 	{ // do_test "indexedby-3.6"
 		_res = db.Exec(" SELECT * FROM t1 INDEXED BY i1 WHERE a = 'one' ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 INDEXED BY i1 WHERE a = 'one' ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1 INDEXED BY i1 WHERE a = 'one' ")
 		}
 	}
 	{ // do_test "indexedby-3.7"
 		_res = db.Exec(" SELECT * FROM t1 INDEXED BY i1 ORDER BY a ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 INDEXED BY i1 ORDER BY a ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1 INDEXED BY i1 ORDER BY a ")
 		}
 	}
 	{ // "indexedby-3.8"
@@ -218,13 +218,13 @@ func Test_indexedby(t *testing.T) {
 	{ // do_test "indexedby-3.10"
 		_res = db.Exec(" SELECT * FROM t3 INDEXED BY sqlite_autoindex_t3_1 WHERE f = 10 ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t3 INDEXED BY sqlite_autoindex_t3_1 WHERE f = 10 ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t3 INDEXED BY sqlite_autoindex_t3_1 WHERE f = 10 ")
 		}
 	}
 	{ // do_test "indexedby-3.11"
 		_res = db.Exec(" SELECT * FROM t3 INDEXED BY sqlite_autoindex_t3_2 WHERE f = 10 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such index: sqlite_autoindex_t3_2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: sqlite_autoindex_t3_2", _res.Error, " SELECT * FROM t3 INDEXED BY sqlite_autoindex_t3_2 WHERE f = 10 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such index: sqlite_autoindex_t3_2", resErrString(_res), " SELECT * FROM t3 INDEXED BY sqlite_autoindex_t3_2 WHERE f = 10 ")
 		}
 	}
 	{ // "indexedby-4.1"
@@ -242,13 +242,13 @@ func Test_indexedby(t *testing.T) {
 	{ // do_test "indexedby-4.3"
 		_res = db.Exec("\n    SELECT * FROM t1 INDEXED BY i1, t2 INDEXED BY i3 WHERE a=c\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1 INDEXED BY i1, t2 INDEXED BY i3 WHERE a=c\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1 INDEXED BY i1, t2 INDEXED BY i3 WHERE a=c\n  ")
 		}
 	}
 	{ // do_test "indexedby-4.4"
 		_res = db.Exec("\n    SELECT * FROM t2 INDEXED BY i3, t1 INDEXED BY i1 WHERE a=c\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2 INDEXED BY i3, t1 INDEXED BY i1 WHERE a=c\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2 INDEXED BY i3, t1 INDEXED BY i1 WHERE a=c\n  ")
 		}
 	}
 	{ // "indexedby-5.1" — skipped: EXPLAIN QUERY PLAN INDEXED BY index scan not planned (G5.EXPLAIN) (SQL side effects only)
@@ -328,7 +328,7 @@ func Test_indexedby(t *testing.T) {
 	{ // do_test "indexedby-7.6"
 		_res = db.Exec(" DELETE FROM t1 INDEXED BY i2 WHERE a = 5")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 INDEXED BY i2 WHERE a = 5")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " DELETE FROM t1 INDEXED BY i2 WHERE a = 5")
 		}
 	}
 	{ // "indexedby-8.1"
@@ -364,7 +364,7 @@ func Test_indexedby(t *testing.T) {
 	{ // do_test "indexedby-8.6"
 		_res = db.Exec(" UPDATE t1 INDEXED BY i2 SET rowid=rowid+1 WHERE a = 5")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " UPDATE t1 INDEXED BY i2 SET rowid=rowid+1 WHERE a = 5")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " UPDATE t1 INDEXED BY i2 SET rowid=rowid+1 WHERE a = 5")
 		}
 	}
 	{ // do_test "indexedby-9.1"
@@ -376,13 +376,13 @@ func Test_indexedby(t *testing.T) {
 	{ // do_test "indexedby-9.2"
 		_res = db.Exec("\n    select * from maintable as m inner join\n    joinme as j indexed by joinme_id_text_idx\n    on ( m.id  = j.id_int)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    select * from maintable as m inner join\n    joinme as j indexed by joinme_id_text_idx\n    on ( m.id  = j.id_int)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    select * from maintable as m inner join\n    joinme as j indexed by joinme_id_text_idx\n    on ( m.id  = j.id_int)\n  ")
 		}
 	}
 	{ // do_test "indexedby-9.3"
 		_res = db.Exec(" select * from maintable, joinme INDEXED by joinme_id_text_idx ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " select * from maintable, joinme INDEXED by joinme_id_text_idx ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " select * from maintable, joinme INDEXED by joinme_id_text_idx ")
 		}
 	}
 	{ // do_test "indexedby-10.1"
@@ -406,7 +406,7 @@ func Test_indexedby(t *testing.T) {
 	{ // "11.1"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b TEXT);\n  CREATE INDEX x1i ON x1(a, b);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b TEXT);\n  CREATE INDEX x1i ON x1(a, b);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b TEXT);\n  CREATE INDEX x1i ON x1(a, b);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n  INSERT INTO x1 VALUES(1, 1);\n")
 		}
 	}
 	{ // "11.2"
@@ -454,7 +454,7 @@ func Test_indexedby(t *testing.T) {
 	{ // "11.6"
 		_res = db.Exec("\n  CREATE TABLE x2(c INTEGER PRIMARY KEY, a, b TEXT);\n  CREATE INDEX x2i ON x2(a, b);\n  INSERT INTO x2 VALUES(1, 1, 1);\n  INSERT INTO x2 VALUES(2, 1, 1);\n  INSERT INTO x2 VALUES(3, 1, 1);\n  INSERT INTO x2 VALUES(4, 1, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x2(c INTEGER PRIMARY KEY, a, b TEXT);\n  CREATE INDEX x2i ON x2(a, b);\n  INSERT INTO x2 VALUES(1, 1, 1);\n  INSERT INTO x2 VALUES(2, 1, 1);\n  INSERT INTO x2 VALUES(3, 1, 1);\n  INSERT INTO x2 VALUES(4, 1, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x2(c INTEGER PRIMARY KEY, a, b TEXT);\n  CREATE INDEX x2i ON x2(a, b);\n  INSERT INTO x2 VALUES(1, 1, 1);\n  INSERT INTO x2 VALUES(2, 1, 1);\n  INSERT INTO x2 VALUES(3, 1, 1);\n  INSERT INTO x2 VALUES(4, 1, 1);\n")
 		}
 	}
 	{ // "11.7"
@@ -502,25 +502,25 @@ func Test_indexedby(t *testing.T) {
 	{ // "12.1"
 		_res = db.Exec("\n  CREATE TABLE o1(x INTEGER PRIMARY KEY, y, z);\n  CREATE INDEX p1 ON o1(z);\n  CREATE INDEX p2 ON o1(y) WHERE z=1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE o1(x INTEGER PRIMARY KEY, y, z);\n  CREATE INDEX p1 ON o1(z);\n  CREATE INDEX p2 ON o1(y) WHERE z=1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE o1(x INTEGER PRIMARY KEY, y, z);\n  CREATE INDEX p1 ON o1(z);\n  CREATE INDEX p2 ON o1(y) WHERE z=1;\n")
 		}
 	}
 	{ // "12.2"
 		_res = db.Exec("\n  SELECT * FROM o1 INDEXED BY p2 ORDER BY 1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no query solution") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no query solution", _res.Error, "\n  SELECT * FROM o1 INDEXED BY p2 ORDER BY 1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no query solution", resErrString(_res), "\n  SELECT * FROM o1 INDEXED BY p2 ORDER BY 1;\n")
 		}
 	}
 	{ // "12.3"
 		_res = db.Exec("\n  DROP INDEX p1;\n  DROP INDEX p2;\n  CREATE INDEX p2 ON o1(y) WHERE z=1;\n  CREATE INDEX p1 ON o1(z);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX p1;\n  DROP INDEX p2;\n  CREATE INDEX p2 ON o1(y) WHERE z=1;\n  CREATE INDEX p1 ON o1(z);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX p1;\n  DROP INDEX p2;\n  CREATE INDEX p2 ON o1(y) WHERE z=1;\n  CREATE INDEX p1 ON o1(z);\n")
 		}
 	}
 	{ // "12.4"
 		_res = db.Exec("\n  SELECT * FROM o1 INDEXED BY p2 ORDER BY 1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no query solution") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no query solution", _res.Error, "\n  SELECT * FROM o1 INDEXED BY p2 ORDER BY 1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no query solution", resErrString(_res), "\n  SELECT * FROM o1 INDEXED BY p2 ORDER BY 1;\n")
 		}
 	}
 }

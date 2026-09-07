@@ -295,85 +295,85 @@ func Test_fts3expr(t *testing.T) {
 	{ // do_test "fts3expr-4.2.1"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'example AND (hello OR world))' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [example AND (hello OR world))]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example AND (hello OR world))]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'example AND (hello OR world))' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example AND (hello OR world))]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'example AND (hello OR world))' ")
 		}
 	}
 	{ // do_test "fts3expr-4.2.2"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'example AND (hello OR world' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [example AND (hello OR world]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example AND (hello OR world]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'example AND (hello OR world' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example AND (hello OR world]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'example AND (hello OR world' ")
 		}
 	}
 	{ // do_test "fts3expr-4.2.3"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH '(hello' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [(hello]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [(hello]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH '(hello' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [(hello]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH '(hello' ")
 		}
 	}
 	{ // do_test "fts3expr-4.2.4"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH '(' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [(]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [(]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH '(' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [(]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH '(' ")
 		}
 	}
 	{ // do_test "fts3expr-4.2.5"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH ')' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [)]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [)]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH ')' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [)]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH ')' ")
 		}
 	}
 	{ // do_test "fts3expr-4.2.6"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'example (hello world' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [example (hello world]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example (hello world]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'example (hello world' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example (hello world]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'example (hello world' ")
 		}
 	}
 	{ // do_test "fts3expr-4.3.1"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'example OR \"hello world' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [example OR \"hello world]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example OR \"hello world]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'example OR \"hello world' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example OR \"hello world]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'example OR \"hello world' ")
 		}
 	}
 	{ // do_test "fts3expr-4.3.2"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'example OR hello world\"' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [example OR hello world\"]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example OR hello world\"]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'example OR hello world\"' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [example OR hello world\"]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'example OR hello world\"' ")
 		}
 	}
 	{ // do_test "fts3expr-4.4.1"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'OR hello world' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [OR hello world]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [OR hello world]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'OR hello world' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [OR hello world]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'OR hello world' ")
 		}
 	}
 	{ // do_test "fts3expr-4.4.2"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'hello world OR' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [hello world OR]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [hello world OR]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'hello world OR' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [hello world OR]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'hello world OR' ")
 		}
 	}
 	{ // do_test "fts3expr-4.4.3"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'one (hello world OR) two' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [one (hello world OR) two]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [one (hello world OR) two]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'one (hello world OR) two' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [one (hello world OR) two]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'one (hello world OR) two' ")
 		}
 	}
 	{ // do_test "fts3expr-4.4.4"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'one (OR hello world) two' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [one (OR hello world) two]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [one (OR hello world) two]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'one (OR hello world) two' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [one (OR hello world) two]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'one (OR hello world) two' ")
 		}
 	}
 	{ // do_test "fts3expr-4.5.1"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH '(hello OR world) NEAR one' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [(hello OR world) NEAR one]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [(hello OR world) NEAR one]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH '(hello OR world) NEAR one' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [(hello OR world) NEAR one]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH '(hello OR world) NEAR one' ")
 		}
 	}
 	{ // do_test "fts3expr-4.5.2"
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'one NEAR (hello OR world)' ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [one NEAR (hello OR world)]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [one NEAR (hello OR world)]", _res.Error, " SELECT * FROM t1 WHERE t1 MATCH 'one NEAR (hello OR world)' ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [one NEAR (hello OR world)]", resErrString(_res), " SELECT * FROM t1 WHERE t1 MATCH 'one NEAR (hello OR world)' ")
 		}
 	}
 	// do_malloc_test fts3expr-malloc-1 -sqlbody {\n  SELECT fts3_exprtest('simple', 'a b c "d e f"'..... (unsupported command, not transpiled)
@@ -381,19 +381,19 @@ func Test_fts3expr(t *testing.T) {
 	{ // do_test "fts3expr-5.1"
 		_res = db.Exec(" SELECT fts3_exprtest('simple', 'a b') ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Usage: fts3_exprtest(tokenizer, expr, col1, ...") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Usage: fts3_exprtest(tokenizer, expr, col1, ...", _res.Error, " SELECT fts3_exprtest('simple', 'a b') ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Usage: fts3_exprtest(tokenizer, expr, col1, ...", resErrString(_res), " SELECT fts3_exprtest('simple', 'a b') ")
 		}
 	}
 	{ // do_test "fts3expr-5.2"
 		_res = db.Exec(" SELECT fts3_exprtest('doesnotexist', 'a b', 'c') ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown tokenizer: doesnotexist") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer: doesnotexist", _res.Error, " SELECT fts3_exprtest('doesnotexist', 'a b', 'c') ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer: doesnotexist", resErrString(_res), " SELECT fts3_exprtest('doesnotexist', 'a b', 'c') ")
 		}
 	}
 	{ // do_test "fts3expr-5.3"
 		_res = db.Exec(" SELECT fts3_exprtest('simple', 'a b OR', 'c') ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Error parsing expression") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Error parsing expression", _res.Error, " SELECT fts3_exprtest('simple', 'a b OR', 'c') ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Error parsing expression", resErrString(_res), " SELECT fts3_exprtest('simple', 'a b OR', 'c') ")
 		}
 	}
 	{ // do_test "fts3expr-6.1"

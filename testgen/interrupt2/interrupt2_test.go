@@ -121,7 +121,7 @@ func Test_interrupt2(t *testing.T) {
 		{ // "1." + idelay + ".1"
 			_res = db.Exec(" PRAGMA wal_checkpoint; ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "interrupted") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "interrupted", _res.Error, " PRAGMA wal_checkpoint; ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "interrupted", resErrString(_res), " PRAGMA wal_checkpoint; ")
 			}
 		}
 		{ // "1." + idelay + ".2"
@@ -167,7 +167,7 @@ func Test_interrupt2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TEMP TABLE z1(a, b);\n  INSERT INTO z1 SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE z1(a, b);\n  INSERT INTO z1 SELECT * FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TEMP TABLE z1(a, b);\n  INSERT INTO z1 SELECT * FROM t1;\n")
 		}
 	}
 	{ // do_test "2.1"

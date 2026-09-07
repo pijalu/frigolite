@@ -243,7 +243,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=lang_id);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=lang_id);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=lang_id);\n")
 		}
 	}
 	{ // "1.2"
@@ -273,7 +273,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "1.5"
 		_res = db.Exec("INSERT INTO t1(a, b) VALUES('aaa', 'bbb')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b) VALUES('aaa', 'bbb')")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t1(a, b) VALUES('aaa', 'bbb')")
 		}
 	}
 	{ // "1.6"
@@ -291,7 +291,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "1.7"
 		_res = db.Exec("INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 4)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 4)")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 4)")
 		}
 	}
 	{ // "1.8"
@@ -309,7 +309,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "1.9"
 		_res = db.Exec("INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 'xyz')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 'xyz')")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 'xyz')")
 		}
 	}
 	{ // "1.10"
@@ -327,7 +327,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "1.11"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('abc');\n")
 		}
 	}
 	{ // "1.12"
@@ -345,7 +345,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "1.13"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(languageid=lang_id);\n  INSERT INTO t1(content)          VALUES('a b c');\n  INSERT INTO t1(content, lang_id) VALUES('a b c', 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(languageid=lang_id);\n  INSERT INTO t1(content)          VALUES('a b c');\n  INSERT INTO t1(content, lang_id) VALUES('a b c', 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(languageid=lang_id);\n  INSERT INTO t1(content)          VALUES('a b c');\n  INSERT INTO t1(content, lang_id) VALUES('a b c', 1);\n")
 		}
 	}
 	{ // "1.14"
@@ -387,7 +387,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "1.17"
 		_res = db.Exec("\n  INSERT INTO t1(content, lang_id) VALUES('123', -1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT INTO t1(content, lang_id) VALUES('123', -1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  INSERT INTO t1(content, lang_id) VALUES('123', -1);\n")
 		}
 	}
 	{ // "1.18"
@@ -470,7 +470,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(content=t3_data, languageid=l);\n  INSERT INTO t2(t2) VALUES('rebuild');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(content=t3_data, languageid=l);\n  INSERT INTO t2(t2) VALUES('rebuild');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4(content=t3_data, languageid=l);\n  INSERT INTO t2(t2) VALUES('rebuild');\n")
 		}
 	}
 	// do_test_query1 3.1.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
@@ -480,19 +480,19 @@ func Test_fts4langid(t *testing.T) {
 	{ // "3.2.1"
 		_res = db.Exec("\n  DROP TABLE t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l, content=nosuchtable);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l, content=nosuchtable);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l, content=nosuchtable);\n")
 		}
 	}
 	{ // "3.2.2"
 		_res = db.Exec("\n  INSERT INTO t2(docid, x, y, l) SELECT rowid, x, y, l FROM t3_data;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(docid, x, y, l) SELECT rowid, x, y, l FROM t3_data;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2(docid, x, y, l) SELECT rowid, x, y, l FROM t3_data;\n")
 		}
 	}
 	{ // "3.2.3"
 		_res = db.Exec("\n  DROP TABLE t3_data;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t3_data;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t3_data;\n")
 		}
 	}
 	// do_test_query1 3.3.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
@@ -586,7 +586,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "4.1.5"
 		_res = db.Exec("\n  INSERT INTO t4(content, lid) VALUES('hello world', 101)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO t4(content, lid) VALUES('hello world', 101)\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO t4(content, lid) VALUES('hello world', 101)\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -644,7 +644,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "5.3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4(languageid=lid);\n  INSERT INTO t6 VALUES('I belong to language 0!');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t6 USING fts4(languageid=lid);\n  INSERT INTO t6 VALUES('I belong to language 0!');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t6 USING fts4(languageid=lid);\n  INSERT INTO t6 VALUES('I belong to language 0!');\n")
 		}
 	}
 	{ // do_test "5.3.2"
@@ -678,7 +678,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "5.3.4"
 		_res = db.Exec(" INSERT INTO t6(t6) VALUES('optimize') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6(t6) VALUES('optimize') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6(t6) VALUES('optimize') ")
 		}
 	}
 	{ // "5.3.5"
@@ -780,7 +780,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, languageid=\"lid\");\n  INSERT INTO vt0 VALUES ('a'), ('b');\n  BEGIN;\n    UPDATE vt0 SET lid = 1 WHERE lid=0;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, languageid=\"lid\");\n  INSERT INTO vt0 VALUES ('a'), ('b');\n  BEGIN;\n    UPDATE vt0 SET lid = 1 WHERE lid=0;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, languageid=\"lid\");\n  INSERT INTO vt0 VALUES ('a'), ('b');\n  BEGIN;\n    UPDATE vt0 SET lid = 1 WHERE lid=0;\n")
 		}
 	}
 	{ // "6.1"
@@ -798,7 +798,7 @@ func Test_fts4langid(t *testing.T) {
 	{ // "6.2"
 		_res = db.Exec("\n  COMMIT;\n  INSERT INTO vt0(vt0) VALUES('integrity-check');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n  INSERT INTO vt0(vt0) VALUES('integrity-check');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n  INSERT INTO vt0(vt0) VALUES('integrity-check');\n")
 		}
 	}
 }

@@ -208,13 +208,13 @@ func Test_fts4check(t *testing.T) {
 			{ // "1.2.1." + tn
 				_res = db.Exec("BEGIN; " + disruption)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN; " + disruption)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "BEGIN; " + disruption)
 				}
 			}
 			{ // "1.2.2." + tn
 				_res = db.Exec("\n    INSERT INTO t1 (t1) VALUES('integrity-check')\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    INSERT INTO t1 (t1) VALUES('integrity-check')\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    INSERT INTO t1 (t1) VALUES('integrity-check')\n  ")
 				}
 			}
 			{ // "1.2.3." + tn
@@ -232,7 +232,7 @@ func Test_fts4check(t *testing.T) {
 			{ // "1.2.4." + tn
 				_res = db.Exec("ROLLBACK")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "ROLLBACK")
 				}
 			}
 		}
@@ -257,13 +257,13 @@ func Test_fts4check(t *testing.T) {
 				{ // "2.2.1." + tn
 					_res = db.Exec("BEGIN; " + disruption)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN; " + disruption)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "BEGIN; " + disruption)
 					}
 				}
 				{ // "2.2.2." + tn
 					_res = db.Exec("\n    INSERT INTO t2 (t2) VALUES('integrity-check')\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    INSERT INTO t2 (t2) VALUES('integrity-check')\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    INSERT INTO t2 (t2) VALUES('integrity-check')\n  ")
 					}
 				}
 				{ // do_test "2.2.3." + tn
@@ -281,7 +281,7 @@ func Test_fts4check(t *testing.T) {
 				{ // "2.2.4." + tn
 					_res = db.Exec("ROLLBACK")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "ROLLBACK")
 					}
 				}
 			}
@@ -327,26 +327,26 @@ func Test_fts4check(t *testing.T) {
 					{ // "3.2.1." + tn
 						_res = db.Exec("BEGIN; " + disruption)
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN; " + disruption)
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "BEGIN; " + disruption)
 						}
 					}
 					{ // "3.2.2." + tn
 						_res = db.Exec("\n    INSERT INTO t3 (t3) VALUES('integrity-check')\n  ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    INSERT INTO t3 (t3) VALUES('integrity-check')\n  ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    INSERT INTO t3 (t3) VALUES('integrity-check')\n  ")
 						}
 					}
 					{ // "3.2.3." + tn
 						_res = db.Exec("ROLLBACK")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "ROLLBACK")
 						}
 					}
 				}
 				{ // "4.0"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');\n")
 					}
 				}
 				db.SetDefensive(false)
@@ -374,32 +374,32 @@ func Test_fts4check(t *testing.T) {
 				{ // "5.0"
 					_res = db.Exec("\n  BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');\n  INSERT INTO t5 VALUES('and the stockmen tell the story of his ride');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');\n  INSERT INTO t5 VALUES('and the stockmen tell the story of his ride');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');\n  INSERT INTO t5 VALUES('and the stockmen tell the story of his ride');\n")
 					}
 				}
 				{ // "5.1"
 					_res = db.Exec("\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					}
 				}
 				db.SetDefensive(false)
 				{ // "5.2"
 					_res = db.Exec("\n  INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					}
 				}
 				{ // "5.3"
 					_res = db.Exec("ROLLBACK")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "ROLLBACK")
 					}
 				}
 				{ // "5.4"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					}
 				}
 }

@@ -73,7 +73,7 @@ func Test_rtreeG(t *testing.T) {
 	{ // "rtreeG-1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1);\n")
 		}
 	}
 	{ // do_test "rtreeG-1.1log"
@@ -132,7 +132,7 @@ func Test_rtreeG(t *testing.T) {
 	{ // "rtreeG-1.4"
 		_res = db.Exec("\n  DROP TABLE t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n")
 		}
 	}
 	{ // do_test "rtreeG-1.4log"

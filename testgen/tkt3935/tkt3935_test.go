@@ -79,43 +79,43 @@ func Test_tkt3935(t *testing.T) {
 	{ // do_test "tkt3935.4"
 		_res = db.Exec(" SELECT a FROM (t1) AS t ON b USING(a) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"USING\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", _res.Error, " SELECT a FROM (t1) AS t ON b USING(a) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", resErrString(_res), " SELECT a FROM (t1) AS t ON b USING(a) ")
 		}
 	}
 	{ // do_test "tkt3935.5"
 		_res = db.Exec(" SELECT a FROM (t1) AS t ON b ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a JOIN clause is required before ON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before ON", _res.Error, " SELECT a FROM (t1) AS t ON b ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before ON", resErrString(_res), " SELECT a FROM (t1) AS t ON b ")
 		}
 	}
 	{ // do_test "tkt3935.6"
 		_res = db.Exec(" SELECT a FROM (SELECT * FROM t1) AS t ON b USING(a) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"USING\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", _res.Error, " SELECT a FROM (SELECT * FROM t1) AS t ON b USING(a) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", resErrString(_res), " SELECT a FROM (SELECT * FROM t1) AS t ON b USING(a) ")
 		}
 	}
 	{ // do_test "tkt3935.7"
 		_res = db.Exec(" SELECT a FROM (SELECT * FROM t1) AS t ON b ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a JOIN clause is required before ON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before ON", _res.Error, " SELECT a FROM (SELECT * FROM t1) AS t ON b ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before ON", resErrString(_res), " SELECT a FROM (SELECT * FROM t1) AS t ON b ")
 		}
 	}
 	{ // do_test "tkt3935.8"
 		_res = db.Exec(" SELECT a FROM t1 AS t ON b ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a JOIN clause is required before ON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before ON", _res.Error, " SELECT a FROM t1 AS t ON b ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before ON", resErrString(_res), " SELECT a FROM t1 AS t ON b ")
 		}
 	}
 	{ // do_test "tkt3935.9"
 		_res = db.Exec(" SELECT a FROM t1 AS t ON b USING(a) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"USING\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", _res.Error, " SELECT a FROM t1 AS t ON b USING(a) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", resErrString(_res), " SELECT a FROM t1 AS t ON b USING(a) ")
 		}
 	}
 	{ // do_test "tkt3935.10"
 		_res = db.Exec(" SELECT a FROM t1 AS t USING(a) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a JOIN clause is required before USING") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before USING", _res.Error, " SELECT a FROM t1 AS t USING(a) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before USING", resErrString(_res), " SELECT a FROM t1 AS t USING(a) ")
 		}
 	}
 }

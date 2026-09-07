@@ -67,7 +67,7 @@ func Test_spellfix2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');\n")
 		}
 	}
 	{ // "1.1"

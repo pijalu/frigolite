@@ -5,8 +5,311 @@
 package exclusive2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_exclusive2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_exclusive2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var needClose string
+	_ = needClose // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var nPage string
+	_ = nPage // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var _new string
+	_ = _new // pre-declared from TCL source
+	var SQLITE_DEFAULT_CACHE_SIZE string
+	_ = SQLITE_DEFAULT_CACHE_SIZE // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// do_not_use_codec (unsupported command, not transpiled)
+	if "" == "mmap" {
+		return
+	}
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	{ // do_test "exclusive2-1.0"
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-1.1"
+		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
+		}
+	}
+	{ // "exclusive2-1.2.1" (prepare-step internals; SQL side effects only)
+		nPage = strconv.Itoa(tclFileSize("test.db")/1024)
+		_ = nPage // suppress unused warning
+		if func() bool { SQLITE_DEFAULT_CACHE_SIZE_n, _SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(SQLITE_DEFAULT_CACHE_SIZE); if _SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
+			r = db.Query("PRAGMA cache_size = " + nPage)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = " + nPage)
+			}
+		}
+		// expr [execsql {PRAGMA cache_size}] >= $nPage → runtime compare
+		_r = tclBool01(toInt(tclExecSQL(db, "PRAGMA cache_size"))  >=  toInt(nPage))
+	}
+	{ // do_test "exclusive2-1.2"
+		vtab.TclVarSet("sig", "", "t1sig")
+		sig = "t1sig" // TCL namespace variable
+		_ = sig // suppress unused warning
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-1.3"
+		// t1sig (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-1.3")
+		}
+	}
+	{ // do_test "exclusive2-1.4"
+		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
+		if err != nil { t.Fatal(err) }
+		// t1sig db2 (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-1.4")
+		}
+	}
+	{ // do_test "exclusive2-1.5"
+		_res = db2.Exec("\n    UPDATE t1 SET b=a, a=0;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET b=a, a=0;\n  ")
+		}
+		// expr [t1sig db2] eq $::sig (not evaluated)
+	}
+	{ // do_test "exclusive2-1.6"
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-1.7"
+		// pagerChangeCounter test.db 1 (unsupported command, not transpiled)
+	}
+	if "" != "memsubsys1" {
+		{ // do_test "exclusive2-1.9"
+			// t1sig (unsupported command, not transpiled)
+			// expr [t1sig] eq $::sig (not evaluated)
+		}
+	}
+	{ // do_test "exclusive2-1.10"
+		// pagerChangeCounter test.db 2 (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-1.11"
+		// expr [t1sig] eq $::sig (not evaluated)
+	}
+	if db2 != nil { db2.Close() }
+	{ // do_test "exclusive2-2.1"
+		r = db.Query("PRAGMA cache_size=1000;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size=1000;")
+		}
+		r = db.Query("PRAGMA locking_mode = exclusive;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA locking_mode = exclusive;")
+		}
+		r = db.Query("\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
+		}
+	}
+	{ // "exclusive2-2.2.1" (prepare-step internals; SQL side effects only)
+		nPage = strconv.Itoa(tclFileSize("test.db")/1024)
+		_ = nPage // suppress unused warning
+		if func() bool { SQLITE_DEFAULT_CACHE_SIZE_n, _SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(SQLITE_DEFAULT_CACHE_SIZE); if _SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
+			r = db.Query("PRAGMA cache_size = " + nPage)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = " + nPage)
+			}
+		}
+		// expr [execsql {PRAGMA cache_size}] >= $nPage → runtime compare
+		_r = tclBool01(toInt(tclExecSQL(db, "PRAGMA cache_size"))  >=  toInt(nPage))
+	}
+	{ // do_test "exclusive2-2.2"
+		vtab.TclVarSet("sig", "", "t1sig")
+		sig = "t1sig" // TCL namespace variable
+		_ = sig // suppress unused warning
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-2.3"
+		// t1sig (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.3")
+		}
+	}
+	{ // do_test "exclusive2-2.4"
+		vtab.TclVarSet("fd", "", "open test.db RDWR")
+		fd = "open test.db RDWR" // TCL namespace variable
+		_ = fd // suppress unused warning
+		fileChannelSeek["fd"] = int64(tclAtoi("1024"))
+		tclChannelAppendAt("test.db", tclStringRepeat("", "10000"), fileChannelSeek["fd"])
+		// t1sig (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.4")
+		}
+	}
+	{ // do_test "exclusive2-2.5"
+		// pagerChangeCounter test.db 5 $::fd (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-2.6"
+		// t1sig (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.6")
+		}
+	}
+	{ // do_test "exclusive2-2.7"
+		r = db.Query("PRAGMA locking_mode = normal")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA locking_mode = normal")
+		}
+		// t1sig (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.7")
+		}
+	}
+	{ // do_test "exclusive2-2.8"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// t1sig (unsupported command, not transpiled)
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
+	}
+	db.Close()
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		_r = ""
+		// close $::fd
+	}
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	{ // do_test "exclusive2-3.0"
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;\n  ")
+		}
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-3.1"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		}
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-3.2"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		}
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-3.3"
+		r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		}
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-3.4"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		}
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-3.5"
+		r = db.Query("\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		}
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	{ // do_test "exclusive2-3.6"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		}
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+	}
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
+}

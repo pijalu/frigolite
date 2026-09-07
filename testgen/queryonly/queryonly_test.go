@@ -95,43 +95,43 @@ func Test_queryonly(t *testing.T) {
 	{ // do_test "queryonly-1.4"
 		_res = db.Exec("INSERT INTO t1 VALUES(789);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "INSERT INTO t1 VALUES(789);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "INSERT INTO t1 VALUES(789);")
 		}
 	}
 	{ // do_test "queryonly-1.5"
 		_res = db.Exec("DELETE FROM t1;")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "DELETE FROM t1;")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "DELETE FROM t1;")
 		}
 	}
 	{ // do_test "queryonly-1.6"
 		_res = db.Exec("UPDATE t1 SET a=a+1;")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "UPDATE t1 SET a=a+1;")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "UPDATE t1 SET a=a+1;")
 		}
 	}
 	{ // do_test "queryonly-1.7"
 		_res = db.Exec("CREATE TABLE t2(b);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "CREATE TABLE t2(b);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "CREATE TABLE t2(b);")
 		}
 	}
 	{ // do_test "queryonly-1.8"
 		_res = db.Exec("CREATE INDEX t1a ON t1(a);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "CREATE INDEX t1a ON t1(a);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "CREATE INDEX t1a ON t1(a);")
 		}
 	}
 	{ // do_test "queryonly-1.9"
 		_res = db.Exec("DROP TABLE t1;")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "DROP TABLE t1;")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "DROP TABLE t1;")
 		}
 	}
 	{ // do_test "queryonly-1.10"
 		_res = db.Exec("ANALYZE;")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "ANALYZE;")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "ANALYZE;")
 		}
 	}
 	{ // "queryonly-1.11"

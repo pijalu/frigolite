@@ -315,7 +315,7 @@ func Test_fts3sort(t *testing.T) {
 					{ // "2.1." + tn
 						_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
 						if !tclCatchsqlMatches(_res, res) {
-							t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, "\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
+							t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, "\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
 						}
 					}
 				}

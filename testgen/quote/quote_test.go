@@ -73,55 +73,55 @@ func Test_quote(t *testing.T) {
 	{ // do_test "quote-1.0"
 		_res = db.Exec("CREATE TABLE '@abc' ( '#xyz' int, '!pqr' text );")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE TABLE '@abc' ( '#xyz' int, '!pqr' text );")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "CREATE TABLE '@abc' ( '#xyz' int, '!pqr' text );")
 		}
 	}
 	{ // do_test "quote-1.1"
 		_res = db.Exec("INSERT INTO '@abc' VALUES(5,'hello')")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "INSERT INTO '@abc' VALUES(5,'hello')")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "INSERT INTO '@abc' VALUES(5,'hello')")
 		}
 	}
 	{ // do_test "quote-1.2.1"
 		_res = db.Exec("SELECT * FROM '@abc'")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM '@abc'")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM '@abc'")
 		}
 	}
 	{ // do_test "quote-1.2.2"
 		_res = db.Exec("SELECT * FROM [@abc]")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM [@abc]")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM [@abc]")
 		}
 	}
 	{ // do_test "quote-1.2.3"
 		_res = db.Exec("SELECT * FROM `@abc`")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM `@abc`")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM `@abc`")
 		}
 	}
 	{ // do_test "quote-1.3"
 		_res = db.Exec("\n    SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'\n  ")
 		}
 	}
 	{ // do_test "quote-1.3.1"
 		_res = db.Exec("\n    SELECT '!pqr', '#xyz'+5 FROM '@abc'\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT '!pqr', '#xyz'+5 FROM '@abc'\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT '!pqr', '#xyz'+5 FROM '@abc'\n  ")
 		}
 	}
 	{ // do_test "quote-1.3.2"
 		_res = db.Exec("\n    SELECT \"!pqr\", \"#xyz\"+5 FROM '@abc'\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT \"!pqr\", \"#xyz\"+5 FROM '@abc'\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT \"!pqr\", \"#xyz\"+5 FROM '@abc'\n  ")
 		}
 	}
 	{ // do_test "quote-1.3.3"
 		_res = db.Exec("\n    SELECT [!pqr], `#xyz`+5 FROM '@abc'\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT [!pqr], `#xyz`+5 FROM '@abc'\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT [!pqr], `#xyz`+5 FROM '@abc'\n  ")
 		}
 	}
 	{ // do_test "quote-1.3.4"
@@ -224,7 +224,7 @@ func Test_quote(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, z);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y, z);\n")
 		}
 	}
 	// foreach {tn sql errname} "1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w"
@@ -240,7 +240,7 @@ func Test_quote(t *testing.T) {
 			{ // "2.1." + tn
 				_res = db.Exec(sql)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \"" + errname + "\" - should this be a string literal in single-quotes?") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"" + errname + "\" - should this be a string literal in single-quotes?", _res.Error, sql)
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"" + errname + "\" - should this be a string literal in single-quotes?", resErrString(_res), sql)
 				}
 			}
 		}
@@ -257,13 +257,13 @@ func Test_quote(t *testing.T) {
 		{ // "2.3.1"
 			_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
 			}
 		}
 		{ // "2.3.2"
 			_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c!=\"null\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c!=\"null\"", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c!=\"null\"", resErrString(_res), "\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
 			}
 		}
 		{ // "2.4"
@@ -300,38 +300,38 @@ func Test_quote(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", resErrString(_res), "\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")
 			}
 		}
 		{ // "3.1"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", resErrString(_res), "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 		{ // "3.2"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", resErrString(_res), "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 		{ // "3.3"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1('b');\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: b") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: b", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1('b');\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: b", resErrString(_res), "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1('b');\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 		{ // "3.4"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", resErrString(_res), "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 		db.SetDQS(true, true)
 		{ // "3.5"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 }

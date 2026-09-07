@@ -144,7 +144,7 @@ func Test_json501(t *testing.T) {
 	{ // "1.10"
 		_res = db.Exec("\n  SELECT json('{ MNO_123/xyz : 789 }');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT json('{ MNO_123/xyz : 789 }');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT json('{ MNO_123/xyz : 789 }');\n")
 		}
 	}
 	{ // "1.11"
@@ -186,13 +186,13 @@ func Test_json501(t *testing.T) {
 	{ // "2.3"
 		_res = db.Exec("\n  SELECT '{a:5, b:6 ,, }'->>'b';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '{a:5, b:6 ,, }'->>'b';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT '{a:5, b:6 ,, }'->>'b';\n")
 		}
 	}
 	{ // "2.4"
 		_res = db.Exec("\n  SELECT '{a:5, b:6, ,}'->>'b';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '{a:5, b:6, ,}'->>'b';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT '{a:5, b:6, ,}'->>'b';\n")
 		}
 	}
 	{ // "3.1"
@@ -222,13 +222,13 @@ func Test_json501(t *testing.T) {
 	{ // "3.3"
 		_res = db.Exec("\n  SELECT '[5, 6,,]'->>1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '[5, 6,,]'->>1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT '[5, 6,,]'->>1;\n")
 		}
 	}
 	{ // "3.4"
 		_res = db.Exec("\n  SELECT '[5, 6 , , ]'->>1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '[5, 6 , , ]'->>1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT '[5, 6 , , ]'->>1;\n")
 		}
 	}
 	{ // "4.1"

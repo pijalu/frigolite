@@ -111,19 +111,19 @@ func Test_altercol(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec(before)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), before)
 				}
 			}
 			{ // "1." + tn + ".1"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
 				}
 			}
 			{ // "1." + tn + ".2"
 				_res = db.Exec("\n    ALTER TABLE t1 RENAME COLUMN b TO d;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 RENAME COLUMN b TO d;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE t1 RENAME COLUMN b TO d;\n  ")
 				}
 			}
 			{ // "1." + tn + ".3"
@@ -165,7 +165,7 @@ func Test_altercol(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t3(a, b, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (b, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (b, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (b, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4);\n")
 			}
 		}
 		db2, err = frigolite.Open("test.db")
@@ -198,7 +198,7 @@ func Test_altercol(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t4(x, y, z);\n  CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.y<0 BEGIN\n    SELECT x, y, z FROM t4;\n    DELETE FROM t4 WHERE y=32;\n    UPDATE t4 SET x=y+1, y=0 WHERE y=32;\n    INSERT INTO t4(x, y, z) SELECT 4, 5, 6 WHERE 0;\n  END;\n  INSERT INTO t4 VALUES(3, 2, 1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x, y, z);\n  CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.y<0 BEGIN\n    SELECT x, y, z FROM t4;\n    DELETE FROM t4 WHERE y=32;\n    UPDATE t4 SET x=y+1, y=0 WHERE y=32;\n    INSERT INTO t4(x, y, z) SELECT 4, 5, 6 WHERE 0;\n  END;\n  INSERT INTO t4 VALUES(3, 2, 1);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(x, y, z);\n  CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.y<0 BEGIN\n    SELECT x, y, z FROM t4;\n    DELETE FROM t4 WHERE y=32;\n    UPDATE t4 SET x=y+1, y=0 WHERE y=32;\n    INSERT INTO t4(x, y, z) SELECT 4, 5, 6 WHERE 0;\n  END;\n  INSERT INTO t4 VALUES(3, 2, 1);\n")
 			}
 		}
 		{ // "3.1"
@@ -228,7 +228,7 @@ func Test_altercol(t *testing.T) {
 		{ // "3.3"
 			_res = db.Exec(" INSERT INTO t4 VALUES(6, 5, 4); ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(6, 5, 4); ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t4 VALUES(6, 5, 4); ")
 			}
 		}
 		{ // "3.4"
@@ -265,13 +265,13 @@ func Test_altercol(t *testing.T) {
 		{ // "4.2"
 			_res = db.Exec(" INSERT INTO c1 VALUES(1, 2); ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c1 VALUES(1, 2); ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO c1 VALUES(1, 2); ")
 			}
 		}
 		{ // "4.3"
 			_res = db.Exec("\n  CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1);\n")
 			}
 		}
 		{ // "4.4"
@@ -289,7 +289,7 @@ func Test_altercol(t *testing.T) {
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE t5(a, b, c);\n  CREATE INDEX t5a ON t5(a);\n  INSERT INTO t5 VALUES(1, 2, 3), (4, 5, 6);\n  ANALYZE;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a, b, c);\n  CREATE INDEX t5a ON t5(a);\n  INSERT INTO t5 VALUES(1, 2, 3), (4, 5, 6);\n  ANALYZE;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a, b, c);\n  CREATE INDEX t5a ON t5(a);\n  INSERT INTO t5 VALUES(1, 2, 3), (4, 5, 6);\n  ANALYZE;\n")
 			}
 		}
 		{ // "5.1"
@@ -307,25 +307,25 @@ func Test_altercol(t *testing.T) {
 		{ // "6.1"
 			_res = db.Exec("\n  ALTER TABLE sqlite_stat1 RENAME tbl TO thetable;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_stat1 may not be altered") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be altered", _res.Error, "\n  ALTER TABLE sqlite_stat1 RENAME tbl TO thetable;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be altered", resErrString(_res), "\n  ALTER TABLE sqlite_stat1 RENAME tbl TO thetable;\n")
 			}
 		}
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n")
 			}
 		}
 		{ // "6.1"
 			_res = db.Exec("\n  ALTER TABLE \"blob\" RENAME COLUMN \"rid\" TO \"a1\";\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE \"blob\" RENAME COLUMN \"rid\" TO \"a1\";\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE \"blob\" RENAME COLUMN \"rid\" TO \"a1\";\n")
 			}
 		}
 		{ // "6.2"
 			_res = db.Exec("\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
 			}
 		}
 		{ // "6.3"
@@ -346,7 +346,7 @@ func Test_altercol(t *testing.T) {
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE c(x);\n  INSERT INTO c VALUES(0);\n  CREATE TABLE t6(\"col a\", \"col b\", \"col c\");\n  CREATE TRIGGER zzz AFTER UPDATE OF \"col a\", \"col c\" ON t6 BEGIN\n    UPDATE c SET x=x+1;\n  END;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c(x);\n  INSERT INTO c VALUES(0);\n  CREATE TABLE t6(\"col a\", \"col b\", \"col c\");\n  CREATE TRIGGER zzz AFTER UPDATE OF \"col a\", \"col c\" ON t6 BEGIN\n    UPDATE c SET x=x+1;\n  END;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE c(x);\n  INSERT INTO c VALUES(0);\n  CREATE TABLE t6(\"col a\", \"col b\", \"col c\");\n  CREATE TRIGGER zzz AFTER UPDATE OF \"col a\", \"col c\" ON t6 BEGIN\n    UPDATE c SET x=x+1;\n  END;\n")
 			}
 		}
 		{ // "7.1.1"
@@ -364,7 +364,7 @@ func Test_altercol(t *testing.T) {
 		{ // "7.1.2"
 			_res = db.Exec("\n  ALTER TABLE t6 RENAME \"col c\" TO \"col 3\";\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t6 RENAME \"col c\" TO \"col 3\";\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t6 RENAME \"col c\" TO \"col 3\";\n")
 			}
 		}
 		{ // "7.1.3"
@@ -389,7 +389,7 @@ func Test_altercol(t *testing.T) {
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE a1(x INTEGER, y TEXT, z BLOB, PRIMARY KEY(x));\n  CREATE TABLE a2(a, b, c);\n  CREATE VIEW v1 AS SELECT x, y, z FROM a1;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a1(x INTEGER, y TEXT, z BLOB, PRIMARY KEY(x));\n  CREATE TABLE a2(a, b, c);\n  CREATE VIEW v1 AS SELECT x, y, z FROM a1;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE a1(x INTEGER, y TEXT, z BLOB, PRIMARY KEY(x));\n  CREATE TABLE a2(a, b, c);\n  CREATE VIEW v1 AS SELECT x, y, z FROM a1;\n")
 			}
 		}
 		{ // "8.1"
@@ -407,13 +407,13 @@ func Test_altercol(t *testing.T) {
 		{ // "8.2.1"
 			_res = db.Exec("\n  DROP VIEW v1;\n  CREATE VIEW v2 AS SELECT x, x+x, a, a+a FROM a1, a2;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW v1;\n  CREATE VIEW v2 AS SELECT x, x+x, a, a+a FROM a1, a2;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP VIEW v1;\n  CREATE VIEW v2 AS SELECT x, x+x, a, a+a FROM a1, a2;\n")
 			}
 		}
 		{ // "8.2.2"
 			_res = db.Exec("\n  ALTER TABLE a1 RENAME x TO xxx;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE a1 RENAME x TO xxx;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE a1 RENAME x TO xxx;\n")
 			}
 		}
 		{ // "8.2.3"
@@ -431,13 +431,13 @@ func Test_altercol(t *testing.T) {
 		{ // "8.3.1"
 			_res = db.Exec("\n  DROP TABLE a2;\n  DROP VIEW v2;\n  CREATE TABLE a2(a INTEGER PRIMARY KEY, b, c);\n  CREATE VIEW v2 AS SELECT xxx, xxx+xxx, a, a+a FROM a1, a2;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE a2;\n  DROP VIEW v2;\n  CREATE TABLE a2(a INTEGER PRIMARY KEY, b, c);\n  CREATE VIEW v2 AS SELECT xxx, xxx+xxx, a, a+a FROM a1, a2;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE a2;\n  DROP VIEW v2;\n  CREATE TABLE a2(a INTEGER PRIMARY KEY, b, c);\n  CREATE VIEW v2 AS SELECT xxx, xxx+xxx, a, a+a FROM a1, a2;\n")
 			}
 		}
 		{ // "8.3.2"
 			_res = db.Exec("\n  ALTER TABLE a1 RENAME xxx TO x;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE a1 RENAME xxx TO x;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE a1 RENAME xxx TO x;\n")
 			}
 		}
 		{ // "8.3.3"
@@ -455,7 +455,7 @@ func Test_altercol(t *testing.T) {
 		{ // "8.4.0"
 			_res = db.Exec("\n  CREATE TABLE b1(a, b, c);\n  CREATE TABLE b2(x, y, z);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b1(a, b, c);\n  CREATE TABLE b2(x, y, z);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE b1(a, b, c);\n  CREATE TABLE b2(x, y, z);\n")
 			}
 		}
 		{ // "8.4.1"
@@ -486,7 +486,7 @@ func Test_altercol(t *testing.T) {
 		{ // "8.4.3"
 			_res = db.Exec("\n  CREATE VIEW xxx AS SELECT a FROM b1 UNION SELECT x FROM b2 ORDER BY 1 COLLATE nocase;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW xxx AS SELECT a FROM b1 UNION SELECT x FROM b2 ORDER BY 1 COLLATE nocase;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW xxx AS SELECT a FROM b1 UNION SELECT x FROM b2 ORDER BY 1 COLLATE nocase;\n")
 			}
 		}
 		{ // "8.4.4"
@@ -504,7 +504,7 @@ func Test_altercol(t *testing.T) {
 		{ // "8.4.5"
 			_res = db.Exec("\n  CREATE VIEW zzz AS SELECT george, ringo FROM b1;\n  ALTER TABLE b1 RENAME a TO aaa;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view zzz: no such column: george") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view zzz: no such column: george", _res.Error, "\n  CREATE VIEW zzz AS SELECT george, ringo FROM b1;\n  ALTER TABLE b1 RENAME a TO aaa;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view zzz: no such column: george", resErrString(_res), "\n  CREATE VIEW zzz AS SELECT george, ringo FROM b1;\n  ALTER TABLE b1 RENAME a TO aaa;\n")
 			}
 		}
 		{ // "8.5"
@@ -591,7 +591,7 @@ func Test_altercol(t *testing.T) {
 				{ // "11.0"
 					_res = db.Exec("\n    CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);\n  ")
 					}
 				}
 				db.Close()
@@ -613,13 +613,13 @@ func Test_altercol(t *testing.T) {
 				{ // "11.2"
 					_res = db.Exec("\n    CREATE VIEW v1 AS SELECT e1.*, x1.c FROM e1, x1;\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIEW v1 AS SELECT e1.*, x1.c FROM e1, x1;\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIEW v1 AS SELECT e1.*, x1.c FROM e1, x1;\n  ")
 					}
 				}
 				{ // "11.3"
 					_res = db.Exec("\n    ALTER TABLE x1 RENAME c TO ccc;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v1: no such module: echo") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v1: no such module: echo", _res.Error, "\n    ALTER TABLE x1 RENAME c TO ccc;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v1: no such module: echo", resErrString(_res), "\n    ALTER TABLE x1 RENAME c TO ccc;\n  ")
 					}
 				}
 				db.Close()
@@ -632,13 +632,13 @@ func Test_altercol(t *testing.T) {
 				{ // "12.1.1"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1 VALUES(1, 1), (2, 2), (3, 4);\n  ANALYZE;\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1 VALUES(1, 1), (2, 2), (3, 4);\n  ANALYZE;\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1 VALUES(1, 1), (2, 2), (3, 4);\n  ANALYZE;\n")
 					}
 				}
 				{ // "12.1.2"
 					_res = db.Exec("\n  ALTER TABLE sqlite_stat1 RENAME idx TO theindex;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_stat1 may not be altered") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be altered", _res.Error, "\n  ALTER TABLE sqlite_stat1 RENAME idx TO theindex;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be altered", resErrString(_res), "\n  ALTER TABLE sqlite_stat1 RENAME idx TO theindex;\n")
 					}
 				}
 				{ // "12.1.3"
@@ -656,49 +656,49 @@ func Test_altercol(t *testing.T) {
 				{ // "12.2.1"
 					_res = db.Exec("\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE VIEW v2(c, d) AS SELECT * FROM t1;\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE VIEW v2(c, d) AS SELECT * FROM t1;\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE VIEW v2(c, d) AS SELECT * FROM t1;\n")
 					}
 				}
 				{ // "12.2.2"
 					_res = db.Exec("\n  ALTER TABLE v1 RENAME a TO z;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of view \"v1\"") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \"v1\"", _res.Error, "\n  ALTER TABLE v1 RENAME a TO z;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \"v1\"", resErrString(_res), "\n  ALTER TABLE v1 RENAME a TO z;\n")
 					}
 				}
 				{ // "12.2.3"
 					_res = db.Exec("\n  ALTER TABLE v2 RENAME c TO y;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of view \"v2\"") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \"v2\"", _res.Error, "\n  ALTER TABLE v2 RENAME c TO y;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \"v2\"", resErrString(_res), "\n  ALTER TABLE v2 RENAME c TO y;\n")
 					}
 				}
 				{ // "12.3.1"
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(a, b, c);\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts5(a, b, c);\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE ft USING fts5(a, b, c);\n  ")
 					}
 				}
 				{ // "12.3.2"
 					_res = db.Exec("\n    ALTER TABLE ft RENAME a TO z;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of virtual table \"ft\"") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of virtual table \"ft\"", _res.Error, "\n    ALTER TABLE ft RENAME a TO z;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of virtual table \"ft\"", resErrString(_res), "\n    ALTER TABLE ft RENAME a TO z;\n  ")
 					}
 				}
 				{ // "12.4.1"
 					_res = db.Exec("\n  CREATE TABLE t2(x, y, z);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y, z);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x, y, z);\n")
 					}
 				}
 				{ // "12.4.2"
 					_res = db.Exec("\n  ALTER TABLE t2 RENAME COLUMN a TO b;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \"a\"") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"a\"", _res.Error, "\n  ALTER TABLE t2 RENAME COLUMN a TO b;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"a\"", resErrString(_res), "\n  ALTER TABLE t2 RENAME COLUMN a TO b;\n")
 					}
 				}
 				{ // "12.5.1"
 					_res = db.Exec("\n  ALTER TABLE t3 RENAME COLUMN a TO b;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t3") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t3", _res.Error, "\n  ALTER TABLE t3 RENAME COLUMN a TO b;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t3", resErrString(_res), "\n  ALTER TABLE t3 RENAME COLUMN a TO b;\n")
 					}
 				}
 				db.Close()
@@ -711,13 +711,13 @@ func Test_altercol(t *testing.T) {
 				{ // "13.1.1"
 					_res = db.Exec("\n  CREATE TABLE x1(i INTEGER, t TEXT UNIQUE);\n  CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n    SELECT * FROM nosuchtable;\n  END;\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(i INTEGER, t TEXT UNIQUE);\n  CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n    SELECT * FROM nosuchtable;\n  END;\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(i INTEGER, t TEXT UNIQUE);\n  CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n    SELECT * FROM nosuchtable;\n  END;\n")
 					}
 				}
 				{ // "13.1.2"
 					_res = db.Exec("\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: no such table: main.nosuchtable") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: no such table: main.nosuchtable", _res.Error, "\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: no such table: main.nosuchtable", resErrString(_res), "\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
 					}
 				}
 				{ // "13.1.3"
@@ -742,7 +742,7 @@ func Test_altercol(t *testing.T) {
 				{ // "13.1.5"
 					_res = db.Exec("\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1i: no such column: j") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1i: no such column: j", _res.Error, "\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1i: no such column: j", resErrString(_res), "\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
 					}
 				}
 				{ // "13.1.6"
@@ -754,7 +754,7 @@ func Test_altercol(t *testing.T) {
 				{ // "13.1.7"
 					_res = db.Exec("\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1i:") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1i:", _res.Error, "\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1i:", resErrString(_res), "\n  ALTER TABLE x1 RENAME COLUMN t TO ttt;\n")
 					}
 				}
 				{ // "13.1.8"
@@ -766,7 +766,7 @@ func Test_altercol(t *testing.T) {
 				{ // "13.2.0"
 					_res = db.Exec("\n  CREATE TABLE data(x UNIQUE, y, z);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE data(x UNIQUE, y, z);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE data(x UNIQUE, y, z);\n")
 					}
 				}
 				// foreach {tn trigger error} "1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}"
@@ -782,20 +782,20 @@ func Test_altercol(t *testing.T) {
 						{ // "13.2." + tn + ".1"
 							_res = db.Exec("\n    DROP TRIGGER IF EXISTS tr1;\n    " + trigger + "\n  ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TRIGGER IF EXISTS tr1;\n    " + trigger + "\n  ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TRIGGER IF EXISTS tr1;\n    " + trigger + "\n  ")
 							}
 						}
 						{ // "13.2." + tn + ".2"
 							_res = db.Exec("\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: " + _error) {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: " + _error, _res.Error, "\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: " + _error, resErrString(_res), "\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
 							}
 						}
 					}
 					{ // "14.1"
 						_res = db.Exec("\n  CREATE TABLE ddd(sql, type, object, db, tbl, icol, znew, bquote);\n  INSERT INTO ddd VALUES(\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', -1, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', 2, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'notable', 0, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'ddd', -1, 'zzz', 0\n  );\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE ddd(sql, type, object, db, tbl, icol, znew, bquote);\n  INSERT INTO ddd VALUES(\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', -1, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', 2, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'notable', 0, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'ddd', -1, 'zzz', 0\n  );\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE ddd(sql, type, object, db, tbl, icol, znew, bquote);\n  INSERT INTO ddd VALUES(\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', -1, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', 2, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'notable', 0, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'ddd', -1, 'zzz', 0\n  );\n")
 						}
 					}
 					{ // "altercol-14.2" — skipped: test-only internal function sqlite_rename_column not implemented (SQL side effects only)
@@ -820,7 +820,7 @@ func Test_altercol(t *testing.T) {
 					{ // "15.1"
 						_res = db.Exec("\n  CREATE VIEW vvv AS SELECT a AS d FROM xxx WHERE d=0;\n  ALTER TABLE xxx RENAME a TO xyz;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW vvv AS SELECT a AS d FROM xxx WHERE d=0;\n  ALTER TABLE xxx RENAME a TO xyz;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW vvv AS SELECT a AS d FROM xxx WHERE d=0;\n  ALTER TABLE xxx RENAME a TO xyz;\n")
 						}
 					}
 					{ // "15.2"
@@ -850,7 +850,7 @@ func Test_altercol(t *testing.T) {
 					{ // "16.1.1"
 						_res = db.Exec("\n  ALTER TABLE t2 RENAME d TO a;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v4 after rename: ambiguous column name: a") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v4 after rename: ambiguous column name: a", _res.Error, "\n  ALTER TABLE t2 RENAME d TO a;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v4 after rename: ambiguous column name: a", resErrString(_res), "\n  ALTER TABLE t2 RENAME d TO a;\n")
 						}
 					}
 					{ // "16.1.2"
@@ -868,7 +868,7 @@ func Test_altercol(t *testing.T) {
 					{ // "16.1.3"
 						_res = db.Exec("\n  CREATE UNIQUE INDEX t2d ON t2(d);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b, new.c)\n      ON CONFLICT(d) DO UPDATE SET f = excluded.f;\n  END;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE UNIQUE INDEX t2d ON t2(d);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b, new.c)\n      ON CONFLICT(d) DO UPDATE SET f = excluded.f;\n  END;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE UNIQUE INDEX t2d ON t2(d);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b, new.c)\n      ON CONFLICT(d) DO UPDATE SET f = excluded.f;\n  END;\n")
 						}
 					}
 					{ // "16.1.4"
@@ -922,7 +922,7 @@ func Test_altercol(t *testing.T) {
 					{ // "16.2.2"
 						_res = db.Exec("\n  ALTER TABLE t1 RENAME COLUMN \"big c\" TO reallybigc;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME COLUMN \"big c\" TO reallybigc;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 RENAME COLUMN \"big c\" TO reallybigc;\n")
 						}
 					}
 					{ // "16.2.3"
@@ -940,25 +940,25 @@ func Test_altercol(t *testing.T) {
 					{ // "17.0"
 						_res = db.Exec("\n  CREATE TABLE u7(x, y, z);\n  CREATE TRIGGER u7t AFTER INSERT ON u7 BEGIN\n    INSERT INTO u8 VALUES(new.x, new.y, new.z);\n  END;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE u7(x, y, z);\n  CREATE TRIGGER u7t AFTER INSERT ON u7 BEGIN\n    INSERT INTO u8 VALUES(new.x, new.y, new.z);\n  END;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE u7(x, y, z);\n  CREATE TRIGGER u7t AFTER INSERT ON u7 BEGIN\n    INSERT INTO u8 VALUES(new.x, new.y, new.z);\n  END;\n")
 						}
 					}
 					{ // "17.1"
 						_res = db.Exec("\n  ALTER TABLE u7 RENAME x TO xxx;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger u7t: no such table: main.u8") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger u7t: no such table: main.u8", _res.Error, "\n  ALTER TABLE u7 RENAME x TO xxx;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger u7t: no such table: main.u8", resErrString(_res), "\n  ALTER TABLE u7 RENAME x TO xxx;\n")
 						}
 					}
 					{ // "17.2"
 						_res = db.Exec("\n  CREATE TEMP TABLE uu7(x, y, z);\n  CREATE TRIGGER uu7t AFTER INSERT ON uu7 BEGIN\n    INSERT INTO u8 VALUES(new.x, new.y, new.z);\n  END;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE uu7(x, y, z);\n  CREATE TRIGGER uu7t AFTER INSERT ON uu7 BEGIN\n    INSERT INTO u8 VALUES(new.x, new.y, new.z);\n  END;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TEMP TABLE uu7(x, y, z);\n  CREATE TRIGGER uu7t AFTER INSERT ON uu7 BEGIN\n    INSERT INTO u8 VALUES(new.x, new.y, new.z);\n  END;\n")
 						}
 					}
 					{ // "17.3"
 						_res = db.Exec("\n  ALTER TABLE uu7 RENAME x TO xxx;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger uu7t: no such table: u8") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger uu7t: no such table: u8", _res.Error, "\n  ALTER TABLE uu7 RENAME x TO xxx;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger uu7t: no such table: u8", resErrString(_res), "\n  ALTER TABLE uu7 RENAME x TO xxx;\n")
 						}
 					}
 					db.Close()
@@ -983,7 +983,7 @@ func Test_altercol(t *testing.T) {
 					{ // "18.1"
 						_res = db.Exec("\n  ALTER TABLE t1 RENAME a TO b;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME a TO b;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 RENAME a TO b;\n")
 						}
 					}
 					db.Close()
@@ -996,7 +996,7 @@ func Test_altercol(t *testing.T) {
 					{ // "19.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE VIEW v2(e) AS SELECT coalesce(t2.c,t1.a) FROM t1, t2 WHERE t1.b=t2.d;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE VIEW v2(e) AS SELECT coalesce(t2.c,t1.a) FROM t1, t2 WHERE t1.b=t2.d;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE VIEW v2(e) AS SELECT coalesce(t2.c,t1.a) FROM t1, t2 WHERE t1.b=t2.d;\n")
 						}
 					}
 					{ // "19.1"
@@ -1060,13 +1060,13 @@ func Test_altercol(t *testing.T) {
 					{ // "21.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a, b, c NOT NULL);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.c IS NOT NULL BEGIN\n    SELECT c NOT NULL FROM t1;\n  END;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c NOT NULL);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.c IS NOT NULL BEGIN\n    SELECT c NOT NULL FROM t1;\n  END;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c NOT NULL);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.c IS NOT NULL BEGIN\n    SELECT c NOT NULL FROM t1;\n  END;\n")
 						}
 					}
 					{ // "21.1"
 						_res = db.Exec("\n  ALTER TABLE t1 RENAME c TO d;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME c TO d;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 RENAME c TO d;\n")
 						}
 					}
 					{ // "21.2"
@@ -1151,13 +1151,13 @@ func Test_altercol(t *testing.T) {
 					{ // "23.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a INT, b REAL, c TEXT, d BLOB, e ANY);\n  CREATE INDEX t1abx ON t1(a, b, a+b) WHERE c IS NOT NULL;\n  CREATE VIEW t2 AS SELECT a+10, b*5.0, xyz FROM t1; -- unknown column \"xyz\"\n  CREATE TABLE schema_copy(name TEXT, sql TEXT);\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b REAL, c TEXT, d BLOB, e ANY);\n  CREATE INDEX t1abx ON t1(a, b, a+b) WHERE c IS NOT NULL;\n  CREATE VIEW t2 AS SELECT a+10, b*5.0, xyz FROM t1; -- unknown column \"xyz\"\n  CREATE TABLE schema_copy(name TEXT, sql TEXT);\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b REAL, c TEXT, d BLOB, e ANY);\n  CREATE INDEX t1abx ON t1(a, b, a+b) WHERE c IS NOT NULL;\n  CREATE VIEW t2 AS SELECT a+10, b*5.0, xyz FROM t1; -- unknown column \"xyz\"\n  CREATE TABLE schema_copy(name TEXT, sql TEXT);\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;\n")
 						}
 					}
 					{ // "23.1"
 						_res = db.Exec("\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view t2: no such column: xyz") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view t2: no such column: xyz", _res.Error, "\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view t2: no such column: xyz", resErrString(_res), "\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n")
 						}
 					}
 					{ // "23.2"
@@ -1181,13 +1181,13 @@ func Test_altercol(t *testing.T) {
 					{ // "23.10"
 						_res = db.Exec("\n  DROP VIEW t2;\n  CREATE TRIGGER r3 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t3(x,y) VALUES(new.a, new.b);\n    INSERT INTO t4(p) VALUES(new.c);    -- no such table \"t4\"\n  END;\n  DELETE FROM schema_copy;\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW t2;\n  CREATE TRIGGER r3 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t3(x,y) VALUES(new.a, new.b);\n    INSERT INTO t4(p) VALUES(new.c);    -- no such table \"t4\"\n  END;\n  DELETE FROM schema_copy;\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP VIEW t2;\n  CREATE TRIGGER r3 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t3(x,y) VALUES(new.a, new.b);\n    INSERT INTO t4(p) VALUES(new.c);    -- no such table \"t4\"\n  END;\n  DELETE FROM schema_copy;\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;\n")
 						}
 					}
 					{ // "23.11"
 						_res = db.Exec("\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger r3: no such table: main.t3") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger r3: no such table: main.t3", _res.Error, "\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger r3: no such table: main.t3", resErrString(_res), "\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n")
 						}
 					}
 					{ // "23.12"
@@ -1230,13 +1230,13 @@ func Test_altercol(t *testing.T) {
 					{ // "24.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n")
 						}
 					}
 					{ // "24.1"
 						_res = db.Exec("\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE t2 ADD COLUMN d REFERENCES t1 DEFAULT 123;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, "\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE t2 ADD COLUMN d REFERENCES t1 DEFAULT 123;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), "\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE t2 ADD COLUMN d REFERENCES t1 DEFAULT 123;\n")
 						}
 					}
 }

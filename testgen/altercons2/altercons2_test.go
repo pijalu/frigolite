@@ -98,7 +98,7 @@ func Test_altercons2(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c NOT NULL, CONSTRAINT xyz CHECK( a!=0 ));\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c NOT NULL, CONSTRAINT xyz CHECK( a!=0 ));\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b, c NOT NULL, CONSTRAINT xyz CHECK( a!=0 ));\n  ")
 				}
 			}
 			{ // "altercons2-1." + tn + ".1" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)
@@ -128,7 +128,7 @@ func Test_altercons2(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c);\n")
 			}
 		}
 		{ // "altercons2-2.1.1" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched
@@ -153,13 +153,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n")
 			}
 		}
 		{ // "3.1"
 			_res = db.Exec("\n  ALTER TABLE t1 ALTER x SET NOT NULL;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ALTER x SET NOT NULL;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 ALTER x SET NOT NULL;\n")
 			}
 		}
 		db.Close()
@@ -172,13 +172,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CONSTRAINT two CHECK (b!=c));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CONSTRAINT two CHECK (b!=c));\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CONSTRAINT two CHECK (b!=c));\n")
 			}
 		}
 		{ // "4.1"
 			_res = db.Exec("\n  ALTER TABLE abc DROP CONSTRAINT one\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
 			}
 		}
 		{ // "4.2"
@@ -203,13 +203,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"d\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"d\": syntax error", _res.Error, "\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"d\": syntax error", resErrString(_res), "\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
 			}
 		}
 		{ // "5.1"
 			_res = db.Exec("\n  CREATE TABLE def(CONSTRAINT abc CHECK( b!=c ), a, b, c);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"CONSTRAINT\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"CONSTRAINT\": syntax error", _res.Error, "\n  CREATE TABLE def(CONSTRAINT abc CHECK( b!=c ), a, b, c);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"CONSTRAINT\": syntax error", resErrString(_res), "\n  CREATE TABLE def(CONSTRAINT abc CHECK( b!=c ), a, b, c);\n")
 			}
 		}
 		db.Close()
@@ -222,13 +222,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b CONSTRAINT two COLLATE nocase CHECK (a!=b), c CONSTRAINT one DEFAULT 'abc');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(a, b CONSTRAINT two COLLATE nocase CHECK (a!=b), c CONSTRAINT one DEFAULT 'abc');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE abc(a, b CONSTRAINT two COLLATE nocase CHECK (a!=b), c CONSTRAINT one DEFAULT 'abc');\n")
 			}
 		}
 		{ // "6.1"
 			_res = db.Exec("\n  ALTER TABLE abc DROP CONSTRAINT one;\n  ALTER TABLE abc DROP CONSTRAINT two;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE abc DROP CONSTRAINT one;\n  ALTER TABLE abc DROP CONSTRAINT two;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE abc DROP CONSTRAINT one;\n  ALTER TABLE abc DROP CONSTRAINT two;\n")
 			}
 		}
 		{ // "altercons2-6.2" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)
@@ -245,13 +245,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CHECK (a>b) FOREIGN KEY(a) REFERENCES abc);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CHECK (a>b) FOREIGN KEY(a) REFERENCES abc);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CHECK (a>b) FOREIGN KEY(a) REFERENCES abc);\n")
 			}
 		}
 		{ // "7.1"
 			_res = db.Exec("\n  ALTER TABLE abc DROP CONSTRAINT one\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
 			}
 		}
 		{ // "7.2"
@@ -276,13 +276,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one FOREIGN KEY(a) REFERENCES abc);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(a, b, c, CONSTRAINT one FOREIGN KEY(a) REFERENCES abc);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE abc(a, b, c, CONSTRAINT one FOREIGN KEY(a) REFERENCES abc);\n")
 			}
 		}
 		{ // "8.1"
 			_res = db.Exec("\n  ALTER TABLE abc DROP CONSTRAINT one\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
 			}
 		}
 		{ // "8.2"
@@ -307,7 +307,7 @@ func Test_altercons2(t *testing.T) {
 		{ // "9.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b NOT NULL AS (a+1))\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(a, b NOT NULL AS (a+1))\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE abc(a, b NOT NULL AS (a+1))\n")
 			}
 		}
 		{ // "altercons2-9.1" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)
@@ -336,13 +336,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "10.1"
 			_res = db.Exec("\n  ALTER TABLE abc ALTER b SET NOT NULL;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE abc ALTER b SET NOT NULL;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE abc ALTER b SET NOT NULL;\n")
 			}
 		}
 		{ // "10.2"
 			_res = db.Exec("\n  INSERT INTO abc VALUES(NULL);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: abc.b") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: abc.b", _res.Error, "\n  INSERT INTO abc VALUES(NULL);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: abc.b", resErrString(_res), "\n  INSERT INTO abc VALUES(NULL);\n")
 			}
 		}
 		{ // "altercons2-10.3" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)
@@ -363,19 +363,19 @@ func Test_altercons2(t *testing.T) {
 		{ // "11.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n")
 			}
 		}
 		{ // "11.1.1"
 			_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK(a=b) --comment\n  ;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK(a=b) --comment\n  ;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK(a=b) --comment\n  ;\n")
 			}
 		}
 		{ // "11.1.2"
 			_res = db.Exec("ALTER TABLE t1 ADD CONSTRAINT c2 CHECK(a=b) --comment")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE t1 ADD CONSTRAINT c2 CHECK(a=b) --comment")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "ALTER TABLE t1 ADD CONSTRAINT c2 CHECK(a=b) --comment")
 			}
 		}
 		{ // "altercons2-11.1.3" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)
@@ -385,13 +385,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "11.2.1"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b);\n")
 			}
 		}
 		{ // "11.2.2"
 			_res = db.Exec("ALTER TABLE t2 ALTER b SET NOT NULL --new cons")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE t2 ALTER b SET NOT NULL --new cons")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "ALTER TABLE t2 ALTER b SET NOT NULL --new cons")
 			}
 		}
 		{ // "11.2.3"
@@ -421,7 +421,7 @@ func Test_altercons2(t *testing.T) {
 		{ // "11.2.2"
 			_res = db.Exec("ALTER TABLE t2 ALTER b SET NOT NULL --new cons\n;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE t2 ALTER b SET NOT NULL --new cons\n;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "ALTER TABLE t2 ALTER b SET NOT NULL --new cons\n;\n")
 			}
 		}
 		db.Close()
@@ -434,13 +434,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "12.0"
 			_res = db.Exec("\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
 			}
 		}
 		{ // "12.1"
 			_res = db.Exec("\n  ALTER TABLE Test DROP CONSTRAINT BooleanZeroOrOne\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE Test DROP CONSTRAINT BooleanZeroOrOne\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE Test DROP CONSTRAINT BooleanZeroOrOne\n")
 			}
 		}
 		{ // "altercons2-12.2" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)
@@ -450,13 +450,13 @@ func Test_altercons2(t *testing.T) {
 		{ // "12.3"
 			_res = db.Exec("\n  DROP TABLE Test;\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE Test;\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE Test;\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
 			}
 		}
 		{ // "12.4"
 			_res = db.Exec("\n  ALTER TABLE Test DROP CONSTRAINT \"BooleanZeroOrOne\"\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE Test DROP CONSTRAINT \"BooleanZeroOrOne\"\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE Test DROP CONSTRAINT \"BooleanZeroOrOne\"\n")
 			}
 		}
 		{ // "altercons2-12.5" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)
@@ -466,7 +466,7 @@ func Test_altercons2(t *testing.T) {
 		{ // "12.6"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b CONSTRAINT \"a\"\"b\" CHECK (b IS NOT NULL));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b CONSTRAINT \"a\"\"b\" CHECK (b IS NOT NULL));\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b CONSTRAINT \"a\"\"b\" CHECK (b IS NOT NULL));\n")
 			}
 		}
 		{ // "altercons2-12.7" — skipped: writable_schema malformed-schema DROP CONSTRAINT not matched (SQL side effects only)

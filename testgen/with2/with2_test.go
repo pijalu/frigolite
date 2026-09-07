@@ -91,7 +91,7 @@ func Test_with2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
 		}
 	}
 	{ // "1.1"
@@ -289,7 +289,7 @@ func Test_with2(t *testing.T) {
 	{ // "1.16"
 		_res = db.Exec("\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4, main.t4, t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "multiple references to recursive table: t4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "multiple references to recursive table: t4", _res.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4, main.t4, t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "multiple references to recursive table: t4", resErrString(_res), "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4, main.t4, t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
 		}
 	}
 	min = "3"
@@ -323,37 +323,37 @@ func Test_with2(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  WITH i(x, y) AS ( VALUES(1, (SELECT x FROM i)) )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: i") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", _res.Error, "\n  WITH i(x, y) AS ( VALUES(1, (SELECT x FROM i)) )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", resErrString(_res), "\n  WITH i(x, y) AS ( VALUES(1, (SELECT x FROM i)) )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "3.2"
 		_res = db.Exec("\n  WITH \n  i(x) AS ( SELECT * FROM j ),\n  j(x) AS ( SELECT * FROM k ),\n  k(x) AS ( SELECT * FROM i )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: i") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", _res.Error, "\n  WITH \n  i(x) AS ( SELECT * FROM j ),\n  j(x) AS ( SELECT * FROM k ),\n  k(x) AS ( SELECT * FROM i )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", resErrString(_res), "\n  WITH \n  i(x) AS ( SELECT * FROM j ),\n  j(x) AS ( SELECT * FROM k ),\n  k(x) AS ( SELECT * FROM i )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "3.3"
 		_res = db.Exec("\n  WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: i") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", _res.Error, "\n  WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", resErrString(_res), "\n  WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "3.4"
 		_res = db.Exec("\n  WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM j;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: j") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: j", _res.Error, "\n  WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM j;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: j", resErrString(_res), "\n  WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM j;\n")
 		}
 	}
 	{ // "3.5"
 		_res = db.Exec("\n  WITH \n  i(x) AS ( \n    WITH j(x) AS ( SELECT * FROM i )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: i") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", _res.Error, "\n  WITH \n  i(x) AS ( \n    WITH j(x) AS ( SELECT * FROM i )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", resErrString(_res), "\n  WITH \n  i(x) AS ( \n    WITH j(x) AS ( SELECT * FROM i )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "4.1"
 		_res = db.Exec("\n  WITH x() AS ( SELECT 1,2,3 )\n  SELECT * FROM x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \")\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", _res.Error, "\n  WITH x() AS ( SELECT 1,2,3 )\n  SELECT * FROM x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", resErrString(_res), "\n  WITH x() AS ( SELECT 1,2,3 )\n  SELECT * FROM x;\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -385,7 +385,7 @@ func Test_with2(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		}
 	}
 	// do_xfer_test 5.2 1 { INSERT INTO t1 SELECT * FROM t2 } (unsupported command, not transpiled)
@@ -398,73 +398,73 @@ func Test_with2(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		}
 	}
 	{ // "6.2"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 VALUES(1, 2,);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \")\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 VALUES(1, 2,);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", resErrString(_res), "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 VALUES(1, 2,);\n")
 		}
 	}
 	{ // "6.3"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FROM\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FROM\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FROM\": syntax error", resErrString(_res), "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1;\n")
 		}
 	}
 	{ // "6.3"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b FROM abc;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: abc") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: abc", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b FROM abc;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: abc", resErrString(_res), "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b FROM abc;\n")
 		}
 	}
 	{ // "6.4"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1 a a a;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FROM\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FROM\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1 a a a;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FROM\": syntax error", resErrString(_res), "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1 a a a;\n")
 		}
 	}
 	{ // "6.5"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  DELETE FROM t2 WHERE;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \";\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  DELETE FROM t2 WHERE;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", resErrString(_res), "\n  WITH x AS (SELECT * FROM t1)\n  DELETE FROM t2 WHERE;\n")
 		}
 	}
 	{ // "6.6"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHERE\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "incomplete input") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "incomplete input", _res.Error, " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHERE\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "incomplete input", resErrString(_res), " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHERE\n")
 		}
 	}
 	{ // "6.7"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("near .* syntax error", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", _res.Error, " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", resErrString(_res), " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
 		}
 	}
 	{ // "6.8"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("near .* syntax error", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", _res.Error, " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", resErrString(_res), " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
 		}
 	}
 	{ // "6.9"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("near .* syntax error", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", _res.Error, " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", resErrString(_res), " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
 		}
 	}
 	{ // "6.10"
 		_res = db.Exec("\n  WITH x(a,b) AS (\n    SELECT 1, 1\n    UNION ALL\n    SELECT a*b,a+b FROM x WHERE c=2\n  )\n  SELECT * FROM x\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: c", _res.Error, "\n  WITH x(a,b) AS (\n    SELECT 1, 1\n    UNION ALL\n    SELECT a*b,a+b FROM x WHERE c=2\n  )\n  SELECT * FROM x\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: c", resErrString(_res), "\n  WITH x(a,b) AS (\n    SELECT 1, 1\n    UNION ALL\n    SELECT a*b,a+b FROM x WHERE c=2\n  )\n  SELECT * FROM x\n")
 		}
 	}
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t5(x INTEGER);\n  CREATE TABLE t6(y INTEGER);\n\n  WITH s(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM s WHERE x<49 )\n  INSERT INTO t5 \n  SELECT * FROM s;\n\n  INSERT INTO t6 \n  WITH s(x) AS ( VALUES(2) UNION ALL SELECT x+2 FROM s WHERE x<49 )\n  SELECT * FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(x INTEGER);\n  CREATE TABLE t6(y INTEGER);\n\n  WITH s(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM s WHERE x<49 )\n  INSERT INTO t5 \n  SELECT * FROM s;\n\n  INSERT INTO t6 \n  WITH s(x) AS ( VALUES(2) UNION ALL SELECT x+2 FROM s WHERE x<49 )\n  SELECT * FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(x INTEGER);\n  CREATE TABLE t6(y INTEGER);\n\n  WITH s(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM s WHERE x<49 )\n  INSERT INTO t5 \n  SELECT * FROM s;\n\n  INSERT INTO t6 \n  WITH s(x) AS ( VALUES(2) UNION ALL SELECT x+2 FROM s WHERE x<49 )\n  SELECT * FROM s;\n")
 		}
 	}
 	{ // "7.2"
@@ -518,7 +518,7 @@ func Test_with2(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE t7(y);\n  INSERT INTO t7 VALUES(NULL);\n  CREATE VIEW v AS SELECT * FROM t7 ORDER BY y;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(y);\n  INSERT INTO t7 VALUES(NULL);\n  CREATE VIEW v AS SELECT * FROM t7 ORDER BY y;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t7(y);\n  INSERT INTO t7 VALUES(NULL);\n  CREATE VIEW v AS SELECT * FROM t7 ORDER BY y;\n")
 		}
 	}
 	{ // "8.2"
@@ -612,25 +612,25 @@ func Test_with2(t *testing.T) {
 	{ // "11.2"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
 		}
 	}
 	{ // "11.3"
 		_res = db.Exec("\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: a", _res.Error, "\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: a", resErrString(_res), "\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
 		}
 	}
 	{ // "11.4"
 		_res = db.Exec("\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT *\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no tables specified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", _res.Error, "\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT *\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", resErrString(_res), "\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT *\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
 		}
 	}
 	{ // "11.5"
 		_res = db.Exec("\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
 		}
 	}
 	db.Close()

@@ -68,7 +68,7 @@ func Test_qrf02(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n")
 		}
 	}
 	result = tclDbOne(db, "db format {EXPLAIN SELECT * FROM t1}")

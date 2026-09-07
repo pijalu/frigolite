@@ -82,7 +82,7 @@ func Test_gcfault(t *testing.T) {
 		{ // "1." + enc + ".1"
 			_res = db.Exec("\n    CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');\n  ")
 			}
 		}
 		// do_faultsim_test 1.$enc.1 -faults oom* -body {\n    execsql { SELECT group_concat(e, (SELECT s F.... (unsupported command, not transpiled)

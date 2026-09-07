@@ -1298,7 +1298,7 @@ func Test_selectA(t *testing.T) {
 	{ // "4.1.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  CREATE TABLE t5(c, d);\n\n  INSERT INTO t5 VALUES(1, 'x');\n  INSERT INTO t5 VALUES(2, 'x');\n  INSERT INTO t4 VALUES(3, 'x');\n  INSERT INTO t4 VALUES(4, 'x');\n\n  CREATE INDEX i1 ON t4(a);\n  CREATE INDEX i2 ON t5(c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  CREATE TABLE t5(c, d);\n\n  INSERT INTO t5 VALUES(1, 'x');\n  INSERT INTO t5 VALUES(2, 'x');\n  INSERT INTO t4 VALUES(3, 'x');\n  INSERT INTO t4 VALUES(4, 'x');\n\n  CREATE INDEX i1 ON t4(a);\n  CREATE INDEX i2 ON t5(c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a, b);\n  CREATE TABLE t5(c, d);\n\n  INSERT INTO t5 VALUES(1, 'x');\n  INSERT INTO t5 VALUES(2, 'x');\n  INSERT INTO t4 VALUES(3, 'x');\n  INSERT INTO t4 VALUES(4, 'x');\n\n  CREATE INDEX i1 ON t4(a);\n  CREATE INDEX i2 ON t5(c);\n")
 		}
 	}
 	{ // "4.1.2"
@@ -1322,7 +1322,7 @@ func Test_selectA(t *testing.T) {
 	{ // "4.2.1"
 		_res = db.Exec("\n  CREATE TABLE t6(a, b);\n  CREATE TABLE t7(c, d);\n\n  INSERT INTO t7 VALUES(2, 9);\n  INSERT INTO t6 VALUES(3, 0);\n  INSERT INTO t6 VALUES(4, 1);\n  INSERT INTO t7 VALUES(5, 6);\n  INSERT INTO t6 VALUES(6, 0);\n  INSERT INTO t7 VALUES(7, 6);\n\n  CREATE INDEX i6 ON t6(a);\n  CREATE INDEX i7 ON t7(c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b);\n  CREATE TABLE t7(c, d);\n\n  INSERT INTO t7 VALUES(2, 9);\n  INSERT INTO t6 VALUES(3, 0);\n  INSERT INTO t6 VALUES(4, 1);\n  INSERT INTO t7 VALUES(5, 6);\n  INSERT INTO t6 VALUES(6, 0);\n  INSERT INTO t7 VALUES(7, 6);\n\n  CREATE INDEX i6 ON t6(a);\n  CREATE INDEX i7 ON t7(c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(a, b);\n  CREATE TABLE t7(c, d);\n\n  INSERT INTO t7 VALUES(2, 9);\n  INSERT INTO t6 VALUES(3, 0);\n  INSERT INTO t6 VALUES(4, 1);\n  INSERT INTO t7 VALUES(5, 6);\n  INSERT INTO t6 VALUES(6, 0);\n  INSERT INTO t7 VALUES(7, 6);\n\n  CREATE INDEX i6 ON t6(a);\n  CREATE INDEX i7 ON t7(c);\n")
 		}
 	}
 	{ // "4.2.2"
@@ -1342,7 +1342,7 @@ func Test_selectA(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t8(a, b);\n  CREATE TABLE t9(c, d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(a, b);\n  CREATE TABLE t9(c, d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t8(a, b);\n  CREATE TABLE t9(c, d);\n")
 		}
 	}
 	// do_same_test 5.1 {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM...} {\n  SELECT a, b FRO... (unsupported command, not transpiled)
@@ -1351,7 +1351,7 @@ func Test_selectA(t *testing.T) {
 	{ // "5.4"
 		_res = db.Exec("\n  SELECT * FROM t8 UNION SELECT * FROM t9 ORDER BY a+b COLLATE NOCASE\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", _res.Error, "\n  SELECT * FROM t8 UNION SELECT * FROM t9 ORDER BY a+b COLLATE NOCASE\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", resErrString(_res), "\n  SELECT * FROM t8 UNION SELECT * FROM t9 ORDER BY a+b COLLATE NOCASE\n")
 		}
 	}
 	{ // "6.1"
@@ -1376,7 +1376,7 @@ func Test_selectA(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(c1);     INSERT INTO t1 VALUES(12),(123),(1234),(NULL),('abc');\n  CREATE TABLE t2(c2);     INSERT INTO t2 VALUES(44),(55),(123);\n  CREATE TABLE t3(c3,c4);  INSERT INTO t3 VALUES(66,1),(123,2),(77,3);\n  CREATE VIEW t4 AS SELECT c3 FROM t3;\n  CREATE VIEW t5 AS SELECT c3 FROM t3 ORDER BY c4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c1);     INSERT INTO t1 VALUES(12),(123),(1234),(NULL),('abc');\n  CREATE TABLE t2(c2);     INSERT INTO t2 VALUES(44),(55),(123);\n  CREATE TABLE t3(c3,c4);  INSERT INTO t3 VALUES(66,1),(123,2),(77,3);\n  CREATE VIEW t4 AS SELECT c3 FROM t3;\n  CREATE VIEW t5 AS SELECT c3 FROM t3 ORDER BY c4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(c1);     INSERT INTO t1 VALUES(12),(123),(1234),(NULL),('abc');\n  CREATE TABLE t2(c2);     INSERT INTO t2 VALUES(44),(55),(123);\n  CREATE TABLE t3(c3,c4);  INSERT INTO t3 VALUES(66,1),(123,2),(77,3);\n  CREATE VIEW t4 AS SELECT c3 FROM t3;\n  CREATE VIEW t5 AS SELECT c3 FROM t3 ORDER BY c4;\n")
 		}
 	}
 	{ // "7.2"
@@ -1419,7 +1419,7 @@ func Test_selectA(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE x1(x);\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(x);\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(x);\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n")
 		}
 	}
 	{ // "8.1"
@@ -1438,7 +1438,7 @@ func Test_selectA(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a COLLATE nocase);\n  CREATE TABLE t2(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a COLLATE nocase);\n  CREATE TABLE t2(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a COLLATE nocase);\n  CREATE TABLE t2(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
 		}
 	}
 	{ // "9.1"

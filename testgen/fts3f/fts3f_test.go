@@ -72,7 +72,7 @@ func Test_fts3f(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3(x);\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts3(x);\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft USING fts3(x);\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
 		}
 	}
 	{ // do_test "1.1"
@@ -110,7 +110,7 @@ func Test_fts3f(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
 		}
 	}
 	{ // "1.3"

@@ -262,7 +262,7 @@ func Test_corrupt2(t *testing.T) {
 	{ // do_test "corrupt2-4.1"
 		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    SELECT * FROM t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	if db2 != nil { db2.Close() }

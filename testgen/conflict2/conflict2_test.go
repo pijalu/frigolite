@@ -619,25 +619,25 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.2"
 								_res = db.Exec("\n    INSERT INTO t2 VALUES(1,1,1,1,1);\n    INSERT INTO t2 VALUES(2,2,2,2,2);\n    SELECT * FROM t2;\n  ")
 								if _res.Error != nil {
-									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(1,1,1,1,1);\n    INSERT INTO t2 VALUES(2,2,2,2,2);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(1,1,1,1,1);\n    INSERT INTO t2 VALUES(2,2,2,2,2);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.3"
 								_res = db.Exec("\n    INSERT INTO t2 VALUES(1,3,3,3,3);\n    SELECT * FROM t2;\n  ")
 								if _res.Error != nil {
-									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(1,3,3,3,3);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(1,3,3,3,3);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.4"
 								_res = db.Exec("\n    UPDATE t2 SET a=a+1 WHERE a=1;\n    SELECT * FROM t2;\n  ")
 								if _res.Error != nil {
-									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET a=a+1 WHERE a=1;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t2 SET a=a+1 WHERE a=1;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.5"
 								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.b") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", _res.Error, "\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", resErrString(_res), "\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.5b"
@@ -655,7 +655,7 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.6"
 								_res = db.Exec("\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.b") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", _res.Error, "\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", resErrString(_res), "\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.6b"
@@ -673,7 +673,7 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.7"
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.b") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", _res.Error, "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", resErrString(_res), "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.8"
@@ -689,7 +689,7 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.9"
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.b") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", _res.Error, "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.b", resErrString(_res), "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.10"
@@ -705,19 +705,19 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.11"
 								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.d") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", _res.Error, "\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", resErrString(_res), "\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.12"
 								_res = db.Exec("\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.d") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", _res.Error, "\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", resErrString(_res), "\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.13"
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.d") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", _res.Error, "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", resErrString(_res), "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.14"
@@ -733,7 +733,7 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.15"
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.d") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", _res.Error, "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.d", resErrString(_res), "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.16"
@@ -749,19 +749,19 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.17"
 								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.e") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", _res.Error, "\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", resErrString(_res), "\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.18"
 								_res = db.Exec("\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.e") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", _res.Error, "\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", resErrString(_res), "\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.19"
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.e") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", _res.Error, "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", resErrString(_res), "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							// verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
@@ -781,7 +781,7 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.21"
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.e") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", _res.Error, "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.e", resErrString(_res), "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							// verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
@@ -801,19 +801,19 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-9.23"
 								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
 								if _res.Error != nil {
-									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.24"
 								_res = db.Exec("\n    UPDATE t2 SET c=c-1 WHERE c=2;\n    SELECT * FROM t2;\n  ")
 								if _res.Error != nil {
-									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET c=c-1 WHERE c=2;\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t2 SET c=c-1 WHERE c=2;\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.25"
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
 								if _res.Error != nil {
-									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
+									t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
 								}
 							}
 							{ // do_test "conflict2-9.26"
@@ -908,7 +908,7 @@ func Test_conflict2(t *testing.T) {
 							{ // do_test "conflict2-12.3"
 								_res = db.Exec("\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t5.a") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t5.a", _res.Error, "\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t5.a", resErrString(_res), "\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
 								}
 							}
 							// verify_ex_errcode conflict2-12.3b SQLITE_CONSTRAINT_PRIMARYKEY (unsupported command, not transpiled)

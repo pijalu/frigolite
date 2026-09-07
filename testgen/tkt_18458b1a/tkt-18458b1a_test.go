@@ -83,7 +83,7 @@ func Test_tkt_18458b1a(t *testing.T) {
 		{ // tn + ".1.1"
 			_res = db.Exec("\n    CREATE TABLE t0(c0 COLLATE NOCASE);\n    INSERT INTO t0(c0) VALUES ('B');\n    CREATE VIEW v0(c0, c1) AS SELECT DISTINCT t0.c0, 'a' FROM t0;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(c0 COLLATE NOCASE);\n    INSERT INTO t0(c0) VALUES ('B');\n    CREATE VIEW v0(c0, c1) AS SELECT DISTINCT t0.c0, 'a' FROM t0;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t0(c0 COLLATE NOCASE);\n    INSERT INTO t0(c0) VALUES ('B');\n    CREATE VIEW v0(c0, c1) AS SELECT DISTINCT t0.c0, 'a' FROM t0;\n  ")
 			}
 		}
 		{ // tn + ".1.2"

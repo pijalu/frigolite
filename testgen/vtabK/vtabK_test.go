@@ -71,7 +71,7 @@ func Test_vtabK(t *testing.T) {
 	{ // "110"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: stat") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: stat", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: stat", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);\n")
 		}
 	}
 	{ // "120"
@@ -125,7 +125,7 @@ func Test_vtabK(t *testing.T) {
 	{ // "160"
 		_res = db.Exec("\n  ANALYZE;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  ANALYZE;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  ANALYZE;\n")
 		}
 	}
 	{ // "170"
@@ -156,7 +156,7 @@ func Test_vtabK(t *testing.T) {
 	{ // "210"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: stat") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: stat", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: stat", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);\n")
 		}
 	}
 	{ // "220"
@@ -181,7 +181,7 @@ func Test_vtabK(t *testing.T) {
 	{ // "300"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(a,b,c);\n  CREATE TABLE t2(x);\n  ALTER TABLE t2 ADD d GENERATED ALWAYS AS (c IN (SELECT 1 FROM t1)) VIRTUAL;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t2 after add column: subqueries prohibited in generated columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t2 after add column: subqueries prohibited in generated columns", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(a,b,c);\n  CREATE TABLE t2(x);\n  ALTER TABLE t2 ADD d GENERATED ALWAYS AS (c IN (SELECT 1 FROM t1)) VIRTUAL;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t2 after add column: subqueries prohibited in generated columns", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING rtree(a,b,c);\n  CREATE TABLE t2(x);\n  ALTER TABLE t2 ADD d GENERATED ALWAYS AS (c IN (SELECT 1 FROM t1)) VIRTUAL;\n")
 		}
 	}
 }

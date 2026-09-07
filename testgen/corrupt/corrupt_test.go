@@ -468,7 +468,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-7.3"
 		_res = db.Exec("\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
 		}
 	}
 	db.Close()

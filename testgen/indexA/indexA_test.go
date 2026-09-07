@@ -73,7 +73,7 @@ func Test_indexA(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b, c);\n  CREATE INDEX i1 ON t1(b, c) WHERE a='abc';\n  INSERT INTO t1 VALUES('abc', 1, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT, b, c);\n  CREATE INDEX i1 ON t1(b, c) WHERE a='abc';\n  INSERT INTO t1 VALUES('abc', 1, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT, b, c);\n  CREATE INDEX i1 ON t1(b, c) WHERE a='abc';\n  INSERT INTO t1 VALUES('abc', 1, 2);\n")
 		}
 	}
 	{ // "1.1"
@@ -109,7 +109,7 @@ func Test_indexA(t *testing.T) {
 	{ // "1.4"
 		_res = db.Exec("\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('v');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('v');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('v');\n")
 		}
 	}
 	{ // "1.5"
@@ -152,7 +152,7 @@ func Test_indexA(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a TEXT, b, c);\n  INSERT INTO x1 VALUES('2', 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c);\n  INSERT INTO x2 VALUES('2', 'two', 'ii');\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x3(a REAL, b, c);\n  INSERT INTO x3 VALUES('2', 'two', 'ii');\n  INSERT INTO x3 VALUES('2.0', 'twopointoh', 'ii.0');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a TEXT, b, c);\n  INSERT INTO x1 VALUES('2', 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c);\n  INSERT INTO x2 VALUES('2', 'two', 'ii');\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x3(a REAL, b, c);\n  INSERT INTO x3 VALUES('2', 'two', 'ii');\n  INSERT INTO x3 VALUES('2.0', 'twopointoh', 'ii.0');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a TEXT, b, c);\n  INSERT INTO x1 VALUES('2', 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c);\n  INSERT INTO x2 VALUES('2', 'two', 'ii');\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x3(a REAL, b, c);\n  INSERT INTO x3 VALUES('2', 'two', 'ii');\n  INSERT INTO x3 VALUES('2.0', 'twopointoh', 'ii.0');\n")
 		}
 	}
 	// foreach {tn idx} "0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }"
@@ -334,7 +334,7 @@ func Test_indexA(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE x1(a TEXT, d PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO x1 VALUES('2', 1, 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 2, 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c, d PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO x2 VALUES('2', 'two', 'ii', 1);\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0', 2);\n\n  CREATE TABLE x3(d PRIMARY KEY, a REAL, b, c) WITHOUT ROWID;\n  INSERT INTO x3 VALUES(34, '2', 'two', 'ii');\n  INSERT INTO x3 VALUES(35, '2.0', 'twopointoh', 'ii.0');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a TEXT, d PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO x1 VALUES('2', 1, 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 2, 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c, d PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO x2 VALUES('2', 'two', 'ii', 1);\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0', 2);\n\n  CREATE TABLE x3(d PRIMARY KEY, a REAL, b, c) WITHOUT ROWID;\n  INSERT INTO x3 VALUES(34, '2', 'two', 'ii');\n  INSERT INTO x3 VALUES(35, '2.0', 'twopointoh', 'ii.0');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a TEXT, d PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO x1 VALUES('2', 1, 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 2, 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c, d PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO x2 VALUES('2', 'two', 'ii', 1);\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0', 2);\n\n  CREATE TABLE x3(d PRIMARY KEY, a REAL, b, c) WITHOUT ROWID;\n  INSERT INTO x3 VALUES(34, '2', 'two', 'ii');\n  INSERT INTO x3 VALUES(35, '2.0', 'twopointoh', 'ii.0');\n")
 			}
 		}
 		// foreach {tn idx} "0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }"
@@ -516,7 +516,7 @@ func Test_indexA(t *testing.T) {
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE t2(a INTEGER, b TEXT);\n  INSERT INTO t2 VALUES(1, 'two');\n  INSERT INTO t2 VALUES(2, 'two');\n  INSERT INTO t2 VALUES(3, 'two');\n  INSERT INTO t2 VALUES(1, 'three');\n  INSERT INTO t2 VALUES(2, 'three');\n  INSERT INTO t2 VALUES(3, 'three');\n\n  CREATE INDEX t2a_two ON t2(a) WHERE b='two';\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a INTEGER, b TEXT);\n  INSERT INTO t2 VALUES(1, 'two');\n  INSERT INTO t2 VALUES(2, 'two');\n  INSERT INTO t2 VALUES(3, 'two');\n  INSERT INTO t2 VALUES(1, 'three');\n  INSERT INTO t2 VALUES(2, 'three');\n  INSERT INTO t2 VALUES(3, 'three');\n\n  CREATE INDEX t2a_two ON t2(a) WHERE b='two';\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a INTEGER, b TEXT);\n  INSERT INTO t2 VALUES(1, 'two');\n  INSERT INTO t2 VALUES(2, 'two');\n  INSERT INTO t2 VALUES(3, 'two');\n  INSERT INTO t2 VALUES(1, 'three');\n  INSERT INTO t2 VALUES(2, 'three');\n  INSERT INTO t2 VALUES(3, 'three');\n\n  CREATE INDEX t2a_two ON t2(a) WHERE b='two';\n")
 				}
 			}
 			{ // "4.1.1"
@@ -574,13 +574,13 @@ func Test_indexA(t *testing.T) {
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER, z INTEGER);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 1, 2);\n  INSERT INTO t2 VALUES(1, 5, 1);\n  INSERT INTO t2 VALUES(2, 5, 2);\n\n  CREATE INDEX t2z ON t2(z) WHERE y=5;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER, z INTEGER);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 1, 2);\n  INSERT INTO t2 VALUES(1, 5, 1);\n  INSERT INTO t2 VALUES(2, 5, 2);\n\n  CREATE INDEX t2z ON t2(z) WHERE y=5;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER, z INTEGER);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 1, 2);\n  INSERT INTO t2 VALUES(1, 5, 1);\n  INSERT INTO t2 VALUES(2, 5, 2);\n\n  CREATE INDEX t2z ON t2(z) WHERE y=5;\n")
 				}
 			}
 			{ // "6.1"
 				_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = '50 1' WHERE idx='t2z';\n  UPDATE sqlite_stat1 SET stat = '50' WHERE tbl='t2' AND idx IS NULL;\n  UPDATE sqlite_stat1 SET stat = '5000' WHERE tbl='t1' AND idx IS NULL;\n  ANALYZE sqlite_schema;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = '50 1' WHERE idx='t2z';\n  UPDATE sqlite_stat1 SET stat = '50' WHERE tbl='t2' AND idx IS NULL;\n  UPDATE sqlite_stat1 SET stat = '5000' WHERE tbl='t1' AND idx IS NULL;\n  ANALYZE sqlite_schema;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = '50 1' WHERE idx='t2z';\n  UPDATE sqlite_stat1 SET stat = '50' WHERE tbl='t2' AND idx IS NULL;\n  UPDATE sqlite_stat1 SET stat = '5000' WHERE tbl='t1' AND idx IS NULL;\n  ANALYZE sqlite_schema;\n")
 				}
 			}
 			{ // "6.2"
@@ -622,7 +622,7 @@ func Test_indexA(t *testing.T) {
 			{ // "6.6"
 				_res = db.Exec("\n  CREATE INDEX t2yz ON t2(y, z) WHERE y=5;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t2yz ON t2(y, z) WHERE y=5;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t2yz ON t2(y, z) WHERE y=5;\n")
 				}
 			}
 			{ // "6.7"
@@ -666,7 +666,7 @@ func Test_indexA(t *testing.T) {
 			{ // "8.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX ex2 ON t1(a, 4);\n  CREATE INDEX ex1 ON t1(a) WHERE 4=b;\n  INSERT INTO t1 VALUES(1, 4, 1);\n  INSERT INTO t1 VALUES(1, 5, 1);\n  INSERT INTO t1 VALUES(2, 4, 2);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX ex2 ON t1(a, 4);\n  CREATE INDEX ex1 ON t1(a) WHERE 4=b;\n  INSERT INTO t1 VALUES(1, 4, 1);\n  INSERT INTO t1 VALUES(1, 5, 1);\n  INSERT INTO t1 VALUES(2, 4, 2);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX ex2 ON t1(a, 4);\n  CREATE INDEX ex1 ON t1(a) WHERE 4=b;\n  INSERT INTO t1 VALUES(1, 4, 1);\n  INSERT INTO t1 VALUES(1, 5, 1);\n  INSERT INTO t1 VALUES(2, 4, 2);\n")
 				}
 			}
 			{ // "8.1"

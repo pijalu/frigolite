@@ -65,7 +65,7 @@ func Test_fts3join(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft1 USING fts4(x);\n  INSERT INTO ft1 VALUES('aaa aaa');\n  INSERT INTO ft1 VALUES('aaa bbb');\n  INSERT INTO ft1 VALUES('bbb aaa');\n  INSERT INTO ft1 VALUES('bbb bbb');\n\n  CREATE TABLE t1(id, y);\n  INSERT INTO t1 VALUES(1, 'aaa');\n  INSERT INTO t1 VALUES(2, 'bbb');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft1 USING fts4(x);\n  INSERT INTO ft1 VALUES('aaa aaa');\n  INSERT INTO ft1 VALUES('aaa bbb');\n  INSERT INTO ft1 VALUES('bbb aaa');\n  INSERT INTO ft1 VALUES('bbb bbb');\n\n  CREATE TABLE t1(id, y);\n  INSERT INTO t1 VALUES(1, 'aaa');\n  INSERT INTO t1 VALUES(2, 'bbb');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft1 USING fts4(x);\n  INSERT INTO ft1 VALUES('aaa aaa');\n  INSERT INTO ft1 VALUES('aaa bbb');\n  INSERT INTO ft1 VALUES('bbb aaa');\n  INSERT INTO ft1 VALUES('bbb bbb');\n\n  CREATE TABLE t1(id, y);\n  INSERT INTO t1 VALUES(1, 'aaa');\n  INSERT INTO t1 VALUES(2, 'bbb');\n")
 		}
 	}
 	{ // "1.1"
@@ -95,7 +95,7 @@ func Test_fts3join(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft2 USING fts4(x);\n  CREATE VIRTUAL TABLE ft3 USING fts4(y);\n\n  INSERT INTO ft2 VALUES('abc');\n  INSERT INTO ft2 VALUES('def');\n  INSERT INTO ft3 VALUES('ghi');\n  INSERT INTO ft3 VALUES('abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft2 USING fts4(x);\n  CREATE VIRTUAL TABLE ft3 USING fts4(y);\n\n  INSERT INTO ft2 VALUES('abc');\n  INSERT INTO ft2 VALUES('def');\n  INSERT INTO ft3 VALUES('ghi');\n  INSERT INTO ft3 VALUES('abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft2 USING fts4(x);\n  CREATE VIRTUAL TABLE ft3 USING fts4(y);\n\n  INSERT INTO ft2 VALUES('abc');\n  INSERT INTO ft2 VALUES('def');\n  INSERT INTO ft3 VALUES('ghi');\n  INSERT INTO ft3 VALUES('abc');\n")
 		}
 	}
 	{ // "2.1"
@@ -149,13 +149,13 @@ func Test_fts3join(t *testing.T) {
 	{ // "2.5"
 		_res = db.Exec(" \n  SELECT * FROM ft3, ft2 WHERE y MATCH x AND x MATCH y; \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", _res.Error, " \n  SELECT * FROM ft3, ft2 WHERE y MATCH x AND x MATCH y; \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), " \n  SELECT * FROM ft3, ft2 WHERE y MATCH x AND x MATCH y; \n")
 		}
 	}
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt USING fts3(x);\n  INSERT INTO vt VALUES('abc');\n  INSERT INTO vt VALUES('xyz');\n\n  CREATE TABLE tt(a INTEGER PRIMARY KEY);\n  INSERT INTO tt VALUES(1), (2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE vt USING fts3(x);\n  INSERT INTO vt VALUES('abc');\n  INSERT INTO vt VALUES('xyz');\n\n  CREATE TABLE tt(a INTEGER PRIMARY KEY);\n  INSERT INTO tt VALUES(1), (2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE vt USING fts3(x);\n  INSERT INTO vt VALUES('abc');\n  INSERT INTO vt VALUES('xyz');\n\n  CREATE TABLE tt(a INTEGER PRIMARY KEY);\n  INSERT INTO tt VALUES(1), (2);\n")
 		}
 	}
 	{ // "3.1"
@@ -185,7 +185,7 @@ func Test_fts3join(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft4 USING fts3(x);\n  CREATE TABLE t4(y, z);\n  CREATE INDEX t4y ON t1(y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft4 USING fts3(x);\n  CREATE TABLE t4(y, z);\n  CREATE INDEX t4y ON t1(y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft4 USING fts3(x);\n  CREATE TABLE t4(y, z);\n  CREATE INDEX t4y ON t1(y);\n")
 		}
 	}
 	{ // "4.2"

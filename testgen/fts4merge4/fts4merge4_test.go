@@ -90,7 +90,7 @@ func Test_fts4merge4(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts4 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t1 USING fts4 ")
 		}
 	}
 	{ // do_test "1.2"
@@ -147,7 +147,7 @@ func Test_fts4merge4(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts4 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t1 USING fts4 ")
 		}
 	}
 	{ // do_test "2.1"
@@ -183,7 +183,7 @@ func Test_fts4merge4(t *testing.T) {
 	{ // "2.3"
 		_res = db.Exec(" INSERT INTO t1(t1) VALUES('optimize') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t1(t1) VALUES('optimize') ")
 		}
 	}
 	{ // "2.4"
@@ -201,7 +201,7 @@ func Test_fts4merge4(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t2 USING fts4; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t2 USING fts4; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t2 USING fts4; ")
 		}
 	}
 	vtab.TclVarSet("doc", "", "")

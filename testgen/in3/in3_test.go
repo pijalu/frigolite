@@ -254,7 +254,7 @@ func Test_in3(t *testing.T) {
 	{ // do_test "in3-5.2"
 		_res = db.Exec("\n    DELETE FROM Folders WHERE folderid IN\n    (SELECT folderid FROM Folder WHERE path LIKE 'C:\\MP3\\Albums\\' || '%');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: Folder") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: Folder", _res.Error, "\n    DELETE FROM Folders WHERE folderid IN\n    (SELECT folderid FROM Folder WHERE path LIKE 'C:\\MP3\\Albums\\' || '%');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: Folder", resErrString(_res), "\n    DELETE FROM Folders WHERE folderid IN\n    (SELECT folderid FROM Folder WHERE path LIKE 'C:\\MP3\\Albums\\' || '%');\n  ")
 		}
 	}
 }

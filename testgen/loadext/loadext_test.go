@@ -160,7 +160,7 @@ func Test_loadext(t *testing.T) {
 	{ // do_test "loadext-1.1"
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: half") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: half", _res.Error, "\n    SELECT half(1.0);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: half", resErrString(_res), "\n    SELECT half(1.0);\n  ")
 		}
 	}
 	{ // do_test "loadext-1.2"
@@ -286,7 +286,7 @@ func Test_loadext(t *testing.T) {
 	{ // do_test "loadext-3.1"
 		_res = db.Exec("\n    SELECT half(5);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: half") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: half", _res.Error, "\n    SELECT half(5);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: half", resErrString(_res), "\n    SELECT half(5);\n  ")
 		}
 	}
 	{ // do_test "loadext-3.2"
@@ -305,13 +305,13 @@ func Test_loadext(t *testing.T) {
 	{ // do_test "loadext-3.3"
 		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		}
 	}
 	{ // do_test "loadext-3.4"
 		_res = db.Exec("\n    SELECT half(5);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT half(5);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT half(5);\n  ")
 		}
 	}
 	{ // do_test "loadext-3.5"
@@ -323,19 +323,19 @@ func Test_loadext(t *testing.T) {
 	{ // do_test "loadext-3.6"
 		_res = db.Exec("\n    SELECT sqlite3_status('MEMORY_USED_X') AS mused\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown status property: MEMORY_USED_X") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown status property: MEMORY_USED_X", _res.Error, "\n    SELECT sqlite3_status('MEMORY_USED_X') AS mused\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown status property: MEMORY_USED_X", resErrString(_res), "\n    SELECT sqlite3_status('MEMORY_USED_X') AS mused\n  ")
 		}
 	}
 	{ // do_test "loadext-3.7"
 		_res = db.Exec("\n    SELECT sqlite3_status(4.53) AS mused\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown status type") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown status type", _res.Error, "\n    SELECT sqlite3_status(4.53) AS mused\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown status type", resErrString(_res), "\n    SELECT sqlite3_status(4.53) AS mused\n  ")
 		}
 	}
 	{ // do_test "loadext-3.8"
 		_res = db.Exec("\n    SELECT sqlite3_status(23) AS mused\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sqlite3_status(23,...) returns 21") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sqlite3_status(23,...) returns 21", _res.Error, "\n    SELECT sqlite3_status(23) AS mused\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sqlite3_status(23,...) returns 21", resErrString(_res), "\n    SELECT sqlite3_status(23) AS mused\n  ")
 		}
 	}
 	db.Close()
@@ -345,7 +345,7 @@ func Test_loadext(t *testing.T) {
 	{ // do_test "loadext-4.1"
 		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not authorized") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", _res.Error, "\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", resErrString(_res), "\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		}
 	}
 	{ // do_test "loadext-4.2"

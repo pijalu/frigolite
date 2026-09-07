@@ -59,7 +59,7 @@ func Test_rtreeH(t *testing.T) {
 	{ // "rtreeH-100"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1,+label,+other);\n  INSERT INTO t1(x0,x1,y0,y1,label) VALUES\n    (0,10,0,10,'lower-left corner'),\n    (0,10,90,100,'upper-left corner'),\n    (90,100,0,10,'lower-right corner'),\n    (90,100,90,100,'upper-right corner'),\n    (40,60,40,60,'center'),\n    (0,5,0,100,'left edge'),\n    (95,100,0,100,'right edge'),\n    (0,100,0,5,'bottom edge'),\n    (0,100,95,100,'top edge'),\n    (0,100,0,100,'the whole thing'),\n    (0,50,0,100,'left half'),\n    (51,100,0,100,'right half'),\n    (0,100,0,50,'bottom half'),\n    (0,100,51,100,'top half');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1,+label,+other);\n  INSERT INTO t1(x0,x1,y0,y1,label) VALUES\n    (0,10,0,10,'lower-left corner'),\n    (0,10,90,100,'upper-left corner'),\n    (90,100,0,10,'lower-right corner'),\n    (90,100,90,100,'upper-right corner'),\n    (40,60,40,60,'center'),\n    (0,5,0,100,'left edge'),\n    (95,100,0,100,'right edge'),\n    (0,100,0,5,'bottom edge'),\n    (0,100,95,100,'top edge'),\n    (0,100,0,100,'the whole thing'),\n    (0,50,0,100,'left half'),\n    (51,100,0,100,'right half'),\n    (0,100,0,50,'bottom half'),\n    (0,100,51,100,'top half');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1,+label,+other);\n  INSERT INTO t1(x0,x1,y0,y1,label) VALUES\n    (0,10,0,10,'lower-left corner'),\n    (0,10,90,100,'upper-left corner'),\n    (90,100,0,10,'lower-right corner'),\n    (90,100,90,100,'upper-right corner'),\n    (40,60,40,60,'center'),\n    (0,5,0,100,'left edge'),\n    (95,100,0,100,'right edge'),\n    (0,100,0,5,'bottom edge'),\n    (0,100,95,100,'top edge'),\n    (0,100,0,100,'the whole thing'),\n    (0,50,0,100,'left half'),\n    (51,100,0,100,'right half'),\n    (0,100,0,50,'bottom half'),\n    (0,100,51,100,'top half');\n")
 		}
 	}
 	{ // "rtreeH-101"
@@ -192,7 +192,7 @@ func Test_rtreeH(t *testing.T) {
 	{ // "rtreeH-200"
 		_res = db.Exec("\n  WITH RECURSIVE\n    c1(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c1 WHERE x<99),\n    c2(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM c2 WHERE y<99)\n  INSERT INTO t1(id, x0,x1,y0,y1,label)\n    SELECT 1000+x+y*100, x, x+1, y, y+1, printf('box-%d,%d',x,y) FROM c1, c2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    c1(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c1 WHERE x<99),\n    c2(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM c2 WHERE y<99)\n  INSERT INTO t1(id, x0,x1,y0,y1,label)\n    SELECT 1000+x+y*100, x, x+1, y, y+1, printf('box-%d,%d',x,y) FROM c1, c2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH RECURSIVE\n    c1(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c1 WHERE x<99),\n    c2(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM c2 WHERE y<99)\n  INSERT INTO t1(id, x0,x1,y0,y1,label)\n    SELECT 1000+x+y*100, x, x+1, y, y+1, printf('box-%d,%d',x,y) FROM c1, c2;\n")
 		}
 	}
 	{ // "rtreeH-210"
@@ -229,7 +229,7 @@ func Test_rtreeH(t *testing.T) {
 	{ // "rtreeH-300"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (NULL);\n  INSERT INTO t0(c0) VALUES (1);\n  CREATE VIRTUAL TABLE t1 USING rtree(c0, c1, c2, +c3 BLOB );\n  INSERT INTO t1(c2, c3, c0) VALUES (1, 2, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (NULL);\n  INSERT INTO t0(c0) VALUES (1);\n  CREATE VIRTUAL TABLE t1 USING rtree(c0, c1, c2, +c3 BLOB );\n  INSERT INTO t1(c2, c3, c0) VALUES (1, 2, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (NULL);\n  INSERT INTO t0(c0) VALUES (1);\n  CREATE VIRTUAL TABLE t1 USING rtree(c0, c1, c2, +c3 BLOB );\n  INSERT INTO t1(c2, c3, c0) VALUES (1, 2, 1);\n")
 		}
 	}
 	{ // "rtreeH-310"

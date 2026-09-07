@@ -82,7 +82,7 @@ func Test_fts4growth2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(docid, words); ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(docid, words); ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t1(docid, words); ")
 		}
 	}
 	ftsKJVGenesis(t, db)
@@ -91,7 +91,7 @@ func Test_fts4growth2(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4;\n  INSERT INTO x1(x1) VALUES('automerge=2');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4;\n  INSERT INTO x1(x1) VALUES('automerge=2');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts4;\n  INSERT INTO x1(x1) VALUES('automerge=2');\n")
 		}
 	}
 	{ // do_test "1.2"
@@ -141,7 +141,7 @@ func Test_fts4growth2(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE rowid>16;\n  DROP TABLE IF EXISTS x1;\n  CREATE VIRTUAL TABLE x1 USING fts4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE rowid>16;\n  DROP TABLE IF EXISTS x1;\n  CREATE VIRTUAL TABLE x1 USING fts4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE rowid>16;\n  DROP TABLE IF EXISTS x1;\n  CREATE VIRTUAL TABLE x1 USING fts4;\n")
 		}
 	}
 	db.RegisterFunction("second", func(args []interface{}) (interface{}, error) {

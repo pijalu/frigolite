@@ -64,7 +64,7 @@ func Test_seekscan1(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b INT, c INT NOT NULL, PRIMARY KEY(a,b,c));\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1997)\n    INSERT INTO t1(a,b,c) SELECT printf('xyz%d',x/10),x/6,x FROM c;\n  INSERT INTO t1 VALUES('abc',234,6);\n  INSERT INTO t1 VALUES('abc',345,7);\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT, b INT, c INT NOT NULL, PRIMARY KEY(a,b,c));\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1997)\n    INSERT INTO t1(a,b,c) SELECT printf('xyz%d',x/10),x/6,x FROM c;\n  INSERT INTO t1 VALUES('abc',234,6);\n  INSERT INTO t1 VALUES('abc',345,7);\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT, b INT, c INT NOT NULL, PRIMARY KEY(a,b,c));\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1997)\n    INSERT INTO t1(a,b,c) SELECT printf('xyz%d',x/10),x/6,x FROM c;\n  INSERT INTO t1 VALUES('abc',234,6);\n  INSERT INTO t1 VALUES('abc',345,7);\n  ANALYZE;\n")
 		}
 	}
 	{ // "1.1"

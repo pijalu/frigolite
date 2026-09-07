@@ -155,7 +155,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.1.1"
 				_res = db.Exec("CREATE VIRTUAL TABLE data USING fts3()")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE data USING fts3()")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "CREATE VIRTUAL TABLE data USING fts3()")
 				}
 			}
 			{ // "1.1.1.2"
@@ -173,7 +173,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.2.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE pages USING fts3(title, keywords, body)\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE pages USING fts3(title, keywords, body)\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE pages USING fts3(title, keywords, body)\n")
 				}
 			}
 			{ // "1.1.2.2"
@@ -191,7 +191,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.3.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE mail USING fts3(\n      subject VARCHAR(256) NOT NULL,\n      body TEXT CHECK(length(body)<10240)\n  )\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE mail USING fts3(\n      subject VARCHAR(256) NOT NULL,\n      body TEXT CHECK(length(body)<10240)\n  )\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE mail USING fts3(\n      subject VARCHAR(256) NOT NULL,\n      body TEXT CHECK(length(body)<10240)\n  )\n")
 				}
 			}
 			{ // "1.1.3.2"
@@ -211,7 +211,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.3.3"
 				_res = db.Exec(" INSERT INTO mail VALUES(NULL, " + sqlLiteral(largetext) + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO mail VALUES(NULL, " + sqlLiteral(largetext) + ") ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO mail VALUES(NULL, " + sqlLiteral(largetext) + ") ")
 				}
 			}
 			{ // "1.1.3.4"
@@ -229,7 +229,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.4.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE papers USING fts3(author, document, tokenize=porter)\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE papers USING fts3(author, document, tokenize=porter)\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE papers USING fts3(author, document, tokenize=porter)\n")
 				}
 			}
 			{ // "1.1.4.2"
@@ -247,7 +247,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.5.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE simpledata USING fts3(tokenize=simple)\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE simpledata USING fts3(tokenize=simple)\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE simpledata USING fts3(tokenize=simple)\n")
 				}
 			}
 			{ // "1.1.5.2"
@@ -265,31 +265,31 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.7.1"
 				_res = db.Exec("DROP TABLE data")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE data")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE data")
 				}
 			}
 			{ // "1.1.7.2"
 				_res = db.Exec("DROP TABLE pages")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE pages")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE pages")
 				}
 			}
 			{ // "1.1.7.3"
 				_res = db.Exec("DROP TABLE mail")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE mail")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE mail")
 				}
 			}
 			{ // "1.1.7.4"
 				_res = db.Exec("DROP TABLE papers")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE papers")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE papers")
 				}
 			}
 			{ // "1.1.7.5"
 				_res = db.Exec("DROP TABLE simpledata")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE simpledata")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE simpledata")
 				}
 			}
 			{ // "1.1.7.6"
@@ -301,7 +301,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.8.1"
 				_res = db.Exec("CREATE VIRTUAL TABLE data USING fts3;")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE data USING fts3;")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "CREATE VIRTUAL TABLE data USING fts3;")
 				}
 			}
 			{ // "1.1.8.2"
@@ -319,19 +319,19 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.1.8.3"
 				_res = db.Exec("DROP TABLE data")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE data")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE data")
 				}
 			}
 			{ // "1.2.1.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE pages USING fts3(title, body);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE pages USING fts3(title, body);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE pages USING fts3(title, body);\n")
 				}
 			}
 			{ // "1.2.1.2"
 				_res = db.Exec("\n  INSERT INTO pages(docid, title, body) \n  VALUES(53, 'Home Page', 'SQLite is a software...');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO pages(docid, title, body) \n  VALUES(53, 'Home Page', 'SQLite is a software...');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO pages(docid, title, body) \n  VALUES(53, 'Home Page', 'SQLite is a software...');\n")
 				}
 			}
 			{ // "1.2.1.3"
@@ -349,7 +349,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.2.1.4"
 				_res = db.Exec("\n  INSERT INTO pages(title, body) \n  VALUES('Download', 'All SQLite source code...');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO pages(title, body) \n  VALUES('Download', 'All SQLite source code...');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO pages(title, body) \n  VALUES('Download', 'All SQLite source code...');\n")
 				}
 			}
 			{ // "1.2.1.5"
@@ -367,7 +367,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.2.1.6"
 				_res = db.Exec("\n  UPDATE pages SET title = 'Download SQLite' WHERE rowid = 54\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE pages SET title = 'Download SQLite' WHERE rowid = 54\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE pages SET title = 'Download SQLite' WHERE rowid = 54\n")
 				}
 			}
 			{ // "1.2.1.7"
@@ -385,7 +385,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.2.1.8"
 				_res = db.Exec(" DELETE FROM pages ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM pages ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM pages ")
 				}
 			}
 			{ // "1.2.1.9"
@@ -398,25 +398,25 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.2.2.1"
 				_res = db.Exec(" CREATE VIRTUAL TABLE docs USING fts3 ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE docs USING fts3 ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE docs USING fts3 ")
 				}
 			}
 			{ // "1.2.2.2"
 				_res = db.Exec("\n  INSERT INTO docs VALUES('Others translate the first clause as');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO docs VALUES('Others translate the first clause as');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO docs VALUES('Others translate the first clause as');\n")
 				}
 			}
 			{ // "1.2.2.3"
 				_res = db.Exec("\n  INSERT INTO docs VALUES('\"which is for Solomon,\" meaning that');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO docs VALUES('\"which is for Solomon,\" meaning that');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO docs VALUES('\"which is for Solomon,\" meaning that');\n")
 				}
 			}
 			{ // "1.2.2.4"
 				_res = db.Exec("\n  INSERT INTO docs VALUES('the book is dedicated to Solomon.');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO docs VALUES('the book is dedicated to Solomon.');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO docs VALUES('the book is dedicated to Solomon.');\n")
 				}
 			}
 			{ // "1.2.2.5"
@@ -434,7 +434,7 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.2.2.6"
 				_res = db.Exec("\n  INSERT INTO docs(docs) VALUES('optimize');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO docs(docs) VALUES('optimize');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO docs(docs) VALUES('optimize');\n")
 				}
 			}
 			{ // "1.2.2.7"
@@ -452,13 +452,13 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.2.2.8"
 				_res = db.Exec(" DROP TABLE docs ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE docs ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE docs ")
 				}
 			}
 			{ // "1.3.1.1"
 				_res = db.Exec(" CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
 				}
 			}
 			{ // "1.3.1.2"
@@ -470,31 +470,31 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.3.1.3"
 				_res = db.Exec(" DROP TABLE mail ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE mail ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE mail ")
 				}
 			}
 			{ // "1.3.2.1"
 				_res = db.Exec(" CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
 				}
 			}
 			{ // "1.3.2.2"
 				_res = db.Exec("\n  INSERT INTO mail(docid, subject, body) \n  VALUES(1, 'software feedback', 'found it too slow')\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO mail(docid, subject, body) \n  VALUES(1, 'software feedback', 'found it too slow')\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO mail(docid, subject, body) \n  VALUES(1, 'software feedback', 'found it too slow')\n")
 				}
 			}
 			{ // "1.3.2.3"
 				_res = db.Exec("\n  INSERT INTO mail(docid, subject, body) \n  VALUES(2, 'software feedback', 'no feedback')\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO mail(docid, subject, body) \n  VALUES(2, 'software feedback', 'no feedback')\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO mail(docid, subject, body) \n  VALUES(2, 'software feedback', 'no feedback')\n")
 				}
 			}
 			{ // "1.3.2.4"
 				_res = db.Exec("\n  INSERT INTO mail(docid, subject, body) \n  VALUES(3, 'slow lunch order',  'was a software problem')\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO mail(docid, subject, body) \n  VALUES(3, 'slow lunch order',  'was a software problem')\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO mail(docid, subject, body) \n  VALUES(3, 'slow lunch order',  'was a software problem')\n")
 				}
 			}
 			{ // "1.3.2.5"
@@ -548,13 +548,13 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.3.2.8"
 				_res = db.Exec(" DROP TABLE mail ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE mail ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE mail ")
 				}
 			}
 			{ // "1.3.3.1"
 				_res = db.Exec(" CREATE VIRTUAL TABLE docs USING fts3(content) ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE docs USING fts3(content) ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE docs USING fts3(content) ")
 				}
 			}
 			{ // "1.3.3.2"
@@ -579,13 +579,13 @@ func Test_e_fts3(t *testing.T) {
 			{ // "1.3.2.8"
 				_res = db.Exec(" DROP TABLE docs ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE docs ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE docs ")
 				}
 			}
 			{ // "1.4.1.1"
 				_res = db.Exec(" CREATE VIRTUAL TABLE docs USING fts3(title, body) ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE docs USING fts3(title, body) ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE docs USING fts3(title, body) ")
 				}
 			}
 			// foreach {tn title body} "2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\""
@@ -601,7 +601,7 @@ func Test_e_fts3(t *testing.T) {
 					{ // "1.4.1." + tn
 						_res = db.Exec(" INSERT INTO docs VALUES(" + sqlLiteral(title) + "," + sqlLiteral(body) + ") ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO docs VALUES(" + sqlLiteral(title) + "," + sqlLiteral(body) + ") ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO docs VALUES(" + sqlLiteral(title) + "," + sqlLiteral(body) + ") ")
 						}
 					}
 					RMap[tn] = title+" "+body
@@ -681,19 +681,19 @@ func Test_e_fts3(t *testing.T) {
 				{ // "1.4.1.17"
 					_res = db.Exec(" DROP TABLE docs ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE docs ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE docs ")
 					}
 				}
 				{ // "1.4.2.1"
 					_res = db.Exec(" CREATE VIRTUAL TABLE docs USING fts3() ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE docs USING fts3() ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE docs USING fts3() ")
 					}
 				}
 				{ // "1.4.2.2"
 					_res = db.Exec(" \n  INSERT INTO docs VALUES(\n  'SQLite is an ACID compliant embedded relational database management system')\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO docs VALUES(\n  'SQLite is an ACID compliant embedded relational database management system')\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO docs VALUES(\n  'SQLite is an ACID compliant embedded relational database management system')\n")
 					}
 				}
 				// foreach {tn query hit} "3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0"
@@ -712,14 +712,14 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.4.2." + tn
 							_res = db.Exec(query)
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), query)
 							}
 						}
 					}
 					{ // "1.4.2.10"
 						_res = db.Exec(" DROP TABLE docs ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE docs ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE docs ")
 						}
 					}
 					vtab.TclVarSet("sqlite_fts3_enable_parentheses", "", "1")
@@ -728,7 +728,7 @@ func Test_e_fts3(t *testing.T) {
 					{ // "1.5.1.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE docs USING fts3() ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE docs USING fts3() ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE docs USING fts3() ")
 						}
 					}
 					// foreach {tn docid content} "2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\""
@@ -745,7 +745,7 @@ func Test_e_fts3(t *testing.T) {
 							{ // "1.5.1." + tn
 								_res = db.Exec(" \n    INSERT INTO docs(docid, content) VALUES(" + sqlLiteral(docid) + ", " + sqlLiteral(content) + ")\n  ")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO docs(docid, content) VALUES(" + sqlLiteral(docid) + ", " + sqlLiteral(content) + ")\n  ")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n    INSERT INTO docs(docid, content) VALUES(" + sqlLiteral(docid) + ", " + sqlLiteral(content) + ")\n  ")
 								}
 							}
 						}
@@ -806,7 +806,7 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.5.2.1"
 							_res = db.Exec("\n  INSERT INTO docs \n    SELECT 'sqlite is also a library' UNION ALL\n    SELECT 'library software'\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO docs \n    SELECT 'sqlite is also a library' UNION ALL\n    SELECT 'library software'\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO docs \n    SELECT 'sqlite is also a library' UNION ALL\n    SELECT 'library software'\n")
 							}
 						}
 						{ // "1.5.2.2"
@@ -836,7 +836,7 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.5.2.4"
 							_res = db.Exec("\n  INSERT INTO docs \n    SELECT 'the sqlite library runs on linux' UNION ALL\n    SELECT 'as does the sqlite database (on linux)' UNION ALL\n    SELECT 'the sqlite database is accessed by the sqlite library'\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO docs \n    SELECT 'the sqlite library runs on linux' UNION ALL\n    SELECT 'as does the sqlite database (on linux)' UNION ALL\n    SELECT 'the sqlite database is accessed by the sqlite library'\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO docs \n    SELECT 'the sqlite library runs on linux' UNION ALL\n    SELECT 'as does the sqlite database (on linux)' UNION ALL\n    SELECT 'the sqlite database is accessed by the sqlite library'\n")
 							}
 						}
 						{ // "1.5.2.2"
@@ -913,25 +913,25 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.6.1.5"
 							_res = db.Exec(" DROP TABLE docs ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE docs ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE docs ")
 							}
 						}
 						{ // "1.7.1.1"
 							_res = db.Exec(" CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE mail USING fts3(subject, body) ")
 							}
 						}
 						{ // "1.7.1.2"
 							_res = db.Exec(" \n  INSERT INTO mail VALUES(\n    'hello world', 'This message is a hello world message.');\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO mail VALUES(\n    'hello world', 'This message is a hello world message.');\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO mail VALUES(\n    'hello world', 'This message is a hello world message.');\n")
 							}
 						}
 						{ // "1.7.1.3"
 							_res = db.Exec(" \n  INSERT INTO mail VALUES(\n    'urgent: serious', 'This mail is seen as a more serious mail');\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO mail VALUES(\n    'urgent: serious', 'This mail is seen as a more serious mail');\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO mail VALUES(\n    'urgent: serious', 'This mail is seen as a more serious mail');\n")
 							}
 						}
 						{ // "e_fts3-1.7.1.4" — skipped: offsets() aux function P6.FTS-H
@@ -943,13 +943,13 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.7.2.1"
 							_res = db.Exec(" CREATE VIRTUAL TABLE text USING fts3() ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE text USING fts3() ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE text USING fts3() ")
 							}
 						}
 						{ // "1.7.2.2"
 							_res = db.Exec("\n  INSERT INTO text VALUES('\n    During 30 Nov-1 Dec, 2-3oC drops. Cool in the upper portion, minimum temperature 14-16oC and cool elsewhere, minimum temperature 17-20oC. Cold to very cold on mountaintops, minimum temperature 6-12oC. Northeasterly winds 15-30 km/hr. After that, temperature increases. Northeasterly winds 15-30 km/hr.\n  ');\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO text VALUES('\n    During 30 Nov-1 Dec, 2-3oC drops. Cool in the upper portion, minimum temperature 14-16oC and cool elsewhere, minimum temperature 17-20oC. Cold to very cold on mountaintops, minimum temperature 6-12oC. Northeasterly winds 15-30 km/hr. After that, temperature increases. Northeasterly winds 15-30 km/hr.\n  ');\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO text VALUES('\n    During 30 Nov-1 Dec, 2-3oC drops. Cool in the upper portion, minimum temperature 14-16oC and cool elsewhere, minimum temperature 17-20oC. Cold to very cold on mountaintops, minimum temperature 6-12oC. Northeasterly winds 15-30 km/hr. After that, temperature increases. Northeasterly winds 15-30 km/hr.\n  ');\n")
 							}
 						}
 						{ // "e_fts3-1.7.2.3" — skipped: snippet() aux function P6.FTS-E
@@ -959,31 +959,31 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.7.3.1"
 							_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE IF EXISTS t1 ")
 							}
 						}
 						{ // "1.7.3.2"
 							_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts3(a, b) ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts3(a, b) ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t1 USING fts3(a, b) ")
 							}
 						}
 						{ // "1.7.3.3"
 							_res = db.Exec(" \n  INSERT INTO t1 VALUES(\n    'transaction default models default', 'Non transaction reads');\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO t1 VALUES(\n    'transaction default models default', 'Non transaction reads');\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO t1 VALUES(\n    'transaction default models default', 'Non transaction reads');\n")
 							}
 						}
 						{ // "1.7.3.4"
 							_res = db.Exec(" \n  INSERT INTO t1 VALUES('the default transaction', 'these semantics present');\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO t1 VALUES('the default transaction', 'these semantics present');\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO t1 VALUES('the default transaction', 'these semantics present');\n")
 							}
 						}
 						{ // "1.7.3.5"
 							_res = db.Exec(" \n  INSERT INTO t1 VALUES('single request', 'default data');\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO t1 VALUES('single request', 'default data');\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO t1 VALUES('single request', 'default data');\n")
 							}
 						}
 						{ // "e_fts3-1.7.3.6" — skipped: matchinfo() aux function P6.FTS-D
@@ -991,13 +991,13 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.8.1.1"
 							_res = db.Exec(" CREATE VIRTUAL TABLE simple USING fts3(tokenize=simple) ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE simple USING fts3(tokenize=simple) ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE simple USING fts3(tokenize=simple) ")
 							}
 						}
 						{ // "1.8.1.2"
 							_res = db.Exec(" \n  INSERT INTO simple VALUES('Right now they''re very frustrated')\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO simple VALUES('Right now they''re very frustrated')\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO simple VALUES('Right now they''re very frustrated')\n")
 							}
 						}
 						{ // "1.8.1.3"
@@ -1021,13 +1021,13 @@ func Test_e_fts3(t *testing.T) {
 						{ // "1.8.2.1"
 							_res = db.Exec(" CREATE VIRTUAL TABLE porter USING fts3(tokenize=porter) ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE porter USING fts3(tokenize=porter) ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE porter USING fts3(tokenize=porter) ")
 							}
 						}
 						{ // "1.8.2.2"
 							_res = db.Exec(" \n  INSERT INTO porter VALUES('Right now they''re very frustrated')\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO porter VALUES('Right now they''re very frustrated')\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO porter VALUES('Right now they''re very frustrated')\n")
 							}
 						}
 						{ // "1.8.2.4"
@@ -1049,55 +1049,55 @@ func Test_e_fts3(t *testing.T) {
 					{ // "2.1.0"
 						_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE IF EXISTS t1 ")
 						}
 					}
 					{ // "2.1.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts3(a, b) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts3(a, b) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t1 USING fts3(a, b) ")
 						}
 					}
 					{ // "2.1.2"
 						_res = db.Exec(" \n  INSERT INTO t1 VALUES('one two three', x'A1B2C3D4E5F6');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO t1 VALUES('one two three', x'A1B2C3D4E5F6');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO t1 VALUES('one two three', x'A1B2C3D4E5F6');\n")
 						}
 					}
 					{ // "2.1.3"
 						_res = db.Exec("\n  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.4"
 						_res = db.Exec("\n  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.5"
 						_res = db.Exec("\n  SELECT optimize(a) FROM t1 LIMIT 1\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT optimize(a) FROM t1 LIMIT 1\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT optimize(a) FROM t1 LIMIT 1\n")
 						}
 					}
 					{ // "2.1.6"
 						_res = db.Exec("\n  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.7"
 						_res = db.Exec("\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.8"
 						_res = db.Exec("\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') FROM t1 WHERE a MATCH 'one'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') FROM t1 WHERE a MATCH 'one'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					// do_malloc_test e_fts3-3 -tclbody { \n  if {[catch {sqlite3 db test.db}]} { error "ou...} (unsupported command, not transpiled)
@@ -1107,19 +1107,19 @@ func Test_e_fts3(t *testing.T) {
 					{ // "4.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t4 USING fts3(a, b) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t4 USING fts3(a, b) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t4 USING fts3(a, b) ")
 						}
 					}
 					{ // "4.2"
 						_res = db.Exec("\n  INSERT INTO t4 VALUES('In Xanadu', 'did Kubla Khan');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t4 VALUES('In Xanadu', 'did Kubla Khan');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t4 VALUES('In Xanadu', 'did Kubla Khan');\n")
 						}
 					}
 					{ // "4.3"
 						_res = db.Exec("\n  INSERT INTO t4 VALUES('a stately pleasure', 'dome decree');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t4 VALUES('a stately pleasure', 'dome decree');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t4 VALUES('a stately pleasure', 'dome decree');\n")
 						}
 					}
 					{ // do_test "e_fts3-4.4"
@@ -1140,13 +1140,13 @@ func Test_e_fts3(t *testing.T) {
 					{ // "5.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t5 USING fts3(x) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t5 USING fts3(x) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t5 USING fts3(x) ")
 						}
 					}
 					{ // "5.2"
 						_res = db.Exec("\n  INSERT INTO t5 VALUES('In Xanadu did Kubla Khan A stately pleasure-dome decree Where Alph, the sacred river, ran Through caverns measureless to man Down to a sunless sea.  So twice five miles of fertile ground With walls and towers were girdled round : And there were gardens bright with sinuous rills, Where blossomed many an incense-bearing tree ; And here were forests ancient as the hills, Enfolding sunny spots of greenery.');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5 VALUES('In Xanadu did Kubla Khan A stately pleasure-dome decree Where Alph, the sacred river, ran Through caverns measureless to man Down to a sunless sea.  So twice five miles of fertile ground With walls and towers were girdled round : And there were gardens bright with sinuous rills, Where blossomed many an incense-bearing tree ; And here were forests ancient as the hills, Enfolding sunny spots of greenery.');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t5 VALUES('In Xanadu did Kubla Khan A stately pleasure-dome decree Where Alph, the sacred river, ran Through caverns measureless to man Down to a sunless sea.  So twice five miles of fertile ground With walls and towers were girdled round : And there were gardens bright with sinuous rills, Where blossomed many an incense-bearing tree ; And here were forests ancient as the hills, Enfolding sunny spots of greenery.');\n")
 						}
 					}
 					{ // "e_fts3-5.3" — skipped: snippet() aux function P6.FTS-E
@@ -1163,25 +1163,25 @@ func Test_e_fts3(t *testing.T) {
 					{ // "6.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t6 USING fts3(x) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t6 USING fts3(x) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t6 USING fts3(x) ")
 						}
 					}
 					{ // "6.2"
 						_res = db.Exec(" INSERT INTO t6 VALUES('a'); ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES('a'); ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES('a'); ")
 						}
 					}
 					{ // "6.3"
 						_res = db.Exec(" INSERT INTO t6 VALUES('b'); ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES('b'); ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES('b'); ")
 						}
 					}
 					{ // "6.4"
 						_res = db.Exec(" INSERT INTO t6 VALUES('c'); ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES('c'); ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES('c'); ")
 						}
 					}
 					{ // "6.5"
@@ -1214,37 +1214,37 @@ func Test_e_fts3(t *testing.T) {
 					{ // "7.1.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t7 USING fts3(a) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t7 USING fts3(a) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t7 USING fts3(a) ")
 						}
 					}
 					{ // "7.1.2"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t8 USING fts3(b) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t8 USING fts3(b) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t8 USING fts3(b) ")
 						}
 					}
 					{ // "7.1.3"
 						_res = db.Exec(" INSERT INTO t7(docid, a) VALUES(4,'number four') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t7(docid, a) VALUES(4,'number four') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t7(docid, a) VALUES(4,'number four') ")
 						}
 					}
 					{ // "7.1.4"
 						_res = db.Exec(" INSERT INTO t7(docid, a) VALUES(5,'number five') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t7(docid, a) VALUES(5,'number five') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t7(docid, a) VALUES(5,'number five') ")
 						}
 					}
 					{ // "7.1.5"
 						_res = db.Exec(" INSERT INTO t8(docid, b) VALUES(4,'letter D') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t8(docid, b) VALUES(4,'letter D') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t8(docid, b) VALUES(4,'letter D') ")
 						}
 					}
 					{ // "7.1.6"
 						_res = db.Exec(" INSERT INTO t8(docid, b) VALUES(5,'letter E') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t8(docid, b) VALUES(5,'letter E') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t8(docid, b) VALUES(5,'letter E') ")
 						}
 					}
 					{ // "e_fts3-7.1.7" — skipped: offsets() aux function P6.FTS-H
@@ -1252,31 +1252,31 @@ func Test_e_fts3(t *testing.T) {
 					{ // "7.2.1"
 						_res = db.Exec("\n  SELECT * FROM t7 WHERE docid MATCH 'number'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t7 WHERE docid MATCH 'number'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7 WHERE docid MATCH 'number'\n")
 						}
 					}
 					{ // "7.2.2"
 						_res = db.Exec("\n  SELECT * FROM t7 WHERE rowid MATCH 'number'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t7 WHERE rowid MATCH 'number'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7 WHERE rowid MATCH 'number'\n")
 						}
 					}
 					{ // "7.3.1"
 						_res = db.Exec("\n  SELECT * FROM t7 WHERE a MATCH 'number' AND a MATCH 'four'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t7 WHERE a MATCH 'number' AND a MATCH 'four'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7 WHERE a MATCH 'number' AND a MATCH 'four'\n")
 						}
 					}
 					{ // "7.3.2"
 						_res = db.Exec("\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND a MATCH 'four'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND a MATCH 'four'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND a MATCH 'four'\n")
 						}
 					}
 					{ // "7.3.3"
 						_res = db.Exec("\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND b MATCH 'd'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND b MATCH 'd'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND b MATCH 'd'\n")
 						}
 					}
 					{ // "e_fts3-7.3.4" — skipped: snippet() aux function P6.FTS-E
@@ -1299,13 +1299,13 @@ func Test_e_fts3(t *testing.T) {
 					{ // "8.1.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t9a USING fts3(\"c1\", [c2]) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t9a USING fts3(\"c1\", [c2]) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t9a USING fts3(\"c1\", [c2]) ")
 						}
 					}
 					{ // "8.1.2"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t9b USING fts3('c1', `c2`) ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t9b USING fts3('c1', `c2`) ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t9b USING fts3('c1', `c2`) ")
 						}
 					}
 					{ // "8.1.3"
@@ -1335,7 +1335,7 @@ func Test_e_fts3(t *testing.T) {
 					{ // "8.2.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE t9c USING fts3(\"c\"\"1\", 'c''2') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t9c USING fts3(\"c\"\"1\", 'c''2') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t9c USING fts3(\"c\"\"1\", 'c''2') ")
 						}
 					}
 					{ // "8.2.2"
@@ -1363,19 +1363,19 @@ func Test_e_fts3(t *testing.T) {
 						{ // "9.1.1"
 							_res = db.Exec(" CREATE VIRTUAL TABLE t10 USING fts3(x) ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t10 USING fts3(x) ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t10 USING fts3(x) ")
 							}
 						}
 						{ // "9.1.2"
 							_res = db.Exec(" INSERT INTO t10 VALUES('fts3 tables') ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t10 VALUES('fts3 tables') ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t10 VALUES('fts3 tables') ")
 							}
 						}
 						{ // "9.1.3"
 							_res = db.Exec(" INSERT INTO t10 VALUES('are renameable') ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t10 VALUES('are renameable') ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t10 VALUES('are renameable') ")
 							}
 						}
 						{ // "9.1.4"
@@ -1405,7 +1405,7 @@ func Test_e_fts3(t *testing.T) {
 						{ // "9.1.6"
 							_res = db.Exec(" ALTER TABLE t10 RENAME TO t11 ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t10 RENAME TO t11 ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t10 RENAME TO t11 ")
 							}
 						}
 						{ // "9.1.7"
@@ -1439,26 +1439,26 @@ func Test_e_fts3(t *testing.T) {
 					{ // "10.1.1"
 						_res = db.Exec(" CREATE VIRTUAL TABLE ta USING fts3 ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE ta USING fts3 ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE ta USING fts3 ")
 						}
 					}
 					{ // "10.1.2"
 						_res = db.Exec(" \n  INSERT INTO ta VALUES('During a summer vacation in 1790') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO ta VALUES('During a summer vacation in 1790') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO ta VALUES('During a summer vacation in 1790') ")
 						}
 					}
 					{ // "10.1.3"
 						_res = db.Exec("\n  INSERT INTO ta VALUES('Wordsworth went on a walking tour') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ta VALUES('Wordsworth went on a walking tour') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO ta VALUES('Wordsworth went on a walking tour') ")
 						}
 					}
 					db.SetDefensive(false)
 					{ // "10.1.4"
 						_res = db.Exec(" DELETE FROM ta_content WHERE rowid = 2 ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM ta_content WHERE rowid = 2 ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM ta_content WHERE rowid = 2 ")
 						}
 					}
 					{ // "10.1.5"
@@ -1476,25 +1476,25 @@ func Test_e_fts3(t *testing.T) {
 					{ // "10.1.6"
 						_res = db.Exec("\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n")
 						}
 					}
 					{ // "10.2.1"
 						_res = db.Exec(" DELETE FROM ta ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM ta ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM ta ")
 						}
 					}
 					{ // "10.2.2"
 						_res = db.Exec(" \n  INSERT INTO ta VALUES('debate demonstrated the rising difficulty') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO ta VALUES('debate demonstrated the rising difficulty') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO ta VALUES('debate demonstrated the rising difficulty') ")
 						}
 					}
 					{ // "10.2.3"
 						_res = db.Exec(" \n  INSERT INTO ta VALUES('Google released its browser beta') ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO ta VALUES('Google released its browser beta') ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO ta VALUES('Google released its browser beta') ")
 						}
 					}
 					_dbone5 := tclExecSQL(db, "{SELECT root FROM ta_segdir WHERE rowid = 2}")
@@ -1509,13 +1509,13 @@ func Test_e_fts3(t *testing.T) {
 					{ // "10.2.4"
 						_res = db.Exec(" \n  UPDATE ta_segdir SET root = " + sqlLiteral(blob) + " WHERE rowid = 2\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  UPDATE ta_segdir SET root = " + sqlLiteral(blob) + " WHERE rowid = 2\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  UPDATE ta_segdir SET root = " + sqlLiteral(blob) + " WHERE rowid = 2\n")
 						}
 					}
 					{ // "10.2.5"
 						_res = db.Exec("\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n")
 						}
 					}
 }

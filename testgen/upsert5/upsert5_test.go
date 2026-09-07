@@ -554,13 +554,13 @@ func Test_upsert5(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n")
 			}
 		}
 		{ // "2.1"
 			_res = db.Exec("\n  INSERT INTO t2(a,b,c,e,d) VALUES(1,2,3,4,5)\n      ON CONFLICT(c) DO UPDATE SET b=''\n      ON CONFLICT((SELECT t2 FROM nosuchtable)) DO NOTHING;\n\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: nosuchtable") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: nosuchtable", _res.Error, "\n  INSERT INTO t2(a,b,c,e,d) VALUES(1,2,3,4,5)\n      ON CONFLICT(c) DO UPDATE SET b=''\n      ON CONFLICT((SELECT t2 FROM nosuchtable)) DO NOTHING;\n\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: nosuchtable", resErrString(_res), "\n  INSERT INTO t2(a,b,c,e,d) VALUES(1,2,3,4,5)\n      ON CONFLICT(c) DO UPDATE SET b=''\n      ON CONFLICT((SELECT t2 FROM nosuchtable)) DO NOTHING;\n\n")
 			}
 		}
 		db.Close()
@@ -679,7 +679,7 @@ func Test_upsert5(t *testing.T) {
 				{ // "4." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE t1(a, b, c REAL, d UNIQUE, e PRIMARY KEY) " + WO + " ;\n    INSERT INTO t1 VALUES(555, 555, 555, 555, 555);\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c REAL, d UNIQUE, e PRIMARY KEY) " + WO + " ;\n    INSERT INTO t1 VALUES(555, 555, 555, 555, 555);\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b, c REAL, d UNIQUE, e PRIMARY KEY) " + WO + " ;\n    INSERT INTO t1 VALUES(555, 555, 555, 555, 555);\n  ")
 					}
 				}
 				{ // "4." + tn + ".1"
@@ -697,7 +697,7 @@ func Test_upsert5(t *testing.T) {
 				{ // "4." + tn + ".2"
 					_res = db.Exec("\n    INSERT INTO t1(c, d, e) VALUES(22, 555, 4) \n      ON CONFLICT(d) DO UPDATE SET b=excluded.c;\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(c, d, e) VALUES(22, 555, 4) \n      ON CONFLICT(d) DO UPDATE SET b=excluded.c;\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1(c, d, e) VALUES(22, 555, 4) \n      ON CONFLICT(d) DO UPDATE SET b=excluded.c;\n  ")
 					}
 				}
 				{ // "4." + tn + ".3"
@@ -716,7 +716,7 @@ func Test_upsert5(t *testing.T) {
 			{ // "4.3.0"
 				_res = db.Exec("\n  CREATE TABLE t2(a, b GENERATED ALWAYS AS (a+1) VIRTUAL, c REAL, d UNIQUE);\n  INSERT INTO t2(a, c, d) VALUES(555, 555, 555);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b GENERATED ALWAYS AS (a+1) VIRTUAL, c REAL, d UNIQUE);\n  INSERT INTO t2(a, c, d) VALUES(555, 555, 555);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b GENERATED ALWAYS AS (a+1) VIRTUAL, c REAL, d UNIQUE);\n  INSERT INTO t2(a, c, d) VALUES(555, 555, 555);\n")
 				}
 			}
 			{ // "4.3.1"
@@ -734,7 +734,7 @@ func Test_upsert5(t *testing.T) {
 			{ // "4.3.2"
 				_res = db.Exec("\n  INSERT INTO t2(c, d) VALUES(22, 555)\n    ON CONFLICT(d) DO UPDATE SET a = excluded.c;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(c, d) VALUES(22, 555)\n    ON CONFLICT(d) DO UPDATE SET a = excluded.c;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2(c, d) VALUES(22, 555)\n    ON CONFLICT(d) DO UPDATE SET a = excluded.c;\n")
 				}
 			}
 			{ // "4.3.3"

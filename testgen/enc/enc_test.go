@@ -179,7 +179,7 @@ func Test_enc(t *testing.T) {
 	{ // "enc-12.3"
 		_res = db.Exec("\n  SELECT * FROM t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attached databases must use the same text encoding as main database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n  SELECT * FROM t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", resErrString(_res), "\n  SELECT * FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -240,7 +240,7 @@ func Test_enc(t *testing.T) {
 	{ // "enc-12.8"
 		_res = db.Exec("\n  SELECT * FROM t2;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attached databases must use the same text encoding as main database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n  SELECT * FROM t2;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", resErrString(_res), "\n  SELECT * FROM t2;\n  SELECT * FROM t1;\n")
 		}
 	}
 	db.Close()
@@ -250,7 +250,7 @@ func Test_enc(t *testing.T) {
 	{ // "enc-12.9"
 		_res = db.Exec("\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
 		}
 	}
 	{ // "enc-12.10"

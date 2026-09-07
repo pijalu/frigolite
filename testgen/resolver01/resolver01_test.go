@@ -59,103 +59,103 @@ func Test_resolver01(t *testing.T) {
 	{ // do_test "resolver01-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y); INSERT INTO t1 VALUES(11,22);\n    CREATE TABLE t2(y, z); INSERT INTO t2 VALUES(33,44);\n    SELECT 1 AS y FROM t1, t2 ORDER BY y;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y); INSERT INTO t1 VALUES(11,22);\n    CREATE TABLE t2(y, z); INSERT INTO t2 VALUES(33,44);\n    SELECT 1 AS y FROM t1, t2 ORDER BY y;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(x, y); INSERT INTO t1 VALUES(11,22);\n    CREATE TABLE t2(y, z); INSERT INTO t2 VALUES(33,44);\n    SELECT 1 AS y FROM t1, t2 ORDER BY y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-1.2"
 		_res = db.Exec("\n    SELECT 1 AS yy FROM t1, t2 ORDER BY y;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", _res.Error, "\n    SELECT 1 AS yy FROM t1, t2 ORDER BY y;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", resErrString(_res), "\n    SELECT 1 AS yy FROM t1, t2 ORDER BY y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-1.3"
 		_res = db.Exec("\n    CREATE TABLE t3(x,y); INSERT INTO t3 VALUES(11,44),(33,22);\n    SELECT x AS y FROM t3 ORDER BY y;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(x,y); INSERT INTO t3 VALUES(11,44),(33,22);\n    SELECT x AS y FROM t3 ORDER BY y;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t3(x,y); INSERT INTO t3 VALUES(11,44),(33,22);\n    SELECT x AS y FROM t3 ORDER BY y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-1.4"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY y;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY y;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-1.5"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY yy;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY yy;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY yy;\n  ")
 		}
 	}
 	{ // do_test "resolver01-1.6"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY 1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY 1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY 1;\n  ")
 		}
 	}
 	{ // do_test "resolver01-2.1"
 		_res = db.Exec("\n    SELECT 2 AS y FROM t1, t2 ORDER BY y COLLATE nocase;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT 2 AS y FROM t1, t2 ORDER BY y COLLATE nocase;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT 2 AS y FROM t1, t2 ORDER BY y COLLATE nocase;\n  ")
 		}
 	}
 	{ // do_test "resolver01-2.2"
 		_res = db.Exec("\n    SELECT 2 AS yy FROM t1, t2 ORDER BY y COLLATE nocase;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", _res.Error, "\n    SELECT 2 AS yy FROM t1, t2 ORDER BY y COLLATE nocase;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", resErrString(_res), "\n    SELECT 2 AS yy FROM t1, t2 ORDER BY y COLLATE nocase;\n  ")
 		}
 	}
 	{ // do_test "resolver01-2.3"
 		_res = db.Exec("\n    SELECT x AS y FROM t3 ORDER BY y COLLATE nocase;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS y FROM t3 ORDER BY y COLLATE nocase;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS y FROM t3 ORDER BY y COLLATE nocase;\n  ")
 		}
 	}
 	{ // do_test "resolver01-2.4"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY y COLLATE nocase;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY y COLLATE nocase;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY y COLLATE nocase;\n  ")
 		}
 	}
 	{ // do_test "resolver01-2.5"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY yy COLLATE nocase;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY yy COLLATE nocase;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY yy COLLATE nocase;\n  ")
 		}
 	}
 	{ // do_test "resolver01-2.6"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY 1 COLLATE nocase;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY 1 COLLATE nocase;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY 1 COLLATE nocase;\n  ")
 		}
 	}
 	{ // do_test "resolver01-3.1"
 		_res = db.Exec("\n    SELECT 3 AS y FROM t1, t2 ORDER BY +y;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", _res.Error, "\n    SELECT 3 AS y FROM t1, t2 ORDER BY +y;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", resErrString(_res), "\n    SELECT 3 AS y FROM t1, t2 ORDER BY +y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-3.2"
 		_res = db.Exec("\n    SELECT 2 AS yy FROM t1, t2 ORDER BY +y;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", _res.Error, "\n    SELECT 2 AS yy FROM t1, t2 ORDER BY +y;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: y", resErrString(_res), "\n    SELECT 2 AS yy FROM t1, t2 ORDER BY +y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-3.3"
 		_res = db.Exec("\n    SELECT x AS y FROM t3 ORDER BY +y;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS y FROM t3 ORDER BY +y;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS y FROM t3 ORDER BY +y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-3.4"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY +y;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY +y;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY +y;\n  ")
 		}
 	}
 	{ // do_test "resolver01-3.5"
 		_res = db.Exec("\n    SELECT x AS yy FROM t3 ORDER BY +yy\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT x AS yy FROM t3 ORDER BY +yy\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT x AS yy FROM t3 ORDER BY +yy\n  ")
 		}
 	}
 	{ // "resolver01-4.1"

@@ -148,7 +148,7 @@ func (tp *transpiler) emitExprCompareCheck(nameExpr, expectedExpr string, bodyCm
 // multi-command body whose expected value is a bare Go identifier.
 func (tp *transpiler) emitErrorResultCheck(nameExpr, expectedExpr string) {
 	tp.emitLine("if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %%s\", %s, _res.Error, %s)", expectedExpr, nameExpr)
+	tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %%s\", %s, resErrString(_res), %s)", expectedExpr, nameExpr)
 	tp.emitLine("}")
 }
 
@@ -182,7 +182,7 @@ func (tp *transpiler) emitDoTestStringBody(nameExpr, expectedExpr string, bodyCm
 		tp.emitLine("_res = db.Exec(%s)", sqlVar)
 		wantExpr := tp.listCatchsqlWantExpr(expectedExpr)
 		tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", wantExpr)
-		tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", _res.Error, %s, %s)", wantExpr, nameExpr)
+		tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", resErrString(_res), %s, %s)", wantExpr, nameExpr)
 		tp.emitLine("}")
 		return
 	}
@@ -217,7 +217,7 @@ func (tp *transpiler) emitDoTestStringBody(nameExpr, expectedExpr string, bodyCm
 	sqlExpr := tp.goStringLiteral(args[1])
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 	tp.emitLine("}")
 }
 

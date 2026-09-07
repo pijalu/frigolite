@@ -241,7 +241,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-8.1"
 		_res = db.Exec(" INSERT INTO track VALUES(1, 'track 1', 1) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO track VALUES(1, 'track 1', 1) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO track VALUES(1, 'track 1', 1) ")
 		}
 	}
 	{ // do_test "e_fkey-8.2"
@@ -261,7 +261,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-9.1"
 		_res = db.Exec(" DELETE FROM artist WHERE artistid = 2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM artist WHERE artistid = 2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM artist WHERE artistid = 2 ")
 		}
 	}
 	{ // do_test "e_fkey-9.2"
@@ -285,7 +285,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-10.3"
 		_res = db.Exec(" UPDATE track SET trackartist = 5 WHERE trackid = 1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE track SET trackartist = 5 WHERE trackid = 1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE track SET trackartist = 5 WHERE trackid = 1 ")
 		}
 	}
 	{ // do_test "e_fkey-10.4"
@@ -354,7 +354,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-12.2"
 		_res = db.Exec(" INSERT INTO track VALUES(14, 'Mr. Bojangles', NULL) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: track.trackartist") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: track.trackartist", _res.Error, " INSERT INTO track VALUES(14, 'Mr. Bojangles', NULL) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: track.trackartist", resErrString(_res), " INSERT INTO track VALUES(14, 'Mr. Bojangles', NULL) ")
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -384,7 +384,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-13.2"
 		_res = db.Exec(" INSERT INTO track VALUES(14, 'Mr. Bojangles', 3) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO track VALUES(14, 'Mr. Bojangles', 3) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO track VALUES(14, 'Mr. Bojangles', 3) ")
 		}
 	}
 	{ // do_test "e_fkey-13.3"
@@ -396,7 +396,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-13.4"
 		_res = db.Exec(" \n    UPDATE track SET trackartist = 3 WHERE trackname = 'Mr. Bojangles';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " \n    UPDATE track SET trackartist = 3 WHERE trackname = 'Mr. Bojangles';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " \n    UPDATE track SET trackartist = 3 WHERE trackname = 'Mr. Bojangles';\n  ")
 		}
 	}
 	{ // do_test "e_fkey-13.5"
@@ -408,7 +408,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-14.1"
 		_res = db.Exec("\n    DELETE FROM artist WHERE artistname = 'Frank Sinatra';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    DELETE FROM artist WHERE artistname = 'Frank Sinatra';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    DELETE FROM artist WHERE artistname = 'Frank Sinatra';\n  ")
 		}
 	}
 	{ // do_test "e_fkey-14.2"
@@ -420,7 +420,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-14.3"
 		_res = db.Exec("\n    UPDATE artist SET artistid=4 WHERE artistname = 'Dean Martin';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE artist SET artistid=4 WHERE artistname = 'Dean Martin';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE artist SET artistid=4 WHERE artistname = 'Dean Martin';\n  ")
 		}
 	}
 	{ // do_test "e_fkey-14.4"
@@ -496,13 +496,13 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-16.3"
 		_res = db.Exec(" UPDATE t2 SET b = 'two' WHERE rowid = 1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t2 SET b = 'two' WHERE rowid = 1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t2 SET b = 'two' WHERE rowid = 1 ")
 		}
 	}
 	{ // do_test "e_fkey-16.4"
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM t1 WHERE rowid = 1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM t1 WHERE rowid = 1 ")
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -544,7 +544,7 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-17.4"
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM t1 WHERE rowid = 2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM t1 WHERE rowid = 2 ")
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -613,25 +613,25 @@ func Test_e_fkey(t *testing.T) {
 	{ // do_test "e_fkey-19.2"
 		_res = db.Exec(" INSERT INTO child4 VALUES('xxx', 5) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child4\" referencing \"parent\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child4\" referencing \"parent\"", _res.Error, " INSERT INTO child4 VALUES('xxx', 5) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child4\" referencing \"parent\"", resErrString(_res), " INSERT INTO child4 VALUES('xxx', 5) ")
 		}
 	}
 	{ // do_test "e_fkey-19.3"
 		_res = db.Exec(" INSERT INTO child5 VALUES('xxx', 6) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child5\" referencing \"parent\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child5\" referencing \"parent\"", _res.Error, " INSERT INTO child5 VALUES('xxx', 6) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child5\" referencing \"parent\"", resErrString(_res), " INSERT INTO child5 VALUES('xxx', 6) ")
 		}
 	}
 	{ // do_test "e_fkey-19.4"
 		_res = db.Exec(" INSERT INTO child6 VALUES(2, 3) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child6\" referencing \"parent\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child6\" referencing \"parent\"", _res.Error, " INSERT INTO child6 VALUES(2, 3) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child6\" referencing \"parent\"", resErrString(_res), " INSERT INTO child6 VALUES(2, 3) ")
 		}
 	}
 	{ // do_test "e_fkey-19.5"
 		_res = db.Exec(" INSERT INTO child7 VALUES(3) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child7\" referencing \"parent\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child7\" referencing \"parent\"", _res.Error, " INSERT INTO child7 VALUES(3) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child7\" referencing \"parent\"", resErrString(_res), " INSERT INTO child7 VALUES(3) ")
 		}
 	}
 	{ // do_test "e_fkey-20.1"
@@ -655,38 +655,38 @@ func Test_e_fkey(t *testing.T) {
 			{ // do_test "e_fkey-20." + tn + ".1"
 				_res = db.Exec("INSERT INTO " + tbl + " VALUES('a', 'b')")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "INSERT INTO " + tbl + " VALUES('a', 'b')")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "INSERT INTO " + tbl + " VALUES('a', 'b')")
 				}
 			}
 			{ // do_test "e_fkey-20." + tn + ".2"
 				_res = db.Exec("UPDATE " + tbl + " SET c = ?, d = ?")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "UPDATE " + tbl + " SET c = ?, d = ?")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "UPDATE " + tbl + " SET c = ?, d = ?")
 				}
 			}
 			{ // do_test "e_fkey-20." + tn + ".3"
 				_res = db.Exec("INSERT INTO " + tbl + " SELECT ?, ?")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "INSERT INTO " + tbl + " SELECT ?, ?")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "INSERT INTO " + tbl + " SELECT ?, ?")
 				}
 			}
 			if ptbl != "" {
 				{ // do_test "e_fkey-20." + tn + ".4"
 					_res = db.Exec("DELETE FROM " + ptbl)
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "DELETE FROM " + ptbl)
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "DELETE FROM " + ptbl)
 					}
 				}
 				{ // do_test "e_fkey-20." + tn + ".5"
 					_res = db.Exec("UPDATE " + ptbl + " SET a = ?, b = ?")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "UPDATE " + ptbl + " SET a = ?, b = ?")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "UPDATE " + ptbl + " SET a = ?, b = ?")
 					}
 				}
 				{ // do_test "e_fkey-20." + tn + ".6"
 					_res = db.Exec("INSERT INTO " + ptbl + " SELECT ?, ?")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "INSERT INTO " + ptbl + " SELECT ?, ?")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "INSERT INTO " + ptbl + " SELECT ?, ?")
 					}
 				}
 			}
@@ -724,37 +724,37 @@ func Test_e_fkey(t *testing.T) {
 		{ // do_test "e_fkey-21.3"
 			_res = db.Exec(" INSERT INTO child9 VALUES('I') ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child9\" referencing \"parent2\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child9\" referencing \"parent2\"", _res.Error, " INSERT INTO child9 VALUES('I') ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child9\" referencing \"parent2\"", resErrString(_res), " INSERT INTO child9 VALUES('I') ")
 			}
 		}
 		{ // do_test "e_fkey-21.4"
 			_res = db.Exec(" INSERT INTO child9 VALUES('II') ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child9\" referencing \"parent2\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child9\" referencing \"parent2\"", _res.Error, " INSERT INTO child9 VALUES('II') ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child9\" referencing \"parent2\"", resErrString(_res), " INSERT INTO child9 VALUES('II') ")
 			}
 		}
 		{ // do_test "e_fkey-21.5"
 			_res = db.Exec(" INSERT INTO child9 VALUES(NULL) ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child9\" referencing \"parent2\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child9\" referencing \"parent2\"", _res.Error, " INSERT INTO child9 VALUES(NULL) ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child9\" referencing \"parent2\"", resErrString(_res), " INSERT INTO child9 VALUES(NULL) ")
 			}
 		}
 		{ // do_test "e_fkey-21.6"
 			_res = db.Exec(" INSERT INTO child10 VALUES('I', 'II', 'III') ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child10\" referencing \"parent2\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child10\" referencing \"parent2\"", _res.Error, " INSERT INTO child10 VALUES('I', 'II', 'III') ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child10\" referencing \"parent2\"", resErrString(_res), " INSERT INTO child10 VALUES('I', 'II', 'III') ")
 			}
 		}
 		{ // do_test "e_fkey-21.7"
 			_res = db.Exec(" INSERT INTO child10 VALUES(1, 2, 3) ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child10\" referencing \"parent2\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child10\" referencing \"parent2\"", _res.Error, " INSERT INTO child10 VALUES(1, 2, 3) ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child10\" referencing \"parent2\"", resErrString(_res), " INSERT INTO child10 VALUES(1, 2, 3) ")
 			}
 		}
 		{ // do_test "e_fkey-21.8"
 			_res = db.Exec(" INSERT INTO child10 VALUES(NULL, NULL, NULL) ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"child10\" referencing \"parent2\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child10\" referencing \"parent2\"", _res.Error, " INSERT INTO child10 VALUES(NULL, NULL, NULL) ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"child10\" referencing \"parent2\"", resErrString(_res), " INSERT INTO child10 VALUES(NULL, NULL, NULL) ")
 			}
 		}
 		_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -795,7 +795,7 @@ func Test_e_fkey(t *testing.T) {
 					{ // do_test "e_fkey-22." + fk + "." + "incr i"
 						_res = db.Exec(sql)
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", _error, _res.Error, sql)
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", _error, resErrString(_res), sql)
 						}
 					}
 				}
@@ -1014,7 +1014,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-28." + tn
 								_res = db.Exec(sql)
 								if !tclCatchsqlMatches(_res, "1"+" "+_err_tcl) {
-									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, "1"+" "+_err_tcl, "e_fkey-28." + tn)
+									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", resErrString(_res), "1"+" "+_err_tcl, "e_fkey-28." + tn)
 								}
 							}
 						}
@@ -1085,7 +1085,7 @@ func Test_e_fkey(t *testing.T) {
 						{ // do_test "e_fkey-29.3"
 							_res = db.Exec("\n    INSERT INTO song VALUES(2, 'Elvis Presley', 'Elvis Is Back!', 'Fever');\n  ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    INSERT INTO song VALUES(2, 'Elvis Presley', 'Elvis Is Back!', 'Fever');\n  ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    INSERT INTO song VALUES(2, 'Elvis Presley', 'Elvis Is Back!', 'Fever');\n  ")
 							}
 						}
 						{ // do_test "e_fkey-30.1"
@@ -1121,7 +1121,7 @@ func Test_e_fkey(t *testing.T) {
 						{ // do_test "e_fkey-31.2"
 							_res = db.Exec(" INSERT INTO prince VALUES(1, 2) ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO prince VALUES(1, 2) ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO prince VALUES(1, 2) ")
 							}
 						}
 						{ // do_test "e_fkey-31.3"
@@ -1341,7 +1341,7 @@ func Test_e_fkey(t *testing.T) {
 						{ // do_test "e_fkey-36.3"
 							_res = db.Exec("COMMIT")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "COMMIT")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "COMMIT")
 							}
 						}
 						{ // do_test "e_fkey-36.4"
@@ -1359,7 +1359,7 @@ func Test_e_fkey(t *testing.T) {
 						{ // do_test "e_fkey-37.2"
 							_res = db.Exec("RELEASE one")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "RELEASE one")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "RELEASE one")
 							}
 						}
 						{ // do_test "e_fkey-37.3"
@@ -1377,7 +1377,7 @@ func Test_e_fkey(t *testing.T) {
 						{ // do_test "e_fkey-37.5"
 							_res = db.Exec("RELEASE one")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "RELEASE one")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "RELEASE one")
 							}
 						}
 						{ // do_test "e_fkey-37.6"
@@ -1401,7 +1401,7 @@ func Test_e_fkey(t *testing.T) {
 						{ // do_test "e_fkey-38.3"
 							_res = db.Exec("COMMIT")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "COMMIT")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "COMMIT")
 							}
 						}
 						{ // do_test "e_fkey-38.4"
@@ -1419,7 +1419,7 @@ func Test_e_fkey(t *testing.T) {
 						{ // do_test "e_fkey-38.6"
 							_res = db.Exec("RELEASE a")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "RELEASE a")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "RELEASE a")
 							}
 						}
 						{ // do_test "e_fkey-38.7"
@@ -1530,7 +1530,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-41.3"
 								_res = db.Exec("COMMIT")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "COMMIT")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "COMMIT")
 								}
 							}
 							{ // do_test "e_fkey-41.4"
@@ -1572,13 +1572,13 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-41.3"
 								_res = db.Exec(" DELETE FROM parent WHERE p1 = 'a' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM parent WHERE p1 = 'a' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM parent WHERE p1 = 'a' ")
 								}
 							}
 							{ // do_test "e_fkey-41.4"
 								_res = db.Exec(" UPDATE parent SET p2 = 'e' WHERE p1 = 'c' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE parent SET p2 = 'e' WHERE p1 = 'c' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE parent SET p2 = 'e' WHERE p1 = 'c' ")
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1608,7 +1608,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-42.2"
 								_res = db.Exec(" UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
 								}
 							}
 							{ // do_test "e_fkey-42.3"
@@ -1644,7 +1644,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-42.5"
 								_res = db.Exec(" DELETE FROM parent WHERE x = 'key1' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM parent WHERE x = 'key1' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM parent WHERE x = 'key1' ")
 								}
 							}
 							{ // do_test "e_fkey-42.6"
@@ -1680,7 +1680,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-42.8"
 								_res = db.Exec(" REPLACE INTO parent VALUES('key1') ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " REPLACE INTO parent VALUES('key1') ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " REPLACE INTO parent VALUES('key1') ")
 								}
 							}
 							{ // do_test "e_fkey-42.9"
@@ -1716,7 +1716,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-43.2"
 								_res = db.Exec(" UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
 								}
 							}
 							{ // do_test "e_fkey-43.3"
@@ -1728,7 +1728,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-43.4"
 								_res = db.Exec("COMMIT")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "COMMIT")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "COMMIT")
 								}
 							}
 							{ // do_test "e_fkey-43.5"
@@ -1764,7 +1764,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-43.7"
 								_res = db.Exec(" DELETE FROM parent WHERE x = 'key1' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM parent WHERE x = 'key1' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM parent WHERE x = 'key1' ")
 								}
 							}
 							{ // do_test "e_fkey-43.8"
@@ -1776,7 +1776,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-43.9"
 								_res = db.Exec("COMMIT")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "COMMIT")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "COMMIT")
 								}
 							}
 							{ // do_test "e_fkey-43.10"
@@ -2052,7 +2052,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-49.4"
 								_res = db.Exec(" UPDATE parent SET a = '' WHERE a = 'oNe' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE parent SET a = '' WHERE a = 'oNe' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE parent SET a = '' WHERE a = 'oNe' ")
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2082,7 +2082,7 @@ func Test_e_fkey(t *testing.T) {
 							{ // do_test "e_fkey-50.2"
 								_res = db.Exec(" DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.' ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.' ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.' ")
 								}
 							}
 							{ // do_test "e_fkey-50.3"
@@ -2271,7 +2271,7 @@ func Test_e_fkey(t *testing.T) {
 										_res = db.Exec(zCreateTbl)
 										_ = _res // catchsql
 										if !tclCatchsqlMatches(_res, lRes) {
-											t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, lRes, "e_fkey-54." + tn + ".off")
+											t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", resErrString(_res), lRes, "e_fkey-54." + tn + ".off")
 										}
 									}
 									{ // do_test "e_fkey-54." + tn + ".on"
@@ -2300,7 +2300,7 @@ func Test_e_fkey(t *testing.T) {
 										_res = db.Exec(zCreateTbl)
 										_ = _res // catchsql
 										if !tclCatchsqlMatches(_res, lRes) {
-											t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, lRes, "e_fkey-54." + tn + ".on")
+											t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", resErrString(_res), lRes, "e_fkey-54." + tn + ".on")
 										}
 									}
 								}
@@ -2431,7 +2431,7 @@ func Test_e_fkey(t *testing.T) {
 								{ // do_test "e_fkey-58.3"
 									_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n  ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    BEGIN;\n      DROP TABLE p;\n  ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    BEGIN;\n      DROP TABLE p;\n  ")
 									}
 								}
 								{ // do_test "e_fkey-58.4"
@@ -2459,7 +2459,7 @@ func Test_e_fkey(t *testing.T) {
 								{ // do_test "e_fkey-59.3"
 									_res = db.Exec("COMMIT")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "COMMIT")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "COMMIT")
 									}
 								}
 								{ // do_test "e_fkey-59.4"
@@ -2738,13 +2738,13 @@ func Test_e_fkey(t *testing.T) {
 								{ // do_test "e_fkey-62.1"
 									_res = db.Exec(" SET CONSTRAINTS ALL IMMEDIATE ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"SET\": syntax error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"SET\": syntax error", _res.Error, " SET CONSTRAINTS ALL IMMEDIATE ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"SET\": syntax error", resErrString(_res), " SET CONSTRAINTS ALL IMMEDIATE ")
 									}
 								}
 								{ // do_test "e_fkey-62.2"
 									_res = db.Exec(" SET CONSTRAINTS ALL DEFERRED ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"SET\": syntax error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"SET\": syntax error", _res.Error, " SET CONSTRAINTS ALL DEFERRED ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"SET\": syntax error", resErrString(_res), " SET CONSTRAINTS ALL DEFERRED ")
 									}
 								}
 								{ // do_test "e_fkey-62.3"
@@ -2756,19 +2756,19 @@ func Test_e_fkey(t *testing.T) {
 								{ // do_test "e_fkey-62.4"
 									_res = db.Exec(" INSERT INTO ci VALUES('x', 'y') ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO ci VALUES('x', 'y') ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO ci VALUES('x', 'y') ")
 									}
 								}
 								{ // do_test "e_fkey-62.5"
 									_res = db.Exec(" INSERT INTO cd VALUES('x', 'y') ")
 									if _res.Error != nil {
-										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " INSERT INTO cd VALUES('x', 'y') ")
+										t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " INSERT INTO cd VALUES('x', 'y') ")
 									}
 								}
 								{ // do_test "e_fkey-62.6"
 									_res = db.Exec(" COMMIT ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " COMMIT ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " COMMIT ")
 									}
 								}
 								{ // do_test "e_fkey-62.7"

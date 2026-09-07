@@ -141,7 +141,7 @@ func Test_returning1(t *testing.T) {
 	{ // "1.6"
 		_res = db.Exec("\n  CREATE TABLE t2(x,y,z);\n  INSERT INTO t2 VALUES(11,12,13),(21,'b','c'),(31,'b-value',4.75);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x,y,z);\n  INSERT INTO t2 VALUES(11,12,13),(21,'b','c'),(31,'b-value',4.75);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x,y,z);\n  INSERT INTO t2 VALUES(11,12,13),(21,'b','c'),(31,'b-value',4.75);\n")
 		}
 	}
 	{ // "1.7"
@@ -219,7 +219,7 @@ func Test_returning1(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a INT, b INT DEFAULT 1234, c INT DEFAULT -16);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n  INSERT INTO t4(a,b,c) VALUES(1,2,3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a INT, b INT DEFAULT 1234, c INT DEFAULT -16);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n  INSERT INTO t4(a,b,c) VALUES(1,2,3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a INT, b INT DEFAULT 1234, c INT DEFAULT -16);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n  INSERT INTO t4(a,b,c) VALUES(1,2,3);\n")
 		}
 	}
 	{ // "4.2"
@@ -249,7 +249,7 @@ func Test_returning1(t *testing.T) {
 	{ // "4.4"
 		_res = db.Exec("\n  DELETE FROM t4;\n  INSERT INTO t4 VALUES(1,2,3),(4,5,6),(7,8,9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4;\n  INSERT INTO t4 VALUES(1,2,3),(4,5,6),(7,8,9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t4;\n  INSERT INTO t4 VALUES(1,2,3),(4,5,6),(7,8,9);\n")
 		}
 	}
 	{ // "4.5"
@@ -274,7 +274,7 @@ func Test_returning1(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(xyz);\n  CREATE TABLE t2(a as (1+1), b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(xyz);\n  CREATE TABLE t2(a as (1+1), b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(xyz);\n  CREATE TABLE t2(a as (1+1), b);\n")
 		}
 	}
 	{ // "5.1"
@@ -286,7 +286,7 @@ func Test_returning1(t *testing.T) {
 	{ // "5.2"
 		_res = db.Exec("\n  INSERT INTO t2(b) VALUES('abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(b) VALUES('abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2(b) VALUES('abc');\n")
 		}
 	}
 	{ // "5.3"
@@ -335,13 +335,13 @@ func Test_returning1(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "RETURNING may not use \"TABLE.*\" wildcards") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RETURNING may not use \"TABLE.*\" wildcards", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RETURNING may not use \"TABLE.*\" wildcards", resErrString(_res), "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;\n")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING *, '|';\n  SELECT * FROM t1 ORDER BY id;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING *, '|';\n  SELECT * FROM t1 ORDER BY id;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING *, '|';\n  SELECT * FROM t1 ORDER BY id;\n")
 		}
 	}
 	db.Close()
@@ -354,49 +354,49 @@ func Test_returning1(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1(a,b) VALUES(1,2);\n  INSERT INTO t2(x,y) VALUES(1,30);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1(a,b) VALUES(1,2);\n  INSERT INTO t2(x,y) VALUES(1,30);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1(a,b) VALUES(1,2);\n  INSERT INTO t2(x,y) VALUES(1,30);\n")
 		}
 	}
 	{ // "7.2"
 		_res = db.Exec("\n  UPDATE t1 SET b=b+1 RETURNING new.b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: new.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.b", _res.Error, "\n  UPDATE t1 SET b=b+1 RETURNING new.b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.b", resErrString(_res), "\n  UPDATE t1 SET b=b+1 RETURNING new.b;\n")
 		}
 	}
 	{ // "7.3"
 		_res = db.Exec("\n  UPDATE t1 SET b=b+1 RETURNING old.b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: old.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: old.b", _res.Error, "\n  UPDATE t1 SET b=b+1 RETURNING old.b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: old.b", resErrString(_res), "\n  UPDATE t1 SET b=b+1 RETURNING old.b;\n")
 		}
 	}
 	{ // "7.4"
 		_res = db.Exec("\n  UPDATE t1 SET b=b+1 RETURNING another.b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: another.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: another.b", _res.Error, "\n  UPDATE t1 SET b=b+1 RETURNING another.b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: another.b", resErrString(_res), "\n  UPDATE t1 SET b=b+1 RETURNING another.b;\n")
 		}
 	}
 	{ // "7.5"
 		_res = db.Exec("\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t2.x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t2.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.x", _res.Error, "\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t2.x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.x", resErrString(_res), "\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t2.x;\n")
 		}
 	}
 	{ // "7.6"
 		_res = db.Exec("\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t1.b;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t1.b;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t1.b;\n")
 		}
 	}
 	{ // "7.7"
 		_res = db.Exec("\n  UPDATE t1 AS alias SET b=123 RETURNING alias.b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: alias.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: alias.b", _res.Error, "\n  UPDATE t1 AS alias SET b=123 RETURNING alias.b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: alias.b", resErrString(_res), "\n  UPDATE t1 AS alias SET b=123 RETURNING alias.b;\n")
 		}
 	}
 	{ // "7.8"
 		_res = db.Exec("\n  UPDATE t1 AS alias SET b=alias.b+1000 RETURNING t1.b;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 AS alias SET b=alias.b+1000 RETURNING t1.b;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 AS alias SET b=alias.b+1000 RETURNING t1.b;\n")
 		}
 	}
 	db.Close()
@@ -409,31 +409,31 @@ func Test_returning1(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b,c);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(3,40);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b,c);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(3,40);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b,c);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(3,40);\n")
 		}
 	}
 	{ // "8.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE new.a=t2.b) AS x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: new.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.a", _res.Error, "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE new.a=t2.b) AS x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.a", resErrString(_res), "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE new.a=t2.b) AS x;\n")
 		}
 	}
 	{ // "8.3"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE old.a=t2.b) AS x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: old.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: old.a", _res.Error, "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE old.a=t2.b) AS x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: old.a", resErrString(_res), "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE old.a=t2.b) AS x;\n")
 		}
 	}
 	{ // "8.4"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;\n")
 		}
 	}
 	{ // "9.1"
 		_res = db.Exec("\n  UPDATE pragma_encoding SET encoding='UTF-8' RETURNING a, b, *;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table pragma_encoding may not be modified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_encoding may not be modified", _res.Error, "\n  UPDATE pragma_encoding SET encoding='UTF-8' RETURNING a, b, *;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_encoding may not be modified", resErrString(_res), "\n  UPDATE pragma_encoding SET encoding='UTF-8' RETURNING a, b, *;\n")
 		}
 	}
 	db.Close()
@@ -446,13 +446,13 @@ func Test_returning1(t *testing.T) {
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE t1_a(a, b);\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a;\n\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n\n  CREATE TABLE log(op, r, a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1_a(a, b);\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a;\n\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n\n  CREATE TABLE log(op, r, a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1_a(a, b);\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a;\n\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n\n  CREATE TABLE log(op, r, a, b);\n")
 		}
 	}
 	{ // "10.2"
 		_res = db.Exec("\n  CREATE TRIGGER tr1 INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO log VALUES('insert', new.rowid, new.a, new.b);\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES('update', new.rowid, new.a, new.b);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO log VALUES('insert', new.rowid, new.a, new.b);\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES('update', new.rowid, new.a, new.b);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TRIGGER tr1 INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO log VALUES('insert', new.rowid, new.a, new.b);\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES('update', new.rowid, new.a, new.b);\n  END;\n")
 		}
 	}
 	db.Close()
@@ -677,7 +677,7 @@ func Test_returning1(t *testing.T) {
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);\n")
 		}
 	}
 	{ // "13.1"
@@ -708,7 +708,7 @@ func Test_returning1(t *testing.T) {
 	{ // "14.1"
 		_res = db.Exec("\n  INSERT INTO child(parent_id) VALUES(123) RETURNING id;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT INTO child(parent_id) VALUES(123) RETURNING id;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT INTO child(parent_id) VALUES(123) RETURNING id;\n")
 		}
 	}
 	db.Close()
@@ -803,7 +803,7 @@ func Test_returning1(t *testing.T) {
 			{ // "17." + tn + ".0"
 				_res = db.Exec("\n    CREATE " + temp + " TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE " + temp + " TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE " + temp + " TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );\n  ")
 				}
 			}
 			{ // "17." + tn + ".1"
@@ -841,25 +841,25 @@ func Test_returning1(t *testing.T) {
 		{ // "18.0"
 			_res = db.Exec("\n  CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;\n")
 			}
 		}
 		{ // "18.1"
 			_res = db.Exec("\n  INSERT INTO view_2 DEFAULT VALUES RETURNING *;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: TRUE") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: TRUE", _res.Error, "\n  INSERT INTO view_2 DEFAULT VALUES RETURNING *;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: TRUE", resErrString(_res), "\n  INSERT INTO view_2 DEFAULT VALUES RETURNING *;\n")
 			}
 		}
 		{ // "19.0"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;\n")
 			}
 		}
 		{ // "19.1"
 			_res = db.Exec("\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
 			}
 		}
 		db.Close()
@@ -953,7 +953,7 @@ func Test_returning1(t *testing.T) {
 		{ // "22.1"
 			_res = db.Exec("\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: sqlite_master.name") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: sqlite_master.name", _res.Error, "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: sqlite_master.name", resErrString(_res), "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);\n")
 			}
 		}
 		db.Close()
@@ -1003,7 +1003,7 @@ func Test_returning1(t *testing.T) {
 		{ // "24.0"
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(c);\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('x');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts5(c);\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('x');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE ft USING fts5(c);\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('x');\n  ")
 			}
 		}
 		db.Close()
@@ -1028,7 +1028,7 @@ func Test_returning1(t *testing.T) {
 		{ // "24.2"
 			_res = db2.Exec("\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');\n  ")
 			}
 		}
 		if db2 != nil { db2.Close() }

@@ -101,7 +101,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-1.3.1"
 		_res = db.Exec("\n    CREATE INDEX seqidx ON sqlite_sequence(name)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_sequence may not be indexed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_sequence may not be indexed", _res.Error, "\n    CREATE INDEX seqidx ON sqlite_sequence(name)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_sequence may not be indexed", resErrString(_res), "\n    CREATE INDEX seqidx ON sqlite_sequence(name)\n  ")
 		}
 	}
 	{ // do_test "autoinc-1.4"
@@ -117,7 +117,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-1.5"
 		_res = db.Exec("DROP TABLE sqlite_sequence")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_sequence may not be dropped") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_sequence may not be dropped", _res.Error, "DROP TABLE sqlite_sequence")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_sequence may not be dropped", resErrString(_res), "DROP TABLE sqlite_sequence")
 		}
 	}
 	{ // do_test "autoinc-1.6"
@@ -474,7 +474,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-6.2"
 		_res = db.Exec("\n    INSERT INTO t6 VALUES(NULL,1);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, "\n    INSERT INTO t6 VALUES(NULL,1);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), "\n    INSERT INTO t6 VALUES(NULL,1);\n  ")
 		}
 	}
 	{ // do_test "autoinc-7.1"
@@ -486,7 +486,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-7.2"
 		_res = db.Exec("\n    CREATE TABLE t8(x TEXT PRIMARY KEY AUTOINCREMENT);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY", _res.Error, "\n    CREATE TABLE t8(x TEXT PRIMARY KEY AUTOINCREMENT);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY", resErrString(_res), "\n    CREATE TABLE t8(x TEXT PRIMARY KEY AUTOINCREMENT);\n  ")
 		}
 	}
 	{ // "autoinc-8.1" (prepare-step internals; SQL side effects only)

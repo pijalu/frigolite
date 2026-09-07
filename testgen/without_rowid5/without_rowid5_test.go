@@ -201,85 +201,85 @@ func Test_without_rowid5(t *testing.T) {
 	{ // "without_rowid5-1.2"
 		_res = db.Exec("\n  SELECT rowid FROM t1w;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  SELECT rowid FROM t1w;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  SELECT rowid FROM t1w;\n")
 		}
 	}
 	{ // "without_rowid5-1.3"
 		_res = db.Exec("\n  SELECT _rowid_ FROM t1w;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: _rowid_") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: _rowid_", _res.Error, "\n  SELECT _rowid_ FROM t1w;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: _rowid_", resErrString(_res), "\n  SELECT _rowid_ FROM t1w;\n")
 		}
 	}
 	{ // "without_rowid5-1.4"
 		_res = db.Exec("\n  SELECT oid FROM t1w;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: oid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: oid", _res.Error, "\n  SELECT oid FROM t1w;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: oid", resErrString(_res), "\n  SELECT oid FROM t1w;\n")
 		}
 	}
 	{ // "without_rowid5-2.1"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS wordcount(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT ROWID;\n  INSERT INTO wordcount VALUES('one',1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS wordcount(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT ROWID;\n  INSERT INTO wordcount VALUES('one',1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS wordcount(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT ROWID;\n  INSERT INTO wordcount VALUES('one',1);\n")
 		}
 	}
 	{ // "without_rowid5-2.2"
 		_res = db.Exec("\n  SELECT rowid FROM wordcount;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  SELECT rowid FROM wordcount;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  SELECT rowid FROM wordcount;\n")
 		}
 	}
 	{ // "without_rowid5-2.3"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS wordcount_b(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_b VALUES('one',1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS wordcount_b(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_b VALUES('one',1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS wordcount_b(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_b VALUES('one',1);\n")
 		}
 	}
 	{ // "without_rowid5-2.4"
 		_res = db.Exec("\n  SELECT rowid FROM wordcount_b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  SELECT rowid FROM wordcount_b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  SELECT rowid FROM wordcount_b;\n")
 		}
 	}
 	{ // "without_rowid5-2.5"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS wordcount_c(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) without rowid;\n  INSERT INTO wordcount_c VALUES('one',1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS wordcount_c(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) without rowid;\n  INSERT INTO wordcount_c VALUES('one',1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS wordcount_c(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) without rowid;\n  INSERT INTO wordcount_c VALUES('one',1);\n")
 		}
 	}
 	{ // "without_rowid5-2.6"
 		_res = db.Exec("\n  SELECT rowid FROM wordcount_c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  SELECT rowid FROM wordcount_c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  SELECT rowid FROM wordcount_c;\n")
 		}
 	}
 	{ // "without_rowid5-2.7"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS wordcount_d(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_d VALUES('one',1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS wordcount_d(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_d VALUES('one',1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS wordcount_d(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_d VALUES('one',1);\n")
 		}
 	}
 	{ // "without_rowid5-2.8"
 		_res = db.Exec("\n  SELECT rowid FROM wordcount_d;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  SELECT rowid FROM wordcount_d;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  SELECT rowid FROM wordcount_d;\n")
 		}
 	}
 	{ // "without_rowid5-3.1"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS error1(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT _rowid_;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown table option: _rowid_") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown table option: _rowid_", _res.Error, "\n  CREATE TABLE IF NOT EXISTS error1(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT _rowid_;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown table option: _rowid_", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS error1(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT _rowid_;\n")
 		}
 	}
 	{ // "without_rowid5-3.2"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS error2(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT oid;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown table option: oid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown table option: oid", _res.Error, "\n  CREATE TABLE IF NOT EXISTS error2(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT oid;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown table option: oid", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS error2(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT oid;\n")
 		}
 	}
 	{ // "without_rowid5-4.1"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS error3(\n    word TEXT UNIQUE,\n    cnt INTEGER\n  ) WITHOUT ROWID;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "PRIMARY KEY missing on table error3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "PRIMARY KEY missing on table error3", _res.Error, "\n  CREATE TABLE IF NOT EXISTS error3(\n    word TEXT UNIQUE,\n    cnt INTEGER\n  ) WITHOUT ROWID;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "PRIMARY KEY missing on table error3", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS error3(\n    word TEXT UNIQUE,\n    cnt INTEGER\n  ) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "without_rowid5-5.1"
@@ -297,25 +297,25 @@ func Test_without_rowid5(t *testing.T) {
 	{ // "without_rowid5-5.2a"
 		_res = db.Exec("\n  BEGIN;\n  INSERT INTO ipk VALUES(NULL,'sample'); -- no automatic generation of keys\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: ipk.key") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: ipk.key", _res.Error, "\n  BEGIN;\n  INSERT INTO ipk VALUES(NULL,'sample'); -- no automatic generation of keys\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: ipk.key", resErrString(_res), "\n  BEGIN;\n  INSERT INTO ipk VALUES(NULL,'sample'); -- no automatic generation of keys\n")
 		}
 	}
 	{ // "without_rowid5-5.2b"
 		_res = db.Exec("\n  ROLLBACK;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ROLLBACK;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ROLLBACK;\n")
 		}
 	}
 	{ // "without_rowid5-5.3"
 		_res = db.Exec("\n  CREATE TABLE ipk2(key INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT)WITHOUT ROWID;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "AUTOINCREMENT not allowed on WITHOUT ROWID tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "AUTOINCREMENT not allowed on WITHOUT ROWID tables", _res.Error, "\n  CREATE TABLE ipk2(key INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT)WITHOUT ROWID;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "AUTOINCREMENT not allowed on WITHOUT ROWID tables", resErrString(_res), "\n  CREATE TABLE ipk2(key INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT)WITHOUT ROWID;\n")
 		}
 	}
 	{ // "without_rowid5-5.4"
 		_res = db.Exec("\n  CREATE TABLE nn(a, b, c, d, e, PRIMARY KEY(c,a,e));\n  CREATE TABLE nnw(a, b, c, d, e, PRIMARY KEY(c,a,e)) WITHOUT ROWID;\n  INSERT INTO nn VALUES(1,2,3,4,5);\n  INSERT INTO nnw VALUES(1,2,3,4,5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE nn(a, b, c, d, e, PRIMARY KEY(c,a,e));\n  CREATE TABLE nnw(a, b, c, d, e, PRIMARY KEY(c,a,e)) WITHOUT ROWID;\n  INSERT INTO nn VALUES(1,2,3,4,5);\n  INSERT INTO nnw VALUES(1,2,3,4,5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE nn(a, b, c, d, e, PRIMARY KEY(c,a,e));\n  CREATE TABLE nnw(a, b, c, d, e, PRIMARY KEY(c,a,e)) WITHOUT ROWID;\n  INSERT INTO nn VALUES(1,2,3,4,5);\n  INSERT INTO nnw VALUES(1,2,3,4,5);\n")
 		}
 	}
 	{ // "without_rowid5-5.5"
@@ -333,19 +333,19 @@ func Test_without_rowid5(t *testing.T) {
 	{ // "without_rowid5-5.6"
 		_res = db.Exec("\n  INSERT INTO nnw VALUES(NULL, 3,4,5,6);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: nnw.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: nnw.a", _res.Error, "\n  INSERT INTO nnw VALUES(NULL, 3,4,5,6);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: nnw.a", resErrString(_res), "\n  INSERT INTO nnw VALUES(NULL, 3,4,5,6);\n")
 		}
 	}
 	{ // "without_rowid5-5.7"
 		_res = db.Exec("\n  INSERT INTO nnw VALUES(3,4,NULL,7,8)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: nnw.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: nnw.c", _res.Error, "\n  INSERT INTO nnw VALUES(3,4,NULL,7,8)\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: nnw.c", resErrString(_res), "\n  INSERT INTO nnw VALUES(3,4,NULL,7,8)\n")
 		}
 	}
 	{ // "without_rowid5-5.8"
 		_res = db.Exec("\n  INSERT INTO nnw VALUES(4,5,6,7,NULL)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: nnw.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: nnw.e", _res.Error, "\n  INSERT INTO nnw VALUES(4,5,6,7,NULL)\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: nnw.e", resErrString(_res), "\n  INSERT INTO nnw VALUES(4,5,6,7,NULL)\n")
 		}
 	}
 	{ // "without_rowid5-5.9"
@@ -420,7 +420,7 @@ func Test_without_rowid5(t *testing.T) {
 	{ // "without_rowid5-6.1"
 		_res = db.Exec("\n  CREATE TABLE b1(a INTEGER PRIMARY KEY, b BLOB) WITHOUT ROWID;\n  INSERT INTO b1 VALUES(1,x'0102030405060708090a0b0c0d0e0f');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b1(a INTEGER PRIMARY KEY, b BLOB) WITHOUT ROWID;\n  INSERT INTO b1 VALUES(1,x'0102030405060708090a0b0c0d0e0f');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE b1(a INTEGER PRIMARY KEY, b BLOB) WITHOUT ROWID;\n  INSERT INTO b1 VALUES(1,x'0102030405060708090a0b0c0d0e0f');\n")
 		}
 	}
 	{ // do_test "without_rowid5-6.2"

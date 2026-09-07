@@ -65,7 +65,7 @@ func Test_filter1(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
 		}
 	}
 	{ // "1.1"
@@ -174,25 +174,25 @@ func Test_filter1(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  SELECT upper(a) FILTER (WHERE a=1) FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FILTER may not be used with non-aggregate upper()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FILTER may not be used with non-aggregate upper()", _res.Error, "\n  SELECT upper(a) FILTER (WHERE a=1) FROM t1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FILTER may not be used with non-aggregate upper()", resErrString(_res), "\n  SELECT upper(a) FILTER (WHERE a=1) FROM t1\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT sum(a) FILTER (WHERE 1 - max(a) OVER () > 0) FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of window function max()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of window function max()", _res.Error, "\n  SELECT sum(a) FILTER (WHERE 1 - max(a) OVER () > 0) FROM t1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of window function max()", resErrString(_res), "\n  SELECT sum(a) FILTER (WHERE 1 - max(a) OVER () > 0) FROM t1\n")
 		}
 	}
 	{ // "2.3"
 		_res = db.Exec("\n  SELECT sum(a) FILTER (WHERE 1 - count(a)) FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate function count()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate function count()", _res.Error, "\n  SELECT sum(a) FILTER (WHERE 1 - count(a)) FROM t1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate function count()", resErrString(_res), "\n  SELECT sum(a) FILTER (WHERE 1 - count(a)) FROM t1\n")
 		}
 	}
 	db.Close()
@@ -205,7 +205,7 @@ func Test_filter1(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 1);\n")
 		}
 	}
 	{ // "3.1"
@@ -223,7 +223,7 @@ func Test_filter1(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(1, 3, 4);\n  INSERT INTO t2 VALUES(2, 5, 6);\n  INSERT INTO t2 VALUES(2, 7, 8);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(1, 3, 4);\n  INSERT INTO t2 VALUES(2, 5, 6);\n  INSERT INTO t2 VALUES(2, 7, 8);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(1, 3, 4);\n  INSERT INTO t2 VALUES(2, 5, 6);\n  INSERT INTO t2 VALUES(2, 7, 8);\n")
 		}
 	}
 	{ // "3.3"
@@ -241,7 +241,7 @@ func Test_filter1(t *testing.T) {
 	{ // "3.4"
 		_res = db.Exec("\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 5, 'x');\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(1, 4, 'x');\n  INSERT INTO t2 VALUES(2, 5, 6);\n  INSERT INTO t2 VALUES(2, 7, 8);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 5, 'x');\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(1, 4, 'x');\n  INSERT INTO t2 VALUES(2, 5, 6);\n  INSERT INTO t2 VALUES(2, 7, 8);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 5, 'x');\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(1, 4, 'x');\n  INSERT INTO t2 VALUES(2, 5, 6);\n  INSERT INTO t2 VALUES(2, 7, 8);\n")
 		}
 	}
 	{ // "3.5"
@@ -266,7 +266,7 @@ func Test_filter1(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 0, 5);\n  INSERT INTO t1 VALUES('a', 1, 10);\n  INSERT INTO t1 VALUES('a', 0, 15);\n\n  INSERT INTO t1 VALUES('b', 0, 5);\n  INSERT INTO t1 VALUES('b', 1, 1000);\n  INSERT INTO t1 VALUES('b', 0, 5);\n\n  INSERT INTO t1 VALUES('c', 0, 1);\n  INSERT INTO t1 VALUES('c', 1, 2);\n  INSERT INTO t1 VALUES('c', 0, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 0, 5);\n  INSERT INTO t1 VALUES('a', 1, 10);\n  INSERT INTO t1 VALUES('a', 0, 15);\n\n  INSERT INTO t1 VALUES('b', 0, 5);\n  INSERT INTO t1 VALUES('b', 1, 1000);\n  INSERT INTO t1 VALUES('b', 0, 5);\n\n  INSERT INTO t1 VALUES('c', 0, 1);\n  INSERT INTO t1 VALUES('c', 1, 2);\n  INSERT INTO t1 VALUES('c', 0, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 0, 5);\n  INSERT INTO t1 VALUES('a', 1, 10);\n  INSERT INTO t1 VALUES('a', 0, 15);\n\n  INSERT INTO t1 VALUES('b', 0, 5);\n  INSERT INTO t1 VALUES('b', 1, 1000);\n  INSERT INTO t1 VALUES('b', 0, 5);\n\n  INSERT INTO t1 VALUES('c', 0, 1);\n  INSERT INTO t1 VALUES('c', 1, 2);\n  INSERT INTO t1 VALUES('c', 0, 3);\n")
 		}
 	}
 	{ // "4.1"
@@ -327,7 +327,7 @@ func Test_filter1(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(1, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(1, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(1, 3);\n")
 		}
 	}
 	{ // "5.1"
@@ -376,7 +376,7 @@ func Test_filter1(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(1,1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(1,1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(1,1);\n")
 		}
 	}
 	{ // "6.1"
@@ -425,7 +425,7 @@ func Test_filter1(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(321, 100000);\n  INSERT INTO t1 VALUES(111, 110000);\n  INSERT INTO t1 VALUES(444, 120000);\n  INSERT INTO t1 VALUES(222, 130000);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(321, 100000);\n  INSERT INTO t1 VALUES(111, 110000);\n  INSERT INTO t1 VALUES(444, 120000);\n  INSERT INTO t1 VALUES(222, 130000);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(321, 100000);\n  INSERT INTO t1 VALUES(111, 110000);\n  INSERT INTO t1 VALUES(444, 120000);\n  INSERT INTO t1 VALUES(222, 130000);\n")
 		}
 	}
 	{ // "7.1"

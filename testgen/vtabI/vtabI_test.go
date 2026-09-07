@@ -87,7 +87,7 @@ func Test_vtabI(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")
 		}
 	}
 	// foreach {tn query filter} "1 {SELECT * FROM e1} \n    {SELECT rowid, a, b, c, d, e FROM 't1'}\n\n  2 {SELECT a, b FROM e1} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  3 {SELECT count(*) FROM e1 GROUP BY b} \n    {SELECT rowid, NULL, b, NULL, NULL, NULL FROM 't1'}\n\n  4 {SELECT count(*) FROM e1 GROUP BY b HAVING a=?} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  5 {SELECT a FROM e1 WHERE c=?}\n    {SELECT rowid, a, NULL, c, NULL, NULL FROM 't1'}\n\n  6 {SELECT a FROM e1 ORDER BY e}\n    {SELECT rowid, a, NULL, NULL, NULL, e FROM 't1'}\n\n  7 {SELECT a FROM e1 ORDER BY e, d}\n    {SELECT rowid, a, NULL, NULL, d, e FROM 't1'}"

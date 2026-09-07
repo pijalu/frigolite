@@ -198,37 +198,37 @@ func Test_zipfile(t *testing.T) {
 	{ // "1.1.0.1"
 		_res = db.Exec("\n  INSERT INTO zz(name, mode, mtime, sz, rawdata, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 5, 'abcde', 0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "rawdata must be NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rawdata must be NULL", _res.Error, "\n  INSERT INTO zz(name, mode, mtime, sz, rawdata, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 5, 'abcde', 0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rawdata must be NULL", resErrString(_res), "\n  INSERT INTO zz(name, mode, mtime, sz, rawdata, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 5, 'abcde', 0);\n")
 		}
 	}
 	{ // "1.1.0.2"
 		_res = db.Exec("\n  INSERT INTO zz(name, mtime, sz, data, method) \n  VALUES('g.txt', 1000000002, 5, '12345', 0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sz must be NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sz must be NULL", _res.Error, "\n  INSERT INTO zz(name, mtime, sz, data, method) \n  VALUES('g.txt', 1000000002, 5, '12345', 0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sz must be NULL", resErrString(_res), "\n  INSERT INTO zz(name, mtime, sz, data, method) \n  VALUES('g.txt', 1000000002, 5, '12345', 0);\n")
 		}
 	}
 	{ // "1.1.0.3"
 		_res = db.Exec("\n  INSERT INTO zz(name, mtime, rawdata, method) \n  VALUES('g.txt', 1000000002, '12345', 0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "rawdata must be NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rawdata must be NULL", _res.Error, "\n  INSERT INTO zz(name, mtime, rawdata, method) \n  VALUES('g.txt', 1000000002, '12345', 0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rawdata must be NULL", resErrString(_res), "\n  INSERT INTO zz(name, mtime, rawdata, method) \n  VALUES('g.txt', 1000000002, '12345', 0);\n")
 		}
 	}
 	{ // "1.1.0.4"
 		_res = db.Exec("\n  INSERT INTO zz(name, data, method) \n  VALUES('g.txt', '12345', 7);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown compression method: 7") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown compression method: 7", _res.Error, "\n  INSERT INTO zz(name, data, method) \n  VALUES('g.txt', '12345', 7);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown compression method: 7", resErrString(_res), "\n  INSERT INTO zz(name, data, method) \n  VALUES('g.txt', '12345', 7);\n")
 		}
 	}
 	{ // "1.1.1"
 		_res = db.Exec("\n  INSERT INTO zz(name, mode, mtime, data, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 'abcde', 0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO zz(name, mode, mtime, data, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 'abcde', 0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO zz(name, mode, mtime, data, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 'abcde', 0);\n")
 		}
 	}
 	{ // "1.1.2"
 		_res = db.Exec("\n  INSERT INTO zz(name, mode, mtime, data, method) \n  VALUES('g.txt', NULL, 1000000002, '12345', 0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO zz(name, mode, mtime, data, method) \n  VALUES('g.txt', NULL, 1000000002, '12345', 0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO zz(name, mode, mtime, data, method) \n  VALUES('g.txt', NULL, 1000000002, '12345', 0);\n")
 		}
 	}
 	{ // "1.2"
@@ -247,7 +247,7 @@ func Test_zipfile(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec("\n  INSERT INTO zz(name, mode, mtime, data) VALUES('h.txt', \n    '-rw-r--r--', 1000000004, 'aaaaaaaaaabbbbbbbbbb'\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO zz(name, mode, mtime, data) VALUES('h.txt', \n    '-rw-r--r--', 1000000004, 'aaaaaaaaaabbbbbbbbbb'\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO zz(name, mode, mtime, data) VALUES('h.txt', \n    '-rw-r--r--', 1000000004, 'aaaaaaaaaabbbbbbbbbb'\n  );\n")
 		}
 	}
 	// do_zip_tests 1.3a test.zip (unsupported command, not transpiled)
@@ -266,7 +266,7 @@ func Test_zipfile(t *testing.T) {
 	{ // "1.4.2"
 		_res = db.Exec("\n  SELECT zipfile_cds(mode) FROM zipfile('test.zip');\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT zipfile_cds(mode) FROM zipfile('test.zip');\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT zipfile_cds(mode) FROM zipfile('test.zip');\n")
 		}
 	}
 	{ // "1.5.1"
@@ -413,7 +413,7 @@ func Test_zipfile(t *testing.T) {
 	{ // "1.6.7"
 		_res = db.Exec("\n  UPDATE zz SET data=NULL WHERE name='i.txt'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile: mode does not match data") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: mode does not match data", _res.Error, "\n  UPDATE zz SET data=NULL WHERE name='i.txt'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: mode does not match data", resErrString(_res), "\n  UPDATE zz SET data=NULL WHERE name='i.txt'\n")
 		}
 	}
 	{ // "1.6.8"
@@ -508,7 +508,7 @@ func Test_zipfile(t *testing.T) {
 	{ // "2.3"
 		_res = db.Exec("\n  UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';\n")
 		}
 	}
 	{ // "2.4"
@@ -587,7 +587,7 @@ func Test_zipfile(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.x1 USING zipfile('test.zip');\n  INSERT INTO x1(name, data) VALUES('dir1/', NULL);\n  INSERT INTO x1(name, data) VALUES('file1', '1234');\n  INSERT INTO x1(name, data) VALUES('dir1/file2', '5678');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.x1 USING zipfile('test.zip');\n  INSERT INTO x1(name, data) VALUES('dir1/', NULL);\n  INSERT INTO x1(name, data) VALUES('file1', '1234');\n  INSERT INTO x1(name, data) VALUES('dir1/file2', '5678');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.x1 USING zipfile('test.zip');\n  INSERT INTO x1(name, data) VALUES('dir1/', NULL);\n  INSERT INTO x1(name, data) VALUES('file1', '1234');\n  INSERT INTO x1(name, data) VALUES('dir1/file2', '5678');\n")
 		}
 	}
 	// foreach {tn fname} "1 dir1\n  2 file1\n  3 dir1/file2"
@@ -601,50 +601,50 @@ func Test_zipfile(t *testing.T) {
 			{ // "3.1." + tn + ".0"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"" + fname + "/\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "/\"", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "/\"", resErrString(_res), "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".1"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"" + fname + "/\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "/\"", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "/\"", resErrString(_res), "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".2"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"" + fname + "\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "\"", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "\"", resErrString(_res), "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
 				}
 			}
 		}
 		{ // "3.2"
 			_res = db.Exec("\n  SELECT rowid FROM x1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  SELECT rowid FROM x1\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  SELECT rowid FROM x1\n")
 			}
 		}
 		{ // "4.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE yyy USING zipfile();\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile constructor requires one argument") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile constructor requires one argument", _res.Error, "\n  CREATE VIRTUAL TABLE yyy USING zipfile();\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile constructor requires one argument", resErrString(_res), "\n  CREATE VIRTUAL TABLE yyy USING zipfile();\n")
 			}
 		}
 		{ // "4.2"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE yyy USING zipfile('test.zip', 'test.zip');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile constructor requires one argument") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile constructor requires one argument", _res.Error, "\n  CREATE VIRTUAL TABLE yyy USING zipfile('test.zip', 'test.zip');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile constructor requires one argument", resErrString(_res), "\n  CREATE VIRTUAL TABLE yyy USING zipfile('test.zip', 'test.zip');\n")
 			}
 		}
 		{ // "4.3"
 			_res = db.Exec("\n  SELECT * FROM zipfile()\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile() function requires an argument") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile() function requires an argument", _res.Error, "\n  SELECT * FROM zipfile()\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile() function requires an argument", resErrString(_res), "\n  SELECT * FROM zipfile()\n")
 			}
 		}
 		{ // "4.4"
 			_res = db.Exec("\n  SELECT * FROM zipfile('/path/that/does/not/exist')\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot open file: /path/that/does/not/exist") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open file: /path/that/does/not/exist", _res.Error, "\n  SELECT * FROM zipfile('/path/that/does/not/exist')\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open file: /path/that/does/not/exist", resErrString(_res), "\n  SELECT * FROM zipfile('/path/that/does/not/exist')\n")
 			}
 		}
 		// foreach {tn mode} "1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx"
@@ -658,32 +658,32 @@ func Test_zipfile(t *testing.T) {
 				{ // "4.5." + tn
 					_res = db.Exec("\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile: parse error in mode: " + mode) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: parse error in mode: " + mode, _res.Error, "\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: parse error in mode: " + mode, resErrString(_res), "\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
 					}
 				}
 			}
 			{ // "4.6"
 				_res = db.Exec("\n  WITH c(name,data) AS ( SELECT 'a.txt', 'abc')\n  SELECT zipfile(name) FROM c\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function zipfile()") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function zipfile()", _res.Error, "\n  WITH c(name,data) AS ( SELECT 'a.txt', 'abc')\n  SELECT zipfile(name) FROM c\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function zipfile()", resErrString(_res), "\n  WITH c(name,data) AS ( SELECT 'a.txt', 'abc')\n  SELECT zipfile(name) FROM c\n")
 				}
 			}
 			{ // "4.7"
 				_res = db.Exec("\n  WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc' UNION ALL\n    SELECT NULL, 'def'\n  )\n  SELECT zipfile(name,data) FROM c\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "first argument to zipfile() must be non-NULL") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to zipfile() must be non-NULL", _res.Error, "\n  WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc' UNION ALL\n    SELECT NULL, 'def'\n  )\n  SELECT zipfile(name,data) FROM c\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to zipfile() must be non-NULL", resErrString(_res), "\n  WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc' UNION ALL\n    SELECT NULL, 'def'\n  )\n  SELECT zipfile(name,data) FROM c\n")
 				}
 			}
 			{ // "4.8"
 				_res = db.Exec("\n  WITH c(name,data,method) AS ( \n    SELECT 'a.txt', 'abc', 0\n    UNION SELECT 'b.txt', 'def', 8\n    UNION SELECT 'c.txt', 'ghi', 16\n  )\n  SELECT zipfile(name,NULL,NULL,data,method) FROM c\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "illegal method value: 16") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "illegal method value: 16", _res.Error, "\n  WITH c(name,data,method) AS ( \n    SELECT 'a.txt', 'abc', 0\n    UNION SELECT 'b.txt', 'def', 8\n    UNION SELECT 'c.txt', 'ghi', 16\n  )\n  SELECT zipfile(name,NULL,NULL,data,method) FROM c\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "illegal method value: 16", resErrString(_res), "\n  WITH c(name,data,method) AS ( \n    SELECT 'a.txt', 'abc', 0\n    UNION SELECT 'b.txt', 'def', 8\n    UNION SELECT 'c.txt', 'ghi', 16\n  )\n  SELECT zipfile(name,NULL,NULL,data,method) FROM c\n")
 				}
 			}
 			{ // "4.9"
 				_res = db.Exec("\n  WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc'\n    UNION SELECT 'b.txt', 'def'\n    UNION SELECT 'c.txt/', 'ghi'\n  )\n  SELECT zipfile(name,NULL,NULL,data) FROM c\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-directory name must not end with /") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-directory name must not end with /", _res.Error, "\n  WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc'\n    UNION SELECT 'b.txt', 'def'\n    UNION SELECT 'c.txt/', 'ghi'\n  )\n  SELECT zipfile(name,NULL,NULL,data) FROM c\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-directory name must not end with /", resErrString(_res), "\n  WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc'\n    UNION SELECT 'b.txt', 'def'\n    UNION SELECT 'c.txt/', 'ghi'\n  )\n  SELECT zipfile(name,NULL,NULL,data) FROM c\n")
 				}
 			}
 			db.RegisterFunction("rt", func(args []interface{}) (interface{}, error) {
@@ -883,38 +883,38 @@ func Test_zipfile(t *testing.T) {
 			{ // "8.1.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE nogood USING zipfile('test_unzip');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE nogood USING zipfile('test_unzip');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE nogood USING zipfile('test_unzip');\n")
 				}
 			}
 			{ // "8.1.2"
 				_res = db.Exec("\n  INSERT INTO nogood(name, data) VALUES('abc', 'def');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile: failed to open file test_unzip for writing") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: failed to open file test_unzip for writing", _res.Error, "\n  INSERT INTO nogood(name, data) VALUES('abc', 'def');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: failed to open file test_unzip for writing", resErrString(_res), "\n  INSERT INTO nogood(name, data) VALUES('abc', 'def');\n")
 				}
 			}
 			{ // "8.2.1"
 				_res = db.Exec("\n  DROP TABLE nogood;\n  BEGIN;\n    CREATE VIRTUAL TABLE nogood USING zipfile('test_unzip');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE nogood;\n  BEGIN;\n    CREATE VIRTUAL TABLE nogood USING zipfile('test_unzip');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE nogood;\n  BEGIN;\n    CREATE VIRTUAL TABLE nogood USING zipfile('test_unzip');\n")
 				}
 			}
 			{ // "8.2.2"
 				_res = db.Exec("\n    INSERT INTO nogood(name, data) VALUES('abc', 'def');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile: failed to open file test_unzip for writing") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: failed to open file test_unzip for writing", _res.Error, "\n    INSERT INTO nogood(name, data) VALUES('abc', 'def');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: failed to open file test_unzip for writing", resErrString(_res), "\n    INSERT INTO nogood(name, data) VALUES('abc', 'def');\n")
 				}
 			}
 			{ // "8.2.3"
 				_res = db.Exec("\n  COMMIT;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n")
 				}
 			}
 			os.Remove("test.zip")
 			{ // "8.3.1"
 				_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE ok USING zipfile('test.zip');\n    INSERT INTO ok(name, data) VALUES ('sqlite3', 'elf');\n  COMMIT;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE VIRTUAL TABLE ok USING zipfile('test.zip');\n    INSERT INTO ok(name, data) VALUES ('sqlite3', 'elf');\n  COMMIT;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    CREATE VIRTUAL TABLE ok USING zipfile('test.zip');\n    INSERT INTO ok(name, data) VALUES ('sqlite3', 'elf');\n  COMMIT;\n")
 				}
 			}
 			{ // "9.0"
@@ -944,13 +944,13 @@ func Test_zipfile(t *testing.T) {
 			{ // "10.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE z USING zipfile('test.zip');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE z USING zipfile('test.zip');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE z USING zipfile('test.zip');\n")
 				}
 			}
 			{ // "10.1"
 				_res = db.Exec("\n  INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"a0\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"a0\"", _res.Error, "\n  INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"a0\"", resErrString(_res), "\n  INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');\n")
 				}
 			}
 			{ // "10.2"
@@ -968,7 +968,7 @@ func Test_zipfile(t *testing.T) {
 			{ // "10.3"
 				_res = db.Exec("\n  REPLACE INTO z(name,data) VALUES('a0','three'),('a0','four');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  REPLACE INTO z(name,data) VALUES('a0','three'),('a0','four');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  REPLACE INTO z(name,data) VALUES('a0','three'),('a0','four');\n")
 				}
 			}
 			{ // "10.4"
@@ -986,7 +986,7 @@ func Test_zipfile(t *testing.T) {
 			{ // "10.5"
 				_res = db.Exec("\n  INSERT OR IGNORE INTO z(name,data) VALUES('a0','five'),('a0','six');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT OR IGNORE INTO z(name,data) VALUES('a0','five'),('a0','six');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT OR IGNORE INTO z(name,data) VALUES('a0','five'),('a0','six');\n")
 				}
 			}
 			{ // "10.6"
@@ -1004,7 +1004,7 @@ func Test_zipfile(t *testing.T) {
 			{ // "11.1"
 				_res = db.Exec("\n  DELETE FROM z;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM z;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM z;\n")
 				}
 			}
 			{ // "11.2"
@@ -1052,7 +1052,7 @@ func Test_zipfile(t *testing.T) {
 			{ // "11.6"
 				_res = db.Exec("\n  UPDATE z SET name = 'b1' WHERE name = 'b0';\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"b1\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b1\"", _res.Error, "\n  UPDATE z SET name = 'b1' WHERE name = 'b0';\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b1\"", resErrString(_res), "\n  UPDATE z SET name = 'b1' WHERE name = 'b0';\n")
 				}
 			}
 			{ // "11.7"
@@ -1070,13 +1070,13 @@ func Test_zipfile(t *testing.T) {
 			{ // "11.8"
 				_res = db.Exec("\n  UPDATE z SET name = 'b1';\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"b1\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b1\"", _res.Error, "\n  UPDATE z SET name = 'b1';\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b1\"", resErrString(_res), "\n  UPDATE z SET name = 'b1';\n")
 				}
 			}
 			{ // "11.9"
 				_res = db.Exec("\n  UPDATE z SET name = 'b2';\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"b2\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b2\"", _res.Error, "\n  UPDATE z SET name = 'b2';\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b2\"", resErrString(_res), "\n  UPDATE z SET name = 'b2';\n")
 				}
 			}
 			{ // "11.10"
@@ -1149,7 +1149,7 @@ func Test_zipfile(t *testing.T) {
 					{ // "12.2"
 						_res = db.Exec("\n    CREATE TABLE d AS SELECT 'subdir' d;\n    CREATE TABLE x AS SELECT 1 x;\n  ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE d AS SELECT 'subdir' d;\n    CREATE TABLE x AS SELECT 1 x;\n  ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE d AS SELECT 'subdir' d;\n    CREATE TABLE x AS SELECT 1 x;\n  ")
 						}
 					}
 					{ // "12.4"
@@ -1204,25 +1204,25 @@ func Test_zipfile(t *testing.T) {
 				{ // "15.10"
 					_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile(null);\n  REPLACE INTO t1 VALUES(null,null,0,null,null,null,null);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile(null);\n  REPLACE INTO t1 VALUES(null,null,0,null,null,null,null);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile(null);\n  REPLACE INTO t1 VALUES(null,null,0,null,null,null,null);\n")
 					}
 				}
 				{ // "15.20"
 					_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t2 USING zipfile(null);\n  REPLACE INTO t2 values(null,null,null,null,null,10,null);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t2 USING zipfile(null);\n  REPLACE INTO t2 values(null,null,null,null,null,10,null);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t2 USING zipfile(null);\n  REPLACE INTO t2 values(null,null,null,null,null,10,null);\n")
 					}
 				}
 				{ // "16.10"
 					_res = db.Exec("\n  DELETE FROM zipfile;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile: missing filename") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: missing filename", _res.Error, "\n  DELETE FROM zipfile;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: missing filename", resErrString(_res), "\n  DELETE FROM zipfile;\n")
 					}
 				}
 				{ // "16.20"
 					_res = db.Exec("\n  REPLACE INTO zipfile VALUES(null,null,null,null,null,123,null);\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile: missing filename") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: missing filename", _res.Error, "\n  REPLACE INTO zipfile VALUES(null,null,null,null,null,123,null);\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: missing filename", resErrString(_res), "\n  REPLACE INTO zipfile VALUES(null,null,null,null,null,123,null);\n")
 					}
 				}
 				{ // "17.1"
@@ -1240,7 +1240,7 @@ func Test_zipfile(t *testing.T) {
 				{ // "18.1"
 					_res = db.Exec("\n  SELECT * FROM zipfile(NULL);\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot open file:") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open file:", _res.Error, "\n  SELECT * FROM zipfile(NULL);\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open file:", resErrString(_res), "\n  SELECT * FROM zipfile(NULL);\n")
 					}
 				}
 				{ // do_test "19.1"
@@ -1266,25 +1266,25 @@ func Test_zipfile(t *testing.T) {
 				{ // "20.0"
 					_res = db.Exec("\n  SELECT * FROM zipfile(X'504b050600000000010001004000000000a3e1110000');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zip archive is corrupt") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", _res.Error, "\n  SELECT * FROM zipfile(X'504b050600000000010001004000000000a3e1110000');\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", resErrString(_res), "\n  SELECT * FROM zipfile(X'504b050600000000010001004000000000a3e1110000');\n")
 					}
 				}
 				{ // "20.1"
 					_res = db.Exec("\n  SELECT * FROM zipfile(unhex('\n504b0304140000080000a60d3e5bd42728f602000000020000000500090068\n2e74787455540500012836db682120504b01021e03140000080000a60d3e5b\nd42728f602000000020000000500ffff0000000000000000a4810000000068\n2e74787455540500012836db68504b050600000000010001003c0000002e00\n00000000',char(0x0a,0x0d)));\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zip archive is corrupt") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", _res.Error, "\n  SELECT * FROM zipfile(unhex('\n504b0304140000080000a60d3e5bd42728f602000000020000000500090068\n2e74787455540500012836db682120504b01021e03140000080000a60d3e5b\nd42728f602000000020000000500ffff0000000000000000a4810000000068\n2e74787455540500012836db68504b050600000000010001003c0000002e00\n00000000',char(0x0a,0x0d)));\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", resErrString(_res), "\n  SELECT * FROM zipfile(unhex('\n504b0304140000080000a60d3e5bd42728f602000000020000000500090068\n2e74787455540500012836db682120504b01021e03140000080000a60d3e5b\nd42728f602000000020000000500ffff0000000000000000a4810000000068\n2e74787455540500012836db68504b050600000000010001003c0000002e00\n00000000',char(0x0a,0x0d)));\n")
 					}
 				}
 				{ // "20.2"
 					_res = db.Exec("\n  SELECT * FROM zipfile(unhex('504b0304140000000000000000008b9ed9d30100000001000000010000007841504b01021e03140000000000000000008b9ed9d3010000000100000001001e000000000000000000a4810000000078504b050600000000010001002f000000200000000000'));\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zip archive is corrupt") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", _res.Error, "\n  SELECT * FROM zipfile(unhex('504b0304140000000000000000008b9ed9d30100000001000000010000007841504b01021e03140000000000000000008b9ed9d3010000000100000001001e000000000000000000a4810000000078504b050600000000010001002f000000200000000000'));\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", resErrString(_res), "\n  SELECT * FROM zipfile(unhex('504b0304140000000000000000008b9ed9d30100000001000000010000007841504b01021e03140000000000000000008b9ed9d3010000000100000001001e000000000000000000a4810000000078504b050600000000010001002f000000200000000000'));\n")
 					}
 				}
 				{ // "21.0"
 					_res = db.Exec("\n  SELECT * FROM zipfile(X'504B03040A0000000000000000000000000000000000000000000100000078504B010200000A0000000000000000000000000000000000000000000100000000000000000000000000E2FFFFFF78504B050600000000010001002F0000001F0000000000');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "failed to read LFH at offset -30") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "failed to read LFH at offset -30", _res.Error, "\n  SELECT * FROM zipfile(X'504B03040A0000000000000000000000000000000000000000000100000078504B010200000A0000000000000000000000000000000000000000000100000000000000000000000000E2FFFFFF78504B050600000000010001002F0000001F0000000000');\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "failed to read LFH at offset -30", resErrString(_res), "\n  SELECT * FROM zipfile(X'504B03040A0000000000000000000000000000000000000000000100000078504B010200000A0000000000000000000000000000000000000000000100000000000000000000000000E2FFFFFF78504B050600000000010001002F0000001F0000000000');\n")
 					}
 				}
 				{ // "22.0"
@@ -1311,7 +1311,7 @@ func Test_zipfile(t *testing.T) {
 					{ // "23.0"
 						_res = db.Exec("\n    SELECT length(zipfile(name,0,0,data,0)) FROM (\n        SELECT 'a' AS name, zeroblob(1000000000) AS data\n        UNION ALL SELECT 'b', zeroblob(1200000000)\n    );\n  ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "out of memory") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "out of memory", _res.Error, "\n    SELECT length(zipfile(name,0,0,data,0)) FROM (\n        SELECT 'a' AS name, zeroblob(1000000000) AS data\n        UNION ALL SELECT 'b', zeroblob(1200000000)\n    );\n  ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "out of memory", resErrString(_res), "\n    SELECT length(zipfile(name,0,0,data,0)) FROM (\n        SELECT 'a' AS name, zeroblob(1000000000) AS data\n        UNION ALL SELECT 'b', zeroblob(1200000000)\n    );\n  ")
 						}
 					}
 				}
@@ -1328,7 +1328,7 @@ func Test_zipfile(t *testing.T) {
 				{ // "24.0"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE zzz USING zipfile('test.zip');\n  INSERT INTO zzz (name, data) VALUES ('f.txt','lotsoftext');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE zzz USING zipfile('test.zip');\n  INSERT INTO zzz (name, data) VALUES ('f.txt','lotsoftext');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE zzz USING zipfile('test.zip');\n  INSERT INTO zzz (name, data) VALUES ('f.txt','lotsoftext');\n")
 					}
 				}
 				{ // do_test "24.1"
@@ -1346,13 +1346,13 @@ func Test_zipfile(t *testing.T) {
 				{ // "24.2"
 					_res = db.Exec("\n  SELECT * FROM zipfile(unhex(" + sqlLiteral(zip) + "))\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zip archive is corrupt") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", _res.Error, "\n  SELECT * FROM zipfile(unhex(" + sqlLiteral(zip) + "))\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", resErrString(_res), "\n  SELECT * FROM zipfile(unhex(" + sqlLiteral(zip) + "))\n")
 					}
 				}
 				{ // "25.0"
 					_res = db.Exec("\n  WITH t(v) AS (\n    SELECT unhex(\n     '504B03041400000000000000000000000000000000000000000001000000\n      61504B01021E031400000000000000000000000000000000000000000001\n      000000000000000000000000000000000061504B05060000000001000100\n      2F0000001F0000000000',char(10,13,32))\n    UNION ALL SELECT 'x'\n  ) SELECT z.name FROM t, zipfile(t.v) AS z;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot open file: x") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open file: x", _res.Error, "\n  WITH t(v) AS (\n    SELECT unhex(\n     '504B03041400000000000000000000000000000000000000000001000000\n      61504B01021E031400000000000000000000000000000000000000000001\n      000000000000000000000000000000000061504B05060000000001000100\n      2F0000001F0000000000',char(10,13,32))\n    UNION ALL SELECT 'x'\n  ) SELECT z.name FROM t, zipfile(t.v) AS z;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open file: x", resErrString(_res), "\n  WITH t(v) AS (\n    SELECT unhex(\n     '504B03041400000000000000000000000000000000000000000001000000\n      61504B01021E031400000000000000000000000000000000000000000001\n      000000000000000000000000000000000061504B05060000000001000100\n      2F0000001F0000000000',char(10,13,32))\n    UNION ALL SELECT 'x'\n  ) SELECT z.name FROM t, zipfile(t.v) AS z;\n")
 					}
 				}
 }

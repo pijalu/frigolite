@@ -116,13 +116,13 @@ func Test_upfrom2(t *testing.T) {
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE data(x, y, z);\n  CREATE VIEW t1 AS SELECT * FROM data;\n  CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO data VALUES(new.x, new.y, new.z);\n  END;\n  CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.z || '->' || new.z);\n  END;\n\n  CREATE TABLE log(t TEXT);\n\n  INSERT INTO t1 VALUES(1, 'i',   'one');\n  INSERT INTO t1 VALUES(2, 'ii',  'two');\n  INSERT INTO t1 VALUES(3, 'iii', 'three');\n  INSERT INTO t1 VALUES(4, 'iv',  'four');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE data(x, y, z);\n  CREATE VIEW t1 AS SELECT * FROM data;\n  CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO data VALUES(new.x, new.y, new.z);\n  END;\n  CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.z || '->' || new.z);\n  END;\n\n  CREATE TABLE log(t TEXT);\n\n  INSERT INTO t1 VALUES(1, 'i',   'one');\n  INSERT INTO t1 VALUES(2, 'ii',  'two');\n  INSERT INTO t1 VALUES(3, 'iii', 'three');\n  INSERT INTO t1 VALUES(4, 'iv',  'four');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE data(x, y, z);\n  CREATE VIEW t1 AS SELECT * FROM data;\n  CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO data VALUES(new.x, new.y, new.z);\n  END;\n  CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.z || '->' || new.z);\n  END;\n\n  CREATE TABLE log(t TEXT);\n\n  INSERT INTO t1 VALUES(1, 'i',   'one');\n  INSERT INTO t1 VALUES(2, 'ii',  'two');\n  INSERT INTO t1 VALUES(3, 'iii', 'three');\n  INSERT INTO t1 VALUES(4, 'iv',  'four');\n")
 				}
 			}
 			{ // "3.1"
 				_res = db.Exec("\n  WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;\n")
 				}
 			}
 			// foreach {tn sql} "2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }"
@@ -147,7 +147,7 @@ func Test_upfrom2(t *testing.T) {
 					{ // "4." + tn + ".0"
 						_res = db.Exec("\n    INSERT INTO x1 VALUES(1, 1, 1);\n    INSERT INTO x1 VALUES(2, 2, 2);\n    INSERT INTO x1 VALUES(3, 3, 3);\n    INSERT INTO x1 VALUES(4, 4, 4);\n    INSERT INTO x1 VALUES(5, 5, 5);\n    CREATE TABLE map(o, t);\n    INSERT INTO map VALUES(3, 30), (4, 40), (1, 10);\n  ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1 VALUES(1, 1, 1);\n    INSERT INTO x1 VALUES(2, 2, 2);\n    INSERT INTO x1 VALUES(3, 3, 3);\n    INSERT INTO x1 VALUES(4, 4, 4);\n    INSERT INTO x1 VALUES(5, 5, 5);\n    CREATE TABLE map(o, t);\n    INSERT INTO map VALUES(3, 30), (4, 40), (1, 10);\n  ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO x1 VALUES(1, 1, 1);\n    INSERT INTO x1 VALUES(2, 2, 2);\n    INSERT INTO x1 VALUES(3, 3, 3);\n    INSERT INTO x1 VALUES(4, 4, 4);\n    INSERT INTO x1 VALUES(5, 5, 5);\n    CREATE TABLE map(o, t);\n    INSERT INTO map VALUES(3, 30), (4, 40), (1, 10);\n  ")
 						}
 					}
 					{ // "4." + tn + ".1"
@@ -173,7 +173,7 @@ func Test_upfrom2(t *testing.T) {
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n  CREATE TABLE x2(a, b, c);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n  CREATE TABLE x2(a, b, c);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, c);\n  CREATE TABLE x2(a, b, c);\n")
 					}
 				}
 				// foreach {tn update nm} "1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes"
@@ -189,7 +189,7 @@ func Test_upfrom2(t *testing.T) {
 						{ // "5." + tn
 							_res = db.Exec(update)
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "target object/alias may not appear in FROM clause: " + nm) {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "target object/alias may not appear in FROM clause: " + nm, _res.Error, update)
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "target object/alias may not appear in FROM clause: " + nm, resErrString(_res), update)
 							}
 						}
 					}
@@ -203,19 +203,19 @@ func Test_upfrom2(t *testing.T) {
 					{ // "6.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a); \n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a); \n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a); \n")
 						}
 					}
 					{ // "6.1"
 						_res = db.Exec("\n  UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1\n  )\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1\n  )\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1\n  )\n")
 						}
 					}
 					{ // "6.2"
 						_res = db.Exec("\n  UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1 UNION ALL SELECT * FROM t1\n  )\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1 UNION ALL SELECT * FROM t1\n  )\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1 UNION ALL SELECT * FROM t1\n  )\n")
 						}
 					}
 					db.Close()

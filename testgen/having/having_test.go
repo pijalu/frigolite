@@ -92,7 +92,7 @@ func Test_having(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(c, d);\n\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(1, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n  INSERT INTO t1 VALUES(2, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(c, d);\n\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(1, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n  INSERT INTO t1 VALUES(2, 6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(c, d);\n\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(1, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n  INSERT INTO t1 VALUES(2, 6);\n")
 		}
 	}
 	// foreach {tn sql res} "1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\" {2 12}\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)>10\" {2 12}\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>12\" {}"
@@ -108,7 +108,7 @@ func Test_having(t *testing.T) {
 			{ // "1." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 		}
@@ -165,7 +165,7 @@ func Test_having(t *testing.T) {
 				{ // "4.1"
 					_res = db.Exec("\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
 					}
 				}
 				// proc definition (not transpiled)
@@ -210,7 +210,7 @@ func Test_having(t *testing.T) {
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")
 					}
 				}
 				{ // "5.1"

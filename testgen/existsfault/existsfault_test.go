@@ -72,7 +72,7 @@ func Test_existsfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		}
 	}
 	// do_faultsim_test 1 -faults oom* -prep {\n  sqlite3 db test.db\n  execsql { SELECT * FROM ...} -bo... (unsupported command, not transpiled)

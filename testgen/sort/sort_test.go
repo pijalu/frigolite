@@ -494,7 +494,7 @@ func Test_sort(t *testing.T) {
 	{ // "sort-13.0"
 		_res = db.Exec("\n  CREATE TABLE t10(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t10(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t10(a, b);\n")
 		}
 	}
 	{ // do_test "sort-13.1"
@@ -649,7 +649,7 @@ func Test_sort(t *testing.T) {
 		{ // "16.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
 			}
 		}
 		db.Close()
@@ -684,7 +684,7 @@ func Test_sort(t *testing.T) {
 		{ // "18.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
 			}
 		}
 		{ // "sort-18.2" — skipped: EXPLAIN QUERY PLAN join order not matched (G3.INDEX) (SQL side effects only)

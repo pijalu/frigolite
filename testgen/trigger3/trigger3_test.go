@@ -67,7 +67,7 @@ func Test_trigger3(t *testing.T) {
 	{ // do_test "trigger3-1.1"
 		_res = db.Exec("\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (1, 5, 6);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Trigger abort") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Trigger abort", _res.Error, "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (1, 5, 6);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Trigger abort", resErrString(_res), "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (1, 5, 6);\n    ")
 		}
 	}
 	// verify_ex_errcode trigger3-1.1b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
@@ -86,7 +86,7 @@ func Test_trigger3(t *testing.T) {
 	{ // do_test "trigger3-2.1"
 		_res = db.Exec("\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (2, 5, 6);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Trigger fail") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Trigger fail", _res.Error, "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (2, 5, 6);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Trigger fail", resErrString(_res), "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (2, 5, 6);\n    ")
 		}
 	}
 	// verify_ex_errcode trigger3-2.1b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
@@ -99,7 +99,7 @@ func Test_trigger3(t *testing.T) {
 	{ // do_test "trigger3-3.1"
 		_res = db.Exec("\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (3, 5, 6);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Trigger rollback") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Trigger rollback", _res.Error, "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (3, 5, 6);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Trigger rollback", resErrString(_res), "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (3, 5, 6);\n    ")
 		}
 	}
 	// verify_ex_errcode trigger3-3.1b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
@@ -125,7 +125,7 @@ func Test_trigger3(t *testing.T) {
 	{ // do_test "trigger3-4.1"
 		_res = db.Exec("\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (4, 5, 6);\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (4, 5, 6);\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (4, 5, 6);\n    ")
 		}
 	}
 	{ // do_test "trigger3-4.2"
@@ -191,20 +191,20 @@ func Test_trigger3(t *testing.T) {
 	{ // do_test "trigger3-7.1"
 		_res = db.Exec("\n        INSERT INTO tbl_view VALUES(1, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "View rollback") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "View rollback", _res.Error, "\n        INSERT INTO tbl_view VALUES(1, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "View rollback", resErrString(_res), "\n        INSERT INTO tbl_view VALUES(1, 2, 3);\n    ")
 		}
 	}
 	// verify_ex_errcode trigger3-7.1b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
 	{ // do_test "trigger3-7.2"
 		_res = db.Exec("\n        INSERT INTO tbl_view VALUES(2, 2, 3);\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO tbl_view VALUES(2, 2, 3);\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        INSERT INTO tbl_view VALUES(2, 2, 3);\n    ")
 		}
 	}
 	{ // do_test "trigger3-7.3"
 		_res = db.Exec("\n        INSERT INTO tbl_view VALUES(3, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "View abort") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "View abort", _res.Error, "\n        INSERT INTO tbl_view VALUES(3, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "View abort", resErrString(_res), "\n        INSERT INTO tbl_view VALUES(3, 2, 3);\n    ")
 		}
 	}
 	// verify_ex_errcode trigger3-7.3b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)

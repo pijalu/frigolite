@@ -223,7 +223,7 @@ func Test_e_blobwrite(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-2, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-3, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-4, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-5, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-6, " + sqlLiteral(dots) + ");\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-2, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-3, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-4, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-5, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-6, " + sqlLiteral(dots) + ");\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-2, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-3, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-4, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-5, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-6, " + sqlLiteral(dots) + ");\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -372,7 +372,7 @@ func Test_e_blobwrite(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 43);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 44);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 45);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 43);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 44);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 45);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 43);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 44);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 45);\n")
 		}
 	}
 	B = "incrblob_7"

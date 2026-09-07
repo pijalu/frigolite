@@ -88,7 +88,7 @@ func Test_fts4growth(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE x1 USING fts3; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE x1 USING fts3; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE x1 USING fts3; ")
 		}
 	}
 	{ // do_test "1.2"
@@ -169,7 +169,7 @@ func Test_fts4growth(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec(" \n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
 		}
 	}
 	ftsKJVGenesis(t, db)
@@ -286,7 +286,7 @@ func Test_fts4growth(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE x3 USING fts4 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE x3 USING fts4 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE x3 USING fts4 ")
 		}
 	}
 	{ // do_test "3.1.1"
@@ -365,7 +365,7 @@ func Test_fts4growth(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS x4;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x4 USING fts4(words);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x4;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x4 USING fts4(words);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS x4;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x4 USING fts4(words);\n")
 		}
 	}
 	{ // do_test "4.2"
@@ -430,7 +430,7 @@ func Test_fts4growth(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
 		}
 	}
 	ftsKJVGenesis(t, db)

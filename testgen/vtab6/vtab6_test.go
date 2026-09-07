@@ -290,49 +290,49 @@ func Test_vtab6(t *testing.T) {
 	{ // do_test "vtab6-3.1"
 		_res = db.Exec("\n    SELECT * FROM t1 NATURAL JOIN t2 ON t1.a=t2.b;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a NATURAL join may not have an ON or USING clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", _res.Error, "\n    SELECT * FROM t1 NATURAL JOIN t2 ON t1.a=t2.b;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", resErrString(_res), "\n    SELECT * FROM t1 NATURAL JOIN t2 ON t1.a=t2.b;\n  ")
 		}
 	}
 	{ // do_test "vtab6-3.2"
 		_res = db.Exec("\n    SELECT * FROM t1 NATURAL JOIN t2 USING(b);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a NATURAL join may not have an ON or USING clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", _res.Error, "\n    SELECT * FROM t1 NATURAL JOIN t2 USING(b);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", resErrString(_res), "\n    SELECT * FROM t1 NATURAL JOIN t2 USING(b);\n  ")
 		}
 	}
 	{ // do_test "vtab6-3.3"
 		_res = db.Exec("\n    SELECT * FROM t1 JOIN t2 ON t1.a=t2.b USING(b);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"USING\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", _res.Error, "\n    SELECT * FROM t1 JOIN t2 ON t1.a=t2.b USING(b);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", resErrString(_res), "\n    SELECT * FROM t1 JOIN t2 ON t1.a=t2.b USING(b);\n  ")
 		}
 	}
 	{ // do_test "vtab6-3.4"
 		_res = db.Exec("\n    SELECT * FROM t1 JOIN t2 USING(a);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot join using column a - column not present in both tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot join using column a - column not present in both tables", _res.Error, "\n    SELECT * FROM t1 JOIN t2 USING(a);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot join using column a - column not present in both tables", resErrString(_res), "\n    SELECT * FROM t1 JOIN t2 USING(a);\n  ")
 		}
 	}
 	{ // do_test "vtab6-3.5"
 		_res = db.Exec(" SELECT * FROM t1 USING(a) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a JOIN clause is required before USING") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before USING", _res.Error, " SELECT * FROM t1 USING(a) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before USING", resErrString(_res), " SELECT * FROM t1 USING(a) ")
 		}
 	}
 	{ // do_test "vtab6-3.6"
 		_res = db.Exec("\n    SELECT * FROM t1 JOIN t2 ON t3.a=t2.b;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t3.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t3.a", _res.Error, "\n    SELECT * FROM t1 JOIN t2 ON t3.a=t2.b;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t3.a", resErrString(_res), "\n    SELECT * FROM t1 JOIN t2 ON t3.a=t2.b;\n  ")
 		}
 	}
 	{ // do_test "vtab6-3.7"
 		_res = db.Exec("\n    SELECT * FROM t1 INNER OUTER JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: INNER OUTER") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER OUTER", _res.Error, "\n    SELECT * FROM t1 INNER OUTER JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER OUTER", resErrString(_res), "\n    SELECT * FROM t1 INNER OUTER JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "vtab6-3.7"
 		_res = db.Exec("\n    SELECT * FROM t1 LEFT BOGUS JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: LEFT BOGUS") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: LEFT BOGUS", _res.Error, "\n    SELECT * FROM t1 LEFT BOGUS JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: LEFT BOGUS", resErrString(_res), "\n    SELECT * FROM t1 LEFT BOGUS JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "vtab6-4.1"
@@ -546,13 +546,13 @@ func Test_vtab6(t *testing.T) {
 	{ // do_test "vtab6-11.4.1"
 		_res = db.Exec("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ab.xBestIndex malfunction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ab.xBestIndex malfunction", _res.Error, "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ab.xBestIndex malfunction", resErrString(_res), "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		}
 	}
 	{ // do_test "vtab6-11.4.2"
 		_res = db.Exec("\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bc.xBestIndex malfunction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bc.xBestIndex malfunction", _res.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bc.xBestIndex malfunction", resErrString(_res), "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		}
 	}
 }

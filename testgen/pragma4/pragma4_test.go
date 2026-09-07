@@ -126,7 +126,7 @@ func Test_pragma4(t *testing.T) {
 			{ // "4.1.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
 				}
 			}
 			{ // "4.1.2"
@@ -173,7 +173,7 @@ func Test_pragma4(t *testing.T) {
 				{ // "4.1.5a"
 					_res = db.Exec(" \n    PRAGMA table_info(t1) \n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database schema has changed") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database schema has changed", _res.Error, " \n    PRAGMA table_info(t1) \n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database schema has changed", resErrString(_res), " \n    PRAGMA table_info(t1) \n  ")
 					}
 				}
 			}
@@ -202,7 +202,7 @@ func Test_pragma4(t *testing.T) {
 			{ // "4.2.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
 				}
 			}
 			{ // "4.2.2"
@@ -270,7 +270,7 @@ func Test_pragma4(t *testing.T) {
 			{ // "4.3.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);\n")
 				}
 			}
 			{ // "4.3.2"
@@ -336,7 +336,7 @@ func Test_pragma4(t *testing.T) {
 			{ // "4.4.0"
 				_res = db.Exec("\n  CREATE INDEX main.i1 ON t1(b, c);\n  CREATE INDEX aux.i2 ON t2(e, f);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX main.i1 ON t1(b, c);\n  CREATE INDEX aux.i2 ON t2(e, f);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX main.i1 ON t1(b, c);\n  CREATE INDEX aux.i2 ON t2(e, f);\n")
 				}
 			}
 			{ // "4.4.1"
@@ -396,7 +396,7 @@ func Test_pragma4(t *testing.T) {
 			{ // "4.5.0"
 				_res = db.Exec("\n  CREATE UNIQUE INDEX main.i1 ON t1(a);\n  CREATE UNIQUE INDEX aux.i2 ON t2(d);\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE UNIQUE INDEX main.i1 ON t1(a);\n  CREATE UNIQUE INDEX aux.i2 ON t2(d);\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE UNIQUE INDEX main.i1 ON t1(a);\n  CREATE UNIQUE INDEX aux.i2 ON t2(d);\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n")
 				}
 			}
 			{ // "4.5.1"
@@ -456,7 +456,7 @@ func Test_pragma4(t *testing.T) {
 			{ // "4.6.0"
 				_res = db.Exec("\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n  INSERT INTO main.c1 VALUES(1, 2, 3);\n  INSERT INTO aux.c2 VALUES(4, 5, 6);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n  INSERT INTO main.c1 VALUES(1, 2, 3);\n  INSERT INTO aux.c2 VALUES(4, 5, 6);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n  INSERT INTO main.c1 VALUES(1, 2, 3);\n  INSERT INTO aux.c2 VALUES(4, 5, 6);\n")
 				}
 			}
 			{ // "4.6.1"
@@ -504,7 +504,7 @@ func Test_pragma4(t *testing.T) {
 			{ // "4.6.5"
 				_res = db.Exec(" \n  pragma foreign_key_check('c2') \n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: c2") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: c2", _res.Error, " \n  pragma foreign_key_check('c2') \n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: c2", resErrString(_res), " \n  pragma foreign_key_check('c2') \n")
 				}
 			}
 			{ // "5.0"
@@ -584,13 +584,13 @@ func Test_pragma4(t *testing.T) {
 			{ // "7.0"
 				_res = db.Exec("\n    CREATE TABLE t3 (\"a\" TEXT, \"b\" TEXT);\n    CREATE TABLE t4 (\"a\" TEXT, \"b\" TEXT, \"c\" TEXT); \n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3 (\"a\" TEXT, \"b\" TEXT);\n    CREATE TABLE t4 (\"a\" TEXT, \"b\" TEXT, \"c\" TEXT); \n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t3 (\"a\" TEXT, \"b\" TEXT);\n    CREATE TABLE t4 (\"a\" TEXT, \"b\" TEXT, \"c\" TEXT); \n  ")
 				}
 			}
 			{ // "7.1"
 				_res = db.Exec("\n    CREATE TABLE pragma_t3 AS SELECT * FROM pragma_table_info('t3');\n    CREATE TABLE pragma_t4 AS SELECT * FROM pragma_table_info('t4');\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pragma_t3 AS SELECT * FROM pragma_table_info('t3');\n    CREATE TABLE pragma_t4 AS SELECT * FROM pragma_table_info('t4');\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE pragma_t3 AS SELECT * FROM pragma_table_info('t3');\n    CREATE TABLE pragma_t4 AS SELECT * FROM pragma_table_info('t4');\n  ")
 				}
 			}
 			{ // "pragma4-7.2" — skipped: CREATE TABLE AS SELECT of pragma_table_info columns not persisted (SQL side effects only)

@@ -98,7 +98,7 @@ func Test_recover(t *testing.T) {
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, " + sqlLiteral(doc) + ", 8.4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, " + sqlLiteral(doc) + ", 8.4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, " + sqlLiteral(doc) + ", 8.4);\n")
 		}
 	}
 	{ // do_recover_test "1.1.2"
@@ -115,7 +115,7 @@ func Test_recover(t *testing.T) {
 	{ // "1.2.1"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
 		}
 	}
 	{ // do_recover_test "1.2.2"
@@ -132,7 +132,7 @@ func Test_recover(t *testing.T) {
 	{ // "1.3.1"
 		_res = db.Exec("\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t2 VALUES(NULL, 1, 2);\n  INSERT INTO t2 VALUES(NULL, 3, 4);\n  INSERT INTO t2 VALUES(NULL, 5, 6);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t3 VALUES(NULL, 1, 2);\n  INSERT INTO t3 VALUES(NULL, 3, 4);\n  INSERT INTO t3 VALUES(NULL, 5, 6);\n  DELETE FROM t2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t2 VALUES(NULL, 1, 2);\n  INSERT INTO t2 VALUES(NULL, 3, 4);\n  INSERT INTO t2 VALUES(NULL, 5, 6);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t3 VALUES(NULL, 1, 2);\n  INSERT INTO t3 VALUES(NULL, 3, 4);\n  INSERT INTO t3 VALUES(NULL, 5, 6);\n  DELETE FROM t2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t2 VALUES(NULL, 1, 2);\n  INSERT INTO t2 VALUES(NULL, 3, 4);\n  INSERT INTO t2 VALUES(NULL, 5, 6);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t3 VALUES(NULL, 1, 2);\n  INSERT INTO t3 VALUES(NULL, 3, 4);\n  INSERT INTO t3 VALUES(NULL, 5, 6);\n  DELETE FROM t2;\n")
 		}
 	}
 	{ // do_recover_test "1.3.2"
@@ -199,7 +199,7 @@ func Test_recover(t *testing.T) {
 	{ // "2.3.0"
 		_res = db.Exec("\n  CREATE TABLE lost_and_found(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE lost_and_found(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE lost_and_found(a, b, c);\n")
 		}
 	}
 	{ // do_recover_test "2.3.1"
@@ -225,7 +225,7 @@ func Test_recover(t *testing.T) {
 	{ // "2.4.0"
 		_res = db.Exec("\n  CREATE TABLE lost_and_found_0(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE lost_and_found_0(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE lost_and_found_0(a, b, c);\n")
 		}
 	}
 	{ // do_recover_test "2.4.1"
@@ -284,7 +284,7 @@ func Test_recover(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g, h, i);\n\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n\n  INSERT INTO t3 VALUES('one', 'two', 'three');\n  DROP TABLE t1;\n  DROP TABLE t2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g, h, i);\n\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n\n  INSERT INTO t3 VALUES('one', 'two', 'three');\n  DROP TABLE t1;\n  DROP TABLE t2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g, h, i);\n\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n\n  INSERT INTO t3 VALUES('one', 'two', 'three');\n  DROP TABLE t1;\n  DROP TABLE t2;\n")
 		}
 	}
 	{ // recover_with_opts 

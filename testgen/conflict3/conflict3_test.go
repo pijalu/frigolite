@@ -89,7 +89,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "1.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "1.4"
@@ -131,7 +131,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "2.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "2.4"
@@ -173,7 +173,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "3.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "3.4"
@@ -215,7 +215,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "4.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "4.4"
@@ -257,7 +257,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "5.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "5.4"
@@ -299,7 +299,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "6.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "6.4"
@@ -341,7 +341,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "7.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "7.4"
@@ -383,7 +383,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "8.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "8.4"
@@ -425,7 +425,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "9.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "9.4"
@@ -467,7 +467,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "10.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "10.4"
@@ -509,7 +509,7 @@ func Test_conflict3(t *testing.T) {
 	{ // do_test "11.3"
 		_res = db.Exec("INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);")
 		}
 	}
 	{ // "11.4"
@@ -527,13 +527,13 @@ func Test_conflict3(t *testing.T) {
 	{ // "12.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t2 VALUES(111, '111');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t2 VALUES(111, '111');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t2 VALUES(111, '111');\n")
 		}
 	}
 	{ // "12.2"
 		_res = db.Exec("\n  REPLACE INTO t2 VALUES(NULL, '112'), (111, '111B');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  REPLACE INTO t2 VALUES(NULL, '112'), (111, '111B');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  REPLACE INTO t2 VALUES(NULL, '112'), (111, '111B');\n")
 		}
 	}
 	{ // "12.3"
@@ -564,7 +564,7 @@ func Test_conflict3(t *testing.T) {
 	{ // "13.1.1"
 		_res = db.Exec("\n    UPDATE OR REPLACE t0 SET c1 = 1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n    UPDATE OR REPLACE t0 SET c1 = 1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n    UPDATE OR REPLACE t0 SET c1 = 1;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -584,13 +584,13 @@ func Test_conflict3(t *testing.T) {
 	{ // "13.2.0"
 		_res = db.Exec("\n    CREATE TABLE t2 (a PRIMARY KEY, b UNIQUE, c UNIQUE) WITHOUT ROWID;\n    CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN \n      DELETE FROM t2; \n    END;\n\n    INSERT INTO t2 VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(2, 2, 2);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2 (a PRIMARY KEY, b UNIQUE, c UNIQUE) WITHOUT ROWID;\n    CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN \n      DELETE FROM t2; \n    END;\n\n    INSERT INTO t2 VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(2, 2, 2);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t2 (a PRIMARY KEY, b UNIQUE, c UNIQUE) WITHOUT ROWID;\n    CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN \n      DELETE FROM t2; \n    END;\n\n    INSERT INTO t2 VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(2, 2, 2);\n  ")
 		}
 	}
 	{ // "13.2.1"
 		_res = db.Exec("\n    UPDATE OR REPLACE t2 SET c = 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n    UPDATE OR REPLACE t2 SET c = 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n    UPDATE OR REPLACE t2 SET c = 0;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -610,7 +610,7 @@ func Test_conflict3(t *testing.T) {
 	{ // "13.3.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE log(x);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1, 2);\n\n    CREATE TRIGGER tb BEFORE UPDATE ON t1 BEGIN\n      DELETE FROM t1;\n    END;\n    CREATE TRIGGER ta AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('fired!');\n    END;\n\n    UPDATE t1 SET b=3;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE log(x);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1, 2);\n\n    CREATE TRIGGER tb BEFORE UPDATE ON t1 BEGIN\n      DELETE FROM t1;\n    END;\n    CREATE TRIGGER ta AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('fired!');\n    END;\n\n    UPDATE t1 SET b=3;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE log(x);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1, 2);\n\n    CREATE TRIGGER tb BEFORE UPDATE ON t1 BEGIN\n      DELETE FROM t1;\n    END;\n    CREATE TRIGGER ta AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('fired!');\n    END;\n\n    UPDATE t1 SET b=3;\n  ")
 		}
 	}
 	{ // "13.3.1"

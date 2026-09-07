@@ -261,13 +261,13 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  INSERT INTO t3 VALUES(NULL, randomblob(500));\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 2\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 4\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 8\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 16\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 32\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 64\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 128\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES(NULL, randomblob(500));\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 2\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 4\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 8\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 16\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 32\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 64\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 128\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3 VALUES(NULL, randomblob(500));\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 2\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 4\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 8\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 16\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 32\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 64\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 128\n")
 		}
 	}
 	{ // "3.3"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t4 VALUES('xyz');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t4 VALUES('xyz');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO t4 VALUES('xyz');\n")
 		}
 	}
 	{ // do_test "3.4"

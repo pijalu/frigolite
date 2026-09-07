@@ -217,7 +217,7 @@ func Test_autoindex1(t *testing.T) {
 	{ // "autoindex1-500"
 		_res = db.Exec("\n  CREATE TABLE t501(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t502(x INTEGER PRIMARY KEY, y);\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t501',null,'1000000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t502',null,'1000');\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t501(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t502(x INTEGER PRIMARY KEY, y);\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t501',null,'1000000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t502',null,'1000');\n  ANALYZE sqlite_master;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t501(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t502(x INTEGER PRIMARY KEY, y);\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t501',null,'1000000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t502',null,'1000');\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	{ // "autoindex1-500.1"
@@ -241,7 +241,7 @@ func Test_autoindex1(t *testing.T) {
 	{ // "autoindex1-600"
 		_res = db.Exec("\n  CREATE TABLE flock_owner(\n    owner_rec_id INTEGER CONSTRAINT flock_owner_key PRIMARY KEY,\n    flock_no VARCHAR(6) NOT NULL REFERENCES flock (flock_no),\n    owner_person_id INTEGER NOT NULL REFERENCES person (person_id),\n    owner_change_date TEXT, last_changed TEXT NOT NULL,\n    CONSTRAINT fo_owner_date UNIQUE (flock_no, owner_change_date)\n  );\n  CREATE TABLE sheep (\n    Sheep_No char(7) NOT NULL,\n    Date_of_Birth char(8),\n    Sort_DoB text,\n    Flock_Book_Vol char(2),\n    Breeder_No char(6),\n    Breeder_Person integer,\n    Originating_Flock char(6),\n    Registering_Flock char(6),\n    Tag_Prefix char(9),\n    Tag_No char(15),\n    Sort_Tag_No integer,\n    Breeders_Temp_Tag char(15),\n    Sex char(1),\n    Sheep_Name char(32),\n    Sire_No char(7),\n    Dam_No char(7),\n    Register_Code char(1),\n    Colour char(48),\n    Colour_Code char(2),\n    Pattern_Code char(8),\n    Horns char(1),\n    Litter_Size char(1),\n    Coeff_of_Inbreeding real,\n    Date_of_Registration text,\n    Date_Last_Changed text,\n    UNIQUE(Sheep_No));\n  CREATE INDEX fo_flock_no_index  \n              ON flock_owner (flock_no);\n  CREATE INDEX fo_owner_change_date_index  \n              ON flock_owner (owner_change_date);\n  CREATE INDEX fo_owner_person_id_index  \n              ON flock_owner (owner_person_id);\n  CREATE INDEX sheep_org_flock_index  \n           ON sheep (originating_flock);\n  CREATE INDEX sheep_reg_flock_index  \n           ON sheep (registering_flock);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE flock_owner(\n    owner_rec_id INTEGER CONSTRAINT flock_owner_key PRIMARY KEY,\n    flock_no VARCHAR(6) NOT NULL REFERENCES flock (flock_no),\n    owner_person_id INTEGER NOT NULL REFERENCES person (person_id),\n    owner_change_date TEXT, last_changed TEXT NOT NULL,\n    CONSTRAINT fo_owner_date UNIQUE (flock_no, owner_change_date)\n  );\n  CREATE TABLE sheep (\n    Sheep_No char(7) NOT NULL,\n    Date_of_Birth char(8),\n    Sort_DoB text,\n    Flock_Book_Vol char(2),\n    Breeder_No char(6),\n    Breeder_Person integer,\n    Originating_Flock char(6),\n    Registering_Flock char(6),\n    Tag_Prefix char(9),\n    Tag_No char(15),\n    Sort_Tag_No integer,\n    Breeders_Temp_Tag char(15),\n    Sex char(1),\n    Sheep_Name char(32),\n    Sire_No char(7),\n    Dam_No char(7),\n    Register_Code char(1),\n    Colour char(48),\n    Colour_Code char(2),\n    Pattern_Code char(8),\n    Horns char(1),\n    Litter_Size char(1),\n    Coeff_of_Inbreeding real,\n    Date_of_Registration text,\n    Date_Last_Changed text,\n    UNIQUE(Sheep_No));\n  CREATE INDEX fo_flock_no_index  \n              ON flock_owner (flock_no);\n  CREATE INDEX fo_owner_change_date_index  \n              ON flock_owner (owner_change_date);\n  CREATE INDEX fo_owner_person_id_index  \n              ON flock_owner (owner_person_id);\n  CREATE INDEX sheep_org_flock_index  \n           ON sheep (originating_flock);\n  CREATE INDEX sheep_reg_flock_index  \n           ON sheep (registering_flock);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE flock_owner(\n    owner_rec_id INTEGER CONSTRAINT flock_owner_key PRIMARY KEY,\n    flock_no VARCHAR(6) NOT NULL REFERENCES flock (flock_no),\n    owner_person_id INTEGER NOT NULL REFERENCES person (person_id),\n    owner_change_date TEXT, last_changed TEXT NOT NULL,\n    CONSTRAINT fo_owner_date UNIQUE (flock_no, owner_change_date)\n  );\n  CREATE TABLE sheep (\n    Sheep_No char(7) NOT NULL,\n    Date_of_Birth char(8),\n    Sort_DoB text,\n    Flock_Book_Vol char(2),\n    Breeder_No char(6),\n    Breeder_Person integer,\n    Originating_Flock char(6),\n    Registering_Flock char(6),\n    Tag_Prefix char(9),\n    Tag_No char(15),\n    Sort_Tag_No integer,\n    Breeders_Temp_Tag char(15),\n    Sex char(1),\n    Sheep_Name char(32),\n    Sire_No char(7),\n    Dam_No char(7),\n    Register_Code char(1),\n    Colour char(48),\n    Colour_Code char(2),\n    Pattern_Code char(8),\n    Horns char(1),\n    Litter_Size char(1),\n    Coeff_of_Inbreeding real,\n    Date_of_Registration text,\n    Date_Last_Changed text,\n    UNIQUE(Sheep_No));\n  CREATE INDEX fo_flock_no_index  \n              ON flock_owner (flock_no);\n  CREATE INDEX fo_owner_change_date_index  \n              ON flock_owner (owner_change_date);\n  CREATE INDEX fo_owner_person_id_index  \n              ON flock_owner (owner_person_id);\n  CREATE INDEX sheep_org_flock_index  \n           ON sheep (originating_flock);\n  CREATE INDEX sheep_reg_flock_index  \n           ON sheep (registering_flock);\n")
 		}
 	}
 	{ // "autoindex1-600a"
@@ -253,7 +253,7 @@ func Test_autoindex1(t *testing.T) {
 	{ // "autoindex1-700"
 		_res = db.Exec("\n  CREATE TABLE t5(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a, b, c);\n")
 		}
 	}
 	{ // "autoindex1-700a"
@@ -306,7 +306,7 @@ func Test_autoindex1(t *testing.T) {
 	{ // "autoindex1-1010"
 		_res = db.Exec("\n  CREATE TABLE t11(w);\n  CREATE TABLE t12(y);\n  INSERT INTO t11 VALUES(NULL);\n  INSERT INTO t12 VALUES('notnull');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t11(w);\n  CREATE TABLE t12(y);\n  INSERT INTO t11 VALUES(NULL);\n  INSERT INTO t12 VALUES('notnull');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t11(w);\n  CREATE TABLE t12(y);\n  INSERT INTO t11 VALUES(NULL);\n  INSERT INTO t12 VALUES('notnull');\n")
 		}
 	}
 	{ // "autoindex1-1020"
@@ -331,7 +331,7 @@ func Test_autoindex1(t *testing.T) {
 	{ // "autoindex-1100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e TEXT, f TEXT);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 2);\n  INSERT INTO t3 VALUES('abc', 'def');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e TEXT, f TEXT);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 2);\n  INSERT INTO t3 VALUES('abc', 'def');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e TEXT, f TEXT);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 2);\n  INSERT INTO t3 VALUES('abc', 'def');\n")
 		}
 	}
 	{ // "autoindex-1110"
@@ -368,7 +368,7 @@ func Test_autoindex1(t *testing.T) {
 	{ // "autoindex-1200"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n  INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual(dummy) VALUES('x');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n  INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual(dummy) VALUES('x');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n  INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual(dummy) VALUES('x');\n")
 		}
 	}
 	tcl_nullvalue = "NULL"

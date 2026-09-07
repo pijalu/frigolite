@@ -70,7 +70,7 @@ func Test_whereD(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t(i,j,k,m,n);\n  CREATE INDEX ijk ON t(i,j,k);\n  CREATE INDEX jmn ON t(j,m,n);\n\n  INSERT INTO t VALUES(3, 3, 'three', 3, 'tres');\n  INSERT INTO t VALUES(2, 2, 'two', 2, 'dos');\n  INSERT INTO t VALUES(1, 1, 'one', 1, 'uno');\n  INSERT INTO t VALUES(4, 4, 'four', 4, 'cuatro');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(i,j,k,m,n);\n  CREATE INDEX ijk ON t(i,j,k);\n  CREATE INDEX jmn ON t(j,m,n);\n\n  INSERT INTO t VALUES(3, 3, 'three', 3, 'tres');\n  INSERT INTO t VALUES(2, 2, 'two', 2, 'dos');\n  INSERT INTO t VALUES(1, 1, 'one', 1, 'uno');\n  INSERT INTO t VALUES(4, 4, 'four', 4, 'cuatro');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t(i,j,k,m,n);\n  CREATE INDEX ijk ON t(i,j,k);\n  CREATE INDEX jmn ON t(j,m,n);\n\n  INSERT INTO t VALUES(3, 3, 'three', 3, 'tres');\n  INSERT INTO t VALUES(2, 2, 'two', 2, 'dos');\n  INSERT INTO t VALUES(1, 1, 'one', 1, 'uno');\n  INSERT INTO t VALUES(4, 4, 'four', 4, 'cuatro');\n")
 		}
 	}
 	{ // "1.2"
@@ -250,7 +250,7 @@ func Test_whereD(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n  CREATE INDEX t1d ON t1(d);\n  CREATE TABLE t2(x,y);\n  CREATE INDEX t2y ON t2(y);\n  \n  INSERT INTO t1 VALUES(1,2,3,4);\n  INSERT INTO t1 VALUES(5,6,7,8);\n  INSERT INTO t2 VALUES(1,2);\n  INSERT INTO t2 VALUES(2,7);\n  INSERT INTO t2 VALUES(3,4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n  CREATE INDEX t1d ON t1(d);\n  CREATE TABLE t2(x,y);\n  CREATE INDEX t2y ON t2(y);\n  \n  INSERT INTO t1 VALUES(1,2,3,4);\n  INSERT INTO t1 VALUES(5,6,7,8);\n  INSERT INTO t2 VALUES(1,2);\n  INSERT INTO t2 VALUES(2,7);\n  INSERT INTO t2 VALUES(3,4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n  CREATE INDEX t1d ON t1(d);\n  CREATE TABLE t2(x,y);\n  CREATE INDEX t2y ON t2(y);\n  \n  INSERT INTO t1 VALUES(1,2,3,4);\n  INSERT INTO t1 VALUES(5,6,7,8);\n  INSERT INTO t2 VALUES(1,2);\n  INSERT INTO t2 VALUES(2,7);\n  INSERT INTO t2 VALUES(3,4);\n")
 		}
 	}
 	{ // "2.1"
@@ -281,7 +281,7 @@ func Test_whereD(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t3(a, b, c);\n  CREATE UNIQUE INDEX i3 ON t3(a, b);\n  INSERT INTO t3 VALUES(1, 'one', 'i');\n  INSERT INTO t3 VALUES(3, 'three', 'iii');\n  INSERT INTO t3 VALUES(6, 'six', 'vi');\n  INSERT INTO t3 VALUES(2, 'two', 'ii');\n  INSERT INTO t3 VALUES(4, 'four', 'iv');\n  INSERT INTO t3 VALUES(5, 'five', 'v');\n\n  CREATE TABLE t4(x PRIMARY KEY, y);\n  INSERT INTO t4 VALUES('a', 'one');\n  INSERT INTO t4 VALUES('b', 'two');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c);\n  CREATE UNIQUE INDEX i3 ON t3(a, b);\n  INSERT INTO t3 VALUES(1, 'one', 'i');\n  INSERT INTO t3 VALUES(3, 'three', 'iii');\n  INSERT INTO t3 VALUES(6, 'six', 'vi');\n  INSERT INTO t3 VALUES(2, 'two', 'ii');\n  INSERT INTO t3 VALUES(4, 'four', 'iv');\n  INSERT INTO t3 VALUES(5, 'five', 'v');\n\n  CREATE TABLE t4(x PRIMARY KEY, y);\n  INSERT INTO t4 VALUES('a', 'one');\n  INSERT INTO t4 VALUES('b', 'two');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b, c);\n  CREATE UNIQUE INDEX i3 ON t3(a, b);\n  INSERT INTO t3 VALUES(1, 'one', 'i');\n  INSERT INTO t3 VALUES(3, 'three', 'iii');\n  INSERT INTO t3 VALUES(6, 'six', 'vi');\n  INSERT INTO t3 VALUES(2, 'two', 'ii');\n  INSERT INTO t3 VALUES(4, 'four', 'iv');\n  INSERT INTO t3 VALUES(5, 'five', 'v');\n\n  CREATE TABLE t4(x PRIMARY KEY, y);\n  INSERT INTO t4 VALUES('a', 'one');\n  INSERT INTO t4 VALUES('b', 'two');\n")
 		}
 	}
 	// do_searchcount_test 3.1 {\n  SELECT a, b FROM t3 WHERE (a=1 AND b='one') OR...} {1 one 2 two search ... (unsupported command, not transpiled)
@@ -415,7 +415,7 @@ func Test_whereD(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, c, d, e);\n  CREATE INDEX x1a  ON x1(a);\n  CREATE INDEX x1bc ON x1(b, c);\n  CREATE INDEX x1cd ON x1(c, d);\n\n  INSERT INTO x1 VALUES(1, 2, 3, 4, 'A');\n  INSERT INTO x1 VALUES(5, 6, 7, 8, 'B');\n  INSERT INTO x1 VALUES(9, 10, 11, 12, 'C');\n  INSERT INTO x1 VALUES(13, 14, 15, 16, 'D');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c, d, e);\n  CREATE INDEX x1a  ON x1(a);\n  CREATE INDEX x1bc ON x1(b, c);\n  CREATE INDEX x1cd ON x1(c, d);\n\n  INSERT INTO x1 VALUES(1, 2, 3, 4, 'A');\n  INSERT INTO x1 VALUES(5, 6, 7, 8, 'B');\n  INSERT INTO x1 VALUES(9, 10, 11, 12, 'C');\n  INSERT INTO x1 VALUES(13, 14, 15, 16, 'D');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, c, d, e);\n  CREATE INDEX x1a  ON x1(a);\n  CREATE INDEX x1bc ON x1(b, c);\n  CREATE INDEX x1cd ON x1(c, d);\n\n  INSERT INTO x1 VALUES(1, 2, 3, 4, 'A');\n  INSERT INTO x1 VALUES(5, 6, 7, 8, 'B');\n  INSERT INTO x1 VALUES(9, 10, 11, 12, 'C');\n  INSERT INTO x1 VALUES(13, 14, 15, 16, 'D');\n")
 		}
 	}
 	// do_searchcount_test 6.2.1 {\n  SELECT e FROM x1 WHERE b=2 OR c=7;\n} {A B search 6} (unsupported command, not transpiled)
@@ -449,7 +449,7 @@ func Test_whereD(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE y1(a, b);\n  CREATE TABLE y2(x, y);\n  CREATE INDEX y2xy ON y2(x, y);\n  INSERT INTO y1 VALUES(1, 1);\n  INSERT INTO y2 VALUES(3, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a, b);\n  CREATE TABLE y2(x, y);\n  CREATE INDEX y2xy ON y2(x, y);\n  INSERT INTO y1 VALUES(1, 1);\n  INSERT INTO y2 VALUES(3, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE y1(a, b);\n  CREATE TABLE y2(x, y);\n  CREATE INDEX y2xy ON y2(x, y);\n  INSERT INTO y1 VALUES(1, 1);\n  INSERT INTO y2 VALUES(3, 3);\n")
 		}
 	}
 	{ // "7.1"
@@ -467,7 +467,7 @@ func Test_whereD(t *testing.T) {
 	{ // "7.3"
 		_res = db.Exec("\n  CREATE TABLE foo (Id INTEGER PRIMARY KEY, fa INTEGER, fb INTEGER); \n  CREATE TABLE bar (Id INTEGER PRIMARY KEY, ba INTEGER, bb INTEGER);\n\n  INSERT INTO foo VALUES(1, 1, 1);\n  INSERT INTO foo VALUES(2, 1, 2);\n  INSERT INTO foo VALUES(3, 1, 3);\n  INSERT INTO foo VALUES(4, 1, 4);\n  INSERT INTO foo VALUES(5, 1, 5);\n  INSERT INTO foo VALUES(6, 1, 6);\n  INSERT INTO foo VALUES(7, 1, 7);\n  INSERT INTO foo VALUES(8, 1, 8);\n  INSERT INTO foo VALUES(9, 1, 9);\n\n  INSERT INTO bar VALUES(NULL, 1, 1);\n  INSERT INTO bar VALUES(NULL, 2, 2);\n  INSERT INTO bar VALUES(NULL, 3, 3);\n  INSERT INTO bar VALUES(NULL, 1, 4);\n  INSERT INTO bar VALUES(NULL, 2, 5);\n  INSERT INTO bar VALUES(NULL, 3, 6);\n  INSERT INTO bar VALUES(NULL, 1, 7);\n  INSERT INTO bar VALUES(NULL, 2, 8);\n  INSERT INTO bar VALUES(NULL, 3, 9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE foo (Id INTEGER PRIMARY KEY, fa INTEGER, fb INTEGER); \n  CREATE TABLE bar (Id INTEGER PRIMARY KEY, ba INTEGER, bb INTEGER);\n\n  INSERT INTO foo VALUES(1, 1, 1);\n  INSERT INTO foo VALUES(2, 1, 2);\n  INSERT INTO foo VALUES(3, 1, 3);\n  INSERT INTO foo VALUES(4, 1, 4);\n  INSERT INTO foo VALUES(5, 1, 5);\n  INSERT INTO foo VALUES(6, 1, 6);\n  INSERT INTO foo VALUES(7, 1, 7);\n  INSERT INTO foo VALUES(8, 1, 8);\n  INSERT INTO foo VALUES(9, 1, 9);\n\n  INSERT INTO bar VALUES(NULL, 1, 1);\n  INSERT INTO bar VALUES(NULL, 2, 2);\n  INSERT INTO bar VALUES(NULL, 3, 3);\n  INSERT INTO bar VALUES(NULL, 1, 4);\n  INSERT INTO bar VALUES(NULL, 2, 5);\n  INSERT INTO bar VALUES(NULL, 3, 6);\n  INSERT INTO bar VALUES(NULL, 1, 7);\n  INSERT INTO bar VALUES(NULL, 2, 8);\n  INSERT INTO bar VALUES(NULL, 3, 9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE foo (Id INTEGER PRIMARY KEY, fa INTEGER, fb INTEGER); \n  CREATE TABLE bar (Id INTEGER PRIMARY KEY, ba INTEGER, bb INTEGER);\n\n  INSERT INTO foo VALUES(1, 1, 1);\n  INSERT INTO foo VALUES(2, 1, 2);\n  INSERT INTO foo VALUES(3, 1, 3);\n  INSERT INTO foo VALUES(4, 1, 4);\n  INSERT INTO foo VALUES(5, 1, 5);\n  INSERT INTO foo VALUES(6, 1, 6);\n  INSERT INTO foo VALUES(7, 1, 7);\n  INSERT INTO foo VALUES(8, 1, 8);\n  INSERT INTO foo VALUES(9, 1, 9);\n\n  INSERT INTO bar VALUES(NULL, 1, 1);\n  INSERT INTO bar VALUES(NULL, 2, 2);\n  INSERT INTO bar VALUES(NULL, 3, 3);\n  INSERT INTO bar VALUES(NULL, 1, 4);\n  INSERT INTO bar VALUES(NULL, 2, 5);\n  INSERT INTO bar VALUES(NULL, 3, 6);\n  INSERT INTO bar VALUES(NULL, 1, 7);\n  INSERT INTO bar VALUES(NULL, 2, 8);\n  INSERT INTO bar VALUES(NULL, 3, 9);\n")
 		}
 	}
 	{ // "7.4"

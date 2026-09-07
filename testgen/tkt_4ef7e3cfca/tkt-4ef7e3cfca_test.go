@@ -65,7 +65,7 @@ func Test_tkt_4ef7e3cfca(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE x(a);\n  CREATE TRIGGER t AFTER INSERT ON x BEGIN\n    SELECT * FROM x WHERE abc.a = 1;\n  END;\n  INSERT INTO x VALUES('assert');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: abc.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: abc.a", _res.Error, "\n  CREATE TABLE x(a);\n  CREATE TRIGGER t AFTER INSERT ON x BEGIN\n    SELECT * FROM x WHERE abc.a = 1;\n  END;\n  INSERT INTO x VALUES('assert');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: abc.a", resErrString(_res), "\n  CREATE TABLE x(a);\n  CREATE TRIGGER t AFTER INSERT ON x BEGIN\n    SELECT * FROM x WHERE abc.a = 1;\n  END;\n  INSERT INTO x VALUES('assert');\n")
 		}
 	}
 	db.Close()
@@ -78,7 +78,7 @@ func Test_tkt_4ef7e3cfca(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE w(a);\n  CREATE TABLE x(a);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(a) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.a + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('incorrect');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE w(a);\n  CREATE TABLE x(a);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(a) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.a + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('incorrect');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE w(a);\n  CREATE TABLE x(a);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(a) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.a + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('incorrect');\n")
 		}
 	}
 	{ // "2.2"
@@ -103,7 +103,7 @@ func Test_tkt_4ef7e3cfca(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE w(a);\n  CREATE TABLE x(b);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(b) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.b + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('assert');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE w(a);\n  CREATE TABLE x(b);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(b) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.b + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('assert');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE w(a);\n  CREATE TABLE x(b);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(b) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.b + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('assert');\n")
 		}
 	}
 	{ // "3.2"

@@ -144,7 +144,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "2.2"
 		_res = db.Exec(" SELECT * FROM r WHERE x >= 10 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, " SELECT * FROM r WHERE x >= 10 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), " SELECT * FROM r WHERE x >= 10 ")
 		}
 	}
 	if tclBool(tclDbOne(db, "SELECT sqlite_compileoption_used('ENABLE_OVERSIZE_CELL_CHECK')")) {
@@ -184,7 +184,7 @@ func Test_corruptI(t *testing.T) {
 		{ // "3.3"
 			_res = db.Exec("\n     INSERT INTO t1 VALUES(9, 'klmnopqrst');\n   ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n     INSERT INTO t1 VALUES(9, 'klmnopqrst');\n   ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n     INSERT INTO t1 VALUES(9, 'klmnopqrst');\n   ")
 			}
 		}
 	}

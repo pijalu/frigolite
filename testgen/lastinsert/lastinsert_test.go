@@ -58,109 +58,109 @@ func Test_lastinsert(t *testing.T) {
 	{ // do_test "lastinsert-1.1"
 		_res = db.Exec("\n        create table t1 (k integer primary key);\n        insert into t1 values (1);\n        insert into t1 values (NULL);\n        insert into t1 values (NULL);\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        create table t1 (k integer primary key);\n        insert into t1 values (1);\n        insert into t1 values (NULL);\n        insert into t1 values (NULL);\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        create table t1 (k integer primary key);\n        insert into t1 values (1);\n        insert into t1 values (NULL);\n        insert into t1 values (NULL);\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-1.1w"
 		_res = db.Exec("\n        create table t1w (k integer primary key) WITHOUT ROWID;\n        insert into t1w values (123456);\n        select last_insert_rowid(); -- returns 3 from above.\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        create table t1w (k integer primary key) WITHOUT ROWID;\n        insert into t1w values (123456);\n        select last_insert_rowid(); -- returns 3 from above.\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        create table t1w (k integer primary key) WITHOUT ROWID;\n        insert into t1w values (123456);\n        select last_insert_rowid(); -- returns 3 from above.\n    ")
 		}
 	}
 	{ // do_test "lastinsert-1.2"
 		_res = db.Exec("\n        update t1 set k=4 where k=2;\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        update t1 set k=4 where k=2;\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        update t1 set k=4 where k=2;\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-1.3"
 		_res = db.Exec("\n        delete from t1 where k=4;\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        delete from t1 where k=4;\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        delete from t1 where k=4;\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-1.4.1"
 		_res = db.Exec("\n        create table t2 (k integer primary key, val1, val2, val3);\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        create table t2 (k integer primary key, val1, val2, val3);\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        create table t2 (k integer primary key, val1, val2, val3);\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-1.4.2"
 		_res = db.Exec("\n        create view v as select * from t1;\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        create view v as select * from t1;\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        create view v as select * from t1;\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-2.1"
 		_res = db.Exec("\n        delete from t2;\n        create trigger r1 after insert on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into t1 values (13);\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        delete from t2;\n        create trigger r1 after insert on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into t1 values (13);\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        delete from t2;\n        create trigger r1 after insert on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into t1 values (13);\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-2.2"
 		_res = db.Exec("\n        select val1 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val1 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val1 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-2.3"
 		_res = db.Exec("\n        select val2 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val2 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val2 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-2.4"
 		_res = db.Exec("\n        select val3 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val3 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val3 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-3.1"
 		_res = db.Exec("\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 after update on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update t1 set k=14 where k=3;\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 after update on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update t1 set k=14 where k=3;\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 after update on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update t1 set k=14 where k=3;\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-3.2"
 		_res = db.Exec("\n        select val1 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val1 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val1 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-3.3"
 		_res = db.Exec("\n        select val2 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val2 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val2 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-3.4"
 		_res = db.Exec("\n        select val3 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val3 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val3 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-4.1"
 		_res = db.Exec("\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of insert on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into v values (15);\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of insert on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into v values (15);\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of insert on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into v values (15);\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-4.2"
 		_res = db.Exec("\n        select val1 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val1 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val1 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-4.3"
 		_res = db.Exec("\n        select val2 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val2 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val2 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-4.4"
 		_res = db.Exec("\n        select val3 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val3 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val3 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-5.1"
@@ -172,79 +172,79 @@ func Test_lastinsert(t *testing.T) {
 	{ // do_test "lastinsert-5.2"
 		_res = db.Exec("\n        select val1 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val1 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val1 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-5.3"
 		_res = db.Exec("\n        select val2 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val2 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val2 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-5.4"
 		_res = db.Exec("\n        select val3 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val3 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val3 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-6.1"
 		_res = db.Exec("\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of update on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update v set k=16 where k=14;\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of update on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update v set k=16 where k=14;\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of update on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update v set k=16 where k=14;\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-6.2"
 		_res = db.Exec("\n        select val1 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val1 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val1 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-6.3"
 		_res = db.Exec("\n        select val2 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val2 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val2 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-6.4"
 		_res = db.Exec("\n        select val3 from t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select val3 from t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select val3 from t2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-7.1"
 		_res = db.Exec("\n        drop table t1; drop table t2; drop trigger r1;\n        create temp table t1 (k integer primary key);\n        create temp table t2 (k integer primary key);\n        create temp view v1 as select * from t1;\n        create temp view v2 as select * from t2;\n        create temp table rid (k integer primary key, rin, rout);\n        insert into rid values (1, NULL, NULL);\n        insert into rid values (2, NULL, NULL);\n        create temp trigger r1 instead of insert on v1 for each row begin\n            update rid set rin=last_insert_rowid() where k=1;\n            insert into t1 values (100+NEW.k);\n            insert into v2 values (100+last_insert_rowid());\n            update rid set rout=last_insert_rowid() where k=1;\n        end;\n        create temp trigger r2 instead of insert on v2 for each row begin\n            update rid set rin=last_insert_rowid() where k=2;\n            insert into t2 values (1000+NEW.k);\n            update rid set rout=last_insert_rowid() where k=2;\n        end;\n        insert into t1 values (77);\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        drop table t1; drop table t2; drop trigger r1;\n        create temp table t1 (k integer primary key);\n        create temp table t2 (k integer primary key);\n        create temp view v1 as select * from t1;\n        create temp view v2 as select * from t2;\n        create temp table rid (k integer primary key, rin, rout);\n        insert into rid values (1, NULL, NULL);\n        insert into rid values (2, NULL, NULL);\n        create temp trigger r1 instead of insert on v1 for each row begin\n            update rid set rin=last_insert_rowid() where k=1;\n            insert into t1 values (100+NEW.k);\n            insert into v2 values (100+last_insert_rowid());\n            update rid set rout=last_insert_rowid() where k=1;\n        end;\n        create temp trigger r2 instead of insert on v2 for each row begin\n            update rid set rin=last_insert_rowid() where k=2;\n            insert into t2 values (1000+NEW.k);\n            update rid set rout=last_insert_rowid() where k=2;\n        end;\n        insert into t1 values (77);\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        drop table t1; drop table t2; drop trigger r1;\n        create temp table t1 (k integer primary key);\n        create temp table t2 (k integer primary key);\n        create temp view v1 as select * from t1;\n        create temp view v2 as select * from t2;\n        create temp table rid (k integer primary key, rin, rout);\n        insert into rid values (1, NULL, NULL);\n        insert into rid values (2, NULL, NULL);\n        create temp trigger r1 instead of insert on v1 for each row begin\n            update rid set rin=last_insert_rowid() where k=1;\n            insert into t1 values (100+NEW.k);\n            insert into v2 values (100+last_insert_rowid());\n            update rid set rout=last_insert_rowid() where k=1;\n        end;\n        create temp trigger r2 instead of insert on v2 for each row begin\n            update rid set rin=last_insert_rowid() where k=2;\n            insert into t2 values (1000+NEW.k);\n            update rid set rout=last_insert_rowid() where k=2;\n        end;\n        insert into t1 values (77);\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-7.2"
 		_res = db.Exec("\n        insert into v1 values (5);\n        select last_insert_rowid();\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        insert into v1 values (5);\n        select last_insert_rowid();\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        insert into v1 values (5);\n        select last_insert_rowid();\n    ")
 		}
 	}
 	{ // do_test "lastinsert-7.3"
 		_res = db.Exec("\n        select rin from rid where k=1;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select rin from rid where k=1;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select rin from rid where k=1;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-7.4"
 		_res = db.Exec("\n        select rout from rid where k=1;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select rout from rid where k=1;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select rout from rid where k=1;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-7.5"
 		_res = db.Exec("\n        select rin from rid where k=2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select rin from rid where k=2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select rin from rid where k=2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-7.6"
 		_res = db.Exec("\n        select rout from rid where k=2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        select rout from rid where k=2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        select rout from rid where k=2;\n    ")
 		}
 	}
 	{ // do_test "lastinsert-8.1"

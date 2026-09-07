@@ -68,13 +68,13 @@ func Test_fts3dropmod(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: fts4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: fts4", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: fts4", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4(x);\n")
 		}
 	}
 	db.Close()
@@ -88,13 +88,13 @@ func Test_fts3dropmod(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3(x);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: fts3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: fts3", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3(x);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: fts3", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts3(x);\n")
 		}
 	}
 }

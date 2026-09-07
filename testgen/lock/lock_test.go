@@ -118,7 +118,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-1.5"
 		_res = db2.Exec("\n     SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n     SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n     SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\n  ")
 		}
 	}
 	{ // do_test "lock-1.6"
@@ -134,7 +134,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-1.7.2"
 		_res = db2.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t1")
 		}
 	}
 	{ // do_test "lock-1.8"
@@ -170,7 +170,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-1.11"
 		_res = db2.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t1")
 		}
 	}
 	{ // do_test "lock-1.12"
@@ -198,19 +198,19 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-1.14.1"
 		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t2")
 		}
 	}
 	{ // do_test "lock-1.14.2"
 		_res = db2.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t1")
 		}
 	}
 	{ // do_test "lock-1.15"
 		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t2")
 		}
 	}
 	{ // do_test "lock-1.16"
@@ -430,7 +430,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-2.2"
 		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT * FROM t2")
 		}
 	}
 	{ // do_test "lock-2.3.1"
@@ -767,7 +767,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-5.4"
 		_res = db.Exec("\n      INSERT INTO t3 SELECT tx_exec('SELECT y FROM t2 LIMIT 1');\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3 SELECT tx_exec('SELECT y FROM t2 LIMIT 1');\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      INSERT INTO t3 SELECT tx_exec('SELECT y FROM t2 LIMIT 1');\n    ")
 		}
 	}
 	{ // do_test "lock-5.5"
@@ -779,7 +779,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-5.6"
 		_res = db.Exec("\n      UPDATE t1 SET a=tx_exec('SELECT x FROM t2');\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET a=tx_exec('SELECT x FROM t2');\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      UPDATE t1 SET a=tx_exec('SELECT x FROM t2');\n    ")
 		}
 	}
 	{ // do_test "lock-5.7"
@@ -791,7 +791,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-5.8"
 		_res = db.Exec("\n      UPDATE t3 SET x=tx_exec('SELECT x FROM t2');\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      UPDATE t3 SET x=tx_exec('SELECT x FROM t2');\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      UPDATE t3 SET x=tx_exec('SELECT x FROM t2');\n    ")
 		}
 	}
 	{ // do_test "lock-5.9"

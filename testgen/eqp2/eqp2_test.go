@@ -66,7 +66,7 @@ func Test_eqp2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX i1 ON t1(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX i1 ON t1(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX i1 ON t1(a, b, c);\n")
 		}
 	}
 	{ // "1.1"
@@ -97,7 +97,7 @@ func Test_eqp2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  CREATE INDEX t1_a ON t1(a);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE INDEX t2_x ON t2(x);\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<999)\n  INSERT INTO t1 SELECT i%33, i FROM s;\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<59)\n  INSERT INTO t2 SELECT i, i%3 FROM s;\n\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  CREATE INDEX t1_a ON t1(a);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE INDEX t2_x ON t2(x);\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<999)\n  INSERT INTO t1 SELECT i%33, i FROM s;\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<59)\n  INSERT INTO t2 SELECT i, i%3 FROM s;\n\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  CREATE INDEX t1_a ON t1(a);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE INDEX t2_x ON t2(x);\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<999)\n  INSERT INTO t1 SELECT i%33, i FROM s;\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<59)\n  INSERT INTO t2 SELECT i, i%3 FROM s;\n\n  ANALYZE;\n")
 		}
 	}
 	zero = "0"

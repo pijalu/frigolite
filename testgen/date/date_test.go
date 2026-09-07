@@ -343,7 +343,7 @@ func Test_date(t *testing.T) {
 	{ // "date-6.20"
 		_res = db.Exec("\n  SELECT datetime('2000-05-29 14:16:00','localtime');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "local time unavailable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "local time unavailable", _res.Error, "\n  SELECT datetime('2000-05-29 14:16:00','localtime');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "local time unavailable", resErrString(_res), "\n  SELECT datetime('2000-05-29 14:16:00','localtime');\n")
 		}
 	}
 	// local_to_utc 6.21 {1800-10-29 12:00:00} {1800-10-29 12:30:00} (unsupported command, not transpiled)

@@ -346,19 +346,19 @@ func Test_subquery(t *testing.T) {
 	{ // do_test "subquery-3.5.4"
 		_res = db.Exec("\n    SELECT max((SELECT count(x) FROM t35b)) FROM t35a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate: count()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", _res.Error, "\n    SELECT max((SELECT count(x) FROM t35b)) FROM t35a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", resErrString(_res), "\n    SELECT max((SELECT count(x) FROM t35b)) FROM t35a;\n  ")
 		}
 	}
 	{ // do_test "subquery-3.5.5"
 		_res = db.Exec("\n    SELECT max((SELECT count(x) FROM t35b)) FROM t35a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate: count()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", _res.Error, "\n    SELECT max((SELECT count(x) FROM t35b)) FROM t35a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", resErrString(_res), "\n    SELECT max((SELECT count(x) FROM t35b)) FROM t35a;\n  ")
 		}
 	}
 	{ // do_test "subquery-3.5.6"
 		_res = db.Exec("\n    SELECT max((SELECT a FROM (SELECT count(x) AS a FROM t35b))) FROM t35a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate: count()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", _res.Error, "\n    SELECT max((SELECT a FROM (SELECT count(x) AS a FROM t35b))) FROM t35a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", resErrString(_res), "\n    SELECT max((SELECT a FROM (SELECT count(x) AS a FROM t35b))) FROM t35a;\n  ")
 		}
 	}
 	{ // do_test "subquery-3.5.7"
@@ -585,7 +585,7 @@ func Test_subquery(t *testing.T) {
 	{ // "subquery-10.1"
 		_res = db.Exec("\n  CREATE TABLE t1(aa TEXT, bb INT, cc TEXT);\n  CREATE INDEX x11 on t1(bb);\n  CREATE INDEX x12 on t1(aa);\n  CREATE TABLE t2(aa TEXT, xx INT);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x11', '156789 28');\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x12', '156789 1');\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(aa TEXT, bb INT, cc TEXT);\n  CREATE INDEX x11 on t1(bb);\n  CREATE INDEX x12 on t1(aa);\n  CREATE TABLE t2(aa TEXT, xx INT);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x11', '156789 28');\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x12', '156789 1');\n  ANALYZE sqlite_master;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(aa TEXT, bb INT, cc TEXT);\n  CREATE INDEX x11 on t1(bb);\n  CREATE INDEX x12 on t1(aa);\n  CREATE TABLE t2(aa TEXT, xx INT);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x11', '156789 28');\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x12', '156789 1');\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	{ // "subquery-10.2"
@@ -597,7 +597,7 @@ func Test_subquery(t *testing.T) {
 	{ // "10.3"
 		_res = db.Exec("\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    size INT,\n    uuid TEXT\n  );\n  CREATE TABLE delta(\n    rid INTEGER PRIMARY KEY,\n    srcid INT\n  );\n  CREATE INDEX delta_i1 ON delta(srcid);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    size INT,\n    uuid TEXT\n  );\n  CREATE TABLE delta(\n    rid INTEGER PRIMARY KEY,\n    srcid INT\n  );\n  CREATE INDEX delta_i1 ON delta(srcid);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    size INT,\n    uuid TEXT\n  );\n  CREATE TABLE delta(\n    rid INTEGER PRIMARY KEY,\n    srcid INT\n  );\n  CREATE INDEX delta_i1 ON delta(srcid);\n")
 		}
 	}
 	{ // "subquery-10.4"

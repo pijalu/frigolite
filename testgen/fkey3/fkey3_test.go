@@ -71,13 +71,13 @@ func Test_fkey3(t *testing.T) {
 	{ // do_test "fkey3-1.2"
 		_res = db.Exec("\n    DELETE FROM t1 WHERE x=100;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    DELETE FROM t1 WHERE x=100;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    DELETE FROM t1 WHERE x=100;\n  ")
 		}
 	}
 	{ // do_test "fkey3-1.3"
 		_res = db.Exec("\n    DROP TABLE t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    DROP TABLE t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    DROP TABLE t1;\n  ")
 		}
 	}
 	{ // do_test "fkey3-1.4"
@@ -105,151 +105,151 @@ func Test_fkey3(t *testing.T) {
 	{ // "3.1.1"
 		_res = db.Exec("\n  CREATE TABLE t3(a, b, c, d, \n    UNIQUE(a, b),\n    FOREIGN KEY(c, d) REFERENCES t3(a, b)\n  );\n  INSERT INTO t3 VALUES(1, 2, 1, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c, d, \n    UNIQUE(a, b),\n    FOREIGN KEY(c, d) REFERENCES t3(a, b)\n  );\n  INSERT INTO t3 VALUES(1, 2, 1, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b, c, d, \n    UNIQUE(a, b),\n    FOREIGN KEY(c, d) REFERENCES t3(a, b)\n  );\n  INSERT INTO t3 VALUES(1, 2, 1, 2);\n")
 		}
 	}
 	{ // "3.1.2"
 		_res = db.Exec("\n  INSERT INTO t3 VALUES(NULL, 2, 5, 2);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT INTO t3 VALUES(NULL, 2, 5, 2);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT INTO t3 VALUES(NULL, 2, 5, 2);\n")
 		}
 	}
 	{ // "3.1.3"
 		_res = db.Exec("\n  INSERT INTO t3 VALUES(NULL, 3, 5, 2);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT INTO t3 VALUES(NULL, 3, 5, 2);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT INTO t3 VALUES(NULL, 3, 5, 2);\n")
 		}
 	}
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a UNIQUE, b REFERENCES t4(a));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a UNIQUE, b REFERENCES t4(a));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a UNIQUE, b REFERENCES t4(a));\n")
 		}
 	}
 	{ // "3.2.2"
 		_res = db.Exec("\n  INSERT INTO t4 VALUES(NULL, 1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT INTO t4 VALUES(NULL, 1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT INTO t4 VALUES(NULL, 1);\n")
 		}
 	}
 	{ // "3.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b REFERENCES t5(a));\n  INSERT INTO t5 VALUES(NULL, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b REFERENCES t5(a));\n  INSERT INTO t5 VALUES(NULL, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b REFERENCES t5(a));\n  INSERT INTO t5 VALUES(NULL, 1);\n")
 		}
 	}
 	{ // "3.3.2"
 		_res = db.Exec("\n  INSERT INTO t5 VALUES(NULL, 3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT INTO t5 VALUES(NULL, 3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT INTO t5 VALUES(NULL, 3);\n")
 		}
 	}
 	{ // "3.4.1"
 		_res = db.Exec("\n  CREATE TABLE t6(a INTEGER PRIMARY KEY, b, c, d,\n    FOREIGN KEY(c, d) REFERENCES t6(a, b)\n  );\n  CREATE UNIQUE INDEX t6i ON t6(b, a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a INTEGER PRIMARY KEY, b, c, d,\n    FOREIGN KEY(c, d) REFERENCES t6(a, b)\n  );\n  CREATE UNIQUE INDEX t6i ON t6(b, a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(a INTEGER PRIMARY KEY, b, c, d,\n    FOREIGN KEY(c, d) REFERENCES t6(a, b)\n  );\n  CREATE UNIQUE INDEX t6i ON t6(b, a);\n")
 		}
 	}
 	{ // "3.4.2"
 		_res = db.Exec(" INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); ")
 		}
 	}
 	{ // "3.4.3"
 		_res = db.Exec(" INSERT INTO t6 VALUES(2, 'a', 2, 'a');    ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES(2, 'a', 2, 'a');    ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES(2, 'a', 2, 'a');    ")
 		}
 	}
 	{ // "3.4.4"
 		_res = db.Exec(" INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); ")
 		}
 	}
 	{ // "3.4.5"
 		_res = db.Exec(" INSERT INTO t6 VALUES(5, 'a', 2, 'a'); ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES(5, 'a', 2, 'a'); ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES(5, 'a', 2, 'a'); ")
 		}
 	}
 	{ // "3.4.6"
 		_res = db.Exec(" \n  INSERT INTO t6 VALUES(NULL, 'a', 65, 'a');    \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " \n  INSERT INTO t6 VALUES(NULL, 'a', 65, 'a');    \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " \n  INSERT INTO t6 VALUES(NULL, 'a', 65, 'a');    \n")
 		}
 	}
 	{ // "3.4.7"
 		_res = db.Exec("\n  INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  DELETE FROM t6 WHERE a = 100;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  DELETE FROM t6 WHERE a = 100;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  DELETE FROM t6 WHERE a = 100;\n")
 		}
 	}
 	{ // "3.4.8"
 		_res = db.Exec("\n  INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  UPDATE t6 SET c = 1, d = 'a' WHERE a = 100;\n  DELETE FROM t6 WHERE a = 100;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  UPDATE t6 SET c = 1, d = 'a' WHERE a = 100;\n  DELETE FROM t6 WHERE a = 100;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  UPDATE t6 SET c = 1, d = 'a' WHERE a = 100;\n  DELETE FROM t6 WHERE a = 100;\n")
 		}
 	}
 	{ // "3.5.1"
 		_res = db.Exec("\n  CREATE TABLE t7(a, b, c, d INTEGER PRIMARY KEY,\n    FOREIGN KEY(c, d) REFERENCES t7(a, b)\n  );\n  CREATE UNIQUE INDEX t7i ON t7(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(a, b, c, d INTEGER PRIMARY KEY,\n    FOREIGN KEY(c, d) REFERENCES t7(a, b)\n  );\n  CREATE UNIQUE INDEX t7i ON t7(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t7(a, b, c, d INTEGER PRIMARY KEY,\n    FOREIGN KEY(c, d) REFERENCES t7(a, b)\n  );\n  CREATE UNIQUE INDEX t7i ON t7(a, b);\n")
 		}
 	}
 	{ // "3.5.2"
 		_res = db.Exec(" INSERT INTO t7 VALUES('x', 1, 'x', NULL) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t7 VALUES('x', 1, 'x', NULL) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t7 VALUES('x', 1, 'x', NULL) ")
 		}
 	}
 	{ // "3.5.3"
 		_res = db.Exec(" INSERT INTO t7 VALUES('x', 2, 'x', 2) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t7 VALUES('x', 2, 'x', 2) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t7 VALUES('x', 2, 'x', 2) ")
 		}
 	}
 	{ // "3.5.4"
 		_res = db.Exec(" \n  INSERT INTO t7 VALUES('x', 450, 'x', NULL);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " \n  INSERT INTO t7 VALUES('x', 450, 'x', NULL);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " \n  INSERT INTO t7 VALUES('x', 450, 'x', NULL);\n")
 		}
 	}
 	{ // "3.5.5"
 		_res = db.Exec(" \n  INSERT INTO t7 VALUES('x', 450, 'x', 451);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " \n  INSERT INTO t7 VALUES('x', 450, 'x', 451);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " \n  INSERT INTO t7 VALUES('x', 450, 'x', 451);\n")
 		}
 	}
 	{ // "3.6.1"
 		_res = db.Exec("\n  CREATE TABLE t8(a, b, c, d, e, FOREIGN KEY(c, d) REFERENCES t8(a, b));\n  CREATE UNIQUE INDEX t8i1 ON t8(a, b);\n  CREATE UNIQUE INDEX t8i2 ON t8(c);\n  INSERT INTO t8 VALUES(1, 1, 1, 1, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(a, b, c, d, e, FOREIGN KEY(c, d) REFERENCES t8(a, b));\n  CREATE UNIQUE INDEX t8i1 ON t8(a, b);\n  CREATE UNIQUE INDEX t8i2 ON t8(c);\n  INSERT INTO t8 VALUES(1, 1, 1, 1, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t8(a, b, c, d, e, FOREIGN KEY(c, d) REFERENCES t8(a, b));\n  CREATE UNIQUE INDEX t8i1 ON t8(a, b);\n  CREATE UNIQUE INDEX t8i2 ON t8(c);\n  INSERT INTO t8 VALUES(1, 1, 1, 1, 1);\n")
 		}
 	}
 	{ // "3.6.2"
 		_res = db.Exec(" \n  UPDATE t8 SET d = 2; \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " \n  UPDATE t8 SET d = 2; \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " \n  UPDATE t8 SET d = 2; \n")
 		}
 	}
 	{ // "3.6.3"
 		_res = db.Exec(" UPDATE t8 SET d = 1; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t8 SET d = 1; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE t8 SET d = 1; ")
 		}
 	}
 	{ // "3.6.4"
 		_res = db.Exec(" UPDATE t8 SET e = 2; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t8 SET e = 2; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE t8 SET e = 2; ")
 		}
 	}
 	{ // "3.6.5"
 		_res = db.Exec("\n  CREATE TABLE TestTable (\n    id INTEGER PRIMARY KEY,\n    name text,\n    source_id integer not null,\n    parent_id integer,\n\n    foreign key(source_id, parent_id) references TestTable(source_id, id)\n  );\n  CREATE UNIQUE INDEX testindex on TestTable(source_id, id);\n  PRAGMA foreign_keys=1;\n  INSERT INTO TestTable VALUES (1, 'parent', 1, null);\n  INSERT INTO TestTable VALUES (2, 'child', 1, 1);\n  UPDATE TestTable SET parent_id=1000 where id=2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  CREATE TABLE TestTable (\n    id INTEGER PRIMARY KEY,\n    name text,\n    source_id integer not null,\n    parent_id integer,\n\n    foreign key(source_id, parent_id) references TestTable(source_id, id)\n  );\n  CREATE UNIQUE INDEX testindex on TestTable(source_id, id);\n  PRAGMA foreign_keys=1;\n  INSERT INTO TestTable VALUES (1, 'parent', 1, null);\n  INSERT INTO TestTable VALUES (2, 'child', 1, 1);\n  UPDATE TestTable SET parent_id=1000 where id=2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  CREATE TABLE TestTable (\n    id INTEGER PRIMARY KEY,\n    name text,\n    source_id integer not null,\n    parent_id integer,\n\n    foreign key(source_id, parent_id) references TestTable(source_id, id)\n  );\n  CREATE UNIQUE INDEX testindex on TestTable(source_id, id);\n  PRAGMA foreign_keys=1;\n  INSERT INTO TestTable VALUES (1, 'parent', 1, null);\n  INSERT INTO TestTable VALUES (2, 'child', 1, 1);\n  UPDATE TestTable SET parent_id=1000 where id=2;\n")
 		}
 	}
 }

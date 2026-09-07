@@ -64,7 +64,7 @@ func Test_whereI(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 'a', 'z');\n  INSERT INTO t1 VALUES(2, 'b', 'y');\n  INSERT INTO t1 VALUES(3, 'c', 'x');\n  INSERT INTO t1 VALUES(4, 'd', 'w');\n  CREATE INDEX i1 ON t1(b);\n  CREATE INDEX i2 ON t1(c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 'a', 'z');\n  INSERT INTO t1 VALUES(2, 'b', 'y');\n  INSERT INTO t1 VALUES(3, 'c', 'x');\n  INSERT INTO t1 VALUES(4, 'd', 'w');\n  CREATE INDEX i1 ON t1(b);\n  CREATE INDEX i2 ON t1(c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 'a', 'z');\n  INSERT INTO t1 VALUES(2, 'b', 'y');\n  INSERT INTO t1 VALUES(3, 'c', 'x');\n  INSERT INTO t1 VALUES(4, 'd', 'w');\n  CREATE INDEX i1 ON t1(b);\n  CREATE INDEX i2 ON t1(c);\n")
 		}
 	}
 	{ // "1.1"
@@ -100,7 +100,7 @@ func Test_whereI(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO t2 VALUES('i', 'a', 'z');\n  INSERT INTO t2 VALUES('ii', 'b', 'y');\n  INSERT INTO t2 VALUES('iii', 'c', 'x');\n  INSERT INTO t2 VALUES('iv', 'd', 'w');\n  CREATE INDEX i3 ON t2(b);\n  CREATE INDEX i4 ON t2(c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO t2 VALUES('i', 'a', 'z');\n  INSERT INTO t2 VALUES('ii', 'b', 'y');\n  INSERT INTO t2 VALUES('iii', 'c', 'x');\n  INSERT INTO t2 VALUES('iv', 'd', 'w');\n  CREATE INDEX i3 ON t2(b);\n  CREATE INDEX i4 ON t2(c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO t2 VALUES('i', 'a', 'z');\n  INSERT INTO t2 VALUES('ii', 'b', 'y');\n  INSERT INTO t2 VALUES('iii', 'c', 'x');\n  INSERT INTO t2 VALUES('iv', 'd', 'w');\n  CREATE INDEX i3 ON t2(b);\n  CREATE INDEX i4 ON t2(c);\n")
 		}
 	}
 	{ // "2.1"

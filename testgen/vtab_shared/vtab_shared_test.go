@@ -102,7 +102,7 @@ func Test_vtab_shared(t *testing.T) {
 	{ // do_test "vtab_shared-1.3"
 		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: echo") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", _res.Error, " SELECT * FROM t1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", resErrString(_res), " SELECT * FROM t1 ")
 		}
 	}
 	{ // "vtab_shared-1.4" — skipped: shared-cache cross-connection visibility not supported

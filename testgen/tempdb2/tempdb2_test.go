@@ -100,7 +100,7 @@ func Test_tempdb2(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec("\n  BEGIN;\n    DELETE FROM t1;\n    UPDATE t2 SET b=int2str(a+1);\n  ROLLBACK;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    DELETE FROM t1;\n    UPDATE t2 SET b=int2str(a+1);\n  ROLLBACK;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    DELETE FROM t1;\n    UPDATE t2 SET b=int2str(a+1);\n  ROLLBACK;\n")
 		}
 	}
 	{ // "tempdb2-1.4" — skipped: multi-statement UPDATE+SELECT row state N-A (no-side-effects)
@@ -122,7 +122,7 @@ func Test_tempdb2(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(10001, int2str(1001) || int2str(1001) || int2str(1001));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(10001, int2str(1001) || int2str(1001) || int2str(1001));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(10001, int2str(1001) || int2str(1001) || int2str(1001));\n")
 		}
 	}
 	{ // "2.2"

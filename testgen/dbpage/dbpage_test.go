@@ -158,13 +158,13 @@ func Test_dbpage(t *testing.T) {
 	{ // "200"
 		_res = db.Exec("\n  CREATE TEMP TABLE saved_content(x);\n  INSERT INTO saved_content(x) SELECT data FROM sqlite_dbpage WHERE pgno=4;\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE saved_content(x);\n  INSERT INTO saved_content(x) SELECT data FROM sqlite_dbpage WHERE pgno=4;\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TEMP TABLE saved_content(x);\n  INSERT INTO saved_content(x) SELECT data FROM sqlite_dbpage WHERE pgno=4;\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=4;\n")
 		}
 	}
 	{ // "210"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA integrity_check;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA integrity_check;\n")
 		}
 	}
 	{ // "220"
@@ -182,43 +182,43 @@ func Test_dbpage(t *testing.T) {
 	{ // "230"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content) WHERE pgno=4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content) WHERE pgno=4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content) WHERE pgno=4;\n")
 		}
 	}
 	{ // "230"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA integrity_check;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA integrity_check;\n")
 		}
 	}
 	{ // "240"
 		_res = db.Exec("\n  DELETE FROM saved_content;\n  INSERT INTO saved_content(x) \n     SELECT data FROM sqlite_dbpage WHERE schema='aux1' AND pgno=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM saved_content;\n  INSERT INTO saved_content(x) \n     SELECT data FROM sqlite_dbpage WHERE schema='aux1' AND pgno=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM saved_content;\n  INSERT INTO saved_content(x) \n     SELECT data FROM sqlite_dbpage WHERE schema='aux1' AND pgno=2;\n")
 		}
 	}
 	{ // "241"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=2 AND schema='aux1';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=2 AND schema='aux1';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=2 AND schema='aux1';\n")
 		}
 	}
 	{ // "250"
 		_res = db.Exec("\n  PRAGMA aux1.integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA aux1.integrity_check;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA aux1.integrity_check;\n")
 		}
 	}
 	{ // "260"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content)\n   WHERE pgno=2 AND schema='aux1';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content)\n   WHERE pgno=2 AND schema='aux1';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content)\n   WHERE pgno=2 AND schema='aux1';\n")
 		}
 	}
 	{ // "270"
 		_res = db.Exec("\n  PRAGMA aux1.integrity_check;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA aux1.integrity_check;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA aux1.integrity_check;\n")
 		}
 	}
 	db.Close()
@@ -241,7 +241,7 @@ func Test_dbpage(t *testing.T) {
 	{ // "400"
 		_res = db.Exec("\n  ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;\n")
 		}
 	}
 	db.Close()
@@ -299,7 +299,7 @@ func Test_dbpage(t *testing.T) {
 	{ // "610"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);\n")
 		}
 	}
 	_dbone0 := tclExecSQL(db, "{SELECT max(rootpage) FROM sqlite_schema}")
@@ -317,7 +317,7 @@ func Test_dbpage(t *testing.T) {
 	{ // "630"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		}
 	}
 	db.Close()
@@ -347,7 +347,7 @@ func Test_dbpage(t *testing.T) {
 	{ // "700"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n")
 		}
 	}
 	os.Remove("test.db2")
@@ -386,7 +386,7 @@ func Test_dbpage(t *testing.T) {
 	{ // "800"
 		_res = db.Exec("\n  CREATE TABLE x1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(x);\n")
 		}
 	}
 	{ // "810"

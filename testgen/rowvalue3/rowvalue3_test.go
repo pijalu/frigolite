@@ -76,7 +76,7 @@ func Test_rowvalue3(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
 		}
 	}
 	// foreach {tn sql res} "1  \"SELECT 1 WHERE (4, 5) IN (SELECT a, b FROM t1)\"  1\n  2  \"SELECT 1 WHERE (5, 5) IN (SELECT a, b FROM t1)\"  {}\n  3  \"SELECT 1 WHERE (5, 4) IN (SELECT a, b FROM t1)\"  {}\n  4  \"SELECT 1 WHERE (5, 4) IN (SELECT b, a FROM t1)\"  1\n  5  \"SELECT 1 WHERE (SELECT a, b FROM t1 WHERE c=6) IN (SELECT a, b FROM t1)\" 1\n  6  \"SELECT (5, 4) IN (SELECT a, b FROM t1)\" 0\n  7  \"SELECT 1 WHERE (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  8  \"SELECT (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  9  \"SELECT (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  10 \"SELECT 1 WHERE (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  11 \"SELECT 1 WHERE (1, NULL) IN (SELECT rowid, b FROM t1)\"  {}\n  12 \"SELECT 1 FROM t1 WHERE (a, b) = (SELECT +a, +b FROM t1)\" {1}"
@@ -92,14 +92,14 @@ func Test_rowvalue3(t *testing.T) {
 			{ // "1." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 		}
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');\n\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');\n\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');\n\n")
 			}
 		}
 		// foreach {tn idx} "1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }"
@@ -176,7 +176,7 @@ func Test_rowvalue3(t *testing.T) {
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);\n")
 				}
 			}
 			// foreach {tn idx} "1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }"
@@ -201,7 +201,7 @@ func Test_rowvalue3(t *testing.T) {
 							{ // "3." + tn + "." + tn2
 								_res = db.Exec(sql)
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 								}
 							}
 						}
@@ -209,7 +209,7 @@ func Test_rowvalue3(t *testing.T) {
 					{ // "4.0"
 						_res = db.Exec("\n  CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');\n")
 						}
 					}
 					// foreach {tn idx} "1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }"

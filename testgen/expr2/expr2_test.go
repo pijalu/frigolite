@@ -64,7 +64,7 @@ func Test_expr2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES ('val');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES ('val');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES ('val');\n")
 		}
 	}
 	{ // "1.1"

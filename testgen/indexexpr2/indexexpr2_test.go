@@ -75,7 +75,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n\n  CREATE INDEX i1 ON t1(b || 'x');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n\n  CREATE INDEX i1 ON t1(b || 'x');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n\n  CREATE INDEX i1 ON t1(b || 'x');\n")
 		}
 	}
 	{ // "1.1"
@@ -97,7 +97,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE INDEX i2 ON t1(a+1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i2 ON t1(a+1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i2 ON t1(a+1);\n")
 		}
 	}
 	{ // "2.1"
@@ -122,7 +122,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "3.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		}
 	}
 	{ // "3.1.1"
@@ -134,7 +134,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "3.2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(x);\n\n  INSERT INTO t2 VALUES('.ABC');\n  INSERT INTO t2 VALUES('.abcd');\n  INSERT INTO t2 VALUES('.defg');\n  INSERT INTO t2 VALUES('.DEF');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);\n\n  INSERT INTO t2 VALUES('.ABC');\n  INSERT INTO t2 VALUES('.abcd');\n  INSERT INTO t2 VALUES('.defg');\n  INSERT INTO t2 VALUES('.DEF');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x);\n\n  INSERT INTO t2 VALUES('.ABC');\n  INSERT INTO t2 VALUES('.abcd');\n  INSERT INTO t2 VALUES('.defg');\n  INSERT INTO t2 VALUES('.DEF');\n")
 		}
 	}
 	{ // "3.2.1"
@@ -164,13 +164,13 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "3.3.0"
 		_res = db.Exec("\n  CREATE TABLE t3(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(x);\n")
 		}
 	}
 	{ // "3.4.0"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('.ABC', 1);\n  INSERT INTO t4 VALUES('.abc', 2);\n  INSERT INTO t4 VALUES('.ABC', 3);\n  INSERT INTO t4 VALUES('.abc', 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('.ABC', 1);\n  INSERT INTO t4 VALUES('.abc', 2);\n  INSERT INTO t4 VALUES('.ABC', 3);\n  INSERT INTO t4 VALUES('.abc', 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('.ABC', 1);\n  INSERT INTO t4 VALUES('.abc', 2);\n  INSERT INTO t4 VALUES('.ABC', 3);\n  INSERT INTO t4 VALUES('.abc', 4);\n")
 		}
 	}
 	{ // "3.4.1"
@@ -303,7 +303,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER, b INTEGER);\n  INSERT INTO t5 VALUES(2, 4), (3, 9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a INTEGER, b INTEGER);\n  INSERT INTO t5 VALUES(2, 4), (3, 9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a INTEGER, b INTEGER);\n  INSERT INTO t5 VALUES(2, 4), (3, 9);\n")
 		}
 	}
 	{ // "5.1"
@@ -321,7 +321,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "5.2"
 		_res = db.Exec("\n  CREATE INDEX t5a ON t5( abs(a) );\n  CREATE INDEX t5b ON t5( abs(b) );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t5a ON t5( abs(a) );\n  CREATE INDEX t5b ON t5( abs(b) );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t5a ON t5( abs(a) );\n  CREATE INDEX t5b ON t5( abs(b) );\n")
 		}
 	}
 	{ // "5.4"
@@ -339,7 +339,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO x1 VALUES\n      (1, 123), (2, '123'), (3, '123abc'), (4, 123.0), (5, 1234);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO x1 VALUES\n      (1, 123), (2, '123'), (3, '123abc'), (4, 123.0), (5, 1234);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO x1 VALUES\n      (1, 123), (2, '123'), (3, '123abc'), (4, 123.0), (5, 1234);\n")
 		}
 	}
 	{ // "6.1.1"
@@ -405,13 +405,13 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS t0(c0);\n  INSERT INTO t0(c0) VALUES (-9223372036854775808);\n  BEGIN;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS t0(c0);\n  INSERT INTO t0(c0) VALUES (-9223372036854775808);\n  BEGIN;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS t0(c0);\n  INSERT INTO t0(c0) VALUES (-9223372036854775808);\n  BEGIN;\n")
 		}
 	}
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE INDEX i0 ON t0(ABS(c0));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  CREATE INDEX i0 ON t0(ABS(c0));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n  CREATE INDEX i0 ON t0(ABS(c0));\n")
 		}
 	}
 	{ // "7.2"
@@ -429,7 +429,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "7.3"
 		_res = db.Exec("\n  REINDEX;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  REINDEX;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  REINDEX;\n")
 		}
 	}
 	db.Close()
@@ -442,7 +442,7 @@ func Test_indexexpr2(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(c0) WHERE c0 NOT NULL;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(c0) WHERE c0 NOT NULL;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(c0) WHERE c0 NOT NULL;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
 		}
 	}
 	{ // "indexexpr2-8.1.1" — skipped: BETWEEN + TRUE expression semantics not matched (general expr) (SQL side effects only)
@@ -473,7 +473,7 @@ func Test_indexexpr2(t *testing.T) {
 		{ // "8.4"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);\n")
 			}
 		}
 		// foreach {tn expr} "1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\""

@@ -94,7 +94,7 @@ func Test_in7(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c PRIMARY KEY);\n  CREATE TABLE t2(x, y, z);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c PRIMARY KEY);\n  CREATE TABLE t2(x, y, z);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c PRIMARY KEY);\n  CREATE TABLE t2(x, y, z);\n")
 		}
 	}
 	// foreach {tn nNext idx sql} "1 1 {\n    CREATE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  2 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  3 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  3 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IS ?\n  } \n\n  4 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (?, ?, ?);\n  } \n\n  5 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b, c);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  6 0 {\n  } {\n    SELECT * FROM t1 WHERE c IN (SELECT z FROM t2)\n  } \n\n  7 0 {\n  } {\n    SELECT * FROM t1 WHERE (a, c) IN (SELECT z, x FROM t2)\n  } \n\n  8 1 {\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2)\n  } \n\n  9 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b IS ?\n  } \n  10 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b = ?\n  } \n  11 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IS NULL AND b IN (SELECT z FROM t2)\n  } \n  12 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (SELECT z FROM t2)\n  }"
@@ -126,7 +126,7 @@ func Test_in7(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
 			}
 		}
 		{ // "2.1"
@@ -151,7 +151,7 @@ func Test_in7(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
 			}
 		}
 		{ // "3.1"

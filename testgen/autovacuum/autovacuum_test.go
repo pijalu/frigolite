@@ -624,7 +624,7 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-4.2"
 		_res = db.Exec("\n    CREATE UNIQUE INDEX av1_i ON av1(a);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: av1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: av1.a", _res.Error, "\n    CREATE UNIQUE INDEX av1_i ON av1(a);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: av1.a", resErrString(_res), "\n    CREATE UNIQUE INDEX av1_i ON av1(a);\n  ")
 		}
 	}
 	{ // do_test "autovacuum-4.3"

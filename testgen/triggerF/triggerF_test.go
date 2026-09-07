@@ -97,7 +97,7 @@ func Test_triggerF(t *testing.T) {
 			{ // "1." + tn + ".1"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;\n  ")
 				}
 			}
 			{ // "1." + tn + ".2"

@@ -73,7 +73,7 @@ func Test_e_insert(t *testing.T) {
 	{ // "e_insert-0.0"
 		_res = db.Exec("\n  CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -81,505 +81,505 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-0.1
 			_res = db.Exec("INSERT             INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.2
 			_res = db.Exec("INSERT             INTO main.a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO main.a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO main.a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.3
 			_res = db.Exec("INSERT OR ROLLBACK INTO main.a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO main.a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO main.a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.4
 			_res = db.Exec("INSERT OR ROLLBACK INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.5
 			_res = db.Exec("INSERT OR ABORT    INTO main.a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO main.a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO main.a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.6
 			_res = db.Exec("INSERT OR ABORT    INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.7
 			_res = db.Exec("INSERT OR REPLACE  INTO main.a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO main.a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO main.a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.8
 			_res = db.Exec("INSERT OR REPLACE  INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.9
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.10
 			_res = db.Exec("INSERT OR FAIL     INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.11
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.12
 			_res = db.Exec("INSERT OR IGNORE   INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR IGNORE   INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR IGNORE   INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.13
 			_res = db.Exec("REPLACE            INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.14
 			_res = db.Exec("REPLACE            INTO main.a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO main.a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO main.a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-0.15
 			_res = db.Exec("INSERT             INTO a1      VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO a1      VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO a1      VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.16
 			_res = db.Exec("INSERT             INTO main.a1 VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO main.a1 VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO main.a1 VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.17
 			_res = db.Exec("INSERT OR ROLLBACK INTO main.a1 VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO main.a1 VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO main.a1 VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.18
 			_res = db.Exec("INSERT OR ROLLBACK INTO a1      VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO a1      VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO a1      VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.19
 			_res = db.Exec("INSERT OR ABORT    INTO main.a1 VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO main.a1 VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO main.a1 VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.20
 			_res = db.Exec("INSERT OR ABORT    INTO a1      VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO a1      VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO a1      VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.21
 			_res = db.Exec("INSERT OR REPLACE  INTO main.a1 VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO main.a1 VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO main.a1 VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.22
 			_res = db.Exec("INSERT OR REPLACE  INTO a1      VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO a1      VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO a1      VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.23
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.24
 			_res = db.Exec("INSERT OR FAIL     INTO a1      VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO a1      VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO a1      VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.25
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.26
 			_res = db.Exec("INSERT OR IGNORE   INTO a1      VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR IGNORE   INTO a1      VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR IGNORE   INTO a1      VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.27
 			_res = db.Exec("REPLACE            INTO a1      VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO a1      VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO a1      VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.28
 			_res = db.Exec("REPLACE            INTO main.a1 VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO main.a1 VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO main.a1 VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.29
 			_res = db.Exec("INSERT             INTO a1      (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO a1      (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO a1      (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.30
 			_res = db.Exec("INSERT             INTO main.a1 (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO main.a1 (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO main.a1 (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.31
 			_res = db.Exec("INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.32
 			_res = db.Exec("INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.33
 			_res = db.Exec("INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.34
 			_res = db.Exec("INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.35
 			_res = db.Exec("INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.36
 			_res = db.Exec("INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.37
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.38
 			_res = db.Exec("INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.39
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.40
 			_res = db.Exec("INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.41
 			_res = db.Exec("REPLACE            INTO a1      (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO a1      (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO a1      (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.42
 			_res = db.Exec("REPLACE            INTO main.a1 (b, a) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO main.a1 (b, a) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO main.a1 (b, a) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-0.43
 			_res = db.Exec("INSERT             INTO a1      SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO a1      SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO a1      SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.44
 			_res = db.Exec("INSERT             INTO main.a1 SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO main.a1 SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO main.a1 SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.45
 			_res = db.Exec("INSERT OR ROLLBACK INTO main.a1 SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO main.a1 SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO main.a1 SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.46
 			_res = db.Exec("INSERT OR ROLLBACK INTO a1      SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO a1      SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO a1      SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.47
 			_res = db.Exec("INSERT OR ABORT    INTO main.a1 SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO main.a1 SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO main.a1 SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.48
 			_res = db.Exec("INSERT OR ABORT    INTO a1      SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO a1      SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO a1      SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.49
 			_res = db.Exec("INSERT OR REPLACE  INTO main.a1 SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO main.a1 SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO main.a1 SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.50
 			_res = db.Exec("INSERT OR REPLACE  INTO a1      SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO a1      SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO a1      SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.51
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.52
 			_res = db.Exec("INSERT OR FAIL     INTO a1      SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO a1      SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO a1      SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.53
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.54
 			_res = db.Exec("INSERT OR IGNORE   INTO a1      SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR IGNORE   INTO a1      SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR IGNORE   INTO a1      SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.55
 			_res = db.Exec("REPLACE            INTO a1      SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO a1      SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO a1      SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.56
 			_res = db.Exec("REPLACE            INTO main.a1 SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO main.a1 SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO main.a1 SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.57
 			_res = db.Exec("INSERT             INTO a1      (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO a1      (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO a1      (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.58
 			_res = db.Exec("INSERT             INTO main.a1 (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO main.a1 (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO main.a1 (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.59
 			_res = db.Exec("INSERT OR ROLLBACK INTO main.a1 (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO main.a1 (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO main.a1 (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.60
 			_res = db.Exec("INSERT OR ROLLBACK INTO a1      (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO a1      (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO a1      (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.61
 			_res = db.Exec("INSERT OR ABORT    INTO main.a1 (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO main.a1 (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO main.a1 (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.62
 			_res = db.Exec("INSERT OR ABORT    INTO a1      (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO a1      (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO a1      (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.63
 			_res = db.Exec("INSERT OR REPLACE  INTO main.a1 (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO main.a1 (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO main.a1 (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.64
 			_res = db.Exec("INSERT OR REPLACE  INTO a1      (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO a1      (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO a1      (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.65
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.66
 			_res = db.Exec("INSERT OR FAIL     INTO a1      (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO a1      (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO a1      (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.67
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.68
 			_res = db.Exec("INSERT OR IGNORE   INTO a1      (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR IGNORE   INTO a1      (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR IGNORE   INTO a1      (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.69
 			_res = db.Exec("REPLACE            INTO a1      (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO a1      (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO a1      (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.70
 			_res = db.Exec("REPLACE            INTO main.a1 (b, a) SELECT c, b FROM a2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO main.a1 (b, a) SELECT c, b FROM a2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO main.a1 (b, a) SELECT c, b FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-0.71
 			_res = db.Exec("INSERT             INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO a1      (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.72
 			_res = db.Exec("INSERT             INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT             INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT             INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.73
 			_res = db.Exec("INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.74
 			_res = db.Exec("INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.75
 			_res = db.Exec("INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.76
 			_res = db.Exec("INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.77
 			_res = db.Exec("INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.78
 			_res = db.Exec("INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.79
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.80
 			_res = db.Exec("INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.81
 			_res = db.Exec("INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.82
 			_res = db.Exec("INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.83
 			_res = db.Exec("REPLACE            INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO a1      (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO a1      (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 		{ // e_insert-e_insert-0.84
 			_res = db.Exec("REPLACE            INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REPLACE            INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "REPLACE            INTO main.a1 (b, a) VALUES(1, 2),(3,4)")
 			}
 		}
 	}
@@ -604,7 +604,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.1.1a
 			_res = db.Exec("INSERT INTO a2 VALUES(1, 2, 3)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2 VALUES(1, 2, 3)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2 VALUES(1, 2, 3)")
 			}
 		}
 		{ // e_insert-e_insert-1.1.1b
@@ -622,7 +622,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.1.2a
 			_res = db.Exec("INSERT INTO a2(a, b) VALUES(1, 2)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2(a, b) VALUES(1, 2)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2(a, b) VALUES(1, 2)")
 			}
 		}
 		{ // e_insert-e_insert-1.1.2b
@@ -640,7 +640,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.1.3a
 			_res = db.Exec("INSERT INTO a2(a) VALUES(3),(4)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2(a) VALUES(3),(4)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2(a) VALUES(3),(4)")
 			}
 		}
 		{ // e_insert-e_insert-1.1.3b
@@ -660,25 +660,25 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.2.1
 			_res = db.Exec("INSERT INTO a2 VALUES(1)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "1")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "1"), _res.Error, "INSERT INTO a2 VALUES(1)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "1"), resErrString(_res), "INSERT INTO a2 VALUES(1)")
 			}
 		}
 		{ // e_insert-e_insert-1.2.2
 			_res = db.Exec("INSERT INTO a2 VALUES(1,2)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "2"), _res.Error, "INSERT INTO a2 VALUES(1,2)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "2"), resErrString(_res), "INSERT INTO a2 VALUES(1,2)")
 			}
 		}
 		{ // e_insert-e_insert-1.2.3
 			_res = db.Exec("INSERT INTO a2 VALUES(1,2,3,4)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "4")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "4"), _res.Error, "INSERT INTO a2 VALUES(1,2,3,4)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "4"), resErrString(_res), "INSERT INTO a2 VALUES(1,2,3,4)")
 			}
 		}
 		{ // e_insert-e_insert-1.2.4
 			_res = db.Exec("INSERT INTO a2 VALUES(1,2,3,4,5)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "5")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "5"), _res.Error, "INSERT INTO a2 VALUES(1,2,3,4,5)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a2", "3", "5"), resErrString(_res), "INSERT INTO a2 VALUES(1,2,3,4,5)")
 			}
 		}
 	}
@@ -691,7 +691,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.3.1a
 			_res = db.Exec("INSERT INTO a2 VALUES(1, 2, 3)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2 VALUES(1, 2, 3)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2 VALUES(1, 2, 3)")
 			}
 		}
 		{ // e_insert-e_insert-1.3.1b
@@ -709,7 +709,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.3.2a
 			_res = db.Exec("INSERT INTO a2 VALUES('abc', NULL, 3*3+1)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2 VALUES('abc', NULL, 3*3+1)")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2 VALUES('abc', NULL, 3*3+1)")
 			}
 		}
 		{ // e_insert-e_insert-1.3.2b
@@ -727,7 +727,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.3.3a
 			_res = db.Exec("INSERT INTO a2 VALUES((SELECT count(*) FROM a2), 'x', 'y')")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2 VALUES((SELECT count(*) FROM a2), 'x', 'y')")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2 VALUES((SELECT count(*) FROM a2), 'x', 'y')")
 			}
 		}
 		{ // e_insert-e_insert-1.3.3b
@@ -747,49 +747,49 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.4.1
 			_res = db.Exec("INSERT INTO a2(a, b, c) VALUES(1)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "1", "3")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "1", "3"), _res.Error, "INSERT INTO a2(a, b, c) VALUES(1)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "1", "3"), resErrString(_res), "INSERT INTO a2(a, b, c) VALUES(1)")
 			}
 		}
 		{ // e_insert-e_insert-1.4.2
 			_res = db.Exec("INSERT INTO a2(a, b, c) VALUES(1,2)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "2", "3")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "2", "3"), _res.Error, "INSERT INTO a2(a, b, c) VALUES(1,2)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "2", "3"), resErrString(_res), "INSERT INTO a2(a, b, c) VALUES(1,2)")
 			}
 		}
 		{ // e_insert-e_insert-1.4.3
 			_res = db.Exec("INSERT INTO a2(a, b, c) VALUES(1,2,3,4)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "4", "3")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "4", "3"), _res.Error, "INSERT INTO a2(a, b, c) VALUES(1,2,3,4)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "4", "3"), resErrString(_res), "INSERT INTO a2(a, b, c) VALUES(1,2,3,4)")
 			}
 		}
 		{ // e_insert-e_insert-1.4.4
 			_res = db.Exec("INSERT INTO a2(a, b, c) VALUES(1,2,3,4,5)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "5", "3")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "3"), _res.Error, "INSERT INTO a2(a, b, c) VALUES(1,2,3,4,5)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "3"), resErrString(_res), "INSERT INTO a2(a, b, c) VALUES(1,2,3,4,5)")
 			}
 		}
 		{ // e_insert-e_insert-1.4.5
 			_res = db.Exec("INSERT INTO a2(c, a) VALUES(1)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "1", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "1", "2"), _res.Error, "INSERT INTO a2(c, a) VALUES(1)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "1", "2"), resErrString(_res), "INSERT INTO a2(c, a) VALUES(1)")
 			}
 		}
 		{ // e_insert-e_insert-1.4.6
 			_res = db.Exec("INSERT INTO a2(c, a) VALUES(1,2,3)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "3", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), _res.Error, "INSERT INTO a2(c, a) VALUES(1,2,3)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), resErrString(_res), "INSERT INTO a2(c, a) VALUES(1,2,3)")
 			}
 		}
 		{ // e_insert-e_insert-1.4.7
 			_res = db.Exec("INSERT INTO a2(c, a) VALUES(1,2,3,4)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "4", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "4", "2"), _res.Error, "INSERT INTO a2(c, a) VALUES(1,2,3,4)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "4", "2"), resErrString(_res), "INSERT INTO a2(c, a) VALUES(1,2,3,4)")
 			}
 		}
 		{ // e_insert-e_insert-1.4.8
 			_res = db.Exec("INSERT INTO a2(c, a) VALUES(1,2,3,4,5)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "5", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "2"), _res.Error, "INSERT INTO a2(c, a) VALUES(1,2,3,4,5)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "2"), resErrString(_res), "INSERT INTO a2(c, a) VALUES(1,2,3,4,5)")
 			}
 		}
 	}
@@ -802,7 +802,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.5.1a
 			_res = db.Exec("INSERT INTO a2(b, c) VALUES('b', 'c')")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2(b, c) VALUES('b', 'c')")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2(b, c) VALUES('b', 'c')")
 			}
 		}
 		{ // e_insert-e_insert-1.5.1b
@@ -820,7 +820,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-1.5.2a
 			_res = db.Exec("INSERT INTO a2(a, b) VALUES('a', 'b')")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2(a, b) VALUES('a', 'b')")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2(a, b) VALUES('a', 'b')")
 			}
 		}
 		{ // e_insert-e_insert-1.5.2b
@@ -869,7 +869,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-2.1.1b
 			_res = db.Exec("INSERT INTO a1 SELECT 1, 2")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT 1, 2")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT 1, 2")
 			}
 		}
 		{ // e_insert-e_insert-2.1.1c
@@ -899,7 +899,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-2.1.2b
 			_res = db.Exec("INSERT INTO a1 SELECT b, a FROM a1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT b, a FROM a1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT b, a FROM a1")
 			}
 		}
 		{ // e_insert-e_insert-2.1.2c
@@ -929,7 +929,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-2.1.3b
 			_res = db.Exec("INSERT INTO a1 SELECT b, a FROM a1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT b, a FROM a1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT b, a FROM a1")
 			}
 		}
 		{ // e_insert-e_insert-2.1.3c
@@ -959,7 +959,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-2.1.4b
 			_res = db.Exec("INSERT INTO a1 SELECT b, a FROM a1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT b, a FROM a1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT b, a FROM a1")
 			}
 		}
 		{ // e_insert-e_insert-2.1.4c
@@ -989,7 +989,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-2.1.4b
 			_res = db.Exec("INSERT INTO a1 SELECT min(b), min(a) FROM a1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT min(b), min(a) FROM a1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT min(b), min(a) FROM a1")
 			}
 		}
 		{ // e_insert-e_insert-2.1.4c
@@ -1009,61 +1009,61 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-2.2.1
 			_res = db.Exec("INSERT INTO a3(x, y) SELECT a, b, c FROM a2")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "3", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), _res.Error, "INSERT INTO a3(x, y) SELECT a, b, c FROM a2")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), resErrString(_res), "INSERT INTO a3(x, y) SELECT a, b, c FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-2.2.2
 			_res = db.Exec("INSERT INTO a3(x, y) SELECT * FROM a2")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "3", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), _res.Error, "INSERT INTO a3(x, y) SELECT * FROM a2")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), resErrString(_res), "INSERT INTO a3(x, y) SELECT * FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-2.2.3
 			_res = db.Exec("INSERT INTO a3(x, y) SELECT * FROM a2 CROSS JOIN a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "5", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "2"), _res.Error, "INSERT INTO a3(x, y) SELECT * FROM a2 CROSS JOIN a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "2"), resErrString(_res), "INSERT INTO a3(x, y) SELECT * FROM a2 CROSS JOIN a1")
 			}
 		}
 		{ // e_insert-e_insert-2.2.4
 			_res = db.Exec("INSERT INTO a3(x, y) SELECT * FROM a2 NATURAL JOIN a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "3", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), _res.Error, "INSERT INTO a3(x, y) SELECT * FROM a2 NATURAL JOIN a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "2"), resErrString(_res), "INSERT INTO a3(x, y) SELECT * FROM a2 NATURAL JOIN a1")
 			}
 		}
 		{ // e_insert-e_insert-2.2.5
 			_res = db.Exec("INSERT INTO a3(x, y) SELECT a2.a FROM a2,a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "1", "2")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "1", "2"), _res.Error, "INSERT INTO a3(x, y) SELECT a2.a FROM a2,a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "1", "2"), resErrString(_res), "INSERT INTO a3(x, y) SELECT a2.a FROM a2,a1")
 			}
 		}
 		{ // e_insert-e_insert-2.2.6
 			_res = db.Exec("INSERT INTO a3(z) SELECT a, b, c FROM a2")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "3", "1")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "1"), _res.Error, "INSERT INTO a3(z) SELECT a, b, c FROM a2")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "1"), resErrString(_res), "INSERT INTO a3(z) SELECT a, b, c FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-2.2.7
 			_res = db.Exec("INSERT INTO a3(z) SELECT * FROM a2")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "3", "1")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "1"), _res.Error, "INSERT INTO a3(z) SELECT * FROM a2")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "1"), resErrString(_res), "INSERT INTO a3(z) SELECT * FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-2.2.8
 			_res = db.Exec("INSERT INTO a3(z) SELECT * FROM a2 CROSS JOIN a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "5", "1")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "1"), _res.Error, "INSERT INTO a3(z) SELECT * FROM a2 CROSS JOIN a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "5", "1"), resErrString(_res), "INSERT INTO a3(z) SELECT * FROM a2 CROSS JOIN a1")
 			}
 		}
 		{ // e_insert-e_insert-2.2.9
 			_res = db.Exec("INSERT INTO a3(z) SELECT * FROM a2 NATURAL JOIN a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "3", "1")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "1"), _res.Error, "INSERT INTO a3(z) SELECT * FROM a2 NATURAL JOIN a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "3", "1"), resErrString(_res), "INSERT INTO a3(z) SELECT * FROM a2 NATURAL JOIN a1")
 			}
 		}
 		{ // e_insert-e_insert-2.2.10
 			_res = db.Exec("INSERT INTO a3(z) SELECT a1.* FROM a2,a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("%d values for %d columns", "2", "1")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "2", "1"), _res.Error, "INSERT INTO a3(z) SELECT a1.* FROM a2,a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("%d values for %d columns", "2", "1"), resErrString(_res), "INSERT INTO a3(z) SELECT a1.* FROM a2,a1")
 			}
 		}
 	}
@@ -1071,31 +1071,31 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-2.3.1
 			_res = db.Exec("INSERT INTO a1 SELECT a, b, c FROM a2")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3"), _res.Error, "INSERT INTO a1 SELECT a, b, c FROM a2")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3"), resErrString(_res), "INSERT INTO a1 SELECT a, b, c FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-2.3.2
 			_res = db.Exec("INSERT INTO a1 SELECT * FROM a2")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3"), _res.Error, "INSERT INTO a1 SELECT * FROM a2")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3"), resErrString(_res), "INSERT INTO a1 SELECT * FROM a2")
 			}
 		}
 		{ // e_insert-e_insert-2.3.3
 			_res = db.Exec("INSERT INTO a1 SELECT * FROM a2 CROSS JOIN a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "5")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "5"), _res.Error, "INSERT INTO a1 SELECT * FROM a2 CROSS JOIN a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "5"), resErrString(_res), "INSERT INTO a1 SELECT * FROM a2 CROSS JOIN a1")
 			}
 		}
 		{ // e_insert-e_insert-2.3.4
 			_res = db.Exec("INSERT INTO a1 SELECT * FROM a2 NATURAL JOIN a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3"), _res.Error, "INSERT INTO a1 SELECT * FROM a2 NATURAL JOIN a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "3"), resErrString(_res), "INSERT INTO a1 SELECT * FROM a2 NATURAL JOIN a1")
 			}
 		}
 		{ // e_insert-e_insert-2.3.5
 			_res = db.Exec("INSERT INTO a1 SELECT a2.a FROM a2,a1")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "1")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "1"), _res.Error, "INSERT INTO a1 SELECT a2.a FROM a2,a1")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("table %s has %d columns but %d values were supplied", "a1", "2", "1"), resErrString(_res), "INSERT INTO a1 SELECT a2.a FROM a2,a1")
 			}
 		}
 	}
@@ -1107,32 +1107,32 @@ func Test_e_insert(t *testing.T) {
 	{ // "e_insert-2.3.0"
 		_res = db.Exec("\n  INSERT INTO a1 VALUES('x', 'y');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO a1 VALUES('x', 'y');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO a1 VALUES('x', 'y');\n")
 		}
 	}
 	{ // e_insert-e_insert-2.3 (do_select_tests)
 		{ // e_insert-e_insert-2.3.1
 			_res = db.Exec("INSERT INTO a1 SELECT a,b FROM a1 UNION SELECT b,a FROM a1 ORDER BY 1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT a,b FROM a1 UNION SELECT b,a FROM a1 ORDER BY 1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT a,b FROM a1 UNION SELECT b,a FROM a1 ORDER BY 1")
 			}
 		}
 		{ // e_insert-e_insert-2.3.2
 			_res = db.Exec("INSERT INTO a1(b, a) SELECT * FROM a1 LIMIT 1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1(b, a) SELECT * FROM a1 LIMIT 1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1(b, a) SELECT * FROM a1 LIMIT 1")
 			}
 		}
 		{ // e_insert-e_insert-2.3.3
 			_res = db.Exec("INSERT INTO a1 SELECT 'a'||a, 'b'||b FROM a1 LIMIT 2 OFFSET 1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT 'a'||a, 'b'||b FROM a1 LIMIT 2 OFFSET 1")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT 'a'||a, 'b'||b FROM a1 LIMIT 2 OFFSET 1")
 			}
 		}
 		{ // e_insert-e_insert-2.3.4
 			_res = db.Exec("INSERT INTO a1 SELECT * FROM a1 ORDER BY b, a")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 SELECT * FROM a1 ORDER BY b, a")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 SELECT * FROM a1 ORDER BY b, a")
 			}
 		}
 		{ // e_insert-e_insert-2.3.S
@@ -1169,7 +1169,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-3.1.2a
 			_res = db.Exec("INSERT INTO a3 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a3 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a3 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-3.1.2b
@@ -1194,7 +1194,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-3.2.1.1
 			_res = db.Exec("INSERT INTO a3 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a3 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a3 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-3.2.1.2
@@ -1212,7 +1212,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-3.2.2.1
 			_res = db.Exec("INSERT INTO a3 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a3 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a3 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-3.2.2.2
@@ -1230,7 +1230,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-3.2.3.1
 			_res = db.Exec("INSERT INTO a2 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-3.2.3.2
@@ -1248,7 +1248,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-3.2.4.1
 			_res = db.Exec("INSERT INTO a2 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a2 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a2 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-3.2.4.2
@@ -1266,7 +1266,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-3.2.5.1
 			_res = db.Exec("INSERT INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-3.2.5.2
@@ -1284,7 +1284,7 @@ func Test_e_insert(t *testing.T) {
 		{ // e_insert-e_insert-3.2.6.1
 			_res = db.Exec("INSERT INTO a1 DEFAULT VALUES")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 DEFAULT VALUES")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO a1 DEFAULT VALUES")
 			}
 		}
 		{ // e_insert-e_insert-3.2.6.2
@@ -1303,7 +1303,7 @@ func Test_e_insert(t *testing.T) {
 	{ // "e_insert-4.1.0"
 		_res = db.Exec("\n  INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');\n")
 		}
 	}
 	// foreach {tn sql error ac data} "1.1  \"INSERT INTO a4 VALUES(2,'b')\"  {UNIQUE constraint failed: a4.c}  1 {1 a 2 a 3 a}\n  1.2  \"INSERT OR REPLACE INTO a4 VALUES(2, 'b')\"            {}  1 {1 a 3 a 2 b}\n  1.3  \"INSERT OR IGNORE INTO a4 VALUES(3, 'c')\"             {}  1 {1 a 3 a 2 b}\n  1.4  \"BEGIN\" {} 0 {1 a 3 a 2 b}\n  1.5  \"INSERT INTO a4 VALUES(1, 'd')\" {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.6  \"INSERT OR ABORT INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.7  \"INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.8  \"INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.9  \"INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n\n  2.1  \"INSERT INTO a4 VALUES(2,'f')\"  \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n  2.2  \"REPLACE INTO a4 VALUES(2, 'f')\" {}  1 {1 a 3 a 4 e 2 f}"
@@ -1324,11 +1324,11 @@ func Test_e_insert(t *testing.T) {
 				_res = db.Exec(sql)
 				if _error == "" {
 					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+						t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), sql)
 					}
 				} else {
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
-						t.Errorf("expected error containing %s, got: %v\n  sql: %s", _error, _res.Error, sql)
+						t.Errorf("expected error containing %s, got: %v\n  sql: %s", _error, resErrString(_res), sql)
 					}
 				}
 			}
@@ -1354,19 +1354,19 @@ func Test_e_insert(t *testing.T) {
 		{ // "e_insert-5.1.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			if !tclCatchsqlMatches(_res, _err_tcl) {
-				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
+				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			}
 		}
 		{ // "e_insert-5.1.2"
 			_res = db.Exec("\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
 			if !tclCatchsqlMatches(_res, _err_tcl) {
-				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
+				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
 			}
 		}
 		{ // "e_insert-5.2.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"DEFAULT\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"DEFAULT\": syntax error", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"DEFAULT\": syntax error", resErrString(_res), "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
 			}
 		}
 		// delete_all_data (inlined)

@@ -86,7 +86,7 @@ func Test_cost(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, b NOT NULL);\n  CREATE TABLE t4(c, d, e);\n  CREATE UNIQUE INDEX i3 ON t3(b);\n  CREATE UNIQUE INDEX i4 ON t4(c, d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, b NOT NULL);\n  CREATE TABLE t4(c, d, e);\n  CREATE UNIQUE INDEX i3 ON t3(b);\n  CREATE UNIQUE INDEX i4 ON t4(c, d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, b NOT NULL);\n  CREATE TABLE t4(c, d, e);\n  CREATE UNIQUE INDEX i3 ON t3(b);\n  CREATE UNIQUE INDEX i4 ON t4(c, d);\n")
 		}
 	}
 	{ // "1.2"
@@ -98,7 +98,7 @@ func Test_cost(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
 	{ // "2.2"
@@ -110,7 +110,7 @@ func Test_cost(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER PRIMARY KEY,b,c,d,e,f,g);\n  CREATE INDEX t5b ON t5(b);\n  CREATE INDEX t5c ON t5(c);\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  CREATE INDEX t5f ON t5(f);\n  CREATE INDEX t5g ON t5(g);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY,b,c,d,e,f,g);\n  CREATE INDEX t5b ON t5(b);\n  CREATE INDEX t5c ON t5(c);\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  CREATE INDEX t5f ON t5(f);\n  CREATE INDEX t5g ON t5(g);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY,b,c,d,e,f,g);\n  CREATE INDEX t5b ON t5(b);\n  CREATE INDEX t5c ON t5(c);\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  CREATE INDEX t5f ON t5(f);\n  CREATE INDEX t5g ON t5(g);\n")
 		}
 	}
 	{ // "3.2"
@@ -129,7 +129,7 @@ func Test_cost(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n")
 		}
 	}
 	{ // "4.2"
@@ -154,7 +154,7 @@ func Test_cost(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2i1 ON t2(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2i1 ON t2(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2i1 ON t2(x);\n")
 		}
 	}
 	{ // "5.2"
@@ -172,7 +172,7 @@ func Test_cost(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX t3i1 ON t3(b);\n  CREATE INDEX t3i2 ON t3(c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX t3i1 ON t3(b);\n  CREATE INDEX t3i2 ON t3(c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX t3i1 ON t3(b);\n  CREATE INDEX t3i2 ON t3(c);\n")
 		}
 	}
 	{ // "6.2"
@@ -191,7 +191,7 @@ func Test_cost(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d,e,f,g);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n  CREATE INDEX t1d ON t1(d);\n  CREATE INDEX t1e ON t1(e);\n  CREATE INDEX t1f ON t1(f);\n  CREATE INDEX t1g ON t1(g);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d,e,f,g);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n  CREATE INDEX t1d ON t1(d);\n  CREATE INDEX t1e ON t1(e);\n  CREATE INDEX t1f ON t1(f);\n  CREATE INDEX t1g ON t1(g);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d,e,f,g);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n  CREATE INDEX t1d ON t1(d);\n  CREATE INDEX t1e ON t1(e);\n  CREATE INDEX t1f ON t1(f);\n  CREATE INDEX t1g ON t1(g);\n")
 		}
 	}
 	{ // "7.2"
@@ -222,7 +222,7 @@ func Test_cost(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE composer(\n    cid INTEGER PRIMARY KEY,\n    cname TEXT\n  );\n  CREATE TABLE album(\n    aid INTEGER PRIMARY KEY,\n    aname TEXT\n  );\n  CREATE TABLE track(\n    tid INTEGER PRIMARY KEY,\n    cid INTEGER REFERENCES composer,\n    aid INTEGER REFERENCES album,\n    title TEXT\n  );\n  CREATE INDEX track_i1 ON track(cid);\n  CREATE INDEX track_i2 ON track(aid);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE composer(\n    cid INTEGER PRIMARY KEY,\n    cname TEXT\n  );\n  CREATE TABLE album(\n    aid INTEGER PRIMARY KEY,\n    aname TEXT\n  );\n  CREATE TABLE track(\n    tid INTEGER PRIMARY KEY,\n    cid INTEGER REFERENCES composer,\n    aid INTEGER REFERENCES album,\n    title TEXT\n  );\n  CREATE INDEX track_i1 ON track(cid);\n  CREATE INDEX track_i2 ON track(aid);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE composer(\n    cid INTEGER PRIMARY KEY,\n    cname TEXT\n  );\n  CREATE TABLE album(\n    aid INTEGER PRIMARY KEY,\n    aname TEXT\n  );\n  CREATE TABLE track(\n    tid INTEGER PRIMARY KEY,\n    cid INTEGER REFERENCES composer,\n    aid INTEGER REFERENCES album,\n    title TEXT\n  );\n  CREATE INDEX track_i1 ON track(cid);\n  CREATE INDEX track_i2 ON track(aid);\n")
 		}
 	}
 	{ // "8.2"
@@ -234,7 +234,7 @@ func Test_cost(t *testing.T) {
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a,b,c,d,e, f,g,h,i,j,\n    k,l,m,n,o, p,q,r,s,t\n  );\n  CREATE INDEX i1 ON t1(k,l,m,n,o,p,q,r,s,t);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a,b,c,d,e, f,g,h,i,j,\n    k,l,m,n,o, p,q,r,s,t\n  );\n  CREATE INDEX i1 ON t1(k,l,m,n,o,p,q,r,s,t);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(\n    a,b,c,d,e, f,g,h,i,j,\n    k,l,m,n,o, p,q,r,s,t\n  );\n  CREATE INDEX i1 ON t1(k,l,m,n,o,p,q,r,s,t);\n")
 		}
 	}
 	{ // do_test "9.2"

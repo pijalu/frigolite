@@ -78,7 +78,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n")
 		}
 	}
 	{ // do_test "1.1.1"
@@ -91,7 +91,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // "1.2.0"
 		_res = db.Exec("\n  COMMIT;\n  CREATE TABLE t2(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t2 VALUES('a', 'b');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n  CREATE TABLE t2(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t2 VALUES('a', 'b');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n  CREATE TABLE t2(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t2 VALUES('a', 'b');\n")
 		}
 	}
 	{ // do_test "1.2.1"
@@ -104,7 +104,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // "1.3.0"
 		_res = db.Exec("\n  COMMIT;\n  CREATE TABLE t3(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t2 VALUES('c', 'd');\n    INSERT INTO t3 VALUES('i', 'ii');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n  CREATE TABLE t3(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t2 VALUES('c', 'd');\n    INSERT INTO t3 VALUES('i', 'ii');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n  CREATE TABLE t3(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t2 VALUES('c', 'd');\n    INSERT INTO t3 VALUES('i', 'ii');\n")
 		}
 	}
 	{ // do_test "1.3.1"
@@ -142,7 +142,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // "1.4.0"
 		_res = db.Exec("\n  COMMIT;\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		}
 	}
 	{ // do_test "1.4.1"
@@ -176,14 +176,14 @@ func Test_cacheflush(t *testing.T) {
 	{ // "1.4.5"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	os.Remove("test.db2")
 	{ // "2.1.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t4(x, y);\n  INSERT INTO t4 VALUES('A', 'B');\n  BEGIN;\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t4 VALUES('C', 'D');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t4(x, y);\n  INSERT INTO t4 VALUES('A', 'B');\n  BEGIN;\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t4 VALUES('C', 'D');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t4(x, y);\n  INSERT INTO t4 VALUES('A', 'B');\n  BEGIN;\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t4 VALUES('C', 'D');\n")
 		}
 	}
 	{ // do_test "2.1.1"
@@ -203,13 +203,13 @@ func Test_cacheflush(t *testing.T) {
 	{ // "2.1.5"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // "2.2.0"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t4 VALUES('E', 'F');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t4 VALUES('E', 'F');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t4 VALUES('E', 'F');\n")
 		}
 	}
 	{ // do_test "2.2.1"
@@ -251,7 +251,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // "2.2.7"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // do_test "3.0"
@@ -277,7 +277,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // "3.3"

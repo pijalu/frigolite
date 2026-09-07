@@ -200,7 +200,7 @@ func (tp *transpiler) emitDoTestCatchsqlLindexBody(nameExpr, expectedExpr string
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	if expectSuccess {
 		tp.emitLine("if _res.Error != nil {")
-		tp.emitLine("\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+		tp.emitLine("\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 		tp.emitLine("}")
 	} else {
 		tp.emitLine("if _res.Error == nil {")
@@ -688,12 +688,12 @@ func (tp *transpiler) emitDBEvalComparison(nameExpr, expectedExpr string, bodyCm
 			// with that message.
 			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 			tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
-			tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, _res.Error, %s)", expectedExpr, sqlExpr)
+			tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, resErrString(_res), %s)", expectedExpr, sqlExpr)
 			tp.emitLine("}")
 		} else {
 			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 			tp.emitLine("if _res.Error != nil {")
-			tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+			tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 			tp.emitLine("}")
 		}
 	}
@@ -1110,7 +1110,7 @@ func (tp *transpiler) bodyEndsWithDBEvalQuery(bodyCmds [][]tcl.RawWord) bool {
 // emitCatchsqlResultCheck emits a catchsql count-aware comparison.
 func (tp *transpiler) emitCatchsqlResultCheck(nameExpr, expectedExpr string) {
 	tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", _res.Error, %s, %s)", expectedExpr, nameExpr)
+	tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", resErrString(_res), %s, %s)", expectedExpr, nameExpr)
 	tp.emitLine("}")
 }
 

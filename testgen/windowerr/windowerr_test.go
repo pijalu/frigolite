@@ -64,7 +64,7 @@ func Test_windowerr(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER, b INTEGER);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER, b INTEGER);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER, b INTEGER);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n")
 		}
 	}
 	{ // do_test "1.1"

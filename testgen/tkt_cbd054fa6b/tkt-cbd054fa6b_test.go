@@ -105,7 +105,7 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 	{ // do_test "tkt-cbd05-2.2"
 		_res = db.Exec("\n    ANALYZE;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ANALYZE;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    ANALYZE;\n  ")
 		}
 	}
 	{ // do_test "tkt-cbd05-2.3"

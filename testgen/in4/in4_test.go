@@ -622,7 +622,7 @@ func Test_in4(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e);\n  CREATE INDEX t1bc ON t1(c, b);\n  INSERT INTO t2(e) VALUES(1);\n  INSERT INTO t1 VALUES(NULL, NULL, NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e);\n  CREATE INDEX t1bc ON t1(c, b);\n  INSERT INTO t2(e) VALUES(1);\n  INSERT INTO t1 VALUES(NULL, NULL, NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e);\n  CREATE INDEX t1bc ON t1(c, b);\n  INSERT INTO t2(e) VALUES(1);\n  INSERT INTO t1 VALUES(NULL, NULL, NULL);\n")
 		}
 	}
 	{ // "7.1"
@@ -647,7 +647,7 @@ func Test_in4(t *testing.T) {
 	{ // "7.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n    CREATE TABLE t2(d INTEGER, e INT);\n    INSERT INTO t2(e) VALUES(1);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n    CREATE TABLE t2(d INTEGER, e INT);\n    INSERT INTO t2(e) VALUES(1);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n    CREATE TABLE t2(d INTEGER, e INT);\n    INSERT INTO t2(e) VALUES(1);\n  ")
 		}
 	}
 	{ // "7.3"
@@ -672,7 +672,7 @@ func Test_in4(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE UNIQUE INDEX t1y ON t1(y);\n  INSERT INTO t1 VALUES(111, 'AAA'),(222, 'BBB'),(333, 'CCC');\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('BBB'),('AAA');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1', 't1y','100 1');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE UNIQUE INDEX t1y ON t1(y);\n  INSERT INTO t1 VALUES(111, 'AAA'),(222, 'BBB'),(333, 'CCC');\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('BBB'),('AAA');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1', 't1y','100 1');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE UNIQUE INDEX t1y ON t1(y);\n  INSERT INTO t1 VALUES(111, 'AAA'),(222, 'BBB'),(333, 'CCC');\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('BBB'),('AAA');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1', 't1y','100 1');\n")
 		}
 	}
 	db.Close()
@@ -725,7 +725,7 @@ func Test_in4(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE node(node_id INTEGER PRIMARY KEY);\n  CREATE TABLE edge(node_from INT, node_to INT);\n  CREATE TABLE sub_nodes(node_id INTEGER PRIMARY KEY);\n  CREATE INDEX edge_from_to ON edge(node_from,node_to);\n  CREATE INDEX edge_to_from ON edge(node_to,node_from);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES\n    ('sub_nodes',NULL,'1000000'),\n    ('edge','edge_to_from','20000000 2 2'),\n    ('edge','edge_from_to','20000000 2 2'),\n    ('node',NULL,'10000000');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE node(node_id INTEGER PRIMARY KEY);\n  CREATE TABLE edge(node_from INT, node_to INT);\n  CREATE TABLE sub_nodes(node_id INTEGER PRIMARY KEY);\n  CREATE INDEX edge_from_to ON edge(node_from,node_to);\n  CREATE INDEX edge_to_from ON edge(node_to,node_from);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES\n    ('sub_nodes',NULL,'1000000'),\n    ('edge','edge_to_from','20000000 2 2'),\n    ('edge','edge_from_to','20000000 2 2'),\n    ('node',NULL,'10000000');\n  ANALYZE sqlite_schema;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE node(node_id INTEGER PRIMARY KEY);\n  CREATE TABLE edge(node_from INT, node_to INT);\n  CREATE TABLE sub_nodes(node_id INTEGER PRIMARY KEY);\n  CREATE INDEX edge_from_to ON edge(node_from,node_to);\n  CREATE INDEX edge_to_from ON edge(node_to,node_from);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES\n    ('sub_nodes',NULL,'1000000'),\n    ('edge','edge_to_from','20000000 2 2'),\n    ('edge','edge_from_to','20000000 2 2'),\n    ('node',NULL,'10000000');\n  ANALYZE sqlite_schema;\n")
 		}
 	}
 	{ // "9.1"
@@ -763,7 +763,7 @@ func Test_in4(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b INT, c INT, d INT);\n  INSERT INTO t1 VALUES('abc',123,4,5);\n  INSERT INTO t1 VALUES('xyz',1,'abcdefxyz',99);\n  CREATE INDEX t1abc ON t1(b,b,c);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','10000 5 00 2003\u00a010');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT, b INT, c INT, d INT);\n  INSERT INTO t1 VALUES('abc',123,4,5);\n  INSERT INTO t1 VALUES('xyz',1,'abcdefxyz',99);\n  CREATE INDEX t1abc ON t1(b,b,c);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','10000 5 00 2003\u00a010');\n  ANALYZE sqlite_schema;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT, b INT, c INT, d INT);\n  INSERT INTO t1 VALUES('abc',123,4,5);\n  INSERT INTO t1 VALUES('xyz',1,'abcdefxyz',99);\n  CREATE INDEX t1abc ON t1(b,b,c);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','10000 5 00 2003\u00a010');\n  ANALYZE sqlite_schema;\n")
 		}
 	}
 	{ // "11.1"

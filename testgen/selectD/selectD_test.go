@@ -76,7 +76,7 @@ func Test_selectD(t *testing.T) {
 		{ // do_test "selectD-" + i + ".0"
 			_res = db.Exec("\n      ATTACH ':memory:' AS aux1;\n      CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(111,'x1');\n      CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(222,'x2');\n      CREATE TEMP TABLE t3(a,b); INSERT INTO t3 VALUES(333,'x3');\n      CREATE TABLE main.t4(a,b); INSERT INTO main.t4 VALUES(444,'x4');\n      CREATE TABLE aux1.t4(a,b); INSERT INTO aux1.t4 VALUES(555,'x5');\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH ':memory:' AS aux1;\n      CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(111,'x1');\n      CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(222,'x2');\n      CREATE TEMP TABLE t3(a,b); INSERT INTO t3 VALUES(333,'x3');\n      CREATE TABLE main.t4(a,b); INSERT INTO main.t4 VALUES(444,'x4');\n      CREATE TABLE aux1.t4(a,b); INSERT INTO aux1.t4 VALUES(555,'x5');\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      ATTACH ':memory:' AS aux1;\n      CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(111,'x1');\n      CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(222,'x2');\n      CREATE TEMP TABLE t3(a,b); INSERT INTO t3 VALUES(333,'x3');\n      CREATE TABLE main.t4(a,b); INSERT INTO main.t4 VALUES(444,'x4');\n      CREATE TABLE aux1.t4(a,b); INSERT INTO aux1.t4 VALUES(555,'x5');\n    ")
 			}
 		}
 		{ // do_test "selectD-" + i + ".1"
@@ -166,7 +166,7 @@ func Test_selectD(t *testing.T) {
 		{ // do_test "selectD-" + i + ".2.6"
 			_res = db.Exec("\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux.t4 ON aux.t4.a=main.t4.a+111)\n                              ON main.t4.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: aux.t4") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: aux.t4", _res.Error, "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux.t4 ON aux.t4.a=main.t4.a+111)\n                              ON main.t4.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: aux.t4", resErrString(_res), "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux.t4 ON aux.t4.a=main.t4.a+111)\n                              ON main.t4.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.7"

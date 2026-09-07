@@ -171,7 +171,7 @@ func Test_between(t *testing.T) {
 	{ // "between-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT, y TEXT COLLATE nocase);\n  INSERT INTO t1 VALUES('0', 'abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT, y TEXT COLLATE nocase);\n  INSERT INTO t1 VALUES('0', 'abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x TEXT, y TEXT COLLATE nocase);\n  INSERT INTO t1 VALUES('0', 'abc');\n")
 		}
 	}
 	// foreach {tn expr res} "1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0"
@@ -190,7 +190,7 @@ func Test_between(t *testing.T) {
 			{ // "between-2.1." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 		}
@@ -204,7 +204,7 @@ func Test_between(t *testing.T) {
 		{ // "between-3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
 			}
 		}
 		{ // "between-3.1"

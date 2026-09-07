@@ -105,7 +105,7 @@ func Test_collate7(t *testing.T) {
 	{ // do_test "collate7-1.3"
 		_res = db.Exec("\n    CREATE TABLE abc(a COLLATE CASELESS, b, c);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: CASELESS") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: CASELESS", _res.Error, "\n    CREATE TABLE abc(a COLLATE CASELESS, b, c);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: CASELESS", resErrString(_res), "\n    CREATE TABLE abc(a COLLATE CASELESS, b, c);\n  ")
 		}
 	}
 	{ // do_test "collate7-1.4"
@@ -173,7 +173,7 @@ func Test_collate7(t *testing.T) {
 	{ // do_test "collate7-2.4"
 		_res = db.Exec("\n    SELECT * FROM abc16 WHERE a < 'abc';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: CASELESS") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: CASELESS", _res.Error, "\n    SELECT * FROM abc16 WHERE a < 'abc';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: CASELESS", resErrString(_res), "\n    SELECT * FROM abc16 WHERE a < 'abc';\n  ")
 		}
 	}
 }

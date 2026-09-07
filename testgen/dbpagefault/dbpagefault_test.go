@@ -88,7 +88,7 @@ func Test_dbpagefault(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;\n")
 		}
 	}
 	{ // "3.1"
@@ -100,7 +100,7 @@ func Test_dbpagefault(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of virtual table \"sqlite_dbpage\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of virtual table \"sqlite_dbpage\"", _res.Error, "\n  PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of virtual table \"sqlite_dbpage\"", resErrString(_res), "\n  PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;\n")
 		}
 	}
 	db.Close()
@@ -113,7 +113,7 @@ func Test_dbpagefault(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);\n")
 		}
 	}
 	_dbone0 := tclExecSQL(db, "{SELECT max(rootpage) FROM sqlite_schema}")

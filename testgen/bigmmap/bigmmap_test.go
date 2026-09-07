@@ -126,7 +126,7 @@ func Test_bigmmap(t *testing.T) {
 		{ // "1." + i
 			_res = db.Exec("\n    CREATE TABLE t" + i + " (a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    WITH  s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 100 )\n      INSERT INTO t" + i + " SELECT i, 't" + i + "', randomblob(800) FROM s;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t" + i + " (a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    WITH  s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 100 )\n      INSERT INTO t" + i + " SELECT i, 't" + i + "', randomblob(800) FROM s;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t" + i + " (a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    WITH  s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 100 )\n      INSERT INTO t" + i + " SELECT i, 't" + i + "', randomblob(800) FROM s;\n  ")
 			}
 		}
 		// incr i 1

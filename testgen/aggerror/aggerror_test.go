@@ -78,7 +78,7 @@ func Test_aggerror(t *testing.T) {
 	{ // do_test "aggerror-1.3"
 		_res = db.Exec("\n    SELECT x_count(a) FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "value of 40 handed to x_count") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "value of 40 handed to x_count", _res.Error, "\n    SELECT x_count(a) FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "value of 40 handed to x_count", resErrString(_res), "\n    SELECT x_count(a) FROM t1;\n  ")
 		}
 	}
 	{ // do_test "aggerror-1.5"

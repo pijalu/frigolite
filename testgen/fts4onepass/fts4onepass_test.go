@@ -79,7 +79,7 @@ func Test_fts4onepass(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(rowid, content) VALUES(1, '1 2 3');\n  INSERT INTO ft(rowid, content) VALUES(2, '4 5 6');\n  INSERT INTO ft(rowid, content) VALUES(3, '7 8 9');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(rowid, content) VALUES(1, '1 2 3');\n  INSERT INTO ft(rowid, content) VALUES(2, '4 5 6');\n  INSERT INTO ft(rowid, content) VALUES(3, '7 8 9');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(rowid, content) VALUES(1, '1 2 3');\n  INSERT INTO ft(rowid, content) VALUES(2, '4 5 6');\n  INSERT INTO ft(rowid, content) VALUES(3, '7 8 9');\n")
 		}
 	}
 	// foreach {tn sql uses} "1.1 { DELETE FROM ft } 1\n  1.2 { DELETE FROM ft WHERE docid=? } 0\n  1.3 { DELETE FROM ft WHERE rowid=? } 0\n  1.4 { DELETE FROM ft WHERE ft MATCH '1' } 1\n  1.5 { DELETE FROM ft WHERE ft MATCH '1' AND docid=? } 1\n  1.6 { DELETE FROM ft WHERE ft MATCH '1' AND rowid=? } 1\n\n  2.1 { UPDATE ft SET content='a b c' } 1\n  2.2 { UPDATE ft SET content='a b c' WHERE docid=? } 0\n  2.3 { UPDATE ft SET content='a b c' WHERE rowid=? } 0\n  2.4 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' } 1\n  2.5 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND docid=? } 1\n  2.6 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND rowid=? } 1"
@@ -101,7 +101,7 @@ func Test_fts4onepass(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;\n")
 			}
 		}
 		// foreach {tn sql uses} "1 { INSERT INTO t1 VALUES(1)      } 1\n  2 { DELETE FROM t1 WHERE x=4      } 1\n  3 { UPDATE t1 SET x=10 WHERE x=11 } 1"
@@ -133,7 +133,7 @@ func Test_fts4onepass(t *testing.T) {
 					{ // "3." + tn + ".0"
 						_res = db.Exec("\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
 						}
 					}
 					// eval $tcl1 (dynamic, not transpiled)
@@ -150,7 +150,7 @@ func Test_fts4onepass(t *testing.T) {
 							{ // "3." + tn + "." + tn2 + ".a"
 								_res = db.Exec(sql)
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, sql)
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), sql)
 								}
 							}
 							{ // "3." + tn + "." + tn2 + ".b"
@@ -168,7 +168,7 @@ func Test_fts4onepass(t *testing.T) {
 							{ // "3." + tn + "." + tn2 + ".c"
 								_res = db.Exec(" \n      INSERT INTO ft2(ft2) VALUES('integrity-check');\n    ")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO ft2(ft2) VALUES('integrity-check');\n    ")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n      INSERT INTO ft2(ft2) VALUES('integrity-check');\n    ")
 								}
 							}
 						}

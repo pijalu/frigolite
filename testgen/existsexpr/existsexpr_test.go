@@ -98,7 +98,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		}
 	}
 	{ // "1.1"
@@ -188,7 +188,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  ) INSERT INTO t1 SELECT i, i FROM s;\n\n  CREATE TABLE t2(c, d);\n  WITH s(i) AS (\n    SELECT 10 UNION ALL SELECT i+10 FROM s WHERE i<1000\n  ) INSERT INTO t2 SELECT i, i FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  ) INSERT INTO t1 SELECT i, i FROM s;\n\n  CREATE TABLE t2(c, d);\n  WITH s(i) AS (\n    SELECT 10 UNION ALL SELECT i+10 FROM s WHERE i<1000\n  ) INSERT INTO t2 SELECT i, i FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  ) INSERT INTO t1 SELECT i, i FROM s;\n\n  CREATE TABLE t2(c, d);\n  WITH s(i) AS (\n    SELECT 10 UNION ALL SELECT i+10 FROM s WHERE i<1000\n  ) INSERT INTO t2 SELECT i, i FROM s;\n")
 		}
 	}
 	{ // "2.1"
@@ -236,7 +236,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "2.4.0"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t1a ON t1(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t1a ON t1(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t1a ON t1(a);\n")
 		}
 	}
 	{ // "2.4.1"
@@ -248,7 +248,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "2.4.2"
 		_res = db.Exec("\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n")
 		}
 	}
 	{ // "2.4.3"
@@ -285,7 +285,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE y1(a, b, c);\n  CREATE TABLE y2(x, y, z);\n  CREATE UNIQUE INDEX y2zy ON y2(z, y);\n\n  INSERT INTO y1 VALUES(1, 1, 1);\n  INSERT INTO y1 VALUES(2, 2, 2);\n  INSERT INTO y1 VALUES(3, 3, 3);\n  INSERT INTO y1 VALUES(4, 4, 4);\n\n  INSERT INTO y2 VALUES(1, 1, 1);\n  INSERT INTO y2 VALUES(3, 3, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a, b, c);\n  CREATE TABLE y2(x, y, z);\n  CREATE UNIQUE INDEX y2zy ON y2(z, y);\n\n  INSERT INTO y1 VALUES(1, 1, 1);\n  INSERT INTO y1 VALUES(2, 2, 2);\n  INSERT INTO y1 VALUES(3, 3, 3);\n  INSERT INTO y1 VALUES(4, 4, 4);\n\n  INSERT INTO y2 VALUES(1, 1, 1);\n  INSERT INTO y2 VALUES(3, 3, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE y1(a, b, c);\n  CREATE TABLE y2(x, y, z);\n  CREATE UNIQUE INDEX y2zy ON y2(z, y);\n\n  INSERT INTO y1 VALUES(1, 1, 1);\n  INSERT INTO y1 VALUES(2, 2, 2);\n  INSERT INTO y1 VALUES(3, 3, 3);\n  INSERT INTO y1 VALUES(4, 4, 4);\n\n  INSERT INTO y2 VALUES(1, 1, 1);\n  INSERT INTO y2 VALUES(3, 3, 3);\n")
 		}
 	}
 	// do_subquery_test 3.1 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT...} {\n  1 1 1        ... (unsupported command, not transpiled)
@@ -307,7 +307,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE tx1(a TEXT COLLATE nocase, b TEXT);\n  CREATE UNIQUE INDEX tx1ab ON tx1(a, b);\n\n  INSERT INTO tx1 VALUES('a', 'a');\n  INSERT INTO tx1 VALUES('B', 'b');\n  INSERT INTO tx1 VALUES('c', 'c');\n  INSERT INTO tx1 VALUES('D', 'd');\n  INSERT INTO tx1 VALUES('e', 'e');\n\n  CREATE TABLE tx2(x, y);\n  INSERT INTO tx2 VALUES('A', 'a');\n  INSERT INTO tx2 VALUES('b', 'b');\n  INSERT INTO tx2 VALUES('C', 'c');\n  INSERT INTO tx2 VALUES('D', 'd');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tx1(a TEXT COLLATE nocase, b TEXT);\n  CREATE UNIQUE INDEX tx1ab ON tx1(a, b);\n\n  INSERT INTO tx1 VALUES('a', 'a');\n  INSERT INTO tx1 VALUES('B', 'b');\n  INSERT INTO tx1 VALUES('c', 'c');\n  INSERT INTO tx1 VALUES('D', 'd');\n  INSERT INTO tx1 VALUES('e', 'e');\n\n  CREATE TABLE tx2(x, y);\n  INSERT INTO tx2 VALUES('A', 'a');\n  INSERT INTO tx2 VALUES('b', 'b');\n  INSERT INTO tx2 VALUES('C', 'c');\n  INSERT INTO tx2 VALUES('D', 'd');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tx1(a TEXT COLLATE nocase, b TEXT);\n  CREATE UNIQUE INDEX tx1ab ON tx1(a, b);\n\n  INSERT INTO tx1 VALUES('a', 'a');\n  INSERT INTO tx1 VALUES('B', 'b');\n  INSERT INTO tx1 VALUES('c', 'c');\n  INSERT INTO tx1 VALUES('D', 'd');\n  INSERT INTO tx1 VALUES('e', 'e');\n\n  CREATE TABLE tx2(x, y);\n  INSERT INTO tx2 VALUES('A', 'a');\n  INSERT INTO tx2 VALUES('b', 'b');\n  INSERT INTO tx2 VALUES('C', 'c');\n  INSERT INTO tx2 VALUES('D', 'd');\n")
 		}
 	}
 	// do_subquery_test 4.1 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1...} {\n  A a\n  b b\n ... (unsupported command, not transpiled)
@@ -319,7 +319,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "4.3"
 		_res = db.Exec("\n  DROP INDEX tx1ab;\n  CREATE UNIQUE INDEX tx1ab ON tx1(a COLLATE binary, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX tx1ab;\n  CREATE UNIQUE INDEX tx1ab ON tx1(a COLLATE binary, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX tx1ab;\n  CREATE UNIQUE INDEX tx1ab ON tx1(a COLLATE binary, b);\n")
 		}
 	}
 	// do_subquery_test 4.4 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1...} {\n  A a\n  b b\n ... (unsupported command, not transpiled)
@@ -332,25 +332,25 @@ func Test_existsexpr(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE a1( " + "c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84, c85, c86, c87, c88, c89, c90, c91, c92, c93, c94, c95, c96, c97, c98, c99" + " );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a1( " + "c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84, c85, c86, c87, c88, c89, c90, c91, c92, c93, c94, c95, c96, c97, c98, c99" + " );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE a1( " + "c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84, c85, c86, c87, c88, c89, c90, c91, c92, c93, c94, c95, c96, c97, c98, c99" + " );\n")
 		}
 	}
 	{ // "5.1"
 		_res = db.Exec("\n  -- 63 column index\n  CREATE UNIQUE INDEX a1idx1 ON a1( " + "c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62" + " );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- 63 column index\n  CREATE UNIQUE INDEX a1idx1 ON a1( " + "c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62" + " );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  -- 63 column index\n  CREATE UNIQUE INDEX a1idx1 ON a1( " + "c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62" + " );\n")
 		}
 	}
 	{ // "5.2"
 		_res = db.Exec("\n  -- 64 column index\n  CREATE UNIQUE INDEX a1idx2 ON a1( " + "c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73" + " );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- 64 column index\n  CREATE UNIQUE INDEX a1idx2 ON a1( " + "c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73" + " );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  -- 64 column index\n  CREATE UNIQUE INDEX a1idx2 ON a1( " + "c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73" + " );\n")
 		}
 	}
 	{ // "5.2"
 		_res = db.Exec("\n  -- 65 column index\n  CREATE UNIQUE INDEX a1idx3 ON a1( " + "c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84" + " );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- 65 column index\n  CREATE UNIQUE INDEX a1idx3 ON a1( " + "c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84" + " );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  -- 65 column index\n  CREATE UNIQUE INDEX a1idx3 ON a1( " + "c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84" + " );\n")
 		}
 	}
 	{ // do_test "5.3"
@@ -365,7 +365,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "5.4"
 		_res = db.Exec("\n  CREATE TABLE a2(o);\n  INSERT INTO a2 VALUES(2), (5); \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a2(o);\n  INSERT INTO a2 VALUES(2), (5); \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE a2(o);\n  INSERT INTO a2 VALUES(2), (5); \n")
 		}
 	}
 	// do_subquery_test 5.5 0 \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 ... {\n  2 5\n} (unsupported command, not transpiled)
@@ -381,13 +381,13 @@ func Test_existsexpr(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  CREATE TABLE t2(a INfEGER PRIMARY KEY, b);\n  CREATE UNIQUE INDEX t2b ON t2(b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  CREATE TABLE t2(a INfEGER PRIMARY KEY, b);\n  CREATE UNIQUE INDEX t2b ON t2(b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  CREATE TABLE t2(a INfEGER PRIMARY KEY, b);\n  CREATE UNIQUE INDEX t2b ON t2(b);\n")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  SELECT a FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c COLLATE f = a)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: f") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: f", _res.Error, "\n  SELECT a FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c COLLATE f = a)\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: f", resErrString(_res), "\n  SELECT a FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c COLLATE f = a)\n")
 		}
 	}
 	db.Close()
@@ -432,7 +432,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t1(xx);\n  INSERT INTO t1 VALUES('big string value');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(xx);\n  INSERT INTO t1 VALUES('big string value');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(xx);\n  INSERT INTO t1 VALUES('big string value');\n")
 		}
 	}
 	{ // "9.1"
@@ -444,7 +444,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "9.2"
 		_res = db.Exec("\n  CREATE TABLE t3(yy);\n  INSERT INTO t3 VALUES(200);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(yy);\n  INSERT INTO t3 VALUES(200);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(yy);\n  INSERT INTO t3 VALUES(200);\n")
 		}
 	}
 	{ // "9.3"
@@ -489,7 +489,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "9.5"
 		_res = db.Exec(Q)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, Q)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), Q)
 		}
 	}
 	{
@@ -501,13 +501,13 @@ func Test_existsexpr(t *testing.T) {
 	{ // "9.6"
 		_res = db.Exec(Q)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, Q)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), Q)
 		}
 	}
 	{ // "9.7.1"
 		_res = db.Exec("\n  DROP TABLE t3;\n  CREATE TABLE t3(x INT, y INT);\n  CREATE TABLE t4(z INT);\n  INSERT INTO t3 VALUES (1,0),(2,2),(3,3);\n  INSERT INTO t4 VALUES (4),(5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t3;\n  CREATE TABLE t3(x INT, y INT);\n  CREATE TABLE t4(z INT);\n  INSERT INTO t3 VALUES (1,0),(2,2),(3,3);\n  INSERT INTO t4 VALUES (4),(5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t3;\n  CREATE TABLE t3(x INT, y INT);\n  CREATE TABLE t4(z INT);\n  INSERT INTO t3 VALUES (1,0),(2,2),(3,3);\n  INSERT INTO t4 VALUES (4),(5);\n")
 		}
 	}
 	vtab.TclVarSet("Q", "", "\n  SELECT x FROM t3\n   WHERE EXISTS(SELECT 1 FROM t4 WHERE z>y)\n   LIMIT 1 OFFSET 1\n")
@@ -525,7 +525,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "9.7.2"
 		_res = db.Exec(Q)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, Q)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), Q)
 		}
 	}
 	{
@@ -537,7 +537,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "9.7.3"
 		_res = db.Exec(Q)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, Q)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), Q)
 		}
 	}
 	{
@@ -559,7 +559,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE x1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE TABLE x1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE TABLE x1(x);\n")
 		}
 	}
 	{ // "10.1"
@@ -577,7 +577,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE parent (id TEXT PRIMARY KEY);\n  CREATE TABLE child_a (id TEXT);\n  CREATE TABLE child_b (id TEXT);\n  INSERT INTO parent VALUES ('p1');\n  INSERT INTO child_a VALUES ('p1');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE parent (id TEXT PRIMARY KEY);\n  CREATE TABLE child_a (id TEXT);\n  CREATE TABLE child_b (id TEXT);\n  INSERT INTO parent VALUES ('p1');\n  INSERT INTO child_a VALUES ('p1');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE parent (id TEXT PRIMARY KEY);\n  CREATE TABLE child_a (id TEXT);\n  CREATE TABLE child_b (id TEXT);\n  INSERT INTO parent VALUES ('p1');\n  INSERT INTO child_a VALUES ('p1');\n")
 		}
 	}
 	{ // "11.1"
@@ -602,7 +602,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "12.0"
 		_res = db.Exec("\n  CREATE TABLE t2(id INT, data INT);\n  CREATE TABLE t3(amount INT);\n\n  INSERT INTO t2 VALUES (1,0),(2,0);\n  INSERT INTO t3 VALUES (1),(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(id INT, data INT);\n  CREATE TABLE t3(amount INT);\n\n  INSERT INTO t2 VALUES (1,0),(2,0);\n  INSERT INTO t3 VALUES (1),(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(id INT, data INT);\n  CREATE TABLE t3(amount INT);\n\n  INSERT INTO t2 VALUES (1,0),(2,0);\n  INSERT INTO t3 VALUES (1),(1);\n")
 		}
 	}
 	{ // "12.1"
@@ -658,7 +658,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "14.1.0"
 		_res = db.Exec("\n  CREATE TABLE t(n INTEGER, parent INTEGER);\n  CREATE INDEX idx ON t(parent);\n  INSERT INTO t VALUES (1,  NULL);\n  INSERT INTO t VALUES (10, NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(n INTEGER, parent INTEGER);\n  CREATE INDEX idx ON t(parent);\n  INSERT INTO t VALUES (1,  NULL);\n  INSERT INTO t VALUES (10, NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t(n INTEGER, parent INTEGER);\n  CREATE INDEX idx ON t(parent);\n  INSERT INTO t VALUES (1,  NULL);\n  INSERT INTO t VALUES (10, NULL);\n")
 		}
 	}
 	{ // "14.1.1"
@@ -688,7 +688,7 @@ func Test_existsexpr(t *testing.T) {
 	{ // "14.2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(20, 20);\n\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2c ON t2(c);\n  CREATE INDEX t2d ON t2(d);\n\n  INSERT INTO t2 VALUES(20, -1);\n  INSERT INTO t2 VALUES(20,  0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(20, 20);\n\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2c ON t2(c);\n  CREATE INDEX t2d ON t2(d);\n\n  INSERT INTO t2 VALUES(20, -1);\n  INSERT INTO t2 VALUES(20,  0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(20, 20);\n\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2c ON t2(c);\n  CREATE INDEX t2d ON t2(d);\n\n  INSERT INTO t2 VALUES(20, -1);\n  INSERT INTO t2 VALUES(20,  0);\n")
 		}
 	}
 	{ // "14.2.2"

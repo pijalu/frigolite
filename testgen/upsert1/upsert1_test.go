@@ -101,19 +101,19 @@ func Test_upsert1(t *testing.T) {
 	{ // "upsert1-110"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(x) DO NOTHING;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(x) DO NOTHING;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x", resErrString(_res), "\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(x) DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-120"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(c) DO NOTHING;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(c) DO NOTHING;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(c) DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-130"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(b COLLATE nocase) DO NOTHING;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(b COLLATE nocase) DO NOTHING;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(b COLLATE nocase) DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-140"
@@ -131,31 +131,31 @@ func Test_upsert1(t *testing.T) {
 	{ // "upsert1-200"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-201"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a) DO NOTHING;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: index 't1x1'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't1x1'", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a) DO NOTHING;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't1x1'", resErrString(_res), "\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a) DO NOTHING;\n")
 		}
 	}
 	{ // "upsert1-210"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(9,10) ON CONFLICT(a+(+b)) DO NOTHING;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(9,10) ON CONFLICT(a+(+b)) DO NOTHING;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(9,10) ON CONFLICT(a+(+b)) DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-300"
 		_res = db.Exec("\n  DROP INDEX t1x1;\n  DELETE FROM t1;\n  CREATE UNIQUE INDEX t1x1 ON t1(b) WHERE b>10;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) DO NOTHING;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  DROP INDEX t1x1;\n  DELETE FROM t1;\n  CREATE UNIQUE INDEX t1x1 ON t1(b) WHERE b>10;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) DO NOTHING;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  DROP INDEX t1x1;\n  DELETE FROM t1;\n  CREATE UNIQUE INDEX t1x1 ON t1(b) WHERE b>10;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-310"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) WHERE b!=10 DO NOTHING;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) WHERE b!=10 DO NOTHING;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) WHERE b!=10 DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-320"
@@ -356,13 +356,13 @@ func Test_upsert1(t *testing.T) {
 	{ // "upsert1-900"
 		_res = db.Exec("\n  CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;\n")
 		}
 	}
 	{ // "upsert1-910"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(3) ON CONFLICT(x) DO NOTHING;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot UPSERT a view") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot UPSERT a view", _res.Error, "\n  INSERT INTO t1 VALUES(3) ON CONFLICT(x) DO NOTHING;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot UPSERT a view", resErrString(_res), "\n  INSERT INTO t1 VALUES(3) ON CONFLICT(x) DO NOTHING;\n")
 		}
 	}
 	db.Close()
@@ -375,7 +375,7 @@ func Test_upsert1(t *testing.T) {
 	{ // "upsert1-1000"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 UNIQUE) WITHOUT ROWID;\n  INSERT OR FAIL INTO t0(c2) VALUES (0), (NULL)\n    ON CONFLICT(c2) DO UPDATE SET c1 = c0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t0.c0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t0.c0", _res.Error, "\n  CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 UNIQUE) WITHOUT ROWID;\n  INSERT OR FAIL INTO t0(c2) VALUES (0), (NULL)\n    ON CONFLICT(c2) DO UPDATE SET c1 = c0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t0.c0", resErrString(_res), "\n  CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 UNIQUE) WITHOUT ROWID;\n  INSERT OR FAIL INTO t0(c2) VALUES (0), (NULL)\n    ON CONFLICT(c2) DO UPDATE SET c1 = c0;\n")
 		}
 	}
 	db.Close()
@@ -407,14 +407,14 @@ func Test_upsert1(t *testing.T) {
 	{ // "upsert1-1200"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);\n")
 		}
 	}
 	// sqlite3_db_config ENABLE_QPSG (unhandled flag)
 	{ // "upsert1-1210"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT(b+?1) DO NOTHING;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT(b+?1) DO NOTHING;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT(b+?1) DO NOTHING;\n")
 		}
 	}
 	db.Close()
@@ -427,7 +427,7 @@ func Test_upsert1(t *testing.T) {
 	{ // "upsert1-1300"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1 VALUES\n    (11, printf('%.9000c','a')),\n    (11, printf('%.9000c','a')),\n    (33, printf('%.9000c','b')),\n    (33, printf('%.9000c','b'));\n  CREATE TABLE t2(x INT UNIQUE, y TEXT);\n  CREATE TRIGGER r1 BEFORE UPDATE ON t2 BEGIN\n    SELECT raise(ABORT,'Incorrect old.y value passed to trigger!')\n     WHERE old.y != new.y;\n    /* ^^^ This trigger will fire and cause the ABORT if the problem has\n    ** not been fixed, or if there is a regression. */\n  END;\n  INSERT INTO t2(x, y) SELECT x, y FROM t1\n   WHERE true\n   ON CONFLICT (x) DO UPDATE SET y = excluded.y;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1 VALUES\n    (11, printf('%.9000c','a')),\n    (11, printf('%.9000c','a')),\n    (33, printf('%.9000c','b')),\n    (33, printf('%.9000c','b'));\n  CREATE TABLE t2(x INT UNIQUE, y TEXT);\n  CREATE TRIGGER r1 BEFORE UPDATE ON t2 BEGIN\n    SELECT raise(ABORT,'Incorrect old.y value passed to trigger!')\n     WHERE old.y != new.y;\n    /* ^^^ This trigger will fire and cause the ABORT if the problem has\n    ** not been fixed, or if there is a regression. */\n  END;\n  INSERT INTO t2(x, y) SELECT x, y FROM t1\n   WHERE true\n   ON CONFLICT (x) DO UPDATE SET y = excluded.y;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1 VALUES\n    (11, printf('%.9000c','a')),\n    (11, printf('%.9000c','a')),\n    (33, printf('%.9000c','b')),\n    (33, printf('%.9000c','b'));\n  CREATE TABLE t2(x INT UNIQUE, y TEXT);\n  CREATE TRIGGER r1 BEFORE UPDATE ON t2 BEGIN\n    SELECT raise(ABORT,'Incorrect old.y value passed to trigger!')\n     WHERE old.y != new.y;\n    /* ^^^ This trigger will fire and cause the ABORT if the problem has\n    ** not been fixed, or if there is a regression. */\n  END;\n  INSERT INTO t2(x, y) SELECT x, y FROM t1\n   WHERE true\n   ON CONFLICT (x) DO UPDATE SET y = excluded.y;\n")
 		}
 	}
 }

@@ -67,7 +67,7 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 	{ // do_test "tkt-f7772-1.2"
 		_res = db.Exec("\n    BEGIN IMMEDIATE;\n    CREATE TABLE xyzzy(abc);\n    SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "abort due to ROLLBACK") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "abort due to ROLLBACK", _res.Error, "\n    BEGIN IMMEDIATE;\n    CREATE TABLE xyzzy(abc);\n    SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "abort due to ROLLBACK", resErrString(_res), "\n    BEGIN IMMEDIATE;\n    CREATE TABLE xyzzy(abc);\n    SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n  ")
 		}
 	}
 	{ // "tkt-f7772-1.3" (prepare-step internals; SQL side effects only)

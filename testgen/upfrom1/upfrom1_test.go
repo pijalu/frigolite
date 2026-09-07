@@ -64,7 +64,7 @@ func Test_upfrom1(t *testing.T) {
 	{ // "1.1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);\n")
 		}
 	}
 	{ // "1.1.1"
@@ -94,7 +94,7 @@ func Test_upfrom1(t *testing.T) {
 	{ // "1.1.3"
 		_res = db.Exec("\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n")
 		}
 	}
 	{ // "1.1.4"
@@ -136,7 +136,7 @@ func Test_upfrom1(t *testing.T) {
 	{ // "1.2.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) ;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) ;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) ;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);\n")
 		}
 	}
 	{ // "1.2.1"
@@ -166,7 +166,7 @@ func Test_upfrom1(t *testing.T) {
 	{ // "1.2.3"
 		_res = db.Exec("\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n")
 		}
 	}
 	{ // "1.2.4"
@@ -208,7 +208,7 @@ func Test_upfrom1(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t5;\n  DROP TABLE IF EXISTS m1;\n  DROP TABLE IF EXISTS m2;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT);\n  CREATE TABLE m1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE TABLE m2(u INTEGER PRIMARY KEY, v TEXT);\n\n  INSERT INTO t5 VALUES(1, 'one', 'ONE');\n  INSERT INTO t5 VALUES(2, 'two', 'TWO');\n  INSERT INTO t5 VALUES(3, 'three', 'THREE');\n  INSERT INTO t5 VALUES(4, 'four', 'FOUR');\n\n  INSERT INTO m1 VALUES(1, 'i');\n  INSERT INTO m1 VALUES(2, 'ii');\n  INSERT INTO m1 VALUES(3, 'iii');\n\n  INSERT INTO m2 VALUES(1, 'I');\n  INSERT INTO m2 VALUES(3, 'II');\n  INSERT INTO m2 VALUES(4, 'III');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t5;\n  DROP TABLE IF EXISTS m1;\n  DROP TABLE IF EXISTS m2;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT);\n  CREATE TABLE m1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE TABLE m2(u INTEGER PRIMARY KEY, v TEXT);\n\n  INSERT INTO t5 VALUES(1, 'one', 'ONE');\n  INSERT INTO t5 VALUES(2, 'two', 'TWO');\n  INSERT INTO t5 VALUES(3, 'three', 'THREE');\n  INSERT INTO t5 VALUES(4, 'four', 'FOUR');\n\n  INSERT INTO m1 VALUES(1, 'i');\n  INSERT INTO m1 VALUES(2, 'ii');\n  INSERT INTO m1 VALUES(3, 'iii');\n\n  INSERT INTO m2 VALUES(1, 'I');\n  INSERT INTO m2 VALUES(3, 'II');\n  INSERT INTO m2 VALUES(4, 'III');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t5;\n  DROP TABLE IF EXISTS m1;\n  DROP TABLE IF EXISTS m2;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT);\n  CREATE TABLE m1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE TABLE m2(u INTEGER PRIMARY KEY, v TEXT);\n\n  INSERT INTO t5 VALUES(1, 'one', 'ONE');\n  INSERT INTO t5 VALUES(2, 'two', 'TWO');\n  INSERT INTO t5 VALUES(3, 'three', 'THREE');\n  INSERT INTO t5 VALUES(4, 'four', 'FOUR');\n\n  INSERT INTO m1 VALUES(1, 'i');\n  INSERT INTO m1 VALUES(2, 'ii');\n  INSERT INTO m1 VALUES(3, 'iii');\n\n  INSERT INTO m2 VALUES(1, 'I');\n  INSERT INTO m2 VALUES(3, 'II');\n  INSERT INTO m2 VALUES(4, 'III');\n")
 		}
 	}
 	{ // "2.2"

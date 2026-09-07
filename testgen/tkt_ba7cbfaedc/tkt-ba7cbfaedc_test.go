@@ -74,13 +74,13 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (3, 'a');\n  INSERT INTO t1 VALUES (1, 'a'); \n  INSERT INTO t1 VALUES (2, 'b');\n  INSERT INTO t1 VALUES (2, 'a');\n  INSERT INTO t1 VALUES (3, 'b');\n  INSERT INTO t1 VALUES (1, 'b'); \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (3, 'a');\n  INSERT INTO t1 VALUES (1, 'a'); \n  INSERT INTO t1 VALUES (2, 'b');\n  INSERT INTO t1 VALUES (2, 'a');\n  INSERT INTO t1 VALUES (3, 'b');\n  INSERT INTO t1 VALUES (1, 'b'); \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (3, 'a');\n  INSERT INTO t1 VALUES (1, 'a'); \n  INSERT INTO t1 VALUES (2, 'b');\n  INSERT INTO t1 VALUES (2, 'a');\n  INSERT INTO t1 VALUES (3, 'b');\n  INSERT INTO t1 VALUES (1, 'b'); \n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE INDEX i1 ON t1(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i1 ON t1(x, y);\n")
 		}
 	}
 	// foreach {n idx} "1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }"

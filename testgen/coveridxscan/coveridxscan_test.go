@@ -212,7 +212,7 @@ func Test_coveridxscan(t *testing.T) {
 	{ // "5.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, " + cols + ", PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(" + cols + ");\n\n  CREATE TABLE t2(i INTEGER PRIMARY KEY, " + cols + ");\n  CREATE INDEX i2 ON t2(" + cols + ");\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, " + cols + ", PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(" + cols + ");\n\n  CREATE TABLE t2(i INTEGER PRIMARY KEY, " + cols + ");\n  CREATE INDEX i2 ON t2(" + cols + ");\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, " + cols + ", PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(" + cols + ");\n\n  CREATE TABLE t2(i INTEGER PRIMARY KEY, " + cols + ");\n  CREATE INDEX i2 ON t2(" + cols + ");\n")
 		}
 	}
 	{ // "5.1.1"

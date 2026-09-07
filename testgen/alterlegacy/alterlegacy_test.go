@@ -91,13 +91,13 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t1new;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t1new after rename: no such column: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1new after rename: no such column: t1.a", _res.Error, "\n  ALTER TABLE t1 RENAME TO t1new;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1new after rename: no such column: t1.a", resErrString(_res), "\n  ALTER TABLE t1 RENAME TO t1new;\n")
 		}
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  CREATE TABLE t3(c, d);\n  ALTER TABLE t3 RENAME TO t3new;\n  DROP TABLE t3new;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(c, d);\n  ALTER TABLE t3 RENAME TO t3new;\n  DROP TABLE t3new;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(c, d);\n  ALTER TABLE t3 RENAME TO t3new;\n  DROP TABLE t3new;\n")
 		}
 	}
 	{ // "1.4"
@@ -115,7 +115,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec("\n  ALTER TABLE t2 RENAME TO t2new;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index t2expr after rename: no such column: t2.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index t2expr after rename: no such column: t2.b", _res.Error, "\n  ALTER TABLE t2 RENAME TO t2new;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index t2expr after rename: no such column: t2.b", resErrString(_res), "\n  ALTER TABLE t2 RENAME TO t2new;\n")
 		}
 	}
 	{ // "1.4"
@@ -180,13 +180,13 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "3.1.2a"
 		_res = db.Exec("\n  ALTER TABLE txx RENAME TO \"t xx\";\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE txx RENAME TO \"t xx\";\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE txx RENAME TO \"t xx\";\n")
 		}
 	}
 	{ // "3.1.2b"
 		_res = db.Exec("\n  SELECT * FROM vvv;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.txx") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.txx", _res.Error, "\n  SELECT * FROM vvv;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.txx", resErrString(_res), "\n  SELECT * FROM vvv;\n")
 		}
 	}
 	{ // "3.1.3"
@@ -204,7 +204,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "3.2.1"
 		_res = db.Exec("\n  SELECT * FROM uuu;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.txx") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.txx", _res.Error, "\n  SELECT * FROM uuu;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.txx", resErrString(_res), "\n  SELECT * FROM uuu;\n")
 		}
 	}
 	{ // "3.2.2"
@@ -222,7 +222,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "3.3.1"
 		_res = db.Exec("\n  SELECT * FROM ttt;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: txx") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: txx", _res.Error, "\n  SELECT * FROM ttt;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: txx", resErrString(_res), "\n  SELECT * FROM ttt;\n")
 		}
 	}
 	{ // "3.3.2"
@@ -253,25 +253,25 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 1);\n  ALTER TABLE t1 RENAME TO t11;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 1);\n  ALTER TABLE t1 RENAME TO t11;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(1, 1);\n  ALTER TABLE t1 RENAME TO t11;\n")
 		}
 	}
 	{ // "4.1a"
 		_res = db.Exec("\n  INSERT INTO t11 VALUES(2, 2);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", _res.Error, "\n  INSERT INTO t11 VALUES(2, 2);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", resErrString(_res), "\n  INSERT INTO t11 VALUES(2, 2);\n")
 		}
 	}
 	{ // "4.1b"
 		_res = db.Exec("\n  ALTER TABLE t11 RENAME TO t1;\n  ALTER TABLE t2 RENAME TO t22;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t11 RENAME TO t1;\n  ALTER TABLE t2 RENAME TO t22;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t11 RENAME TO t1;\n  ALTER TABLE t2 RENAME TO t22;\n")
 		}
 	}
 	{ // "4.1c"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(3, 3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", _res.Error, "\n  INSERT INTO t1 VALUES(3, 3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", resErrString(_res), "\n  INSERT INTO t1 VALUES(3, 3);\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -304,7 +304,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  ALTER TABLE temp.t9 RENAME TO 't1234567890'\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE temp.t9 RENAME TO 't1234567890'\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE temp.t9 RENAME TO 't1234567890'\n")
 		}
 	}
 	{ // "5.2"
@@ -322,7 +322,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "5.3"
 		_res = db.Exec("\n  ALTER TABLE t2 RENAME TO one;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 RENAME TO one;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t2 RENAME TO one;\n")
 		}
 	}
 	{ // "alterlegacy-5.4" — skipped: view missing-table error prefix (main.) not matched at prepare time
@@ -350,7 +350,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n    CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );\n  ")
 		}
 	}
 	db.Close()
@@ -370,7 +370,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "8.2"
 		_res = db.Exec("\n  ALTER TABLE aux.p1 RENAME TO ppp;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE aux.p1 RENAME TO ppp;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE aux.p1 RENAME TO ppp;\n")
 		}
 	}
 	{ // "8.2"
@@ -401,38 +401,38 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "9.1"
 		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 RENAME TO t3;\n")
 		}
 	}
 	{ // "9.1b"
 		_res = db.Exec("\n  ALTER TABLE t3 RENAME TO t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t3 RENAME TO t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t3 RENAME TO t1;\n")
 		}
 	}
 	{ // "9.2"
 		_res = db.Exec("\n  DROP VIEW v1;\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW v1;\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP VIEW v1;\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;\n")
 		}
 	}
 	{ // "9.3"
 		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 RENAME TO t3;\n")
 		}
 	}
 	os.Remove("test.db2")
 	{ // "9.4"
 		_res = db.Exec("\n  ALTER TABLE t3 RENAME TO t1;\n  DROP TRIGGER tr;\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TRIGGER tr AFTER INSERT ON t1 WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END;\n\n  CREATE TABLE aux.t1(x);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t3 RENAME TO t1;\n  DROP TRIGGER tr;\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TRIGGER tr AFTER INSERT ON t1 WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END;\n\n  CREATE TABLE aux.t1(x);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t3 RENAME TO t1;\n  DROP TRIGGER tr;\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TRIGGER tr AFTER INSERT ON t1 WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END;\n\n  CREATE TABLE aux.t1(x);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END;\n")
 		}
 	}
 	{ // "9.5"
 		_res = db.Exec("\n  ALTER TABLE main.t1 RENAME TO t3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE main.t1 RENAME TO t3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE main.t1 RENAME TO t3;\n")
 		}
 	}
 	{ // "alterlegacy-9.6" — skipped: temp trigger on aux table rename SQL not matched (SQL side effects only)
@@ -455,7 +455,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "10.1"
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;\n  ")
 		}
 	}
 	{ // "10.2"
@@ -545,7 +545,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "12.1"
 		_res = db.Exec("\n  ALTER TABLE main.t2 RENAME TO t3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE main.t2 RENAME TO t3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE main.t2 RENAME TO t3;\n")
 		}
 	}
 	{ // "12.2"
@@ -576,25 +576,25 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "14.1"
 		_res = db.Exec("\n    UPDATE mytable SET geom = X'1234'\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE mytable SET geom = X'1234'\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE mytable SET geom = X'1234'\n  ")
 		}
 	}
 	{ // "14.2"
 		_res = db.Exec("\n    ALTER TABLE mytable RENAME TO mytable_renamed;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE mytable RENAME TO mytable_renamed;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE mytable RENAME TO mytable_renamed;\n  ")
 		}
 	}
 	{ // "14.3"
 		_res = db.Exec("\n    CREATE TRIGGER tr2 AFTER INSERT ON mytable_renamed BEGIN\n      DELETE FROM rt WHERE id=(SELECT min(id) FROM rt);\n    END;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER tr2 AFTER INSERT ON mytable_renamed BEGIN\n      DELETE FROM rt WHERE id=(SELECT min(id) FROM rt);\n    END;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TRIGGER tr2 AFTER INSERT ON mytable_renamed BEGIN\n      DELETE FROM rt WHERE id=(SELECT min(id) FROM rt);\n    END;\n  ")
 		}
 	}
 	{ // "14.4"
 		_res = db.Exec("\n    ALTER TABLE mytable_renamed RENAME TO mytable2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE mytable_renamed RENAME TO mytable2;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE mytable_renamed RENAME TO mytable2;\n  ")
 		}
 	}
 	db.Close()
@@ -613,7 +613,7 @@ func Test_alterlegacy(t *testing.T) {
 	{ // "14.6"
 		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO tt1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO tt1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 RENAME TO tt1;\n")
 		}
 	}
 }

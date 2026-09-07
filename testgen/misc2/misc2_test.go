@@ -71,13 +71,13 @@ func Test_misc2(t *testing.T) {
 	{ // do_test "misc2-1.1"
 		_res = db.Exec("\n    CREATE TABLE FOO(bar integer);\n    CREATE TRIGGER foo_insert BEFORE INSERT ON foo BEGIN\n      SELECT CASE WHEN (NOT new.bar BETWEEN 0 AND 20)\n             THEN raise(rollback, 'aiieee') END;\n    END;\n    INSERT INTO foo(bar) VALUES (1);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE FOO(bar integer);\n    CREATE TRIGGER foo_insert BEFORE INSERT ON foo BEGIN\n      SELECT CASE WHEN (NOT new.bar BETWEEN 0 AND 20)\n             THEN raise(rollback, 'aiieee') END;\n    END;\n    INSERT INTO foo(bar) VALUES (1);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE FOO(bar integer);\n    CREATE TRIGGER foo_insert BEFORE INSERT ON foo BEGIN\n      SELECT CASE WHEN (NOT new.bar BETWEEN 0 AND 20)\n             THEN raise(rollback, 'aiieee') END;\n    END;\n    INSERT INTO foo(bar) VALUES (1);\n  ")
 		}
 	}
 	{ // do_test "misc2-1.2"
 		_res = db.Exec("\n    INSERT INTO foo(bar) VALUES (111);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "aiieee") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "aiieee", _res.Error, "\n    INSERT INTO foo(bar) VALUES (111);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "aiieee", resErrString(_res), "\n    INSERT INTO foo(bar) VALUES (111);\n  ")
 		}
 	}
 	{ // do_test "misc2-2.1"
@@ -89,25 +89,25 @@ func Test_misc2(t *testing.T) {
 	{ // "misc2-2.2"
 		_res = db.Exec("\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
 		}
 	}
 	{ // "misc2-2.2b"
 		_res = db.Exec("\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
 		}
 	}
 	{ // "misc2-2.3"
 		_res = db.Exec("\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
 		}
 	}
 	{ // "misc2-2.3b"
 		_res = db.Exec("\n    SELECT 'rowid', * FROM v1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT 'rowid', * FROM v1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT 'rowid', * FROM v1;\n  ")
 		}
 	}
 	{ // do_test "misc2-2.4"
@@ -119,7 +119,7 @@ func Test_misc2(t *testing.T) {
 	{ // do_test "misc2-3.1"
 		_res = db.Exec("\n    SELECT t1.b+t2.b AS a, t1.a, t2.a FROM t1, t2 WHERE a==10\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: a", _res.Error, "\n    SELECT t1.b+t2.b AS a, t1.a, t2.a FROM t1, t2 WHERE a==10\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: a", resErrString(_res), "\n    SELECT t1.b+t2.b AS a, t1.a, t2.a FROM t1, t2 WHERE a==10\n  ")
 		}
 	}
 	{ // do_test "misc2-4.1"
@@ -624,7 +624,7 @@ func Test_misc2(t *testing.T) {
 	{ // do_test "misc2-8.1"
 		_res = db.Exec("-")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"-\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"-\": syntax error", _res.Error, "-")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"-\": syntax error", resErrString(_res), "-")
 		}
 	}
 	{ // do_test "misc2-9.1"

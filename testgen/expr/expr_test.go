@@ -266,7 +266,7 @@ func Test_expr(t *testing.T) {
 	{ // "expr-1.127"
 		_res = db.Exec("\n  SELECT 1 IS #1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  SELECT 1 IS #1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", resErrString(_res), "\n  SELECT 1 IS #1;\n")
 		}
 	}
 	if tclBool("working_64bit_int") {
@@ -790,13 +790,13 @@ func Test_expr(t *testing.T) {
 	{ // do_test "expr-10.1"
 		_res = db.Exec("SELECT 'abc' LIKE 'abc' ESCAPE ''")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ESCAPE expression must be a single character") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ESCAPE expression must be a single character", _res.Error, "SELECT 'abc' LIKE 'abc' ESCAPE ''")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ESCAPE expression must be a single character", resErrString(_res), "SELECT 'abc' LIKE 'abc' ESCAPE ''")
 		}
 	}
 	{ // do_test "expr-10.2"
 		_res = db.Exec("SELECT 'abc' LIKE 'abc' ESCAPE 'ab'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ESCAPE expression must be a single character") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ESCAPE expression must be a single character", _res.Error, "SELECT 'abc' LIKE 'abc' ESCAPE 'ab'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ESCAPE expression must be a single character", resErrString(_res), "SELECT 'abc' LIKE 'abc' ESCAPE 'ab'")
 		}
 	}
 	{ // do_test "expr-11.1"
@@ -874,13 +874,13 @@ func Test_expr(t *testing.T) {
 	{ // do_test "expr-12.1"
 		_res = db.Exec("\n    SELECT (CASE a>4 THEN 1 ELSE 0 END) FROM test1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"THEN\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"THEN\": syntax error", _res.Error, "\n    SELECT (CASE a>4 THEN 1 ELSE 0 END) FROM test1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"THEN\": syntax error", resErrString(_res), "\n    SELECT (CASE a>4 THEN 1 ELSE 0 END) FROM test1;\n  ")
 		}
 	}
 	{ // do_test "expr-12.2"
 		_res = db.Exec("\n    SELECT (CASE WHEN a>4 THEN 1 ELSE 0) FROM test1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \")\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", _res.Error, "\n    SELECT (CASE WHEN a>4 THEN 1 ELSE 0) FROM test1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", resErrString(_res), "\n    SELECT (CASE WHEN a>4 THEN 1 ELSE 0) FROM test1;\n  ")
 		}
 	}
 	// do_realnum_test expr-13.1 {\n    execsql {\n      SELECT 12345678901234567890...} {1.23456789012346e+19} (expr test, not transpiled)
@@ -986,7 +986,7 @@ func Test_expr(t *testing.T) {
 			{ // "expr-15." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
 				}
 			}
 			{ // "expr-15." + tn + ".2" (prepare-step internals; SQL side effects only)
@@ -1062,7 +1062,7 @@ func Test_expr(t *testing.T) {
 		{ // "expr-16.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")
 			}
 		}
 		{ // "expr-16.100" — skipped: test-only function implies_nonnull_row not implemented (SQL side effects only)

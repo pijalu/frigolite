@@ -65,7 +65,7 @@ func Test_unionall(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n\n  INSERT INTO t1_a VALUES(1, 'one'), (4, 'four');\n  INSERT INTO t1_b VALUES(2, 'two'), (5, 'five');\n  INSERT INTO t1_c VALUES(3, 'three'), (6, 'six');\n\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n\n  CREATE TABLE i1(x);\n  INSERT INTO i1 VALUES(2), (5), (6), (1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n\n  INSERT INTO t1_a VALUES(1, 'one'), (4, 'four');\n  INSERT INTO t1_b VALUES(2, 'two'), (5, 'five');\n  INSERT INTO t1_c VALUES(3, 'three'), (6, 'six');\n\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n\n  CREATE TABLE i1(x);\n  INSERT INTO i1 VALUES(2), (5), (6), (1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n\n  INSERT INTO t1_a VALUES(1, 'one'), (4, 'four');\n  INSERT INTO t1_b VALUES(2, 'two'), (5, 'five');\n  INSERT INTO t1_c VALUES(3, 'three'), (6, 'six');\n\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n\n  CREATE TABLE i1(x);\n  INSERT INTO i1 VALUES(2), (5), (6), (1);\n")
 		}
 	}
 	{ // "1.1"
@@ -150,7 +150,7 @@ func Test_unionall(t *testing.T) {
 	{ // "2.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(1, 'ONE');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(2, 'TWO');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(3, 'THREE');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(1, 'ONE');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(2, 'TWO');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(3, 'THREE');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(1, 'ONE');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(2, 'TWO');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(3, 'THREE');\n")
 		}
 	}
 	{ // "2.1.1"
@@ -168,13 +168,13 @@ func Test_unionall(t *testing.T) {
 	{ // "2.1.2"
 		_res = db.Exec("\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3 UNION ALL SELECT 4\n  )\n  SELECT * FROM s, t1 WHERE x=i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: s") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: s", _res.Error, "\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3 UNION ALL SELECT 4\n  )\n  SELECT * FROM s, t1 WHERE x=i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: s", resErrString(_res), "\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3 UNION ALL SELECT 4\n  )\n  SELECT * FROM s, t1 WHERE x=i;\n")
 		}
 	}
 	{ // "2.2.0"
 		_res = db.Exec("\n  CREATE TABLE t2_a(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t2_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t2 AS \n    SELECT * FROM t2_a \n    UNION ALL \n    SELECT * FROM t2_b;\n\n  CREATE TRIGGER t2_insert INSTEAD OF INSERT ON t2 BEGIN\n    INSERT INTO t2_a SELECT new.k, new.v WHERE (new.k%2)==0;\n    INSERT INTO t2_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n\n  INSERT INTO t2 VALUES(5, 'v'), (4, 'iv'), (3, 'iii'), (2, 'ii');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2_a(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t2_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t2 AS \n    SELECT * FROM t2_a \n    UNION ALL \n    SELECT * FROM t2_b;\n\n  CREATE TRIGGER t2_insert INSTEAD OF INSERT ON t2 BEGIN\n    INSERT INTO t2_a SELECT new.k, new.v WHERE (new.k%2)==0;\n    INSERT INTO t2_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n\n  INSERT INTO t2 VALUES(5, 'v'), (4, 'iv'), (3, 'iii'), (2, 'ii');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2_a(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t2_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t2 AS \n    SELECT * FROM t2_a \n    UNION ALL \n    SELECT * FROM t2_b;\n\n  CREATE TRIGGER t2_insert INSTEAD OF INSERT ON t2 BEGIN\n    INSERT INTO t2_a SELECT new.k, new.v WHERE (new.k%2)==0;\n    INSERT INTO t2_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n\n  INSERT INTO t2 VALUES(5, 'v'), (4, 'iv'), (3, 'iii'), (2, 'ii');\n")
 		}
 	}
 	{ // "2.2.1"
@@ -297,7 +297,7 @@ func Test_unionall(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
 		}
 	}
 	{ // "3.1"
@@ -322,7 +322,7 @@ func Test_unionall(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(123, 't1_a');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n\n  CREATE VIEW t1 AS\n    SELECT a, b FROM t1_a\n    UNION ALL\n    SELECT c, d FROM t1_b;\n\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(456, 't3_a');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(123, 't1_a');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n\n  CREATE VIEW t1 AS\n    SELECT a, b FROM t1_a\n    UNION ALL\n    SELECT c, d FROM t1_b;\n\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(456, 't3_a');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(123, 't1_a');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n\n  CREATE VIEW t1 AS\n    SELECT a, b FROM t1_a\n    UNION ALL\n    SELECT c, d FROM t1_b;\n\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(456, 't3_a');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
 		}
 	}
 	{ // "4.1"
@@ -395,7 +395,7 @@ func Test_unionall(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(0,NULL);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE TABLE t2(k,v);\n  INSERT INTO t2 VALUES(5,'v');\n  INSERT INTO t2 VALUES(4,'iv');\n  INSERT INTO t2 VALUES(3,'iii');\n  INSERT INTO t2 VALUES(2,'ii');\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  INSERT INTO t3_a VALUES(4,'iv');\n  CREATE TABLE t3_b(k INTEG5R PRIMARY KEY, v TEXT);\n  INSERT INTO t3_b VALUES(NULL,'iii');\n  INSERT INTO t3_b VALUES(NULL,'v');\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  CREATE VIEW t3 AS \n      SELECT * FROM t3_a \n      UNION ALL \n      SELECT * FROM t3_b;\n  CREATE TRIGGER t3_insert INSTEAD OF INSERT ON t3 BEGIN\n      INSERT INTO t3_a SELECT new.k, new.v WHERE (new.k%2)==0;\n      INSERT INTO t3_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(0,NULL);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE TABLE t2(k,v);\n  INSERT INTO t2 VALUES(5,'v');\n  INSERT INTO t2 VALUES(4,'iv');\n  INSERT INTO t2 VALUES(3,'iii');\n  INSERT INTO t2 VALUES(2,'ii');\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  INSERT INTO t3_a VALUES(4,'iv');\n  CREATE TABLE t3_b(k INTEG5R PRIMARY KEY, v TEXT);\n  INSERT INTO t3_b VALUES(NULL,'iii');\n  INSERT INTO t3_b VALUES(NULL,'v');\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  CREATE VIEW t3 AS \n      SELECT * FROM t3_a \n      UNION ALL \n      SELECT * FROM t3_b;\n  CREATE TRIGGER t3_insert INSTEAD OF INSERT ON t3 BEGIN\n      INSERT INTO t3_a SELECT new.k, new.v WHERE (new.k%2)==0;\n      INSERT INTO t3_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(0,NULL);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE TABLE t2(k,v);\n  INSERT INTO t2 VALUES(5,'v');\n  INSERT INTO t2 VALUES(4,'iv');\n  INSERT INTO t2 VALUES(3,'iii');\n  INSERT INTO t2 VALUES(2,'ii');\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  INSERT INTO t3_a VALUES(4,'iv');\n  CREATE TABLE t3_b(k INTEG5R PRIMARY KEY, v TEXT);\n  INSERT INTO t3_b VALUES(NULL,'iii');\n  INSERT INTO t3_b VALUES(NULL,'v');\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  CREATE VIEW t3 AS \n      SELECT * FROM t3_a \n      UNION ALL \n      SELECT * FROM t3_b;\n  CREATE TRIGGER t3_insert INSTEAD OF INSERT ON t3 BEGIN\n      INSERT INTO t3_a SELECT new.k, new.v WHERE (new.k%2)==0;\n      INSERT INTO t3_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n")
 		}
 	}
 	{ // "5.10"
@@ -425,7 +425,7 @@ func Test_unionall(t *testing.T) {
 	{ // "5.30"
 		_res = db.Exec("\n  SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL>0 AND 0%y;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: rowid", _res.Error, "\n  SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL>0 AND 0%y;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: rowid", resErrString(_res), "\n  SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL>0 AND 0%y;\n")
 		}
 	}
 	db.Close()
@@ -438,7 +438,7 @@ func Test_unionall(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(a,b);\n  INSERT INTO t2 VALUES(3,4);\n\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 VALUES(5,6);\n  CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES(7,8);\n\n  CREATE TABLE t5(a,b);\n  INSERT INTO t5 VALUES(9,10);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(a,b);\n  INSERT INTO t2 VALUES(3,4);\n\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 VALUES(5,6);\n  CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES(7,8);\n\n  CREATE TABLE t5(a,b);\n  INSERT INTO t5 VALUES(9,10);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(a,b);\n  INSERT INTO t2 VALUES(3,4);\n\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 VALUES(5,6);\n  CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES(7,8);\n\n  CREATE TABLE t5(a,b);\n  INSERT INTO t5 VALUES(9,10);\n")
 		}
 	}
 	{ // "6.1"

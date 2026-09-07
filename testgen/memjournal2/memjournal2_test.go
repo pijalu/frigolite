@@ -83,7 +83,7 @@ func Test_memjournal2(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
 		}
 	}
 	vtab.TclVarSet("jj", "", "200")
@@ -93,19 +93,19 @@ func Test_memjournal2(t *testing.T) {
 		{ // "1.2." + jj + ".1"
 			_res = db.Exec("\n    SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=" + sqlLiteral(jj) + ";\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=" + sqlLiteral(jj) + ";\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=" + sqlLiteral(jj) + ";\n  ")
 			}
 		}
 		{ // "1.2." + jj + ".2"
 			_res = db.Exec("\n      SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;\n  ")
 			}
 		}
 		{ // "1.2." + jj + ".3"
 			_res = db.Exec("\n      SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;\n  ")
 			}
 		}
 		{ // "1.2." + jj + ".4"

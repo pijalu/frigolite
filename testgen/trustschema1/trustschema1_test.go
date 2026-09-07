@@ -80,7 +80,7 @@ func Test_trustschema1(t *testing.T) {
 	{ // "1.110"
 		_res = db.Exec("\n  SELECT a, b, c FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a, b, c FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT a, b, c FROM t1;\n")
 		}
 	}
 	{ // "1.120"
@@ -92,19 +92,19 @@ func Test_trustschema1(t *testing.T) {
 	{ // "1.130"
 		_res = db.Exec("\n  SELECT a, b FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a, b FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT a, b FROM t1;\n")
 		}
 	}
 	{ // "1.140"
 		_res = db.Exec("\n  SELECT a, b, c FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  SELECT a, b, c FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  SELECT a, b, c FROM t1;\n")
 		}
 	}
 	{ // "1.150"
 		_res = db.Exec("\n  PRAGMA trusted_schema=ON;\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b AS (f3(a+1)));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f3()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", _res.Error, "\n  PRAGMA trusted_schema=ON;\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b AS (f3(a+1)));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", resErrString(_res), "\n  PRAGMA trusted_schema=ON;\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b AS (f3(a+1)));\n")
 		}
 	}
 	{ // "1.160"
@@ -122,31 +122,31 @@ func Test_trustschema1(t *testing.T) {
 	{ // "1.200"
 		_res = db.Exec("\n  PRAGMA trusted_schema=ON;\n  CREATE TABLE t2(a,b,c,CHECK(f3(c)==c));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f3()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", _res.Error, "\n  PRAGMA trusted_schema=ON;\n  CREATE TABLE t2(a,b,c,CHECK(f3(c)==c));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", resErrString(_res), "\n  PRAGMA trusted_schema=ON;\n  CREATE TABLE t2(a,b,c,CHECK(f3(c)==c));\n")
 		}
 	}
 	{ // "1.210"
 		_res = db.Exec("\n  PRAGMA trusted_schema=Off;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  PRAGMA trusted_schema=Off;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  PRAGMA trusted_schema=Off;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
 		}
 	}
 	{ // "1.211"
 		_res = db.Exec("\n  PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
 		}
 	}
 	{ // "1.220"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;\n")
 		}
 	}
 	{ // "1.230"
 		_res = db.Exec("\n  PRAGMA trusted_schema=off;\n  INSERT INTO t2 VALUES(4,5,6);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  PRAGMA trusted_schema=off;\n  INSERT INTO t2 VALUES(4,5,6);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  PRAGMA trusted_schema=off;\n  INSERT INTO t2 VALUES(4,5,6);\n")
 		}
 	}
 	{ // "1.231"
@@ -176,19 +176,19 @@ func Test_trustschema1(t *testing.T) {
 	{ // "1.300"
 		_res = db.Exec("\n  CREATE TABLE t3(a,b DEFAULT(f2(25)));\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a,b DEFAULT(f2(25)));\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a,b DEFAULT(f2(25)));\n")
 		}
 	}
 	{ // "1.310"
 		_res = db.Exec("\n  PRAGMA trusted_schema=Off;\n  INSERT INTO t3(a) VALUES(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  PRAGMA trusted_schema=Off;\n  INSERT INTO t3(a) VALUES(1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  PRAGMA trusted_schema=Off;\n  INSERT INTO t3(a) VALUES(1);\n")
 		}
 	}
 	{ // "1.311"
 		_res = db.Exec("\n  INSERT INTO t3(a,b) VALUES(1,2);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(a,b) VALUES(1,2);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3(a,b) VALUES(1,2);\n")
 		}
 	}
 	{ // "1.320"
@@ -218,13 +218,13 @@ func Test_trustschema1(t *testing.T) {
 	{ // "1.410"
 		_res = db.Exec("\n  CREATE INDEX t4a ON t4(a) WHERE f3(c);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f3()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", _res.Error, "\n  CREATE INDEX t4a ON t4(a) WHERE f3(c);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", resErrString(_res), "\n  CREATE INDEX t4a ON t4(a) WHERE f3(c);\n")
 		}
 	}
 	{ // "1.420"
 		_res = db.Exec("\n  PRAGMA trusted_schema=OFF;\n  CREATE INDEX t4a ON t4(a) WHERE f2(c);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  PRAGMA trusted_schema=OFF;\n  CREATE INDEX t4a ON t4(a) WHERE f2(c);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  PRAGMA trusted_schema=OFF;\n  CREATE INDEX t4a ON t4(a) WHERE f2(c);\n")
 		}
 	}
 	{ // "1.421"
@@ -278,13 +278,13 @@ func Test_trustschema1(t *testing.T) {
 	{ // "1.510"
 		_res = db.Exec("\n  CREATE INDEX t5x1 ON t5(a+f3(b));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f3()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", _res.Error, "\n  CREATE INDEX t5x1 ON t5(a+f3(b));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", resErrString(_res), "\n  CREATE INDEX t5x1 ON t5(a+f3(b));\n")
 		}
 	}
 	{ // "1.520"
 		_res = db.Exec("\n  PRAGMA trusted_schema=OFF;\n  CREATE INDEX t5x1 ON t5(a+f2(b));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  PRAGMA trusted_schema=OFF;\n  CREATE INDEX t5x1 ON t5(a+f2(b));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  PRAGMA trusted_schema=OFF;\n  CREATE INDEX t5x1 ON t5(a+f2(b));\n")
 		}
 	}
 	{ // "1.521"
@@ -354,13 +354,13 @@ func Test_trustschema1(t *testing.T) {
 	{ // "2.110"
 		_res = db.Exec("\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1a;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f3()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", _res.Error, "\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1a;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", resErrString(_res), "\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1a;\n")
 		}
 	}
 	{ // "2.111"
 		_res = db.Exec("\n  PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1a;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f3()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", _res.Error, "\n  PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1a;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", resErrString(_res), "\n  PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1a;\n")
 		}
 	}
 	{ // "2.120"
@@ -390,13 +390,13 @@ func Test_trustschema1(t *testing.T) {
 	{ // "2.140"
 		_res = db.Exec("\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;\n")
 		}
 	}
 	{ // "2.141"
 		_res = db.Exec("\n  PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1b;\n")
 		}
 	}
 	{ // "2.150"
@@ -414,13 +414,13 @@ func Test_trustschema1(t *testing.T) {
 	{ // "3.100"
 		_res = db.Exec("\n  DELETE FROM t1;\n  CREATE TABLE t2(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2(x) SELECT f3(new.a);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  CREATE TABLE t2(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2(x) SELECT f3(new.a);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  CREATE TABLE t2(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2(x) SELECT f3(new.a);\n  END;\n")
 		}
 	}
 	{ // "3.110"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7,6,5);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f3()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", _res.Error, "\n  INSERT INTO t1 VALUES(7,6,5);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f3()", resErrString(_res), "\n  INSERT INTO t1 VALUES(7,6,5);\n")
 		}
 	}
 	{ // "3.111"
@@ -444,7 +444,7 @@ func Test_trustschema1(t *testing.T) {
 	{ // "3.130"
 		_res = db.Exec("\n  DELETE FROM t1;\n  DELETE FROM t2;\n  PRAGMA trusted_schema=OFF;\n  INSERT INTO t1 VALUES(7,6,5);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of f2()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", _res.Error, "\n  DELETE FROM t1;\n  DELETE FROM t2;\n  PRAGMA trusted_schema=OFF;\n  INSERT INTO t1 VALUES(7,6,5);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of f2()", resErrString(_res), "\n  DELETE FROM t1;\n  DELETE FROM t2;\n  PRAGMA trusted_schema=OFF;\n  INSERT INTO t1 VALUES(7,6,5);\n")
 		}
 	}
 	{ // "3.131"

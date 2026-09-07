@@ -61,85 +61,85 @@ func Test_tokenize(t *testing.T) {
 	{ // do_test "tokenize-1.1"
 		_res = db.Exec("SELECT 1.0e+")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0e\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", _res.Error, "SELECT 1.0e+")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", resErrString(_res), "SELECT 1.0e+")
 		}
 	}
 	{ // do_test "tokenize-1.2"
 		_res = db.Exec("SELECT 1.0E+")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0E\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", _res.Error, "SELECT 1.0E+")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", resErrString(_res), "SELECT 1.0E+")
 		}
 	}
 	{ // do_test "tokenize-1.3"
 		_res = db.Exec("SELECT 1.0e-")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0e\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", _res.Error, "SELECT 1.0e-")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", resErrString(_res), "SELECT 1.0e-")
 		}
 	}
 	{ // do_test "tokenize-1.4"
 		_res = db.Exec("SELECT 1.0E-")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0E\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", _res.Error, "SELECT 1.0E-")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", resErrString(_res), "SELECT 1.0E-")
 		}
 	}
 	{ // do_test "tokenize-1.5"
 		_res = db.Exec("SELECT 1.0e+/")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0e\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", _res.Error, "SELECT 1.0e+/")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", resErrString(_res), "SELECT 1.0e+/")
 		}
 	}
 	{ // do_test "tokenize-1.6"
 		_res = db.Exec("SELECT 1.0E+:")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0E\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", _res.Error, "SELECT 1.0E+:")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", resErrString(_res), "SELECT 1.0E+:")
 		}
 	}
 	{ // do_test "tokenize-1.7"
 		_res = db.Exec("SELECT 1.0e-:")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0e\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", _res.Error, "SELECT 1.0e-:")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", resErrString(_res), "SELECT 1.0e-:")
 		}
 	}
 	{ // do_test "tokenize-1.8"
 		_res = db.Exec("SELECT 1.0E-/")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0E\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", _res.Error, "SELECT 1.0E-/")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", resErrString(_res), "SELECT 1.0E-/")
 		}
 	}
 	{ // do_test "tokenize-1.9"
 		_res = db.Exec("SELECT 1.0F+5")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0F\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0F\"", _res.Error, "SELECT 1.0F+5")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0F\"", resErrString(_res), "SELECT 1.0F+5")
 		}
 	}
 	{ // do_test "tokenize-1.10"
 		_res = db.Exec("SELECT 1.0d-10")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0d\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0d\"", _res.Error, "SELECT 1.0d-10")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0d\"", resErrString(_res), "SELECT 1.0d-10")
 		}
 	}
 	{ // do_test "tokenize-1.11"
 		_res = db.Exec("SELECT 1.0e,5")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0e\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", _res.Error, "SELECT 1.0e,5")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0e\"", resErrString(_res), "SELECT 1.0e,5")
 		}
 	}
 	{ // do_test "tokenize-1.12"
 		_res = db.Exec("SELECT 1.0E.10")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"1.0E\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", _res.Error, "SELECT 1.0E.10")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"1.0E\"", resErrString(_res), "SELECT 1.0E.10")
 		}
 	}
 	{ // do_test "tokenize-2.1"
 		_res = db.Exec("SELECT 1, 2 /*")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"*\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"*\": syntax error", _res.Error, "SELECT 1, 2 /*")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"*\": syntax error", resErrString(_res), "SELECT 1, 2 /*")
 		}
 	}
 	{ // do_test "tokenize-2.2"
 		_res = db.Exec("SELECT 1, 2 /* ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 1, 2 /* ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT 1, 2 /* ")
 		}
 	}
 }

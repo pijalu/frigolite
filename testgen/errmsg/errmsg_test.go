@@ -88,7 +88,7 @@ func Test_errmsg(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES('abc', 'def');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES('abc', 'def');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES('abc', 'def');\n")
 		}
 	}
 	{ // do_test "2.2"
@@ -102,7 +102,7 @@ func Test_errmsg(t *testing.T) {
 	{ // "3.1.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');\n")
 		}
 	}
 	{ // do_test "3.1.2"

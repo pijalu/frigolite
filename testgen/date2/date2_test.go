@@ -60,13 +60,13 @@ func Test_date2(t *testing.T) {
 	{ // "date2-100"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');\n")
 		}
 	}
 	{ // "date2-110"
 		_res = db.Exec("\n  INSERT INTO t1(x,y) VALUES('now','two');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of date() in a CHECK constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in a CHECK constraint", _res.Error, "\n  INSERT INTO t1(x,y) VALUES('now','two');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in a CHECK constraint", resErrString(_res), "\n  INSERT INTO t1(x,y) VALUES('now','two');\n")
 		}
 	}
 	{ // "date2-120"
@@ -84,25 +84,25 @@ func Test_date2(t *testing.T) {
 	{ // "date2-130"
 		_res = db.Exec("\n  INSERT INTO t1(x,y) VALUES('2017-08-01','two');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: date(x) BETWEEN '2017-07-01' AND '2017-07-31'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: date(x) BETWEEN '2017-07-01' AND '2017-07-31'", _res.Error, "\n  INSERT INTO t1(x,y) VALUES('2017-08-01','two');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: date(x) BETWEEN '2017-07-01' AND '2017-07-31'", resErrString(_res), "\n  INSERT INTO t1(x,y) VALUES('2017-08-01','two');\n")
 		}
 	}
 	{ // "date2-140"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x, y, z AS (date()));\n  INSERT INTO t1(x,y) VALUES(1,2);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of date() in a generated column") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in a generated column", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x, y, z AS (date()));\n  INSERT INTO t1(x,y) VALUES(1,2);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in a generated column", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(x, y, z AS (date()));\n  INSERT INTO t1(x,y) VALUES(1,2);\n")
 		}
 	}
 	{ // "date2-200"
 		_res = db.Exec("\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES(1, '2017-07-20'), (2, 'xyzzy');\n  CREATE INDEX t2y ON t2(date(y));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES(1, '2017-07-20'), (2, 'xyzzy');\n  CREATE INDEX t2y ON t2(date(y));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES(1, '2017-07-20'), (2, 'xyzzy');\n  CREATE INDEX t2y ON t2(date(y));\n")
 		}
 	}
 	{ // "date2-210"
 		_res = db.Exec("\n  INSERT INTO t2(x,y) VALUES(3, 'now');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of date() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in an index", _res.Error, "\n  INSERT INTO t2(x,y) VALUES(3, 'now');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in an index", resErrString(_res), "\n  INSERT INTO t2(x,y) VALUES(3, 'now');\n")
 		}
 	}
 	{ // "date2-220"
@@ -120,19 +120,19 @@ func Test_date2(t *testing.T) {
 	{ // "date2-300"
 		_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;\n")
 		}
 	}
 	{ // "date2-310"
 		_res = db.Exec("\n  CREATE INDEX t3b1 ON t3(datetime(b));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of datetime() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of datetime() in an index", _res.Error, "\n  CREATE INDEX t3b1 ON t3(datetime(b));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of datetime() in an index", resErrString(_res), "\n  CREATE INDEX t3b1 ON t3(datetime(b));\n")
 		}
 	}
 	{ // "date2-320"
 		_res = db.Exec("\n  CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';\n")
 		}
 	}
 	{ // "date2-330"
@@ -162,97 +162,97 @@ func Test_date2(t *testing.T) {
 	{ // "date2-400"
 		_res = db.Exec("\n  CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;\n")
 		}
 	}
 	{ // "date2-410"
 		_res = db.Exec("\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of date() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in an index", _res.Error, "\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in an index", resErrString(_res), "\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n")
 		}
 	}
 	{ // "date2-420"
 		_res = db.Exec("\n  DELETE FROM t4 WHERE a=500;\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4 WHERE a=500;\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t4 WHERE a=500;\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n")
 		}
 	}
 	{ // "date2-430"
 		_res = db.Exec("\n  INSERT INTO t4(a,b) VALUES(9999,'now');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of date() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in an index", _res.Error, "\n  INSERT INTO t4(a,b) VALUES(9999,'now');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of date() in an index", resErrString(_res), "\n  INSERT INTO t4(a,b) VALUES(9999,'now');\n")
 		}
 	}
 	{ // "date2-500"
 		_res = db.Exec("\n  CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;\n")
 		}
 	}
 	{ // "date2-510"
 		_res = db.Exec("\n  INSERT INTO t5(y,m) VALUES('2017-07-20','localtime');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of datetime() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of datetime() in an index", _res.Error, "\n  INSERT INTO t5(y,m) VALUES('2017-07-20','localtime');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of datetime() in an index", resErrString(_res), "\n  INSERT INTO t5(y,m) VALUES('2017-07-20','localtime');\n")
 		}
 	}
 	{ // "date2-520"
 		_res = db.Exec("\n  INSERT INTO t5(y,m) VALUES('2017-07-20','utc');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of datetime() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of datetime() in an index", _res.Error, "\n  INSERT INTO t5(y,m) VALUES('2017-07-20','utc');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of datetime() in an index", resErrString(_res), "\n  INSERT INTO t5(y,m) VALUES('2017-07-20','utc');\n")
 		}
 	}
 	{ // "date2-600"
 		_res = db.Exec("\n  CREATE TABLE t600(a REAL CHECK( a<julianday('now') ));\n  INSERT INTO t600(a) VALUES(1.0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of julianday() in a CHECK constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a CHECK constraint", _res.Error, "\n  CREATE TABLE t600(a REAL CHECK( a<julianday('now') ));\n  INSERT INTO t600(a) VALUES(1.0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a CHECK constraint", resErrString(_res), "\n  CREATE TABLE t600(a REAL CHECK( a<julianday('now') ));\n  INSERT INTO t600(a) VALUES(1.0);\n")
 		}
 	}
 	{ // "date2-601"
 		_res = db.Exec("\n  CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');\n")
 		}
 	}
 	{ // "date2-602"
 		_res = db.Exec("\n  INSERT INTO t601(a,b) VALUES(1e100, '1970-01-01');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a<julianday(b)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a<julianday(b)", _res.Error, "\n  INSERT INTO t601(a,b) VALUES(1e100, '1970-01-01');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a<julianday(b)", resErrString(_res), "\n  INSERT INTO t601(a,b) VALUES(1e100, '1970-01-01');\n")
 		}
 	}
 	{ // "date2-603"
 		_res = db.Exec("\n  INSERT INTO t601(a,b) VALUES(10, 'now');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of julianday() in a CHECK constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a CHECK constraint", _res.Error, "\n  INSERT INTO t601(a,b) VALUES(10, 'now');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a CHECK constraint", resErrString(_res), "\n  INSERT INTO t601(a,b) VALUES(10, 'now');\n")
 		}
 	}
 	{ // "date2-604"
 		_res = db.Exec("\n  INSERT INTO t600(a) VALUES(julianday('now')+10);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of julianday() in a CHECK constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a CHECK constraint", _res.Error, "\n  INSERT INTO t600(a) VALUES(julianday('now')+10);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a CHECK constraint", resErrString(_res), "\n  INSERT INTO t600(a) VALUES(julianday('now')+10);\n")
 		}
 	}
 	{ // "date2-610"
 		_res = db.Exec("\n  CREATE TABLE t610(a,b);\n  CREATE INDEX t610x1 ON t610(julianday('now')+b);\n  INSERT INTO t610(a,b) VALUES(123,456);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of julianday() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in an index", _res.Error, "\n  CREATE TABLE t610(a,b);\n  CREATE INDEX t610x1 ON t610(julianday('now')+b);\n  INSERT INTO t610(a,b) VALUES(123,456);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in an index", resErrString(_res), "\n  CREATE TABLE t610(a,b);\n  CREATE INDEX t610x1 ON t610(julianday('now')+b);\n  INSERT INTO t610(a,b) VALUES(123,456);\n")
 		}
 	}
 	{ // "date2-611"
 		_res = db.Exec("\n  CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);\n")
 		}
 	}
 	{ // "date2-612"
 		_res = db.Exec("\n  INSERT INTO t611(a,b) VALUES('now',10.0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of julianday() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in an index", _res.Error, "\n  INSERT INTO t611(a,b) VALUES('now',10.0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in an index", resErrString(_res), "\n  INSERT INTO t611(a,b) VALUES('now',10.0);\n")
 		}
 	}
 	{ // "date3-620"
 		_res = db.Exec("\n  CREATE TABLE t620(a, b AS (a+julianday('now')));\n  INSERT INTO t620 VALUES(10);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of julianday() in a generated column") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a generated column", _res.Error, "\n  CREATE TABLE t620(a, b AS (a+julianday('now')));\n  INSERT INTO t620 VALUES(10);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in a generated column", resErrString(_res), "\n  CREATE TABLE t620(a, b AS (a+julianday('now')));\n  INSERT INTO t620 VALUES(10);\n")
 		}
 	}
 }

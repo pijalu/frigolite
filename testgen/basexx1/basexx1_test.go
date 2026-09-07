@@ -209,19 +209,19 @@ func Test_basexx1(t *testing.T) {
 	{ // "109"
 		_res = db.Exec("\n  SELECT len, base64(b) FROM rb WHERE len>200;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "blob expanded to base64 too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base64 too big", _res.Error, "\n  SELECT len, base64(b) FROM rb WHERE len>200;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base64 too big", resErrString(_res), "\n  SELECT len, base64(b) FROM rb WHERE len>200;\n")
 		}
 	}
 	{ // "110"
 		_res = db.Exec("\n  SELECT len, base85(b) FROM rb WHERE len>200;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "blob expanded to base85 too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base85 too big", _res.Error, "\n  SELECT len, base85(b) FROM rb WHERE len>200;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base85 too big", resErrString(_res), "\n  SELECT len, base85(b) FROM rb WHERE len>200;\n")
 		}
 	}
 	{ // "111"
 		_res = db.Exec("\n  SELECT length(base85(b))=1335 FROM rb WHERE len=1054;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "blob expanded to base85 too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base85 too big", _res.Error, "\n  SELECT length(base85(b))=1335 FROM rb WHERE len=1054;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base85 too big", resErrString(_res), "\n  SELECT length(base85(b))=1335 FROM rb WHERE len=1054;\n")
 		}
 	}
 	db.SetLimit("SQLITE_LIMIT_LENGTH", toInt(inLimit))
@@ -252,19 +252,19 @@ func Test_basexx1(t *testing.T) {
 	{ // "114"
 		_res = db.Exec("\n  SELECT is_base85(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "is_base85 accepts only text or NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "is_base85 accepts only text or NULL", _res.Error, "\n  SELECT is_base85(1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "is_base85 accepts only text or NULL", resErrString(_res), "\n  SELECT is_base85(1);\n")
 		}
 	}
 	{ // "115"
 		_res = db.Exec("\n  SELECT is_base85(1.1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "is_base85 accepts only text or NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "is_base85 accepts only text or NULL", _res.Error, "\n  SELECT is_base85(1.1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "is_base85 accepts only text or NULL", resErrString(_res), "\n  SELECT is_base85(1.1);\n")
 		}
 	}
 	{ // "116"
 		_res = db.Exec("\n  SELECT is_base85(x'00');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "is_base85 accepts only text or NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "is_base85 accepts only text or NULL", _res.Error, "\n  SELECT is_base85(x'00');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "is_base85 accepts only text or NULL", resErrString(_res), "\n  SELECT is_base85(x'00');\n")
 		}
 	}
 	{ // "117"
@@ -276,13 +276,13 @@ func Test_basexx1(t *testing.T) {
 	{ // "118"
 		_res = db.Exec("\n  SELECT base64(zeroblob(2000_000_000))\n")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*too big.*", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*too big.*", _res.Error, "\n  SELECT base64(zeroblob(2000_000_000))\n")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*too big.*", resErrString(_res), "\n  SELECT base64(zeroblob(2000_000_000))\n")
 		}
 	}
 	{ // "119"
 		_res = db.Exec("\n  SELECT base85(zeroblob(2000_000_000))\n")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*too big.*", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*too big.*", _res.Error, "\n  SELECT base85(zeroblob(2000_000_000))\n")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*too big.*", resErrString(_res), "\n  SELECT base85(zeroblob(2000_000_000))\n")
 		}
 	}
 }

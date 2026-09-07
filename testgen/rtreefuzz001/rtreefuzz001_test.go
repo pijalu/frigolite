@@ -2444,7 +2444,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	{ // do_test "rtreefuzz001-210"
 		_res = db.Exec("\n    SELECT rtreecheck('t1');\n  ")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*corrupt.*", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*corrupt.*", _res.Error, "\n    SELECT rtreecheck('t1');\n  ")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*corrupt.*", resErrString(_res), "\n    SELECT rtreecheck('t1');\n  ")
 		}
 	}
 	{ // do_test "rtreefuzz001-300"
@@ -3284,7 +3284,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	{ // do_test "rtreefuzz001-310"
 		_res = db.Exec("\n    SELECT rtreecheck('t1');\n  ")
 		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*corrupt.*", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*corrupt.*", _res.Error, "\n    SELECT rtreecheck('t1');\n  ")
+			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*corrupt.*", resErrString(_res), "\n    SELECT rtreecheck('t1');\n  ")
 		}
 	}
 	{ // do_test "rtreefuzz001-400"
@@ -6003,13 +6003,13 @@ func Test_rtreefuzz001(t *testing.T) {
 	{ // "rtreefuzz001-601"
 		_res = db.Exec("\n  SAVEPOINT one;\n  UPDATE geo1 SET clr=CASE WHEN rowid IN ( SELECT geo1.rowid FROM geo1, querypoly ) THEN 'e' ELSE 'blue' END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SAVEPOINT one;\n  UPDATE geo1 SET clr=CASE WHEN rowid IN ( SELECT geo1.rowid FROM geo1, querypoly ) THEN 'e' ELSE 'blue' END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SAVEPOINT one;\n  UPDATE geo1 SET clr=CASE WHEN rowid IN ( SELECT geo1.rowid FROM geo1, querypoly ) THEN 'e' ELSE 'blue' END;\n")
 		}
 	}
 	{ // "rtreefuzz001-602"
 		_res = db.Exec("\n  SELECT geopoly_svg(_shape, printf('j',geo1.clr)) \n    FROM geo1, querypoly WHERE geopoly_overlap(_shape, poly);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT geopoly_svg(_shape, printf('j',geo1.clr)) \n    FROM geo1, querypoly WHERE geopoly_overlap(_shape, poly);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT geopoly_svg(_shape, printf('j',geo1.clr)) \n    FROM geo1, querypoly WHERE geopoly_overlap(_shape, poly);\n")
 		}
 	}
 }

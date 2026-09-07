@@ -199,7 +199,7 @@ func Test_intreal(t *testing.T) {
 	{ // "2.3"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c1 REAL);\n  INSERT INTO t1(c1) VALUES (8366271098608253588);\n  INSERT INTO t0(c0) VALUES ('a');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c1 REAL);\n  INSERT INTO t1(c1) VALUES (8366271098608253588);\n  INSERT INTO t0(c0) VALUES ('a');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c1 REAL);\n  INSERT INTO t1(c1) VALUES (8366271098608253588);\n  INSERT INTO t0(c0) VALUES ('a');\n")
 		}
 	}
 	_dbone0 := tclExecSQL(db, "{SELECT c1 FROM t1}")
@@ -267,19 +267,19 @@ func Test_intreal(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a REAL, b AS ('expr') ); \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a REAL, b AS ('expr') ); \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a REAL, b AS ('expr') ); \n")
 		}
 	}
 	{ // "4.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES( REPLACE(0, '', 'expr') );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES( REPLACE(0, '', 'expr') );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES( REPLACE(0, '', 'expr') );\n")
 		}
 	}
 	{ // "4.2"
 		_res = db.Exec("\n  INSERT INTO t1 SELECT REPLACE(4, '', 'expr');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 SELECT REPLACE(4, '', 'expr');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 SELECT REPLACE(4, '', 'expr');\n")
 		}
 	}
 	{ // "4.3"

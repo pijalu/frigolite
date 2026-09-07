@@ -223,7 +223,7 @@ func Test_vtabJ(t *testing.T) {
 	{ // "200"
 		_res = db.Exec("\n  CREATE TABLE var(k TEXT, v TEXT);\n  INSERT INTO var VALUES('testvar1', 10);\n  INSERT INTO var VALUES('testvar2', 20);\n  INSERT INTO var VALUES('testvar3', 30);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE var(k TEXT, v TEXT);\n  INSERT INTO var VALUES('testvar1', 10);\n  INSERT INTO var VALUES('testvar2', 20);\n  INSERT INTO var VALUES('testvar3', 30);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE var(k TEXT, v TEXT);\n  INSERT INTO var VALUES('testvar1', 10);\n  INSERT INTO var VALUES('testvar2', 20);\n  INSERT INTO var VALUES('testvar3', 30);\n")
 		}
 	}
 	{ // do_test "210"

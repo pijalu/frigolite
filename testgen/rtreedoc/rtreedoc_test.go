@@ -194,7 +194,7 @@ func Test_rtreedoc(t *testing.T) {
 	{ // "1.1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE rt1 USING rtree(id, x1,x2) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE rt1 USING rtree(id, x1,x2) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE rt1 USING rtree(id, x1,x2) ")
 		}
 	}
 	{ // do_test "1.1.2"
@@ -203,7 +203,7 @@ func Test_rtreedoc(t *testing.T) {
 	{ // "1.2.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE rt2 USING rtree(id,x1,x2, y1,y2) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE rt2 USING rtree(id,x1,x2, y1,y2) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE rt2 USING rtree(id,x1,x2, y1,y2) ")
 		}
 	}
 	{ // do_test "1.2.2"
@@ -212,7 +212,7 @@ func Test_rtreedoc(t *testing.T) {
 	{ // "1.3.1"
 		_res = db.Exec(" \n  CREATE VIRTUAL TABLE rt3 USING rtree(id, x1,x2, y1,y2, z1,z2) \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE VIRTUAL TABLE rt3 USING rtree(id, x1,x2, y1,y2, z1,z2) \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE VIRTUAL TABLE rt3 USING rtree(id, x1,x2, y1,y2, z1,z2) \n")
 		}
 	}
 	{ // do_test "1.3.2"
@@ -221,7 +221,7 @@ func Test_rtreedoc(t *testing.T) {
 	{ // "1.4.1"
 		_res = db.Exec(" \n  CREATE VIRTUAL TABLE rt4 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2) \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE VIRTUAL TABLE rt4 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2) \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE VIRTUAL TABLE rt4 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2) \n")
 		}
 	}
 	{ // do_test "1.4.2"
@@ -230,7 +230,7 @@ func Test_rtreedoc(t *testing.T) {
 	{ // "1.5.1"
 		_res = db.Exec(" \n  CREATE VIRTUAL TABLE rt5 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2)\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE VIRTUAL TABLE rt5 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2)\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE VIRTUAL TABLE rt5 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2)\n")
 		}
 	}
 	{ // do_test "1.5.2"
@@ -239,13 +239,13 @@ func Test_rtreedoc(t *testing.T) {
 	{ // "2.1.1"
 		_res = db.Exec(" \n  CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2\n  )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Too many columns for an rtree table") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", _res.Error, " \n  CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2\n  )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", resErrString(_res), " \n  CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2\n  )\n")
 		}
 	}
 	{ // "2.1.2"
 		_res = db.Exec(" \n  CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2, b1, b2\n  )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Too many columns for an rtree table") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", _res.Error, " \n  CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2, b1, b2\n  )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", resErrString(_res), " \n  CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2, b1, b2\n  )\n")
 		}
 	}
 	// foreach {tn cols err} "1 \"\"                        \"Too few columns for an rtree table\"\n  2 \"x\"                       \"Too few columns for an rtree table\"\n  3 \"x,y\"                     \"Too few columns for an rtree table\"\n  4 \"a,b,c,d\"                 \"Wrong number of columns for an rtree table\"\n  5 \"a,b,c,d,e,f\"             \"Wrong number of columns for an rtree table\"\n  6 \"a,b,c,d,e,f,g,h\"         \"Wrong number of columns for an rtree table\"\n  7 \"a,b,c,d,e,f,g,h,i,j\"     \"Wrong number of columns for an rtree table\"\n  8 \"a,b,c,d,e,f,g,h,i,j,k,l\" \"Too many columns for an rtree table\""
@@ -261,14 +261,14 @@ func Test_rtreedoc(t *testing.T) {
 			{ // "3." + tn
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE xyz USING rtree(" + cols + ")\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n    CREATE VIRTUAL TABLE xyz USING rtree(" + cols + ")\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "\n    CREATE VIRTUAL TABLE xyz USING rtree(" + cols + ")\n  ")
 				}
 			}
 		}
 		{ // "4.0"
 			_res = db.Exec(" CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2) ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2) ")
 			}
 		}
 		// foreach {tn val res} "1 10    10\n  2 10.6  10\n  3 10.99 10\n  4 '123' 123\n  5 X'313233'  123\n  6 -10   -10\n  7  9223372036854775807 9223372036854775807 \n  8 -9223372036854775808 -9223372036854775808 \n  9  '9223372036854775807' 9223372036854775807\n  10  '-9223372036854775808' -9223372036854775808\n  11  'hello+world' 0"
@@ -284,7 +284,7 @@ func Test_rtreedoc(t *testing.T) {
 				{ // "4." + tn + ".1"
 					_res = db.Exec("\n    DELETE FROM rt;\n    INSERT INTO rt VALUES(" + val + ", 10, 20);\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM rt;\n    INSERT INTO rt VALUES(" + val + ", 10, 20);\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM rt;\n    INSERT INTO rt VALUES(" + val + ", 10, 20);\n  ")
 					}
 				}
 				{ // "4." + tn + ".2"
@@ -303,7 +303,7 @@ func Test_rtreedoc(t *testing.T) {
 			{ // "5.1"
 				_res = db.Exec("\n  DELETE FROM rt;\n  INSERT INTO rt VALUES(100, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM rt;\n  INSERT INTO rt VALUES(100, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM rt;\n  INSERT INTO rt VALUES(100, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);\n")
 				}
 			}
 			{ // "5.2"
@@ -321,7 +321,7 @@ func Test_rtreedoc(t *testing.T) {
 			{ // "5.3"
 				_res = db.Exec(" \n  INSERT INTO rt VALUES(9223372036854775807, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO rt VALUES(9223372036854775807, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO rt VALUES(9223372036854775807, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);\n")
 				}
 			}
 			{ // "5.4"
@@ -351,7 +351,7 @@ func Test_rtreedoc(t *testing.T) {
 			{ // "6.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE rtF USING rtree(id, x1,x2, y1,y2);\n  CREATE VIRTUAL TABLE rtI USING rtree_i32(id, x1,x2, y1,y2, z1,z2);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rtF USING rtree(id, x1,x2, y1,y2);\n  CREATE VIRTUAL TABLE rtI USING rtree_i32(id, x1,x2, y1,y2, z1,z2);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rtF USING rtree(id, x1,x2, y1,y2);\n  CREATE VIRTUAL TABLE rtI USING rtree_i32(id, x1,x2, y1,y2, z1,z2);\n")
 				}
 			}
 			// foreach {tn x1 x2 y1 y2 ok} "1   10.3 20.1   30.9 40.2   1\n  2   10.3 20.1   40.2 30.9   0\n  3   10.3 30.9   20.1 40.2   1\n  4   20.1 10.3   30.9 40.2   0"
@@ -505,13 +505,13 @@ func Test_rtreedoc(t *testing.T) {
 							{ // "1." + tn + ".1"
 								_res = db.Exec("\n    CREATE VIRTUAL TABLE " + name + " USING rtree(" + strings.Join(tclSplitList(clist), ",") + ")\n  ")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE " + name + " USING rtree(" + strings.Join(tclSplitList(clist), ",") + ")\n  ")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE " + name + " USING rtree(" + strings.Join(tclSplitList(clist), ",") + ")\n  ")
 								}
 							}
 							{ // do_test "1." + tn + ".2"
 								// column_name_list db $name (unsupported command, not transpiled)
 								if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), clist) {
-									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", clist, _res.Error, "1." + tn + ".2")
+									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", clist, resErrString(_res), "1." + tn + ".2")
 								}
 							}
 							{ // "1." + tn + ".3"
@@ -541,14 +541,14 @@ func Test_rtreedoc(t *testing.T) {
 							{ // "1." + tn + ".5"
 								_res = db.Exec("DROP TABLE " + name)
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + name)
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE " + name)
 								}
 							}
 						}
 						{ // "2.0"
 							_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES(1,2,3,4,5);\n  INSERT INTO demo_index VALUES(6,7,8,9,10);\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES(1,2,3,4,5);\n  INSERT INTO demo_index VALUES(6,7,8,9,10);\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES(1,2,3,4,5);\n  INSERT INTO demo_index VALUES(6,7,8,9,10);\n")
 							}
 						}
 						{ // "2.1"
@@ -578,19 +578,19 @@ func Test_rtreedoc(t *testing.T) {
 						{ // "2.3"
 							_res = db.Exec("\n  DELETE FROM demo_index_rowid;\n  INSERT INTO demo_index_parent VALUES(2, 3);\n  UPDATE demo_index_node SET data = 'hello world'\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM demo_index_rowid;\n  INSERT INTO demo_index_parent VALUES(2, 3);\n  UPDATE demo_index_node SET data = 'hello world'\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM demo_index_rowid;\n  INSERT INTO demo_index_parent VALUES(2, 3);\n  UPDATE demo_index_node SET data = 'hello world'\n")
 							}
 						}
 						{ // "2.4"
 							_res = db.Exec("\n  SELECT * FROM demo_index WHERE minX>10 AND maxX<30\n")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM demo_index WHERE minX>10 AND maxX<30\n")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM demo_index WHERE minX>10 AND maxX<30\n")
 							}
 						}
 						{ // "2.5"
 							_res = db.Exec("\n  DROP TABLE demo_index_rowid\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE demo_index_rowid\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE demo_index_rowid\n")
 							}
 						}
 						vtab.TclVarSet("testprefix", "", "rtreedoc-3")
@@ -616,19 +616,19 @@ func Test_rtreedoc(t *testing.T) {
 								{ // "1." + tn + ".1"
 									_res = db.Exec(" CREATE VIRTUAL TABLE abc USING rtree " + cols + " ")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE abc USING rtree " + cols + " ")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE abc USING rtree " + cols + " ")
 									}
 								}
 								{ // do_test "1." + tn + ".2"
 									// column_name_list db abc (unsupported command, not transpiled)
 									if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), lCol) {
-										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lCol, _res.Error, "1." + tn + ".2")
+										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lCol, resErrString(_res), "1." + tn + ".2")
 									}
 								}
 								{ // "1." + tn + ".3"
 									_res = db.Exec("\n    INSERT INTO abc VALUES(1, 10.0, 20.0, 10.0, 20.0);\n    INSERT INTO abc VALUES(2, 10.0, 20.0, 10.0, 20.0);\n  ")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 10.0, 20.0, 10.0, 20.0);\n    INSERT INTO abc VALUES(2, 10.0, 20.0, 10.0, 20.0);\n  ")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO abc VALUES(1, 10.0, 20.0, 10.0, 20.0);\n    INSERT INTO abc VALUES(2, 10.0, 20.0, 10.0, 20.0);\n  ")
 									}
 								}
 								{ // "1." + tn + ".4"
@@ -682,7 +682,7 @@ func Test_rtreedoc(t *testing.T) {
 								{ // "1." + tn + ".7"
 									_res = db.Exec(" CREATE VIRTUAL TABLE abc2 USING rtree_i32 " + cols + " ")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE abc2 USING rtree_i32 " + cols + " ")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE abc2 USING rtree_i32 " + cols + " ")
 									}
 								}
 								{ // "1." + tn + ".8"
@@ -712,7 +712,7 @@ func Test_rtreedoc(t *testing.T) {
 								{ // "1." + tn + ".10"
 									_res = db.Exec("\n    DROP TABLE abc;\n    DROP TABLE abc2;\n  ")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n    DROP TABLE abc2;\n  ")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE abc;\n    DROP TABLE abc2;\n  ")
 									}
 								}
 							}
@@ -729,7 +729,7 @@ func Test_rtreedoc(t *testing.T) {
 							{ // "1.0"
 								_res = db.Exec("\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x1 REAL, x2 REAL);\n")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x1 REAL, x2 REAL);\n")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x1 REAL, x2 REAL);\n")
 								}
 							}
 							// foreach {tn sql} "1 \"INSERT INTO %TBL% VALUES(5, 11,12)\"\n  2 \"INSERT INTO %TBL% VALUES(11, -11,14.5)\"\n  3 \"UPDATE %TBL% SET x1=-99 WHERE id=11\"\n  4 \"DELETE FROM %TBL% WHERE x2=14.5\"\n  5 \"DELETE FROM %TBL%\""
@@ -747,13 +747,13 @@ func Test_rtreedoc(t *testing.T) {
 									{ // "1." + tn + ".0"
 										_res = db.Exec(sql1)
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql1)
+											t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql1)
 										}
 									}
 									{ // "1." + tn + ".1"
 										_res = db.Exec(sql2)
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql2)
+											t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql2)
 										}
 									}
 									data1 = tclExecSQL(db, "SELECT * FROM rt ORDER BY 1")
@@ -773,7 +773,7 @@ func Test_rtreedoc(t *testing.T) {
 								{ // "2.0"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);\n")
 									}
 								}
 								vtab.TclVarSet("testprefix", "", "rtreedoc-5")
@@ -795,7 +795,7 @@ func Test_rtreedoc(t *testing.T) {
 								{ // "1.1.0"
 									_res = db.Exec("\n  CREATE TABLE demo_tbl AS SELECT * FROM demo_index;\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE demo_tbl AS SELECT * FROM demo_index;\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE demo_tbl AS SELECT * FROM demo_index;\n")
 									}
 								}
 								// foreach {tn sql} "1  {SELECT * FROM %TBL% ORDER BY 1}\n  2  {SELECT max(minX) FROM %TBL% ORDER BY 1}\n  3  {SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1}"
@@ -813,7 +813,7 @@ func Test_rtreedoc(t *testing.T) {
 										{ // "1.1." + tn
 											_res = db.Exec(sql1)
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql1)
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql1)
 											}
 										}
 									}
@@ -866,7 +866,7 @@ func Test_rtreedoc(t *testing.T) {
 									{ // "1.0"
 										_res = db.Exec("\n  CREATE VIRTUAL TABLE rt USING rtree(id, a,b);\n")
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt USING rtree(id, a,b);\n")
+											t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt USING rtree(id, a,b);\n")
 										}
 									}
 									{ // "1.1"
@@ -894,13 +894,13 @@ func Test_rtreedoc(t *testing.T) {
 											{ // "2." + tn + ".0"
 												_res = db.Exec("DELETE FROM rt")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM rt")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DELETE FROM rt")
 												}
 											}
 											{ // "2." + tn + ".1"
 												_res = db.Exec("INSERT INTO rt VALUES(23, " + sqlLiteral(val) + ", " + sqlLiteral(val) + ")")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO rt VALUES(23, " + sqlLiteral(val) + ", " + sqlLiteral(val) + ")")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO rt VALUES(23, " + sqlLiteral(val) + ", " + sqlLiteral(val) + ")")
 												}
 											}
 											{ // "2." + tn + ".2"
@@ -919,7 +919,7 @@ func Test_rtreedoc(t *testing.T) {
 										{ // "3.0"
 											_res = db.Exec("\n  DROP TABLE rt;\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1,x2, y1,y2);\n")
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE rt;\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1,x2, y1,y2);\n")
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE rt;\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1,x2, y1,y2);\n")
 											}
 										}
 										// foreach {tn x1 x2 y1 y2} "1 100000000000 200000000000 300000000000 400000000000"
@@ -941,13 +941,13 @@ func Test_rtreedoc(t *testing.T) {
 												{ // "3." + tn + ".0"
 													_res = db.Exec("DELETE FROM rt")
 													if _res.Error != nil {
-														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM rt")
+														t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DELETE FROM rt")
 													}
 												}
 												{ // "3." + tn + ".1"
 													_res = db.Exec("INSERT INTO rt VALUES(23, " + sqlLiteral(x1) + ", " + sqlLiteral(x2) + ", " + sqlLiteral(y1) + ", " + sqlLiteral(y2) + ")")
 													if _res.Error != nil {
-														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO rt VALUES(23, " + sqlLiteral(x1) + ", " + sqlLiteral(x2) + ", " + sqlLiteral(y1) + ", " + sqlLiteral(y2) + ")")
+														t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO rt VALUES(23, " + sqlLiteral(x1) + ", " + sqlLiteral(x2) + ", " + sqlLiteral(y1) + ", " + sqlLiteral(y2) + ")")
 													}
 												}
 												{ // "3." + tn + ".2"
@@ -976,7 +976,7 @@ func Test_rtreedoc(t *testing.T) {
 											{ // "1.0"
 												_res = db.Exec(" \n  CREATE VIRTUAL TABLE rt USING rtree(id, minX, maxX);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<51\n  )\n  INSERT INTO rt SELECT NULL, i%10, (i%10)+5 FROM s\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE VIRTUAL TABLE rt USING rtree(id, minX, maxX);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<51\n  )\n  INSERT INTO rt SELECT NULL, i%10, (i%10)+5 FROM s\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE VIRTUAL TABLE rt USING rtree(id, minX, maxX);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<51\n  )\n  INSERT INTO rt SELECT NULL, i%10, (i%10)+5 FROM s\n")
 												}
 											}
 											{ // "1.1"
@@ -1077,7 +1077,7 @@ func Test_rtreedoc(t *testing.T) {
 											{ // "2.0"
 												_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446);\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446);\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446);\n")
 												}
 											}
 											{ // do_test "2.1"
@@ -1124,7 +1124,7 @@ func Test_rtreedoc(t *testing.T) {
 											{ // "3.0"
 												_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO x1 VALUES(1, 1, 1);\n  INSERT INTO x1 VALUES(2, 2, 2);\n  INSERT INTO x1 VALUES(3, 3, 3);\n  INSERT INTO x1 VALUES(4, 4, 4);\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO x1 VALUES(1, 1, 1);\n  INSERT INTO x1 VALUES(2, 2, 2);\n  INSERT INTO x1 VALUES(3, 3, 3);\n  INSERT INTO x1 VALUES(4, 4, 4);\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO x1 VALUES(1, 1, 1);\n  INSERT INTO x1 VALUES(2, 2, 2);\n  INSERT INTO x1 VALUES(3, 3, 3);\n  INSERT INTO x1 VALUES(4, 4, 4);\n")
 												}
 											}
 											{ // do_test "3.1"
@@ -1260,7 +1260,7 @@ func Test_rtreedoc(t *testing.T) {
 											{ // "1.0"
 												_res = db.Exec("\n  CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );\n")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );\n")
+													t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );\n")
 												}
 											}
 											{ // "1.1"
@@ -1340,50 +1340,50 @@ func Test_rtreedoc(t *testing.T) {
 													{ // "2." + tn
 														_res = db.Exec("\n    CREATE VIRTUAL TABLE rrr USING rtree(" + cols + ")\n  ")
 														if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Auxiliary rtree columns must be last") {
-															t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Auxiliary rtree columns must be last", _res.Error, "\n    CREATE VIRTUAL TABLE rrr USING rtree(" + cols + ")\n  ")
+															t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Auxiliary rtree columns must be last", resErrString(_res), "\n    CREATE VIRTUAL TABLE rrr USING rtree(" + cols + ")\n  ")
 														}
 													}
 												}
 												{ // "3.0"
 													_res = db.Exec("\n  CREATE VIRTUAL TABLE rrr USING rtree(+id, extra, x1, x2);\n")
 													if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"+\": syntax error") {
-														t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"+\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE rrr USING rtree(+id, extra, x1, x2);\n")
+														t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"+\": syntax error", resErrString(_res), "\n  CREATE VIRTUAL TABLE rrr USING rtree(+id, extra, x1, x2);\n")
 													}
 												}
 												{ // "3.1"
 													_res = db.Exec("\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96\n  );\n")
 													if _res.Error != nil {
-														t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96\n  );\n")
+														t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96\n  );\n")
 													}
 												}
 												{ // "3.2"
 													_res = db.Exec("\n  DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96, +c97\n  );\n")
 													if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Too many columns for an rtree table") {
-														t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", _res.Error, "\n  DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96, +c97\n  );\n")
+														t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", resErrString(_res), "\n  DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96, +c97\n  );\n")
 													}
 												}
 												{ // "3.3"
 													_res = db.Exec("\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94,\n  );\n")
 													if _res.Error != nil {
-														t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94,\n  );\n")
+														t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94,\n  );\n")
 													}
 												}
 												{ // "3.4"
 													_res = db.Exec("\n  DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95,\n  );\n")
 													if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Too many columns for an rtree table") {
-														t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", _res.Error, "\n  DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95,\n  );\n")
+														t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Too many columns for an rtree table", resErrString(_res), "\n  DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95,\n  );\n")
 													}
 												}
 												{ // "4.0"
 													_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index2 USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY,      -- Minimum and maximum Y coordinate\n      +objname TEXT,   -- name of the object\n      +objtype TEXT,   -- object type\n      +boundary BLOB   -- detailed boundary of object\n  );\n")
 													if _res.Error != nil {
-														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo_index2 USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY,      -- Minimum and maximum Y coordinate\n      +objname TEXT,   -- name of the object\n      +objtype TEXT,   -- object type\n      +boundary BLOB   -- detailed boundary of object\n  );\n")
+														t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo_index2 USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY,      -- Minimum and maximum Y coordinate\n      +objname TEXT,   -- name of the object\n      +objtype TEXT,   -- object type\n      +boundary BLOB   -- detailed boundary of object\n  );\n")
 													}
 												}
 												{ // "4.1"
 													_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );\n\n  INSERT INTO demo_index2(id) VALUES(1);\n  INSERT INTO demo_index(id) VALUES(1);\n  INSERT INTO demo_data(id) VALUES(1);\n")
 													if _res.Error != nil {
-														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );\n\n  INSERT INTO demo_index2(id) VALUES(1);\n  INSERT INTO demo_index(id) VALUES(1);\n  INSERT INTO demo_data(id) VALUES(1);\n")
+														t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );\n\n  INSERT INTO demo_index2(id) VALUES(1);\n  INSERT INTO demo_index(id) VALUES(1);\n  INSERT INTO demo_data(id) VALUES(1);\n")
 													}
 												}
 												{ // do_test "4.2"
@@ -1443,7 +1443,7 @@ func Test_rtreedoc(t *testing.T) {
 												{ // "4.3.1"
 													_res = db.Exec("\n  DELETE FROM demo_index2;\n  INSERT INTO demo_index2(id,minX,maxX,minY,maxY) VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);\n")
 													if _res.Error != nil {
-														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM demo_index2;\n  INSERT INTO demo_index2(id,minX,maxX,minY,maxY) VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);\n")
+														t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM demo_index2;\n  INSERT INTO demo_index2(id,minX,maxX,minY,maxY) VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);\n")
 													}
 												}
 												vtab.TclVarSet("contained_in", "", "0")
@@ -1514,7 +1514,7 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "1." + tn + ".1"
 															_res = db.Exec("\n    CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, " + auxcol + ")\n  ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, " + auxcol + ")\n  ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, " + auxcol + ")\n  ")
 															}
 														}
 														{ // "1." + tn + ".2"
@@ -1532,13 +1532,13 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "1." + tn + ".3"
 															_res = db.Exec("\n    INSERT INTO rt(" + nm + ") VALUES('xyz'), ('xyz'), ('xyz');\n  ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO rt(" + nm + ") VALUES('xyz'), ('xyz'), ('xyz');\n  ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO rt(" + nm + ") VALUES('xyz'), ('xyz'), ('xyz');\n  ")
 															}
 														}
 														{ // "1." + tn + ".2"
 															_res = db.Exec("\n    DROP TABLE rt\n  ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE rt\n  ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE rt\n  ")
 															}
 														}
 													}
@@ -1596,7 +1596,7 @@ func Test_rtreedoc(t *testing.T) {
 															{ // "1." + tn + ".1"
 																_res = db.Exec("\n    CREATE VIRTUAL TABLE " + nm + " USING rtree(a,b,c,d,e);\n  ")
 																if _res.Error != nil {
-																	t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE " + nm + " USING rtree(a,b,c,d,e);\n  ")
+																	t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE " + nm + " USING rtree(a,b,c,d,e);\n  ")
 																}
 															}
 															{ // "1." + tn + ".2"
@@ -1614,14 +1614,14 @@ func Test_rtreedoc(t *testing.T) {
 															{ // "1." + tn
 																_res = db.Exec("DROP TABLE " + nm)
 																if _res.Error != nil {
-																	t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + nm)
+																	t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "DROP TABLE " + nm)
 																}
 															}
 														}
 														{ // "2.0"
 															_res = db.Exec("\n  CREATE VIRTUAL TABLE r1 USING rtree_i32(i, x1,x2, y1,y2);\n  WITH t(i) AS (\n    VALUES(1) UNION SELECT i+1 FROM t WHERE i<110\n  )\n  INSERT INTO r1 SELECT i, (i%10), (i%10)+2, (i%6), (i%7)+6 FROM t;\n")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE r1 USING rtree_i32(i, x1,x2, y1,y2);\n  WITH t(i) AS (\n    VALUES(1) UNION SELECT i+1 FROM t WHERE i<110\n  )\n  INSERT INTO r1 SELECT i, (i%10), (i%10)+2, (i%6), (i%7)+6 FROM t;\n")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE r1 USING rtree_i32(i, x1,x2, y1,y2);\n  WITH t(i) AS (\n    VALUES(1) UNION SELECT i+1 FROM t WHERE i<110\n  )\n  INSERT INTO r1 SELECT i, (i%10), (i%10)+2, (i%6), (i%7)+6 FROM t;\n")
 															}
 														}
 														{ // "2.1"
@@ -1675,7 +1675,7 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "3.1"
 															_res = db.Exec("\n  INSERT INTO rtaux(e1, e2) VALUES('hello', 'world'), (123, 456);\n")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO rtaux(e1, e2) VALUES('hello', 'world'), (123, 456);\n")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO rtaux(e1, e2) VALUES('hello', 'world'), (123, 456);\n")
 															}
 														}
 														{ // "3.2"
@@ -1707,7 +1707,7 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "1.0"
 															_res = db.Exec("\n  CREATE VIRTUAL TABLE rt1 USING rtree(id, a, b);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  )\n  INSERT INTO rt1 SELECT i, i, i FROM s;\n\n  ATTACH 'test.db2' AS 'aux';\n  CREATE VIRTUAL TABLE aux.rt1 USING rtree(id, a, b);\n  INSERT INTO aux.rt1 SELECT * FROM rt1;\n")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt1 USING rtree(id, a, b);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  )\n  INSERT INTO rt1 SELECT i, i, i FROM s;\n\n  ATTACH 'test.db2' AS 'aux';\n  CREATE VIRTUAL TABLE aux.rt1 USING rtree(id, a, b);\n  INSERT INTO aux.rt1 SELECT * FROM rt1;\n")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt1 USING rtree(id, a, b);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  )\n  INSERT INTO rt1 SELECT i, i, i FROM s;\n\n  ATTACH 'test.db2' AS 'aux';\n  CREATE VIRTUAL TABLE aux.rt1 USING rtree(id, a, b);\n  INSERT INTO aux.rt1 SELECT * FROM rt1;\n")
 															}
 														}
 														{ // "1.1.1"
@@ -1749,13 +1749,13 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "1.1.4"
 															_res = db.Exec(" \n  SELECT rtreecheck('nosuchdb', 'rt1'); \n")
 															if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-																t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT rtreecheck('nosuchdb', 'rt1'); \n")
+																t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT rtreecheck('nosuchdb', 'rt1'); \n")
 															}
 														}
 														{ // "1.2.1"
 															_res = db.Exec(" UPDATE rt1_node SET nodeno=21 WHERE nodeno=3; ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE rt1_node SET nodeno=21 WHERE nodeno=3; ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE rt1_node SET nodeno=21 WHERE nodeno=3; ")
 															}
 														}
 														{ // "1.2.1"
@@ -1797,13 +1797,13 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "1.2.4"
 															_res = db.Exec(" UPDATE rt1_node SET nodeno=3 WHERE nodeno=21; ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE rt1_node SET nodeno=3 WHERE nodeno=21; ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE rt1_node SET nodeno=3 WHERE nodeno=21; ")
 															}
 														}
 														{ // "1.2.1"
 															_res = db.Exec(" UPDATE aux.rt1_node SET nodeno=21 WHERE nodeno=3; ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE aux.rt1_node SET nodeno=21 WHERE nodeno=3; ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE aux.rt1_node SET nodeno=21 WHERE nodeno=3; ")
 															}
 														}
 														{ // "1.2.1"
@@ -1845,13 +1845,13 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "1.2.4"
 															_res = db.Exec(" UPDATE rt1_node SET nodeno=3 WHERE nodeno=21; ")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE rt1_node SET nodeno=3 WHERE nodeno=21; ")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE rt1_node SET nodeno=3 WHERE nodeno=21; ")
 															}
 														}
 														{ // "2.0"
 															_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index USING rtree(id, x1,x2, y1,y2);\n  INSERT INTO demo_index SELECT id, a, b, a, b FROM rt1;\n")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE demo_index USING rtree(id, x1,x2, y1,y2);\n  INSERT INTO demo_index SELECT id, a, b, a, b FROM rt1;\n")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE demo_index USING rtree(id, x1,x2, y1,y2);\n  INSERT INTO demo_index SELECT id, a, b, a, b FROM rt1;\n")
 															}
 														}
 														{ // "2.1"
@@ -1881,7 +1881,7 @@ func Test_rtreedoc(t *testing.T) {
 														{ // "3.0"
 															_res = db.Exec("\n  CREATE VIRTUAL TABLE rt2 USING rtree_i32(id, a, b, c, d);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  )\n  INSERT INTO rt2 SELECT i, i, i+2, i, i+2 FROM s;\n")
 															if _res.Error != nil {
-																t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt2 USING rtree_i32(id, a, b, c, d);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  )\n  INSERT INTO rt2 SELECT i, i, i+2, i, i+2 FROM s;\n")
+																t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt2 USING rtree_i32(id, a, b, c, d);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  )\n  INSERT INTO rt2 SELECT i, i, i+2, i, i+2 FROM s;\n")
 															}
 														}
 														_res = db.Exec("BEGIN")

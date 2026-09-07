@@ -113,7 +113,7 @@ func Test_upsert2(t *testing.T) {
 	{ // "upsert2-202"
 		_res = db.Exec("\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t1.c+1 WHERE t1.b<excluded.b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t1.c", _res.Error, "\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t1.c+1 WHERE t1.b<excluded.b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t1.c", resErrString(_res), "\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t1.c+1 WHERE t1.b<excluded.b;\n")
 		}
 	}
 	{ // "upsert2-210"

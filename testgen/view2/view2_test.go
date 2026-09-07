@@ -66,7 +66,7 @@ func Test_view2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  CREATE VIEW v1 AS SELECT * FROM (\n    WITH x1 AS (SELECT y, x FROM t1)\n    SELECT * FROM x1\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  CREATE VIEW v1 AS SELECT * FROM (\n    WITH x1 AS (SELECT y, x FROM t1)\n    SELECT * FROM x1\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  CREATE VIEW v1 AS SELECT * FROM (\n    WITH x1 AS (SELECT y, x FROM t1)\n    SELECT * FROM x1\n  );\n")
 		}
 	}
 	{ // "1.1"

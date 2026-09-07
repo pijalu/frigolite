@@ -595,7 +595,7 @@ func Test_savepoint(t *testing.T) {
 	{ // do_test "savepoint-5.3.2.2"
 		_res = db.Exec("ROLLBACK TO def")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "ROLLBACK TO def")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "ROLLBACK TO def")
 		}
 	}
 	{ // do_test "savepoint-5.3.2.3"
@@ -622,7 +622,7 @@ func Test_savepoint(t *testing.T) {
 	{ // do_test "savepoint-5.3.3"
 		_res = db.Exec("RELEASE def")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "RELEASE def")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "RELEASE def")
 		}
 	}
 	{ // do_test "savepoint-5.3.4"
@@ -668,7 +668,7 @@ func Test_savepoint(t *testing.T) {
 		{ // do_test "savepoint-5.4.3"
 			_res = db.Exec("RELEASE main")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "RELEASE main")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "RELEASE main")
 			}
 		}
 		{ // do_test "savepoint-5.4.4"
@@ -678,7 +678,7 @@ func Test_savepoint(t *testing.T) {
 		{ // do_test "savepoint-5.4.3"
 			_res = db.Exec(" RELEASE main ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, " RELEASE main ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), " RELEASE main ")
 			}
 		}
 		{ // do_test "savepoint-5.4.4"
@@ -946,7 +946,7 @@ func Test_savepoint(t *testing.T) {
 	{ // do_test "savepoint-10.1.1"
 		_res = db.Exec("\n    SAVEPOINT one;\n    ATTACH 'test2.db' AS aux;\n    DETACH aux;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one;\n    ATTACH 'test2.db' AS aux;\n    DETACH aux;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SAVEPOINT one;\n    ATTACH 'test2.db' AS aux;\n    DETACH aux;\n  ")
 		}
 	}
 	{ // do_test "savepoint-10.1.2"
@@ -1181,7 +1181,7 @@ func Test_savepoint(t *testing.T) {
 	{ // do_test "savepoint-12.2"
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t4 VALUES(2, 'two');\n      SAVEPOINT sp1;\n        INSERT INTO t4 VALUES(3, 'three');\n        SAVEPOINT sp2;\n          INSERT OR ROLLBACK INTO t4 VALUES(1, 'one');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t4.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t4.a", _res.Error, "\n    BEGIN;\n      INSERT INTO t4 VALUES(2, 'two');\n      SAVEPOINT sp1;\n        INSERT INTO t4 VALUES(3, 'three');\n        SAVEPOINT sp2;\n          INSERT OR ROLLBACK INTO t4 VALUES(1, 'one');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t4.a", resErrString(_res), "\n    BEGIN;\n      INSERT INTO t4 VALUES(2, 'two');\n      SAVEPOINT sp1;\n        INSERT INTO t4 VALUES(3, 'three');\n        SAVEPOINT sp2;\n          INSERT OR ROLLBACK INTO t4 VALUES(1, 'one');\n  ")
 		}
 	}
 	{ // "savepoint-12.3" (prepare-step internals; SQL side effects only)
@@ -1253,7 +1253,7 @@ func Test_savepoint(t *testing.T) {
 	{ // "savepoint-17.2"
 		_res = db.Exec("\n  CREATE TABLE t6(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(a, b);\n")
 		}
 	}
 }

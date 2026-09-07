@@ -72,7 +72,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE r_tree USING rtree(id, min_x, max_x, min_y, max_y);\n  CREATE TABLE t(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE r_tree USING rtree(id, min_x, max_x, min_y, max_y);\n  CREATE TABLE t(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE r_tree USING rtree(id, min_x, max_x, min_y, max_y);\n  CREATE TABLE t(x, y);\n")
 		}
 	}
 	{ // "1.1"
@@ -102,7 +102,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  INSERT INTO t VALUES(0, 0);\n  INSERT INTO t VALUES(0, 1);\n  INSERT INTO t VALUES(0, 2);\n  INSERT INTO t VALUES(0, 3);\n  INSERT INTO t VALUES(0, 4);\n  INSERT INTO t VALUES(0, 5);\n  INSERT INTO t VALUES(0, 6);\n  INSERT INTO t VALUES(0, 7);\n  INSERT INTO t VALUES(0, 8);\n  INSERT INTO t VALUES(0, 9);\n\n  INSERT INTO t SELECT x+1, y FROM t;\n  INSERT INTO t SELECT x+2, y FROM t;\n  INSERT INTO t SELECT x+4, y FROM t;\n  INSERT INTO r_tree SELECT NULL, x-1, x+1, y-1, y+1 FROM t;\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t VALUES(0, 0);\n  INSERT INTO t VALUES(0, 1);\n  INSERT INTO t VALUES(0, 2);\n  INSERT INTO t VALUES(0, 3);\n  INSERT INTO t VALUES(0, 4);\n  INSERT INTO t VALUES(0, 5);\n  INSERT INTO t VALUES(0, 6);\n  INSERT INTO t VALUES(0, 7);\n  INSERT INTO t VALUES(0, 8);\n  INSERT INTO t VALUES(0, 9);\n\n  INSERT INTO t SELECT x+1, y FROM t;\n  INSERT INTO t SELECT x+2, y FROM t;\n  INSERT INTO t SELECT x+4, y FROM t;\n  INSERT INTO r_tree SELECT NULL, x-1, x+1, y-1, y+1 FROM t;\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t VALUES(0, 0);\n  INSERT INTO t VALUES(0, 1);\n  INSERT INTO t VALUES(0, 2);\n  INSERT INTO t VALUES(0, 3);\n  INSERT INTO t VALUES(0, 4);\n  INSERT INTO t VALUES(0, 5);\n  INSERT INTO t VALUES(0, 6);\n  INSERT INTO t VALUES(0, 7);\n  INSERT INTO t VALUES(0, 8);\n  INSERT INTO t VALUES(0, 9);\n\n  INSERT INTO t SELECT x+1, y FROM t;\n  INSERT INTO t SELECT x+2, y FROM t;\n  INSERT INTO t SELECT x+4, y FROM t;\n  INSERT INTO r_tree SELECT NULL, x-1, x+1, y-1, y+1 FROM t;\n  ANALYZE;\n")
 		}
 	}
 	db.Close()
@@ -136,7 +136,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE VIRTUAL TABLE t3 USING rtree(z, x1,x2, y1,y2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE VIRTUAL TABLE t3 USING rtree(z, x1,x2, y1,y2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE VIRTUAL TABLE t3 USING rtree(z, x1,x2, y1,y2);\n")
 		}
 	}
 	{ // "3.2.1"
@@ -173,7 +173,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE VIRTUAL TABLE t2 USING rtree(b, x1,x2);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n\n  INSERT INTO t2 VALUES(1, 0.0, 0.1);\n  INSERT INTO t2 VALUES(3, 0.0, 0.1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE VIRTUAL TABLE t2 USING rtree(b, x1,x2);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n\n  INSERT INTO t2 VALUES(1, 0.0, 0.1);\n  INSERT INTO t2 VALUES(3, 0.0, 0.1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE VIRTUAL TABLE t2 USING rtree(b, x1,x2);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n\n  INSERT INTO t2 VALUES(1, 0.0, 0.1);\n  INSERT INTO t2 VALUES(3, 0.0, 0.1);\n")
 		}
 	}
 	{ // "4.2"
@@ -210,7 +210,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT PRIMARY KEY, y);\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, +d1);\n\n  INSERT INTO t1(x) VALUES(1);\n  INSERT INTO t1(x) SELECT x+1 FROM t1;   --   2\n  INSERT INTO t1(x) SELECT x+2 FROM t1;   --   4\n  INSERT INTO t1(x) SELECT x+4 FROM t1;   --   8\n  INSERT INTO t1(x) SELECT x+8 FROM t1;   --  16\n  INSERT INTO t1(x) SELECT x+16 FROM t1;  --  32\n  INSERT INTO t1(x) SELECT x+32 FROM t1;  --  64\n  INSERT INTO t1(x) SELECT x+64 FROM t1;  -- 128\n  INSERT INTO t1(x) SELECT x+128 FROM t1; -- 256\n  INSERT INTO t1(x) SELECT x+256 FROM t1; -- 512\n  INSERT INTO t1(x) SELECT x+512 FROM t1; --1024\n\n  INSERT INTO rt SELECT x, x, x+1, printf('x%04xy',x) FROM t1 WHERE x<=5;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INT PRIMARY KEY, y);\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, +d1);\n\n  INSERT INTO t1(x) VALUES(1);\n  INSERT INTO t1(x) SELECT x+1 FROM t1;   --   2\n  INSERT INTO t1(x) SELECT x+2 FROM t1;   --   4\n  INSERT INTO t1(x) SELECT x+4 FROM t1;   --   8\n  INSERT INTO t1(x) SELECT x+8 FROM t1;   --  16\n  INSERT INTO t1(x) SELECT x+16 FROM t1;  --  32\n  INSERT INTO t1(x) SELECT x+32 FROM t1;  --  64\n  INSERT INTO t1(x) SELECT x+64 FROM t1;  -- 128\n  INSERT INTO t1(x) SELECT x+128 FROM t1; -- 256\n  INSERT INTO t1(x) SELECT x+256 FROM t1; -- 512\n  INSERT INTO t1(x) SELECT x+512 FROM t1; --1024\n\n  INSERT INTO rt SELECT x, x, x+1, printf('x%04xy',x) FROM t1 WHERE x<=5;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INT PRIMARY KEY, y);\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, +d1);\n\n  INSERT INTO t1(x) VALUES(1);\n  INSERT INTO t1(x) SELECT x+1 FROM t1;   --   2\n  INSERT INTO t1(x) SELECT x+2 FROM t1;   --   4\n  INSERT INTO t1(x) SELECT x+4 FROM t1;   --   8\n  INSERT INTO t1(x) SELECT x+8 FROM t1;   --  16\n  INSERT INTO t1(x) SELECT x+16 FROM t1;  --  32\n  INSERT INTO t1(x) SELECT x+32 FROM t1;  --  64\n  INSERT INTO t1(x) SELECT x+64 FROM t1;  -- 128\n  INSERT INTO t1(x) SELECT x+128 FROM t1; -- 256\n  INSERT INTO t1(x) SELECT x+256 FROM t1; -- 512\n  INSERT INTO t1(x) SELECT x+512 FROM t1; --1024\n\n  INSERT INTO rt SELECT x, x, x+1, printf('x%04xy',x) FROM t1 WHERE x<=5;\n")
 		}
 	}
 	// do_rtree_integrity_test 5.1.1 rt (unsupported command, not transpiled)
@@ -223,7 +223,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "5.3"
 		_res = db.Exec("\n  ANALYZE;\n  DELETE FROM sqlite_stat1 WHERE tbl='t1';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  DELETE FROM sqlite_stat1 WHERE tbl='t1';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE;\n  DELETE FROM sqlite_stat1 WHERE tbl='t1';\n")
 		}
 	}
 	db.Close()
@@ -239,7 +239,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "5.5"
 		_res = db.Exec(" DROP TABLE sqlite_stat1; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE sqlite_stat1; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE sqlite_stat1; ")
 		}
 	}
 	db.Close()
@@ -287,7 +287,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO rt VALUES(1,2,3);\n    ANALYZE;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO rt VALUES(1,2,3);\n    ANALYZE;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO rt VALUES(1,2,3);\n    ANALYZE;\n  ")
 		}
 	}
 	db.Close()
@@ -329,7 +329,7 @@ func Test_rtreeC(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE xdir(x1);\n  CREATE TABLE ydir(y1);\n  CREATE VIRTUAL TABLE rt USING rtree_i32(id, xmin, xmax, ymin, ymax);\n\n  INSERT INTO xdir VALUES(5);\n  INSERT INTO ydir VALUES(10);\n\n  INSERT INTO rt VALUES(1, 2, 7, 12, 14);      -- Not a hit\n  INSERT INTO rt VALUES(2, 2, 7, 8, 12);       -- A hit!\n  INSERT INTO rt VALUES(3, 7, 11, 8, 12);      -- Not a hit!\n  INSERT INTO rt VALUES(4, 5, 5, 10, 10);      -- A hit!\n\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xdir(x1);\n  CREATE TABLE ydir(y1);\n  CREATE VIRTUAL TABLE rt USING rtree_i32(id, xmin, xmax, ymin, ymax);\n\n  INSERT INTO xdir VALUES(5);\n  INSERT INTO ydir VALUES(10);\n\n  INSERT INTO rt VALUES(1, 2, 7, 12, 14);      -- Not a hit\n  INSERT INTO rt VALUES(2, 2, 7, 8, 12);       -- A hit!\n  INSERT INTO rt VALUES(3, 7, 11, 8, 12);      -- Not a hit!\n  INSERT INTO rt VALUES(4, 5, 5, 10, 10);      -- A hit!\n\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE xdir(x1);\n  CREATE TABLE ydir(y1);\n  CREATE VIRTUAL TABLE rt USING rtree_i32(id, xmin, xmax, ymin, ymax);\n\n  INSERT INTO xdir VALUES(5);\n  INSERT INTO ydir VALUES(10);\n\n  INSERT INTO rt VALUES(1, 2, 7, 12, 14);      -- Not a hit\n  INSERT INTO rt VALUES(2, 2, 7, 8, 12);       -- A hit!\n  INSERT INTO rt VALUES(3, 7, 11, 8, 12);      -- Not a hit!\n  INSERT INTO rt VALUES(4, 5, 5, 10, 10);      -- A hit!\n\n")
 		}
 	}
 	// proc definition (not transpiled)

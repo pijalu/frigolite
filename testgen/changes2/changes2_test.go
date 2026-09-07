@@ -66,7 +66,7 @@ func Test_changes2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		}
 	}
 	// prepared stmt: UPDATE some_table SET value='v2' WHERE id=1 RETURNING id (bind/step emulation)
@@ -87,7 +87,7 @@ func Test_changes2(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  DROP TABLE some_table;\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE some_table;\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE some_table;\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		}
 	}
 	{ // do_test "1.3"
@@ -112,7 +112,7 @@ func Test_changes2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(t);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(t);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(t);\n")
 		}
 	}
 	// prepared stmt: INSERT INTO log VALUES(changes() || ' changes') (bind/step emulation)
@@ -120,7 +120,7 @@ func Test_changes2(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES (1, 'v1'), (2, 'v2');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES (1, 'v1'), (2, 'v2');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES (1, 'v1'), (2, 'v2');\n")
 		}
 	}
 	{ // do_test "2.2"
@@ -131,13 +131,13 @@ func Test_changes2(t *testing.T) {
 	{ // "2.3"
 		_res = db.Exec("\n  CREATE TABLE t3(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(x);\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES (3, 'v1'), (4, 'v2');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES (3, 'v1'), (4, 'v2');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES (3, 'v1'), (4, 'v2');\n")
 		}
 	}
 	{ // do_test "2.3"

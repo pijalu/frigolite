@@ -1352,116 +1352,116 @@ func Test_func4(t *testing.T) {
 	{ // "func4-3.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      x INTEGER CHECK(tointeger(x) IS NOT NULL)\n    );\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(\n      x INTEGER CHECK(tointeger(x) IS NOT NULL)\n    );\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(\n      x INTEGER CHECK(tointeger(x) IS NOT NULL)\n    );\n  ")
 		}
 	}
 	{ // do_test "func4-3.2"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
 		}
 	}
 	{ // do_test "func4-3.3"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
 		}
 	}
 	{ // do_test "func4-3.4"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('');\n    ")
 		}
 	}
 	{ // do_test "func4-3.5"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('bad');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('bad');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('bad');\n    ")
 		}
 	}
 	{ // do_test "func4-3.6"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234bad');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('1234bad');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('1234bad');\n    ")
 		}
 	}
 	{ // do_test "func4-3.7"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234.56bad');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('1234.56bad');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('1234.56bad');\n    ")
 		}
 	}
 	{ // do_test "func4-3.8"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (1234);\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 (x) VALUES (1234);\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (1234);\n    ")
 		}
 	}
 	{ // do_test "func4-3.9"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (1234.56);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES (1234.56);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (1234.56);\n    ")
 		}
 	}
 	{ // do_test "func4-3.10"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234');\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('1234');\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('1234');\n    ")
 		}
 	}
 	{ // do_test "func4-3.11"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234.56');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('1234.56');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('1234.56');\n    ")
 		}
 	}
 	{ // do_test "func4-3.12"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (ZEROBLOB(4));\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES (ZEROBLOB(4));\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (ZEROBLOB(4));\n    ")
 		}
 	}
 	{ // do_test "func4-3.13"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (X'');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES (X'');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (X'');\n    ")
 		}
 	}
 	{ // do_test "func4-3.14"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (X'1234');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES (X'1234');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (X'1234');\n    ")
 		}
 	}
 	{ // do_test "func4-3.15"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (X'12345678');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES (X'12345678');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (X'12345678');\n    ")
 		}
 	}
 	{ // do_test "func4-3.16"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234.00');\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('1234.00');\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('1234.00');\n    ")
 		}
 	}
 	{ // do_test "func4-3.17"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (1234.00);\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 (x) VALUES (1234.00);\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES (1234.00);\n    ")
 		}
 	}
 	{ // do_test "func4-3.18"
 		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('-9223372036854775809');\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n      INSERT INTO t1 (x) VALUES ('-9223372036854775809');\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n      INSERT INTO t1 (x) VALUES ('-9223372036854775809');\n    ")
 		}
 	}
 	if tclBool(highPrecision_1) {
 		{ // do_test "func4-3.19"
 			_res = db.Exec("\n        INSERT INTO t1 (x) VALUES (9223372036854775808);\n      ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: tointeger(x) IS NOT NULL") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t1 (x) VALUES (9223372036854775808);\n      ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: tointeger(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t1 (x) VALUES (9223372036854775808);\n      ")
 			}
 		}
 	}
@@ -1480,91 +1480,91 @@ func Test_func4(t *testing.T) {
 	{ // "func4-4.1"
 		_res = db.Exec("\n      CREATE TABLE t2(\n        x REAL CHECK(toreal(x) IS NOT NULL)\n      );\n    ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t2(\n        x REAL CHECK(toreal(x) IS NOT NULL)\n      );\n    ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      CREATE TABLE t2(\n        x REAL CHECK(toreal(x) IS NOT NULL)\n      );\n    ")
 		}
 	}
 	{ // do_test "func4-4.2"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
 		}
 	}
 	{ // do_test "func4-4.3"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
 		}
 	}
 	{ // do_test "func4-4.4"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('');\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES ('');\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES ('');\n      ")
 		}
 	}
 	{ // do_test "func4-4.5"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('bad');\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES ('bad');\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES ('bad');\n      ")
 		}
 	}
 	{ // do_test "func4-4.6"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234bad');\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES ('1234bad');\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES ('1234bad');\n      ")
 		}
 	}
 	{ // do_test "func4-4.7"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234.56bad');\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES ('1234.56bad');\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES ('1234.56bad');\n      ")
 		}
 	}
 	{ // do_test "func4-4.8"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (1234);\n      ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t2 (x) VALUES (1234);\n      ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (1234);\n      ")
 		}
 	}
 	{ // do_test "func4-4.9"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (1234.56);\n      ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t2 (x) VALUES (1234.56);\n      ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (1234.56);\n      ")
 		}
 	}
 	{ // do_test "func4-4.10"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234');\n      ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t2 (x) VALUES ('1234');\n      ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES ('1234');\n      ")
 		}
 	}
 	{ // do_test "func4-4.11"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234.56');\n      ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t2 (x) VALUES ('1234.56');\n      ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES ('1234.56');\n      ")
 		}
 	}
 	{ // do_test "func4-4.12"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (ZEROBLOB(4));\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES (ZEROBLOB(4));\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (ZEROBLOB(4));\n      ")
 		}
 	}
 	{ // do_test "func4-4.13"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (X'');\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES (X'');\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (X'');\n      ")
 		}
 	}
 	{ // do_test "func4-4.14"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (X'1234');\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES (X'1234');\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (X'1234');\n      ")
 		}
 	}
 	{ // do_test "func4-4.15"
 		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (X'12345678');\n      ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: toreal(x) IS NOT NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", _res.Error, "\n        INSERT INTO t2 (x) VALUES (X'12345678');\n      ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: toreal(x) IS NOT NULL", resErrString(_res), "\n        INSERT INTO t2 (x) VALUES (X'12345678');\n      ")
 		}
 	}
 	{ // "func4-4.16"

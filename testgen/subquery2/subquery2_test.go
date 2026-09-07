@@ -109,7 +109,7 @@ func Test_subquery2(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES(3, 5);\n\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 3);\n  INSERT INTO t4 VALUES(3, 6);\n  INSERT INTO t4 VALUES(4, 10);\n  INSERT INTO t4 VALUES(5, 15);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES(3, 5);\n\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 3);\n  INSERT INTO t4 VALUES(3, 6);\n  INSERT INTO t4 VALUES(4, 10);\n  INSERT INTO t4 VALUES(5, 15);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a, b);\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES(3, 5);\n\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 3);\n  INSERT INTO t4 VALUES(3, 6);\n  INSERT INTO t4 VALUES(4, 10);\n  INSERT INTO t4 VALUES(5, 15);\n")
 		}
 	}
 	{ // "2.2"
@@ -163,7 +163,7 @@ func Test_subquery2(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t6(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(x);\n")
 		}
 	}
 	// foreach {tn sql} "1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }"
@@ -177,7 +177,7 @@ func Test_subquery2(t *testing.T) {
 			{ // "4." + tn
 				_res = db.Exec(sql)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY clause should come after UNION ALL not before") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after UNION ALL not before", _res.Error, sql)
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after UNION ALL not before", resErrString(_res), sql)
 				}
 			}
 		}
@@ -191,7 +191,7 @@ func Test_subquery2(t *testing.T) {
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
 			}
 		}
 		{ // "5.1"
@@ -216,7 +216,7 @@ func Test_subquery2(t *testing.T) {
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
 			}
 		}
 		{ // "6.1"
@@ -295,7 +295,7 @@ func Test_subquery2(t *testing.T) {
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
 			}
 		}
 		{ // "7.1"
@@ -313,7 +313,7 @@ func Test_subquery2(t *testing.T) {
 		{ // "7.2"
 			_res = db.Exec("\n  DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);\n")
 			}
 		}
 		{ // "7.3"

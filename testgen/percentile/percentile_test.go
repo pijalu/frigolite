@@ -201,37 +201,37 @@ func Test_percentile(t *testing.T) {
 			{ // do_test "percentile-1.4.1"
 				_res = db.Exec("SELECT round(percentile(x, 15+0.000001*rowid),1) FROM t1")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT round(percentile(x, 15+0.000001*rowid),1) FROM t1")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT round(percentile(x, 15+0.000001*rowid),1) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.4.2"
 				_res = db.Exec("SELECT round(percentile_cont(x,(15+0.000001*rowid)*0.01),1) FROM t1")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT round(percentile_cont(x,(15+0.000001*rowid)*0.01),1) FROM t1")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT round(percentile_cont(x,(15+0.000001*rowid)*0.01),1) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.4.3"
 				_res = db.Exec("SELECT percentile_disc(x, (15+0.000001*rowid)*0.01) FROM t1")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT percentile_disc(x, (15+0.000001*rowid)*0.01) FROM t1")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT percentile_disc(x, (15+0.000001*rowid)*0.01) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.5.1"
 				_res = db.Exec("SELECT percentile(x, 15+0.1*rowid) FROM t1")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile() is not the same for all input rows") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not the same for all input rows", _res.Error, "SELECT percentile(x, 15+0.1*rowid) FROM t1")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not the same for all input rows", resErrString(_res), "SELECT percentile(x, 15+0.1*rowid) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.5.2"
 				_res = db.Exec("SELECT percentile_cont(x, (15+0.1*rowid)*0.01) FROM t1")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile_cont() is not the same for all input rows") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_cont() is not the same for all input rows", _res.Error, "SELECT percentile_cont(x, (15+0.1*rowid)*0.01) FROM t1")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_cont() is not the same for all input rows", resErrString(_res), "SELECT percentile_cont(x, (15+0.1*rowid)*0.01) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.5.3"
 				_res = db.Exec("SELECT percentile_disc(x, (15+0.1*rowid)*0.01) FROM t1")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile_disc() is not the same for all input rows") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_disc() is not the same for all input rows", _res.Error, "SELECT percentile_disc(x, (15+0.1*rowid)*0.01) FROM t1")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_disc() is not the same for all input rows", resErrString(_res), "SELECT percentile_disc(x, (15+0.1*rowid)*0.01) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.6"
@@ -292,127 +292,127 @@ func Test_percentile(t *testing.T) {
 				{ // do_test "percentile-1.8.1"
 					_res = db.Exec("SELECT percentile(x,0,1) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function percentile()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile()", _res.Error, "SELECT percentile(x,0,1) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile()", resErrString(_res), "SELECT percentile(x,0,1) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.8.2"
 					_res = db.Exec("SELECT percentile_cont(x,0,1) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function percentile_cont()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_cont()", _res.Error, "SELECT percentile_cont(x,0,1) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_cont()", resErrString(_res), "SELECT percentile_cont(x,0,1) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.8.3"
 					_res = db.Exec("SELECT percentile_disc(x,0,1) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function percentile_disc()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_disc()", _res.Error, "SELECT percentile_disc(x,0,1) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_disc()", resErrString(_res), "SELECT percentile_disc(x,0,1) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.8.4"
 					_res = db.Exec("SELECT median(x,0) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function median()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function median()", _res.Error, "SELECT median(x,0) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function median()", resErrString(_res), "SELECT median(x,0) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.9.1"
 					_res = db.Exec("SELECT percentile(x) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function percentile()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile()", _res.Error, "SELECT percentile(x) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile()", resErrString(_res), "SELECT percentile(x) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.9.2"
 					_res = db.Exec("SELECT percentile_cont(x) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function percentile_cont()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_cont()", _res.Error, "SELECT percentile_cont(x) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_cont()", resErrString(_res), "SELECT percentile_cont(x) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.9.3"
 					_res = db.Exec("SELECT percentile_disc(x) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function percentile_disc()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_disc()", _res.Error, "SELECT percentile_disc(x) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function percentile_disc()", resErrString(_res), "SELECT percentile_disc(x) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.9.4"
 					_res = db.Exec("SELECT median() FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function median()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function median()", _res.Error, "SELECT median() FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function median()", resErrString(_res), "SELECT median() FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.10"
 					_res = db.Exec("SELECT percentile(x,null) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile() is not between 0.0 and 100.0") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", _res.Error, "SELECT percentile(x,null) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", resErrString(_res), "SELECT percentile(x,null) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.11"
 					_res = db.Exec("SELECT percentile(x,'fifty') FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile() is not between 0.0 and 100.0") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", _res.Error, "SELECT percentile(x,'fifty') FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", resErrString(_res), "SELECT percentile(x,'fifty') FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.12"
 					_res = db.Exec("SELECT percentile(x,x'3530') FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile() is not between 0.0 and 100.0") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", _res.Error, "SELECT percentile(x,x'3530') FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", resErrString(_res), "SELECT percentile(x,x'3530') FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.13"
 					_res = db.Exec("SELECT percentile(x,-0.0000001) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile() is not between 0.0 and 100.0") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", _res.Error, "SELECT percentile(x,-0.0000001) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", resErrString(_res), "SELECT percentile(x,-0.0000001) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.14"
 					_res = db.Exec("SELECT percentile(x,100.0000001) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile() is not between 0.0 and 100.0") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", _res.Error, "SELECT percentile(x,100.0000001) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile() is not between 0.0 and 100.0", resErrString(_res), "SELECT percentile(x,100.0000001) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.14.2"
 					_res = db.Exec("SELECT percentile_cont(x,1.0000001) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile_cont() is not between 0.0 and 1.0") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_cont() is not between 0.0 and 1.0", _res.Error, "SELECT percentile_cont(x,1.0000001) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_cont() is not between 0.0 and 1.0", resErrString(_res), "SELECT percentile_cont(x,1.0000001) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.14.3"
 					_res = db.Exec("SELECT percentile_disc(x,1.0000001) FROM t1")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the fraction argument to percentile_disc() is not between 0.0 and 1.0") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_disc() is not between 0.0 and 1.0", _res.Error, "SELECT percentile_disc(x,1.0000001) FROM t1")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the fraction argument to percentile_disc() is not between 0.0 and 1.0", resErrString(_res), "SELECT percentile_disc(x,1.0000001) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.15.1"
 					_res = db.Exec("\n    BEGIN;\n    UPDATE t1 SET x='50' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "input to percentile() is not numeric") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile() is not numeric", _res.Error, "\n    BEGIN;\n    UPDATE t1 SET x='50' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile() is not numeric", resErrString(_res), "\n    BEGIN;\n    UPDATE t1 SET x='50' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.15.2"
 					_res = db.Exec("\n    SELECT percentile_cont(x, 0.50) FROM t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "input to percentile_cont() is not numeric") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile_cont() is not numeric", _res.Error, "\n    SELECT percentile_cont(x, 0.50) FROM t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile_cont() is not numeric", resErrString(_res), "\n    SELECT percentile_cont(x, 0.50) FROM t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.15.3"
 					_res = db.Exec("\n    SELECT percentile_disc(x, 0.50) FROM t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "input to percentile_disc() is not numeric") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile_disc() is not numeric", _res.Error, "\n    SELECT percentile_disc(x, 0.50) FROM t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile_disc() is not numeric", resErrString(_res), "\n    SELECT percentile_disc(x, 0.50) FROM t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.15.4"
 					_res = db.Exec("\n    SELECT median(x) FROM t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "input to median() is not numeric") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to median() is not numeric", _res.Error, "\n    SELECT median(x) FROM t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to median() is not numeric", resErrString(_res), "\n    SELECT median(x) FROM t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.16"
 					_res = db.Exec("\n    ROLLBACK;\n    BEGIN;\n    UPDATE t1 SET x=x'3530' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "input to percentile() is not numeric") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile() is not numeric", _res.Error, "\n    ROLLBACK;\n    BEGIN;\n    UPDATE t1 SET x=x'3530' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "input to percentile() is not numeric", resErrString(_res), "\n    ROLLBACK;\n    BEGIN;\n    UPDATE t1 SET x=x'3530' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.17"
 					_res = db.Exec("\n    ROLLBACK;\n    SELECT percentile(x, 50) FROM t1;\n  ")
 					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    SELECT percentile(x, 50) FROM t1;\n  ")
+						t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ROLLBACK;\n    SELECT percentile(x, 50) FROM t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.18"
@@ -430,31 +430,31 @@ func Test_percentile(t *testing.T) {
 				{ // do_test "percentile-1.20.1"
 					_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT x+0.0 FROM t2;\n    UPDATE t1 SET x=1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Inf input to percentile()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile()", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT x+0.0 FROM t2;\n    UPDATE t1 SET x=1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile()", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT x+0.0 FROM t2;\n    UPDATE t1 SET x=1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.20.2"
 					_res = db.Exec("\n    SELECT percentile_cont(x,0.50) from t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Inf input to percentile_cont()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile_cont()", _res.Error, "\n    SELECT percentile_cont(x,0.50) from t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile_cont()", resErrString(_res), "\n    SELECT percentile_cont(x,0.50) from t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.20.3"
 					_res = db.Exec("\n    SELECT percentile_disc(x,0.50) from t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Inf input to percentile_disc()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile_disc()", _res.Error, "\n    SELECT percentile_disc(x,0.50) from t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile_disc()", resErrString(_res), "\n    SELECT percentile_disc(x,0.50) from t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.20.4"
 					_res = db.Exec("\n    SELECT median(x) from t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Inf input to median()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to median()", _res.Error, "\n    SELECT median(x) from t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to median()", resErrString(_res), "\n    SELECT median(x) from t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-1.21"
 					_res = db.Exec("\n    UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Inf input to percentile()") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile()", _res.Error, "\n    UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Inf input to percentile()", resErrString(_res), "\n    UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
 					}
 				}
 				{ // do_test "percentile-2.0"
@@ -485,7 +485,7 @@ func Test_percentile(t *testing.T) {
 					{ // "percentile-3.0"
 						_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
 						}
 					}
 					// foreach {id oba expr} "1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\""
@@ -525,7 +525,7 @@ func Test_percentile(t *testing.T) {
 						{ // "percential-4.0"
 							_res = db.Exec("\n  CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);\n")
 							}
 						}
 						{ // "percentile-4.1"
@@ -555,7 +555,7 @@ func Test_percentile(t *testing.T) {
 						{ // "percentile-5.0"
 							_res = db.Exec("\n  CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);\n")
 							}
 						}
 						{ // "percentile-5.1"

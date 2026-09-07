@@ -64,7 +64,7 @@ func Test_tkt_385a5b56b9(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec(" \n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(1, NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(1, NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(1, NULL);\n")
 		}
 	}
 	{ // "1.1"
@@ -82,7 +82,7 @@ func Test_tkt_385a5b56b9(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec(" CREATE UNIQUE INDEX i1 ON t1(x, y) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE UNIQUE INDEX i1 ON t1(x, y) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE UNIQUE INDEX i1 ON t1(x, y) ")
 		}
 	}
 	{ // "1.3"
@@ -100,7 +100,7 @@ func Test_tkt_385a5b56b9(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(x, y NOT NULL);\n  CREATE UNIQUE INDEX t2x ON t2(x);\n  CREATE UNIQUE INDEX t2y ON t2(y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y NOT NULL);\n  CREATE UNIQUE INDEX t2x ON t2(x);\n  CREATE UNIQUE INDEX t2y ON t2(y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x, y NOT NULL);\n  CREATE UNIQUE INDEX t2x ON t2(x);\n  CREATE UNIQUE INDEX t2y ON t2(y);\n")
 		}
 	}
 	{ // "2.1"

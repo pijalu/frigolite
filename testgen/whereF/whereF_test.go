@@ -96,7 +96,7 @@ func Test_whereF(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
 			}
 		}
 		// foreach {tn sql} "1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\""
@@ -123,7 +123,7 @@ func Test_whereF(t *testing.T) {
 			{ // "3.0"
 				_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
 				}
 			}
 			// foreach {tn sql} "1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}"
@@ -153,7 +153,7 @@ func Test_whereF(t *testing.T) {
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
 					}
 				}
 				{ // "5.1"

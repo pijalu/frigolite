@@ -69,13 +69,13 @@ func Test_window9(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE fruits(\n     name TEXT COLLATE NOCASE,\n     color TEXT COLLATE NOCASE\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE fruits(\n     name TEXT COLLATE NOCASE,\n     color TEXT COLLATE NOCASE\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE fruits(\n     name TEXT COLLATE NOCASE,\n     color TEXT COLLATE NOCASE\n  );\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  INSERT INTO fruits (name, color) VALUES ('apple', 'RED');\n  INSERT INTO fruits (name, color) VALUES ('APPLE', 'yellow');\n  INSERT INTO fruits (name, color) VALUES ('pear', 'YELLOW');\n  INSERT INTO fruits (name, color) VALUES ('PEAR', 'green');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO fruits (name, color) VALUES ('apple', 'RED');\n  INSERT INTO fruits (name, color) VALUES ('APPLE', 'yellow');\n  INSERT INTO fruits (name, color) VALUES ('pear', 'YELLOW');\n  INSERT INTO fruits (name, color) VALUES ('PEAR', 'green');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO fruits (name, color) VALUES ('apple', 'RED');\n  INSERT INTO fruits (name, color) VALUES ('APPLE', 'yellow');\n  INSERT INTO fruits (name, color) VALUES ('pear', 'YELLOW');\n  INSERT INTO fruits (name, color) VALUES ('PEAR', 'green');\n")
 		}
 	}
 	{ // "1.2"
@@ -129,7 +129,7 @@ func Test_window9(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a BLOB, b INTEGER, c COLLATE nocase);\n  INSERT INTO t1 VALUES(1, 2, 'abc');\n  INSERT INTO t1 VALUES(3, 4, 'ABC');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a BLOB, b INTEGER, c COLLATE nocase);\n  INSERT INTO t1 VALUES(1, 2, 'abc');\n  INSERT INTO t1 VALUES(3, 4, 'ABC');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a BLOB, b INTEGER, c COLLATE nocase);\n  INSERT INTO t1 VALUES(1, 2, 'abc');\n  INSERT INTO t1 VALUES(3, 4, 'ABC');\n")
 		}
 	}
 	{ // "2.1.1"
@@ -190,7 +190,7 @@ func Test_window9(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(a,b,c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(a,b,c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(a,b,c);\n")
 		}
 	}
 	{ // "3.1"
@@ -208,13 +208,13 @@ func Test_window9(t *testing.T) {
 	{ // "3.3"
 		_res = db.Exec("\n  SELECT a, sum(a) OVER (ORDER BY a DESC) FROM t2 \n  ORDER BY EXISTS(\n    SELECT 1 FROM t2 ORDER BY sum(a) OVER (ORDER BY a)\n  ) OVER (ORDER BY a);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"OVER\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OVER\": syntax error", _res.Error, "\n  SELECT a, sum(a) OVER (ORDER BY a DESC) FROM t2 \n  ORDER BY EXISTS(\n    SELECT 1 FROM t2 ORDER BY sum(a) OVER (ORDER BY a)\n  ) OVER (ORDER BY a);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OVER\": syntax error", resErrString(_res), "\n  SELECT a, sum(a) OVER (ORDER BY a DESC) FROM t2 \n  ORDER BY EXISTS(\n    SELECT 1 FROM t2 ORDER BY sum(a) OVER (ORDER BY a)\n  ) OVER (ORDER BY a);\n")
 		}
 	}
 	{ // "3.4"
 		_res = db.Exec("\n  SELECT y, y+1, y+2 FROM (\n      SELECT c IN (\n        SELECT min(a) OVER (),\n        (abs(row_number() OVER())+22)/19,\n        max(a) OVER () FROM t1\n        ) AS y FROM t2\n      );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 3 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 3 columns - expected 1", _res.Error, "\n  SELECT y, y+1, y+2 FROM (\n      SELECT c IN (\n        SELECT min(a) OVER (),\n        (abs(row_number() OVER())+22)/19,\n        max(a) OVER () FROM t1\n        ) AS y FROM t2\n      );\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 3 columns - expected 1", resErrString(_res), "\n  SELECT y, y+1, y+2 FROM (\n      SELECT c IN (\n        SELECT min(a) OVER (),\n        (abs(row_number() OVER())+22)/19,\n        max(a) OVER () FROM t1\n        ) AS y FROM t2\n      );\n")
 		}
 	}
 	db.Close()
@@ -227,7 +227,7 @@ func Test_window9(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b TEXT);\n  INSERT INTO t1 VALUES('A', 1), ('A', 2), ('2', 1), ('2', 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b TEXT);\n  INSERT INTO t1 VALUES('A', 1), ('A', 2), ('2', 1), ('2', 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b TEXT);\n  INSERT INTO t1 VALUES('A', 1), ('A', 2), ('2', 1), ('2', 2);\n")
 		}
 	}
 	{ // "4.1.1"
@@ -264,7 +264,7 @@ func Test_window9(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d, e);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d, e);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d, e);\n")
 		}
 	}
 	// foreach {tn sql} "1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }"
@@ -292,7 +292,7 @@ func Test_window9(t *testing.T) {
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
 			}
 		}
 		{ // "6.1"
@@ -329,7 +329,7 @@ func Test_window9(t *testing.T) {
 		{ // "7.0"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
 			}
 		}
 		{ // "7.1"
@@ -414,13 +414,13 @@ func Test_window9(t *testing.T) {
 		{ // "8.2"
 			_res = db.Exec("\n  CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;\n")
 			}
 		}
 		{ // "8.3"
 			_res = db.Exec("\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
 			}
 		}
 		{ // "8.4"
@@ -445,13 +445,13 @@ func Test_window9(t *testing.T) {
 		{ // "9.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
 			}
 		}
 		{ // "9.1"
 			_res = db.Exec("\n  SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame ending offset must be a non-negative number") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative number", _res.Error, "\n  SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative number", resErrString(_res), "\n  SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1\n")
 			}
 		}
 		db.Close()
@@ -464,7 +464,7 @@ func Test_window9(t *testing.T) {
 		{ // "10.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")
 			}
 		}
 		{ // "10.1"
@@ -506,7 +506,7 @@ func Test_window9(t *testing.T) {
 		{ // "10.4"
 			_res = db.Exec("\n  SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FILTER clause may only be used with aggregate window functions") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FILTER clause may only be used with aggregate window functions", _res.Error, "\n  SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FILTER clause may only be used with aggregate window functions", resErrString(_res), "\n  SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
 			}
 		}
 }

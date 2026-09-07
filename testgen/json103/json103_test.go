@@ -71,7 +71,7 @@ func Test_json103(t *testing.T) {
 	{ // "json103-101"
 		_res = db.Exec("\n  SELECT json_group_array(a) FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT json_group_array(a) FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", resErrString(_res), "\n  SELECT json_group_array(a) FROM t1;\n")
 		}
 	}
 	{ // "json103-102"
@@ -137,7 +137,7 @@ func Test_json103(t *testing.T) {
 	{ // "json103-201"
 		_res = db.Exec("\n  SELECT json_group_object(c,a) FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT json_group_object(c,a) FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", resErrString(_res), "\n  SELECT json_group_object(c,a) FROM t1;\n")
 		}
 	}
 	{ // "json103-202"

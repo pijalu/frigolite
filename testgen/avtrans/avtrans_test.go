@@ -285,49 +285,49 @@ func Test_avtrans(t *testing.T) {
 	{ // do_test "avtrans-3.2"
 		_res = altdb.Exec("\n    SELECT a FROM two ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM two ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM two ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.3"
 		_res = altdb.Exec("\n    SELECT a FROM one ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM one ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM one ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.4"
 		_res = db.Exec("\n    INSERT INTO one VALUES(4,'four');\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO one VALUES(4,'four');\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO one VALUES(4,'four');\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.5"
 		_res = altdb.Exec("\n    SELECT a FROM two ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM two ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM two ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.6"
 		_res = altdb.Exec("\n    SELECT a FROM one ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM one ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM one ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.7"
 		_res = db.Exec("\n    INSERT INTO two VALUES(4,'IV');\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO two VALUES(4,'IV');\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO two VALUES(4,'IV');\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.8"
 		_res = altdb.Exec("\n    SELECT a FROM two ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM two ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM two ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.9"
 		_res = altdb.Exec("\n    SELECT a FROM one ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM one ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM one ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-3.10"
@@ -474,37 +474,37 @@ func Test_avtrans(t *testing.T) {
 	{ // do_test "avtrans-4.3"
 		_res = db.Exec("\n    BEGIN TRANSACTION;\n    UPDATE two SET a = 0 WHERE 0;\n    SELECT a FROM two ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    UPDATE two SET a = 0 WHERE 0;\n    SELECT a FROM two ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN TRANSACTION;\n    UPDATE two SET a = 0 WHERE 0;\n    SELECT a FROM two ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-4.4"
 		_res = altdb.Exec("\n    SELECT a FROM two ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM two ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM two ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-4.5"
 		_res = altdb.Exec("\n    SELECT a FROM one ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM one ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM one ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-4.6"
 		_res = db.Exec("\n    BEGIN TRANSACTION;\n    SELECT a FROM one ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot start a transaction within a transaction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot start a transaction within a transaction", _res.Error, "\n    BEGIN TRANSACTION;\n    SELECT a FROM one ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot start a transaction within a transaction", resErrString(_res), "\n    BEGIN TRANSACTION;\n    SELECT a FROM one ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-4.7"
 		_res = altdb.Exec("\n    SELECT a FROM two ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM two ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM two ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-4.8"
 		_res = altdb.Exec("\n    SELECT a FROM one ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM one ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM one ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "avtrans-4.9"
@@ -811,7 +811,7 @@ func Test_avtrans(t *testing.T) {
 	{ // do_test "avtrans-6.7"
 		_res = db.Exec("\n    COMMIT;\n    SELECT * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1", _res.Error, "\n    COMMIT;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1", resErrString(_res), "\n    COMMIT;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "avtrans-6.10"
@@ -853,7 +853,7 @@ func Test_avtrans(t *testing.T) {
 	{ // do_test "avtrans-6.16"
 		_res = db.Exec("\n    COMMIT;\n    SELECT * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1", _res.Error, "\n    COMMIT;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1", resErrString(_res), "\n    COMMIT;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "avtrans-6.20"

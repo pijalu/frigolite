@@ -66,7 +66,7 @@ func Test_tkt_fc7bd6358f(t *testing.T) {
 	{ // do_test "tkt-fc7bd6358f.100"
 		_res = db.Exec("\n    CREATE TABLE t(textid TEXT);\n    INSERT INTO t VALUES('12');\n    INSERT INTO t VALUES('34');\n    CREATE TABLE i(intid INTEGER PRIMARY KEY);\n    INSERT INTO i VALUES(12);\n    INSERT INTO i VALUES(34);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t(textid TEXT);\n    INSERT INTO t VALUES('12');\n    INSERT INTO t VALUES('34');\n    CREATE TABLE i(intid INTEGER PRIMARY KEY);\n    INSERT INTO i VALUES(12);\n    INSERT INTO i VALUES(34);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t(textid TEXT);\n    INSERT INTO t VALUES('12');\n    INSERT INTO t VALUES('34');\n    CREATE TABLE i(intid INTEGER PRIMARY KEY);\n    INSERT INTO i VALUES(12);\n    INSERT INTO i VALUES(34);\n  ")
 		}
 	}
 	// foreach {a from} "1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}"

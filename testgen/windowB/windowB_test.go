@@ -69,7 +69,7 @@ func Test_windowB(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(NULL, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(NULL, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(NULL, 3);\n")
 		}
 	}
 	// foreach {tn win} "1 { ORDER BY a RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  2 { ORDER BY a NULLS LAST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  3 { ORDER BY a DESC RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  4 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n\n  5 { ORDER BY a      NULLS LAST  RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n  6 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n\n  7 { ORDER BY a      NULLS LAST  RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }\n  8 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }"
@@ -115,7 +115,7 @@ func Test_windowB(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);\n")
 			}
 		}
 		// foreach {tn win} "1 \"ORDER BY b RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  2 \"ORDER BY b RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\"\n  3 \"ORDER BY b NULLS LAST RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  4 \"ORDER BY b NULLS LAST RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\""
@@ -149,7 +149,7 @@ func Test_windowB(t *testing.T) {
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE x(a);\n  INSERT INTO x VALUES(1);\n  INSERT INTO x VALUES(2);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x(a);\n  INSERT INTO x VALUES(1);\n  INSERT INTO x VALUES(2);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x(a);\n  INSERT INTO x VALUES(1);\n  INSERT INTO x VALUES(2);\n")
 				}
 			}
 			{ // "4.1"
@@ -167,13 +167,13 @@ func Test_windowB(t *testing.T) {
 			{ // "4.2"
 				_res = db.Exec("\n  WITH y AS (\n    SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION\n  BY fake_column))\n  SELECT * FROM y;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: fake_column") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: fake_column", _res.Error, "\n  WITH y AS (\n    SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION\n  BY fake_column))\n  SELECT * FROM y;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: fake_column", resErrString(_res), "\n  WITH y AS (\n    SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION\n  BY fake_column))\n  SELECT * FROM y;\n")
 				}
 			}
 			{ // "4.3"
 				_res = db.Exec("\n  SELECT 1 WINDOW win AS (PARTITION BY fake_column);\n")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT 1 WINDOW win AS (PARTITION BY fake_column);\n")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT 1 WINDOW win AS (PARTITION BY fake_column);\n")
 				}
 			}
 			db.Close()
@@ -186,7 +186,7 @@ func Test_windowB(t *testing.T) {
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(0, 421);\n  INSERT INTO t1 VALUES(1, 844);\n  INSERT INTO t1 VALUES(2, 1001);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(0, 421);\n  INSERT INTO t1 VALUES(1, 844);\n  INSERT INTO t1 VALUES(2, 1001);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(0, 421);\n  INSERT INTO t1 VALUES(1, 844);\n  INSERT INTO t1 VALUES(2, 1001);\n")
 				}
 			}
 			{ // "5.1"
@@ -259,7 +259,7 @@ func Test_windowB(t *testing.T) {
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES('abc', 1001);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES('abc', 1001);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES('abc', 1001);\n")
 				}
 			}
 			{ // "6.1"
@@ -296,7 +296,7 @@ func Test_windowB(t *testing.T) {
 			{ // "7.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(NULL, 46);\n  INSERT INTO t1 VALUES(NULL, 45);\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(7,  1000);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES(8,  1000);\n  INSERT INTO t1 VALUES('abc', 1001);\n  INSERT INTO t1 VALUES('abc', 1004);\n  INSERT INTO t1 VALUES('xyz', 3333);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(NULL, 46);\n  INSERT INTO t1 VALUES(NULL, 45);\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(7,  1000);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES(8,  1000);\n  INSERT INTO t1 VALUES('abc', 1001);\n  INSERT INTO t1 VALUES('abc', 1004);\n  INSERT INTO t1 VALUES('xyz', 3333);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(NULL, 46);\n  INSERT INTO t1 VALUES(NULL, 45);\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(7,  1000);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES(8,  1000);\n  INSERT INTO t1 VALUES('abc', 1001);\n  INSERT INTO t1 VALUES('abc', 1004);\n  INSERT INTO t1 VALUES('xyz', 3333);\n")
 				}
 			}
 			{ // "7.1"
@@ -357,7 +357,7 @@ func Test_windowB(t *testing.T) {
 			{ // "8.0"
 				_res = db.Exec("\n  BEGIN TRANSACTION;\n    CREATE TABLE t1(a, c);\n    INSERT INTO t1 VALUES('aa', 111);\n    INSERT INTO t1 VALUES('BB', 660);\n    INSERT INTO t1 VALUES('CC', 938);\n    INSERT INTO t1 VALUES('dd', 979);\n  COMMIT;\n\n  CREATE INDEX i1 ON t1(a COLLATE nocase);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN TRANSACTION;\n    CREATE TABLE t1(a, c);\n    INSERT INTO t1 VALUES('aa', 111);\n    INSERT INTO t1 VALUES('BB', 660);\n    INSERT INTO t1 VALUES('CC', 938);\n    INSERT INTO t1 VALUES('dd', 979);\n  COMMIT;\n\n  CREATE INDEX i1 ON t1(a COLLATE nocase);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN TRANSACTION;\n    CREATE TABLE t1(a, c);\n    INSERT INTO t1 VALUES('aa', 111);\n    INSERT INTO t1 VALUES('BB', 660);\n    INSERT INTO t1 VALUES('CC', 938);\n    INSERT INTO t1 VALUES('dd', 979);\n  COMMIT;\n\n  CREATE INDEX i1 ON t1(a COLLATE nocase);\n")
 				}
 			}
 			{ // "8.1"
@@ -394,7 +394,7 @@ func Test_windowB(t *testing.T) {
 			{ // "10.1"
 				_res = db.Exec("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );\n")
 				}
 			}
 			{ // "10.2"

@@ -12,6 +12,15 @@ const helpersTemplatePart2 = `
 // cannot loop forever on an unevaluated numeric expression. Strings
 // containing bare words (letters) keep the plain TCL truthiness fallback,
 // tclBool01 renders a Go bool as the TCL truth string "1"/"0".
+// resErrString returns the result's error message, tolerating a nil result
+// or nil error (a do_test whose body was not transpiled leaves _res nil).
+func resErrString(r *frigolite.Result) string {
+	if r == nil || r.Error == nil {
+		return "<nil>"
+	}
+	return r.Error.Error()
+}
+
 func tclBool01(b bool) string {
 	if b {
 		return "1"

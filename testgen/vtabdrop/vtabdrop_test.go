@@ -65,7 +65,7 @@ func Test_vtabdrop(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
 	}
 	{ // do_test "1.1"
@@ -135,7 +135,7 @@ func Test_vtabdrop(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts5(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE ft USING fts5(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
 	}
 	{ // "vtabdrop-2.1" — skipped: vtab drop vs open cursor needs table locking N-A (P7) (SQL side effects only)
@@ -164,7 +164,7 @@ func Test_vtabdrop(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
 	}
 	{ // "vtabdrop-2.1" — skipped: vtab drop vs open cursor needs table locking N-A (P7) (SQL side effects only)

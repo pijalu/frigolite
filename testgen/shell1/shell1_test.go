@@ -743,7 +743,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-7.1.1"
 		_res = db.Exec("\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")
 		}
 	}
 	{ // "shell1-7.1.2" (CLI shell subprocess harness, not transpiled)

@@ -161,25 +161,25 @@ func Test_alter4(t *testing.T) {
 	{ // do_test "alter4-2.2"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD c UNIQUE\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a UNIQUE column") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a UNIQUE column", _res.Error, "\n    ALTER TABLE t1 ADD c UNIQUE\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a UNIQUE column", resErrString(_res), "\n    ALTER TABLE t1 ADD c UNIQUE\n  ")
 		}
 	}
 	{ // do_test "alter4-2.3"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD b VARCHAR(10)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate column name: b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate column name: b", _res.Error, "\n    ALTER TABLE t1 ADD b VARCHAR(10)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate column name: b", resErrString(_res), "\n    ALTER TABLE t1 ADD b VARCHAR(10)\n  ")
 		}
 	}
 	{ // do_test "alter4-2.3"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD c NOT NULL;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a NOT NULL column with default value NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a NOT NULL column with default value NULL", _res.Error, "\n    ALTER TABLE t1 ADD c NOT NULL;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a NOT NULL column with default value NULL", resErrString(_res), "\n    ALTER TABLE t1 ADD c NOT NULL;\n  ")
 		}
 	}
 	{ // do_test "alter4-2.4"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n  ")
 		}
 	}
 	{ // do_test "alter4-2.5"
@@ -193,13 +193,13 @@ func Test_alter4(t *testing.T) {
 	{ // do_test "alter4-2.6"
 		_res = db.Exec("\n    alter table t1 add column d DEFAULT CURRENT_TIME;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a column with non-constant default") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column with non-constant default", _res.Error, "\n    alter table t1 add column d DEFAULT CURRENT_TIME;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column with non-constant default", resErrString(_res), "\n    alter table t1 add column d DEFAULT CURRENT_TIME;\n  ")
 		}
 	}
 	{ // do_test "alter4-2.7"
 		_res = db.Exec("\n    alter table t1 add column d default (-5+1);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a column with non-constant default") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column with non-constant default", _res.Error, "\n    alter table t1 add column d default (-5+1);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column with non-constant default", resErrString(_res), "\n    alter table t1 add column d default (-5+1);\n  ")
 		}
 	}
 	{ // do_test "alter4-2.99"
@@ -381,7 +381,7 @@ func Test_alter4(t *testing.T) {
 	{ // "alter4-9.1"
 		_res = db.Exec("\n  CREATE TABLE t5(\n    a INTEGER DEFAULT -9223372036854775808,\n    b INTEGER DEFAULT (-(-9223372036854775808))\n  );\n  INSERT INTO t5 DEFAULT VALUES;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(\n    a INTEGER DEFAULT -9223372036854775808,\n    b INTEGER DEFAULT (-(-9223372036854775808))\n  );\n  INSERT INTO t5 DEFAULT VALUES;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(\n    a INTEGER DEFAULT -9223372036854775808,\n    b INTEGER DEFAULT (-(-9223372036854775808))\n  );\n  INSERT INTO t5 DEFAULT VALUES;\n")
 		}
 	}
 	{ // "alter4-9.2"
@@ -432,31 +432,31 @@ func Test_alter4(t *testing.T) {
 	{ // "alter4-11.1"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN f REFERENCES t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN f REFERENCES t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN f REFERENCES t1;\n")
 		}
 	}
 	{ // "alter4-11.2"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN g REFERENCES t1 DEFAULT 4;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN g REFERENCES t1 DEFAULT 4;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN g REFERENCES t1 DEFAULT 4;\n")
 		}
 	}
 	{ // "alter4-11.3"
 		_res = db.Exec("\n  ALTER TABLE t2 ADD COLUMN g;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", _res.Error, "\n  ALTER TABLE t2 ADD COLUMN g;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", resErrString(_res), "\n  ALTER TABLE t2 ADD COLUMN g;\n")
 		}
 	}
 	{ // "alter4-11.4"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE fff USING fts5(f);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE fff USING fts5(f);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE fff USING fts5(f);\n  ")
 		}
 	}
 	{ // "alter4-11.2"
 		_res = db.Exec("\n    ALTER TABLE fff ADD COLUMN g;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "virtual tables may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", _res.Error, "\n    ALTER TABLE fff ADD COLUMN g;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", resErrString(_res), "\n    ALTER TABLE fff ADD COLUMN g;\n  ")
 		}
 	}
 }

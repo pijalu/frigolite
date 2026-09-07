@@ -175,7 +175,7 @@ func Test_selectC(t *testing.T) {
 	{ // do_test "selectC-2.1"
 		_res = db.Exec("\n      CREATE TABLE t21a(a,b);\n      INSERT INTO t21a VALUES(1,2);\n      CREATE TABLE t21b(n);\n      CREATE TRIGGER r21 AFTER INSERT ON t21b BEGIN\n        SELECT a FROM t21a WHERE a>new.x UNION ALL\n        SELECT b FROM t21a WHERE b>new.x ORDER BY 1 LIMIT 2;\n      END;\n      INSERT INTO t21b VALUES(6);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: new.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.x", _res.Error, "\n      CREATE TABLE t21a(a,b);\n      INSERT INTO t21a VALUES(1,2);\n      CREATE TABLE t21b(n);\n      CREATE TRIGGER r21 AFTER INSERT ON t21b BEGIN\n        SELECT a FROM t21a WHERE a>new.x UNION ALL\n        SELECT b FROM t21a WHERE b>new.x ORDER BY 1 LIMIT 2;\n      END;\n      INSERT INTO t21b VALUES(6);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.x", resErrString(_res), "\n      CREATE TABLE t21a(a,b);\n      INSERT INTO t21a VALUES(1,2);\n      CREATE TABLE t21b(n);\n      CREATE TRIGGER r21 AFTER INSERT ON t21b BEGIN\n        SELECT a FROM t21a WHERE a>new.x UNION ALL\n        SELECT b FROM t21a WHERE b>new.x ORDER BY 1 LIMIT 2;\n      END;\n      INSERT INTO t21b VALUES(6);\n    ")
 		}
 	}
 	{ // do_test "selectC-3.1"
@@ -205,7 +205,7 @@ func Test_selectC(t *testing.T) {
 	{ // "selectC-4.1"
 		_res = db.Exec("\n  create table t_distinct_bug (a, b, c);\n  insert into t_distinct_bug values ('1', '1', 'a');\n  insert into t_distinct_bug values ('1', '2', 'b');\n  insert into t_distinct_bug values ('1', '3', 'c');\n  insert into t_distinct_bug values ('1', '1', 'd');\n  insert into t_distinct_bug values ('1', '2', 'e');\n  insert into t_distinct_bug values ('1', '3', 'f');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  create table t_distinct_bug (a, b, c);\n  insert into t_distinct_bug values ('1', '1', 'a');\n  insert into t_distinct_bug values ('1', '2', 'b');\n  insert into t_distinct_bug values ('1', '3', 'c');\n  insert into t_distinct_bug values ('1', '1', 'd');\n  insert into t_distinct_bug values ('1', '2', 'e');\n  insert into t_distinct_bug values ('1', '3', 'f');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  create table t_distinct_bug (a, b, c);\n  insert into t_distinct_bug values ('1', '1', 'a');\n  insert into t_distinct_bug values ('1', '2', 'b');\n  insert into t_distinct_bug values ('1', '3', 'c');\n  insert into t_distinct_bug values ('1', '1', 'd');\n  insert into t_distinct_bug values ('1', '2', 'e');\n  insert into t_distinct_bug values ('1', '3', 'f');\n")
 		}
 	}
 	{ // "selectC-4.2"
@@ -247,7 +247,7 @@ func Test_selectC(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a);\n  CREATE TABLE x2(b);\n  CREATE TABLE x3(c);\n  CREATE VIEW vvv AS SELECT b FROM x2 ORDER BY 1;\n\n  INSERT INTO x1 VALUES('a'), ('b');\n  INSERT INTO x2 VALUES(22), (23), (25), (24), (21);\n  INSERT INTO x3 VALUES(302), (303), (301);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a);\n  CREATE TABLE x2(b);\n  CREATE TABLE x3(c);\n  CREATE VIEW vvv AS SELECT b FROM x2 ORDER BY 1;\n\n  INSERT INTO x1 VALUES('a'), ('b');\n  INSERT INTO x2 VALUES(22), (23), (25), (24), (21);\n  INSERT INTO x3 VALUES(302), (303), (301);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a);\n  CREATE TABLE x2(b);\n  CREATE TABLE x3(c);\n  CREATE VIEW vvv AS SELECT b FROM x2 ORDER BY 1;\n\n  INSERT INTO x1 VALUES('a'), ('b');\n  INSERT INTO x2 VALUES(22), (23), (25), (24), (21);\n  INSERT INTO x3 VALUES(302), (303), (301);\n")
 		}
 	}
 	{ // "5.1"

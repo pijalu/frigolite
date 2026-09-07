@@ -75,7 +75,7 @@ func Test_alterauth(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(a, b, c); ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b, c); ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t1(a, b, c); ")
 		}
 	}
 	{ // do_test "1.1"
@@ -127,19 +127,19 @@ func Test_alterauth(t *testing.T) {
 	{ // do_test "2.1"
 		_res = db.Exec(" ALTER TABLE t2 RENAME TO t3 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not authorized") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", _res.Error, " ALTER TABLE t2 RENAME TO t3 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", resErrString(_res), " ALTER TABLE t2 RENAME TO t3 ")
 		}
 	}
 	{ // do_test "2.2"
 		_res = db.Exec(" ALTER TABLE t2 RENAME d TO ddd ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not authorized") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", _res.Error, " ALTER TABLE t2 RENAME d TO ddd ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", resErrString(_res), " ALTER TABLE t2 RENAME d TO ddd ")
 		}
 	}
 	{ // do_test "2.3"
 		_res = db.Exec(" ALTER TABLE t2 ADD COLUMN e ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not authorized") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", _res.Error, " ALTER TABLE t2 ADD COLUMN e ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", resErrString(_res), " ALTER TABLE t2 ADD COLUMN e ")
 		}
 	}
 }

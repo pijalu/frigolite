@@ -82,7 +82,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-1.3"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(6,7);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x<5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", _res.Error, "\n    INSERT INTO t1 VALUES(6,7);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", resErrString(_res), "\n    INSERT INTO t1 VALUES(6,7);\n  ")
 		}
 	}
 	{ // do_test "check-1.4"
@@ -94,7 +94,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-1.5"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(4,3);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: y>x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: y>x", _res.Error, "\n    INSERT INTO t1 VALUES(4,3);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: y>x", resErrString(_res), "\n    INSERT INTO t1 VALUES(4,3);\n  ")
 		}
 	}
 	{ // do_test "check-1.6"
@@ -106,7 +106,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-1.7"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(NULL,6);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(NULL,6);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(NULL,6);\n  ")
 		}
 	}
 	{ // do_test "check-1.8"
@@ -118,7 +118,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-1.9"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2,NULL);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2,NULL);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(2,NULL);\n  ")
 		}
 	}
 	{ // do_test "check-1.10"
@@ -136,7 +136,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-1.12"
 		_res = db.Exec("\n    UPDATE t1 SET x=7 WHERE x==2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x<5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", _res.Error, "\n    UPDATE t1 SET x=7 WHERE x==2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", resErrString(_res), "\n    UPDATE t1 SET x=7 WHERE x==2\n  ")
 		}
 	}
 	{ // do_test "check-1.13"
@@ -148,7 +148,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-1.14"
 		_res = db.Exec("\n    UPDATE t1 SET x=5 WHERE x==2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x<5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", _res.Error, "\n    UPDATE t1 SET x=5 WHERE x==2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", resErrString(_res), "\n    UPDATE t1 SET x=5 WHERE x==2\n  ")
 		}
 	}
 	{ // do_test "check-1.15"
@@ -160,7 +160,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-1.16"
 		_res = db.Exec("\n    UPDATE t1 SET x=4, y=11 WHERE x==2\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET x=4, y=11 WHERE x==2\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1 SET x=4, y=11 WHERE x==2\n  ")
 		}
 	}
 	{ // do_test "check-1.17"
@@ -196,25 +196,25 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-2.4"
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(1.1, NULL, NULL);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: one") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: one", _res.Error, "\n    INSERT INTO t2 VALUES(1.1, NULL, NULL);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: one", resErrString(_res), "\n    INSERT INTO t2 VALUES(1.1, NULL, NULL);\n  ")
 		}
 	}
 	{ // do_test "check-2.5"
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(NULL, 5, NULL);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(NULL, 5, NULL);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(NULL, 5, NULL);\n  ")
 		}
 	}
 	{ // do_test "check-2.5b"
 		_res = db.Exec("\n    INSERT INTO t2n VALUES(NULL, 5, NULL);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: two") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: two", _res.Error, "\n    INSERT INTO t2n VALUES(NULL, 5, NULL);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: two", resErrString(_res), "\n    INSERT INTO t2n VALUES(NULL, 5, NULL);\n  ")
 		}
 	}
 	{ // do_test "check-2.6"
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(NULL, NULL, 3.14159);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(NULL, NULL, 3.14159);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(NULL, NULL, 3.14159);\n  ")
 		}
 	}
 	{ // do_test "check-2.10"
@@ -226,7 +226,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-2.11"
 		_res = db.Exec("\n    INSERT INTO t2b VALUES('xyzzy','hi',5);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: typeof(coalesce(x,0))=='integer'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: typeof(coalesce(x,0))=='integer'", _res.Error, "\n    INSERT INTO t2b VALUES('xyzzy','hi',5);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: typeof(coalesce(x,0))=='integer'", resErrString(_res), "\n    INSERT INTO t2b VALUES('xyzzy','hi',5);\n  ")
 		}
 	}
 	{ // do_test "check-2.12"
@@ -238,7 +238,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-2.13"
 		_res = db.Exec("\n    INSERT INTO t2c VALUES('xyzzy',7,8);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x_two") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x_two", _res.Error, "\n    INSERT INTO t2c VALUES('xyzzy',7,8);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x_two", resErrString(_res), "\n    INSERT INTO t2c VALUES('xyzzy',7,8);\n  ")
 		}
 	}
 	{ // do_test "check-2.cleanup"
@@ -250,7 +250,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-3.1"
 		_res = db.Exec("\n      CREATE TABLE t3(\n        x, y, z,\n        CHECK( x<(SELECT min(x) FROM t1) )\n      );\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "subqueries prohibited in CHECK constraints") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "subqueries prohibited in CHECK constraints", _res.Error, "\n      CREATE TABLE t3(\n        x, y, z,\n        CHECK( x<(SELECT min(x) FROM t1) )\n      );\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "subqueries prohibited in CHECK constraints", resErrString(_res), "\n      CREATE TABLE t3(\n        x, y, z,\n        CHECK( x<(SELECT min(x) FROM t1) )\n      );\n    ")
 		}
 	}
 	{ // do_test "check-3.2"
@@ -262,7 +262,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-3.3"
 		_res = db.Exec("\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( q<x )\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: q") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: q", _res.Error, "\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( q<x )\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: q", resErrString(_res), "\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( q<x )\n    );\n  ")
 		}
 	}
 	{ // do_test "check-3.4"
@@ -274,7 +274,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-3.5"
 		_res = db.Exec("\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( t2.x<x )\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t2.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.x", _res.Error, "\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( t2.x<x )\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.x", resErrString(_res), "\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( t2.x<x )\n    );\n  ")
 		}
 	}
 	{ // do_test "check-3.6"
@@ -286,7 +286,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-3.7"
 		_res = db.Exec("\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( t3.x<25 )\n    );\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( t3.x<25 )\n    );\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t3(\n      x, y, z,\n      CHECK( t3.x<25 )\n    );\n  ")
 		}
 	}
 	{ // do_test "check-3.8"
@@ -298,7 +298,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-3.9"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(111,222,333);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: t3.x<25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: t3.x<25", _res.Error, "\n    INSERT INTO t3 VALUES(111,222,333);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: t3.x<25", resErrString(_res), "\n    INSERT INTO t3 VALUES(111,222,333);\n  ")
 		}
 	}
 	{ // do_test "check-4.1"
@@ -334,7 +334,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-4.6"
 		_res = db.Exec("\n    UPDATE t4 SET x=0, y=1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10", _res.Error, "\n    UPDATE t4 SET x=0, y=1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10", resErrString(_res), "\n    UPDATE t4 SET x=0, y=1;\n  ")
 		}
 	}
 	{ // do_test "check-4.7"
@@ -364,25 +364,25 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-4.9"
 		_res = db.Exec("\n    UPDATE t4 SET x=0, y=2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10", _res.Error, "\n    UPDATE t4 SET x=0, y=2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10", resErrString(_res), "\n    UPDATE t4 SET x=0, y=2;\n  ")
 		}
 	}
 	{ // do_test "check_4.10"
 		_res = db.Exec("\n      VACUUM\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      VACUUM\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      VACUUM\n    ")
 		}
 	}
 	{ // do_test "check-5.1"
 		_res = db.Exec("\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<:abc )\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "parameters prohibited in CHECK constraints") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters prohibited in CHECK constraints", _res.Error, "\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<:abc )\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters prohibited in CHECK constraints", resErrString(_res), "\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<:abc )\n    );\n  ")
 		}
 	}
 	{ // do_test "check-5.2"
 		_res = db.Exec("\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<? )\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "parameters prohibited in CHECK constraints") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters prohibited in CHECK constraints", _res.Error, "\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<? )\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters prohibited in CHECK constraints", resErrString(_res), "\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<? )\n    );\n  ")
 		}
 	}
 	{ // do_test "check-6.1"
@@ -412,7 +412,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-6.5"
 		_res = db.Exec("\n    UPDATE OR FAIL t1 SET x=7-x, y=y+1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x<5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", _res.Error, "\n    UPDATE OR FAIL t1 SET x=7-x, y=y+1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", resErrString(_res), "\n    UPDATE OR FAIL t1 SET x=7-x, y=y+1;\n  ")
 		}
 	}
 	{ // do_test "check-6.6"
@@ -424,13 +424,13 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-6.7"
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(1,30.0);\n    INSERT OR ROLLBACK INTO t1 VALUES(8,40.0);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x<5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(1,30.0);\n    INSERT OR ROLLBACK INTO t1 VALUES(8,40.0);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", resErrString(_res), "\n    BEGIN;\n    INSERT INTO t1 VALUES(1,30.0);\n    INSERT OR ROLLBACK INTO t1 VALUES(8,40.0);\n  ")
 		}
 	}
 	{ // do_test "check-6.8"
 		_res = db.Exec("\n    COMMIT;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot commit - no transaction is active") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", _res.Error, "\n    COMMIT;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", resErrString(_res), "\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "check-6.9"
@@ -448,7 +448,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-6.12"
 		_res = db.Exec("\n    REPLACE INTO t1 VALUES(6,7);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: x<5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", _res.Error, "\n    REPLACE INTO t1 VALUES(6,7);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: x<5", resErrString(_res), "\n    REPLACE INTO t1 VALUES(6,7);\n  ")
 		}
 	}
 	{ // do_test "check-6.13"
@@ -460,7 +460,7 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-6.14"
 		_res = db.Exec("\n    INSERT OR IGNORE INTO t1 VALUES(6,7);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(6,7);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT OR IGNORE INTO t1 VALUES(6,7);\n  ")
 		}
 	}
 	{ // do_test "check-6.15"
@@ -481,19 +481,19 @@ func Test_check(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec(" CREATE TABLE t6(a CHECK (myfunc(a))) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t6(a CHECK (myfunc(a))) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t6(a CHECK (myfunc(a))) ")
 		}
 	}
 	{ // "7.2"
 		_res = db.Exec(" INSERT INTO t6 VALUES(9)  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES(9)  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t6 VALUES(9)  ")
 		}
 	}
 	{ // "7.3"
 		_res = db.Exec(" INSERT INTO t6 VALUES(11) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: myfunc(a)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: myfunc(a)", _res.Error, " INSERT INTO t6 VALUES(11) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: myfunc(a)", resErrString(_res), " INSERT INTO t6 VALUES(11) ")
 		}
 	}
 	{ // do_test "7.4"
@@ -508,13 +508,13 @@ func Test_check(t *testing.T) {
 	{ // do_test "7.5"
 		_res = db2.Exec(" INSERT INTO t6 VALUES(8) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: myfunc()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: myfunc()", _res.Error, " INSERT INTO t6 VALUES(8) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: myfunc()", resErrString(_res), " INSERT INTO t6 VALUES(8) ")
 		}
 	}
 	{ // do_test "7.6"
 		_res = db2.Exec(" CREATE TABLE t7(a CHECK (myfunc(a))) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: myfunc") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: myfunc", _res.Error, " CREATE TABLE t7(a CHECK (myfunc(a))) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: myfunc", resErrString(_res), " CREATE TABLE t7(a CHECK (myfunc(a))) ")
 		}
 	}
 	{ // do_test "7.7"
@@ -542,25 +542,25 @@ func Test_check(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE t810(a, CHECK( main.t810.a>0 ));\n  CREATE TABLE t811(b, CHECK( xyzzy.t811.b BETWEEN 5 AND 10 ));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t810(a, CHECK( main.t810.a>0 ));\n  CREATE TABLE t811(b, CHECK( xyzzy.t811.b BETWEEN 5 AND 10 ));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t810(a, CHECK( main.t810.a>0 ));\n  CREATE TABLE t811(b, CHECK( xyzzy.t811.b BETWEEN 5 AND 10 ));\n")
 		}
 	}
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b INTEGER NOT NULL CONSTRAINT 'b-check' CHECK( b>a ),\n    c INTEGER NOT NULL CONSTRAINT 'c-check' CHECK( c>rowid*2 ),\n    d INTEGER NOT NULL CONSTRAINT 'd-check' CHECK( d BETWEEN b AND c )\n  );\n  INSERT INTO t1(a,b,c,d) VALUES(1,2,4,3),(2,4,6,5),(3,10,30,20);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b INTEGER NOT NULL CONSTRAINT 'b-check' CHECK( b>a ),\n    c INTEGER NOT NULL CONSTRAINT 'c-check' CHECK( c>rowid*2 ),\n    d INTEGER NOT NULL CONSTRAINT 'd-check' CHECK( d BETWEEN b AND c )\n  );\n  INSERT INTO t1(a,b,c,d) VALUES(1,2,4,3),(2,4,6,5),(3,10,30,20);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b INTEGER NOT NULL CONSTRAINT 'b-check' CHECK( b>a ),\n    c INTEGER NOT NULL CONSTRAINT 'c-check' CHECK( c>rowid*2 ),\n    d INTEGER NOT NULL CONSTRAINT 'd-check' CHECK( d BETWEEN b AND c )\n  );\n  INSERT INTO t1(a,b,c,d) VALUES(1,2,4,3),(2,4,6,5),(3,10,30,20);\n")
 		}
 	}
 	{ // "9.2"
 		_res = db.Exec("\n  UPDATE t1 SET b=0 WHERE a=1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: b-check") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b-check", _res.Error, "\n  UPDATE t1 SET b=0 WHERE a=1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b-check", resErrString(_res), "\n  UPDATE t1 SET b=0 WHERE a=1;\n")
 		}
 	}
 	{ // "9.3"
 		_res = db.Exec("\n  UPDATE t1 SET c=a*2 WHERE a=1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c-check") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c-check", _res.Error, "\n  UPDATE t1 SET c=a*2 WHERE a=1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c-check", resErrString(_res), "\n  UPDATE t1 SET c=a*2 WHERE a=1;\n")
 		}
 	}
 	db.Close()
@@ -591,43 +591,43 @@ func Test_check(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n")
 		}
 	}
 	{ // "11.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES (NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES (NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES (NULL);\n")
 		}
 	}
 	{ // "11.2"
 		_res = db.Exec("\n  INSERT  INTO t1 VALUES (NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT  INTO t1 VALUES (NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT  INTO t1 VALUES (NULL);\n")
 		}
 	}
 	{ // "11.3"
 		_res = db.Exec("\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );\n")
 		}
 	}
 	{ // "11.4"
 		_res = db.Exec("\n  INSERT INTO t2(a) VALUES('abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(a) VALUES('abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2(a) VALUES('abc');\n")
 		}
 	}
 	{ // "11.5"
 		_res = db.Exec("\n  INSERT INTO t2(b, a) VALUES(1, 'abc'||'');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(b, a) VALUES(1, 'abc'||'');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2(b, a) VALUES(1, 'abc'||'');\n")
 		}
 	}
 	{ // "11.6"
 		_res = db.Exec("\n  INSERT INTO t2(b, a) VALUES(2, 'abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(b, a) VALUES(2, 'abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2(b, a) VALUES(2, 'abc');\n")
 		}
 	}
 	db.Close()
@@ -652,37 +652,37 @@ func Test_check(t *testing.T) {
 	{ // "12.20"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a<>+a));\n  INSERT INTO t1(a) VALUES(NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a<>+a));\n  INSERT INTO t1(a) VALUES(NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a<>+a));\n  INSERT INTO t1(a) VALUES(NULL);\n")
 		}
 	}
 	{ // "12.21"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a<>+a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a<>+a", _res.Error, "\n  INSERT INTO t1(a) VALUES('xyz');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a<>+a", resErrString(_res), "\n  INSERT INTO t1(a) VALUES('xyz');\n")
 		}
 	}
 	{ // "12.22"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(123);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a<>+a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a<>+a", _res.Error, "\n  INSERT INTO t1(a) VALUES(123);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a<>+a", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(123);\n")
 		}
 	}
 	{ // "12.30"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(NOT(a=+a)));\n  INSERT INTO t1(a) VALUES(NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(NOT(a=+a)));\n  INSERT INTO t1(a) VALUES(NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(NOT(a=+a)));\n  INSERT INTO t1(a) VALUES(NULL);\n")
 		}
 	}
 	{ // "12.31"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: NOT(a=+a)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: NOT(a=+a)", _res.Error, "\n  INSERT INTO t1(a) VALUES('xyz');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: NOT(a=+a)", resErrString(_res), "\n  INSERT INTO t1(a) VALUES('xyz');\n")
 		}
 	}
 	{ // "12.32"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(123);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: NOT(a=+a)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: NOT(a=+a)", _res.Error, "\n  INSERT INTO t1(a) VALUES(123);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: NOT(a=+a)", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(123);\n")
 		}
 	}
 	{ // "12.40"
@@ -724,7 +724,7 @@ func Test_check(t *testing.T) {
 	{ // "12.61"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(456);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a NOT BETWEEN 0 AND +a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a NOT BETWEEN 0 AND +a", _res.Error, "\n  INSERT INTO t1(a) VALUES(456);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a NOT BETWEEN 0 AND +a", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(456);\n")
 		}
 	}
 	{ // "12.70"
@@ -754,7 +754,7 @@ func Test_check(t *testing.T) {
 	{ // "12.81"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(456);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a NOT BETWEEN +a AND 999999") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a NOT BETWEEN +a AND 999999", _res.Error, "\n  INSERT INTO t1(a) VALUES(456);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a NOT BETWEEN +a AND 999999", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(456);\n")
 		}
 	}
 	db.Close()
@@ -767,7 +767,7 @@ func Test_check(t *testing.T) {
 	{ // "13.1.0"
 		_res = db.Exec("\n  CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;\n  REPLACE INTO Table0 VALUES (hex(randomblob(100000)));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;\n  REPLACE INTO Table0 VALUES (hex(randomblob(100000)));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;\n  REPLACE INTO Table0 VALUES (hex(randomblob(100000)));\n")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -775,7 +775,7 @@ func Test_check(t *testing.T) {
 	{ // "13.1.2"
 		_res = db.Exec("\n  UPDATE OR REPLACE Table0 SET Col0 = Table0.Col0 ;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE OR REPLACE Table0 SET Col0 = Table0.Col0 ;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE OR REPLACE Table0 SET Col0 = Table0.Col0 ;\n")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -795,7 +795,7 @@ func Test_check(t *testing.T) {
 	{ // "13.2.0"
 		_res = db.Exec("\n  CREATE TABLE t2 (x , CHECK((NOT (x ISNULL) )));\n  REPLACE INTO t2 VALUES (hex(randomblob(100000)));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2 (x , CHECK((NOT (x ISNULL) )));\n  REPLACE INTO t2 VALUES (hex(randomblob(100000)));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2 (x , CHECK((NOT (x ISNULL) )));\n  REPLACE INTO t2 VALUES (hex(randomblob(100000)));\n")
 		}
 	}
 	{ // "13.2.1"
@@ -813,7 +813,7 @@ func Test_check(t *testing.T) {
 	{ // "13.2.2"
 		_res = db.Exec("\n  UPDATE OR REPLACE t2 SET x = x;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE OR REPLACE t2 SET x = x;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE OR REPLACE t2 SET x = x;\n")
 		}
 	}
 	{ // "13.2.3"

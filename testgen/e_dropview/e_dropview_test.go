@@ -123,7 +123,7 @@ func Test_e_dropview(t *testing.T) {
 	{ // "2.4"
 		_res = db.Exec("\n  SELECT * FROM \"new view\"\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: new view") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: new view", _res.Error, "\n  SELECT * FROM \"new view\"\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: new view", resErrString(_res), "\n  SELECT * FROM \"new view\"\n")
 		}
 	}
 	databasedata = "list_all_data"
@@ -143,13 +143,13 @@ func Test_e_dropview(t *testing.T) {
 	{ // "3.1.1"
 		_res = db.Exec(" DROP VIEW temp.v1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP VIEW temp.v1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP VIEW temp.v1 ")
 		}
 	}
 	{ // "3.1.2"
 		_res = db.Exec(" SELECT * FROM temp.v1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.v1", _res.Error, " SELECT * FROM temp.v1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.v1", resErrString(_res), " SELECT * FROM temp.v1 ")
 		}
 	}
 	{ // do_test "3.1.3"
@@ -173,13 +173,13 @@ func Test_e_dropview(t *testing.T) {
 	{ // "3.2.1"
 		_res = db.Exec(" DROP VIEW v1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP VIEW v1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP VIEW v1 ")
 		}
 	}
 	{ // "3.2.2"
 		_res = db.Exec(" SELECT * FROM main.v1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.v1", _res.Error, " SELECT * FROM main.v1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.v1", resErrString(_res), " SELECT * FROM main.v1 ")
 		}
 	}
 	{ // do_test "3.2.3"
@@ -203,13 +203,13 @@ func Test_e_dropview(t *testing.T) {
 	{ // "3.3.1"
 		_res = db.Exec(" DROP VIEW v2 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP VIEW v2 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP VIEW v2 ")
 		}
 	}
 	{ // "3.3.2"
 		_res = db.Exec(" SELECT * FROM main.v2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.v2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.v2", _res.Error, " SELECT * FROM main.v2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.v2", resErrString(_res), " SELECT * FROM main.v2 ")
 		}
 	}
 	{ // do_test "3.3.3"
@@ -233,13 +233,13 @@ func Test_e_dropview(t *testing.T) {
 	{ // "3.4.1"
 		_res = db.Exec(" DROP VIEW v1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP VIEW v1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP VIEW v1 ")
 		}
 	}
 	{ // "3.4.2"
 		_res = db.Exec(" SELECT * FROM v1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v1", _res.Error, " SELECT * FROM v1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v1", resErrString(_res), " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "3.4.3"
@@ -263,13 +263,13 @@ func Test_e_dropview(t *testing.T) {
 	{ // "3.5.1"
 		_res = db.Exec(" DROP VIEW aux.v2 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP VIEW aux.v2 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP VIEW aux.v2 ")
 		}
 	}
 	{ // "3.5.2"
 		_res = db.Exec(" SELECT * FROM aux.v2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: aux.v2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: aux.v2", _res.Error, " SELECT * FROM aux.v2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: aux.v2", resErrString(_res), " SELECT * FROM aux.v2 ")
 		}
 	}
 	{ // do_test "3.5.3"
@@ -293,13 +293,13 @@ func Test_e_dropview(t *testing.T) {
 	{ // "3.6.1"
 		_res = db.Exec(" DROP VIEW v3 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP VIEW v3 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP VIEW v3 ")
 		}
 	}
 	{ // "3.6.2"
 		_res = db.Exec(" SELECT * FROM v3 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: v3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v3", _res.Error, " SELECT * FROM v3 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v3", resErrString(_res), " SELECT * FROM v3 ")
 		}
 	}
 	{ // do_test "3.6.3"

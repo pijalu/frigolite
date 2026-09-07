@@ -144,7 +144,7 @@ func Test_icu(t *testing.T) {
 	{ // "icu-7.1"
 		_res = db.Exec("\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL", _res.Error, "\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL", resErrString(_res), "\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
 		}
 	}
 	{ // "icu-7.2"
@@ -181,7 +181,7 @@ func Test_icu(t *testing.T) {
 	{ // "icu-8.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');\n")
 		}
 	}
 	{ // "icu-8.2"

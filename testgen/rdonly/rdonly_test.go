@@ -95,7 +95,7 @@ func Test_rdonly(t *testing.T) {
 	{ // do_test "rdonly-1.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n    INSERT INTO t1 VALUES(2)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n    INSERT INTO t1 VALUES(2)\n  ")
 		}
 	}
 	{ // do_test "rdonly-1.5"

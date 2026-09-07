@@ -85,19 +85,19 @@ func Test_corruptG(t *testing.T) {
 	{ // do_test "1.2"
 		_res = db.Exec("\n    SELECT c FROM t1 WHERE a>'abc';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    SELECT c FROM t1 WHERE a>'abc';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    SELECT c FROM t1 WHERE a>'abc';\n  ")
 		}
 	}
 	{ // do_test "1.3"
 		_res = db.Exec("\n     PRAGMA integrity_check\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n     PRAGMA integrity_check\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n     PRAGMA integrity_check\n  ")
 		}
 	}
 	{ // do_test "1.4"
 		_res = db.Exec("\n    SELECT c FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    SELECT c FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    SELECT c FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	db.Close()
@@ -108,7 +108,7 @@ func Test_corruptG(t *testing.T) {
 	{ // do_test "2.1"
 		_res = db.Exec("\n    SELECT rowid FROM t1 WHERE a='abc' and b='xyz123456789XYZ';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    SELECT rowid FROM t1 WHERE a='abc' and b='xyz123456789XYZ';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    SELECT rowid FROM t1 WHERE a='abc' and b='xyz123456789XYZ';\n  ")
 		}
 	}
 }

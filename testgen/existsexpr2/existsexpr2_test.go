@@ -64,7 +64,7 @@ func Test_existsexpr2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		}
 	}
 	{ // "1.1"
@@ -82,7 +82,7 @@ func Test_existsexpr2(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE TABLE x3(u, v);\n  CREATE INDEX x3u ON x3(u);\n  INSERT INTO x3 VALUES\n    (1, 1), (1, 2), (1, 3),\n    (2, 1), (2, 2), (2, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x3(u, v);\n  CREATE INDEX x3u ON x3(u);\n  INSERT INTO x3 VALUES\n    (1, 1), (1, 2), (1, 3),\n    (2, 1), (2, 2), (2, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x3(u, v);\n  CREATE INDEX x3u ON x3(u);\n  INSERT INTO x3 VALUES\n    (1, 1), (1, 2), (1, 3),\n    (2, 1), (2, 2), (2, 3);\n")
 		}
 	}
 	{ // "1.3"
@@ -107,7 +107,7 @@ func Test_existsexpr2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1ab ON t1(a,b);\n\n  INSERT INTO t1 VALUES\n      ('abc', 1, 1),\n      ('abc', 2, 2),\n      ('abc', 2, 3),\n\n      ('def', 1, 1),\n      ('def', 2, 2),\n      ('def', 2, 3);\n\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 1), (2, 2), (3, 3);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','10000 5000 2');\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1ab ON t1(a,b);\n\n  INSERT INTO t1 VALUES\n      ('abc', 1, 1),\n      ('abc', 2, 2),\n      ('abc', 2, 3),\n\n      ('def', 1, 1),\n      ('def', 2, 2),\n      ('def', 2, 3);\n\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 1), (2, 2), (3, 3);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','10000 5000 2');\n  ANALYZE sqlite_master;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1ab ON t1(a,b);\n\n  INSERT INTO t1 VALUES\n      ('abc', 1, 1),\n      ('abc', 2, 2),\n      ('abc', 2, 3),\n\n      ('def', 1, 1),\n      ('def', 2, 2),\n      ('def', 2, 3);\n\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 1), (2, 2), (3, 3);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','10000 5000 2');\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	{ // "2.1"

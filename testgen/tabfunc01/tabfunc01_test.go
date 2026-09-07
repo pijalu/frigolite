@@ -132,19 +132,19 @@ func Test_tabfunc01(t *testing.T) {
 	{ // "tabfunc01-1.2b"
 		_res = db.Exec("\n  SELECT *, '|' FROM generate_series LIMIT 5;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "first argument to \"generate_series()\" missing or unusable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \"generate_series()\" missing or unusable", _res.Error, "\n  SELECT *, '|' FROM generate_series LIMIT 5;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \"generate_series()\" missing or unusable", resErrString(_res), "\n  SELECT *, '|' FROM generate_series LIMIT 5;\n")
 		}
 	}
 	{ // "tabfunc01-1.2c"
 		_res = db.Exec("\n  SELECT *, '|' FROM generate_series(value) LIMIT 5;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "first argument to \"generate_series()\" missing or unusable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \"generate_series()\" missing or unusable", _res.Error, "\n  SELECT *, '|' FROM generate_series(value) LIMIT 5;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \"generate_series()\" missing or unusable", resErrString(_res), "\n  SELECT *, '|' FROM generate_series(value) LIMIT 5;\n")
 		}
 	}
 	{ // "tabfunc01-1.3"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING generate_series;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: generate_series") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: generate_series", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING generate_series;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: generate_series", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING generate_series;\n")
 		}
 	}
 	{ // "tabfunc01-1.4"
@@ -186,7 +186,7 @@ func Test_tabfunc01(t *testing.T) {
 	{ // "tabfunc01-1.7"
 		_res = db.Exec("\n  SELECT * FROM generate_series(1,9,2,11);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many arguments on generate_series() - max 3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many arguments on generate_series() - max 3", _res.Error, "\n  SELECT * FROM generate_series(1,9,2,11);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many arguments on generate_series() - max 3", resErrString(_res), "\n  SELECT * FROM generate_series(1,9,2,11);\n")
 		}
 	}
 	{ // "tabfunc01-1.8"
@@ -240,13 +240,13 @@ func Test_tabfunc01(t *testing.T) {
 	{ // "tabfunc01-1.21.1"
 		_res = db.Exec("\n  SELECT * FROM v1(55);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'v1' is not a function") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v1' is not a function", _res.Error, "\n  SELECT * FROM v1(55);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v1' is not a function", resErrString(_res), "\n  SELECT * FROM v1(55);\n")
 		}
 	}
 	{ // "tabfunc01-1.21.2"
 		_res = db.Exec("\n  SELECT * FROM v1();\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'v1' is not a function") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v1' is not a function", _res.Error, "\n  SELECT * FROM v1();\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v1' is not a function", resErrString(_res), "\n  SELECT * FROM v1();\n")
 		}
 	}
 	{ // "tabfunc01-1.22"
@@ -264,13 +264,13 @@ func Test_tabfunc01(t *testing.T) {
 	{ // "tabfunc01-1.23.1"
 		_res = db.Exec("\n  SELECT * FROM v2(55);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'v2' is not a function") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v2' is not a function", _res.Error, "\n  SELECT * FROM v2(55);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v2' is not a function", resErrString(_res), "\n  SELECT * FROM v2(55);\n")
 		}
 	}
 	{ // "tabfunc01-1.23.2"
 		_res = db.Exec("\n  SELECT * FROM v2();\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'v2' is not a function") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v2' is not a function", _res.Error, "\n  SELECT * FROM v2();\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'v2' is not a function", resErrString(_res), "\n  SELECT * FROM v2();\n")
 		}
 	}
 	{ // "tabfunc01-1.24"
@@ -288,13 +288,13 @@ func Test_tabfunc01(t *testing.T) {
 	{ // "tabfunc01-1.25"
 		_res = db.Exec("\n  SELECT * FROM t0(55) ORDER BY x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'t0' is not a function") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'t0' is not a function", _res.Error, "\n  SELECT * FROM t0(55) ORDER BY x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'t0' is not a function", resErrString(_res), "\n  SELECT * FROM t0(55) ORDER BY x;\n")
 		}
 	}
 	{ // "tabfunc01-1.26"
 		_res = db.Exec("\n  WITH w0 AS (SELECT * FROM t0)\n  INSERT INTO t0(x) SELECT * FROM w0()\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'w0' is not a function") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'w0' is not a function", _res.Error, "\n  WITH w0 AS (SELECT * FROM t0)\n  INSERT INTO t0(x) SELECT * FROM w0()\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'w0' is not a function", resErrString(_res), "\n  WITH w0 AS (SELECT * FROM t0)\n  INSERT INTO t0(x) SELECT * FROM w0()\n")
 		}
 	}
 	{ // "tabfunc01-2.1"
@@ -714,7 +714,7 @@ func Test_tabfunc01(t *testing.T) {
 	{ // "tabfunc01-710"
 		_res = db.Exec("\n  SELECT b FROM t600 WHERE a IN carray(inttoptr(" + sqlLiteral(PTR1) + "),5,'int33');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype: 'int33'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype: 'int33'", _res.Error, "\n  SELECT b FROM t600 WHERE a IN carray(inttoptr(" + sqlLiteral(PTR1) + "),5,'int33');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype: 'int33'", resErrString(_res), "\n  SELECT b FROM t600 WHERE a IN carray(inttoptr(" + sqlLiteral(PTR1) + "),5,'int33');\n")
 		}
 	}
 	{ // do_test "tabfunc01-720"
@@ -776,49 +776,49 @@ func Test_tabfunc01(t *testing.T) {
 	{ // do_test "tabfunc01-800"
 		_res = db.Exec("\n      ALTER TABLE generate_series ADD COLUMN col2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "virtual tables may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", _res.Error, "\n      ALTER TABLE generate_series ADD COLUMN col2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", resErrString(_res), "\n      ALTER TABLE generate_series ADD COLUMN col2;\n    ")
 		}
 	}
 	{ // do_test "tabfunc01-810"
 		_res = db.Exec("\n      ALTER TABLE generate_series RENAME TO flubber;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table generate_series may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table generate_series may not be altered", _res.Error, "\n      ALTER TABLE generate_series RENAME TO flubber;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table generate_series may not be altered", resErrString(_res), "\n      ALTER TABLE generate_series RENAME TO flubber;\n    ")
 		}
 	}
 	{ // do_test "tabfunc01-820"
 		_res = db.Exec("\n      ALTER TABLE generate_series RENAME  start TO flubber;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table generate_series may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table generate_series may not be altered", _res.Error, "\n      ALTER TABLE generate_series RENAME  start TO flubber;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table generate_series may not be altered", resErrString(_res), "\n      ALTER TABLE generate_series RENAME  start TO flubber;\n    ")
 		}
 	}
 	{ // do_test "tabfunc01-830"
 		_res = db.Exec("\n      ALTER TABLE generate_series DROP COLUMN start;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table generate_series may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table generate_series may not be altered", _res.Error, "\n      ALTER TABLE generate_series DROP COLUMN start;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table generate_series may not be altered", resErrString(_res), "\n      ALTER TABLE generate_series DROP COLUMN start;\n    ")
 		}
 	}
 	{ // do_test "tabfunc01-900"
 		_res = db.Exec("\n      ALTER TABLE pragma_compile_options ADD COLUMN col2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "virtual tables may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", _res.Error, "\n      ALTER TABLE pragma_compile_options ADD COLUMN col2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", resErrString(_res), "\n      ALTER TABLE pragma_compile_options ADD COLUMN col2;\n    ")
 		}
 	}
 	{ // do_test "tabfunc01-910"
 		_res = db.Exec("\n      ALTER TABLE pragma_compile_options RENAME TO flubber;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table pragma_compile_options may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_compile_options may not be altered", _res.Error, "\n      ALTER TABLE pragma_compile_options RENAME TO flubber;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_compile_options may not be altered", resErrString(_res), "\n      ALTER TABLE pragma_compile_options RENAME TO flubber;\n    ")
 		}
 	}
 	{ // do_test "tabfunc01-920"
 		_res = db.Exec("\n      ALTER TABLE pragma_compile_options RENAME  start TO flubber;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table pragma_compile_options may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_compile_options may not be altered", _res.Error, "\n      ALTER TABLE pragma_compile_options RENAME  start TO flubber;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_compile_options may not be altered", resErrString(_res), "\n      ALTER TABLE pragma_compile_options RENAME  start TO flubber;\n    ")
 		}
 	}
 	{ // do_test "tabfunc01-930"
 		_res = db.Exec("\n      ALTER TABLE pragma_compile_options DROP COLUMN start;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table pragma_compile_options may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_compile_options may not be altered", _res.Error, "\n      ALTER TABLE pragma_compile_options DROP COLUMN start;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_compile_options may not be altered", resErrString(_res), "\n      ALTER TABLE pragma_compile_options DROP COLUMN start;\n    ")
 		}
 	}
 	{ // "tabfunc01-900"
@@ -1435,19 +1435,19 @@ func Test_tabfunc01(t *testing.T) {
 			{ // "1400"
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
 				}
 			}
 			{ // "1410"
 				_res = db.Exec("\n  SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table-function argument references tables to its right") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table-function argument references tables to its right", _res.Error, "\n  SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table-function argument references tables to its right", resErrString(_res), "\n  SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;\n")
 				}
 			}
 			{ // "1420"
 				_res = db.Exec("\n  SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value) \n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t2.y") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.y", _res.Error, "\n  SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value) \n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.y", resErrString(_res), "\n  SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value) \n")
 				}
 			}
 			{ // "1500"

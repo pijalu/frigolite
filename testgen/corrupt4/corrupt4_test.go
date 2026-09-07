@@ -188,7 +188,7 @@ func Test_corrupt4(t *testing.T) {
 		{ // "2.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")
 			}
 		}
 		{ // do_test "2.3"

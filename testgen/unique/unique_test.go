@@ -61,25 +61,25 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n       a int PRIMARY KEY,\n       b int PRIMARY KEY,\n       c text\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table \"t1\" has more than one primary key") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"t1\" has more than one primary key", _res.Error, "\n    CREATE TABLE t1(\n       a int PRIMARY KEY,\n       b int PRIMARY KEY,\n       c text\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"t1\" has more than one primary key", resErrString(_res), "\n    CREATE TABLE t1(\n       a int PRIMARY KEY,\n       b int PRIMARY KEY,\n       c text\n    );\n  ")
 		}
 	}
 	{ // do_test "unique-1.1b"
 		_res = db.Exec("\n    CREATE TABLE t1(\n       a int PRIMARY KEY,\n       b int UNIQUE,\n       c text\n    );\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(\n       a int PRIMARY KEY,\n       b int UNIQUE,\n       c text\n    );\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(\n       a int PRIMARY KEY,\n       b int UNIQUE,\n       c text\n    );\n  ")
 		}
 	}
 	{ // do_test "unique-1.2"
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(1,2,3)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(1,2,3)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1(a,b,c) VALUES(1,2,3)\n  ")
 		}
 	}
 	{ // do_test "unique-1.3"
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(1,3,4)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(1,3,4)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "\n    INSERT INTO t1(a,b,c) VALUES(1,3,4)\n  ")
 		}
 	}
 	// verify_ex_errcode unique-1.3b SQLITE_CONSTRAINT_PRIMARYKEY (unsupported command, not transpiled)
@@ -92,7 +92,7 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-1.5"
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(3,2,4)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(3,2,4)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b", resErrString(_res), "\n    INSERT INTO t1(a,b,c) VALUES(3,2,4)\n  ")
 		}
 	}
 	// verify_ex_errcode unique-1.5b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
@@ -105,7 +105,7 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-1.7"
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(3,4,5)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(3,4,5)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1(a,b,c) VALUES(3,4,5)\n  ")
 		}
 	}
 	{ // do_test "unique-1.8"
@@ -125,57 +125,57 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-2.1"
 		_res = db.Exec("\n    CREATE UNIQUE INDEX i2 ON t2(a)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE UNIQUE INDEX i2 ON t2(a)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE UNIQUE INDEX i2 ON t2(a)\n  ")
 		}
 	}
 	{ // do_test "unique-2.2"
 		_res = db.Exec("\n    SELECT * FROM t2 ORDER BY a\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2 ORDER BY a\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2 ORDER BY a\n  ")
 		}
 	}
 	{ // do_test "unique-2.3"
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(1,5);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.a", _res.Error, "\n    INSERT INTO t2 VALUES(1,5);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.a", resErrString(_res), "\n    INSERT INTO t2 VALUES(1,5);\n  ")
 		}
 	}
 	// verify_ex_errcode unique-2.3b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	{ // do_test "unique-2.4"
 		_res = db.Exec("\n    SELECT * FROM t2 ORDER BY a\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2 ORDER BY a\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2 ORDER BY a\n  ")
 		}
 	}
 	{ // do_test "unique-2.5"
 		_res = db.Exec("\n    DROP INDEX i2;\n    SELECT * FROM t2 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX i2;\n    SELECT * FROM t2 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DROP INDEX i2;\n    SELECT * FROM t2 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "unique-2.6"
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(1,5)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(1,5)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(1,5)\n  ")
 		}
 	}
 	{ // do_test "unique-2.7"
 		_res = db.Exec("\n    SELECT * FROM t2 ORDER BY a, b;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2 ORDER BY a, b;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2 ORDER BY a, b;\n  ")
 		}
 	}
 	{ // do_test "unique-2.8"
 		_res = db.Exec("\n    CREATE UNIQUE INDEX i2 ON t2(a);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.a", _res.Error, "\n    CREATE UNIQUE INDEX i2 ON t2(a);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.a", resErrString(_res), "\n    CREATE UNIQUE INDEX i2 ON t2(a);\n  ")
 		}
 	}
 	// verify_ex_errcode unique-2.8b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	{ // do_test "unique-2.9"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t2(a);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i2 ON t2(a);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE INDEX i2 ON t2(a);\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -183,25 +183,25 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-3.1"
 		_res = db.Exec("\n    CREATE TABLE t3(\n       a int,\n       b int,\n       c int,\n       d int,\n       unique(a,c,d)\n     );\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(\n       a int,\n       b int,\n       c int,\n       d int,\n       unique(a,c,d)\n     );\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t3(\n       a int,\n       b int,\n       c int,\n       d int,\n       unique(a,c,d)\n     );\n  ")
 		}
 	}
 	{ // do_test "unique-3.2"
 		_res = db.Exec("\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
 		}
 	}
 	{ // do_test "unique-3.3"
 		_res = db.Exec("\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,5);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,5);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,5);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
 		}
 	}
 	{ // do_test "unique-3.4"
 		_res = db.Exec("\n    INSERT INTO t3(a,b,c,d) VALUES(1,4,3,5);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t3.a, t3.c, t3.d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a, t3.c, t3.d", _res.Error, "\n    INSERT INTO t3(a,b,c,d) VALUES(1,4,3,5);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a, t3.c, t3.d", resErrString(_res), "\n    INSERT INTO t3(a,b,c,d) VALUES(1,4,3,5);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
 		}
 	}
 	// verify_ex_errcode unique-3.4b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
@@ -216,7 +216,7 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-4.2"
 		_res = db.Exec("\n    INSERT INTO t4 VALUES(NULL, 3, 4);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t4 VALUES(NULL, 3, 4);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t4 VALUES(NULL, 3, 4);\n  ")
 		}
 	}
 	{ // do_test "unique-4.3"
@@ -228,7 +228,7 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-4.4"
 		_res = db.Exec("\n    INSERT INTO t4 VALUES(2, 2, NULL);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t4 VALUES(2, 2, NULL);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t4 VALUES(2, 2, NULL);\n  ")
 		}
 	}
 	{ // do_test "unique-4.5"
@@ -240,7 +240,7 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-4.6"
 		_res = db.Exec("\n    INSERT INTO t4 VALUES(NULL, 2, NULL);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t4 VALUES(NULL, 2, NULL);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t4 VALUES(NULL, 2, NULL);\n  ")
 		}
 	}
 	{ // do_test "unique-4.7"
@@ -252,19 +252,19 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-4.8"
 		_res = db.Exec("CREATE UNIQUE INDEX i4a ON t4(a,b)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE UNIQUE INDEX i4a ON t4(a,b)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "CREATE UNIQUE INDEX i4a ON t4(a,b)")
 		}
 	}
 	{ // do_test "unique-4.9"
 		_res = db.Exec("CREATE UNIQUE INDEX i4b ON t4(a,b,c)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE UNIQUE INDEX i4b ON t4(a,b,c)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "CREATE UNIQUE INDEX i4b ON t4(a,b,c)")
 		}
 	}
 	{ // do_test "unique-4.10"
 		_res = db.Exec("CREATE UNIQUE INDEX i4c ON t4(b)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t4.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t4.b", _res.Error, "CREATE UNIQUE INDEX i4c ON t4(b)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t4.b", resErrString(_res), "CREATE UNIQUE INDEX i4c ON t4(b)")
 		}
 	}
 	// verify_ex_errcode unique-4.10b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
@@ -279,7 +279,7 @@ func Test_unique(t *testing.T) {
 	{ // do_test "unique-5.2"
 		_res = db.Exec("\n    INSERT INTO t5 VALUES(1,2,3,4,5,6);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t5.first_column_with_long_name, t5.second_column_with_long_name, t5.third_column_with_long_name, t5.fourth_column_with_long_name, t5.fifth_column_with_long_name, t5.sixth_column_with_long_name") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t5.first_column_with_long_name, t5.second_column_with_long_name, t5.third_column_with_long_name, t5.fourth_column_with_long_name, t5.fifth_column_with_long_name, t5.sixth_column_with_long_name", _res.Error, "\n    INSERT INTO t5 VALUES(1,2,3,4,5,6);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t5.first_column_with_long_name, t5.second_column_with_long_name, t5.third_column_with_long_name, t5.fourth_column_with_long_name, t5.fifth_column_with_long_name, t5.sixth_column_with_long_name", resErrString(_res), "\n    INSERT INTO t5 VALUES(1,2,3,4,5,6);\n  ")
 		}
 	}
 	// verify_ex_errcode unique-5.2b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)

@@ -120,7 +120,7 @@ func Test_rollback(t *testing.T) {
 	{ // do_test "rollback-1.4"
 		_res = db.Exec("\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t3.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a", _res.Error, "\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a", resErrString(_res), "\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
 		}
 	}
 	{ // "rollback-1.5" (prepare-step internals; SQL side effects only)

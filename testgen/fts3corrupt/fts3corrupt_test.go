@@ -72,7 +72,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');\n")
 		}
 	}
 	{ // do_test "fts3corrupt-1.1"
@@ -98,7 +98,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES('world');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1 VALUES('world');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1 VALUES('world');\n")
 		}
 	}
 	{ // do_test "1.3.1"
@@ -107,13 +107,13 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "1.4"
 		_res = db.Exec(" \n  DROP TABLE t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DROP TABLE t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  DROP TABLE t1;\n")
 		}
 	}
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n  COMMIT;\n")
 		}
 	}
 	{ // do_test "fts3corrupt-2.1"
@@ -130,7 +130,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT rowid FROM t1 WHERE t1 MATCH 'hello'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'hello'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'hello'\n")
 		}
 	}
 	{ // do_test "2.2.1"
@@ -139,7 +139,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('world');\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('world');\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('world');\n  COMMIT;\n")
 		}
 	}
 	{ // do_test "fts3corrupt-3.1"
@@ -156,7 +156,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world'\n")
 		}
 	}
 	{ // do_test "3.2.1"
@@ -165,7 +165,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1(t1) VALUES('nodesize=24');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1(t1) VALUES('nodesize=24');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1(t1) VALUES('nodesize=24');\n")
 		}
 	}
 	{ // do_test "fts3corrupt-4.1"
@@ -188,7 +188,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "4.2"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = X'FFFFFFFFFFFFFFFF';\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1_segdir SET root = X'FFFFFFFFFFFFFFFF';\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t1_segdir SET root = X'FFFFFFFFFFFFFFFF';\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
 		}
 	}
 	{ // do_test "4.2.1"
@@ -199,7 +199,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "4.3"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = " + sqlLiteral(blob) + ";\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1_segdir SET root = " + sqlLiteral(blob) + ";\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t1_segdir SET root = " + sqlLiteral(blob) + ";\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
 		}
 	}
 	{ // do_test "4.3.1"
@@ -208,7 +208,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
 		}
 	}
 	{ // do_test "5.1"
@@ -241,7 +241,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "5.2"
 		_res = db.Exec("\n  UPDATE t1_stat SET value = X'0000';\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1_stat SET value = X'0000';\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t1_stat SET value = X'0000';\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';\n")
 		}
 	}
 	{ // do_test "5.2.1"
@@ -250,7 +250,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "5.3"
 		_res = db.Exec("\n  UPDATE t1_stat SET value = NULL;\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1_stat SET value = NULL;\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t1_stat SET value = NULL;\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';\n")
 		}
 	}
 	{ // do_test "5.3.1"
@@ -263,7 +263,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "6.10"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f using fts3(a,b);\n  CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n  INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                               x'000131030102000103323334050101010200');\n  INSERT INTO f_segments (blockid) values (16);\n  INSERT INTO f_segments values (0, x'');\n  INSERT INTO f_stat VALUES (1,x'cf0f01');\n  INSERT INTO f(f) VALUES ('merge=1');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  CREATE VIRTUAL TABLE f using fts3(a,b);\n  CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n  INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                               x'000131030102000103323334050101010200');\n  INSERT INTO f_segments (blockid) values (16);\n  INSERT INTO f_segments values (0, x'');\n  INSERT INTO f_stat VALUES (1,x'cf0f01');\n  INSERT INTO f(f) VALUES ('merge=1');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  CREATE VIRTUAL TABLE f using fts3(a,b);\n  CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n  INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                               x'000131030102000103323334050101010200');\n  INSERT INTO f_segments (blockid) values (16);\n  INSERT INTO f_segments values (0, x'');\n  INSERT INTO f_stat VALUES (1,x'cf0f01');\n  INSERT INTO f(f) VALUES ('merge=1');\n")
 		}
 	}
 	db.Close()
@@ -276,7 +276,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "7.10"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (0,0,1,0,'0 0',x'01010101020101');\n  SELECT  matchinfo( f , 'pcx')  FROM f WHERE b MATCH x'c533';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (0,0,1,0,'0 0',x'01010101020101');\n  SELECT  matchinfo( f , 'pcx')  FROM f WHERE b MATCH x'c533';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (0,0,1,0,'0 0',x'01010101020101');\n  SELECT  matchinfo( f , 'pcx')  FROM f WHERE b MATCH x'c533';\n")
 		}
 	}
 	db.Close()
@@ -302,13 +302,13 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // "8.2"
 		_res = db.Exec("\n  UPDATE f_segments SET block = (\n    SELECT block FROM f_segments WHERE blockid=1\n  ) WHERE blockid=2\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE f_segments SET block = (\n    SELECT block FROM f_segments WHERE blockid=1\n  ) WHERE blockid=2\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE f_segments SET block = (\n    SELECT block FROM f_segments WHERE blockid=1\n  ) WHERE blockid=2\n")
 		}
 	}
 	{ // "8.3"
 		_res = db.Exec("\n  INSERT INTO f(f) VALUES('merge=2,2');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO f(f) VALUES('merge=2,2');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO f(f) VALUES('merge=2,2');\n")
 		}
 	}
 	// sqlite3_fts3_may_be_corrupt 0 (unsupported command, not transpiled)

@@ -114,7 +114,7 @@ func Test_corrupt3(t *testing.T) {
 	{ // do_test "corrupt3-1.8"
 		_res = db.Exec("\n    PRAGMA integrity_check\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    PRAGMA integrity_check\n  ")
 		}
 	}
 	{ // do_test "corrupt3-1.9"
@@ -129,7 +129,7 @@ func Test_corrupt3(t *testing.T) {
 	{ // do_test "corrupt3-1.10"
 		_res = db.Exec("\n    PRAGMA integrity_check\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    PRAGMA integrity_check\n  ")
 		}
 	}
 	{ // do_test "corrupt3-1.11"
@@ -144,7 +144,7 @@ func Test_corrupt3(t *testing.T) {
 	{ // do_test "corrupt3-1.12"
 		_res = db.Exec("\n    PRAGMA integrity_check\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    PRAGMA integrity_check\n  ")
 		}
 	}
 }

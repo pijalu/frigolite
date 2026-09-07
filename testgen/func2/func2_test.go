@@ -76,19 +76,19 @@ func Test_func2(t *testing.T) {
 	{ // do_test "func2-1.2.1"
 		_res = db.Exec("SELECT SUBSTR()")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR()")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR()")
 		}
 	}
 	{ // do_test "func2-1.2.2"
 		_res = db.Exec("SELECT SUBSTR('Supercalifragilisticexpialidocious')")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious')")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR('Supercalifragilisticexpialidocious')")
 		}
 	}
 	{ // do_test "func2-1.2.3"
 		_res = db.Exec("SELECT SUBSTR('Supercalifragilisticexpialidocious', 1,1,1)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1,1,1)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1,1,1)")
 		}
 	}
 	{ // do_test "func2-1.3"
@@ -443,19 +443,19 @@ func Test_func2(t *testing.T) {
 		{ // do_test "func2-2.1.2"
 			_res = db.Exec("SELECT SUBSTR()")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR()")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR()")
 			}
 		}
 		{ // do_test "func2-2.1.3"
 			_res = db.Exec("SELECT SUBSTR('hiሴho')")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR('hiሴho')")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR('hiሴho')")
 			}
 		}
 		{ // do_test "func2-2.1.4"
 			_res = db.Exec("SELECT SUBSTR('hiሴho', 1,1,1)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR('hiሴho', 1,1,1)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR('hiሴho', 1,1,1)")
 			}
 		}
 		{ // do_test "func2-2.2.0"
@@ -659,19 +659,19 @@ func Test_func2(t *testing.T) {
 	{ // do_test "func2-3.1.2"
 		_res = db.Exec("SELECT SUBSTR()")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR()")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR()")
 		}
 	}
 	{ // do_test "func2-3.1.3"
 		_res = db.Exec("SELECT SUBSTR(x'1234')")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR(x'1234')")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR(x'1234')")
 		}
 	}
 	{ // do_test "func2-3.1.4"
 		_res = db.Exec("SELECT SUBSTR(x'1234', 1,1,1)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function SUBSTR()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", _res.Error, "SELECT SUBSTR(x'1234', 1,1,1)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function SUBSTR()", resErrString(_res), "SELECT SUBSTR(x'1234', 1,1,1)")
 		}
 	}
 	{ // do_test "func2-3.2.0"

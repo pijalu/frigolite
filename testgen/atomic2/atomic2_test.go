@@ -91,7 +91,7 @@ func Test_atomic2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1x ON t1(x);\n  CREATE INDEX i2x ON t1(y);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100 )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1x ON t1(x);\n  CREATE INDEX i2x ON t1(y);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100 )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1x ON t1(x);\n  CREATE INDEX i2x ON t1(y);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100 )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;\n")
 		}
 	}
 	_list0 := tclList([]string{"-injectstart", "at_injectstart", "-injectstop", "at_injectstop", "\\"})

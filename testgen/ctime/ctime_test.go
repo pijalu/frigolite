@@ -82,19 +82,19 @@ func Test_ctime(t *testing.T) {
 	{ // do_test "ctime-1.1.1"
 		_res = db.Exec("\n    PRAGMA compile_options();\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \")\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", _res.Error, "\n    PRAGMA compile_options();\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", resErrString(_res), "\n    PRAGMA compile_options();\n  ")
 		}
 	}
 	{ // do_test "ctime-1.1.2"
 		_res = db.Exec("\n    PRAGMA compile_options(NULL);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"NULL\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"NULL\": syntax error", _res.Error, "\n    PRAGMA compile_options(NULL);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"NULL\": syntax error", resErrString(_res), "\n    PRAGMA compile_options(NULL);\n  ")
 		}
 	}
 	{ // do_test "ctime-1.1.3"
 		_res = db.Exec("\n    PRAGMA compile_options *;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"*\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"*\": syntax error", _res.Error, "\n    PRAGMA compile_options *;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"*\": syntax error", resErrString(_res), "\n    PRAGMA compile_options *;\n  ")
 		}
 	}
 	{ // do_test "ctime-1.2.1"
@@ -138,19 +138,19 @@ func Test_ctime(t *testing.T) {
 		{ // do_test "ctime-1.4.1"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
 			}
 		}
 		{ // do_test "ctime-1.4.2"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used('THREADSAFE');\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used('THREADSAFE');\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used('THREADSAFE');\n  ")
 			}
 		}
 		{ // do_test "ctime-1.4.3"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used(\"THREADSAFE\");\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used(\"THREADSAFE\");\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used(\"THREADSAFE\");\n  ")
 			}
 		}
 		{ // do_test "ctime-1.5"
@@ -183,73 +183,73 @@ func Test_ctime(t *testing.T) {
 		{ // do_test "ctime-2.1.1"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used();\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function sqlite_compileoption_used()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_used()", _res.Error, "\n    SELECT sqlite_compileoption_used();\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_used()", resErrString(_res), "\n    SELECT sqlite_compileoption_used();\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.2"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used(NULL);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used(NULL);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used(NULL);\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.3"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used(\"\");\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used(\"\");\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used(\"\");\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.4"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used('');\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used('');\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used('');\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.5"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used(foo);\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: foo") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: foo", _res.Error, "\n    SELECT sqlite_compileoption_used(foo);\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: foo", resErrString(_res), "\n    SELECT sqlite_compileoption_used(foo);\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.6"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used('THREADSAFE', 0);\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function sqlite_compileoption_used()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_used()", _res.Error, "\n    SELECT sqlite_compileoption_used('THREADSAFE', 0);\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_used()", resErrString(_res), "\n    SELECT sqlite_compileoption_used('THREADSAFE', 0);\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.7"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used(0);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used(0);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used(0);\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.8"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used('0');\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used('0');\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used('0');\n  ")
 			}
 		}
 		{ // do_test "ctime-2.1.9"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used(1.0);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used(1.0);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used(1.0);\n  ")
 			}
 		}
 		{ // do_test "ctime-2.2.1"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_get();\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function sqlite_compileoption_get()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_get()", _res.Error, "\n    SELECT sqlite_compileoption_get();\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_get()", resErrString(_res), "\n    SELECT sqlite_compileoption_get();\n  ")
 			}
 		}
 		{ // do_test "ctime-2.2.2"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_get(0, 0);\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function sqlite_compileoption_get()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_get()", _res.Error, "\n    SELECT sqlite_compileoption_get(0, 0);\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function sqlite_compileoption_get()", resErrString(_res), "\n    SELECT sqlite_compileoption_get(0, 0);\n  ")
 			}
 		}
 		{ // do_test "ctime-2.3"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used(sqlite_compileoption_get(0));\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite_compileoption_used(sqlite_compileoption_get(0));\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sqlite_compileoption_used(sqlite_compileoption_get(0));\n  ")
 			}
 		}
 		{ // do_test "ctime-2.4"

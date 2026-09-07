@@ -108,7 +108,7 @@ func Test_upfrom4(t *testing.T) {
 	{ // "200"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT, c INT);\n  INSERT INTO t1(a) VALUES(1),(2),(8),(19);\n  CREATE TABLE c1(x INTEGER PRIMARY KEY, b INT);\n  INSERT INTO c1(x,b) VALUES(1,1),(8,8),(17,17),(NULL,NULL);\n  CREATE TABLE c2(x INT,c INT);\n  INSERT INTO c2(x,c) VALUES(2,2),(8,8),(NULL,NULL);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual VALUES('X');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT, c INT);\n  INSERT INTO t1(a) VALUES(1),(2),(8),(19);\n  CREATE TABLE c1(x INTEGER PRIMARY KEY, b INT);\n  INSERT INTO c1(x,b) VALUES(1,1),(8,8),(17,17),(NULL,NULL);\n  CREATE TABLE c2(x INT,c INT);\n  INSERT INTO c2(x,c) VALUES(2,2),(8,8),(NULL,NULL);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual VALUES('X');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT, c INT);\n  INSERT INTO t1(a) VALUES(1),(2),(8),(19);\n  CREATE TABLE c1(x INTEGER PRIMARY KEY, b INT);\n  INSERT INTO c1(x,b) VALUES(1,1),(8,8),(17,17),(NULL,NULL);\n  CREATE TABLE c2(x INT,c INT);\n  INSERT INTO c2(x,c) VALUES(2,2),(8,8),(NULL,NULL);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual VALUES('X');\n")
 		}
 	}
 	{ // "210"
@@ -126,7 +126,7 @@ func Test_upfrom4(t *testing.T) {
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE t2(x);\n  CREATE TRIGGER AFTER INSERT ON t2 BEGIN\n    UPDATE t1 SET b=c1.b, c=c2.c\n      FROM dual, c1 NATURAL RIGHT JOIN c2\n     WHERE x=a;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);\n  CREATE TRIGGER AFTER INSERT ON t2 BEGIN\n    UPDATE t1 SET b=c1.b, c=c2.c\n      FROM dual, c1 NATURAL RIGHT JOIN c2\n     WHERE x=a;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x);\n  CREATE TRIGGER AFTER INSERT ON t2 BEGIN\n    UPDATE t1 SET b=c1.b, c=c2.c\n      FROM dual, c1 NATURAL RIGHT JOIN c2\n     WHERE x=a;\n  END;\n")
 		}
 	}
 	{ // "310"
@@ -171,13 +171,13 @@ func Test_upfrom4(t *testing.T) {
 	{ // "500"
 		_res = db.Exec("\n    CREATE TABLE t1(abc INT, def INT);  \n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    CREATE TABLE dual(dummy TEXT);  \n    INSERT INTO dual(dummy) VALUES('X');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(abc INT, def INT);  \n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    CREATE TABLE dual(dummy TEXT);  \n    INSERT INTO dual(dummy) VALUES('X');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(abc INT, def INT);  \n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    CREATE TABLE dual(dummy TEXT);  \n    INSERT INTO dual(dummy) VALUES('X');\n  ")
 		}
 	}
 	{ // "510"
 		_res = db.Exec("\n    UPDATE t1\n      SET (abc, def)=(SELECT  x, 123)\n      FROM dual LEFT JOIN (SELECT 789 AS 'x' FROM dual) AS d2\n      LIMIT 2\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1\n      SET (abc, def)=(SELECT  x, 123)\n      FROM dual LEFT JOIN (SELECT 789 AS 'x' FROM dual) AS d2\n      LIMIT 2\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1\n      SET (abc, def)=(SELECT  x, 123)\n      FROM dual LEFT JOIN (SELECT 789 AS 'x' FROM dual) AS d2\n      LIMIT 2\n  ")
 		}
 	}
 	{ // "520"

@@ -64,7 +64,7 @@ func Test_affinity2(t *testing.T) {
 	{ // "affinity2-100"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    xi INTEGER,\n    xr REAL,\n    xb BLOB,\n    xn NUMERIC,\n    xt TEXT\n  );\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(1,1,1,1,1,1);\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(2,'2','2','2','2','2');\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(3,'03','03','03','03','03');\n\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    xi INTEGER,\n    xr REAL,\n    xb BLOB,\n    xn NUMERIC,\n    xt TEXT\n  );\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(1,1,1,1,1,1);\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(2,'2','2','2','2','2');\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(3,'03','03','03','03','03');\n\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(\n    xi INTEGER,\n    xr REAL,\n    xb BLOB,\n    xn NUMERIC,\n    xt TEXT\n  );\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(1,1,1,1,1,1);\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(2,'2','2','2','2','2');\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(3,'03','03','03','03','03');\n\n")
 		}
 	}
 	{ // "affinity2-110"
@@ -178,7 +178,7 @@ func Test_affinity2(t *testing.T) {
 	{ // "400"
 		_res = db.Exec("\n  CREATE TABLE ttt(c0, c1);\n  CREATE INDEX ii ON ttt(CAST(c0 AS NUMERIC)); \n  INSERT INTO ttt VALUES('abc', '-1');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE ttt(c0, c1);\n  CREATE INDEX ii ON ttt(CAST(c0 AS NUMERIC)); \n  INSERT INTO ttt VALUES('abc', '-1');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE ttt(c0, c1);\n  CREATE INDEX ii ON ttt(CAST(c0 AS NUMERIC)); \n  INSERT INTO ttt VALUES('abc', '-1');\n")
 		}
 	}
 	{ // "410"
@@ -208,7 +208,7 @@ func Test_affinity2(t *testing.T) {
 	{ // "430"
 		_res = db.Exec("\n  CREATE TABLE t3(a, b, c INTEGER);\n  CREATE INDEX t3ac ON t3(a, c-1);\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 1, 0);\n  INSERT INTO t3 VALUES(3, 1, 1);\n  INSERT INTO t3 VALUES(4, 1, 0);\n  INSERT INTO t3 VALUES(5, 1, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c INTEGER);\n  CREATE INDEX t3ac ON t3(a, c-1);\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 1, 0);\n  INSERT INTO t3 VALUES(3, 1, 1);\n  INSERT INTO t3 VALUES(4, 1, 0);\n  INSERT INTO t3 VALUES(5, 1, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b, c INTEGER);\n  CREATE INDEX t3ac ON t3(a, c-1);\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 1, 0);\n  INSERT INTO t3 VALUES(3, 1, 1);\n  INSERT INTO t3 VALUES(4, 1, 0);\n  INSERT INTO t3 VALUES(5, 1, 1);\n")
 		}
 	}
 	{ // "440"

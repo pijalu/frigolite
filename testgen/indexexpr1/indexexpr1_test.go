@@ -61,7 +61,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(a,b,c)\n      /*  123456789 123456789 123456789 123456789 123456789 123456789 */ \n  VALUES('In_the_beginning_was_the_Word',1,1),\n        ('and_the_Word_was_with_God',1,2),\n        ('and_the_Word_was_God',1,3),\n        ('The_same_was_in_the_beginning_with_God',2,1),\n        ('All_things_were_made_by_him',3,1),\n        ('and_without_him_was_not_any_thing_made_that_was_made',3,2);\n  CREATE INDEX t1a1 ON t1(substr(a,1,12));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(a,b,c)\n      /*  123456789 123456789 123456789 123456789 123456789 123456789 */ \n  VALUES('In_the_beginning_was_the_Word',1,1),\n        ('and_the_Word_was_with_God',1,2),\n        ('and_the_Word_was_God',1,3),\n        ('The_same_was_in_the_beginning_with_God',2,1),\n        ('All_things_were_made_by_him',3,1),\n        ('and_without_him_was_not_any_thing_made_that_was_made',3,2);\n  CREATE INDEX t1a1 ON t1(substr(a,1,12));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(a,b,c)\n      /*  123456789 123456789 123456789 123456789 123456789 123456789 */ \n  VALUES('In_the_beginning_was_the_Word',1,1),\n        ('and_the_Word_was_with_God',1,2),\n        ('and_the_Word_was_God',1,3),\n        ('The_same_was_in_the_beginning_with_God',2,1),\n        ('All_things_were_made_by_him',3,1),\n        ('and_without_him_was_not_any_thing_made_that_was_made',3,2);\n  CREATE INDEX t1a1 ON t1(substr(a,1,12));\n")
 		}
 	}
 	{ // "indexexpr1-110"
@@ -219,7 +219,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-200"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(id ANY PRIMARY KEY, a,b,c) WITHOUT ROWID;\n  INSERT INTO t1(id,a,b,c)\n  VALUES(1,'In_the_beginning_was_the_Word',1,1),\n        (2,'and_the_Word_was_with_God',1,2),\n        (3,'and_the_Word_was_God',1,3),\n        (4,'The_same_was_in_the_beginning_with_God',2,1),\n        (5,'All_things_were_made_by_him',3,1),\n        (6,'and_without_him_was_not_any_thing_made_that_was_made',3,2);\n  CREATE INDEX t1a1 ON t1(substr(a,1,12));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(id ANY PRIMARY KEY, a,b,c) WITHOUT ROWID;\n  INSERT INTO t1(id,a,b,c)\n  VALUES(1,'In_the_beginning_was_the_Word',1,1),\n        (2,'and_the_Word_was_with_God',1,2),\n        (3,'and_the_Word_was_God',1,3),\n        (4,'The_same_was_in_the_beginning_with_God',2,1),\n        (5,'All_things_were_made_by_him',3,1),\n        (6,'and_without_him_was_not_any_thing_made_that_was_made',3,2);\n  CREATE INDEX t1a1 ON t1(substr(a,1,12));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(id ANY PRIMARY KEY, a,b,c) WITHOUT ROWID;\n  INSERT INTO t1(id,a,b,c)\n  VALUES(1,'In_the_beginning_was_the_Word',1,1),\n        (2,'and_the_Word_was_with_God',1,2),\n        (3,'and_the_Word_was_God',1,3),\n        (4,'The_same_was_in_the_beginning_with_God',2,1),\n        (5,'All_things_were_made_by_him',3,1),\n        (6,'and_without_him_was_not_any_thing_made_that_was_made',3,2);\n  CREATE INDEX t1a1 ON t1(substr(a,1,12));\n")
 		}
 	}
 	{ // "indexexpr1-210"
@@ -345,43 +345,43 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-300"
 		_res = db.Exec("\n  CREATE TABLE t2(a,b,c); INSERT INTO t2 VALUES(1,2,3);\n  CREATE INDEX t2x1 ON t2(a,b+random());\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic functions prohibited in index expressions") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic functions prohibited in index expressions", _res.Error, "\n  CREATE TABLE t2(a,b,c); INSERT INTO t2 VALUES(1,2,3);\n  CREATE INDEX t2x1 ON t2(a,b+random());\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic functions prohibited in index expressions", resErrString(_res), "\n  CREATE TABLE t2(a,b,c); INSERT INTO t2 VALUES(1,2,3);\n  CREATE INDEX t2x1 ON t2(a,b+random());\n")
 		}
 	}
 	{ // "indexexpr1-301"
 		_res = db.Exec("\n  CREATE INDEX t2x1 ON t2(julianday('now',a));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "non-deterministic use of julianday() in an index") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in an index", _res.Error, "\n  CREATE INDEX t2x1 ON t2(julianday('now',a));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "non-deterministic use of julianday() in an index", resErrString(_res), "\n  CREATE INDEX t2x1 ON t2(julianday('now',a));\n")
 		}
 	}
 	{ // "indexexpr1-310"
 		_res = db.Exec("\n  CREATE INDEX t2x2 ON t2(a,b+(SELECT 15));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "subqueries prohibited in index expressions") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "subqueries prohibited in index expressions", _res.Error, "\n  CREATE INDEX t2x2 ON t2(a,b+(SELECT 15));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "subqueries prohibited in index expressions", resErrString(_res), "\n  CREATE INDEX t2x2 ON t2(a,b+(SELECT 15));\n")
 		}
 	}
 	{ // "indexexpr1-320"
 		_res = db.Exec("\n  CREATE TABLE e1(x,y,UNIQUE(y,substr(x,1,5)));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "expressions prohibited in PRIMARY KEY and UNIQUE constraints") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expressions prohibited in PRIMARY KEY and UNIQUE constraints", _res.Error, "\n  CREATE TABLE e1(x,y,UNIQUE(y,substr(x,1,5)));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expressions prohibited in PRIMARY KEY and UNIQUE constraints", resErrString(_res), "\n  CREATE TABLE e1(x,y,UNIQUE(y,substr(x,1,5)));\n")
 		}
 	}
 	{ // "indexexpr1-330"
 		_res = db.Exec("\n  CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5)));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "expressions prohibited in PRIMARY KEY and UNIQUE constraints") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expressions prohibited in PRIMARY KEY and UNIQUE constraints", _res.Error, "\n  CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5)));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expressions prohibited in PRIMARY KEY and UNIQUE constraints", resErrString(_res), "\n  CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5)));\n")
 		}
 	}
 	{ // "indexexpr1-331"
 		_res = db.Exec("\n  CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5))) WITHOUT ROWID;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "expressions prohibited in PRIMARY KEY and UNIQUE constraints") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expressions prohibited in PRIMARY KEY and UNIQUE constraints", _res.Error, "\n  CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5))) WITHOUT ROWID;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expressions prohibited in PRIMARY KEY and UNIQUE constraints", resErrString(_res), "\n  CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5))) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "indexexpr1-340"
 		_res = db.Exec("\n  CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"(\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"(\": syntax error", _res.Error, "\n  CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"(\": syntax error", resErrString(_res), "\n  CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);\n")
 		}
 	}
 	{ // "indexexpr1-400"
@@ -399,13 +399,13 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-410"
 		_res = db.Exec("\n  INSERT INTO t3 SELECT * FROM t3 WHERE rowid=10;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: index 't3abc'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't3abc'", _res.Error, "\n  INSERT INTO t3 SELECT * FROM t3 WHERE rowid=10;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't3abc'", resErrString(_res), "\n  INSERT INTO t3 SELECT * FROM t3 WHERE rowid=10;\n")
 		}
 	}
 	{ // "indexexpr1-500"
 		_res = db.Exec("\n  CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );\n")
 		}
 	}
 	{ // "indexexpr1-510"
@@ -475,13 +475,13 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-810"
 		_res = db.Exec("\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: index 't8bx'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't8bx'", _res.Error, "\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't8bx'", resErrString(_res), "\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
 		}
 	}
 	{ // "indexexpr1-820"
 		_res = db.Exec("\n  DROP INDEX t8bx;\n  CREATE UNIQUE INDEX t8bx ON t8(substr(b,2,4) COLLATE rtrim);\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t8bx;\n  CREATE UNIQUE INDEX t8bx ON t8(substr(b,2,4) COLLATE rtrim);\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX t8bx;\n  CREATE UNIQUE INDEX t8bx ON t8(substr(b,2,4) COLLATE rtrim);\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
 		}
 	}
 	{ // "indexexpr1-900"
@@ -499,7 +499,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-910"
 		_res = db.Exec("\n  INSERT INTO t9(a,b,c,d) VALUES(5,6,7,-8);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: index 't9x1'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't9x1'", _res.Error, "\n  INSERT INTO t9(a,b,c,d) VALUES(5,6,7,-8);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: index 't9x1'", resErrString(_res), "\n  INSERT INTO t9(a,b,c,d) VALUES(5,6,7,-8);\n")
 		}
 	}
 	{ // "indexexpr1-1000"
@@ -553,7 +553,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-1200.1"
 		_res = db.Exec("\n  CREATE INDEX t10_ab ON t10(a+b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t10_ab ON t10(a+b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t10_ab ON t10(a+b);\n")
 		}
 	}
 	{ // "indexexpr1-1200.2"
@@ -571,7 +571,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-1200.3"
 		_res = db.Exec("\n  CREATE INDEX t10_abcd ON t10(a+b,c+d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t10_abcd ON t10(a+b,c+d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t10_abcd ON t10(a+b,c+d);\n")
 		}
 	}
 	{ // "indexexpr1-1200.4"
@@ -655,7 +655,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-1510"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a PRIMARY KEY,b UNIQUE);\n  REPLACE INTO t1 VALUES(2, 1);\n  REPLACE INTO t1 SELECT 6,1;\n  CREATE INDEX t1aa ON t1(a-a);\n  REPLACE INTO t1 SELECT a, randomblob(a) FROM t1\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a PRIMARY KEY,b UNIQUE);\n  REPLACE INTO t1 VALUES(2, 1);\n  REPLACE INTO t1 SELECT 6,1;\n  CREATE INDEX t1aa ON t1(a-a);\n  REPLACE INTO t1 SELECT a, randomblob(a) FROM t1\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a PRIMARY KEY,b UNIQUE);\n  REPLACE INTO t1 VALUES(2, 1);\n  REPLACE INTO t1 SELECT 6,1;\n  CREATE INDEX t1aa ON t1(a-a);\n  REPLACE INTO t1 SELECT a, randomblob(a) FROM t1\n")
 		}
 	}
 	{ // "indexexpr1-1600"
@@ -828,7 +828,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-2100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1(a,b) VALUES(1,0);\n  CREATE INDEX x1 ON t1( \"y\" );\n  CREATE INDEX x2 ON t1( +\"y\" );\n  CREATE INDEX x3 ON t1( +'y' );\n  CREATE INDEX x4 ON t1( \"y*\" );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1(a,b) VALUES(1,0);\n  CREATE INDEX x1 ON t1( \"y\" );\n  CREATE INDEX x2 ON t1( +\"y\" );\n  CREATE INDEX x3 ON t1( +'y' );\n  CREATE INDEX x4 ON t1( \"y*\" );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1(a,b) VALUES(1,0);\n  CREATE INDEX x1 ON t1( \"y\" );\n  CREATE INDEX x2 ON t1( +\"y\" );\n  CREATE INDEX x3 ON t1( +'y' );\n  CREATE INDEX x4 ON t1( \"y*\" );\n")
 		}
 	}
 	{ // "indexexpr1-2110"
@@ -962,7 +962,7 @@ func Test_indexexpr1(t *testing.T) {
 	{ // "indexexpr1-2400"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n")
 		}
 	}
 	{ // "indexexpr1-2310" — skipped: user-defined non-deterministic function in index expression not rejected (harness db func)

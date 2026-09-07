@@ -83,7 +83,7 @@ func Test_func9(t *testing.T) {
 	{ // "func9-120"
 		_res = db.Exec("\n  SELECT concat();\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function concat()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function concat()", _res.Error, "\n  SELECT concat();\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function concat()", resErrString(_res), "\n  SELECT concat();\n")
 		}
 	}
 	{ // "func9-130"
@@ -161,13 +161,13 @@ func Test_func9(t *testing.T) {
 	{ // "func9-150"
 		_res = db.Exec("\n  SELECT concat_ws();\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function concat_ws()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function concat_ws()", _res.Error, "\n  SELECT concat_ws();\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function concat_ws()", resErrString(_res), "\n  SELECT concat_ws();\n")
 		}
 	}
 	{ // "func9-160"
 		_res = db.Exec("\n  SELECT concat_ws(',');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function concat_ws()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function concat_ws()", _res.Error, "\n  SELECT concat_ws(',');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function concat_ws()", resErrString(_res), "\n  SELECT concat_ws(',');\n")
 		}
 	}
 	{ // "func9-200"

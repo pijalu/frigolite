@@ -102,7 +102,7 @@ func Test_corrupt9(t *testing.T) {
 	{ // do_test "corrupt9-2.2"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		}
 	}
 	db.Close()
@@ -120,7 +120,7 @@ func Test_corrupt9(t *testing.T) {
 	{ // do_test "corrupt9-3.2"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		}
 	}
 	db.Close()
@@ -138,7 +138,7 @@ func Test_corrupt9(t *testing.T) {
 	{ // do_test "corrupt9-4.2"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		}
 	}
 }

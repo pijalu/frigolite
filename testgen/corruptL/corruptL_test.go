@@ -17928,25 +17928,25 @@ func Test_corruptL(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA cell_size_check = off;\n  DROP INDEX t1x1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA cell_size_check = off;\n  DROP INDEX t1x1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA cell_size_check = off;\n  DROP INDEX t1x1;\n")
 		}
 	}
 	{ // "1.2"
 		_res = db.Exec("\n  SELECT sum(s+length(b)) FROM t1 WHERE a IN (110,10,150) AND q IS NULL;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT sum(s+length(b)) FROM t1 WHERE a IN (110,10,150) AND q IS NULL;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT sum(s+length(b)) FROM t1 WHERE a IN (110,10,150) AND q IS NULL;\n")
 		}
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  REINDEX t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  REINDEX t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  REINDEX t1;\n")
 		}
 	}
 	{ // "1.4"
 		_res = db.Exec("\n  PRAGMA integrity_check\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA integrity_check\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA integrity_check\n")
 		}
 	}
 	db.Close()
@@ -19001,7 +19001,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT b,c FROM t1 ORDER BY a;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "out of memory") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "out of memory", _res.Error, "\n  SELECT b,c FROM t1 ORDER BY a;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "out of memory", resErrString(_res), "\n  SELECT b,c FROM t1 ORDER BY a;\n")
 		}
 	}
 	db.Close()
@@ -19024,7 +19024,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  INSERT INTO t1 SELECT * FROM t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1 SELECT * FROM t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1 SELECT * FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -19260,7 +19260,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
 		if !tclCatchsqlMatches(_res, res) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -28911,19 +28911,19 @@ func Test_corruptL(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  INSERT INTO t1(b) VALUES(zeroblob(40000));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(b) VALUES(zeroblob(40000));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(b) VALUES(zeroblob(40000));\n")
 		}
 	}
 	{ // "5.2"
 		_res = db.Exec("\n  DROP INDEX t1x2;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t1x2;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX t1x2;\n")
 		}
 	}
 	{ // "5.3"
 		_res = db.Exec("\n  INSERT INTO t1(b) VALUES(zeroblob(40000));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(b) VALUES(zeroblob(40000));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(b) VALUES(zeroblob(40000));\n")
 		}
 	}
 	db.Close()
@@ -29972,7 +29972,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1(b) VALUES(1);\n    INSERT INTO t1(b) VALUES(2);\n  COMMIT;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed database schema (t1b) - invalid rootpage") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (t1b) - invalid rootpage", _res.Error, "\n  BEGIN;\n    INSERT INTO t1(b) VALUES(1);\n    INSERT INTO t1(b) VALUES(2);\n  COMMIT;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (t1b) - invalid rootpage", resErrString(_res), "\n  BEGIN;\n    INSERT INTO t1(b) VALUES(1);\n    INSERT INTO t1(b) VALUES(2);\n  COMMIT;\n")
 		}
 	}
 	db.Close()
@@ -31021,7 +31021,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  SELECT * FROM sqlite_master;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed database schema (t1x1) - invalid rootpage") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (t1x1) - invalid rootpage", _res.Error, "\n  SELECT * FROM sqlite_master;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (t1x1) - invalid rootpage", resErrString(_res), "\n  SELECT * FROM sqlite_master;\n")
 		}
 	}
 	db.Close()
@@ -31163,7 +31163,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
 		if !tclCatchsqlMatches(_res, res) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -31598,19 +31598,19 @@ func Test_corruptL(t *testing.T) {
 	{ // "9.1"
 		_res = db.Exec("\n  SAVEPOINT one;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SAVEPOINT one;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  SAVEPOINT one;\n")
 		}
 	}
 	{ // "9.3"
 		_res = db.Exec("\n  INSERT INTO t1(b,c) VALUES(5,6);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(b,c) VALUES(5,6);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(b,c) VALUES(5,6);\n")
 		}
 	}
 	{ // "9.3"
 		_res = db.Exec("\n  ROLLBACK TO one;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ROLLBACK TO one;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ROLLBACK TO one;\n")
 		}
 	}
 	db.Close()
@@ -40647,7 +40647,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "10.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  SELECT * FROM t1 WHERE a<='2019-05-09' ORDER BY a DESC;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  SELECT * FROM t1 WHERE a<='2019-05-09' ORDER BY a DESC;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  SELECT * FROM t1 WHERE a<='2019-05-09' ORDER BY a DESC;\n")
 		}
 	}
 	db.Close()
@@ -40702,7 +40702,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "11.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  DELETE FROM t3 WHERE x IN (SELECT x FROM t4);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  DELETE FROM t3 WHERE x IN (SELECT x FROM t4);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  DELETE FROM t3 WHERE x IN (SELECT x FROM t4);\n")
 		}
 	}
 	db.Close()
@@ -41342,7 +41342,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "12.1"
 		_res = db.Exec("\n  SELECT CAST((SELECT b FROM t1 WHERE 16=c) AS int) FROM t1 WHERE 16=c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT CAST((SELECT b FROM t1 WHERE 16=c) AS int) FROM t1 WHERE 16=c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT CAST((SELECT b FROM t1 WHERE 16=c) AS int) FROM t1 WHERE 16=c;\n")
 		}
 	}
 	db.Close()
@@ -41777,7 +41777,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "13.1"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x-2019 FROM c WHERE x<2)\n    INSERT INTO t1(b,c) SELECT last_insert_rowid(), x FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x-2019 FROM c WHERE x<2)\n    INSERT INTO t1(b,c) SELECT last_insert_rowid(), x FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x-2019 FROM c WHERE x<2)\n    INSERT INTO t1(b,c) SELECT last_insert_rowid(), x FROM c;\n")
 		}
 	}
 	db.Close()
@@ -41829,13 +41829,13 @@ func Test_corruptL(t *testing.T) {
 	{ // "14.1"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA integrity_check;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA integrity_check;\n")
 		}
 	}
 	{ // "14.2"
 		_res = db.Exec("\n    ALTER TABLE t1 RENAME TO alkjalkjdfiiiwuer987lkjwer82mx97sf98788s9789s; \n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    ALTER TABLE t1 RENAME TO alkjalkjdfiiiwuer987lkjwer82mx97sf98788s9789s; \n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    ALTER TABLE t1 RENAME TO alkjalkjdfiiiwuer987lkjwer82mx97sf98788s9789s; \n  ")
 		}
 	}
 	// extra_schema_checks 1 (unsupported command, not transpiled)
@@ -43297,7 +43297,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "15.1"
 		_res = db.Exec("\n  PRAGMA cell_size_check = 0;\n  UPDATE c1 SET c= NOT EXISTS(SELECT 1 FROM c1 ORDER BY (SELECT 1 FROM c1 ORDER BY a)) +10 WHERE d BETWEEN 4 AND 7;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA cell_size_check = 0;\n  UPDATE c1 SET c= NOT EXISTS(SELECT 1 FROM c1 ORDER BY (SELECT 1 FROM c1 ORDER BY a)) +10 WHERE d BETWEEN 4 AND 7;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA cell_size_check = 0;\n  UPDATE c1 SET c= NOT EXISTS(SELECT 1 FROM c1 ORDER BY (SELECT 1 FROM c1 ORDER BY a)) +10 WHERE d BETWEEN 4 AND 7;\n")
 		}
 	}
 	// extra_schema_checks 1 (unsupported command, not transpiled)
@@ -43335,7 +43335,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "16.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = ON;\n  INSERT INTO t1(rowid, w, x, y, z) VALUES(5, 10, 11, 10, NULL);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema = ON;\n  INSERT INTO t1(rowid, w, x, y, z) VALUES(5, 10, 11, 10, NULL);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema = ON;\n  INSERT INTO t1(rowid, w, x, y, z) VALUES(5, 10, 11, 10, NULL);\n")
 		}
 	}
 	if tclBool("wal_is_capable") {
@@ -43370,7 +43370,7 @@ func Test_corruptL(t *testing.T) {
 		{ // "17.2"
 			_res = db.Exec("\n    PRAGMA wal_checkpoint\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    PRAGMA wal_checkpoint\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    PRAGMA wal_checkpoint\n  ")
 			}
 		}
 		{ // do_test "17.3"
@@ -45063,7 +45063,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "19.2"
 		_res = db.Exec("\n  UPDATE t1 SET a=1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1 SET a=1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t1 SET a=1;\n")
 		}
 	}
 	db.Close()
@@ -45086,7 +45086,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "19.4"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA integrity_check;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA integrity_check;\n")
 		}
 	}
 	db.Close()
@@ -46135,7 +46135,7 @@ func Test_corruptL(t *testing.T) {
 	{ // "18.1"
 		_res = db.Exec("\n  SELECT a FROM t1 WHERE b GLOB b AND b GLOB '0^x]␅6␚xz]';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT a FROM t1 WHERE b GLOB b AND b GLOB '0^x]␅6␚xz]';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT a FROM t1 WHERE b GLOB b AND b GLOB '0^x]␅6␚xz]';\n")
 		}
 	}
 }

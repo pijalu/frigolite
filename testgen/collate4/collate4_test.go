@@ -366,7 +366,7 @@ func Test_collate4(t *testing.T) {
 	{ // do_test "collate4-3.1"
 		_res = db.Exec("\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
 		}
 	}
 	{ // do_test "collate4-3.2"
@@ -378,13 +378,13 @@ func Test_collate4(t *testing.T) {
 	{ // do_test "collate4-3.3"
 		_res = db.Exec("\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
 		}
 	}
 	{ // do_test "collate4-3.4"
 		_res = db.Exec("\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
 		}
 	}
 	{ // do_test "collate4-3.5"
@@ -396,7 +396,7 @@ func Test_collate4(t *testing.T) {
 	{ // do_test "collate4-3.6"
 		_res = db.Exec("\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
 		}
 	}
 	{ // do_test "collate4-3.7"
@@ -408,13 +408,13 @@ func Test_collate4(t *testing.T) {
 	{ // do_test "collate4-3.8"
 		_res = db.Exec("\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
 		}
 	}
 	{ // do_test "collate4-3.9"
 		_res = db.Exec("\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
 		}
 	}
 	{ // do_test "collate4-3.10"
@@ -426,7 +426,7 @@ func Test_collate4(t *testing.T) {
 	{ // do_test "collate4-3.11"
 		_res = db.Exec("\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 VALUES('abc');\n    INSERT INTO collate4t1 VALUES('ABC');\n  ")
 		}
 	}
 	{ // do_test "collate4-3.12"
@@ -438,13 +438,13 @@ func Test_collate4(t *testing.T) {
 	{ // do_test "collate4-3.13"
 		_res = db.Exec("\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 SELECT upper(a) FROM collate4t1;\n  ")
 		}
 	}
 	{ // do_test "collate4-3.14"
 		_res = db.Exec("\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: collate4t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", _res.Error, "\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: collate4t1.a", resErrString(_res), "\n    INSERT INTO collate4t1 VALUES(1);\n    UPDATE collate4t1 SET a = 'abc';\n  ")
 		}
 	}
 	{ // do_test "collate4-3.15"

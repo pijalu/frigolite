@@ -5,8 +5,148 @@
 package rollback2
 
 import (
+"fmt"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_rollback2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_rollback2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var A__setup string
+	_ = A__setup // pre-declared from TCL source
+	var A__select string
+	_ = A__select // pre-declared from TCL source
+	var A__result string
+	_ = A__result // pre-declared from TCL source
+	var A__rollback string
+	_ = A__rollback // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var A_k string
+	_ = A_k // pre-declared from TCL source
+	var iRollback string
+	_ = iRollback // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var leader string
+	_ = leader // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var O_k string
+	_ = O_k // pre-declared from TCL source
+	var _x_arr string
+	_ = _x_arr // pre-declared from TCL source
+	var x_k string
+	_ = x_k // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	AMap := map[string]string{}
+	_ = AMap // dynamic-key array from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "rollback2")
+	testprefix = "rollback2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// proc definition (not transpiled)
+	// db func int2hex int2hex (format %.2X)
+	db.RegisterFunction("int2hex", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return nil, nil }
+		n, err := strconv.ParseInt(strings.TrimSpace(tclStr(args[0])), 0, 64)
+		if err != nil { return nil, err }
+		return fmt.Sprintf("%.2X", n), nil
+	}, 1, 1)
+	{ // "1.0"
+		r = db.Query("\n  SELECT int2hex(0), int2hex(100), int2hex(255)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT int2hex(0), int2hex(100), int2hex(255)\n")
+			return
+		}
+		got := flatten(r)
+		want := "00 64 FF"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.1"
+		_res = db.Exec("\n  CREATE TABLE t1(i, h);\n  CREATE INDEX i1 ON t1(h);\n  WITH data(a, b) AS (\n    SELECT 1, int2hex(1)\n      UNION ALL\n    SELECT a+1, int2hex(a+1) FROM data WHERE a<40\n  )\n  INSERT INTO t1 SELECT * FROM data;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(i, h);\n  CREATE INDEX i1 ON t1(h);\n  WITH data(a, b) AS (\n    SELECT 1, int2hex(1)\n      UNION ALL\n    SELECT a+1, int2hex(a+1) FROM data WHERE a<40\n  )\n  INSERT INTO t1 SELECT * FROM data;\n")
+		}
+	}
+	// proc definition (not transpiled)
+	// do_rollback_test 2.1 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELEC... (unsupported command, not transpiled)
+	// do_rollback_test 2.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n  ...} -rollback {\n... (unsupported command, not transpiled)
+	{ // "3.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC;\n")
+		}
+	}
+	// do_rollback_test 3.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELEC... (unsupported command, not transpiled)
+	// do_rollback_test 3.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n  ...} -rollback {\n... (unsupported command, not transpiled)
+	leader = tclStringRepeat("abcdefghij", "70")
+	_ = leader // suppress unused warning
+	{ // "4.1"
+		_res = db.Exec(" UPDATE t1 SET h = " + sqlLiteral(leader) + " || h; ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE t1 SET h = " + sqlLiteral(leader) + " || h; ")
+		}
+	}
+	{ // "4.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;\n")
+		}
+	}
+	// do_rollback_test 4.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELEC... (unsupported command, not transpiled)
+	// do_rollback_test 4.4 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n  ...} -rollback {\n... (unsupported command, not transpiled)
+}

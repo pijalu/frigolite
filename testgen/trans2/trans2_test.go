@@ -288,7 +288,7 @@ func Test_trans2(t *testing.T) {
 		{ // do_test "trans2-" + i + ".10"
 			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max_rowid) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.z") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.z", _res.Error, "\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max_rowid) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.z", resErrString(_res), "\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max_rowid) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			}
 		}
 		{ // do_test "trans2-" + i + ".11"
@@ -322,7 +322,7 @@ func Test_trans2(t *testing.T) {
 		{ // do_test "trans2-" + i + ".30"
 			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max1) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.z") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.z", _res.Error, "\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max1) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.z", resErrString(_res), "\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max1) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			}
 		}
 		{ // do_test "trans2-" + i + ".31"

@@ -274,7 +274,7 @@ func Test_dbstatus(t *testing.T) {
 					{ // do_test "dbstatus-2." + tn + ".a"
 						// expr $nSchema1-$nSchema2 (not evaluated)
 						if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), nFree) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nFree, _res.Error, "dbstatus-2." + tn + ".a")
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nFree, resErrString(_res), "dbstatus-2." + tn + ".a")
 						}
 					}
 				}
@@ -419,7 +419,7 @@ func Test_dbstatus(t *testing.T) {
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 				}
 			}
 			{ // "5.1" (prepare-step internals; SQL side effects only)

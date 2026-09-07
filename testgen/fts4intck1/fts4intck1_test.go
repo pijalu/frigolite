@@ -170,7 +170,7 @@ func Test_fts4intck1(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('one', 'two');\n  INSERT INTO x1 VALUES('three', 'four');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('one', 'two');\n  INSERT INTO x1 VALUES('three', 'four');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('one', 'two');\n  INSERT INTO x1 VALUES('three', 'four');\n")
 		}
 	}
 	db.Close()

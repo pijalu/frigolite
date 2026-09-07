@@ -65,7 +65,7 @@ func Test_jsonb01(t *testing.T) {
 	{ // "jsonb01-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:[1,2,3,4]}'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:[1,2,3,4]}'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:[1,2,3,4]}'));\n")
 		}
 	}
 	// foreach {id path res} "1 {$.a}    {{{\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3,4]}}}\n  2 {$.b}    {{{\"a\":5,\"c\":[1,2,3,4]}}}\n  3 {$.c}    {{{\"a\":5,\"b\":{\"x\":10,\"y\":11}}}}\n  4 {$.d}    {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3,4]}}}\n  5 {$.b.x}  {{{\"a\":5,\"b\":{\"y\":11},\"c\":[1,2,3,4]}}}\n  6 {$.b.y}  {{{\"a\":5,\"b\":{\"x\":10},\"c\":[1,2,3,4]}}}\n  7 {$.c[0]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[2,3,4]}}}\n  8 {$.c[1]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,3,4]}}}\n  9 {$.c[2]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,4]}}}\n 10 {$.c[3]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3]}}}\n 11 {$.c[4]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3,4]}}}\n 12 {$.c[#]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3,4]}}}\n 13 {$.c[#-1]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3]}}}\n 14 {$.c[#-2]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,4]}}}\n 15 {$.c[#-3]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,3,4]}}}\n 16 {$.c[#-4]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[2,3,4]}}}\n 17 {$.c[#-5]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3,4]}}}\n 18 {$.c[#-6]}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":[1,2,3,4]}}}"
@@ -106,20 +106,20 @@ func Test_jsonb01(t *testing.T) {
 		{ // "jsonb01-2.0"
 			_res = db.Exec("\n  SELECT x'8ce6ffffffff171333' -> '$';\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT x'8ce6ffffffff171333' -> '$';\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT x'8ce6ffffffff171333' -> '$';\n")
 			}
 		}
 		{ // "jsonb01-3.0"
 			_res = db.Exec("\n  SELECT json(x'6B37616263162d');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT json(x'6B37616263162d');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT json(x'6B37616263162d');\n")
 			}
 		}
 		// load_static_extension db strdup (unsupported command, not transpiled)
 		{ // "jsonb01-3.1"
 			_res = db.Exec("\n  SELECT json(strdup(x'6B37616263162d'));\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT json(strdup(x'6B37616263162d'));\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  SELECT json(strdup(x'6B37616263162d'));\n")
 			}
 		}
 }

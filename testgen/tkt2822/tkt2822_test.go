@@ -127,13 +127,13 @@ func Test_tkt2822(t *testing.T) {
 	{ // do_test "tkt2822-4.1"
 		_res = db.Exec("\n    SELECT a, b, c FROM t1 UNION ALL SELECT a, b, c FROM t2 ORDER BY x\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", _res.Error, "\n    SELECT a, b, c FROM t1 UNION ALL SELECT a, b, c FROM t2 ORDER BY x\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", resErrString(_res), "\n    SELECT a, b, c FROM t1 UNION ALL SELECT a, b, c FROM t2 ORDER BY x\n  ")
 		}
 	}
 	{ // do_test "tkt2822-4.2"
 		_res = db.Exec("\n    SELECT a, CAST (b AS TEXT) AS x, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY CAST (b AS INTEGER);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", _res.Error, "\n    SELECT a, CAST (b AS TEXT) AS x, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY CAST (b AS INTEGER);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", resErrString(_res), "\n    SELECT a, CAST (b AS TEXT) AS x, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY CAST (b AS INTEGER);\n  ")
 		}
 	}
 	{ // do_test "tkt2822-5.1"
@@ -213,79 +213,79 @@ func Test_tkt2822(t *testing.T) {
 	{ // do_test "tkt2822-7.2.1"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2nd ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2nd ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2nd ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.2.2"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 26;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2nd ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2nd ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 26;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2nd ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 26;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.2.3"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 65536;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2nd ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2nd ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 65536;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2nd ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 65536;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.3"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3rd ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3rd ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3rd ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.4"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "4th ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "4th ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "4th ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.9"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "9th ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "9th ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "9th ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.10"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "10th ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "10th ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "10th ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.11"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "11th ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "11th ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "11th ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.12"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "12th ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "12th ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "12th ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.13"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 0;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "13th ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "13th ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 0;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "13th ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 0;\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.20"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 0\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "20th ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "20th ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 0\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "20th ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 0\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.21"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 20, 0\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "21st ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "21st ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 20, 0\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "21st ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 20, 0\n  ")
 		}
 	}
 	{ // do_test "tkt2822-7.22"
 		_res = db.Exec("\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 20, 21, 0\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "22nd ORDER BY term out of range - should be between 1 and 25") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "22nd ORDER BY term out of range - should be between 1 and 25", _res.Error, "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 20, 21, 0\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "22nd ORDER BY term out of range - should be between 1 and 25", resErrString(_res), "\n    SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                             11,12,13,14,15,16,17,18,19, 20, 21, 0\n  ")
 		}
 	}
 }

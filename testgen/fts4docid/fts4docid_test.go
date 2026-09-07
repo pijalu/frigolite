@@ -85,7 +85,7 @@ func Test_fts4docid(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts4; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE VIRTUAL TABLE t1 USING fts4; ")
 		}
 	}
 	{ // do_test "1.1"
@@ -282,7 +282,7 @@ func Test_fts4docid(t *testing.T) {
 						{ // "3." + tn + "." + tn2
 							_res = db.Exec(q)
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q)
 							}
 						}
 					}

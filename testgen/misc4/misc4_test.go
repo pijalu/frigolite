@@ -108,7 +108,7 @@ func Test_misc4(t *testing.T) {
 	{ // do_test "misc4-2.4"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t3 VALUES(1);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t3 VALUES(1);\n  ")
 		}
 	}
 	{ // do_test "misc4-3.1"
@@ -128,13 +128,13 @@ func Test_misc4(t *testing.T) {
 	{ // do_test "misc4-3.3"
 		_res = db.Exec(" \n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n      ORDER BY 1, 2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "aggregate functions are not allowed in the GROUP BY clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "aggregate functions are not allowed in the GROUP BY clause", _res.Error, " \n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n      ORDER BY 1, 2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "aggregate functions are not allowed in the GROUP BY clause", resErrString(_res), " \n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n      ORDER BY 1, 2;\n    ")
 		}
 	}
 	{ // do_test "misc4-3.4"
 		_res = db.Exec(" \n      SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n         UNION SELECT ID, Value FROM Table1\n      ORDER BY 1, 2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "aggregate functions are not allowed in the GROUP BY clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "aggregate functions are not allowed in the GROUP BY clause", _res.Error, " \n      SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n         UNION SELECT ID, Value FROM Table1\n      ORDER BY 1, 2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "aggregate functions are not allowed in the GROUP BY clause", resErrString(_res), " \n      SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n         UNION SELECT ID, Value FROM Table1\n      ORDER BY 1, 2;\n    ")
 		}
 	}
 	{ // do_test "misc4-4.1"

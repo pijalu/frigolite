@@ -59,13 +59,13 @@ func Test_schema4(t *testing.T) {
 	{ // "schema4-1.1"
 		_res = db.Exec("\n  CREATE TABLE log(x, a, b);\n  CREATE TABLE tbl(a, b);\n\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(x, a, b);\n  CREATE TABLE tbl(a, b);\n\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE log(x, a, b);\n  CREATE TABLE tbl(a, b);\n\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
 		}
 	}
 	{ // "schema4-1.2"
 		_res = db.Exec("\n  CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n    INSERT INTO log VALUES('after insert', new.a, new.b);\n  END;\n  CREATE TRIGGER v1 AFTER UPDATE ON tbl BEGIN\n    INSERT INTO log VALUES('after update', new.a, new.b);\n  END;\n  CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n    INSERT INTO log VALUES('after delete', old.a, old.b);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n    INSERT INTO log VALUES('after insert', new.a, new.b);\n  END;\n  CREATE TRIGGER v1 AFTER UPDATE ON tbl BEGIN\n    INSERT INTO log VALUES('after update', new.a, new.b);\n  END;\n  CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n    INSERT INTO log VALUES('after delete', old.a, old.b);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n    INSERT INTO log VALUES('after insert', new.a, new.b);\n  END;\n  CREATE TRIGGER v1 AFTER UPDATE ON tbl BEGIN\n    INSERT INTO log VALUES('after update', new.a, new.b);\n  END;\n  CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n    INSERT INTO log VALUES('after delete', old.a, old.b);\n  END;\n")
 		}
 	}
 	{ // "schema4-1.3"
@@ -111,13 +111,13 @@ func Test_schema4(t *testing.T) {
 	{ // "schema4-1.6"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
 		}
 	}
 	{ // "schema4-1.7"
 		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3;\n  ")
 		}
 	}
 	{ // "schema4-1.8"
@@ -153,19 +153,19 @@ func Test_schema4(t *testing.T) {
 	{ // "schema4-2.1"
 		_res = db.Exec("\n    CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		}
 	}
 	{ // "schema4-2.2"
 		_res = db.Exec("\n    CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n      INSERT INTO log VALUES('after insert', new.a, new.b);\n    END;\n    CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n      INSERT INTO log VALUES('after delete', old.a, old.b);\n    END;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n      INSERT INTO log VALUES('after insert', new.a, new.b);\n    END;\n    CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n      INSERT INTO log VALUES('after delete', old.a, old.b);\n    END;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n      INSERT INTO log VALUES('after insert', new.a, new.b);\n    END;\n    CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n      INSERT INTO log VALUES('after delete', old.a, old.b);\n    END;\n  ")
 		}
 	}
 	{ // "schema4-2.3"
 		_res = db.Exec(" ALTER TABLE t1 RENAME TO t2 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t1 RENAME TO t2 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t1 RENAME TO t2 ")
 		}
 	}
 	{ // "schema4-2.4"
@@ -199,7 +199,7 @@ func Test_schema4(t *testing.T) {
 	{ // "schema4-2.6"
 		_res = db.Exec("\n    CREATE TEMP TRIGGER x1 AFTER UPDATE ON tbl BEGIN\n      INSERT INTO log VALUES('after update', new.a, new.b);\n    END;\n\n    CREATE TEMP TABLE x1(x);\n    INSERT INTO x1 VALUES(123);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TRIGGER x1 AFTER UPDATE ON tbl BEGIN\n      INSERT INTO log VALUES('after update', new.a, new.b);\n    END;\n\n    CREATE TEMP TABLE x1(x);\n    INSERT INTO x1 VALUES(123);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TEMP TRIGGER x1 AFTER UPDATE ON tbl BEGIN\n      INSERT INTO log VALUES('after update', new.a, new.b);\n    END;\n\n    CREATE TEMP TABLE x1(x);\n    INSERT INTO x1 VALUES(123);\n  ")
 		}
 	}
 	{ // "schema4-2.8"
@@ -217,7 +217,7 @@ func Test_schema4(t *testing.T) {
 	{ // "schema4-2.7"
 		_res = db.Exec(" ALTER TABLE tbl RENAME TO tbl2 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE tbl RENAME TO tbl2 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE tbl RENAME TO tbl2 ")
 		}
 	}
 	{ // "schema4-2.9"

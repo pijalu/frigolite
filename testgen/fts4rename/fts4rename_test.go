@@ -65,25 +65,25 @@ func Test_fts4rename(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t1 USING fts3(a);\n  BEGIN;\n  CREATE TABLE t2(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.t1 USING fts3(a);\n  BEGIN;\n  CREATE TABLE t2(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.t1 USING fts3(a);\n  BEGIN;\n  CREATE TABLE t2(x);\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  ALTER TABLE t1_content RENAME c0a TO docid;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t1_content after rename: duplicate column name: docid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1_content after rename: duplicate column name: docid", _res.Error, "\n  ALTER TABLE t1_content RENAME c0a TO docid;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1_content after rename: duplicate column name: docid", resErrString(_res), "\n  ALTER TABLE t1_content RENAME c0a TO docid;\n")
 		}
 	}
 	{ // "1.2"
 		_res = db.Exec("\n  UPDATE t1 SET Col0 = 1 ;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: Col0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: Col0", _res.Error, "\n  UPDATE t1 SET Col0 = 1 ;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: Col0", resErrString(_res), "\n  UPDATE t1 SET Col0 = 1 ;\n")
 		}
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  ROLLBACK;\n  DROP TABLE t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ROLLBACK;\n  DROP TABLE t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  ROLLBACK;\n  DROP TABLE t1;\n")
 		}
 	}
 }

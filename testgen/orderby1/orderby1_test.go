@@ -71,7 +71,7 @@ func Test_orderby1(t *testing.T) {
 	{ // do_test "1.0"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE album(\n      aid INTEGER PRIMARY KEY,\n      title TEXT UNIQUE NOT NULL\n    );\n    CREATE TABLE track(\n      tid INTEGER PRIMARY KEY,\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid, tn)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (2, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (NULL, 1, 1, 'one-a'),\n        (NULL, 2, 2, 'two-b'),\n        (NULL, 3, 3, 'three-c'),\n        (NULL, 1, 3, 'one-c'),\n        (NULL, 2, 1, 'two-a'),\n        (NULL, 3, 1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE album(\n      aid INTEGER PRIMARY KEY,\n      title TEXT UNIQUE NOT NULL\n    );\n    CREATE TABLE track(\n      tid INTEGER PRIMARY KEY,\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid, tn)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (2, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (NULL, 1, 1, 'one-a'),\n        (NULL, 2, 2, 'two-b'),\n        (NULL, 3, 3, 'three-c'),\n        (NULL, 1, 3, 'one-c'),\n        (NULL, 2, 1, 'two-a'),\n        (NULL, 3, 1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    CREATE TABLE album(\n      aid INTEGER PRIMARY KEY,\n      title TEXT UNIQUE NOT NULL\n    );\n    CREATE TABLE track(\n      tid INTEGER PRIMARY KEY,\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid, tn)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (2, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (NULL, 1, 1, 'one-a'),\n        (NULL, 2, 2, 'two-b'),\n        (NULL, 3, 3, 'three-c'),\n        (NULL, 1, 3, 'one-c'),\n        (NULL, 2, 1, 'two-a'),\n        (NULL, 3, 1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "1.1a"
@@ -205,7 +205,7 @@ func Test_orderby1(t *testing.T) {
 	{ // do_test "2.0"
 		_res = db.Exec("\n    BEGIN;\n    DROP TABLE album;\n    DROP TABLE track;\n    CREATE TABLE album(\n      aid INT PRIMARY KEY,\n      title TEXT NOT NULL\n    );\n    CREATE INDEX album_i1 ON album(title, aid);\n    CREATE TABLE track(\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid, tn)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (20, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (1,  1, 'one-a'),\n        (20, 2, 'two-b'),\n        (3,  3, 'three-c'),\n        (1,  3, 'one-c'),\n        (20, 1, 'two-a'),\n        (3,  1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DROP TABLE album;\n    DROP TABLE track;\n    CREATE TABLE album(\n      aid INT PRIMARY KEY,\n      title TEXT NOT NULL\n    );\n    CREATE INDEX album_i1 ON album(title, aid);\n    CREATE TABLE track(\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid, tn)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (20, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (1,  1, 'one-a'),\n        (20, 2, 'two-b'),\n        (3,  3, 'three-c'),\n        (1,  3, 'one-c'),\n        (20, 1, 'two-a'),\n        (3,  1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    DROP TABLE album;\n    DROP TABLE track;\n    CREATE TABLE album(\n      aid INT PRIMARY KEY,\n      title TEXT NOT NULL\n    );\n    CREATE INDEX album_i1 ON album(title, aid);\n    CREATE TABLE track(\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid, tn)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (20, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (1,  1, 'one-a'),\n        (20, 2, 'two-b'),\n        (3,  3, 'three-c'),\n        (1,  3, 'one-c'),\n        (20, 1, 'two-a'),\n        (3,  1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "2.1a"
@@ -355,7 +355,7 @@ func Test_orderby1(t *testing.T) {
 	{ // do_test "3.0"
 		_res = db.Exec("\n    BEGIN;\n    DROP TABLE album;\n    DROP TABLE track;\n    CREATE TABLE album(\n      aid INTEGER PRIMARY KEY,\n      title TEXT UNIQUE NOT NULL\n    );\n    CREATE TABLE track(\n      tid INTEGER PRIMARY KEY,\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid ASC, tn DESC)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (2, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (NULL, 1, 1, 'one-a'),\n        (NULL, 2, 2, 'two-b'),\n        (NULL, 3, 3, 'three-c'),\n        (NULL, 1, 3, 'one-c'),\n        (NULL, 2, 1, 'two-a'),\n        (NULL, 3, 1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DROP TABLE album;\n    DROP TABLE track;\n    CREATE TABLE album(\n      aid INTEGER PRIMARY KEY,\n      title TEXT UNIQUE NOT NULL\n    );\n    CREATE TABLE track(\n      tid INTEGER PRIMARY KEY,\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid ASC, tn DESC)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (2, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (NULL, 1, 1, 'one-a'),\n        (NULL, 2, 2, 'two-b'),\n        (NULL, 3, 3, 'three-c'),\n        (NULL, 1, 3, 'one-c'),\n        (NULL, 2, 1, 'two-a'),\n        (NULL, 3, 1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    DROP TABLE album;\n    DROP TABLE track;\n    CREATE TABLE album(\n      aid INTEGER PRIMARY KEY,\n      title TEXT UNIQUE NOT NULL\n    );\n    CREATE TABLE track(\n      tid INTEGER PRIMARY KEY,\n      aid INTEGER NOT NULL REFERENCES album,\n      tn INTEGER NOT NULL,\n      name TEXT,\n      UNIQUE(aid ASC, tn DESC)\n    );\n    INSERT INTO album VALUES(1, '1-one'), (2, '2-two'), (3, '3-three');\n    INSERT INTO track VALUES\n        (NULL, 1, 1, 'one-a'),\n        (NULL, 2, 2, 'two-b'),\n        (NULL, 3, 3, 'three-c'),\n        (NULL, 1, 3, 'one-c'),\n        (NULL, 2, 1, 'two-a'),\n        (NULL, 3, 1, 'three-a');\n    ANALYZE;\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "3.1a"
@@ -570,7 +570,7 @@ func Test_orderby1(t *testing.T) {
 	{ // "8.2"
 		_res = db.Exec("\n  WITH cnt(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<10000\n  )\n  INSERT INTO t1 SELECT i%2, randomblob(500) FROM cnt;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH cnt(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<10000\n  )\n  INSERT INTO t1 SELECT i%2, randomblob(500) FROM cnt;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH cnt(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<10000\n  )\n  INSERT INTO t1 SELECT i%2, randomblob(500) FROM cnt;\n")
 		}
 	}
 	{ // do_test "8.3"
@@ -633,7 +633,7 @@ func Test_orderby1(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  VALUES(2) EXCEPT SELECT '' ORDER BY abc\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", _res.Error, "\n  VALUES(2) EXCEPT SELECT '' ORDER BY abc\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", resErrString(_res), "\n  VALUES(2) EXCEPT SELECT '' ORDER BY abc\n")
 		}
 	}
 }

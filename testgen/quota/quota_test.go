@@ -164,7 +164,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-2.1.4"
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, randomblob(1100)) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, " INSERT INTO t1 VALUES(3, randomblob(1100)) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), " INSERT INTO t1 VALUES(3, randomblob(1100)) ")
 		}
 	}
 	{ // do_test "quota-2.1.5"
@@ -217,7 +217,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-2.4.2"
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, randomblob(1100)) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, " INSERT INTO t1 VALUES(3, randomblob(1100)) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), " INSERT INTO t1 VALUES(3, randomblob(1100)) ")
 		}
 	}
 	{ // do_test "quota-2.4.3"
@@ -281,7 +281,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-3.1.4"
 		_res = db.Exec(" CREATE TABLE t3(a, b) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, " CREATE TABLE t3(a, b) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), " CREATE TABLE t3(a, b) ")
 		}
 	}
 	{ // do_test "quota-3.1.5"
@@ -363,25 +363,25 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-3.2.6"
 		_res = db1a.Exec(" INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		}
 	}
 	{ // do_test "quota-3.2.7"
 		_res = db1b.Exec(" INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		}
 	}
 	{ // do_test "quota-3.2.8"
 		_res = db2a.Exec(" INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		}
 	}
 	{ // do_test "quota-3.2.9"
 		_res = db2b.Exec(" INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), " INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		}
 	}
 	vtab.TclVarSet("quota", "", "")
@@ -461,7 +461,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-4.1.7"
 		_res = db.Exec("INSERT INTO t2 VALUES(zeroblob(200000))")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, "INSERT INTO t2 VALUES(zeroblob(200000))")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), "INSERT INTO t2 VALUES(zeroblob(200000))")
 		}
 	}
 	{ // do_test "quota-4.1.8"

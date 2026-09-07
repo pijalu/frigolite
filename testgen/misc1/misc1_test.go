@@ -288,7 +288,7 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-5.1"
 		_res = db.Exec("\n    CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t3 VALUES(3,4);\n    UPDATE t3 SET a=0 WHEREwww b=2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"WHEREwww\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"WHEREwww\": syntax error", _res.Error, "\n    CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t3 VALUES(3,4);\n    UPDATE t3 SET a=0 WHEREwww b=2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"WHEREwww\": syntax error", resErrString(_res), "\n    CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t3 VALUES(3,4);\n    UPDATE t3 SET a=0 WHEREwww b=2;\n  ")
 		}
 	}
 	{ // do_test "misc1-5.2"
@@ -300,13 +300,13 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-6.1"
 		_res = db.Exec("\n    CREATE TABLE t4(\n      abort, asc, begin, cluster, conflict, copy, delimiters, desc, end,\n      explain, fail, ignore, key, offset, pragma, replace, temp,\n      vacuum, view\n    );\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(\n      abort, asc, begin, cluster, conflict, copy, delimiters, desc, end,\n      explain, fail, ignore, key, offset, pragma, replace, temp,\n      vacuum, view\n    );\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t4(\n      abort, asc, begin, cluster, conflict, copy, delimiters, desc, end,\n      explain, fail, ignore, key, offset, pragma, replace, temp,\n      vacuum, view\n    );\n  ")
 		}
 	}
 	{ // do_test "misc1-6.2"
 		_res = db.Exec("\n    INSERT INTO t4\n       VALUES(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t4\n       VALUES(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t4\n       VALUES(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19);\n  ")
 		}
 	}
 	{ // do_test "misc1-6.3"
@@ -324,13 +324,13 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-7.1"
 		_res = db.Exec("\n    CREATE TABLE error1(\n      a TYPE PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table \"error1\" has more than one primary key") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"error1\" has more than one primary key", _res.Error, "\n    CREATE TABLE error1(\n      a TYPE PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"error1\" has more than one primary key", resErrString(_res), "\n    CREATE TABLE error1(\n      a TYPE PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );\n  ")
 		}
 	}
 	{ // do_test "misc1-7.2"
 		_res = db.Exec("\n    CREATE TABLE error1(\n      a INTEGER PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table \"error1\" has more than one primary key") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"error1\" has more than one primary key", _res.Error, "\n    CREATE TABLE error1(\n      a INTEGER PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"error1\" has more than one primary key", resErrString(_res), "\n    CREATE TABLE error1(\n      a INTEGER PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );\n  ")
 		}
 	}
 	{ // do_test "misc1-7.3"
@@ -342,13 +342,13 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-7.4"
 		_res = db.Exec("\n    INSERT INTO t5 VALUES(1,2,4);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t5.a, t5.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t5.a, t5.b", _res.Error, "\n    INSERT INTO t5 VALUES(1,2,4);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t5.a, t5.b", resErrString(_res), "\n    INSERT INTO t5 VALUES(1,2,4);\n  ")
 		}
 	}
 	{ // do_test "misc1-7.5"
 		_res = db.Exec("\n    INSERT INTO t5 VALUES(0,2,4);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t5 VALUES(0,2,4);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t5 VALUES(0,2,4);\n  ")
 		}
 	}
 	{ // do_test "misc1-7.6"
@@ -360,13 +360,13 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-8.1"
 		_res = db.Exec("\n    SELECT *;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no tables specified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", _res.Error, "\n    SELECT *;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", resErrString(_res), "\n    SELECT *;\n  ")
 		}
 	}
 	{ // do_test "misc1-8.2"
 		_res = db.Exec("\n    SELECT t1.*;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1", _res.Error, "\n    SELECT t1.*;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1", resErrString(_res), "\n    SELECT t1.*;\n  ")
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;\n")
@@ -376,7 +376,7 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-9.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a unique not null, b unique not null);\n    INSERT INTO t1 VALUES('a',1234567890123456789);\n    INSERT INTO t1 VALUES('b',1234567891123456789);\n    INSERT INTO t1 VALUES('c',1234567892123456789);\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a unique not null, b unique not null);\n    INSERT INTO t1 VALUES('a',1234567890123456789);\n    INSERT INTO t1 VALUES('b',1234567891123456789);\n    INSERT INTO t1 VALUES('c',1234567892123456789);\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a unique not null, b unique not null);\n    INSERT INTO t1 VALUES('a',1234567890123456789);\n    INSERT INTO t1 VALUES('b',1234567891123456789);\n    INSERT INTO t1 VALUES('c',1234567892123456789);\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "misc1-10.0"
@@ -408,7 +408,7 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-10.2"
 		_res = db.Exec("SELECT count(*) FROM manycol " + where + " AND rowid>0")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT count(*) FROM manycol " + where + " AND rowid>0")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT count(*) FROM manycol " + where + " AND rowid>0")
 		}
 	}
 	{ // do_test "misc1-10.3"
@@ -426,7 +426,7 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-10.5"
 		_res = db.Exec("DELETE FROM manycol " + where + " AND rowid>0")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "DELETE FROM manycol " + where + " AND rowid>0")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "DELETE FROM manycol " + where + " AND rowid>0")
 		}
 	}
 	{ // do_test "misc1-10.6"
@@ -450,7 +450,7 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-10.9"
 		_res = db.Exec("UPDATE manycol SET x1=x1+1 " + where + " AND rowid>0")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "UPDATE manycol SET x1=x1+1 " + where + " AND rowid>0")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "UPDATE manycol SET x1=x1+1 " + where + " AND rowid>0")
 		}
 	}
 	{ // do_test "misc1-10.10"
@@ -634,25 +634,25 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-15.1.1"
 		_res = db.Exec("\n    CREATE TABLE t10 AS SELECT c1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: c1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: c1", _res.Error, "\n    CREATE TABLE t10 AS SELECT c1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: c1", resErrString(_res), "\n    CREATE TABLE t10 AS SELECT c1;\n  ")
 		}
 	}
 	{ // do_test "misc1-15.1.2"
 		_res = db.Exec("\n    CREATE TABLE t10 AS SELECT t9.c1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t9.c1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t9.c1", _res.Error, "\n    CREATE TABLE t10 AS SELECT t9.c1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t9.c1", resErrString(_res), "\n    CREATE TABLE t10 AS SELECT t9.c1;\n  ")
 		}
 	}
 	{ // do_test "misc1-15.1.3"
 		_res = db.Exec("\n    CREATE TABLE t10 AS SELECT main.t9.c1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: main.t9.c1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: main.t9.c1", _res.Error, "\n    CREATE TABLE t10 AS SELECT main.t9.c1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: main.t9.c1", resErrString(_res), "\n    CREATE TABLE t10 AS SELECT main.t9.c1;\n  ")
 		}
 	}
 	{ // do_test "misc1-15.2"
 		_res = db.Exec("\n    CREATE TABLE t10 AS SELECT 1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t10 AS SELECT 1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t10 AS SELECT 1;\n  ")
 		}
 	}
 	{ // do_test "misc1-16.1"
@@ -664,13 +664,13 @@ func Test_misc1(t *testing.T) {
 	{ // do_test "misc1-16.2"
 		_res = db.Exec("\n    CREATE TABLE test(a integer, primary key(a));\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table test already exists") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table test already exists", _res.Error, "\n    CREATE TABLE test(a integer, primary key(a));\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table test already exists", resErrString(_res), "\n    CREATE TABLE test(a integer, primary key(a));\n  ")
 		}
 	}
 	{ // do_test "misc1-16.3"
 		_res = db.Exec("\n    CREATE TABLE test2(a text primary key, b text, primary key(a,b));\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table \"test2\" has more than one primary key") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"test2\" has more than one primary key", _res.Error, "\n    CREATE TABLE test2(a text primary key, b text, primary key(a,b));\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table \"test2\" has more than one primary key", resErrString(_res), "\n    CREATE TABLE test2(a text primary key, b text, primary key(a,b));\n  ")
 		}
 	}
 	{ // do_test "misc1-16.4"
@@ -776,13 +776,13 @@ func Test_misc1(t *testing.T) {
 	{ // "misc1-21.1"
 		_res = db.Exec("\n  select''like''like''like#0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#0\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#0\": syntax error", _res.Error, "\n  select''like''like''like#0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#0\": syntax error", resErrString(_res), "\n  select''like''like''like#0;\n")
 		}
 	}
 	{ // "misc1-21.2"
 		_res = db.Exec("\n  VALUES(0,0x0MATCH#0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"0x0MATCH\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"0x0MATCH\"", _res.Error, "\n  VALUES(0,0x0MATCH#0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"0x0MATCH\"", resErrString(_res), "\n  VALUES(0,0x0MATCH#0;\n")
 		}
 	}
 	{ // "misc1-22.1"
@@ -817,7 +817,7 @@ func Test_misc1(t *testing.T) {
 	{ // "misc1-23.2"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: F") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: F", _res.Error, "\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: F", resErrString(_res), "\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		}
 	}
 	db.Close()
@@ -828,7 +828,7 @@ func Test_misc1(t *testing.T) {
 	{ // "misc1-23.3"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;\n")
 		}
 	}
 	{ // do_test "misc1-24.0"

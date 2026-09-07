@@ -110,7 +110,7 @@ func Test_fordelete(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, b);\n")
 		}
 	}
 	// foreach {tn sql res} "1 { DELETE FROM t1 WHERE a=?}          { sqlite_autoindex_t1_1  t1*+ }\n  2 { DELETE FROM t1 WHERE a=? AND b=? } { sqlite_autoindex_t1_1  t1+  }\n  3 { DELETE FROM t1 WHERE a>? }         { sqlite_autoindex_t1_1  t1*+ }\n  4 { DELETE FROM t1 WHERE rowid=? }     { sqlite_autoindex_t1_1*  t1  }"
@@ -128,7 +128,7 @@ func Test_fordelete(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2a ON t2(a);\n  CREATE INDEX t2b ON t2(b);\n  CREATE INDEX t2c ON t2(c);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2a ON t2(a);\n  CREATE INDEX t2b ON t2(b);\n  CREATE INDEX t2c ON t2(c);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2a ON t2(a);\n  CREATE INDEX t2b ON t2(b);\n  CREATE INDEX t2c ON t2(c);\n")
 			}
 		}
 		// foreach {tn sql res} "1 { DELETE FROM t2 WHERE a=?}          { t2*+ t2a t2b* t2c* }\n  2 { DELETE FROM t2 WHERE a=? AND +b=?} { t2+ t2a t2b* t2c* }\n  3 { DELETE FROM t2 WHERE a=? OR b=?}   { t2 t2a* t2b* t2c* }\n  4 { DELETE FROM t2 WHERE +a=? }        { t2 t2a* t2b* t2c* }\n  5 { DELETE FROM t2 WHERE rowid=? }     { t2 t2a* t2b* t2c* }"
@@ -146,7 +146,7 @@ func Test_fordelete(t *testing.T) {
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b, c, d);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b, c, d);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b, c, d);\n")
 				}
 			}
 			{ // do_test "3.1"
@@ -187,7 +187,7 @@ func Test_fordelete(t *testing.T) {
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n  DELETE FROM p1 WHERE one = 'a';\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n  DELETE FROM p1 WHERE one = 'a';\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n  DELETE FROM p1 WHERE one = 'a';\n")
 				}
 			}
 			db.Close()
@@ -200,7 +200,7 @@ func Test_fordelete(t *testing.T) {
 			{ // "4.1"
 				_res = db.Exec("\n  BEGIN TRANSACTION;\n  CREATE TABLE tbl(a PRIMARY KEY, b, c);\n  CREATE TABLE log(a, b, c);\n  INSERT INTO \"tbl\" VALUES(1,2,3);\n  CREATE TRIGGER the_trigger BEFORE DELETE ON tbl BEGIN \n    INSERT INTO log VALUES(1, 2,3);\n  END;\n  COMMIT;\n  DELETE FROM tbl WHERE a=1;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN TRANSACTION;\n  CREATE TABLE tbl(a PRIMARY KEY, b, c);\n  CREATE TABLE log(a, b, c);\n  INSERT INTO \"tbl\" VALUES(1,2,3);\n  CREATE TRIGGER the_trigger BEFORE DELETE ON tbl BEGIN \n    INSERT INTO log VALUES(1, 2,3);\n  END;\n  COMMIT;\n  DELETE FROM tbl WHERE a=1;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN TRANSACTION;\n  CREATE TABLE tbl(a PRIMARY KEY, b, c);\n  CREATE TABLE log(a, b, c);\n  INSERT INTO \"tbl\" VALUES(1,2,3);\n  CREATE TRIGGER the_trigger BEFORE DELETE ON tbl BEGIN \n    INSERT INTO log VALUES(1, 2,3);\n  END;\n  COMMIT;\n  DELETE FROM tbl WHERE a=1;\n")
 				}
 			}
 			db.Close()
@@ -231,7 +231,7 @@ func Test_fordelete(t *testing.T) {
 			{ // "5.3"
 				_res = db.Exec("\n  DELETE FROM t1 WHERE a = 2;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a = 2;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE a = 2;\n")
 				}
 			}
 }

@@ -72,7 +72,7 @@ func Test_reservebytes(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")
 		}
 	}
 	db2, err = frigolite.Open("test.db")

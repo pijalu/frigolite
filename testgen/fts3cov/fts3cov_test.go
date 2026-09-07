@@ -290,7 +290,7 @@ func Test_fts3cov(t *testing.T) {
 	{ // "14.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t14 USING fts4(a, b);\n  INSERT INTO t14 VALUES('one two three', 'one three four');\n  INSERT INTO t14 VALUES('a b c', 'd e a');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t14 USING fts4(a, b);\n  INSERT INTO t14 VALUES('one two three', 'one three four');\n  INSERT INTO t14 VALUES('a b c', 'd e a');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t14 USING fts4(a, b);\n  INSERT INTO t14 VALUES('one two three', 'one three four');\n  INSERT INTO t14 VALUES('a b c', 'd e a');\n")
 		}
 	}
 	{ // "14.1"
@@ -332,19 +332,19 @@ func Test_fts3cov(t *testing.T) {
 	{ // "14.6"
 		_res = db.Exec("\n  SELECT rowid FROM t14 WHERE rowid MATCH 'one'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", _res.Error, "\n  SELECT rowid FROM t14 WHERE rowid MATCH 'one'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n  SELECT rowid FROM t14 WHERE rowid MATCH 'one'\n")
 		}
 	}
 	{ // "14.7"
 		_res = db.Exec("\n  SELECT rowid FROM t14 WHERE docid MATCH 'one'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", _res.Error, "\n  SELECT rowid FROM t14 WHERE docid MATCH 'one'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n  SELECT rowid FROM t14 WHERE docid MATCH 'one'\n")
 		}
 	}
 	{ // "15.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t15 USING fts4(a, b, c);\n  INSERT INTO t15 VALUES('abc def ghi', 'abc2 def2 ghi2', 'abc3 def3 ghi3');\n  INSERT INTO t15 VALUES('abc2 def2 ghi2', 'abc2 def2 ghi2', 'abc def3 ghi3');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t15 USING fts4(a, b, c);\n  INSERT INTO t15 VALUES('abc def ghi', 'abc2 def2 ghi2', 'abc3 def3 ghi3');\n  INSERT INTO t15 VALUES('abc2 def2 ghi2', 'abc2 def2 ghi2', 'abc def3 ghi3');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t15 USING fts4(a, b, c);\n  INSERT INTO t15 VALUES('abc def ghi', 'abc2 def2 ghi2', 'abc3 def3 ghi3');\n  INSERT INTO t15 VALUES('abc2 def2 ghi2', 'abc2 def2 ghi2', 'abc def3 ghi3');\n")
 		}
 	}
 	{ // "15.1"
@@ -363,25 +363,25 @@ func Test_fts3cov(t *testing.T) {
 	{ // "16.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;\n")
 		}
 	}
 	{ // "16.2"
 		_res = db.Exec("\n  SELECT * FROM t16 WHERE t16 MATCH 'invisible'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM t16 WHERE t16 MATCH 'invisible'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM t16 WHERE t16 MATCH 'invisible'\n")
 		}
 	}
 	{ // "17.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t17 USING fts4;\n  INSERT INTO t17(content) VALUES('one one one');\n  UPDATE t17_segdir SET root = X'00036F6E65FFFFFFFFFFFFFFFFFFFFFF02030300'\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t17 USING fts4;\n  INSERT INTO t17(content) VALUES('one one one');\n  UPDATE t17_segdir SET root = X'00036F6E65FFFFFFFFFFFFFFFFFFFFFF02030300'\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t17 USING fts4;\n  INSERT INTO t17(content) VALUES('one one one');\n  UPDATE t17_segdir SET root = X'00036F6E65FFFFFFFFFFFFFFFFFFFFFF02030300'\n")
 		}
 	}
 	{ // "17.2"
 		_res = db.Exec("\n  SELECT * FROM t17 WHERE t17 MATCH 'one'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM t17 WHERE t17 MATCH 'one'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM t17 WHERE t17 MATCH 'one'\n")
 		}
 	}
 }

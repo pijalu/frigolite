@@ -148,25 +148,25 @@ func Test_alter3(t *testing.T) {
 	{ // do_test "alter3-2.2"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD c UNIQUE\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a UNIQUE column") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a UNIQUE column", _res.Error, "\n    ALTER TABLE t1 ADD c UNIQUE\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a UNIQUE column", resErrString(_res), "\n    ALTER TABLE t1 ADD c UNIQUE\n  ")
 		}
 	}
 	{ // do_test "alter3-2.3"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD b VARCHAR(10)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate column name: b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate column name: b", _res.Error, "\n    ALTER TABLE t1 ADD b VARCHAR(10)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate column name: b", resErrString(_res), "\n    ALTER TABLE t1 ADD b VARCHAR(10)\n  ")
 		}
 	}
 	{ // do_test "alter3-2.3"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD c NOT NULL;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a NOT NULL column with default value NULL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a NOT NULL column with default value NULL", _res.Error, "\n    ALTER TABLE t1 ADD c NOT NULL;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a NOT NULL column with default value NULL", resErrString(_res), "\n    ALTER TABLE t1 ADD c NOT NULL;\n  ")
 		}
 	}
 	{ // do_test "alter3-2.4"
 		_res = db.Exec("\n    ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n  ")
 		}
 	}
 	{ // do_test "alter3-2.5"
@@ -180,7 +180,7 @@ func Test_alter3(t *testing.T) {
 	{ // do_test "alter3-2.6"
 		_res = db.Exec("\n    alter table t1 add column d DEFAULT CURRENT_TIME;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a column with non-constant default") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column with non-constant default", _res.Error, "\n    alter table t1 add column d DEFAULT CURRENT_TIME;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a column with non-constant default", resErrString(_res), "\n    alter table t1 add column d DEFAULT CURRENT_TIME;\n  ")
 		}
 	}
 	{ // do_test "alter3-2.99"
@@ -418,73 +418,73 @@ func Test_alter3(t *testing.T) {
 	{ // "alter3-9.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 2), ('null!',NULL), (3,4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 2), ('null!',NULL), (3,4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 2), ('null!',NULL), (3,4);\n")
 		}
 	}
 	{ // "alter3-9.2"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=1);\n")
 		}
 	}
 	{ // "alter3-9.3"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=3);\n")
 		}
 	}
 	{ // "alter3-9.4"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);\n")
 		}
 	}
 	{ // "alter3-9.5"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL;\n")
 		}
 	}
 	{ // "alter3-9.6"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=1);\n")
 		}
 	}
 	{ // "alter3-9.7"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", resErrString(_res), "\n  ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=3);\n")
 		}
 	}
 	{ // "alter3-9.10"
 		_res = db.Exec("\n  CREATE TEMP TABLE t0(m,n);\n  INSERT INTO t0 VALUES(1, 2), ('null!',NULL), (3,4);\n  ATTACH ':memory:' AS aux1;\n  CREATE TABLE aux1.t2(x,y);\n  INSERT INTO t2 VALUES(1, 2), ('null!',NULL), (3,4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t0(m,n);\n  INSERT INTO t0 VALUES(1, 2), ('null!',NULL), (3,4);\n  ATTACH ':memory:' AS aux1;\n  CREATE TABLE aux1.t2(x,y);\n  INSERT INTO t2 VALUES(1, 2), ('null!',NULL), (3,4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TEMP TABLE t0(m,n);\n  INSERT INTO t0 VALUES(1, 2), ('null!',NULL), (3,4);\n  ATTACH ':memory:' AS aux1;\n  CREATE TABLE aux1.t2(x,y);\n  INSERT INTO t2 VALUES(1, 2), ('null!',NULL), (3,4);\n")
 		}
 	}
 	{ // "alter3-9.11"
 		_res = db.Exec("\n  ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", _res.Error, "\n  ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", resErrString(_res), "\n  ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=1);\n")
 		}
 	}
 	{ // "alter3-9.12"
 		_res = db.Exec("\n  ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", _res.Error, "\n  ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", resErrString(_res), "\n  ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=3);\n")
 		}
 	}
 	{ // "alter3-9.13"
 		_res = db.Exec("\n  ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", _res.Error, "\n  ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed", resErrString(_res), "\n  ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=1);\n")
 		}
 	}
 	{ // "alter3-9.14"
 		_res = db.Exec("\n  ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", _res.Error, "\n  ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed", resErrString(_res), "\n  ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=3);\n")
 		}
 	}
 }

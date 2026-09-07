@@ -75,7 +75,7 @@ func Test_orderby9(t *testing.T) {
 	{ // "setup"
 		_res = db.Exec("\n  -- create a table with many entries\n  CREATE TABLE t1(x);\n  WITH RECURSIVE\n     c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1 SELECT x FROM c;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- create a table with many entries\n  CREATE TABLE t1(x);\n  WITH RECURSIVE\n     c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1 SELECT x FROM c;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  -- create a table with many entries\n  CREATE TABLE t1(x);\n  WITH RECURSIVE\n     c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1 SELECT x FROM c;\n")
 		}
 	}
 	// proc definition (not transpiled)

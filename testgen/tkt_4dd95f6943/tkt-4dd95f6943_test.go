@@ -80,7 +80,7 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES (3), (4), (2), (1), (5), (6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES (3), (4), (2), (1), (5), (6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES (3), (4), (2), (1), (5), (6);\n")
 		}
 	}
 	// foreach {tn1 idx} "1 { CREATE INDEX i1 ON t1(x ASC) }\n  2 { CREATE INDEX i1 ON t1(x DESC) }"
@@ -94,13 +94,13 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 			{ // "1." + tn1 + ".1"
 				_res = db.Exec(" DROP INDEX IF EXISTS i1; ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1; ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP INDEX IF EXISTS i1; ")
 				}
 			}
 			{ // "1." + tn1 + ".2"
 				_res = db.Exec(idx)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idx)
 				}
 			}
 			{ // "1." + tn1 + ".3"
@@ -131,7 +131,7 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES (5, 3), (5, 4), (5, 2), (5, 1), (5, 5), (5, 6);\n  INSERT INTO t2 VALUES (1, 3), (1, 4), (1, 2), (1, 1), (1, 5), (1, 6);\n  INSERT INTO t2 VALUES (3, 3), (3, 4), (3, 2), (3, 1), (3, 5), (3, 6);\n  INSERT INTO t2 VALUES (2, 3), (2, 4), (2, 2), (2, 1), (2, 5), (2, 6);\n  INSERT INTO t2 VALUES (4, 3), (4, 4), (4, 2), (4, 1), (4, 5), (4, 6);\n  INSERT INTO t2 VALUES (6, 3), (6, 4), (6, 2), (6, 1), (6, 5), (6, 6);\n\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES (2, 2), (4, 4), (5, 5);\n  CREATE UNIQUE INDEX t3i1 ON t3(a ASC);\n  CREATE UNIQUE INDEX t3i2 ON t3(b DESC);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES (5, 3), (5, 4), (5, 2), (5, 1), (5, 5), (5, 6);\n  INSERT INTO t2 VALUES (1, 3), (1, 4), (1, 2), (1, 1), (1, 5), (1, 6);\n  INSERT INTO t2 VALUES (3, 3), (3, 4), (3, 2), (3, 1), (3, 5), (3, 6);\n  INSERT INTO t2 VALUES (2, 3), (2, 4), (2, 2), (2, 1), (2, 5), (2, 6);\n  INSERT INTO t2 VALUES (4, 3), (4, 4), (4, 2), (4, 1), (4, 5), (4, 6);\n  INSERT INTO t2 VALUES (6, 3), (6, 4), (6, 2), (6, 1), (6, 5), (6, 6);\n\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES (2, 2), (4, 4), (5, 5);\n  CREATE UNIQUE INDEX t3i1 ON t3(a ASC);\n  CREATE UNIQUE INDEX t3i2 ON t3(b DESC);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES (5, 3), (5, 4), (5, 2), (5, 1), (5, 5), (5, 6);\n  INSERT INTO t2 VALUES (1, 3), (1, 4), (1, 2), (1, 1), (1, 5), (1, 6);\n  INSERT INTO t2 VALUES (3, 3), (3, 4), (3, 2), (3, 1), (3, 5), (3, 6);\n  INSERT INTO t2 VALUES (2, 3), (2, 4), (2, 2), (2, 1), (2, 5), (2, 6);\n  INSERT INTO t2 VALUES (4, 3), (4, 4), (4, 2), (4, 1), (4, 5), (4, 6);\n  INSERT INTO t2 VALUES (6, 3), (6, 4), (6, 2), (6, 1), (6, 5), (6, 6);\n\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES (2, 2), (4, 4), (5, 5);\n  CREATE UNIQUE INDEX t3i1 ON t3(a ASC);\n  CREATE UNIQUE INDEX t3i2 ON t3(b DESC);\n")
 			}
 		}
 		// foreach {tn1 idx} "1 { CREATE INDEX i1 ON t2(x ASC,  y ASC) }\n  2 { CREATE INDEX i1 ON t2(x ASC,  y DESC) }\n  3 { CREATE INDEX i1 ON t2(x DESC, y ASC) }\n  4 { CREATE INDEX i1 ON t2(x DESC, y DESC) }\n\n  5 { CREATE INDEX i1 ON t2(y ASC,  x ASC) }\n  6 { CREATE INDEX i1 ON t2(y ASC,  x DESC) }\n  7 { CREATE INDEX i1 ON t2(y DESC, x ASC) }\n  8 { CREATE INDEX i1 ON t2(y DESC, x DESC) }"
@@ -145,13 +145,13 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 				{ // "2." + tn1 + ".1"
 					_res = db.Exec(" DROP INDEX IF EXISTS i1; ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1; ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP INDEX IF EXISTS i1; ")
 					}
 				}
 				{ // "2." + tn1 + ".2"
 					_res = db.Exec(idx)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idx)
 					}
 				}
 				// foreach {tn2 inexpr} "3  \"(2, 4, 5)\"\n    4  \"(SELECT a FROM t3)\"\n    5  \"(SELECT b FROM t3)\""
@@ -311,7 +311,7 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 				{ // "3.0"
 					_res = db.Exec("\n  CREATE TABLE t7(x);\n  INSERT INTO t7 VALUES (1), (2), (3);\n  CREATE INDEX i7 ON t7(x);\n\n  CREATE TABLE t8(y);\n  INSERT INTO t8 VALUES (1), (2), (3);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(x);\n  INSERT INTO t7 VALUES (1), (2), (3);\n  CREATE INDEX i7 ON t7(x);\n\n  CREATE TABLE t8(y);\n  INSERT INTO t8 VALUES (1), (2), (3);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t7(x);\n  INSERT INTO t7 VALUES (1), (2), (3);\n  CREATE INDEX i7 ON t7(x);\n\n  CREATE TABLE t8(y);\n  INSERT INTO t8 VALUES (1), (2), (3);\n")
 					}
 				}
 				// foreach {tn idxdir sortdir sortdata} "1 ASC  ASC  {1 2 3}\n  2 ASC  DESC {3 2 1}\n  3 DESC ASC  {1 2 3}\n  4 ASC  DESC {3 2 1}"

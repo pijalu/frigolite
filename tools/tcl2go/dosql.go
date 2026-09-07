@@ -214,7 +214,7 @@ func (tp *transpiler) emitExecSQLTestBody(nameExpr, dbConn, sqlExpr, expectedExp
 	}
 	tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 	tp.emitLine("}")
 }
 
@@ -224,7 +224,7 @@ func (tp *transpiler) emitExpectedErrorExec(dbConn, sqlExpr, expectedExpr string
 	errMsg := extractExpectedErrorFromLiteral(expectedExpr)
 	tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 	tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %q) {", errMsg)
-	tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, _res.Error, %s)", errMsg, sqlExpr)
+	tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, resErrString(_res), %s)", errMsg, sqlExpr)
 	tp.emitLine("}")
 }
 
@@ -692,7 +692,7 @@ func (tp *transpiler) emitFTSWriteExec(nameWord, sqlWord tcl.RawWord) {
 	tp.indent++
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 	tp.emitLine("}")
 	tp.indent--
 	tp.emitLine("}")
@@ -760,11 +760,11 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if %s == \"\" {", msgVar)
 		tp.emitLine("\tif _res.Error != nil {")
-		tp.emitLine("\t\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+		tp.emitLine("\t\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 		tp.emitLine("\t}")
 		tp.emitLine("} else {")
 		tp.emitLine("\tif _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", msgVar)
-		tp.emitLine("\t\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, _res.Error, %s)", msgVar, sqlExpr)
+		tp.emitLine("\t\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, resErrString(_res), %s)", msgVar, sqlExpr)
 		tp.emitLine("\t}")
 		tp.emitLine("}")
 		return
@@ -787,7 +787,7 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 		// ("0 {}") is checked as success, not as an empty error message.
 		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", dynamic)
-		tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  sql: %%s\", _res.Error, %s, %s)", dynamic, sqlExpr)
+		tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  sql: %%s\", resErrString(_res), %s, %s)", dynamic, sqlExpr)
 		tp.emitLine("}")
 		return
 	}
@@ -820,7 +820,7 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 		pattern = strings.ReplaceAll(pattern, `\y`, `\b`)
 		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(%q, _res.Error.Error()); return m }() {", pattern)
-		tp.emitLine("\tt.Errorf(\"expected error matching %s, got: %%v\\n  sql: %%s\", %q, _res.Error, %s)", `%q`, pattern, sqlExpr)
+		tp.emitLine("\tt.Errorf(\"expected error matching %s, got: %%v\\n  sql: %%s\", %q, resErrString(_res), %s)", `%q`, pattern, sqlExpr)
 		tp.emitLine("}")
 		return
 	}
@@ -828,7 +828,7 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 		// TCL do_catchsql_test {0 {}} — the statement is expected to succeed.
 		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if _res.Error != nil {")
-		tp.emitLine("\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+		tp.emitLine("\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 		tp.emitLine("}")
 		return
 	}
@@ -837,14 +837,14 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 		// (e.g. the loop variable `_error` holding "row value misused").
 		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", errMsgDynamic)
-		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %s, _res.Error, %s)", errMsgDynamic, sqlExpr)
+		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %s, resErrString(_res), %s)", errMsgDynamic, sqlExpr)
 		tp.emitLine("}")
 		return
 	}
 	if errMsg != "" {
 		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %q) {", errMsg)
-		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, _res.Error, %s)", errMsg, sqlExpr)
+		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, resErrString(_res), %s)", errMsg, sqlExpr)
 		tp.emitLine("}")
 		return
 	}
@@ -889,7 +889,7 @@ func (tp *transpiler) processDoPreupdateTest(args []tcl.RawWord) {
 	tp.emitLine("preupdate = \"\"")
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"preupdate exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("\tt.Errorf(\"preupdate exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 	tp.emitLine("}")
 	tp.emitLine("if tclListFlatten(preupdate) != strings.Join(tclSplitList(%s), \" \") {", expectedExpr)
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_preupdate_test %%s\", tclListFlatten(preupdate), strings.Join(tclSplitList(%s), \" \"), %s)", expectedExpr, nameExpr)
@@ -942,7 +942,7 @@ func (tp *transpiler) processDoChangesLikeTest(args []tcl.RawWord, counter strin
 	} else {
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 		tp.emitLine("if _res.Error != nil {")
-		tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+		tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 		tp.emitLine("}")
 		tp.emitLine("got := \"\"")
 	}

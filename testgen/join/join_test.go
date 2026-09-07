@@ -362,79 +362,79 @@ func Test_join(t *testing.T) {
 	{ // do_test "join-3.1"
 		_res = db.Exec("\n    SELECT * FROM t1 NATURAL JOIN t2 ON t1.a=t2.b;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a NATURAL join may not have an ON or USING clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", _res.Error, "\n    SELECT * FROM t1 NATURAL JOIN t2 ON t1.a=t2.b;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", resErrString(_res), "\n    SELECT * FROM t1 NATURAL JOIN t2 ON t1.a=t2.b;\n  ")
 		}
 	}
 	{ // do_test "join-3.2"
 		_res = db.Exec("\n    SELECT * FROM t1 NATURAL JOIN t2 USING(b);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a NATURAL join may not have an ON or USING clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", _res.Error, "\n    SELECT * FROM t1 NATURAL JOIN t2 USING(b);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a NATURAL join may not have an ON or USING clause", resErrString(_res), "\n    SELECT * FROM t1 NATURAL JOIN t2 USING(b);\n  ")
 		}
 	}
 	{ // do_test "join-3.3"
 		_res = db.Exec("\n    SELECT * FROM t1 JOIN t2 ON t1.a=t2.b USING(b);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"USING\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", _res.Error, "\n    SELECT * FROM t1 JOIN t2 ON t1.a=t2.b USING(b);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", resErrString(_res), "\n    SELECT * FROM t1 JOIN t2 ON t1.a=t2.b USING(b);\n  ")
 		}
 	}
 	{ // do_test "join-3.4.1"
 		_res = db.Exec("\n    SELECT * FROM t1 JOIN t2 USING(a);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot join using column a - column not present in both tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot join using column a - column not present in both tables", _res.Error, "\n    SELECT * FROM t1 JOIN t2 USING(a);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot join using column a - column not present in both tables", resErrString(_res), "\n    SELECT * FROM t1 JOIN t2 USING(a);\n  ")
 		}
 	}
 	{ // do_test "join-3.4.2"
 		_res = db.Exec("\n    SELECT * FROM t1 JOIN t2 USING(d);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot join using column d - column not present in both tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot join using column d - column not present in both tables", _res.Error, "\n    SELECT * FROM t1 JOIN t2 USING(d);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot join using column d - column not present in both tables", resErrString(_res), "\n    SELECT * FROM t1 JOIN t2 USING(d);\n  ")
 		}
 	}
 	{ // do_test "join-3.5"
 		_res = db.Exec(" SELECT * FROM t1 USING(a) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a JOIN clause is required before USING") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before USING", _res.Error, " SELECT * FROM t1 USING(a) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a JOIN clause is required before USING", resErrString(_res), " SELECT * FROM t1 USING(a) ")
 		}
 	}
 	{ // do_test "join-3.6"
 		_res = db.Exec("\n    SELECT * FROM t1 JOIN t2 ON t3.a=t2.b;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t3.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t3.a", _res.Error, "\n    SELECT * FROM t1 JOIN t2 ON t3.a=t2.b;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t3.a", resErrString(_res), "\n    SELECT * FROM t1 JOIN t2 ON t3.a=t2.b;\n  ")
 		}
 	}
 	{ // do_test "join-3.7"
 		_res = db.Exec("\n    SELECT * FROM t1 INNER OUTER JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: INNER OUTER") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER OUTER", _res.Error, "\n    SELECT * FROM t1 INNER OUTER JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER OUTER", resErrString(_res), "\n    SELECT * FROM t1 INNER OUTER JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "join-3.8"
 		_res = db.Exec("\n    SELECT * FROM t1 INNER OUTER CROSS JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: INNER OUTER CROSS") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER OUTER CROSS", _res.Error, "\n    SELECT * FROM t1 INNER OUTER CROSS JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER OUTER CROSS", resErrString(_res), "\n    SELECT * FROM t1 INNER OUTER CROSS JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "join-3.9"
 		_res = db.Exec("\n    SELECT * FROM t1 OUTER NATURAL INNER JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: OUTER NATURAL INNER") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: OUTER NATURAL INNER", _res.Error, "\n    SELECT * FROM t1 OUTER NATURAL INNER JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: OUTER NATURAL INNER", resErrString(_res), "\n    SELECT * FROM t1 OUTER NATURAL INNER JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "join-3.10"
 		_res = db.Exec("\n    SELECT * FROM t1 LEFT BOGUS JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: LEFT BOGUS") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: LEFT BOGUS", _res.Error, "\n    SELECT * FROM t1 LEFT BOGUS JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: LEFT BOGUS", resErrString(_res), "\n    SELECT * FROM t1 LEFT BOGUS JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "join-3.11"
 		_res = db.Exec("\n    SELECT * FROM t1 INNER BOGUS CROSS JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: INNER BOGUS CROSS") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER BOGUS CROSS", _res.Error, "\n    SELECT * FROM t1 INNER BOGUS CROSS JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: INNER BOGUS CROSS", resErrString(_res), "\n    SELECT * FROM t1 INNER BOGUS CROSS JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "join-3.12"
 		_res = db.Exec("\n    SELECT * FROM t1 NATURAL AWK SED JOIN t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown join type: NATURAL AWK SED") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: NATURAL AWK SED", _res.Error, "\n    SELECT * FROM t1 NATURAL AWK SED JOIN t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown join type: NATURAL AWK SED", resErrString(_res), "\n    SELECT * FROM t1 NATURAL AWK SED JOIN t2;\n  ")
 		}
 	}
 	{ // do_test "join-4.1"
@@ -695,7 +695,7 @@ func Test_join(t *testing.T) {
 	{ // "join-12.1"
 		_res = db.Exec("\n  CREATE TABLE t14(x);\n  INSERT INTO t14 VALUES('abcdefghij');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t14(x);\n  INSERT INTO t14 VALUES('abcdefghij');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t14(x);\n  INSERT INTO t14 VALUES('abcdefghij');\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -709,7 +709,7 @@ func Test_join(t *testing.T) {
 	{ // "join-13.0"
 		_res = db.Exec("\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n\n  INSERT INTO aa VALUES(45);\n  INSERT INTO cc VALUES(45);\n  INSERT INTO cc VALUES(45);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n\n  INSERT INTO aa VALUES(45);\n  INSERT INTO cc VALUES(45);\n  INSERT INTO cc VALUES(45);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n\n  INSERT INTO aa VALUES(45);\n  INSERT INTO cc VALUES(45);\n  INSERT INTO cc VALUES(45);\n")
 		}
 	}
 	{ // "join-13.1"
@@ -1058,7 +1058,7 @@ func Test_join(t *testing.T) {
 	{ // "join-18.1"
 		_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  CREATE VIEW v0 AS SELECT a FROM t1 LEFT JOIN t0;\n  INSERT INTO t1 VALUES (1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  CREATE VIEW v0 AS SELECT a FROM t1 LEFT JOIN t0;\n  INSERT INTO t1 VALUES (1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  CREATE VIEW v0 AS SELECT a FROM t1 LEFT JOIN t0;\n  INSERT INTO t1 VALUES (1);\n")
 		}
 	}
 	{ // "join-18.2"
@@ -1107,7 +1107,7 @@ func Test_join(t *testing.T) {
 	{ // "join-19.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t1(a) VALUES(0);\n  CREATE VIEW v0(c) AS SELECT t2.b FROM t1 LEFT JOIN t2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t1(a) VALUES(0);\n  CREATE VIEW v0(c) AS SELECT t2.b FROM t1 LEFT JOIN t2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t1(a) VALUES(0);\n  CREATE VIEW v0(c) AS SELECT t2.b FROM t1 LEFT JOIN t2;\n")
 		}
 	}
 	{ // "join-19.1"
@@ -1282,7 +1282,7 @@ func Test_join(t *testing.T) {
 	{ // "join-24.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, x);\n  CREATE TABLE t2(b INT);\n  CREATE INDEX t1aa ON t1(a, a);\n\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t2 VALUES(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, x);\n  CREATE TABLE t2(b INT);\n  CREATE INDEX t1aa ON t1(a, a);\n\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t2 VALUES(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, x);\n  CREATE TABLE t2(b INT);\n  CREATE INDEX t1aa ON t1(a, a);\n\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t2 VALUES(1);\n")
 		}
 	}
 	{ // "join-24.2"
@@ -1353,19 +1353,19 @@ func Test_join(t *testing.T) {
 	{ // "join-27.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT,b INT,c INT);  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  CREATE TABLE t2(d INT,e INT);        INSERT INTO t2 VALUES(NULL,NULL);\n  CREATE INDEX x2 ON t1(c,b);\n  CREATE TABLE t3(x INT);              INSERT INTO t3 VALUES(NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT,b INT,c INT);  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  CREATE TABLE t2(d INT,e INT);        INSERT INTO t2 VALUES(NULL,NULL);\n  CREATE INDEX x2 ON t1(c,b);\n  CREATE TABLE t3(x INT);              INSERT INTO t3 VALUES(NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT,b INT,c INT);  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  CREATE TABLE t2(d INT,e INT);        INSERT INTO t2 VALUES(NULL,NULL);\n  CREATE INDEX x2 ON t1(c,b);\n  CREATE TABLE t3(x INT);              INSERT INTO t3 VALUES(NULL);\n")
 		}
 	}
 	{ // "join-27.2"
 		_res = db.Exec("\n  WITH t99(b) AS MATERIALIZED (\n    SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t99(b) AS MATERIALIZED (\n    SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t99(b) AS MATERIALIZED (\n    SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
 		}
 	}
 	{ // "join-27.3"
 		_res = db.Exec("\n  WITH t99(b) AS NOT MATERIALIZED (\n    SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t99(b) AS NOT MATERIALIZED (\n    SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t99(b) AS NOT MATERIALIZED (\n    SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
 		}
 	}
 	{ // "join-27.4"
@@ -1503,7 +1503,7 @@ func Test_join(t *testing.T) {
 	{ // "join-30.1"
 		_res = db.Exec("\n  CREATE TABLE t0(z INT);         INSERT INTO t0 VALUES(1),(2);\n  CREATE TABLE t1(a INT);         INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);         INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT, d INT);  INSERT INTO t3 VALUES(3,4);\n  CREATE TABLE t4(e INT);         INSERT INTO t4 VALUES(5);\n  CREATE VIEW v5(x,y) AS SELECT c, d FROM t3 LEFT JOIN t4 ON false;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(z INT);         INSERT INTO t0 VALUES(1),(2);\n  CREATE TABLE t1(a INT);         INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);         INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT, d INT);  INSERT INTO t3 VALUES(3,4);\n  CREATE TABLE t4(e INT);         INSERT INTO t4 VALUES(5);\n  CREATE VIEW v5(x,y) AS SELECT c, d FROM t3 LEFT JOIN t4 ON false;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(z INT);         INSERT INTO t0 VALUES(1),(2);\n  CREATE TABLE t1(a INT);         INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);         INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT, d INT);  INSERT INTO t3 VALUES(3,4);\n  CREATE TABLE t4(e INT);         INSERT INTO t4 VALUES(5);\n  CREATE VIEW v5(x,y) AS SELECT c, d FROM t3 LEFT JOIN t4 ON false;\n")
 		}
 	}
 	{ // "join-30.2"
@@ -1529,7 +1529,7 @@ func Test_join(t *testing.T) {
 	{ // "join-31.1"
 		_res = db.Exec("\n  CREATE TABLE t1(c0 INT , c1 INT); INSERT INTO t1(c0, c1) VALUES(NULL,11);\n  CREATE TABLE t2(c0 INT NOT NULL);\n  CREATE TABLE t2n(c0 INT);\n  CREATE TABLE t3(x INT);           INSERT INTO t3(x) VALUES(3);\n  CREATE TABLE t4(y INT);           INSERT INTO t4(y) VALUES(4);\n  CREATE TABLE t5(c0 INT, x INT);   INSERT INTO t5 VALUES(NULL, 5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c0 INT , c1 INT); INSERT INTO t1(c0, c1) VALUES(NULL,11);\n  CREATE TABLE t2(c0 INT NOT NULL);\n  CREATE TABLE t2n(c0 INT);\n  CREATE TABLE t3(x INT);           INSERT INTO t3(x) VALUES(3);\n  CREATE TABLE t4(y INT);           INSERT INTO t4(y) VALUES(4);\n  CREATE TABLE t5(c0 INT, x INT);   INSERT INTO t5 VALUES(NULL, 5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(c0 INT , c1 INT); INSERT INTO t1(c0, c1) VALUES(NULL,11);\n  CREATE TABLE t2(c0 INT NOT NULL);\n  CREATE TABLE t2n(c0 INT);\n  CREATE TABLE t3(x INT);           INSERT INTO t3(x) VALUES(3);\n  CREATE TABLE t4(y INT);           INSERT INTO t4(y) VALUES(4);\n  CREATE TABLE t5(c0 INT, x INT);   INSERT INTO t5 VALUES(NULL, 5);\n")
 		}
 	}
 	{ // "join-31.2"
@@ -1627,7 +1627,7 @@ func Test_join(t *testing.T) {
 	{ // "join-32.1"
 		_res = db.Exec("\n  CREATE TABLE t0(w INT);\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT UNIQUE);\n  CREATE VIEW v0(z) AS SELECT CAST(x AS INT) FROM t1 LEFT JOIN t2 ON true;\n  INSERT INTO t1(x) VALUES(123);\n  INSERT INTO t2(y) VALUES(NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(w INT);\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT UNIQUE);\n  CREATE VIEW v0(z) AS SELECT CAST(x AS INT) FROM t1 LEFT JOIN t2 ON true;\n  INSERT INTO t1(x) VALUES(123);\n  INSERT INTO t2(y) VALUES(NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(w INT);\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT UNIQUE);\n  CREATE VIEW v0(z) AS SELECT CAST(x AS INT) FROM t1 LEFT JOIN t2 ON true;\n  INSERT INTO t1(x) VALUES(123);\n  INSERT INTO t2(y) VALUES(NULL);\n")
 		}
 	}
 	{ // "join-32.2"
@@ -1665,7 +1665,7 @@ func Test_join(t *testing.T) {
 	{ // "join-33.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1);\n  CREATE TABLE t2(a2 INTEGER PRIMARY KEY, b2);\n  CREATE TABLE t3(a3 INTEGER PRIMARY KEY, b3);\n  CREATE TABLE t4(a4 INTEGER PRIMARY KEY, b4);\n  INSERT INTO t1 VALUES(1,11),(2,12),(3,13),       (5,15);\n  INSERT INTO t2 VALUES(1,21),       (3,23),(4,24),(5,25);\n  INSERT INTO t3 VALUES       (2,32),(3,33),       (5,35);\n  INSERT INTO t4 VALUES(1,41),(2,42),       (4,44),(5,45);\n  CREATE VIEW vchain AS\n    SELECT a1, b1, b2, b3, b4\n      FROM t1 LEFT JOIN t2 ON a1=a2\n              LEFT JOIN t3 ON a2=a3\n              LEFT JOIN t4 ON a3=a4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1);\n  CREATE TABLE t2(a2 INTEGER PRIMARY KEY, b2);\n  CREATE TABLE t3(a3 INTEGER PRIMARY KEY, b3);\n  CREATE TABLE t4(a4 INTEGER PRIMARY KEY, b4);\n  INSERT INTO t1 VALUES(1,11),(2,12),(3,13),       (5,15);\n  INSERT INTO t2 VALUES(1,21),       (3,23),(4,24),(5,25);\n  INSERT INTO t3 VALUES       (2,32),(3,33),       (5,35);\n  INSERT INTO t4 VALUES(1,41),(2,42),       (4,44),(5,45);\n  CREATE VIEW vchain AS\n    SELECT a1, b1, b2, b3, b4\n      FROM t1 LEFT JOIN t2 ON a1=a2\n              LEFT JOIN t3 ON a2=a3\n              LEFT JOIN t4 ON a3=a4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1);\n  CREATE TABLE t2(a2 INTEGER PRIMARY KEY, b2);\n  CREATE TABLE t3(a3 INTEGER PRIMARY KEY, b3);\n  CREATE TABLE t4(a4 INTEGER PRIMARY KEY, b4);\n  INSERT INTO t1 VALUES(1,11),(2,12),(3,13),       (5,15);\n  INSERT INTO t2 VALUES(1,21),       (3,23),(4,24),(5,25);\n  INSERT INTO t3 VALUES       (2,32),(3,33),       (5,35);\n  INSERT INTO t4 VALUES(1,41),(2,42),       (4,44),(5,45);\n  CREATE VIEW vchain AS\n    SELECT a1, b1, b2, b3, b4\n      FROM t1 LEFT JOIN t2 ON a1=a2\n              LEFT JOIN t3 ON a2=a3\n              LEFT JOIN t4 ON a3=a4;\n")
 		}
 	}
 	{ // "join-33.2"

@@ -64,13 +64,13 @@ func Test_fts3drop(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f1 USING fts3;\n  INSERT INTO f1 VALUES('a b c');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f1 USING fts3;\n  INSERT INTO f1 VALUES('a b c');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE f1 USING fts3;\n  INSERT INTO f1 VALUES('a b c');\n")
 		}
 	}
 	{ // "1.2"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO f1 VALUES('d e f');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('g h i');\n      DROP TABLE f1;\n    ROLLBACK TO one;\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO f1 VALUES('d e f');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('g h i');\n      DROP TABLE f1;\n    ROLLBACK TO one;\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO f1 VALUES('d e f');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('g h i');\n      DROP TABLE f1;\n    ROLLBACK TO one;\n  COMMIT;\n")
 		}
 	}
 	{ // "1.3"
@@ -88,7 +88,7 @@ func Test_fts3drop(t *testing.T) {
 	{ // "1.4"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO f1 VALUES('g h i');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('j k l');\n      DROP TABLE f1;\n    RELEASE one;\n  ROLLBACK;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO f1 VALUES('g h i');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('j k l');\n      DROP TABLE f1;\n    RELEASE one;\n  ROLLBACK;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO f1 VALUES('g h i');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('j k l');\n      DROP TABLE f1;\n    RELEASE one;\n  ROLLBACK;\n")
 		}
 	}
 	{ // "1.5"

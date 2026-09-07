@@ -119,25 +119,25 @@ func Test_join2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n  INSERT INTO aa VALUES('one');\n  INSERT INTO bb VALUES('one');\n  INSERT INTO cc VALUES('one');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n  INSERT INTO aa VALUES('one');\n  INSERT INTO bb VALUES('one');\n  INSERT INTO cc VALUES('one');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n  INSERT INTO aa VALUES('one');\n  INSERT INTO bb VALUES('one');\n  INSERT INTO cc VALUES('one');\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  SELECT * FROM aa LEFT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON clause references tables to its right") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", _res.Error, "\n  SELECT * FROM aa LEFT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", resErrString(_res), "\n  SELECT * FROM aa LEFT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));\n")
 		}
 	}
 	{ // "2.1b"
 		_res = db.Exec("\n  SELECT * FROM aa RIGHT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON clause references tables to its right") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", _res.Error, "\n  SELECT * FROM aa RIGHT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON clause references tables to its right", resErrString(_res), "\n  SELECT * FROM aa RIGHT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);\n")
 		}
 	}
 	db.Close()
@@ -150,7 +150,7 @@ func Test_join2(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(k1 INTEGER PRIMARY KEY, k2, k3);\n  CREATE TABLE t2(k2 INTEGER PRIMARY KEY, v2);\n\n  -- Prior to this problem being fixed, table t3_2 would be omitted from\n  -- the join queries below, but if t3_1 were used in its place it would\n  -- not.\n  CREATE TABLE t3_1(k3 PRIMARY KEY, v3) WITHOUT ROWID;\n  CREATE TABLE t3_2(v3, k3 PRIMARY KEY) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(k1 INTEGER PRIMARY KEY, k2, k3);\n  CREATE TABLE t2(k2 INTEGER PRIMARY KEY, v2);\n\n  -- Prior to this problem being fixed, table t3_2 would be omitted from\n  -- the join queries below, but if t3_1 were used in its place it would\n  -- not.\n  CREATE TABLE t3_1(k3 PRIMARY KEY, v3) WITHOUT ROWID;\n  CREATE TABLE t3_2(v3, k3 PRIMARY KEY) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(k1 INTEGER PRIMARY KEY, k2, k3);\n  CREATE TABLE t2(k2 INTEGER PRIMARY KEY, v2);\n\n  -- Prior to this problem being fixed, table t3_2 would be omitted from\n  -- the join queries below, but if t3_1 were used in its place it would\n  -- not.\n  CREATE TABLE t3_1(k3 PRIMARY KEY, v3) WITHOUT ROWID;\n  CREATE TABLE t3_2(v3, k3 PRIMARY KEY) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "3.1"
@@ -168,7 +168,7 @@ func Test_join2(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE c1(k INTEGER PRIMARY KEY, v1);\n  CREATE TABLE c2(k INTEGER PRIMARY KEY, v2);\n  CREATE TABLE c3(k INTEGER PRIMARY KEY, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(k INTEGER PRIMARY KEY, v1);\n  CREATE TABLE c2(k INTEGER PRIMARY KEY, v2);\n  CREATE TABLE c3(k INTEGER PRIMARY KEY, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE c1(k INTEGER PRIMARY KEY, v1);\n  CREATE TABLE c2(k INTEGER PRIMARY KEY, v2);\n  CREATE TABLE c3(k INTEGER PRIMARY KEY, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');\n")
 		}
 	}
 	{ // "4.1.1"
@@ -234,7 +234,7 @@ func Test_join2(t *testing.T) {
 	{ // "4.2.0"
 		_res = db.Exec("\n  DROP TABLE c1;\n  DROP TABLE c2;\n  DROP TABLE c3;\n  CREATE TABLE c1(k UNIQUE, v1);\n  CREATE TABLE c2(k UNIQUE, v2);\n  CREATE TABLE c3(k UNIQUE, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE c1;\n  DROP TABLE c2;\n  DROP TABLE c3;\n  CREATE TABLE c1(k UNIQUE, v1);\n  CREATE TABLE c2(k UNIQUE, v2);\n  CREATE TABLE c3(k UNIQUE, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE c1;\n  DROP TABLE c2;\n  DROP TABLE c3;\n  CREATE TABLE c1(k UNIQUE, v1);\n  CREATE TABLE c2(k UNIQUE, v2);\n  CREATE TABLE c3(k UNIQUE, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');\n")
 		}
 	}
 	{ // "4.2.1"
@@ -318,7 +318,7 @@ func Test_join2(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE s1 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s2 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s3 (a INTEGER);\n  CREATE UNIQUE INDEX ndx on s3(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s1 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s2 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s3 (a INTEGER);\n  CREATE UNIQUE INDEX ndx on s3(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE s1 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s2 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s3 (a INTEGER);\n  CREATE UNIQUE INDEX ndx on s3(a);\n")
 		}
 	}
 	{ // "5.1"
@@ -336,7 +336,7 @@ func Test_join2(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE u1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE u2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX u1ab ON u1(b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE u1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE u2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX u1ab ON u1(b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE u1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE u2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX u1ab ON u1(b, c);\n")
 		}
 	}
 	{ // "6.1"
@@ -371,7 +371,7 @@ func Test_join2(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n")
 		}
 	}
 	{ // "8.1"
@@ -390,7 +390,7 @@ func Test_join2(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  INSERT INTO t0(c0) VALUES (0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  INSERT INTO t0(c0) VALUES (0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  INSERT INTO t0(c0) VALUES (0);\n")
 		}
 	}
 	{ // "9.1"
@@ -489,7 +489,7 @@ func Test_join2(t *testing.T) {
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (x INTEGER);\n  INSERT INTO t1 VALUES(1);   -- Some true value\n  CREATE TABLE t2 (z TEXT);\n  INSERT INTO t2 VALUES('some value');\n  CREATE TABLE t3(w TEXT);\n  INSERT INTO t3 VALUES('some other value');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (x INTEGER);\n  INSERT INTO t1 VALUES(1);   -- Some true value\n  CREATE TABLE t2 (z TEXT);\n  INSERT INTO t2 VALUES('some value');\n  CREATE TABLE t3(w TEXT);\n  INSERT INTO t3 VALUES('some other value');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (x INTEGER);\n  INSERT INTO t1 VALUES(1);   -- Some true value\n  CREATE TABLE t2 (z TEXT);\n  INSERT INTO t2 VALUES('some value');\n  CREATE TABLE t3(w TEXT);\n  INSERT INTO t3 VALUES('some other value');\n")
 		}
 	}
 	{ // "10.2"
@@ -551,7 +551,7 @@ func Test_join2(t *testing.T) {
 	{ // "12.1"
 		_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP VIEW t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(a) SELECT n FROM c;\n  CREATE VIEW t2(b) AS SELECT a FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP VIEW t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(a) SELECT n FROM c;\n  CREATE VIEW t2(b) AS SELECT a FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP VIEW t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(a) SELECT n FROM c;\n  CREATE VIEW t2(b) AS SELECT a FROM t1;\n")
 		}
 	}
 	// do_vmstep_test 12.2 {\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 ...} 2000 {99 99 100 100... (unsupported command, not transpiled)
@@ -571,7 +571,7 @@ func Test_join2(t *testing.T) {
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1 INT);\n  CREATE TABLE t2(c2 INT, d2 INTEGER PRIMARY KEY);\n  CREATE TABLE t3(e3 INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(33,0);\n  INSERT INTO t2 VALUES(33,1),(33,2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1 INT);\n  CREATE TABLE t2(c2 INT, d2 INTEGER PRIMARY KEY);\n  CREATE TABLE t3(e3 INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(33,0);\n  INSERT INTO t2 VALUES(33,1),(33,2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1 INT);\n  CREATE TABLE t2(c2 INT, d2 INTEGER PRIMARY KEY);\n  CREATE TABLE t3(e3 INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(33,0);\n  INSERT INTO t2 VALUES(33,1),(33,2);\n")
 		}
 	}
 	{ // "13.1"

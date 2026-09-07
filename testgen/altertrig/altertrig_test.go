@@ -88,14 +88,14 @@ func Test_altertrig(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n  CREATE TABLE t4(a);\n\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, t3;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n  CREATE TABLE t4(a);\n\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, t3;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n  CREATE TABLE t4(a);\n\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, t3;\n  END;\n")
 		}
 	}
 	// do_whitespace_sql_test 1.1 {\n  ALTER TABLE t3 RENAME TO t5;\n  SELECT sql FRO...} {{\n  CREATE TRIGGER... (unsupported command, not transpiled)
 	{ // "1.2"
 		_res = db.Exec("\n  DROP TRIGGER r1;\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t5); \n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER r1;\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t5); \n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TRIGGER r1;\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t5); \n  END;\n")
 		}
 	}
 	// do_whitespace_sql_test 1.3 {\n  ALTER TABLE t5 RENAME TO t3;\n  SELECT sql FRO...} {{\n  CREATE TRIGGER... (unsupported command, not transpiled)
@@ -121,19 +121,19 @@ func Test_altertrig(t *testing.T) {
 			{ // "2." + tn + ".1"
 				_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);\n  ")
 				}
 			}
 			{ // "2." + tn + ".2"
 				_res = db.Exec("\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      " + update + ";\n    END\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      " + update + ";\n    END\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      " + update + ";\n    END\n  ")
 				}
 			}
 			{ // "2." + tn + ".3"
 				_res = db.Exec(alter)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, alter)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), alter)
 				}
 			}
 			// do_whitespace_sql_test 2.$tn.4 {\n    SELECT sqL FROM sqlite_schema WHERE type='tr...} {\n    CREATE TR... (unsupported command, not transpiled)

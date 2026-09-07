@@ -110,7 +110,7 @@ func Test_backup4(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		}
 	}
 	{ // do_test "2.2" (file size test.db)

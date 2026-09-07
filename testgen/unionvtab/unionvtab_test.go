@@ -90,7 +90,7 @@ func Test_unionvtab(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")
 		}
 	}
 	{ // "1.1"
@@ -204,79 +204,79 @@ func Test_unionvtab(t *testing.T) {
 	{ // "2.1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE u1 USING unionvtab(\"VALUES(NULL, 't1', 1, 100)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unionvtab tables must be created in TEMP schema") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unionvtab tables must be created in TEMP schema", _res.Error, "\n  CREATE VIRTUAL TABLE u1 USING unionvtab(\"VALUES(NULL, 't1', 1, 100)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unionvtab tables must be created in TEMP schema", resErrString(_res), "\n  CREATE VIRTUAL TABLE u1 USING unionvtab(\"VALUES(NULL, 't1', 1, 100)\");\n")
 		}
 	}
 	{ // "2.1.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE main.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unionvtab tables must be created in TEMP schema") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unionvtab tables must be created in TEMP schema", _res.Error, "\n  CREATE VIRTUAL TABLE main.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unionvtab tables must be created in TEMP schema", resErrString(_res), "\n  CREATE VIRTUAL TABLE main.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");\n")
 		}
 	}
 	{ // "2.1.3"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE aux.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unionvtab tables must be created in TEMP schema") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unionvtab tables must be created in TEMP schema", _res.Error, "\n  CREATE VIRTUAL TABLE aux.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unionvtab tables must be created in TEMP schema", resErrString(_res), "\n  CREATE VIRTUAL TABLE aux.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");\n")
 		}
 	}
 	{ // "2.2.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 't555', 1, 100)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: t555") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: t555", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 't555', 1, 100)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: t555", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 't555', 1, 100)\");\n")
 		}
 	}
 	{ // "2.2.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('aux', 't555', 1, 100)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: aux.t555") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: aux.t555", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('aux', 't555', 1, 100)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: aux.t555", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('aux', 't555', 1, 100)\");\n")
 		}
 	}
 	{ // "2.2.3"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('xua', 't555', 1, 100)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: xua.t555") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: xua.t555", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('xua', 't555', 1, 100)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: xua.t555", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('xua', 't555', 1, 100)\");\n")
 		}
 	}
 	{ // "2.3.0"
 		_res = db.Exec("\n  CREATE TABLE wr1(a, b, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE VIEW v2 AS SELECT _rowid_, * FROM t1;\n\n  CREATE TABLE wr2(a, _rowid_ INTEGER, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE wr3(a, b, _rowid_ PRIMARY KEY) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE wr1(a, b, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE VIEW v2 AS SELECT _rowid_, * FROM t1;\n\n  CREATE TABLE wr2(a, _rowid_ INTEGER, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE wr3(a, b, _rowid_ PRIMARY KEY) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE wr1(a, b, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE VIEW v2 AS SELECT _rowid_, * FROM t1;\n\n  CREATE TABLE wr2(a, _rowid_ INTEGER, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE wr3(a, b, _rowid_ PRIMARY KEY) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "2.3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('main', 'wr1', 1, 2)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.wr1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.wr1", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('main', 'wr1', 1, 2)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.wr1", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('main', 'wr1', 1, 2)\");\n")
 		}
 	}
 	{ // "2.3.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v1', 1, 2)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: v1", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v1', 1, 2)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: v1", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v1', 1, 2)\");\n")
 		}
 	}
 	{ // "2.3.3"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v2', 1, 2)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: v2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: v2", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v2', 1, 2)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: v2", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v2', 1, 2)\");\n")
 		}
 	}
 	{ // "2.3.4"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr2', 1, 2)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: wr2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: wr2", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr2', 1, 2)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: wr2", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr2', 1, 2)\");\n")
 		}
 	}
 	{ // "2.3.5"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr3', 1, 2)\");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: wr3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: wr3", _res.Error, "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr3', 1, 2)\");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: wr3", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr3', 1, 2)\");\n")
 		}
 	}
 	{ // "2.4.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a BLOB, b);\n  CREATE TABLE x2(a BLOB, b);\n  CREATE TEMP TABLE x3(a BLOB, b);\n\n  CREATE TABLE aux.y1(one, two, three INTEGER PRIMARY KEY);\n  CREATE TEMP TABLE y2(one, two, three INTEGER PRIMARY KEY);\n  CREATE TABLE y3(one, two, three INTEGER PRIMARY KEY);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a BLOB, b);\n  CREATE TABLE x2(a BLOB, b);\n  CREATE TEMP TABLE x3(a BLOB, b);\n\n  CREATE TABLE aux.y1(one, two, three INTEGER PRIMARY KEY);\n  CREATE TEMP TABLE y2(one, two, three INTEGER PRIMARY KEY);\n  CREATE TABLE y3(one, two, three INTEGER PRIMARY KEY);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a BLOB, b);\n  CREATE TABLE x2(a BLOB, b);\n  CREATE TEMP TABLE x3(a BLOB, b);\n\n  CREATE TABLE aux.y1(one, two, three INTEGER PRIMARY KEY);\n  CREATE TEMP TABLE y2(one, two, three INTEGER PRIMARY KEY);\n  CREATE TABLE y3(one, two, three INTEGER PRIMARY KEY);\n")
 		}
 	}
 	// foreach {tn dbs res} "1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}"
@@ -317,14 +317,14 @@ func Test_unionvtab(t *testing.T) {
 			{ // "2.4." + tn
 				_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\");\n  ")
 				if !tclCatchsqlMatches(_res, res) {
-					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\");\n  ")
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\");\n  ")
 				}
 			}
 		}
 		{ // "2.5"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no source tables configured") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no source tables configured", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no source tables configured", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
 			}
 		}
 		// foreach {tn sql} "1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }"
@@ -338,14 +338,14 @@ func Test_unionvtab(t *testing.T) {
 				{ // "2.6." + tn
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "rowid range mismatch error") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rowid range mismatch error", _res.Error, "\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rowid range mismatch error", resErrString(_res), "\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
 					}
 				}
 			}
 			{ // "2.7.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments for unionvtab") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments for unionvtab", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments for unionvtab", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)\n")
 				}
 			}
 			db.Close()
@@ -359,7 +359,7 @@ func Test_unionvtab(t *testing.T) {
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
 				}
 			}
 			{ // "3.1"
@@ -1101,7 +1101,7 @@ func Test_unionvtab(t *testing.T) {
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + ", 'one');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+1, 'two');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + ", 'six');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-1, 'five');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + ", 'one');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+1, 'two');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + ", 'six');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-1, 'five');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + ", 'one');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+1, 'two');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + ", 'six');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-1, 'five');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
 				}
 			}
 			{ // "4.1"
@@ -1292,13 +1292,13 @@ func Test_unionvtab(t *testing.T) {
 				{ // "6.0"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.xyz") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.xyz", _res.Error, "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.xyz", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
 					}
 				}
 				{ // "6.1"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.", _res.Error, "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');\n")
 					}
 				}
 }

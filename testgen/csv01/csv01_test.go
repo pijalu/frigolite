@@ -274,31 +274,31 @@ func Test_csv01(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  SELECT rowid, a FROM t3;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  SELECT rowid, a FROM t3;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  SELECT rowid, a FROM t3;\n")
 		}
 	}
 	{ // "4.0"
 		_res = db.Exec("\n  DROP TABLE t3;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(a,b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad schema: 'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(a,b)) WITHOUT ROWID' - not an error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad schema: 'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(a,b)) WITHOUT ROWID' - not an error", _res.Error, "\n  DROP TABLE t3;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(a,b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad schema: 'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(a,b)) WITHOUT ROWID' - not an error", resErrString(_res), "\n  DROP TABLE t3;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(a,b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
 		}
 	}
 	{ // "4.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t4;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t4;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t4;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
 		}
 	}
 	{ // "4.2"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t5;\n  CREATE VIRTUAL TABLE temp.t5 USING csv_wr(\n      data=\n      '1,2,3,4\n      5,6,7,8\n      9,10,11,12\n      13,14,15,16',\n      columns=4,\n      schema=\n      'CREATE TABLE t3(a,b,c,d) WITHOUT ROWID',\n      testflags=1\n      );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad schema: 'CREATE TABLE t3(a,b,c,d) WITHOUT ROWID' - PRIMARY KEY missing on table t3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad schema: 'CREATE TABLE t3(a,b,c,d) WITHOUT ROWID' - PRIMARY KEY missing on table t3", _res.Error, "\n  DROP TABLE IF EXISTS t5;\n  CREATE VIRTUAL TABLE temp.t5 USING csv_wr(\n      data=\n      '1,2,3,4\n      5,6,7,8\n      9,10,11,12\n      13,14,15,16',\n      columns=4,\n      schema=\n      'CREATE TABLE t3(a,b,c,d) WITHOUT ROWID',\n      testflags=1\n      );\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad schema: 'CREATE TABLE t3(a,b,c,d) WITHOUT ROWID' - PRIMARY KEY missing on table t3", resErrString(_res), "\n  DROP TABLE IF EXISTS t5;\n  CREATE VIRTUAL TABLE temp.t5 USING csv_wr(\n      data=\n      '1,2,3,4\n      5,6,7,8\n      9,10,11,12\n      13,14,15,16',\n      columns=4,\n      schema=\n      'CREATE TABLE t3(a,b,c,d) WITHOUT ROWID',\n      testflags=1\n      );\n")
 		}
 	}
 	{ // "4.3"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE IF NOT EXISTS temp.t1\n  USING csv(filename='FileDoesNotExist.csv');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot open 'FileDoesNotExist.csv' for reading") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open 'FileDoesNotExist.csv' for reading", _res.Error, "\n  CREATE VIRTUAL TABLE IF NOT EXISTS temp.t1\n  USING csv(filename='FileDoesNotExist.csv');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open 'FileDoesNotExist.csv' for reading", resErrString(_res), "\n  CREATE VIRTUAL TABLE IF NOT EXISTS temp.t1\n  USING csv(filename='FileDoesNotExist.csv');\n")
 		}
 	}
 	{ // "4.4"
@@ -388,7 +388,7 @@ func Test_csv01(t *testing.T) {
 		{ // "6." + ii + ".1"
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")
 			}
 		}
 		{ // "6." + ii + ".2"
@@ -434,7 +434,7 @@ func Test_csv01(t *testing.T) {
 		{ // "7." + ii + ".1"
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")
 			}
 		}
 		{ // "7." + ii + ".2"
@@ -468,7 +468,7 @@ func Test_csv01(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE abc USING csv(\n     data='1,2,3,4,5,6',\n     columns=32768\n  );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "column= value too big, max 2000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "column= value too big, max 2000", _res.Error, "\n  CREATE VIRTUAL TABLE abc USING csv(\n     data='1,2,3,4,5,6',\n     columns=32768\n  );\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "column= value too big, max 2000", resErrString(_res), "\n  CREATE VIRTUAL TABLE abc USING csv(\n     data='1,2,3,4,5,6',\n     columns=32768\n  );\n")
 		}
 	}
 }

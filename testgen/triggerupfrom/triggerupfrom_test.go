@@ -67,13 +67,13 @@ func Test_triggerupfrom(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four');\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET c = v FROM map WHERE k=new.a AND a=new.a;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four');\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET c = v FROM map WHERE k=new.a AND a=new.a;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four');\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET c = v FROM map WHERE k=new.a AND a=new.a;\n  END;\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(a) VALUES(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(1);\n")
 		}
 	}
 	{ // "1.2"
@@ -103,13 +103,13 @@ func Test_triggerupfrom(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t3(x, y);\n  INSERT INTO aux.t3 VALUES('x', 'y');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t3(x, y);\n  INSERT INTO aux.t3 VALUES('x', 'y');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t3(x, y);\n  INSERT INTO aux.t3 VALUES('x', 'y');\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE k=new.a;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger tr2 cannot reference objects in database aux") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger tr2 cannot reference objects in database aux", _res.Error, "\n  CREATE TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE k=new.a;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger tr2 cannot reference objects in database aux", resErrString(_res), "\n  CREATE TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE k=new.a;\n  END;\n")
 		}
 	}
 	{ // "2.2"
@@ -143,7 +143,7 @@ func Test_triggerupfrom(t *testing.T) {
 	{ // "2.4"
 		_res = db.Exec("\n  ATTACH 'test.db' AS yyy;\n  SELECT * FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed database schema (tr3) - trigger tr3 cannot reference objects in database main") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (tr3) - trigger tr3 cannot reference objects in database main", _res.Error, "\n  ATTACH 'test.db' AS yyy;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (tr3) - trigger tr3 cannot reference objects in database main", resErrString(_res), "\n  ATTACH 'test.db' AS yyy;\n  SELECT * FROM t1;\n")
 		}
 	}
 	db.Close()
@@ -176,7 +176,7 @@ func Test_triggerupfrom(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(k, a, b);\n  INSERT INTO t1 VALUES('a', 1, 'one');\n  INSERT INTO t1 VALUES('b', 2, 'two');\n  INSERT INTO t1 VALUES('c', 3, 'three');\n  INSERT INTO t1 VALUES('d', 4, 'four');\n\n  CREATE TABLE log(x);\n  CREATE VIEW v1 AS SELECT k, a, b AS __hidden__b FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES(\n      '('||old.a||','||old.__hidden__b||')->('||new.a||','||new.__hidden__b||')'\n    );\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(k, a, b);\n  INSERT INTO t1 VALUES('a', 1, 'one');\n  INSERT INTO t1 VALUES('b', 2, 'two');\n  INSERT INTO t1 VALUES('c', 3, 'three');\n  INSERT INTO t1 VALUES('d', 4, 'four');\n\n  CREATE TABLE log(x);\n  CREATE VIEW v1 AS SELECT k, a, b AS __hidden__b FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES(\n      '('||old.a||','||old.__hidden__b||')->('||new.a||','||new.__hidden__b||')'\n    );\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(k, a, b);\n  INSERT INTO t1 VALUES('a', 1, 'one');\n  INSERT INTO t1 VALUES('b', 2, 'two');\n  INSERT INTO t1 VALUES('c', 3, 'three');\n  INSERT INTO t1 VALUES('d', 4, 'four');\n\n  CREATE TABLE log(x);\n  CREATE VIEW v1 AS SELECT k, a, b AS __hidden__b FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES(\n      '('||old.a||','||old.__hidden__b||')->('||new.a||','||new.__hidden__b||')'\n    );\n  END;\n")
 		}
 	}
 	{ // "4.2"

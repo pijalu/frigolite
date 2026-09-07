@@ -335,7 +335,7 @@ func Test_minmax4(t *testing.T) {
 			{ // "3." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
 				}
 			}
 			_res = db.Exec(sql)
@@ -369,7 +369,7 @@ func Test_minmax4(t *testing.T) {
 			{ // "3." + tn + ".3"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES(2, 2);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2, 2);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(2, 2);\n  ")
 				}
 			}
 			{ // "3." + tn + ".4"
@@ -407,7 +407,7 @@ func Test_minmax4(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
 			}
 		}
 		{ // "4.1"
@@ -432,7 +432,7 @@ func Test_minmax4(t *testing.T) {
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
 			}
 		}
 		{ // "5.1"
@@ -457,7 +457,7 @@ func Test_minmax4(t *testing.T) {
 		{ // "6.1.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
 			}
 		}
 		{ // "6.1.1"
@@ -475,7 +475,7 @@ func Test_minmax4(t *testing.T) {
 		{ // "6.1.2"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(1,    2, 'y');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1,    2, 'y');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(1,    2, 'y');\n")
 			}
 		}
 		{ // "6.1.3"
@@ -493,7 +493,7 @@ func Test_minmax4(t *testing.T) {
 		{ // "6.2.0"
 			_res = db.Exec("\n  CREATE TABLE t0(c0 UNIQUE, c1);\n  INSERT INTO t0(c1) VALUES (0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0, c1) AS \n      SELECT t0.c1, t0.c0 FROM t0 WHERE CAST(t0.rowid AS INT) = 1;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 UNIQUE, c1);\n  INSERT INTO t0(c1) VALUES (0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0, c1) AS \n      SELECT t0.c1, t0.c0 FROM t0 WHERE CAST(t0.rowid AS INT) = 1;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0 UNIQUE, c1);\n  INSERT INTO t0(c1) VALUES (0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0, c1) AS \n      SELECT t0.c1, t0.c0 FROM t0 WHERE CAST(t0.rowid AS INT) = 1;\n")
 			}
 		}
 		{ // "6.2.1"

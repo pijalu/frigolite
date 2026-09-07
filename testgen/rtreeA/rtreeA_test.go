@@ -130,7 +130,7 @@ func Test_rtreeA(t *testing.T) {
 	{ // "rtreeA-1.0"
 		_res = db.Exec("\n  DELETE FROM t1_node;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1_node;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1_node;\n")
 		}
 	}
 	// do_corruption_tests rtreeA-1.1 {\n  1   "SELECT * FROM t1"\n  2   "SELECT * FROM t...} (unsupported command, not transpiled)
@@ -150,7 +150,7 @@ func Test_rtreeA(t *testing.T) {
 	{ // "rtreeA-1.2.0"
 		_res = db.Exec(" DROP TABLE t1_node ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1_node ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t1_node ")
 		}
 	}
 	// do_corruption_tests rtreeA-1.2 -error database disk image is malformed {\n  1   "SELECT * FROM t1"\n... (unsupported command, not transpiled)
@@ -381,7 +381,7 @@ func Test_rtreeA(t *testing.T) {
 		{ // "rtreeA-5.1.0"
 			_res = db.Exec(" DELETE FROM t1_parent ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1_parent ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM t1_parent ")
 			}
 		}
 		// do_corruption_tests rtreeA-5.1 {\n  1   "DELETE FROM t1 WHERE +rowid = 5"\n  2   "...} (unsupported command, not transpiled)
@@ -419,7 +419,7 @@ func Test_rtreeA(t *testing.T) {
 		{ // "rtreeA-6.1.0"
 			_res = db.Exec(" \n  UPDATE t1_parent set parentnode = parentnode+1\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  UPDATE t1_parent set parentnode = parentnode+1\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  UPDATE t1_parent set parentnode = parentnode+1\n")
 			}
 		}
 		// do_corruption_tests rtreeA-6.1 {\n  1   "DELETE FROM t1 WHERE rowid = 5"\n  2   "U...} (unsupported command, not transpiled)
@@ -463,13 +463,13 @@ func Test_rtreeA(t *testing.T) {
 		{ // "rtreeA-7.100"
 			_res = db.Exec(" \n  UPDATE t1_node SET data=x'' WHERE rowid=1;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  UPDATE t1_node SET data=x'' WHERE rowid=1;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  UPDATE t1_node SET data=x'' WHERE rowid=1;\n")
 			}
 		}
 		{ // "rtreeA-7.110"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE x1>0 AND x1<100 AND x2>0 AND x2<100;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "undersize RTree blobs in \"t1_node\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "undersize RTree blobs in \"t1_node\"", _res.Error, "\n  SELECT * FROM t1 WHERE x1>0 AND x1<100 AND x2>0 AND x2<100;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "undersize RTree blobs in \"t1_node\"", resErrString(_res), "\n  SELECT * FROM t1 WHERE x1>0 AND x1<100 AND x2>0 AND x2<100;\n")
 			}
 		}
 		{ // do_test "rtreeA-7.120"

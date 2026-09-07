@@ -609,7 +609,7 @@ func Test_backup(t *testing.T) {
 	{ // do_test "backup-4.2.2"
 		_res = db2.Exec(" DETACH aux2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database aux2 is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database aux2 is locked", _res.Error, " DETACH aux2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database aux2 is locked", resErrString(_res), " DETACH aux2 ")
 		}
 	}
 	{ // do_test "backup-4.2.3"

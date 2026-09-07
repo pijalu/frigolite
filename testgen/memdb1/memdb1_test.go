@@ -178,7 +178,7 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "152"
 		_res = db.Exec("INSERT INTO t1 VALUES(3,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "INSERT INTO t1 VALUES(3,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "INSERT INTO t1 VALUES(3,4);")
 		}
 	}
 	{ // do_test "160"
@@ -201,7 +201,7 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "162"
 		_res = db.Exec("INSERT INTO t1 VALUES(5,randomblob(100000))")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, "INSERT INTO t1 VALUES(5,randomblob(100000))")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), "INSERT INTO t1 VALUES(5,randomblob(100000))")
 		}
 	}
 	db.Close()
@@ -328,7 +328,7 @@ func Test_memdb1(t *testing.T) {
 	{ // "510"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "file is not a database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "file is not a database", _res.Error, "\n  PRAGMA integrity_check;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "file is not a database", resErrString(_res), "\n  PRAGMA integrity_check;\n")
 		}
 	}
 	{ // do_test "600"
@@ -508,7 +508,7 @@ func Test_memdb1(t *testing.T) {
 		{ // "830"
 			_res = db.Exec("\n    PRAGMA wal_checkpoint;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    PRAGMA wal_checkpoint;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n    PRAGMA wal_checkpoint;\n  ")
 			}
 		}
 	}
@@ -532,7 +532,7 @@ func Test_memdb1(t *testing.T) {
 	{ // "1000"
 		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		}
 	}
 	blob = string(tclSerialize(db, "main"))
@@ -631,7 +631,7 @@ func Test_memdb1(t *testing.T) {
 	{ // "1100"
 		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		}
 	}
 	blob = string(tclSerialize(db, "main"))

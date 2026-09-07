@@ -127,13 +127,13 @@ func Test_select5(t *testing.T) {
 	{ // do_test "select5-2.1.1"
 		_res = db.Exec("\n    SELECT y, count(*) FROM t1 GROUP BY z ORDER BY y\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: z") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: z", _res.Error, "\n    SELECT y, count(*) FROM t1 GROUP BY z ORDER BY y\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: z", resErrString(_res), "\n    SELECT y, count(*) FROM t1 GROUP BY z ORDER BY y\n  ")
 		}
 	}
 	{ // do_test "select5-2.1.2"
 		_res = db.Exec("\n    SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: temp.t1.y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: temp.t1.y", _res.Error, "\n    SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: temp.t1.y", resErrString(_res), "\n    SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n  ")
 		}
 	}
 	{ // do_test "select5-2.2"

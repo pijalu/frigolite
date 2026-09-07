@@ -135,7 +135,7 @@ func Test_lock5(t *testing.T) {
 	{ // do_test "lock5-dotfile.7"
 		_res = db.Exec(" SELECT * FROM t1; ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, " SELECT * FROM t1; ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), " SELECT * FROM t1; ")
 		}
 	}
 	{ // do_test "lock5-dotfile.8"
@@ -147,7 +147,7 @@ func Test_lock5(t *testing.T) {
 	{ // do_test "lock5-dotfile.9"
 		_res = db.Exec(" SELECT * FROM t1; ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1; ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1; ")
 		}
 	}
 	{ // do_test "lock5-dotfile.10"
@@ -352,7 +352,7 @@ func Test_lock5(t *testing.T) {
 		{ // "2.dotfile.2"
 			_res = db.Exec("\n    BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));\n  ")
 			}
 		}
 		{ // do_test "2.dotfile.3"

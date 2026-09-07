@@ -66,7 +66,7 @@ func Test_returningfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (b);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -88,7 +88,7 @@ func Test_returningfault(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(x);\n  ")
 		}
 	}
 	// proc definition (not transpiled)

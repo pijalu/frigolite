@@ -64,7 +64,7 @@ func Test_wherelfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -85,7 +85,7 @@ func Test_wherelfault(t *testing.T) {
 	{ // "2.1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

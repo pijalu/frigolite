@@ -126,31 +126,31 @@ func Test_json105(t *testing.T) {
 	{ // "json105-6.10"
 		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#-]') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#-]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#-]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-]'", resErrString(_res), "\n  SELECT json_extract(j, '$.b[#-]') FROM t1;\n")
 		}
 	}
 	{ // "json105-6.20"
 		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#9]') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#9]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#9]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#9]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#9]'", resErrString(_res), "\n  SELECT json_extract(j, '$.b[#9]') FROM t1;\n")
 		}
 	}
 	{ // "json105-6.30"
 		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#+2]') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#+2]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#+2]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#+2]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#+2]'", resErrString(_res), "\n  SELECT json_extract(j, '$.b[#+2]') FROM t1;\n")
 		}
 	}
 	{ // "json105-6.40"
 		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#-1') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#-1'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1'", _res.Error, "\n  SELECT json_extract(j, '$.b[#-1') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1'", resErrString(_res), "\n  SELECT json_extract(j, '$.b[#-1') FROM t1;\n")
 		}
 	}
 	{ // "json105-6.50"
 		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#-1x]') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#-1x]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1x]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#-1x]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1x]'", resErrString(_res), "\n  SELECT json_extract(j, '$.b[#-1x]') FROM t1;\n")
 		}
 	}
 }

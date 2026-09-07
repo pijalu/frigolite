@@ -246,7 +246,7 @@ func Test_where4(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE u9(a UNIQUE, b);\n  INSERT INTO u9 VALUES(NULL, 1);\n  INSERT INTO u9 VALUES(NULL, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE u9(a UNIQUE, b);\n  INSERT INTO u9 VALUES(NULL, 1);\n  INSERT INTO u9 VALUES(NULL, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE u9(a UNIQUE, b);\n  INSERT INTO u9 VALUES(NULL, 1);\n  INSERT INTO u9 VALUES(NULL, 2);\n")
 		}
 	}
 	{ // "8.2"

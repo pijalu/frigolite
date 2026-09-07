@@ -74,7 +74,7 @@ func Test_vtab_alter(t *testing.T) {
 	{ // do_test "vtab_alter-1.3"
 		_res = db.Exec(" SELECT * FROM t1echo ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1echo ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t1echo ")
 		}
 	}
 	{ // do_test "vtab_alter-1.4"
@@ -86,13 +86,13 @@ func Test_vtab_alter(t *testing.T) {
 	{ // do_test "vtab_alter-1.5"
 		_res = db.Exec(" SELECT * FROM t1echo ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t1echo") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1echo", _res.Error, " SELECT * FROM t1echo ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t1echo", resErrString(_res), " SELECT * FROM t1echo ")
 		}
 	}
 	{ // do_test "vtab_alter-1.6"
 		_res = db.Exec(" SELECT * FROM new ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM new ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM new ")
 		}
 	}
 	{ // "vtab_alter-2.1" — skipped: echo pattern rename (*_base) is C test-module behavior

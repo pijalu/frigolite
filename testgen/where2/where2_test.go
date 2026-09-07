@@ -445,7 +445,7 @@ func Test_where2(t *testing.T) {
 		{ // "where2-6.17.1"
 			_res = db.Exec("\n  CREATE TABLE t617_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t617_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE VIEW t617 AS SELECT a, b FROM t617_a UNION ALL SELECT c, c FROM t617_b;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t617_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t617_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE VIEW t617 AS SELECT a, b FROM t617_a UNION ALL SELECT c, c FROM t617_b;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t617_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t617_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE VIEW t617 AS SELECT a, b FROM t617_a UNION ALL SELECT c, c FROM t617_b;\n")
 			}
 		}
 		{ // "where2-6.17.2"
@@ -708,7 +708,7 @@ func Test_where2(t *testing.T) {
 	{ // "where2-16.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t4(g INTEGER PRIMARY KEY, h INT);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t4(g INTEGER PRIMARY KEY, h INT);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t4(g INTEGER PRIMARY KEY, h INT);\n")
 		}
 	}
 	{ // "where2-16.2" — skipped: EXPLAIN QUERY PLAN join order not matched (G3.INDEX) (SQL side effects only)

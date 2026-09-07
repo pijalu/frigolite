@@ -65,19 +65,19 @@ func Test_aggorderby(t *testing.T) {
 	{ // "aggorderby-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
 		}
 	}
 	{ // "aggorderby-1.2"
 		_res = db.Exec("\n  SELECT b, group_concat(a ORDER BY max(d)) FROM t1 GROUP BY b;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate function max()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate function max()", _res.Error, "\n  SELECT b, group_concat(a ORDER BY max(d)) FROM t1 GROUP BY b;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate function max()", resErrString(_res), "\n  SELECT b, group_concat(a ORDER BY max(d)) FROM t1 GROUP BY b;\n")
 		}
 	}
 	{ // "aggorderby-1.3"
 		_res = db.Exec("\n  SELECT abs(a ORDER BY max(d)) FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY may not be used with non-aggregate abs()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY may not be used with non-aggregate abs()", _res.Error, "\n  SELECT abs(a ORDER BY max(d)) FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY may not be used with non-aggregate abs()", resErrString(_res), "\n  SELECT abs(a ORDER BY max(d)) FROM t1;\n")
 		}
 	}
 	{ // "aggorderby-2.0"
@@ -330,7 +330,7 @@ func Test_aggorderby(t *testing.T) {
 	{ // "aggorderby-10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
 	vtab.TclVarSet("i", "", "0")
@@ -349,7 +349,7 @@ func Test_aggorderby(t *testing.T) {
 	{ // "aggorderby-10.1"
 		_res = db.Exec("\n  SELECT group_concat(w ORDER BY " + strings.Join(tclSplitList(lExpr), ",") + ") FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many terms in ORDER BY clause") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in ORDER BY clause", _res.Error, "\n  SELECT group_concat(w ORDER BY " + strings.Join(tclSplitList(lExpr), ",") + ") FROM t1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in ORDER BY clause", resErrString(_res), "\n  SELECT group_concat(w ORDER BY " + strings.Join(tclSplitList(lExpr), ",") + ") FROM t1\n")
 		}
 	}
 }

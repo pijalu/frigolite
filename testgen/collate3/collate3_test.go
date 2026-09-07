@@ -83,25 +83,25 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.1"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY 1 collate garbage;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: garbage") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", _res.Error, "\n    SELECT * FROM collate3t1 ORDER BY 1 collate garbage;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", resErrString(_res), "\n    SELECT * FROM collate3t1 ORDER BY 1 collate garbage;\n  ")
 		}
 	}
 	{ // do_test "collate3-1.1.2"
 		_res = db.Exec("\n    SELECT DISTINCT c1 COLLATE garbage FROM collate3t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: garbage") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", _res.Error, "\n    SELECT DISTINCT c1 COLLATE garbage FROM collate3t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", resErrString(_res), "\n    SELECT DISTINCT c1 COLLATE garbage FROM collate3t1;\n  ")
 		}
 	}
 	{ // do_test "collate3-1.2"
 		_res = db.Exec("\n    CREATE TABLE collate3t2(c1 collate garbage);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: garbage") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", _res.Error, "\n    CREATE TABLE collate3t2(c1 collate garbage);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", resErrString(_res), "\n    CREATE TABLE collate3t2(c1 collate garbage);\n  ")
 		}
 	}
 	{ // do_test "collate3-1.3"
 		_res = db.Exec("\n    CREATE INDEX collate3i1 ON collate3t1(c1 COLLATE garbage);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: garbage") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", _res.Error, "\n    CREATE INDEX collate3i1 ON collate3t1(c1 COLLATE garbage);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: garbage", resErrString(_res), "\n    CREATE INDEX collate3i1 ON collate3t1(c1 COLLATE garbage);\n  ")
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE collate3t1;\n")
@@ -241,109 +241,109 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-2.1"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;\n  ")
 		}
 	}
 	{ // do_test "collate3-2.2"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY c1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT * FROM collate3t1 ORDER BY c1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT * FROM collate3t1 ORDER BY c1;\n  ")
 		}
 	}
 	{ // do_test "collate3-2.3"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 WHERE c1 = 'xxx';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT * FROM collate3t1 WHERE c1 = 'xxx';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT * FROM collate3t1 WHERE c1 = 'xxx';\n  ")
 		}
 	}
 	{ // do_test "collate3-2.4"
 		_res = db.Exec("\n    CREATE TABLE collate3t2(c1 COLLATE string_compare);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    CREATE TABLE collate3t2(c1 COLLATE string_compare);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    CREATE TABLE collate3t2(c1 COLLATE string_compare);\n  ")
 		}
 	}
 	{ // do_test "collate3-2.5"
 		_res = db.Exec("\n    CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n  ")
 		}
 	}
 	{ // do_test "collate3-2.6"
 		_res = db.Exec("\n    SELECT * FROM collate3t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM collate3t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM collate3t1;\n  ")
 		}
 	}
 	{ // do_test "collate3-2.7.1"
 		_res = db.Exec("\n    SELECT count(*) FROM collate3t1 GROUP BY c1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT count(*) FROM collate3t1 GROUP BY c1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT count(*) FROM collate3t1 GROUP BY c1;\n  ")
 		}
 	}
 	{ // do_test "collate3-2.7.2"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 GROUP BY c1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT * FROM collate3t1 GROUP BY c1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT * FROM collate3t1 GROUP BY c1;\n  ")
 		}
 	}
 	{ // do_test "collate3-2.8"
 		_res = db.Exec("\n    SELECT DISTINCT c1 FROM collate3t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT DISTINCT c1 FROM collate3t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT DISTINCT c1 FROM collate3t1;\n  ")
 		}
 	}
 	{ // do_test "collate3-2.9"
 		_res = db.Exec("\n      SELECT c1 FROM collate3t1 UNION SELECT c1 FROM collate3t1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT c1 FROM collate3t1 UNION SELECT c1 FROM collate3t1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT c1 FROM collate3t1 UNION SELECT c1 FROM collate3t1;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.10"
 		_res = db.Exec("\n      SELECT c1 FROM collate3t1 EXCEPT SELECT c1 FROM collate3t1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT c1 FROM collate3t1 EXCEPT SELECT c1 FROM collate3t1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT c1 FROM collate3t1 EXCEPT SELECT c1 FROM collate3t1;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.11"
 		_res = db.Exec("\n      SELECT c1 FROM collate3t1 INTERSECT SELECT c1 FROM collate3t1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT c1 FROM collate3t1 INTERSECT SELECT c1 FROM collate3t1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT c1 FROM collate3t1 INTERSECT SELECT c1 FROM collate3t1;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.12"
 		_res = db.Exec("\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.13"
 		_res = db.Exec("\n      SELECT 10 UNION ALL SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT 10 UNION ALL SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT 10 UNION ALL SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.14"
 		_res = db.Exec("\n      SELECT 10 INTERSECT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT 10 INTERSECT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT 10 INTERSECT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.15"
 		_res = db.Exec("\n      SELECT 10 EXCEPT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT 10 EXCEPT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT 10 EXCEPT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.16"
 		_res = db.Exec("\n      SELECT 10 UNION SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT 10 UNION SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT 10 UNION SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
 		}
 	}
 	{ // do_test "collate3-2.17"
 		_res = db.Exec("\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1 ORDER BY 1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1 ORDER BY 1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1 ORDER BY 1;\n    ")
 		}
 	}
 	{ // do_test "collate3-3.0"
@@ -362,79 +362,79 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-3.1"
 		_res = db.Exec("\n    INSERT INTO collate3t1 VALUES('xxx', 0);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    INSERT INTO collate3t1 VALUES('xxx', 0);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    INSERT INTO collate3t1 VALUES('xxx', 0);\n  ")
 		}
 	}
 	{ // do_test "collate3-3.2"
 		_res = db.Exec("\n    UPDATE collate3t1 SET c1 = 'xxx';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    UPDATE collate3t1 SET c1 = 'xxx';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    UPDATE collate3t1 SET c1 = 'xxx';\n  ")
 		}
 	}
 	{ // do_test "collate3-3.3"
 		_res = db.Exec("\n    UPDATE collate3t1 SET c2 = 'xxx';\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE collate3t1 SET c2 = 'xxx';\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE collate3t1 SET c2 = 'xxx';\n  ")
 		}
 	}
 	{ // do_test "collate3-3.4"
 		_res = db.Exec("\n    DELETE FROM collate3t1 WHERE 1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    DELETE FROM collate3t1 WHERE 1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    DELETE FROM collate3t1 WHERE 1;\n  ")
 		}
 	}
 	{ // do_test "collate3-3.5"
 		_res = db.Exec("\n    SELECT * FROM collate3t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM collate3t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM collate3t1;\n  ")
 		}
 	}
 	{ // do_test "collate3-3.6"
 		_res = db.Exec("\n    DELETE FROM collate3t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM collate3t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM collate3t1;\n  ")
 		}
 	}
 	{ // do_test "collate3-3.8"
 		_res = db.Exec("\n      PRAGMA integrity_check\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n      PRAGMA integrity_check\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n      PRAGMA integrity_check\n    ")
 		}
 	}
 	{ // do_test "collate3-3.9"
 		_res = db.Exec("\n    SELECT * FROM collate3t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM collate3t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM collate3t1;\n  ")
 		}
 	}
 	{ // do_test "collate3-3.10"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;\n  ")
 		}
 	}
 	{ // do_test "collate3-3.11"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY c1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT * FROM collate3t1 ORDER BY c1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT * FROM collate3t1 ORDER BY c1;\n  ")
 		}
 	}
 	{ // do_test "collate3-3.12"
 		_res = db.Exec("\n    SELECT * FROM collate3t1 WHERE c1 = 'xxx';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    SELECT * FROM collate3t1 WHERE c1 = 'xxx';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    SELECT * FROM collate3t1 WHERE c1 = 'xxx';\n  ")
 		}
 	}
 	{ // do_test "collate3-3.13"
 		_res = db.Exec("\n    CREATE TABLE collate3t2(c1 COLLATE string_compare);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    CREATE TABLE collate3t2(c1 COLLATE string_compare);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    CREATE TABLE collate3t2(c1 COLLATE string_compare);\n  ")
 		}
 	}
 	{ // do_test "collate3-3.14"
 		_res = db.Exec("\n    CREATE INDEX collate3t1_i2 ON collate3t1(c1);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", _res.Error, "\n    CREATE INDEX collate3t1_i2 ON collate3t1(c1);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: string_compare", resErrString(_res), "\n    CREATE INDEX collate3t1_i2 ON collate3t1(c1);\n  ")
 		}
 	}
 	{ // do_test "collate3-3.15"
@@ -521,7 +521,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-5.0"
 		_res = db.Exec("\n    CREATE TABLE collate3t1(a);\n    INSERT INTO collate3t1 VALUES(10);\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: unk") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: unk", _res.Error, "\n    CREATE TABLE collate3t1(a);\n    INSERT INTO collate3t1 VALUES(10);\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: unk", resErrString(_res), "\n    CREATE TABLE collate3t1(a);\n    INSERT INTO collate3t1 VALUES(10);\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		}
 	}
 	{ // do_test "collate3-5.1"
@@ -533,7 +533,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-5.2"
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		}
 	}
 	{ // do_test "collate3-5.3"
@@ -547,7 +547,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-5.4"
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		}
 	}
 	{ // do_test "collate3-5.5"
@@ -561,7 +561,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-5.6"
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		}
 	}
 	{ // do_test "collate3-5.7"

@@ -64,7 +64,7 @@ func Test_whereL(t *testing.T) {
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c, d, e);\n  CREATE TABLE t2(a INT PRIMARY KEY, f, g, h, i);\n  CREATE TABLE t3(a INT PRIMARY KEY, j, k, l, m);\n  CREATE VIEW v4 AS SELECT * FROM t2 UNION ALL SELECT * FROM t3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c, d, e);\n  CREATE TABLE t2(a INT PRIMARY KEY, f, g, h, i);\n  CREATE TABLE t3(a INT PRIMARY KEY, j, k, l, m);\n  CREATE VIEW v4 AS SELECT * FROM t2 UNION ALL SELECT * FROM t3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c, d, e);\n  CREATE TABLE t2(a INT PRIMARY KEY, f, g, h, i);\n  CREATE TABLE t3(a INT PRIMARY KEY, j, k, l, m);\n  CREATE VIEW v4 AS SELECT * FROM t2 UNION ALL SELECT * FROM t3;\n")
 		}
 	}
 	{ // "110"
@@ -317,7 +317,7 @@ func Test_whereL(t *testing.T) {
 	{ // "930"
 		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS t0 (c0 BLOB);\n  CREATE TABLE IF NOT EXISTS t1 (c0 INTEGER);\n\n  INSERT INTO t1 VALUES ('1');\n  INSERT INTO t0 VALUES (''), (''), ('2');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS t0 (c0 BLOB);\n  CREATE TABLE IF NOT EXISTS t1 (c0 INTEGER);\n\n  INSERT INTO t1 VALUES ('1');\n  INSERT INTO t0 VALUES (''), (''), ('2');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS t0 (c0 BLOB);\n  CREATE TABLE IF NOT EXISTS t1 (c0 INTEGER);\n\n  INSERT INTO t1 VALUES ('1');\n  INSERT INTO t0 VALUES (''), (''), ('2');\n")
 		}
 	}
 	{ // "940"

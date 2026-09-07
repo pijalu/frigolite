@@ -139,7 +139,7 @@ func Test_sort5(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE INDEX i1 ON t1(b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i1 ON t1(b);\n")
 		}
 	}
 	db.Close()

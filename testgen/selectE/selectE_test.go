@@ -119,7 +119,7 @@ func Test_selectE(t *testing.T) {
 	{ // "selectE-3.1"
 		_res = db.Exec("\n  SELECT 1 EXCEPT SELECT 2 ORDER BY 1 COLLATE nocase EXCEPT SELECT 3;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY clause should come after EXCEPT not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after EXCEPT not before", _res.Error, "\n  SELECT 1 EXCEPT SELECT 2 ORDER BY 1 COLLATE nocase EXCEPT SELECT 3;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after EXCEPT not before", resErrString(_res), "\n  SELECT 1 EXCEPT SELECT 2 ORDER BY 1 COLLATE nocase EXCEPT SELECT 3;\n")
 		}
 	}
 }

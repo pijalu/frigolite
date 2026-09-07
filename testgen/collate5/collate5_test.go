@@ -284,7 +284,7 @@ func Test_collate5(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b COLLATE nocase);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2 VALUES(1, 'bbb');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b COLLATE nocase);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2 VALUES(1, 'bbb');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b COLLATE nocase);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2 VALUES(1, 'bbb');\n")
 		}
 	}
 	{ // "5.1"
@@ -309,7 +309,7 @@ func Test_collate5(t *testing.T) {
 	{ // "5.2"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c COLLATE NOCASE);\n  INSERT INTO t1 VALUES(NULL,'C','c');\n  CREATE VIEW v2 AS\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,b FROM t1\n    WHERE 'eT\"3qRkL+oJMJjQ9z0'>=b\n    ORDER BY a,b,c;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c COLLATE NOCASE);\n  INSERT INTO t1 VALUES(NULL,'C','c');\n  CREATE VIEW v2 AS\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,b FROM t1\n    WHERE 'eT\"3qRkL+oJMJjQ9z0'>=b\n    ORDER BY a,b,c;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c COLLATE NOCASE);\n  INSERT INTO t1 VALUES(NULL,'C','c');\n  CREATE VIEW v2 AS\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,b FROM t1\n    WHERE 'eT\"3qRkL+oJMJjQ9z0'>=b\n    ORDER BY a,b,c;\n")
 		}
 	}
 	{ // "5.3"

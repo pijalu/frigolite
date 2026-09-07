@@ -64,7 +64,7 @@ func Test_tkt_91e2e8ba6f(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y REAL);\n  INSERT INTO t1 VALUES(11, 11);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER, y REAL);\n  INSERT INTO t1 VALUES(11, 11);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER, y REAL);\n  INSERT INTO t1 VALUES(11, 11);\n")
 		}
 	}
 	{ // "1.2"

@@ -242,7 +242,7 @@ func Test_fts4merge(t *testing.T) {
 			{ // "1.2." + i + ".1"
 				_res = db.Exec(" INSERT INTO t1(t1) VALUES('merge=1') ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('merge=1') ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t1(t1) VALUES('merge=1') ")
 				}
 			}
 			{ // do_test "1.2." + i + ".2"
@@ -287,7 +287,7 @@ func Test_fts4merge(t *testing.T) {
 			{ // "1.4." + i
 				_res = db.Exec(" INSERT INTO t1(t1) VALUES('merge=1,4') ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('merge=1,4') ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t1(t1) VALUES('merge=1,4') ")
 				}
 			}
 			{ // do_test "1.4." + i + ".2"
@@ -328,7 +328,7 @@ func Test_fts4merge(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("CREATE VIRTUAL TABLE t2 USING " + mod)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING " + mod)
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "CREATE VIRTUAL TABLE t2 USING " + mod)
 			}
 		}
 		// foreach {tn arg} "1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}"
@@ -342,7 +342,7 @@ func Test_fts4merge(t *testing.T) {
 				{ // "2." + tn
 					_res = db.Exec(" \n      INSERT INTO t2(t2) VALUES(" + sqlLiteral(arg) + ");\n    ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n      INSERT INTO t2(t2) VALUES(" + sqlLiteral(arg) + ");\n    ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n      INSERT INTO t2(t2) VALUES(" + sqlLiteral(arg) + ");\n    ")
 					}
 				}
 			}
@@ -707,13 +707,13 @@ func Test_fts4merge(t *testing.T) {
 			{ // "8.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, order=DESC);\n  INSERT INTO t1(a) VALUES (0);\n  INSERT INTO t1(a) VALUES (0);\n  UPDATE t1 SET a = NULL;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, order=DESC);\n  INSERT INTO t1(a) VALUES (0);\n  INSERT INTO t1(a) VALUES (0);\n  UPDATE t1 SET a = NULL;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, order=DESC);\n  INSERT INTO t1(a) VALUES (0);\n  INSERT INTO t1(a) VALUES (0);\n  UPDATE t1 SET a = NULL;\n")
 				}
 			}
 			{ // "8.1"
 				_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('merge=1,4');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(t1) VALUES('merge=1,4');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('merge=1,4');\n")
 				}
 			}
 }

@@ -110,7 +110,7 @@ func Test_skipscan5(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		}
 	}
 	// expr srand(4) (not evaluated)
@@ -156,7 +156,7 @@ func Test_skipscan5(t *testing.T) {
 			{ // "1.3." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 		}
@@ -188,7 +188,7 @@ func Test_skipscan5(t *testing.T) {
 				{ // "2." + tn + ".2"
 					_res = db.Exec("\n    CREATE TABLE t2(a TEXT, b TEXT, c TEXT COLLATE test_collate, d TEXT);\n    CREATE INDEX i2 ON t2(a, b, c);\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a TEXT, b TEXT, c TEXT COLLATE test_collate, d TEXT);\n    CREATE INDEX i2 ON t2(a, b, c);\n  ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t2(a TEXT, b TEXT, c TEXT COLLATE test_collate, d TEXT);\n    CREATE INDEX i2 ON t2(a, b, c);\n  ")
 					}
 				}
 				vtab.TclVarSet("vocab", "d", " :) ")
@@ -246,7 +246,7 @@ func Test_skipscan5(t *testing.T) {
 						{ // "2." + tn + "." + tn2
 							_res = db.Exec(sql)
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 							}
 						}
 					}
@@ -261,7 +261,7 @@ func Test_skipscan5(t *testing.T) {
 				{ // "3.1"
 					_res = db.Exec("\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")
 					}
 				}
 				vtab.TclVarSet("values", "", "\n    NULL NULL NULL\n    NULL -9567 -9240\n    -8725 -8659 -8248.340244520614\n    -8208 -7939 -7746.985758536954\n    -7057 -6550 -5916\n    -5363 -4935.781822975623 -4935.063633571875\n    -3518.4554911770183 -2537 -2026\n    -1511.2603881914456 -1510.4195994839156 -1435\n    -1127.4210136045804 -1045 99\n    1353 1457 1563.2908193223611\n    2245 2286 2552\n    2745.18831295203 2866.279926554429 3075.0468527316334\n    3447 3867 4237.892420141907\n    4335 5052.9775000424015 5232.178240656935\n    5541.784919585003 5749.725576373621 5758\n    6005 6431 7263.477992854769\n    7441 7541 8667.279760663994\n    8857 9199.638673662972 'dl'\n    'dro' 'h' 'igprfq'\n    'jnbd' 'k' 'kordee'\n    'lhwcv' 'mzlb' 'nbjked'\n    'nufpo' 'nxqkdq' 'shelln'\n    'tvzn' 'wpnt' 'wylf'\n    'ydkgu' 'zdb' X''\n    X'0a' X'203f6429f1f33f' X'23858e324545e0362b'\n    X'3f9f8a' X'516f7ddd4b' X'68f1df0930ac6b'\n    X'9ea60d' X'a06f' X'aefd342a39ce36df'\n    X'afaa020fe2' X'be201c' X'c47d97b209601e45'\n")
@@ -306,7 +306,7 @@ func Test_skipscan5(t *testing.T) {
 						{ // "3.3." + tn
 							_res = db.Exec(sql)
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 							}
 						}
 					}

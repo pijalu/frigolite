@@ -408,7 +408,7 @@ func Test_in(t *testing.T) {
 	{ // do_test "in-9.4"
 		_res = db.Exec("\n    SELECT b FROM t1 WHERE a NOT IN tb;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n    SELECT b FROM t1 WHERE a NOT IN tb;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n    SELECT b FROM t1 WHERE a NOT IN tb;\n  ")
 		}
 	}
 	{ // do_test "in-10.1"
@@ -420,7 +420,7 @@ func Test_in(t *testing.T) {
 	{ // do_test "in-10.2"
 		_res = db.Exec("\n    INSERT INTO t5 VALUES(4);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a IN (111,222,333)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a IN (111,222,333)", _res.Error, "\n    INSERT INTO t5 VALUES(4);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a IN (111,222,333)", resErrString(_res), "\n    INSERT INTO t5 VALUES(4);\n  ")
 		}
 	}
 	{ // do_test "in-11.1"
@@ -468,85 +468,85 @@ func Test_in(t *testing.T) {
 	{ // do_test "in-12.2"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.3"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.4"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.5"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.6"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.7"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.8"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of EXCEPT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.9"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of INTERSECT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.10"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.11"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.12"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of EXCEPT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.13"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of INTERSECT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.14"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-12.15"
 		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
 		}
 	}
 	{ // do_test "in-13.1"
@@ -647,7 +647,7 @@ func Test_in(t *testing.T) {
 	{ // do_test "in-13.15"
 		_res = db.Exec("\n    SELECT 0 WHERE (SELECT 0,0) OR (0 IN (1,2));\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n    SELECT 0 WHERE (SELECT 0,0) OR (0 IN (1,2));\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n    SELECT 0 WHERE (SELECT 0,0) OR (0 IN (1,2));\n  ")
 		}
 	}
 	{ // do_test "in-13.X"
@@ -656,7 +656,7 @@ func Test_in(t *testing.T) {
 	{ // "in-14.0"
 		_res = db.Exec("\n  CREATE TABLE c1(a);\n  INSERT INTO c1 VALUES(1), (2), (4), (3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(a);\n  INSERT INTO c1 VALUES(1), (2), (4), (3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE c1(a);\n  INSERT INTO c1 VALUES(1), (2), (4), (3);\n")
 		}
 	}
 	{ // "in-14.1"
@@ -759,7 +759,7 @@ func Test_in(t *testing.T) {
 	{ // "in-16.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1(a) VALUES(1), (2), (3), (4), (5), (6);\n  CREATE INDEX x1i ON x1(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1(a) VALUES(1), (2), (3), (4), (5), (6);\n  CREATE INDEX x1i ON x1(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1(a) VALUES(1), (2), (3), (4), (5), (6);\n  CREATE INDEX x1i ON x1(a, b);\n")
 		}
 	}
 	{ // "in-16.1"

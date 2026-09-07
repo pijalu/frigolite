@@ -94,7 +94,7 @@ func Test_bestindexD(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n\n  CREATE TABLE t2(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n\n  CREATE TABLE t2(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n\n  CREATE TABLE t2(a, b);\n")
 		}
 	}
 	// proc definition (not transpiled)

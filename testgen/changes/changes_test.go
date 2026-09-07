@@ -104,7 +104,7 @@ func Test_changes(t *testing.T) {
 			{ // "1." + tn + ".1"
 				_res = db.Exec("\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < " + sqlLiteral(nBig) + "\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < " + sqlLiteral(nBig) + "\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < " + sqlLiteral(nBig) + "\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
 				}
 			}
 			{ // do_test "1." + tn + ".2"
@@ -116,7 +116,7 @@ func Test_changes(t *testing.T) {
 			{ // "1." + tn + ".4"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES(-1)\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(-1)\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(-1)\n  ")
 				}
 			}
 			{ // do_test "1." + tn + ".5"
@@ -140,7 +140,7 @@ func Test_changes(t *testing.T) {
 			{ // "1." + tn + ".7"
 				_res = db.Exec("\n    DELETE FROM t1\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1\n  ")
 				}
 			}
 			{ // do_test "1." + tn + ".8"

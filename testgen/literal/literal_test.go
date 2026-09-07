@@ -115,7 +115,7 @@ func Test_literal(t *testing.T) {
 		{ // "5.1"
 			_res = db.Exec("\n  SELECT 1 ORDER BY 2_3;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term out of range - should be between 1 and 1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 1", _res.Error, "\n  SELECT 1 ORDER BY 2_3;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 1", resErrString(_res), "\n  SELECT 1 ORDER BY 2_3;\n")
 			}
 		}
 }

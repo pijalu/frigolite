@@ -274,13 +274,13 @@ func Test_temptrigger(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN\n    SELECT 1,2,3;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN\n    SELECT 1,2,3;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN\n    SELECT 1,2,3;\n  END;\n")
 		}
 	}
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TEMP TABLE t1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TEMP TABLE t1(x);\n")
 		}
 	}
 	db.Close()
@@ -293,7 +293,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END;\n")
 		}
 	}
 	{ // do_test "5.1"
@@ -329,7 +329,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN \n    SELECT raise(ABORT, 'error'); \n  END;\n  ATTACH 'test.db2' AS aux;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN \n    SELECT raise(ABORT, 'error'); \n  END;\n  ATTACH 'test.db2' AS aux;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN \n    SELECT raise(ABORT, 'error'); \n  END;\n  ATTACH 'test.db2' AS aux;\n")
 		}
 	}
 	{ // do_test "6.1"
@@ -356,7 +356,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "6.3"
 		_res = db.Exec("\n  INSERT INTO main.t1 VALUES(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error", _res.Error, "\n  INSERT INTO main.t1 VALUES(1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error", resErrString(_res), "\n  INSERT INTO main.t1 VALUES(1);\n")
 		}
 	}
 	if db2 != nil { db2.Close() }
@@ -371,7 +371,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE m1(a, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.a1(c, d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE m1(a, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.a1(c, d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE m1(a, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.a1(c, d);\n")
 		}
 	}
 	{ // "7.1"
@@ -389,7 +389,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "7.2"
 		_res = db.Exec("\n  CREATE TABLE a1(e, f);\n  INSERT INTO m1 VALUES(7, 8);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a1(e, f);\n  INSERT INTO m1 VALUES(7, 8);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE a1(e, f);\n  INSERT INTO m1 VALUES(7, 8);\n")
 		}
 	}
 	{ // "7.3.1"
@@ -419,7 +419,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "7.4"
 		_res = db.Exec("\n  DROP TRIGGER tr1;\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n\n  DELETE FROM aux.a1;\n  DELETE FROM main.a1;\n  INSERT INTO aux.a1 VALUES('hello', 'world');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER tr1;\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n\n  DELETE FROM aux.a1;\n  DELETE FROM main.a1;\n  INSERT INTO aux.a1 VALUES('hello', 'world');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TRIGGER tr1;\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n\n  DELETE FROM aux.a1;\n  DELETE FROM main.a1;\n  INSERT INTO aux.a1 VALUES('hello', 'world');\n")
 		}
 	}
 	{ // "7.5"
@@ -437,7 +437,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "7.6"
 		_res = db.Exec("\n  DROP TRIGGER tr1;\n  CREATE TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger tr1 cannot reference objects in database aux") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger tr1 cannot reference objects in database aux", _res.Error, "\n  DROP TRIGGER tr1;\n  CREATE TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger tr1 cannot reference objects in database aux", resErrString(_res), "\n  DROP TRIGGER tr1;\n  CREATE TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n")
 		}
 	}
 	db.Close()
@@ -452,13 +452,13 @@ func Test_temptrigger(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE aux.t1(e, f);\n  CREATE TABLE aux.t2(g, h);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE aux.t1(e, f);\n  CREATE TABLE aux.t2(g, h);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE aux.t1(e, f);\n  CREATE TABLE aux.t2(g, h);\n")
 		}
 	}
 	{ // "8.1.1"
 		_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER INSERT ON t2 BEGIN\n    INSERT INTO aux.t1 VALUES(new.c, new.d);\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", _res.Error, "\n  CREATE TRIGGER tr1 AFTER INSERT ON t2 BEGIN\n    INSERT INTO aux.t1 VALUES(new.c, new.d);\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", resErrString(_res), "\n  CREATE TRIGGER tr1 AFTER INSERT ON t2 BEGIN\n    INSERT INTO aux.t1 VALUES(new.c, new.d);\n  END;\n")
 		}
 	}
 	{ // "8.1.2"
@@ -482,7 +482,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "8.2.1"
 		_res = db.Exec("\n  CREATE TRIGGER aux.tr2 AFTER UPDATE ON aux.t1 BEGIN\n    UPDATE main.t2 SET c=new.e, d=new.f;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", _res.Error, "\n  CREATE TRIGGER aux.tr2 AFTER UPDATE ON aux.t1 BEGIN\n    UPDATE main.t2 SET c=new.e, d=new.f;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", resErrString(_res), "\n  CREATE TRIGGER aux.tr2 AFTER UPDATE ON aux.t1 BEGIN\n    UPDATE main.t2 SET c=new.e, d=new.f;\n  END;\n")
 		}
 	}
 	{ // "8.2.2"
@@ -506,7 +506,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "8.3.1"
 		_res = db.Exec("\n  CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", _res.Error, "\n  CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", resErrString(_res), "\n  CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;\n")
 		}
 	}
 	{ // "8.3.2"
@@ -571,7 +571,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "9.1"
 		_res = db.Exec(" INSERT INTO db0.tbl VALUES('a', 'b', 'c'); ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO db0.tbl VALUES('a', 'b', 'c'); ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO db0.tbl VALUES('a', 'b', 'c'); ")
 		}
 	}
 	{ // "9.1.1"
@@ -690,7 +690,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "9.3"
 		_res = db.Exec(" UPDATE db0.tbl SET a=1, b=2, c=3 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE db0.tbl SET a=1, b=2, c=3 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE db0.tbl SET a=1, b=2, c=3 ")
 		}
 	}
 	{ // "9.3.1"
@@ -809,7 +809,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // "9.5"
 		_res = db.Exec(" DELETE FROM db0.tbl ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM db0.tbl ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM db0.tbl ")
 		}
 	}
 	{ // "9.5.1"

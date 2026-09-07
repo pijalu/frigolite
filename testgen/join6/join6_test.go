@@ -142,7 +142,7 @@ func Test_join6(t *testing.T) {
 	{ // "join6-5.1"
 		_res = db.Exec("\n  CREATE TABLE tx(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o PRIMARY KEY) \n  WITHOUT ROWID;\n  INSERT INTO tx VALUES(\n    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tx(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o PRIMARY KEY) \n  WITHOUT ROWID;\n  INSERT INTO tx VALUES(\n    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tx(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o PRIMARY KEY) \n  WITHOUT ROWID;\n  INSERT INTO tx VALUES(\n    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n  );\n")
 		}
 	}
 	{ // "joint6-5.2"

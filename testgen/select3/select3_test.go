@@ -189,31 +189,31 @@ func Test_select3(t *testing.T) {
 	{ // do_test "select3-2.10"
 		_res = db.Exec("\n    SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st GROUP BY term out of range - should be between 1 and 2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st GROUP BY term out of range - should be between 1 and 2", _res.Error, "\n    SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st GROUP BY term out of range - should be between 1 and 2", resErrString(_res), "\n    SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;\n  ")
 		}
 	}
 	{ // do_test "select3-2.11"
 		_res = db.Exec("\n    SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st GROUP BY term out of range - should be between 1 and 2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st GROUP BY term out of range - should be between 1 and 2", _res.Error, "\n    SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st GROUP BY term out of range - should be between 1 and 2", resErrString(_res), "\n    SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;\n  ")
 		}
 	}
 	{ // do_test "select3-2.12"
 		_res = db.Exec("\n    SELECT log, count(*) FROM t1 GROUP BY 1 ORDER BY log;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT log, count(*) FROM t1 GROUP BY 1 ORDER BY log;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT log, count(*) FROM t1 GROUP BY 1 ORDER BY log;\n  ")
 		}
 	}
 	{ // do_test "select3-2.13"
 		_res = db.Exec("\n    SELECT log, count(*) FROM t1 GROUP BY ORDER BY log;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ORDER\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ORDER\": syntax error", _res.Error, "\n    SELECT log, count(*) FROM t1 GROUP BY ORDER BY log;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ORDER\": syntax error", resErrString(_res), "\n    SELECT log, count(*) FROM t1 GROUP BY ORDER BY log;\n  ")
 		}
 	}
 	{ // do_test "select3-2.14"
 		_res = db.Exec("\n    SELECT log, count(*) FROM t1 GROUP BY;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \";\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", _res.Error, "\n    SELECT log, count(*) FROM t1 GROUP BY;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", resErrString(_res), "\n    SELECT log, count(*) FROM t1 GROUP BY;\n  ")
 		}
 	}
 	{ // "select3-3.1"
@@ -433,7 +433,7 @@ func Test_select3(t *testing.T) {
 				{ // "select3-11." + tn + ".1"
 					_res = db.Exec(sql)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 					}
 				}
 				{ // "select3.11." + tn + ".2"
@@ -483,7 +483,7 @@ func Test_select3(t *testing.T) {
 			{ // "12.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(x);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(x);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(x);\n")
 				}
 			}
 			{ // "12.1"
@@ -543,7 +543,7 @@ func Test_select3(t *testing.T) {
 			{ // "12.6"
 				_res = db.Exec("\n  DELETE FROM t2;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('value');\n  INSERT INTO t2 VALUES('hello');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('value');\n  INSERT INTO t2 VALUES('hello');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('value');\n  INSERT INTO t2 VALUES('hello');\n")
 				}
 			}
 			{ // "12.7"

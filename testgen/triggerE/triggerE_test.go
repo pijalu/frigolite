@@ -73,7 +73,7 @@ func Test_triggerE(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
 		}
 	}
 	vtab.TclVarSet("errmsg", "", "trigger cannot use variables")
@@ -92,13 +92,13 @@ func Test_triggerE(t *testing.T) {
 			{ // "1.1." + tn
 				_res = db.Exec("CREATE TRIGGER tr1 " + defn)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), errmsg) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", errmsg, _res.Error, "CREATE TRIGGER tr1 " + defn)
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", errmsg, resErrString(_res), "CREATE TRIGGER tr1 " + defn)
 				}
 			}
 			{ // "1.2." + tn
 				_res = db.Exec("CREATE TEMP TRIGGER tr1 " + defn)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), errmsg) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", errmsg, _res.Error, "CREATE TEMP TRIGGER tr1 " + defn)
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", errmsg, resErrString(_res), "CREATE TEMP TRIGGER tr1 " + defn)
 				}
 			}
 		}
@@ -172,7 +172,7 @@ func Test_triggerE(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n    CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;\n  ")
 			}
 		}
 }

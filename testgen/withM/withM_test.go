@@ -64,7 +64,7 @@ func Test_withM(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);\n")
 		}
 	}
 	// do_faultsim_test withM-1.1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH tmp A... (unsupported command, not transpiled)

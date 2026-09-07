@@ -81,7 +81,7 @@ func Test_tkt_a7debbe0(t *testing.T) {
 		{ // tn + ".1.0"
 			_res = db.Exec("\n    CREATE TABLE t0(xyz INTEGER);\n    INSERT INTO t0(xyz) VALUES(456);\n    CREATE VIEW v2(a, B) AS \n        SELECT 'a', 'B' COLLATE NOCASE FROM t0;\n    CREATE TABLE t2(a, B COLLATE NOCASE);\n    INSERT INTO t2 VALUES('a', 'B');\n    CREATE VIEW v3(a, B) AS\n        SELECT 'a' COLLATE BINARY, 'B' COLLATE NOCASE FROM t0;\n\n    CREATE VIEW v4(a, B) AS\n        SELECT 'a', +CAST('B' COLLATE NOCASE AS TEXT) FROM t0;\n\n    CREATE VIEW v5(a, B) AS\n        SELECT 'a', ('B' COLLATE NOCASE) || '' FROM t0;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(xyz INTEGER);\n    INSERT INTO t0(xyz) VALUES(456);\n    CREATE VIEW v2(a, B) AS \n        SELECT 'a', 'B' COLLATE NOCASE FROM t0;\n    CREATE TABLE t2(a, B COLLATE NOCASE);\n    INSERT INTO t2 VALUES('a', 'B');\n    CREATE VIEW v3(a, B) AS\n        SELECT 'a' COLLATE BINARY, 'B' COLLATE NOCASE FROM t0;\n\n    CREATE VIEW v4(a, B) AS\n        SELECT 'a', +CAST('B' COLLATE NOCASE AS TEXT) FROM t0;\n\n    CREATE VIEW v5(a, B) AS\n        SELECT 'a', ('B' COLLATE NOCASE) || '' FROM t0;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t0(xyz INTEGER);\n    INSERT INTO t0(xyz) VALUES(456);\n    CREATE VIEW v2(a, B) AS \n        SELECT 'a', 'B' COLLATE NOCASE FROM t0;\n    CREATE TABLE t2(a, B COLLATE NOCASE);\n    INSERT INTO t2 VALUES('a', 'B');\n    CREATE VIEW v3(a, B) AS\n        SELECT 'a' COLLATE BINARY, 'B' COLLATE NOCASE FROM t0;\n\n    CREATE VIEW v4(a, B) AS\n        SELECT 'a', +CAST('B' COLLATE NOCASE AS TEXT) FROM t0;\n\n    CREATE VIEW v5(a, B) AS\n        SELECT 'a', ('B' COLLATE NOCASE) || '' FROM t0;\n  ")
 			}
 		}
 		{ // tn + ".1.1.1"
@@ -231,7 +231,7 @@ func Test_tkt_a7debbe0(t *testing.T) {
 		{ // tn + ".2.0"
 			_res = db.Exec("\n    CREATE TABLE t5(a, b COLLATE NOCASE);\n    INSERT INTO t5 VALUES(1, 'XYZ');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a, b COLLATE NOCASE);\n    INSERT INTO t5 VALUES(1, 'XYZ');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t5(a, b COLLATE NOCASE);\n    INSERT INTO t5 VALUES(1, 'XYZ');\n  ")
 			}
 		}
 		{ // tn + ".2.1"

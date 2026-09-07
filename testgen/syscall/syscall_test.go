@@ -172,7 +172,7 @@ func Test_syscall(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

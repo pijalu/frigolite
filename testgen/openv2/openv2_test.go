@@ -106,7 +106,7 @@ func Test_openv2(t *testing.T) {
 	{ // do_test "openv2-1.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(123)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n    INSERT INTO t1 VALUES(123)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n    INSERT INTO t1 VALUES(123)\n  ")
 		}
 	}
 	{ // do_test "openv2-2.1"
@@ -120,7 +120,7 @@ func Test_openv2(t *testing.T) {
 	{ // do_test "openv2-2.2"
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "CREATE TABLE t1(x)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "CREATE TABLE t1(x)")
 		}
 	}
 }

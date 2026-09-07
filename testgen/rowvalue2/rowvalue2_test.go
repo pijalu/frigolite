@@ -110,7 +110,7 @@ func Test_rowvalue2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(0, 0, 0);\n  INSERT INTO t1 VALUES(0, 1, 1);\n  INSERT INTO t1 VALUES(1, 0, 2);\n  INSERT INTO t1 VALUES(1, 1, 3);\n\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(0, 0, 0);\n  INSERT INTO t1 VALUES(0, 1, 1);\n  INSERT INTO t1 VALUES(1, 0, 2);\n  INSERT INTO t1 VALUES(1, 1, 3);\n\n  CREATE INDEX i1 ON t1(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(0, 0, 0);\n  INSERT INTO t1 VALUES(0, 1, 1);\n  INSERT INTO t1 VALUES(1, 0, 2);\n  INSERT INTO t1 VALUES(1, 1, 3);\n\n  CREATE INDEX i1 ON t1(a, b);\n")
 		}
 	}
 	{ // "1.1.1"
@@ -140,7 +140,7 @@ func Test_rowvalue2(t *testing.T) {
 	{ // "2.0.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a INTEGER, b INTEGER, c INTEGER, d INTEGER);\n  CREATE INDEX i2 ON t2(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a INTEGER, b INTEGER, c INTEGER, d INTEGER);\n  CREATE INDEX i2 ON t2(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a INTEGER, b INTEGER, c INTEGER, d INTEGER);\n  CREATE INDEX i2 ON t2(a, b, c);\n")
 		}
 	}
 	{ // do_test "2.0.2"
@@ -314,7 +314,7 @@ func Test_rowvalue2(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);\n")
 			}
 		}
 		// proc definition (not transpiled)
@@ -373,7 +373,7 @@ func Test_rowvalue2(t *testing.T) {
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
 					}
 				}
 				// foreach {tn lhs rhs} "1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}"

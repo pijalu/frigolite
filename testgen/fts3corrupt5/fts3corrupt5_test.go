@@ -75,7 +75,7 @@ func Test_fts3corrupt5(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n    INSERT INTO ft VALUES('one', 'one', 'one');\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n    INSERT INTO ft VALUES('one', 'one', 'one');\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n    INSERT INTO ft VALUES('one', 'one', 'one');\n  COMMIT;\n")
 		}
 	}
 	{ // "1.1"
@@ -117,7 +117,7 @@ func Test_fts3corrupt5(t *testing.T) {
 			{ // "1.3." + tn + ".1"
 				_res = db.Exec("UPDATE ft_segdir SET root = " + val)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE ft_segdir SET root = " + val)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "UPDATE ft_segdir SET root = " + val)
 				}
 			}
 			vtab.TclVarSet("res", "", "0 {}")
@@ -131,7 +131,7 @@ func Test_fts3corrupt5(t *testing.T) {
 			{ // "1.3." + tn + ".2"
 				_res = db.Exec("\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
 				if !tclCatchsqlMatches(_res, res) {
-					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, "\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, "\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
 				}
 			}
 		}

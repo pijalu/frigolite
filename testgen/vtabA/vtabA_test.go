@@ -103,7 +103,7 @@ func Test_vtabA(t *testing.T) {
 	{ // do_test "vtabA-1.4"
 		_res = db.Exec("\n    INSERT INTO t1e VALUES('value a', 'value c');\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1e VALUES('value a', 'value c');\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1e VALUES('value a', 'value c');\n  ")
 		}
 	}
 	{ // do_test "vtabA-1.5"
@@ -121,13 +121,13 @@ func Test_vtabA(t *testing.T) {
 	{ // "vtabA-1.7"
 		_res = db.Exec("\n  DELETE FROM t1e;\n  INSERT INTO t1e SELECT 'abc','def';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1e;\n  INSERT INTO t1e SELECT 'abc','def';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1e;\n  INSERT INTO t1e SELECT 'abc','def';\n")
 		}
 	}
 	{ // "vtabA-1.8"
 		_res = db.Exec("\n  INSERT INTO t1e VALUES('ghi','jkl'),('mno','pqr'),('stu','vwx');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1e VALUES('ghi','jkl'),('mno','pqr'),('stu','vwx');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1e VALUES('ghi','jkl'),('mno','pqr'),('stu','vwx');\n")
 		}
 	}
 	{ // "vtabA-1.9"

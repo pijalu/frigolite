@@ -85,13 +85,13 @@ func Test_rtreecheck(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  SELECT rtreecheck();\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function rtreecheck()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function rtreecheck()", _res.Error, "\n  SELECT rtreecheck();\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function rtreecheck()", resErrString(_res), "\n  SELECT rtreecheck();\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  SELECT rtreecheck(0,0,0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function rtreecheck()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function rtreecheck()", _res.Error, "\n  SELECT rtreecheck(0,0,0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function rtreecheck()", resErrString(_res), "\n  SELECT rtreecheck(0,0,0);\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -128,7 +128,7 @@ func Test_rtreecheck(t *testing.T) {
 	{ // "2.2"
 		_res = db.Exec("\n  UPDATE r1_node SET data = swap_int32(data, 3, 9);\n  UPDATE r1_node SET data = swap_int32(data, 23, 29);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE r1_node SET data = swap_int32(data, 3, 9);\n  UPDATE r1_node SET data = swap_int32(data, 23, 29);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE r1_node SET data = swap_int32(data, 3, 9);\n  UPDATE r1_node SET data = swap_int32(data, 23, 29);\n")
 		}
 	}
 	{ // "2.3"
@@ -340,7 +340,7 @@ func Test_rtreecheck(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE r3 USING rtree_i32(id, x1, x2, y1, y2);\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO r3 SELECT i, i, i, i, i FROM x;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE r3 USING rtree_i32(id, x1, x2, y1, y2);\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO r3 SELECT i, i, i, i, i FROM x;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE r3 USING rtree_i32(id, x1, x2, y1, y2);\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO r3 SELECT i, i, i, i, i FROM x;\n")
 		}
 	}
 	db.SetDefensive(false)
@@ -389,14 +389,14 @@ func Test_rtreecheck(t *testing.T) {
 		{ // "6.1.inmemory_journal"
 			_res = db.Exec("\n    SELECT ( 'elvis' IN(SELECT rtreecheck('t1')) ) FROM (SELECT 1) GROUP BY 1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT ( 'elvis' IN(SELECT rtreecheck('t1')) ) FROM (SELECT 1) GROUP BY 1;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT ( 'elvis' IN(SELECT rtreecheck('t1')) ) FROM (SELECT 1) GROUP BY 1;\n  ")
 			}
 		}
 	} else {
 		{ // "6.1"
 			_res = db.Exec("\n    SELECT ( 'elvis' IN(SELECT rtreecheck('t1')) ) FROM (SELECT 1) GROUP BY 1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT ( 'elvis' IN(SELECT rtreecheck('t1')) ) FROM (SELECT 1) GROUP BY 1;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT ( 'elvis' IN(SELECT rtreecheck('t1')) ) FROM (SELECT 1) GROUP BY 1;\n  ")
 			}
 		}
 	}

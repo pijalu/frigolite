@@ -66,7 +66,7 @@ func Test_fts3integrity(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1 VALUES('first row');\n  INSERT INTO t1 VALUES('second row');\n\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('first row');\n  INSERT INTO t2 VALUES('second row');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1 VALUES('first row');\n  INSERT INTO t1 VALUES('second row');\n\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('first row');\n  INSERT INTO t2 VALUES('second row');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1 VALUES('first row');\n  INSERT INTO t1 VALUES('second row');\n\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('first row');\n  INSERT INTO t2 VALUES('second row');\n")
 		}
 	}
 	db2, err = frigolite.Open("test.db")
@@ -75,7 +75,7 @@ func Test_fts3integrity(t *testing.T) {
 	{ // "1.1"
 		_res = db2.Exec("\n  CREATE TABLE t3(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(x, y);\n")
 		}
 	}
 	{ // "1.2"

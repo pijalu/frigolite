@@ -111,7 +111,7 @@ func Test_reindex(t *testing.T) {
 	{ // do_test "reindex-1.9"
 		_res = db.Exec("\n    REINDEX bogus\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to identify the object to be reindexed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to identify the object to be reindexed", _res.Error, "\n    REINDEX bogus\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to identify the object to be reindexed", resErrString(_res), "\n    REINDEX bogus\n  ")
 		}
 	}
 	{ // do_test "reindex-2.1"
@@ -188,7 +188,7 @@ func Test_reindex(t *testing.T) {
 	{ // do_test "reindex-3.3"
 		_res = db2.Exec("\n    REINDEX;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: c2", _res.Error, "\n    REINDEX;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: c2", resErrString(_res), "\n    REINDEX;\n  ")
 		}
 	}
 	{ // do_test "reindex-3.99"

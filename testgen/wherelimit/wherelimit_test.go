@@ -73,49 +73,49 @@ func Test_wherelimit(t *testing.T) {
 	{ // do_test "wherelimit-0.1"
 		_res = db.Exec("DELETE FROM t1 ORDER BY x")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY without LIMIT on DELETE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY without LIMIT on DELETE", _res.Error, "DELETE FROM t1 ORDER BY x")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY without LIMIT on DELETE", resErrString(_res), "DELETE FROM t1 ORDER BY x")
 		}
 	}
 	{ // do_test "wherelimit-0.2"
 		_res = db.Exec("DELETE FROM t1 WHERE x=1 ORDER BY x")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY without LIMIT on DELETE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY without LIMIT on DELETE", _res.Error, "DELETE FROM t1 WHERE x=1 ORDER BY x")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY without LIMIT on DELETE", resErrString(_res), "DELETE FROM t1 WHERE x=1 ORDER BY x")
 		}
 	}
 	{ // do_test "wherelimit-0.3"
 		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=1 ORDER BY x")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY without LIMIT on UPDATE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY without LIMIT on UPDATE", _res.Error, "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY without LIMIT on UPDATE", resErrString(_res), "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x")
 		}
 	}
 	{ // do_test "wherelimit-0.4"
 		_res = db.Exec("DELETE FROM t1 AS a WHERE a.x=1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 AS a WHERE a.x=1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "DELETE FROM t1 AS a WHERE a.x=1")
 		}
 	}
 	{ // do_test "wherelimit-0.5.1"
 		_res = db.Exec("UPDATE t1 AS a SET y=1 WHERE x=1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "UPDATE t1 AS a SET y=1 WHERE x=1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "UPDATE t1 AS a SET y=1 WHERE x=1")
 		}
 	}
 	{ // do_test "wherelimit-0.5.2"
 		_res = db.Exec("UPDATE t1 AS a SET y=1 WHERE t1.x=1")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t1.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t1.x", _res.Error, "UPDATE t1 AS a SET y=1 WHERE t1.x=1")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t1.x", resErrString(_res), "UPDATE t1 AS a SET y=1 WHERE t1.x=1")
 		}
 	}
 	{ // do_test "wherelimit-0.6"
 		_res = db.Exec("DELETE FROM t1 WHERE x=1 OFFSET 2")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"OFFSET\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OFFSET\": syntax error", _res.Error, "DELETE FROM t1 WHERE x=1 OFFSET 2")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OFFSET\": syntax error", resErrString(_res), "DELETE FROM t1 WHERE x=1 OFFSET 2")
 		}
 	}
 	{ // do_test "wherelimit-0.7"
 		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=1 OFFSET 2")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"OFFSET\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OFFSET\": syntax error", _res.Error, "UPDATE t1 SET y=1 WHERE x=1 OFFSET 2")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OFFSET\": syntax error", resErrString(_res), "UPDATE t1 SET y=1 WHERE x=1 OFFSET 2")
 		}
 	}
 	_res = db.Exec(" DROP TABLE t1 ")
@@ -661,31 +661,31 @@ func Test_wherelimit(t *testing.T) {
 	{ // "wherelimit-4.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;\n  ")
 		}
 	}
 	{ // "wherelimit-4.2"
 		_res = db.Exec("\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
 		}
 	}
 	{ // "wherelimit-4.3"
 		_res = db.Exec("\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
 		}
 	}
 	{ // "wherelimit-4.10"
 		_res = db.Exec("\n    CREATE TABLE t3(a,b,c,d TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a,b,c,d TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t3(a,b,c,d TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12);\n  ")
 		}
 	}
 	{ // "wherelimit-4.11"
 		_res = db.Exec("\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
 		}
 	}
 	{ // "wherelimit-4.12"

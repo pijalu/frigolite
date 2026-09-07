@@ -138,7 +138,7 @@ func Test_count(t *testing.T) {
 	{ // do_test "count-2.2"
 		_res = db.Exec("SELECT count(DISTINCT *) FROM t2")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"*\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"*\": syntax error", _res.Error, "SELECT count(DISTINCT *) FROM t2")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"*\": syntax error", resErrString(_res), "SELECT count(DISTINCT *) FROM t2")
 		}
 	}
 	{ // do_test "count-2.3"
@@ -153,7 +153,7 @@ func Test_count(t *testing.T) {
 	{ // do_test "count-2.6"
 		_res = db.Exec("SELECT count(DISTINCT) FROM t2")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT aggregates must have exactly one argument") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", _res.Error, "SELECT count(DISTINCT) FROM t2")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", resErrString(_res), "SELECT count(DISTINCT) FROM t2")
 		}
 	}
 	{ // do_test "count-2.7"
@@ -249,7 +249,7 @@ func Test_count(t *testing.T) {
 	{ // "count-6.1"
 		_res = db.Exec("\n  CREATE TABLE t6(x);\n  SELECT count(DISTINCT) FROM t6 GROUP BY x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT aggregates must have exactly one argument") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", _res.Error, "\n  CREATE TABLE t6(x);\n  SELECT count(DISTINCT) FROM t6 GROUP BY x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", resErrString(_res), "\n  CREATE TABLE t6(x);\n  SELECT count(DISTINCT) FROM t6 GROUP BY x;\n")
 		}
 	}
 	db.Close()
@@ -262,7 +262,7 @@ func Test_count(t *testing.T) {
 	{ // "count-7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c VARCHAR(1000));\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b,c) values(1,2,'count.test cases for NOT INDEXED');\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10' WHERE idx='t1b';\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c VARCHAR(1000));\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b,c) values(1,2,'count.test cases for NOT INDEXED');\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10' WHERE idx='t1b';\n  ANALYZE sqlite_master;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c VARCHAR(1000));\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b,c) values(1,2,'count.test cases for NOT INDEXED');\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10' WHERE idx='t1b';\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	{ // "count-7.2"
@@ -292,13 +292,13 @@ func Test_count(t *testing.T) {
 	{ // "count-8.0"
 		_res = db.Exec("\n  CREATE TABLE t7(a INT,b TEXT,c BLOB,d REAL);\n  CREATE TABLE t8(a INT,b TEXT,c BLOB,d REAL);\n  CREATE INDEX t8a ON t8(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(a INT,b TEXT,c BLOB,d REAL);\n  CREATE TABLE t8(a INT,b TEXT,c BLOB,d REAL);\n  CREATE INDEX t8a ON t8(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t7(a INT,b TEXT,c BLOB,d REAL);\n  CREATE TABLE t8(a INT,b TEXT,c BLOB,d REAL);\n  CREATE INDEX t8a ON t8(a);\n")
 		}
 	}
 	{ // "count-8.1"
 		_res = db.Exec("\n  SELECT * FROM t8 WHERE (a, b) IN (\n      SELECT count(t8.b), count(*) FROM t7 AS ra0 ORDER BY count(*)\n  ) AND t8.b=0; \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate: count()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", _res.Error, "\n  SELECT * FROM t8 WHERE (a, b) IN (\n      SELECT count(t8.b), count(*) FROM t7 AS ra0 ORDER BY count(*)\n  ) AND t8.b=0; \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate: count()", resErrString(_res), "\n  SELECT * FROM t8 WHERE (a, b) IN (\n      SELECT count(t8.b), count(*) FROM t7 AS ra0 ORDER BY count(*)\n  ) AND t8.b=0; \n")
 		}
 	}
 }

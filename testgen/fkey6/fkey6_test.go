@@ -83,7 +83,7 @@ func Test_fkey6(t *testing.T) {
 	{ // do_test "fkey6-1.2"
 		_res = db.Exec("DELETE FROM t1 WHERE x=2;")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "DELETE FROM t1 WHERE x=2;")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "DELETE FROM t1 WHERE x=2;")
 		}
 	}
 	{ // "fkey6-1.3" (prepare-step internals; SQL side effects only)
@@ -134,7 +134,7 @@ func Test_fkey6(t *testing.T) {
 	{ // do_test "fkey6-1.10.2"
 		_res = db.Exec("DELETE FROM t1 WHERE x=3")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "DELETE FROM t1 WHERE x=3")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "DELETE FROM t1 WHERE x=3")
 		}
 	}
 	_res = db.Exec("ROLLBACK")
@@ -161,7 +161,7 @@ func Test_fkey6(t *testing.T) {
 	{ // "fkey6-2.1"
 		_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');\n")
 		}
 	}
 	{ // "fkey6-2.2"
@@ -203,7 +203,7 @@ func Test_fkey6(t *testing.T) {
 	{ // "fkey6-2.5"
 		_res = db.Exec("\n  DROP TABLE p1;\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE p1;\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE p1;\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');\n")
 		}
 	}
 	{ // "fkey6-2.6"
@@ -221,19 +221,19 @@ func Test_fkey6(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(x, y REFERENCES p2 ON DELETE RESTRICT ON UPDATE RESTRICT);\n  INSERT INTO p2 VALUES(1, 'one');\n  INSERT INTO p2 VALUES(2, 'two');\n  INSERT INTO c2 VALUES('i', 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(x, y REFERENCES p2 ON DELETE RESTRICT ON UPDATE RESTRICT);\n  INSERT INTO p2 VALUES(1, 'one');\n  INSERT INTO p2 VALUES(2, 'two');\n  INSERT INTO c2 VALUES('i', 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(x, y REFERENCES p2 ON DELETE RESTRICT ON UPDATE RESTRICT);\n  INSERT INTO p2 VALUES(1, 'one');\n  INSERT INTO p2 VALUES(2, 'two');\n  INSERT INTO c2 VALUES('i', 1);\n")
 		}
 	}
 	{ // "3.2.1"
 		_res = db.Exec("\n  BEGIN;\n    UPDATE p2 SET a=a-1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  BEGIN;\n    UPDATE p2 SET a=a-1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  BEGIN;\n    UPDATE p2 SET a=a-1;\n")
 		}
 	}
 	{ // "3.2.2"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // "3.2.3"
@@ -251,31 +251,31 @@ func Test_fkey6(t *testing.T) {
 	{ // "3.2.5"
 		_res = db.Exec("\n  COMMIT;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  COMMIT;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  COMMIT;\n")
 		}
 	}
 	{ // "3.2.6"
 		_res = db.Exec(" ROLLBACK ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ROLLBACK ")
 		}
 	}
 	{ // "3.3.1"
 		_res = db.Exec("\n  CREATE TRIGGER p2t AFTER DELETE ON p2 BEGIN\n    INSERT INTO p2 VALUES(old.a, 'deleted!');\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER p2t AFTER DELETE ON p2 BEGIN\n    INSERT INTO p2 VALUES(old.a, 'deleted!');\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TRIGGER p2t AFTER DELETE ON p2 BEGIN\n    INSERT INTO p2 VALUES(old.a, 'deleted!');\n  END;\n")
 		}
 	}
 	{ // "3.3.2"
 		_res = db.Exec("\n  BEGIN;\n    DELETE FROM p2 WHERE a=1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  BEGIN;\n    DELETE FROM p2 WHERE a=1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  BEGIN;\n    DELETE FROM p2 WHERE a=1;\n")
 		}
 	}
 	{ // "3.3.3"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // "3.3.4"
@@ -306,13 +306,13 @@ func Test_fkey6(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  BEGIN;\n    DELETE FROM p1 WHERE a=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    DELETE FROM p1 WHERE a=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    DELETE FROM p1 WHERE a=2;\n")
 		}
 	}
 	{ // "4.2"
 		_res = db.Exec("\n  COMMIT;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  COMMIT;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  COMMIT;\n")
 		}
 	}
 	db.Close()
@@ -361,7 +361,7 @@ func Test_fkey6(t *testing.T) {
 		{ // "6.2"
 			_res = db.Exec("\n    CREATE TABLE t2(\n        y INTEGER PRIMARY KEY,\n        z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(\n        y INTEGER PRIMARY KEY,\n        z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t2(\n        y INTEGER PRIMARY KEY,\n        z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
 			}
 		}
 		{ // "6.3"

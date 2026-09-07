@@ -74,7 +74,7 @@ func Test_bigfile2(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
 	db.Close()
@@ -116,7 +116,7 @@ func Test_bigfile2(t *testing.T) {
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, _res.Error, "1.3")
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, resErrString(_res), "1.3")
 		}
 	}
 	db.Close()

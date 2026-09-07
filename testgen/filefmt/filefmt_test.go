@@ -112,7 +112,7 @@ func Test_filefmt(t *testing.T) {
 	{ // do_test "filefmt-1.3"
 		_res = db.Exec("\n    SELECT count(*) FROM sqlite_master\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "file is not a database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "file is not a database", _res.Error, "\n    SELECT count(*) FROM sqlite_master\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "file is not a database", resErrString(_res), "\n    SELECT count(*) FROM sqlite_master\n  ")
 		}
 	}
 	{ // do_test "filefmt-1.4"
@@ -232,7 +232,7 @@ func Test_filefmt(t *testing.T) {
 	{ // "filefmt-2.1.4"
 		_res = db.Exec(" INSERT INTO t2 VALUES(2) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(2) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2 VALUES(2) ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -302,7 +302,7 @@ func Test_filefmt(t *testing.T) {
 	{ // "filefmt-2.2.6"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	db.Close()

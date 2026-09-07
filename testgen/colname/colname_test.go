@@ -444,7 +444,7 @@ func Test_colname(t *testing.T) {
 	{ // "colname-9.300"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(aaa INT);\n  INSERT INTO t1(aaa) VALUES(123);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(aaa INT);\n  INSERT INTO t1(aaa) VALUES(123);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(aaa INT);\n  INSERT INTO t1(aaa) VALUES(123);\n")
 		}
 	}
 	{ // do_test "colname-9.310"
@@ -480,13 +480,13 @@ func Test_colname(t *testing.T) {
 	{ // "colname-9.400"
 		_res = db.Exec("\n  CREATE TABLE t4 AS SELECT #0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#0\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#0\": syntax error", _res.Error, "\n  CREATE TABLE t4 AS SELECT #0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#0\": syntax error", resErrString(_res), "\n  CREATE TABLE t4 AS SELECT #0;\n")
 		}
 	}
 	{ // "colname-9.410"
 		_res = db.Exec("\n  CREATE TABLE t5 AS SELECT RAISE(abort,a);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: a", _res.Error, "\n  CREATE TABLE t5 AS SELECT RAISE(abort,a);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: a", resErrString(_res), "\n  CREATE TABLE t5 AS SELECT RAISE(abort,a);\n")
 		}
 	}
 	{ // "colname-10.100"

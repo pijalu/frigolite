@@ -127,7 +127,7 @@ func Test_incrvacuum3(t *testing.T) {
 					{ // T + ".1." + tn + ".1"
 						_res = db.Exec(sql)
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 						}
 					}
 					{ // T + ".1." + tn + ".2"

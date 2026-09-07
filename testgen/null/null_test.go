@@ -197,13 +197,13 @@ func Test_null(t *testing.T) {
 	{ // do_test "null-6.5"
 		_res = db.Exec("\n      select b from t1 union select c from t1 order by t1.a;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", _res.Error, "\n      select b from t1 union select c from t1 order by t1.a;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", resErrString(_res), "\n      select b from t1 union select c from t1 order by t1.a;\n    ")
 		}
 	}
 	{ // do_test "null-6.6"
 		_res = db.Exec("\n      select b from t1 union select c from t1 order by main.t1.a;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", _res.Error, "\n      select b from t1 union select c from t1 order by main.t1.a;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", resErrString(_res), "\n      select b from t1 union select c from t1 order by main.t1.a;\n    ")
 		}
 	}
 	{ // do_test "null-7.1"
@@ -281,7 +281,7 @@ func Test_null(t *testing.T) {
 	{ // "null-9.1"
 		_res = db.Exec("\n  CREATE TABLE t5(a, b, c);\n  CREATE UNIQUE INDEX t5ab ON t5(a, b);\n\n  INSERT INTO t5 VALUES(1, NULL, 'one');\n  INSERT INTO t5 VALUES(1, NULL, 'i');\n  INSERT INTO t5 VALUES(NULL, 'x', 'two');\n  INSERT INTO t5 VALUES(NULL, 'x', 'ii');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a, b, c);\n  CREATE UNIQUE INDEX t5ab ON t5(a, b);\n\n  INSERT INTO t5 VALUES(1, NULL, 'one');\n  INSERT INTO t5 VALUES(1, NULL, 'i');\n  INSERT INTO t5 VALUES(NULL, 'x', 'two');\n  INSERT INTO t5 VALUES(NULL, 'x', 'ii');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a, b, c);\n  CREATE UNIQUE INDEX t5ab ON t5(a, b);\n\n  INSERT INTO t5 VALUES(1, NULL, 'one');\n  INSERT INTO t5 VALUES(1, NULL, 'i');\n  INSERT INTO t5 VALUES(NULL, 'x', 'two');\n  INSERT INTO t5 VALUES(NULL, 'x', 'ii');\n")
 		}
 	}
 	{ // "null-9.2"

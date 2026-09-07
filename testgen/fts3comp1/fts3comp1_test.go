@@ -128,7 +128,7 @@ func Test_fts3comp1(t *testing.T) {
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
 				}
 			}
 			{ // "1." + tn + ".1"
@@ -243,13 +243,13 @@ func Test_fts3comp1(t *testing.T) {
 		{ // "2.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing uncompress parameter in fts4 constructor") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing uncompress parameter in fts4 constructor", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing uncompress parameter in fts4 constructor", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)\n")
 			}
 		}
 		{ // "2.2"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing compress parameter in fts4 constructor") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing compress parameter in fts4 constructor", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing compress parameter in fts4 constructor", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)\n")
 			}
 		}
 		db.Close()
@@ -274,25 +274,25 @@ func Test_fts3comp1(t *testing.T) {
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
 			}
 		}
 		{ // "3.2"
 			_res = db.Exec("\n  SELECT * FROM v1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of myfunc()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", _res.Error, "\n  SELECT * FROM v1\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", resErrString(_res), "\n  SELECT * FROM v1\n")
 			}
 		}
 		{ // "3.3"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE f1 USING fts4(x, compress=myfunc, uncompress=myfunc);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f1 USING fts4(x, compress=myfunc, uncompress=myfunc);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE f1 USING fts4(x, compress=myfunc, uncompress=myfunc);\n")
 			}
 		}
 		{ // "3.4"
 			_res = db.Exec("\n  INSERT INTO f1(rowid, x) VALUES(123, 'one two three');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO f1(rowid, x) VALUES(123, 'one two three');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO f1(rowid, x) VALUES(123, 'one two three');\n")
 			}
 		}
 		{ // do_test "3.5"
@@ -306,13 +306,13 @@ func Test_fts3comp1(t *testing.T) {
 		{ // "3.6.1"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
 			}
 		}
 		{ // "3.6.2"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES('hello world');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of myfunc()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", _res.Error, "\n  INSERT INTO t1 VALUES('hello world');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", resErrString(_res), "\n  INSERT INTO t1 VALUES('hello world');\n")
 			}
 		}
 		db.Close()
@@ -325,7 +325,7 @@ func Test_fts3comp1(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
 			}
 		}
 		// proc definition (not transpiled)
@@ -341,7 +341,7 @@ func Test_fts3comp1(t *testing.T) {
 		{ // "4.1"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
 		db.Close()
@@ -352,14 +352,14 @@ func Test_fts3comp1(t *testing.T) {
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
 		db.RegisterFunction("uncomp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "4.3"
 			_res = db.Exec("\n  SELECT * FROM v1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM v1\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT * FROM v1\n")
 			}
 		}
 }

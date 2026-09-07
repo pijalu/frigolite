@@ -167,7 +167,7 @@ func Test_attach4(t *testing.T) {
 			{ // "1.2.2"
 				_res = db.Exec("\n  ATTACH 'x.db' AS next;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many attached databases - max " + SQLITE_MAX_ATTACHED) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many attached databases - max " + SQLITE_MAX_ATTACHED, _res.Error, "\n  ATTACH 'x.db' AS next;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many attached databases - max " + SQLITE_MAX_ATTACHED, resErrString(_res), "\n  ATTACH 'x.db' AS next;\n")
 				}
 			}
 			{ // do_test "1.3"
@@ -244,7 +244,7 @@ func Test_attach4(t *testing.T) {
 						{ // "1.5"
 							_res = db.Exec(S)
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, S)
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), S)
 							}
 						}
 						{ // do_test "1.6"
@@ -329,19 +329,19 @@ func Test_attach4(t *testing.T) {
 										{ // "2.0"
 											_res = db.Exec("\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
 											}
 										}
 										{ // "2.1"
 											_res = db.Exec("\n  DETACH DATABASE aux;\n")
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DETACH DATABASE aux;\n")
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DETACH DATABASE aux;\n")
 											}
 										}
 										{ // "2.2"
 											_res = db.Exec("\n  DROP TRIGGER tr1;\n")
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER tr1;\n")
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TRIGGER tr1;\n")
 											}
 										}
 }

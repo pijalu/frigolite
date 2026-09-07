@@ -110,7 +110,7 @@ func Test_tkt2920(t *testing.T) {
 	{ // do_test "tkt2920-1.9"
 		_res = db.Exec("COMMIT")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot commit - no transaction is active") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", _res.Error, "COMMIT")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", resErrString(_res), "COMMIT")
 		}
 	}
 }

@@ -877,7 +877,7 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-11.1"
 		_res = db.Exec("SELECT * FROM sqlite_master WHERE name=$abc(123 and sql NOT NULL;")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"$abc(123\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$abc(123\"", _res.Error, "SELECT * FROM sqlite_master WHERE name=$abc(123 and sql NOT NULL;")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"$abc(123\"", resErrString(_res), "SELECT * FROM sqlite_master WHERE name=$abc(123 and sql NOT NULL;")
 		}
 	}
 	if tclExecSQL(db, "pragma encoding") == "UTF-8" {

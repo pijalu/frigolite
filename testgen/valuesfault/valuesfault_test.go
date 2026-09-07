@@ -64,7 +64,7 @@ func Test_valuesfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, c);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

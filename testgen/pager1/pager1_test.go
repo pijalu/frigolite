@@ -378,7 +378,7 @@ func Test_pager1(t *testing.T) {
 	{ // "pager1-3.1.3"
 		_res = db.Exec("\n    INSERT INTO t1 SELECT a+3, randomblob(1500) FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: i<5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: i<5", _res.Error, "\n    INSERT INTO t1 SELECT a+3, randomblob(1500) FROM t1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: i<5", resErrString(_res), "\n    INSERT INTO t1 SELECT a+3, randomblob(1500) FROM t1\n")
 		}
 	}
 	{ // "pager1-3.4"
@@ -408,7 +408,7 @@ func Test_pager1(t *testing.T) {
 	{ // "pager1-3.6"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	// foreach {tn sql tcl} "7  { PRAGMA synchronous = NORMAL ; PRAGMA temp_store = 0 } {\n    testvfs tv -default 1\n    tv devchar safe_append\n  }\n  8  { PRAGMA synchronous = NORMAL ; PRAGMA temp_store = 2 } {\n    testvfs tv -default 1\n    tv devchar sequential\n  }\n  9  { PRAGMA synchronous = FULL } { }\n  10 { PRAGMA synchronous = NORMAL } { }\n  11 { PRAGMA synchronous = OFF } { }\n  12 { PRAGMA synchronous = FULL ; PRAGMA fullfsync = 1 } { }\n  13 { PRAGMA synchronous = FULL } {\n    testvfs tv -default 1\n    tv devchar sequential\n  }\n  14 { PRAGMA locking_mode = EXCLUSIVE } {\n  }"
@@ -470,7 +470,7 @@ func Test_pager1(t *testing.T) {
 			{ // "pager1-3." + tn + ".4"
 				_res = db.Exec("\n    SAVEPOINT one;\n      UPDATE z SET y = y||x;\n    ROLLBACK TO one;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one;\n      UPDATE z SET y = y||x;\n    ROLLBACK TO one;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    SAVEPOINT one;\n      UPDATE z SET y = y||x;\n    ROLLBACK TO one;\n  ")
 				}
 			}
 			{ // "pager1-3." + tn + ".5"
@@ -488,7 +488,7 @@ func Test_pager1(t *testing.T) {
 			{ // "pager1-3." + tn + ".6"
 				_res = db.Exec("\n    SAVEPOINT one;\n    RELEASE one;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one;\n    RELEASE one;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    SAVEPOINT one;\n    RELEASE one;\n  ")
 				}
 			}
 			db.Close()
@@ -970,7 +970,7 @@ func Test_pager1(t *testing.T) {
 					{ // "pager1.4.5.6"
 						_res = db.Exec("\n  SELECT * FROM t1;\n  SELECT * FROM t2;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  SELECT * FROM t1;\n  SELECT * FROM t2;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n  SELECT * FROM t1;\n  SELECT * FROM t2;\n")
 						}
 					}
 					db.Close()
@@ -1287,7 +1287,7 @@ func Test_pager1(t *testing.T) {
 					{ // do_test "pager1-5.1.3"
 						_res = db.Exec("COMMIT")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "COMMIT")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "COMMIT")
 						}
 					}
 					{ // do_test "pager1-5.1.4"
@@ -1397,7 +1397,7 @@ func Test_pager1(t *testing.T) {
 					{ // "pager1-6.2"
 						_res = db.Exec("\n  CREATE TABLE t11(a, b)\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, "\n  CREATE TABLE t11(a, b)\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", resErrString(_res), "\n  CREATE TABLE t11(a, b)\n")
 						}
 					}
 					{ // "pager1-6.4"
@@ -1427,7 +1427,7 @@ func Test_pager1(t *testing.T) {
 					{ // "pager1-6.6"
 						_res = db.Exec(" CREATE TABLE t11(a, b)     ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t11(a, b)     ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t11(a, b)     ")
 						}
 					}
 					{ // "pager1-6.7"
@@ -1457,7 +1457,7 @@ func Test_pager1(t *testing.T) {
 					{ // "pager1-6.9"
 						_res = db.Exec(" COMMIT ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 						}
 					}
 					{ // "pager1-6.10"
@@ -1519,7 +1519,7 @@ func Test_pager1(t *testing.T) {
 							{ // "pager1-7.1." + tn + ".1"
 								_res = db.Exec(sql)
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 								}
 							}
 							{
@@ -1614,7 +1614,7 @@ func Test_pager1(t *testing.T) {
 								{ // "pager1-8." + tn + ".3"
 									_res = db.Exec("\n    BEGIN;\n      INSERT INTO x1 VALUES('William');\n      INSERT INTO x1 VALUES('Anne');\n    ROLLBACK;\n  ")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO x1 VALUES('William');\n      INSERT INTO x1 VALUES('Anne');\n    ROLLBACK;\n  ")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n      INSERT INTO x1 VALUES('William');\n      INSERT INTO x1 VALUES('Anne');\n    ROLLBACK;\n  ")
 									}
 								}
 							}
@@ -2008,7 +2008,7 @@ func Test_pager1(t *testing.T) {
 							{ // "pager1-11.2"
 								_res = db.Exec(" COMMIT ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "disk I/O error") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "disk I/O error", _res.Error, " COMMIT ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "disk I/O error", resErrString(_res), " COMMIT ")
 								}
 							}
 							// tv script {} (unsupported command, not transpiled)
@@ -2125,7 +2125,7 @@ func Test_pager1(t *testing.T) {
 									{ // "pager1-13.1.2." + nUp + ".1"
 										_res = db.Exec(" \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
+											t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										}
 									}
 									{ // "pager1-13.1.2." + nUp + ".2"
@@ -2169,7 +2169,7 @@ func Test_pager1(t *testing.T) {
 								{ // "pager1-13.2.1"
 									_res = db.Exec("\n  CREATE INDEX i1 ON t1(b);\n  UPDATE t1 SET b = a_string(400);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(b);\n  UPDATE t1 SET b = a_string(400);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i1 ON t1(b);\n  UPDATE t1 SET b = a_string(400);\n")
 									}
 								}
 								vtab.TclVarSet("nUp", "", "1")
@@ -2179,7 +2179,7 @@ func Test_pager1(t *testing.T) {
 									{ // "pager1-13.2.2." + nUp + ".1"
 										_res = db.Exec(" \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
+											t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										}
 									}
 									{ // "pager1-13.2.2." + nUp + ".2"
@@ -2243,7 +2243,7 @@ func Test_pager1(t *testing.T) {
 								{ // "pager1-14.1.2"
 									_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ROLLBACK;\n")
 									if _res.Error != nil {
-										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ROLLBACK;\n")
+										t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ROLLBACK;\n")
 									}
 								}
 								{ // "pager1-14.1.3"
@@ -2261,13 +2261,13 @@ func Test_pager1(t *testing.T) {
 								{ // "pager1-14.1.4"
 									_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.rowid") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.rowid", _res.Error, "\n  BEGIN;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;\n")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.rowid", resErrString(_res), "\n  BEGIN;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;\n")
 									}
 								}
 								{ // "pager1-14.1.5"
 									_res = db.Exec("\n  COMMIT;\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n")
 									}
 								}
 								{ // "pager1-14.1.6"
@@ -2292,7 +2292,7 @@ func Test_pager1(t *testing.T) {
 							{ // "pager1-15.0"
 								_res = db.Exec("\n  CREATE TABLE tx(y, z);\n  INSERT INTO tx VALUES('Ayutthaya', 'Beijing');\n  INSERT INTO tx VALUES('London', 'Tokyo');\n")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tx(y, z);\n  INSERT INTO tx VALUES('Ayutthaya', 'Beijing');\n  INSERT INTO tx VALUES('London', 'Tokyo');\n")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tx(y, z);\n  INSERT INTO tx VALUES('Ayutthaya', 'Beijing');\n  INSERT INTO tx VALUES('London', 'Tokyo');\n")
 								}
 							}
 							db.Close()
@@ -2778,7 +2778,7 @@ func Test_pager1(t *testing.T) {
 								{ // "pager1-26.1"
 									_res = db.Exec("\n  UPDATE tbl SET b = a_string(550);\n")
 									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE tbl SET b = a_string(550);\n")
+										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE tbl SET b = a_string(550);\n")
 									}
 								}
 								db.Close()
@@ -2829,7 +2829,7 @@ func Test_pager1(t *testing.T) {
 									{ // do_test "pager1-29.2"
 										_res = db.Exec("\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
 										}
 									}
 								} else {
@@ -2963,7 +2963,7 @@ func Test_pager1(t *testing.T) {
 										{ // "34." + tn + ".1"
 											_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+												t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 											}
 										}
 										{ // "34." + tn + ".2"

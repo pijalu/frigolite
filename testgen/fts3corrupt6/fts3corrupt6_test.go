@@ -95,7 +95,7 @@ func Test_fts3corrupt6(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t1_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 42',X'000131030102000103323334050101010200000461616161050101020200000462626262050101030200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t1_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 42',X'000131030102000103323334050101010200000461616161050101020200000462626262050101030200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t1_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 42',X'000131030102000103323334050101010200000461616161050101020200000462626262050101030200');\n")
 		}
 	}
 	{ // "1.3"
@@ -120,7 +120,7 @@ func Test_fts3corrupt6(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts3(a);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030782000103323334050100fff200010461616161050101020200000462626262050101030200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts3(a);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030782000103323334050100fff200010461616161050101020200000462626262050101030200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t0 USING fts3(a);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030782000103323334050100fff200010461616161050101020200000462626262050101030200');\n")
 		}
 	}
 	{ // "2.1"
@@ -145,7 +145,7 @@ func Test_fts3corrupt6(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE main.Table0 USING fts3();\n  INSERT INTO Table0 VALUES (1), (printf('%8.1280000X') ), (1), (printf('%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (0), (printf('%8.1280000X%8.1280000X') ), (1), (printf('%1280000.1280000X%#1280000.1280000E%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (1)  ;\n  UPDATE Table0_segdir SET start_block = 1;\n  INSERT INTO Table0 VALUES (1)  ;\n  INSERT INTO Table0(Table0) VALUES('merge=6,8');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  CREATE VIRTUAL TABLE main.Table0 USING fts3();\n  INSERT INTO Table0 VALUES (1), (printf('%8.1280000X') ), (1), (printf('%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (0), (printf('%8.1280000X%8.1280000X') ), (1), (printf('%1280000.1280000X%#1280000.1280000E%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (1)  ;\n  UPDATE Table0_segdir SET start_block = 1;\n  INSERT INTO Table0 VALUES (1)  ;\n  INSERT INTO Table0(Table0) VALUES('merge=6,8');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  CREATE VIRTUAL TABLE main.Table0 USING fts3();\n  INSERT INTO Table0 VALUES (1), (printf('%8.1280000X') ), (1), (printf('%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (0), (printf('%8.1280000X%8.1280000X') ), (1), (printf('%1280000.1280000X%#1280000.1280000E%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (1)  ;\n  UPDATE Table0_segdir SET start_block = 1;\n  INSERT INTO Table0 VALUES (1)  ;\n  INSERT INTO Table0(Table0) VALUES('merge=6,8');\n")
 		}
 	}
 	db.Close()
@@ -158,7 +158,7 @@ func Test_fts3corrupt6(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts4(c);\n  INSERT INTO t(t) VALUES('nodesize=200');\n  INSERT INTO t VALUES('alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november');\n  INSERT INTO t VALUES('oscar papa quebec romeo sierra tango uniform victor whiskey xray yankee zulu alpha bravo');\n  INSERT INTO t(t) VALUES('merge=16,4');\n  UPDATE t_segdir SET end_block = start_block + 2147483647 WHERE level=0;\n  INSERT OR REPLACE INTO t_segments(blockid,block)\n    SELECT start_block+2147483647, NULL FROM t_segdir WHERE level=0;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t USING fts4(c);\n  INSERT INTO t(t) VALUES('nodesize=200');\n  INSERT INTO t VALUES('alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november');\n  INSERT INTO t VALUES('oscar papa quebec romeo sierra tango uniform victor whiskey xray yankee zulu alpha bravo');\n  INSERT INTO t(t) VALUES('merge=16,4');\n  UPDATE t_segdir SET end_block = start_block + 2147483647 WHERE level=0;\n  INSERT OR REPLACE INTO t_segments(blockid,block)\n    SELECT start_block+2147483647, NULL FROM t_segdir WHERE level=0;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t USING fts4(c);\n  INSERT INTO t(t) VALUES('nodesize=200');\n  INSERT INTO t VALUES('alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november');\n  INSERT INTO t VALUES('oscar papa quebec romeo sierra tango uniform victor whiskey xray yankee zulu alpha bravo');\n  INSERT INTO t(t) VALUES('merge=16,4');\n  UPDATE t_segdir SET end_block = start_block + 2147483647 WHERE level=0;\n  INSERT OR REPLACE INTO t_segments(blockid,block)\n    SELECT start_block+2147483647, NULL FROM t_segdir WHERE level=0;\n")
 		}
 	}
 	{ // "4.1"

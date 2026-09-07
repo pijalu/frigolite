@@ -178,7 +178,7 @@ func Test_rtreedoc3(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE rt USING rtree_i32(id,  x1,x2,  y1,y2);\n  WITH s(i) AS (\n    SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<64\n  )\n  INSERT INTO rt SELECT NULL, a.i, a.i+1, b.i, b.i+1 FROM s a, s b;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt USING rtree_i32(id,  x1,x2,  y1,y2);\n  WITH s(i) AS (\n    SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<64\n  )\n  INSERT INTO rt SELECT NULL, a.i, a.i+1, b.i, b.i+1 FROM s a, s b;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt USING rtree_i32(id,  x1,x2,  y1,y2);\n  WITH s(i) AS (\n    SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<64\n  )\n  INSERT INTO rt SELECT NULL, a.i, a.i+1, b.i, b.i+1 FROM s a, s b;\n")
 		}
 	}
 	// proc definition (not transpiled)

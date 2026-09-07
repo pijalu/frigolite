@@ -462,19 +462,19 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-4.2"
 		_res = db.Exec("SELECT abs() FROM t1")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function abs()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function abs()", _res.Error, "SELECT abs() FROM t1")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function abs()", resErrString(_res), "SELECT abs() FROM t1")
 		}
 	}
 	{ // do_test "func-4.3"
 		_res = db.Exec("SELECT abs(b) FROM t1 ORDER BY a")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT abs(b) FROM t1 ORDER BY a")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT abs(b) FROM t1 ORDER BY a")
 		}
 	}
 	{ // do_test "func-4.4"
 		_res = db.Exec("SELECT abs(c) FROM t1 ORDER BY a")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT abs(c) FROM t1 ORDER BY a")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT abs(c) FROM t1 ORDER BY a")
 		}
 	}
 	{ // do_test "func-4.4.1"
@@ -492,43 +492,43 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-4.5"
 		_res = db.Exec("SELECT round(a,b,c) FROM t1")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function round()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function round()", _res.Error, "SELECT round(a,b,c) FROM t1")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function round()", resErrString(_res), "SELECT round(a,b,c) FROM t1")
 		}
 	}
 	{ // do_test "func-4.6"
 		_res = db.Exec("SELECT round(b,2) FROM t1 ORDER BY b")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT round(b,2) FROM t1 ORDER BY b")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT round(b,2) FROM t1 ORDER BY b")
 		}
 	}
 	{ // do_test "func-4.7"
 		_res = db.Exec("SELECT round(b,0) FROM t1 ORDER BY a")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT round(b,0) FROM t1 ORDER BY a")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT round(b,0) FROM t1 ORDER BY a")
 		}
 	}
 	{ // do_test "func-4.8"
 		_res = db.Exec("SELECT round(c) FROM t1 ORDER BY a")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT round(c) FROM t1 ORDER BY a")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT round(c) FROM t1 ORDER BY a")
 		}
 	}
 	{ // do_test "func-4.9"
 		_res = db.Exec("SELECT round(c,a) FROM t1 ORDER BY a")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT round(c,a) FROM t1 ORDER BY a")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT round(c,a) FROM t1 ORDER BY a")
 		}
 	}
 	{ // do_test "func-4.10"
 		_res = db.Exec("SELECT 'x' || round(c,a) || 'y' FROM t1 ORDER BY a")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'x' || round(c,a) || 'y' FROM t1 ORDER BY a")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT 'x' || round(c,a) || 'y' FROM t1 ORDER BY a")
 		}
 	}
 	{ // do_test "func-4.11"
 		_res = db.Exec("SELECT round() FROM t1 ORDER BY a")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function round()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function round()", _res.Error, "SELECT round() FROM t1 ORDER BY a")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function round()", resErrString(_res), "SELECT round() FROM t1 ORDER BY a")
 		}
 	}
 	{ // do_test "func-4.12"
@@ -558,7 +558,7 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-4.16"
 		_res = db.Exec("SELECT round(b,2.0) FROM t1 ORDER BY b")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT round(b,2.0) FROM t1 ORDER BY b")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT round(b,2.0) FROM t1 ORDER BY b")
 		}
 	}
 	vtab.TclVarSet("i", "", "1")
@@ -785,13 +785,13 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-5.4"
 		_res = db.Exec("SELECT upper(a,5) FROM t2")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function upper()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function upper()", _res.Error, "SELECT upper(a,5) FROM t2")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function upper()", resErrString(_res), "SELECT upper(a,5) FROM t2")
 		}
 	}
 	{ // do_test "func-5.5"
 		_res = db.Exec("SELECT upper(*) FROM t2")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function upper()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function upper()", _res.Error, "SELECT upper(*) FROM t2")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function upper()", resErrString(_res), "SELECT upper(*) FROM t2")
 		}
 	}
 	{ // do_test "func-6.1"
@@ -1065,13 +1065,13 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-15.2"
 		_res = db.Exec("select test_error('this is the error message')")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "this is the error message") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", _res.Error, "select test_error('this is the error message')")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", resErrString(_res), "select test_error('this is the error message')")
 		}
 	}
 	{ // do_test "func-15.3"
 		_res = db.Exec("select test_error('this is the error message',12)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "this is the error message") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", _res.Error, "select test_error('this is the error message',12)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", resErrString(_res), "select test_error('this is the error message',12)")
 		}
 	}
 	{ // do_test "func-15.4"
@@ -1165,13 +1165,13 @@ func Test_func(t *testing.T) {
 	{ // "func-18.12"
 		_res = db.Exec("\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)*2.0+1) from t6;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)*2.0+1) from t6;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)*2.0+1) from t6;\n  ")
 		}
 	}
 	{ // "func-18.13"
 		_res = db.Exec("\n    SELECT total(x) - ((1<<62)*2.0+1) FROM t6\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT total(x) - ((1<<62)*2.0+1) FROM t6\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT total(x) - ((1<<62)*2.0+1) FROM t6\n  ")
 		}
 	}
 	if tclBool("working_64bit_int") {
@@ -1185,65 +1185,65 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-18.15"
 		_res = db.Exec("\n    SELECT sum(x) FROM \n       (SELECT 9223372036854775807 AS x UNION ALL\n        SELECT 10 AS x);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n    SELECT sum(x) FROM \n       (SELECT 9223372036854775807 AS x UNION ALL\n        SELECT 10 AS x);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n    SELECT sum(x) FROM \n       (SELECT 9223372036854775807 AS x UNION ALL\n        SELECT 10 AS x);\n  ")
 		}
 	}
 	if tclBool("working_64bit_int") {
 		{ // do_test "func-18.16"
 			_res = db.Exec("\n      SELECT sum(x) FROM \n         (SELECT 9223372036854775807 AS x UNION ALL\n          SELECT -10 AS x);\n    ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      SELECT sum(x) FROM \n         (SELECT 9223372036854775807 AS x UNION ALL\n          SELECT -10 AS x);\n    ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      SELECT sum(x) FROM \n         (SELECT 9223372036854775807 AS x UNION ALL\n          SELECT -10 AS x);\n    ")
 			}
 		}
 		{ // do_test "func-18.17"
 			_res = db.Exec("\n      SELECT sum(x) FROM \n         (SELECT -9223372036854775807 AS x UNION ALL\n          SELECT 10 AS x);\n    ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      SELECT sum(x) FROM \n         (SELECT -9223372036854775807 AS x UNION ALL\n          SELECT 10 AS x);\n    ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      SELECT sum(x) FROM \n         (SELECT -9223372036854775807 AS x UNION ALL\n          SELECT 10 AS x);\n    ")
 			}
 		}
 	}
 	{ // do_test "func-18.18"
 		_res = db.Exec("\n    SELECT sum(x) FROM \n       (SELECT -9223372036854775807 AS x UNION ALL\n        SELECT -10 AS x);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n    SELECT sum(x) FROM \n       (SELECT -9223372036854775807 AS x UNION ALL\n        SELECT -10 AS x);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n    SELECT sum(x) FROM \n       (SELECT -9223372036854775807 AS x UNION ALL\n        SELECT -10 AS x);\n  ")
 		}
 	}
 	{ // do_test "func-18.19"
 		_res = db.Exec("\n    SELECT sum(x) FROM (SELECT 9 AS x UNION ALL SELECT -10 AS x);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sum(x) FROM (SELECT 9 AS x UNION ALL SELECT -10 AS x);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sum(x) FROM (SELECT 9 AS x UNION ALL SELECT -10 AS x);\n  ")
 		}
 	}
 	{ // do_test "func-18.20"
 		_res = db.Exec("\n    SELECT sum(x) FROM (SELECT -9 AS x UNION ALL SELECT 10 AS x);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sum(x) FROM (SELECT -9 AS x UNION ALL SELECT 10 AS x);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sum(x) FROM (SELECT -9 AS x UNION ALL SELECT 10 AS x);\n  ")
 		}
 	}
 	{ // do_test "func-18.21"
 		_res = db.Exec("\n    SELECT sum(x) FROM (SELECT -10 AS x UNION ALL SELECT 9 AS x);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sum(x) FROM (SELECT -10 AS x UNION ALL SELECT 9 AS x);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sum(x) FROM (SELECT -10 AS x UNION ALL SELECT 9 AS x);\n  ")
 		}
 	}
 	{ // do_test "func-18.22"
 		_res = db.Exec("\n    SELECT sum(x) FROM (SELECT 10 AS x UNION ALL SELECT -9 AS x);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT sum(x) FROM (SELECT 10 AS x UNION ALL SELECT -9 AS x);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT sum(x) FROM (SELECT 10 AS x UNION ALL SELECT -9 AS x);\n  ")
 		}
 	}
 	if tclBool("working_64bit_int") {
 		{ // do_test "func-18.31"
 			_res = db.Exec("\n      SELECT abs(-9223372036854775807);\n    ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      SELECT abs(-9223372036854775807);\n    ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      SELECT abs(-9223372036854775807);\n    ")
 			}
 		}
 	}
 	{ // do_test "func-18.32"
 		_res = db.Exec("\n    SELECT abs(-9223372036854775807-1);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n    SELECT abs(-9223372036854775807-1);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n    SELECT abs(-9223372036854775807-1);\n  ")
 		}
 	}
 	{ // do_test "func-19.1"
@@ -1255,19 +1255,19 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-19.2"
 		_res = db.Exec("\n    SELECT 'abc' MATCH 'xyz';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", _res.Error, "\n    SELECT 'abc' MATCH 'xyz';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n    SELECT 'abc' MATCH 'xyz';\n  ")
 		}
 	}
 	{ // do_test "func-19.3"
 		_res = db.Exec("\n    SELECT 'abc' NOT MATCH 'xyz';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", _res.Error, "\n    SELECT 'abc' NOT MATCH 'xyz';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n    SELECT 'abc' NOT MATCH 'xyz';\n  ")
 		}
 	}
 	{ // do_test "func-19.4"
 		_res = db.Exec("\n    SELECT match(1,2,3);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function match()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function match()", _res.Error, "\n    SELECT match(1,2,3);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function match()", resErrString(_res), "\n    SELECT match(1,2,3);\n  ")
 		}
 	}
 	if tclBool("!" + "1") {
@@ -1303,13 +1303,13 @@ func Test_func(t *testing.T) {
 		{ // do_test "func-21.1"
 			_res = db.Exec("\n    SELECT replace(1,2);\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function replace()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", _res.Error, "\n    SELECT replace(1,2);\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", resErrString(_res), "\n    SELECT replace(1,2);\n  ")
 			}
 		}
 		{ // do_test "func-21.2"
 			_res = db.Exec("\n    SELECT replace(1,2,3,4);\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function replace()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", _res.Error, "\n    SELECT replace(1,2,3,4);\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function replace()", resErrString(_res), "\n    SELECT replace(1,2,3,4);\n  ")
 			}
 		}
 		{ // do_test "func-21.3"
@@ -1375,19 +1375,19 @@ func Test_func(t *testing.T) {
 		{ // do_test "func-22.1"
 			_res = db.Exec("SELECT trim(1,2,3)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function trim()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function trim()", _res.Error, "SELECT trim(1,2,3)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function trim()", resErrString(_res), "SELECT trim(1,2,3)")
 			}
 		}
 		{ // do_test "func-22.2"
 			_res = db.Exec("SELECT ltrim(1,2,3)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function ltrim()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function ltrim()", _res.Error, "SELECT ltrim(1,2,3)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function ltrim()", resErrString(_res), "SELECT ltrim(1,2,3)")
 			}
 		}
 		{ // do_test "func-22.3"
 			_res = db.Exec("SELECT rtrim(1,2,3)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function rtrim()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function rtrim()", _res.Error, "SELECT rtrim(1,2,3)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function rtrim()", resErrString(_res), "SELECT rtrim(1,2,3)")
 			}
 		}
 		{ // do_test "func-22.4"
@@ -1651,19 +1651,19 @@ func Test_func(t *testing.T) {
 		{ // do_test "func-27.1"
 			_res = db.Exec("SELECT coalesce()")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function coalesce()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function coalesce()", _res.Error, "SELECT coalesce()")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function coalesce()", resErrString(_res), "SELECT coalesce()")
 			}
 		}
 		{ // do_test "func-27.2"
 			_res = db.Exec("SELECT coalesce(1)")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function coalesce()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function coalesce()", _res.Error, "SELECT coalesce(1)")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function coalesce()", resErrString(_res), "SELECT coalesce(1)")
 			}
 		}
 		{ // do_test "func-27.3"
 			_res = db.Exec("SELECT coalesce(1,2)")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT coalesce(1,2)")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "SELECT coalesce(1,2)")
 			}
 		}
 		{ // do_test "func-28.1"
@@ -1985,19 +1985,19 @@ func Test_func(t *testing.T) {
 		{ // "func-37.100"
 			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
 			}
 		}
 		{ // "func-37.110"
 			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n  WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;\n")
 			}
 		}
 		{ // "func-37.120"
 			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", resErrString(_res), "\n  WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;\n")
 			}
 		}
 		{ // "func-38.100"

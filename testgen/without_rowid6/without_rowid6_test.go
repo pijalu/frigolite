@@ -67,7 +67,7 @@ func Test_without_rowid6(t *testing.T) {
 	{ // "without_rowid6-100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
 		}
 	}
 	// do_execsql_test_if_vtab without_rowid6-101 {\n  SELECT name, key FROM pragma_index_xinfo('t1')...} {a 1 ... (unsupported command, not transpiled)
@@ -268,7 +268,7 @@ func Test_without_rowid6(t *testing.T) {
 	{ // "without_rowid6-600"
 		_res = db.Exec("\n  CREATE TABLE t6(a,b,c,PRIMARY KEY(a,rowid,b))WITHOUT ROWID;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE t6(a,b,c,PRIMARY KEY(a,rowid,b))WITHOUT ROWID;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  CREATE TABLE t6(a,b,c,PRIMARY KEY(a,rowid,b))WITHOUT ROWID;\n")
 		}
 	}
 }

@@ -77,13 +77,13 @@ func Test_triggerB(t *testing.T) {
 	{ // do_test "triggerB-2.1"
 		_res = db.Exec("\n    CREATE TRIGGER ty AFTER INSERT ON x BEGIN\n       SELECT wen.x; -- Unrecognized name\n    END;\n    INSERT INTO x VALUES(1,2);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: wen.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: wen.x", _res.Error, "\n    CREATE TRIGGER ty AFTER INSERT ON x BEGIN\n       SELECT wen.x; -- Unrecognized name\n    END;\n    INSERT INTO x VALUES(1,2);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: wen.x", resErrString(_res), "\n    CREATE TRIGGER ty AFTER INSERT ON x BEGIN\n       SELECT wen.x; -- Unrecognized name\n    END;\n    INSERT INTO x VALUES(1,2);\n  ")
 		}
 	}
 	{ // do_test "triggerB-2.2"
 		_res = db.Exec("\n    CREATE TRIGGER tz AFTER UPDATE ON x BEGIN\n       SELECT dlo.x; -- Unrecognized name\n    END;\n    UPDATE x SET y=y+1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: dlo.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: dlo.x", _res.Error, "\n    CREATE TRIGGER tz AFTER UPDATE ON x BEGIN\n       SELECT dlo.x; -- Unrecognized name\n    END;\n    UPDATE x SET y=y+1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: dlo.x", resErrString(_res), "\n    CREATE TRIGGER tz AFTER UPDATE ON x BEGIN\n       SELECT dlo.x; -- Unrecognized name\n    END;\n    UPDATE x SET y=y+1;\n  ")
 		}
 	}
 	{ // do_test "triggerB-2.3"

@@ -66,7 +66,7 @@ func Test_fts3rank(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one two', 'one');\n  INSERT INTO t1 VALUES('one two', 'three');\n  INSERT INTO t1 VALUES('one two', 'two');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one two', 'one');\n  INSERT INTO t1 VALUES('one two', 'three');\n  INSERT INTO t1 VALUES('one two', 'two');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one two', 'one');\n  INSERT INTO t1 VALUES('one two', 'three');\n  INSERT INTO t1 VALUES('one two', 'two');\n")
 		}
 	}
 	{ // "1.1"
@@ -96,27 +96,27 @@ func Test_fts3rank(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec("\n  SELECT * FROM t1 ORDER BY rank(matchinfo(t1), 1.0, 1.0) DESC, rowid\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid matchinfo blob passed to function rank()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid matchinfo blob passed to function rank()", _res.Error, "\n  SELECT * FROM t1 ORDER BY rank(matchinfo(t1), 1.0, 1.0) DESC, rowid\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid matchinfo blob passed to function rank()", resErrString(_res), "\n  SELECT * FROM t1 ORDER BY rank(matchinfo(t1), 1.0, 1.0) DESC, rowid\n")
 		}
 	}
 	{ // "1.4"
 		_res = db.Exec("\n  SELECT * FROM t1 ORDER BY rank(x'0000000000000000') DESC, rowid\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 ORDER BY rank(x'0000000000000000') DESC, rowid\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t1 ORDER BY rank(x'0000000000000000') DESC, rowid\n")
 		}
 	}
 	if tcl_platform_byteOrder == "littleEndian" {
 		{ // "1.5le"
 			_res = db.Exec("\n    SELECT * FROM t1 ORDER BY rank(x'0100000001000000') DESC, rowid\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid matchinfo blob passed to function rank()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid matchinfo blob passed to function rank()", _res.Error, "\n    SELECT * FROM t1 ORDER BY rank(x'0100000001000000') DESC, rowid\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid matchinfo blob passed to function rank()", resErrString(_res), "\n    SELECT * FROM t1 ORDER BY rank(x'0100000001000000') DESC, rowid\n  ")
 			}
 		}
 	} else {
 		{ // "1.5be"
 			_res = db.Exec("\n    SELECT * FROM t1 ORDER BY rank(x'0000000100000001') DESC, rowid\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid matchinfo blob passed to function rank()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid matchinfo blob passed to function rank()", _res.Error, "\n    SELECT * FROM t1 ORDER BY rank(x'0000000100000001') DESC, rowid\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid matchinfo blob passed to function rank()", resErrString(_res), "\n    SELECT * FROM t1 ORDER BY rank(x'0000000100000001') DESC, rowid\n  ")
 			}
 		}
 	}

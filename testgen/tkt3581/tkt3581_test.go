@@ -60,7 +60,7 @@ func Test_tkt3581(t *testing.T) {
 	{ // do_test "tkt3581-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(0,544,846);\n    INSERT INTO t1 VALUES(1,345,51);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 on t2(c);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(0,544,846);\n    INSERT INTO t1 VALUES(1,345,51);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 on t2(c);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(0,544,846);\n    INSERT INTO t1 VALUES(1,345,51);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 on t2(c);\n  ")
 		}
 	}
 	{ // do_test "tkt3581-1.2"

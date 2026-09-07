@@ -100,7 +100,7 @@ func Test_insert5(t *testing.T) {
 	{ // do_test "insert5-2.9"
 		_res = db.Exec(" \n    INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " \n    INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)\n  ")
 		}
 	}
 	{ // "insert5-2.10"

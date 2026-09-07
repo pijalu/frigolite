@@ -84,7 +84,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('aback');\n    INSERT INTO ft VALUES('abaft');\n    INSERT INTO ft VALUES('abandon');\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('aback');\n    INSERT INTO ft VALUES('abaft');\n    INSERT INTO ft VALUES('abandon');\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('aback');\n    INSERT INTO ft VALUES('abaft');\n    INSERT INTO ft VALUES('abandon');\n  COMMIT;\n")
 		}
 	}
 	db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) {
@@ -107,13 +107,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  UPDATE ft_segdir SET root = blob(\n    '0005616261636B03010200 FFFFFFFF0702 66740302020003046E646F6E03030200'\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segdir SET root = blob(\n    '0005616261636B03010200 FFFFFFFF0702 66740302020003046E646F6E03030200'\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE ft_segdir SET root = blob(\n    '0005616261636B03010200 FFFFFFFF0702 66740302020003046E646F6E03030200'\n  );\n")
 		}
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  SELECT * FROM ft WHERE ft MATCH 'abandon';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM ft WHERE ft MATCH 'abandon';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM ft WHERE ft MATCH 'abandon';\n")
 		}
 	}
 	db.Close()
@@ -126,7 +126,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "2.0.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
 		}
 	}
 	{ // do_test "2.0.1"
@@ -163,7 +163,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "2.3.1"
 		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
 		}
 	}
 	{ // "fts3corrupt4-2.3.2" — skipped: merge=1,4 corruption detection N-A: depends on version-specific partial-merge block layout (no-side-effects)
@@ -171,7 +171,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "2.4.1"
 		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 02FFFFFFFF07 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 02FFFFFFFF07 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 02FFFFFFFF07 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
 		}
 	}
 	{ // "fts3corrupt4-2.4.2" — skipped: merge=1,4 corruption detection N-A: depends on version-specific partial-merge block layout (no-side-effects)
@@ -179,7 +179,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "2.5.1"
 		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 0202 6674 FFFFFF070302020003046E646F6E030200')\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 0202 6674 FFFFFF070302020003046E646F6E030200')\n    WHERE blockid=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 0202 6674 FFFFFF070302020003046E646F6E030200')\n    WHERE blockid=2;\n")
 		}
 	}
 	{ // "fts3corrupt4-2.5.2" — skipped: merge=1,4 corruption detection N-A: depends on version-specific partial-merge block layout (no-side-effects)
@@ -194,7 +194,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "3.0.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
 		}
 	}
 	{ // do_test "3.0.1"
@@ -243,13 +243,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  UPDATE ft_segdir \n  SET root = blob('0101056162633132FFFFFFFF070236030132030136');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segdir \n  SET root = blob('0101056162633132FFFFFFFF070236030132030136');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE ft_segdir \n  SET root = blob('0101056162633132FFFFFFFF070236030132030136');\n")
 		}
 	}
 	{ // "3.1"
 		_res = db.Exec("\n  SELECT * FROM ft WHERE ft MATCH 'abc20'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM ft WHERE ft MATCH 'abc20'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM ft WHERE ft MATCH 'abc20'\n")
 		}
 	}
 	db.Close()
@@ -262,31 +262,31 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3();\n  INSERT INTO t1 VALUES('one two three');\n  UPDATE t1_segdir SET start_block = 1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3();\n  INSERT INTO t1 VALUES('one two three');\n  UPDATE t1_segdir SET start_block = 1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3();\n  INSERT INTO t1 VALUES('one two three');\n  UPDATE t1_segdir SET start_block = 1;\n")
 		}
 	}
 	{ // "4.1"
 		_res = db.Exec(" \n  SELECT * FROM t1 WHERE t1 MATCH 'one'; \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, " \n  SELECT * FROM t1 WHERE t1 MATCH 'one'; \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), " \n  SELECT * FROM t1 WHERE t1 MATCH 'one'; \n")
 		}
 	}
 	{ // "4.2"
 		_res = db.Exec(" \n  SELECT * FROM t1 WHERE t1 MATCH 'two'; \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, " \n  SELECT * FROM t1 WHERE t1 MATCH 'two'; \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), " \n  SELECT * FROM t1 WHERE t1 MATCH 'two'; \n")
 		}
 	}
 	{ // "4.3"
 		_res = db.Exec(" \n  SELECT * FROM t1 WHERE t1 MATCH 'three'; \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, " \n  SELECT * FROM t1 WHERE t1 MATCH 'three'; \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), " \n  SELECT * FROM t1 WHERE t1 MATCH 'three'; \n")
 		}
 	}
 	{ // "4.4"
 		_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
 	db.Close()
@@ -1550,19 +1550,19 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE Table0 USING fts3();\n  INSERT INTO Table0_segdir VALUES(1,NULL,1,NULL,NULL,NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE Table0 USING fts3();\n  INSERT INTO Table0_segdir VALUES(1,NULL,1,NULL,NULL,NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE Table0 USING fts3();\n  INSERT INTO Table0_segdir VALUES(1,NULL,1,NULL,NULL,NULL);\n")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  SELECT * FROM Table0 WHERE Table0 MATCH 'a';\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM Table0 WHERE Table0 MATCH 'a';\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM Table0 WHERE Table0 MATCH 'a';\n")
 		}
 	}
 	{ // "6.2"
 		_res = db.Exec("\n  INSERT INTO Table0(Table0) VALUES('optimize');\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO Table0(Table0) VALUES('optimize');\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO Table0(Table0) VALUES('optimize');\n")
 		}
 	}
 	db.Close()
@@ -2002,7 +2002,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  SELECT matchinfo(t1,'y') FROM t1 WHERE t1 MATCH 'e*';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT matchinfo(t1,'y') FROM t1 WHERE t1 MATCH 'e*';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT matchinfo(t1,'y') FROM t1 WHERE t1 MATCH 'e*';\n")
 		}
 	}
 	db.Close()
@@ -2352,7 +2352,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  SELECT matchinfo(t1,'x') FROM t1 WHERE t1 MATCH 'e*';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT matchinfo(t1,'x') FROM t1 WHERE t1 MATCH 'e*';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT matchinfo(t1,'x') FROM t1 WHERE t1 MATCH 'e*';\n")
 		}
 	}
 	db.Close()
@@ -5278,7 +5278,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "10.3"
 		_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
 	db.Close()
@@ -6737,7 +6737,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "11.1"
 		_res = db.Exec("\n  SELECT rowid, quote(matchinfo(t1,'pcxybs')) FROM t1 WHERE t1 MATCH 'e*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT rowid, quote(matchinfo(t1,'pcxybs')) FROM t1 WHERE t1 MATCH 'e*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT rowid, quote(matchinfo(t1,'pcxybs')) FROM t1 WHERE t1 MATCH 'e*'\n")
 		}
 	}
 	db.Close()
@@ -9651,7 +9651,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "13.1"
 		_res = db.Exec("\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
 		}
 	}
 	db.Close()
@@ -9883,7 +9883,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "14.2"
 		_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
 	db.Close()
@@ -9896,7 +9896,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "15.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, content=\"\");\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 665',X'000261640303040002086970697363696e670301080001056c6971756103020c00050269700304040001036d65740301060001036e6a6d03080900010375746503050300000663696c6c756d0306020001066f6d6d6f646f0304070002096e736563746574757203010700050471756174030408000104756c7061030804000207706964617461740307050000086465736572756e740308070001016f0302030002036c6f720601040004050005016506020a00040300010375697303050200000265610304060001066975736d6f640302040001036c69740301090001036e696d13030300010373736503050b0002017403080b0001017403020900010175030604000101780304050002076365707465757203070100020a65726369746174696f6e030309000006667567696174030605000002696403080a0001016e070506040003030002086369646964756e740302060001047073756d030103000104727572650305040000066c61626f7265030208000502697303030b000502756d03080c0001046f72656d0301020000056d61676e6103020b000104696e696d0303050001056f6c6c69740308080000046e6973690304020001026f6e0307060002057374727564030308000104756c6c610306060000086f636361656361740307040001066666696369610308060000087061726961747572030607000107726f6964656e740307070000037175690308050003017303030700000d726570726568656e6465726974030507000003736564030202000103696e7403070300020174030105000103756e7403080200000674656d706f72030205000007756c6c616d636f03030a0001017409020700010200010300000576656c697403050a0002046e69616d0303060001086f6c75707461746503050900');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, content=\"\");\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 665',X'000261640303040002086970697363696e670301080001056c6971756103020c00050269700304040001036d65740301060001036e6a6d03080900010375746503050300000663696c6c756d0306020001066f6d6d6f646f0304070002096e736563746574757203010700050471756174030408000104756c7061030804000207706964617461740307050000086465736572756e740308070001016f0302030002036c6f720601040004050005016506020a00040300010375697303050200000265610304060001066975736d6f640302040001036c69740301090001036e696d13030300010373736503050b0002017403080b0001017403020900010175030604000101780304050002076365707465757203070100020a65726369746174696f6e030309000006667567696174030605000002696403080a0001016e070506040003030002086369646964756e740302060001047073756d030103000104727572650305040000066c61626f7265030208000502697303030b000502756d03080c0001046f72656d0301020000056d61676e6103020b000104696e696d0303050001056f6c6c69740308080000046e6973690304020001026f6e0307060002057374727564030308000104756c6c610306060000086f636361656361740307040001066666696369610308060000087061726961747572030607000107726f6964656e740307070000037175690308050003017303030700000d726570726568656e6465726974030507000003736564030202000103696e7403070300020174030105000103756e7403080200000674656d706f72030205000007756c6c616d636f03030a0001017409020700010200010300000576656c697403050a0002046e69616d0303060001086f6c75707461746503050900');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, content=\"\");\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 665',X'000261640303040002086970697363696e670301080001056c6971756103020c00050269700304040001036d65740301060001036e6a6d03080900010375746503050300000663696c6c756d0306020001066f6d6d6f646f0304070002096e736563746574757203010700050471756174030408000104756c7061030804000207706964617461740307050000086465736572756e740308070001016f0302030002036c6f720601040004050005016506020a00040300010375697303050200000265610304060001066975736d6f640302040001036c69740301090001036e696d13030300010373736503050b0002017403080b0001017403020900010175030604000101780304050002076365707465757203070100020a65726369746174696f6e030309000006667567696174030605000002696403080a0001016e070506040003030002086369646964756e740302060001047073756d030103000104727572650305040000066c61626f7265030208000502697303030b000502756d03080c0001046f72656d0301020000056d61676e6103020b000104696e696d0303050001056f6c6c69740308080000046e6973690304020001026f6e0307060002057374727564030308000104756c6c610306060000086f636361656361740307040001066666696369610308060000087061726961747572030607000107726f6964656e740307070000037175690308050003017303030700000d726570726568656e6465726974030507000003736564030202000103696e7403070300020174030105000103756e7403080200000674656d706f72030205000007756c6c616d636f03030a0001017409020700010200010300000576656c697403050a0002046e69616d0303060001086f6c75707461746503050900');\n")
 		}
 	}
 	{ // "15.1"
@@ -11597,7 +11597,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "17.3"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n")
 		}
 	}
 	db.Close()
@@ -13261,7 +13261,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "18.1"
 		_res = db.Exec("\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
 		}
 	}
 	db.Close()
@@ -14720,7 +14720,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "19.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  SELECT rowid,a,c,snippet(t1,85101090932165,-1,10) FROM t1 WHERE a MATCH 'rtree';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema = 1;\n  SELECT rowid,a,c,snippet(t1,85101090932165,-1,10) FROM t1 WHERE a MATCH 'rtree';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema = 1;\n  SELECT rowid,a,c,snippet(t1,85101090932165,-1,10) FROM t1 WHERE a MATCH 'rtree';\n")
 		}
 	}
 	db.Close()
@@ -16407,7 +16407,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "21.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'R*';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema = 1;\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'R*';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema = 1;\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'R*';\n")
 		}
 	}
 	db.Close()
@@ -19321,7 +19321,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "23.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  SELECT 'FyzLy'FROM t1 WHERE t1 MATCH 'j';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema = 1;\n  SELECT 'FyzLy'FROM t1 WHERE t1 MATCH 'j';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema = 1;\n  SELECT 'FyzLy'FROM t1 WHERE t1 MATCH 'j';\n")
 		}
 	}
 	db.Close()
@@ -20780,7 +20780,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "24.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT '4hE'+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT '4hE'+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT '4hE'+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "fts3corrupt4-24.2" — skipped: UPDATE on crash DB N-A: oracle rejects schema (t1Ocontent), test expects success (no-side-effects)
@@ -20788,7 +20788,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "24.3"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "fts3corrupt4-24.4" — skipped: INSERT SELECT on crash DB N-A: oracle rejects schema (t1Ocontent), test expects success (no-side-effects)
@@ -20796,13 +20796,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "24.5"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "24.7"
 		_res = db.Exec("\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -25328,7 +25328,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "27.2"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x GLOB 2.16770 FROM x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x GLOB 2.16770 FROM x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x GLOB 2.16770 FROM x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;\n")
 		}
 	}
 	{ // "fts3corrupt4-27.3" — skipped: INSERT on crash DB N-A: oracle reports schema error (t1_segmends), test expects generic malformed (no-side-effects)
@@ -25342,7 +25342,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "27.6"
 		_res = db.Exec("\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -26801,7 +26801,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "28.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "fts3corrupt4-28.2" — skipped: UPDATE on crash DB N-A: oracle rejects schema (t1Ocontent), test expects success (no-side-effects)
@@ -26809,7 +26809,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "28.3"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "fts3corrupt4-28.4" — skipped: INSERT SELECT on crash DB N-A: oracle rejects schema (t1Ocontent), test expects success (no-side-effects)
@@ -26817,7 +26817,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "28.5"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "fts3corrupt4-28.6" — skipped: INSERT SELECT on crash DB N-A: oracle rejects schema (t1Ocontent), test expects success (no-side-effects)
@@ -26825,13 +26825,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "28.7"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+3 FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+3 FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+3 FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "28.8"
 		_res = db.Exec("\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(t1) SELECT x FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -29745,13 +29745,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "30.1"
 		_res = db.Exec("\n  UPDATE t1 SET b=a;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=a;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET b=a;\n")
 		}
 	}
 	{ // "30.2"
 		_res = db.Exec("\n  SELECT (matchinfo(null)) FROM t1 WHERE t1 MATCH 'ee*e*e*e*e*e*e*Re*e*e*e**' \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT (matchinfo(null)) FROM t1 WHERE t1 MATCH 'ee*e*e*e*e*e*e*Re*e*e*e**' \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT (matchinfo(null)) FROM t1 WHERE t1 MATCH 'ee*e*e*e*e*e*e*Re*e*e*e**' \n")
 		}
 	}
 	db.Close()
@@ -29764,7 +29764,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "31.0"
 		_res = db.Exec("\nCREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\nINSERT INTO t1_segdir VALUES(0,0,0,0,'0 592',X'00016dcb048ce6fbd3b2d68bfebf0101020200808080808080808020010202008080808080808080100102020080808080808080800801020200808080808080808004010202008080808080808080020102020080808080808080800101020200808080808080804001020200808080808080802001020200808080808080801001020200808080808080800801020200808080808080800401020200808080808080800201020200808080808080800101020200808080808080400102020080808080808020010202008080808080801001020200808080808080080102020080808080808004010202008080808080800201020200808080808080010102020080808080804001020200808080808020010202008080808080100102020080808080800801020200808080808004010202008080808080020102020080808080800101020200808080804001020200808080802001020200808080801001020200808080800801020200808080800401020200808080800201020200808080800101020200808080400102020080808020010202008080801001020200808080080102020080808004010202008080800201020200808080010102020080804001020200808020010202008080100102020080800801020200808004010202008080020102020080800101020200804001020200802001020200801001020200800801020200800401020200800201020200800101020200400102020020010202001001020200080102020004010202000201020200010102020001010202008080808080808080800101020200');\nINSERT INTO t1_segdir VALUES(0,1,0,0,'0 18',X'00026d6d0d8ee6fbd3b2d68bfe7f01020200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\nCREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\nINSERT INTO t1_segdir VALUES(0,0,0,0,'0 592',X'00016dcb048ce6fbd3b2d68bfebf0101020200808080808080808020010202008080808080808080100102020080808080808080800801020200808080808080808004010202008080808080808080020102020080808080808080800101020200808080808080804001020200808080808080802001020200808080808080801001020200808080808080800801020200808080808080800401020200808080808080800201020200808080808080800101020200808080808080400102020080808080808020010202008080808080801001020200808080808080080102020080808080808004010202008080808080800201020200808080808080010102020080808080804001020200808080808020010202008080808080100102020080808080800801020200808080808004010202008080808080020102020080808080800101020200808080804001020200808080802001020200808080801001020200808080800801020200808080800401020200808080800201020200808080800101020200808080400102020080808020010202008080801001020200808080080102020080808004010202008080800201020200808080010102020080804001020200808020010202008080100102020080800801020200808004010202008080020102020080800101020200804001020200802001020200801001020200800801020200800401020200800201020200800101020200400102020020010202001001020200080102020004010202000201020200010102020001010202008080808080808080800101020200');\nINSERT INTO t1_segdir VALUES(0,1,0,0,'0 18',X'00026d6d0d8ee6fbd3b2d68bfe7f01020200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\nCREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\nINSERT INTO t1_segdir VALUES(0,0,0,0,'0 592',X'00016dcb048ce6fbd3b2d68bfebf0101020200808080808080808020010202008080808080808080100102020080808080808080800801020200808080808080808004010202008080808080808080020102020080808080808080800101020200808080808080804001020200808080808080802001020200808080808080801001020200808080808080800801020200808080808080800401020200808080808080800201020200808080808080800101020200808080808080400102020080808080808020010202008080808080801001020200808080808080080102020080808080808004010202008080808080800201020200808080808080010102020080808080804001020200808080808020010202008080808080100102020080808080800801020200808080808004010202008080808080020102020080808080800101020200808080804001020200808080802001020200808080801001020200808080800801020200808080800401020200808080800201020200808080800101020200808080400102020080808020010202008080801001020200808080080102020080808004010202008080800201020200808080010102020080804001020200808020010202008080100102020080800801020200808004010202008080020102020080800101020200804001020200802001020200801001020200800801020200800401020200800201020200800101020200400102020020010202001001020200080102020004010202000201020200010102020001010202008080808080808080800101020200');\nINSERT INTO t1_segdir VALUES(0,1,0,0,'0 18',X'00026d6d0d8ee6fbd3b2d68bfe7f01020200');\n")
 		}
 	}
 	{ // "fts3corrupt4-31.1" — skipped: matchinfo over crafted segdir N-A: oracle 3.51 hangs on the input; expected malformed is version-specific (no-side-effects)
@@ -31029,13 +31029,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "34.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f VALUES (1, '1234');\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'00');\n  UPDATE f_segdir SET level = 0 WHERE level IN (\n    SELECT level FROM f_segdir LIMIT 1 OFFSET 1\n  );\n  INSERT INTO f_segdir VALUES (255,249,0,121,'0 0',x'00');\n  INSERT INTO f_content VALUES (255,0,x'ff');\n  INSERT INTO f_segdir VALUES (1,255,16,0,'1 255',x'00');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f VALUES (1, '1234');\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'00');\n  UPDATE f_segdir SET level = 0 WHERE level IN (\n    SELECT level FROM f_segdir LIMIT 1 OFFSET 1\n  );\n  INSERT INTO f_segdir VALUES (255,249,0,121,'0 0',x'00');\n  INSERT INTO f_content VALUES (255,0,x'ff');\n  INSERT INTO f_segdir VALUES (1,255,16,0,'1 255',x'00');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f VALUES (1, '1234');\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'00');\n  UPDATE f_segdir SET level = 0 WHERE level IN (\n    SELECT level FROM f_segdir LIMIT 1 OFFSET 1\n  );\n  INSERT INTO f_segdir VALUES (255,249,0,121,'0 0',x'00');\n  INSERT INTO f_content VALUES (255,0,x'ff');\n  INSERT INTO f_segdir VALUES (1,255,16,0,'1 255',x'00');\n")
 		}
 	}
 	{ // "34.1"
 		_res = db.Exec("\n  UPDATE f SET b = x'00' WHERE b IN (SELECT b FROM f LIMIT 1 OFFSET 0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE f SET b = x'00' WHERE b IN (SELECT b FROM f LIMIT 1 OFFSET 0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE f SET b = x'00' WHERE b IN (SELECT b FROM f LIMIT 1 OFFSET 0);\n")
 		}
 	}
 	db.Close()
@@ -31048,7 +31048,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "35.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'0001ff000001ff000001ff000001ff000001ff00c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5bec5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'0001ff000001ff000001ff000001ff000001ff00c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5bec5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'0001ff000001ff000001ff000001ff000001ff00c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5bec5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5');\n")
 		}
 	}
 	{ // "fts3corrupt4-35.1" — skipped: integrity-check command on crash DB N-A: oracle reports schema error (t2 invalid rootpage), test expects generic malformed (no-side-effects)
@@ -31085,7 +31085,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "37.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (28,0,0,0,'0 0',x'00');\n  INSERT INTO f_segdir VALUES (0,241,0,0,'0 0',x'0001000030310000f1');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (28,0,0,0,'0 0',x'00');\n  INSERT INTO f_segdir VALUES (0,241,0,0,'0 0',x'0001000030310000f1');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (28,0,0,0,'0 0',x'00');\n  INSERT INTO f_segdir VALUES (0,241,0,0,'0 0',x'0001000030310000f1');\n")
 		}
 	}
 	{ // "fts3corrupt4-37.1" — skipped: INSERT into f on crash DB N-A: oracle reports schema error (t2 invalid rootpage), test expects generic malformed (no-side-effects)
@@ -32411,13 +32411,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "38.1"
 		_res = db.Exec("\n  UPDATE t1 SET b=a;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=a;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET b=a;\n")
 		}
 	}
 	{ // "38.2"
 		_res = db.Exec("\n  SELECT b FROM t1 WHERE a MATCH 'e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT b FROM t1 WHERE a MATCH 'e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT b FROM t1 WHERE a MATCH 'e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*'\n")
 		}
 	}
 	db.Close()
@@ -32436,7 +32436,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "39.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts3(\n    col0 INTEGER PRIMARY KEY,\n    col1 VARCHAR(8),\n    col2 BINARY,\n    col3 BINARY\n  );\n  INSERT INTO t0_content VALUES(1,1,'1234','aaaa','bbbb');\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030782000103323334050101010200000461616161050101020200000462626262050101030200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts3(\n    col0 INTEGER PRIMARY KEY,\n    col1 VARCHAR(8),\n    col2 BINARY,\n    col3 BINARY\n  );\n  INSERT INTO t0_content VALUES(1,1,'1234','aaaa','bbbb');\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030782000103323334050101010200000461616161050101020200000462626262050101030200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t0 USING fts3(\n    col0 INTEGER PRIMARY KEY,\n    col1 VARCHAR(8),\n    col2 BINARY,\n    col3 BINARY\n  );\n  INSERT INTO t0_content VALUES(1,1,'1234','aaaa','bbbb');\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030782000103323334050101010200000461616161050101020200000462626262050101030200');\n")
 		}
 	}
 	{ // do_test "39.1"
@@ -32476,7 +32476,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "40.1"
 		_res = db.Exec("\n\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY, col1, col2 ,col3 );\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',\n      X'0001310301020001033233340500010102000004616161bc050101020200000462626262050101030200'\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY, col1, col2 ,col3 );\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',\n      X'0001310301020001033233340500010102000004616161bc050101020200000462626262050101030200'\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY, col1, col2 ,col3 );\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',\n      X'0001310301020001033233340500010102000004616161bc050101020200000462626262050101030200'\n  );\n")
 		}
 	}
 	{ // "fts3corrupt4-40.2" — skipped: matchinfo on hand-crafted t0 N-A: oracle rejects (no such table: t0), test expects a result (no-side-effects)
@@ -32494,7 +32494,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "41.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 835',X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f3870696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001030001010002020001020001020001020001120001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010400030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c010102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 835',X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f3870696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001030001010002020001020001020001020001120001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010400030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c010102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 835',X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f3870696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001030001010002020001020001020001020001120001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010400030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c010102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n")
 		}
 	}
 	{ // "41.2"
@@ -32506,13 +32506,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "42.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f USING fts3(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE f USING fts3(a, b);\n")
 		}
 	}
 	{ // "42.2"
 		_res = db.Exec("\n  INSERT INTO f_segdir VALUES(0,2,1111,0,0,X'00');\n  INSERT INTO f_segdir VALUES(0,3,0   ,0,0,X'00013003010200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO f_segdir VALUES(0,2,1111,0,0,X'00');\n  INSERT INTO f_segdir VALUES(0,3,0   ,0,0,X'00013003010200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO f_segdir VALUES(0,2,1111,0,0,X'00');\n  INSERT INTO f_segdir VALUES(0,3,0   ,0,0,X'00013003010200');\n")
 		}
 	}
 	{ // "fts3corrupt4-42.3" — skipped: merge command on crash DB N-A: oracle rejects schema (t2 invalid rootpage), test expects success (no-side-effects)
@@ -32533,7 +32533,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "43.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE def USING fts3(xyz);\n  INSERT INTO def_segdir VALUES(0,0,0,0,0, X'0001310301c9000103323334050d81');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE def USING fts3(xyz);\n  INSERT INTO def_segdir VALUES(0,0,0,0,0, X'0001310301c9000103323334050d81');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE def USING fts3(xyz);\n  INSERT INTO def_segdir VALUES(0,0,0,0,0, X'0001310301c9000103323334050d81');\n")
 		}
 	}
 	{ // "fts3corrupt4-43.2" — skipped: optimize command on crash DB N-A: oracle rejects schema (t2 invalid rootpage), test expects success (no-side-effects)
@@ -32551,7 +32551,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "44.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'00013103010200010332333405010201ba00000461616161050101020200000462626262050101030200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'00013103010200010332333405010201ba00000461616161050101020200000462626262050101030200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'00013103010200010332333405010201ba00000461616161050101020200000462626262050101030200');\n")
 		}
 	}
 	{ // "44.2"
@@ -33817,7 +33817,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "45.2"
 		_res = db.Exec("\n  INSERT INTO x1(x1) VALUES( 'merge=1' )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO x1(x1) VALUES( 'merge=1' )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO x1(x1) VALUES( 'merge=1' )\n")
 		}
 	}
 	db.Close()
@@ -33836,7 +33836,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "46.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts3(a INTEGER PRIMARY KEY,b,c,d);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'0001310301c9000103323334050d8000f200000461616161050101020200000462626262050101030200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts3(a INTEGER PRIMARY KEY,b,c,d);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'0001310301c9000103323334050d8000f200000461616161050101020200000462626262050101030200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t0 USING fts3(a INTEGER PRIMARY KEY,b,c,d);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'0001310301c9000103323334050d8000f200000461616161050101020200000462626262050101030200');\n")
 		}
 	}
 	{ // "fts3corrupt4-46.2" — skipped: MATCH on hand-crafted t0 N-A: oracle rejects (no such table: t0), test expects generic malformed (no-side-effects)
@@ -33855,13 +33855,13 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "47.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n")
 		}
 	}
 	{ // "47.2"
 		_res = db.Exec("\n  INSERT INTO t1_segdir VALUES(0,0,0,0,0,X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f6d70696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001020001020001020001010001020001020001020001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010300030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c01010202000301020200030102020003010202000301020200030102020003010202000301a202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n  INSERT INTO t1_segdir VALUES(0,1,0,0,0,X'0001300425061b000008323031363036303903250700000134032505000001350325040001073030303030303003251a000008636f6d70696c657203250200000664627374617403250a00010465627567032508000006656e61626c650925090504040404040001087874656e73696f6e03251d0000046674733403250d0003013503250f000003676363032503000106656f706f6c790325110000056a736f6e310325130000046c6f616403251c0000036d6178032518000105656d6f7279032519000304737973350325150000046f6d697403251b000005727472656503251700000a7468726561647361666503251e0000047674616333250b00');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1_segdir VALUES(0,0,0,0,0,X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f6d70696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001020001020001020001010001020001020001020001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010300030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c01010202000301020200030102020003010202000301020200030102020003010202000301a202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n  INSERT INTO t1_segdir VALUES(0,1,0,0,0,X'0001300425061b000008323031363036303903250700000134032505000001350325040001073030303030303003251a000008636f6d70696c657203250200000664627374617403250a00010465627567032508000006656e61626c650925090504040404040001087874656e73696f6e03251d0000046674733403250d0003013503250f000003676363032503000106656f706f6c790325110000056a736f6e310325130000046c6f616403251c0000036d6178032518000105656d6f7279032519000304737973350325150000046f6d697403251b000005727472656503251700000a7468726561647361666503251e0000047674616333250b00');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1_segdir VALUES(0,0,0,0,0,X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f6d70696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001020001020001020001010001020001020001020001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010300030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c01010202000301020200030102020003010202000301020200030102020003010202000301a202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n  INSERT INTO t1_segdir VALUES(0,1,0,0,0,X'0001300425061b000008323031363036303903250700000134032505000001350325040001073030303030303003251a000008636f6d70696c657203250200000664627374617403250a00010465627567032508000006656e61626c650925090504040404040001087874656e73696f6e03251d0000046674733403250d0003013503250f000003676363032503000106656f706f6c790325110000056a736f6e310325130000046c6f616403251c0000036d6178032518000105656d6f7279032519000304737973350325150000046f6d697403251b000005727472656503251700000a7468726561647361666503251e0000047674616333250b00');\n")
 		}
 	}
 	{ // "fts3corrupt4-47.3" — skipped: MATCH on hand-crafted t1 N-A: oracle rejects (no such table: t1), test expects generic malformed (no-side-effects)
@@ -34943,7 +34943,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "48.1"
 		_res = db.Exec("\n  INSERT INTO x1(x1) VALUES('nodesize=24'),('merge=3,4');\n  INSERT INTO x1(x1) VALUES( 'merge=3,4' ),('merge=3,4');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO x1(x1) VALUES('nodesize=24'),('merge=3,4');\n  INSERT INTO x1(x1) VALUES( 'merge=3,4' ),('merge=3,4');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO x1(x1) VALUES('nodesize=24'),('merge=3,4');\n  INSERT INTO x1(x1) VALUES( 'merge=3,4' ),('merge=3,4');\n")
 		}
 	}
 	db.Close()
@@ -38089,7 +38089,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "51.1"
 		_res = db.Exec("\n  SELECT 'xyzzy',offsets(t1) FROM t1 WHERE t1 MATCH 'rtree OR json1''rtree NEAR \"json1 enable\"';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT 'xyzzy',offsets(t1) FROM t1 WHERE t1 MATCH 'rtree OR json1''rtree NEAR \"json1 enable\"';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT 'xyzzy',offsets(t1) FROM t1 WHERE t1 MATCH 'rtree OR json1''rtree NEAR \"json1 enable\"';\n")
 		}
 	}
 	vtab.TclVarSet("sqlite_fts3_enable_parentheses", "", saved)
@@ -38328,7 +38328,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	{ // "52.1"
 		_res = db.Exec("\n  SELECT * FROM t1, t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM t1, t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM t1, t2;\n")
 		}
 	}
 	db.Close()

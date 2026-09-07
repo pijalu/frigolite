@@ -105,7 +105,7 @@ func Test_altercons(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
 			}
 		}
 		{ // "altercons-2.1" — skipped: DROP CONSTRAINT text-fidelity not matched
@@ -113,7 +113,7 @@ func Test_altercons(t *testing.T) {
 		{ // "2.2"
 			_res = db.Exec("\n  ALTER TABLE t2 DROP CONSTRAINT ddd\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such constraint: ddd") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such constraint: ddd", _res.Error, "\n  ALTER TABLE t2 DROP CONSTRAINT ddd\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such constraint: ddd", resErrString(_res), "\n  ALTER TABLE t2 DROP CONSTRAINT ddd\n")
 			}
 		}
 		db.Close()
@@ -165,13 +165,13 @@ func Test_altercons(t *testing.T) {
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
 				}
 			}
 			{ // "4.1"
 				_res = db.Exec("\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n")
 				}
 			}
 			db.Close()
@@ -184,13 +184,13 @@ func Test_altercons(t *testing.T) {
 			{ // "5.1"
 				_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
 				}
 			}
 			{ // "5.2.1"
 				_res = db.Exec("\n  ALTER TABLE t3 ALTER b SET NOT NULL\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE t3 ALTER b SET NOT NULL\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  ALTER TABLE t3 ALTER b SET NOT NULL\n")
 				}
 			}
 			{ // do_test "5.2.2"
@@ -234,7 +234,7 @@ func Test_altercons(t *testing.T) {
 				{ // "5.4.1"
 					_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, c);\n")
 					}
 				}
 				{ // "altercons-5.4.2" — skipped: DROP CONSTRAINT error message not matched
@@ -242,7 +242,7 @@ func Test_altercons(t *testing.T) {
 				{ // "5.4.3"
 					_res = db.Exec("\n  ALTER TABLE x2 ALTER c SET NOT NULL;\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: x2") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: x2", _res.Error, "\n  ALTER TABLE x2 ALTER c SET NOT NULL;\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: x2", resErrString(_res), "\n  ALTER TABLE x2 ALTER c SET NOT NULL;\n")
 					}
 				}
 				{ // "altercons-5.4.4" — skipped: DROP CONSTRAINT error message not matched
@@ -257,25 +257,25 @@ func Test_altercons(t *testing.T) {
 				{ // "6.1"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
 					}
 				}
 				{ // "6.2.1"
 					_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
 					}
 				}
 				{ // "6.2.2"
 					_res = db.Exec("\n  DELETE FROM t1 WHERE c=6;\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE c=6;\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE c=6;\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
 					}
 				}
 				{ // "6.2.3"
 					_res = db.Exec("\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: nn") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: nn", _res.Error, "\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: nn", resErrString(_res), "\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
 					}
 				}
 				// foreach {tn before alter after} "1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }"
@@ -323,7 +323,7 @@ func Test_altercons(t *testing.T) {
 					{ // "6.5"
 						_res = db.Exec("\n  CREATE TABLE abc(x,y);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(x,y);\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE abc(x,y);\n")
 						}
 					}
 					{ // "altercons-6.6" — skipped: DROP CONSTRAINT text-fidelity not matched
@@ -338,19 +338,19 @@ func Test_altercons(t *testing.T) {
 					{ // "7.0"
 						_res = db.Exec("\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
 						}
 					}
 					{ // "7.1"
 						_res = db.Exec("\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
 						}
 					}
 					{ // "7.2"
 						_res = db.Exec("\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
 						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
+							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
 						}
 					}
 					{ // "7.3"
@@ -370,19 +370,19 @@ func Test_altercons(t *testing.T) {
 					{ // "7.5"
 						_res = db.Exec("\n  CREATE VIEW v1 AS SELECT a, b FROM x1;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT a, b FROM x1;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v1 AS SELECT a, b FROM x1;\n")
 						}
 					}
 					{ // "7.6"
 						_res = db.Exec("\n  ALTER TABLE v1 RENAME a TO c;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of view \"v1\"") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \"v1\"", _res.Error, "\n  ALTER TABLE v1 RENAME a TO c;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \"v1\"", resErrString(_res), "\n  ALTER TABLE v1 RENAME a TO c;\n")
 						}
 					}
 					{ // "7.7"
 						_res = db.Exec("\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \"v1\"") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \"v1\"", _res.Error, "\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \"v1\"", resErrString(_res), "\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
 						}
 					}
 					{ // "altercons-7.8" — skipped: DROP CONSTRAINT error message not matched
@@ -390,7 +390,7 @@ func Test_altercons(t *testing.T) {
 					{ // "7.9"
 						_res = db.Exec("\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \"v1\"") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \"v1\"", _res.Error, "\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \"v1\"", resErrString(_res), "\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
 						}
 					}
 					db.Close()
@@ -403,13 +403,13 @@ func Test_altercons(t *testing.T) {
 					{ // "8.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
 						}
 					}
 					{ // "8.1.1"
 						_res = db.Exec("\n  ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;\n")
 						}
 					}
 					{ // "altercons-8.1.2" — skipped: DROP CONSTRAINT CHECK whitespace not matched (SQL side effects only)
@@ -431,7 +431,7 @@ func Test_altercons(t *testing.T) {
 					{ // "8.2.1"
 						_res = db.Exec("\n  ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;\n")
 						}
 					}
 					{ // "altercons-8.2.2" — skipped: DROP CONSTRAINT CHECK whitespace not matched (SQL side effects only)
@@ -461,13 +461,13 @@ func Test_altercons(t *testing.T) {
 					{ // "9.0"
 						_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
 						}
 					}
 					{ // "9.1.1"
 						_res = db.Exec("\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL\n")
 						}
 					}
 					{ // "altercons-9.1.2" — skipped: ALTER COLUMN SET NOT NULL schema SQL not matched (SQL side effects only)
@@ -513,7 +513,7 @@ func Test_altercons(t *testing.T) {
 					{ // "9.2.1"
 						_res = db.Exec("\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n")
 						}
 					}
 					{ // "9.2.2"
@@ -574,13 +574,13 @@ func Test_altercons(t *testing.T) {
 					{ // "10.1"
 						_res = db.Exec("\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
 						}
 					}
 					{ // "10.2"
 						_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_drop_column") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_drop_column", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_drop_column", resErrString(_res), "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));\n")
 						}
 					}
 					{ // "altercons-10.3" — skipped: DROP CONSTRAINT text-fidelity not matched

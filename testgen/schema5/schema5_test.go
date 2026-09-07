@@ -71,7 +71,7 @@ func Test_schema5(t *testing.T) {
 	{ // do_test "schema5-1.2"
 		_res = db.Exec("INSERT INTO t1 VALUES(1,3,4);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "INSERT INTO t1 VALUES(1,3,4);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "INSERT INTO t1 VALUES(1,3,4);")
 		}
 	}
 	{ // do_test "schema5-1.3"
@@ -89,25 +89,25 @@ func Test_schema5(t *testing.T) {
 	{ // do_test "schema5-1.4"
 		_res = db.Exec("INSERT INTO t1 VALUES(10,11,12);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: two") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: two", _res.Error, "INSERT INTO t1 VALUES(10,11,12);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: two", resErrString(_res), "INSERT INTO t1 VALUES(10,11,12);")
 		}
 	}
 	{ // do_test "schema5-1.5"
 		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n       UNIQUE(a) CONSTRAINT one,\n       PRIMARY KEY(b,c) CONSTRAINT two\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n       UNIQUE(a) CONSTRAINT one,\n       PRIMARY KEY(b,c) CONSTRAINT two\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n       UNIQUE(a) CONSTRAINT one,\n       PRIMARY KEY(b,c) CONSTRAINT two\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n  ")
 		}
 	}
 	{ // do_test "schema5-1.6"
 		_res = db.Exec("INSERT INTO t1 VALUES(1,3,4)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "INSERT INTO t1 VALUES(1,3,4)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "INSERT INTO t1 VALUES(1,3,4)")
 		}
 	}
 	{ // do_test "schema5-1.7"
 		_res = db.Exec("INSERT INTO t1 VALUES(10,2,3)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.b, t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b, t1.c", _res.Error, "INSERT INTO t1 VALUES(10,2,3)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b, t1.c", resErrString(_res), "INSERT INTO t1 VALUES(10,2,3)")
 		}
 	}
 }

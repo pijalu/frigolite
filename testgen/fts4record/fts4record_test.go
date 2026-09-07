@@ -68,7 +68,7 @@ func Test_fts4record(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n  INSERT INTO t1 VALUES('terma terma terma termb');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n  INSERT INTO t1 VALUES('terma terma terma termb');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n  INSERT INTO t1 VALUES('terma terma terma termb');\n")
 		}
 	}
 	{ // "1.1"
@@ -101,25 +101,25 @@ func Test_fts4record(t *testing.T) {
 	{ // "1.3.1"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 3, 1, 5, \n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 3, 1, 5, \n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 3, 1, 5, \n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
 		}
 	}
 	{ // "1.3.2"
 		_res = db.Exec("\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		}
 	}
 	{ // "1.4.1"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 4, 1, 5, \n              256, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 4, 1, 5, \n              256, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 4, 1, 5, \n              256, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
 		}
 	}
 	{ // "1.4.2"
 		_res = db.Exec("\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		}
 	}
 	{ // "1.4.3"
@@ -137,13 +137,13 @@ func Test_fts4record(t *testing.T) {
 	{ // "1.5.1"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 4, 1, 5, \n              256, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 4, 1, 5, \n              256, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1_segdir SET root = \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 4, 1, 5, \n              256, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0\n          );\n")
 		}
 	}
 	{ // "1.4.2"
 		_res = db.Exec("\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		}
 	}
 	{ // "1.4.3"
@@ -161,19 +161,19 @@ func Test_fts4record(t *testing.T) {
 	{ // "1.5.1"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = \n  X'00057465726D61050102030300040162040105FF00010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100'\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1_segdir SET root = \n  X'00057465726D61050102030300040162040105FF00010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100'\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1_segdir SET root = \n  X'00057465726D61050102030300040162040105FF00010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100'\n")
 		}
 	}
 	{ // "1.5.2"
 		_res = db.Exec("\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'term*'\n")
 		}
 	}
 	{ // "1.5.3"
 		_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('integrity-check');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1(t1) VALUES('integrity-check');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('integrity-check');\n")
 		}
 	}
 }

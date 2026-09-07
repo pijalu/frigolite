@@ -207,7 +207,7 @@ func Test_enc2(t *testing.T) {
 	{ // do_test "enc2-4.3"
 		_res = db.Exec("\n      ATTACH 'test2.db' as aux;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attached databases must use the same text encoding as main database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n      ATTACH 'test2.db' as aux;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", resErrString(_res), "\n      ATTACH 'test2.db' as aux;\n    ")
 		}
 	}
 	if db2 != nil { db2.Close() }

@@ -185,7 +185,7 @@ func Test_select4(t *testing.T) {
 	{ // "select4-1.4"
 		_res = db.Exec("\n  SELECT (VALUES(0) INTERSECT SELECT(0) UNION SELECT(0) ORDER BY 1 UNION\n          SELECT 0 UNION SELECT 0 ORDER BY 1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY clause should come after UNION not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after UNION not before", _res.Error, "\n  SELECT (VALUES(0) INTERSECT SELECT(0) UNION SELECT(0) ORDER BY 1 UNION\n          SELECT 0 UNION SELECT 0 ORDER BY 1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after UNION not before", resErrString(_res), "\n  SELECT (VALUES(0) INTERSECT SELECT(0) UNION SELECT(0) ORDER BY 1 UNION\n          SELECT 0 UNION SELECT 0 ORDER BY 1);\n")
 		}
 	}
 	{ // do_test "select4-2.1"
@@ -373,7 +373,7 @@ func Test_select4(t *testing.T) {
 	{ // "select4-4.4"
 		_res = db.Exec("\n  SELECT 3 IN (\n    SELECT 0 ORDER BY 1\n    INTERSECT\n    SELECT 1\n    INTERSECT \n    SELECT 2\n    ORDER BY 1\n  );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY clause should come after INTERSECT not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after INTERSECT not before", _res.Error, "\n  SELECT 3 IN (\n    SELECT 0 ORDER BY 1\n    INTERSECT\n    SELECT 1\n    INTERSECT \n    SELECT 2\n    ORDER BY 1\n  );\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after INTERSECT not before", resErrString(_res), "\n  SELECT 3 IN (\n    SELECT 0 ORDER BY 1\n    INTERSECT\n    SELECT 1\n    INTERSECT \n    SELECT 2\n    ORDER BY 1\n  );\n")
 		}
 	}
 	{ // do_test "select4-5.1"
@@ -511,37 +511,37 @@ func Test_select4(t *testing.T) {
 	{ // do_test "select4-5.2f"
 		_res = db.Exec("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
 		}
 	}
 	{ // do_test "select4-5.2g"
 		_res = db.Exec("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 1;\n  ")
 		}
 	}
 	{ // do_test "select4-5.2h"
 		_res = db.Exec("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term out of range - should be between 1 and 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 1", _res.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 1", resErrString(_res), "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 2;\n  ")
 		}
 	}
 	{ // do_test "select4-5.2i"
 		_res = db.Exec("\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 2, 1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 2, 1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 2, 1;\n  ")
 		}
 	}
 	{ // do_test "select4-5.2j"
 		_res = db.Exec("\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 1, 2 DESC;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 1, 2 DESC;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 1, 2 DESC;\n  ")
 		}
 	}
 	{ // do_test "select4-5.2k"
 		_res = db.Exec("\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY n, 1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY n, 1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY n, 1;\n  ")
 		}
 	}
 	{ // do_test "select4-5.3"
@@ -569,7 +569,7 @@ func Test_select4(t *testing.T) {
 	{ // do_test "select4-5.3-3807-1"
 		_res = db.Exec("\n    SELECT 1 UNION SELECT 2, 3 UNION SELECT 4, 5 ORDER BY 1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    SELECT 1 UNION SELECT 2, 3 UNION SELECT 4, 5 ORDER BY 1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    SELECT 1 UNION SELECT 2, 3 UNION SELECT 4, 5 ORDER BY 1;\n  ")
 		}
 	}
 	{ // do_test "select4-5.4"
@@ -817,85 +817,85 @@ func Test_select4(t *testing.T) {
 	{ // do_test "select4-11.1"
 		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.2"
 		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.3"
 		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.4"
 		_res = db.Exec("\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.5"
 		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of EXCEPT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", _res.Error, "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", resErrString(_res), "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.6"
 		_res = db.Exec("\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of EXCEPT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.7"
 		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of INTERSECT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", _res.Error, "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", resErrString(_res), "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.8"
 		_res = db.Exec("\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of INTERSECT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.11"
 		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of INTERSECT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of INTERSECT do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.12"
 		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of EXCEPT do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of EXCEPT do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.13"
 		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.14"
 		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.15"
 		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
 		}
 	}
 	{ // do_test "select4-11.16"
 		_res = db.Exec("\n    INSERT INTO t2(rowid) VALUES(2) UNION SELECT 3,4 UNION SELECT 5,6 ORDER BY 1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n    INSERT INTO t2(rowid) VALUES(2) UNION SELECT 3,4 UNION SELECT 5,6 ORDER BY 1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n    INSERT INTO t2(rowid) VALUES(2) UNION SELECT 3,4 UNION SELECT 5,6 ORDER BY 1;\n  ")
 		}
 	}
 	{ // do_test "select4-12.1"
@@ -1170,7 +1170,7 @@ func Test_select4(t *testing.T) {
 	{ // "select4-17.3"
 		_res = db.Exec("\n  SELECT x, y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 GROUP BY a LIMIT 3\n    UNION\n    SELECT 98 AS x, 99 AS y\n  ) AS w WHERE y>=20\n  ORDER BY +x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "LIMIT clause should come after UNION not before") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION not before", _res.Error, "\n  SELECT x, y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 GROUP BY a LIMIT 3\n    UNION\n    SELECT 98 AS x, 99 AS y\n  ) AS w WHERE y>=20\n  ORDER BY +x;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "LIMIT clause should come after UNION not before", resErrString(_res), "\n  SELECT x, y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 GROUP BY a LIMIT 3\n    UNION\n    SELECT 98 AS x, 99 AS y\n  ) AS w WHERE y>=20\n  ORDER BY +x;\n")
 		}
 	}
 	db.Close()

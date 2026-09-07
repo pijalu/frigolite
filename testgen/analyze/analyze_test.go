@@ -61,7 +61,7 @@ func Test_analyze(t *testing.T) {
 	{ // do_test "analyze-1.1"
 		_res = db.Exec("\n    ANALYZE no_such_table\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: no_such_table") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: no_such_table", _res.Error, "\n    ANALYZE no_such_table\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: no_such_table", resErrString(_res), "\n    ANALYZE no_such_table\n  ")
 		}
 	}
 	{ // do_test "analyze-1.2"
@@ -73,7 +73,7 @@ func Test_analyze(t *testing.T) {
 	{ // do_test "analyze-1.3"
 		_res = db.Exec("\n    ANALYZE no_such_db.no_such_table\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown database no_such_db") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database no_such_db", _res.Error, "\n    ANALYZE no_such_db.no_such_table\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database no_such_db", resErrString(_res), "\n    ANALYZE no_such_db.no_such_table\n  ")
 		}
 	}
 	{ // do_test "analyze-1.4"
@@ -85,13 +85,13 @@ func Test_analyze(t *testing.T) {
 	{ // do_test "analyze-1.5.1"
 		_res = db.Exec("\n    ANALYZE\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ANALYZE\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ANALYZE\n  ")
 		}
 	}
 	{ // do_test "analyze-1.5.2"
 		_res = db.Exec("\n    PRAGMA empty_result_callbacks=1;\n    ANALYZE\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA empty_result_callbacks=1;\n    ANALYZE\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    PRAGMA empty_result_callbacks=1;\n    ANALYZE\n  ")
 		}
 	}
 	{ // do_test "analyze-1.6"
@@ -103,13 +103,13 @@ func Test_analyze(t *testing.T) {
 	{ // do_test "analyze-1.6.2"
 		_res = db.Exec("\n    CREATE INDEX stat1idx ON sqlite_stat1(idx);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_stat1 may not be indexed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be indexed", _res.Error, "\n    CREATE INDEX stat1idx ON sqlite_stat1(idx);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be indexed", resErrString(_res), "\n    CREATE INDEX stat1idx ON sqlite_stat1(idx);\n  ")
 		}
 	}
 	{ // do_test "analyze-1.6.3"
 		_res = db.Exec("\n    CREATE INDEX main.stat1idx ON SQLite_stat1(idx);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_stat1 may not be indexed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be indexed", _res.Error, "\n    CREATE INDEX main.stat1idx ON SQLite_stat1(idx);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be indexed", resErrString(_res), "\n    CREATE INDEX main.stat1idx ON SQLite_stat1(idx);\n  ")
 		}
 	}
 	{ // do_test "analyze-1.7"
@@ -121,7 +121,7 @@ func Test_analyze(t *testing.T) {
 	{ // do_test "analyze-1.8"
 		_res = db.Exec("\n    ANALYZE main\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ANALYZE main\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ANALYZE main\n  ")
 		}
 	}
 	{ // do_test "analyze-1.9"
@@ -133,7 +133,7 @@ func Test_analyze(t *testing.T) {
 	{ // do_test "analyze-1.10"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    ANALYZE main.t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    ANALYZE main.t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a,b);\n    ANALYZE main.t1;\n  ")
 		}
 	}
 	{ // do_test "analyze-1.11"
@@ -145,7 +145,7 @@ func Test_analyze(t *testing.T) {
 	{ // do_test "analyze-1.12"
 		_res = db.Exec("\n    ANALYZE t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ANALYZE t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ANALYZE t1;\n  ")
 		}
 	}
 	{ // do_test "analyze-1.13"

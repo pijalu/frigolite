@@ -75,198 +75,198 @@ func Test_notnull(t *testing.T) {
 	{ // do_test "notnull-1.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.2"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-1.2b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-1.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.4"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-1.4b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-1.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-1.5b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-1.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.7"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.8"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.9"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.10"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-1.10b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-1.11"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.12"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.13"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.14"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.15"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.16"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.c", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.c", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-1.16b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-1.17"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.d", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.d", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-1.17b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-1.18"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.19"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-1.20"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-1.20b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-1.21"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-2.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-2.1b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-2.2"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-2.2b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-2.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-2.4"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-2.4b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-2.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-2.6b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-2.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-2.7"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-2.8"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-2.9"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-2.10"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-2.10b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
@@ -279,198 +279,198 @@ func Test_notnull(t *testing.T) {
 	{ // do_test "notnull-3.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.2"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-3.2b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-3.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.4"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-3.4b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-3.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-3.5b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-3.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.7"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.8"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.9"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.10"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-3.10b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-3.11"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.12"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.13"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.14"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.15"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.16"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.c", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.c", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-3.16b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-3.17"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.d", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.d", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-3.17b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-3.18"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.19"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-3.20"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-3.20b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-3.21"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		}
 	}
 	{ // do_test "notnull-4.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-4.1b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-4.2"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-4.2b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-4.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-4.4"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-4.4b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-4.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-4.5b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
 	{ // do_test "notnull-4.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-4.7"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-4.8"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-4.9"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "notnull-4.10"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.e", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-4.10b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
@@ -483,7 +483,7 @@ func Test_notnull(t *testing.T) {
 	{ // do_test "notnull-5.2"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-5.2b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
@@ -496,7 +496,7 @@ func Test_notnull(t *testing.T) {
 	{ // do_test "notnull-5.4"
 		_res = db.Exec("\n    DELETE FROM t1;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t2;\n    COMMIT;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", _res.Error, "\n    DELETE FROM t1;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t2;\n    COMMIT;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.b", resErrString(_res), "\n    DELETE FROM t1;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t2;\n    COMMIT;\n  ")
 		}
 	}
 	// verify_ex_errcode notnull-5.4b SQLITE_CONSTRAINT_NOTNULL (unsupported command, not transpiled)
@@ -518,7 +518,7 @@ func Test_notnull(t *testing.T) {
 	{ // "notnull-6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);\n")
 		}
 	}
 	// do_uses_op_next_test notnull-6.1 SELECT * FROM t1 WHERE a IS ? 1 (unsupported command, not transpiled)

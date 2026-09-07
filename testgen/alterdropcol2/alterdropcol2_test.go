@@ -71,13 +71,13 @@ func Test_alterdropcol2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(c, b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3), (4, 5, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c, b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3), (4, 5, 6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(c, b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3), (4, 5, 6);\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  ALTER TABLE t1 DROP c;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 DROP c;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE t1 DROP c;\n")
 		}
 	}
 	{ // "1.2.1"
@@ -122,31 +122,31 @@ func Test_alterdropcol2(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE yyy(q, w, e CHECK (e > 0), r);\n  INSERT INTO yyy VALUES(1,1,1,1), (2,2,2,2);\n\n  CREATE TABLE zzz(q, w, e, r, CHECK (e > 0));\n  INSERT INTO zzz VALUES(1,1,1,1), (2,2,2,2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE yyy(q, w, e CHECK (e > 0), r);\n  INSERT INTO yyy VALUES(1,1,1,1), (2,2,2,2);\n\n  CREATE TABLE zzz(q, w, e, r, CHECK (e > 0));\n  INSERT INTO zzz VALUES(1,1,1,1), (2,2,2,2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE yyy(q, w, e CHECK (e > 0), r);\n  INSERT INTO yyy VALUES(1,1,1,1), (2,2,2,2);\n\n  CREATE TABLE zzz(q, w, e, r, CHECK (e > 0));\n  INSERT INTO zzz VALUES(1,1,1,1), (2,2,2,2);\n")
 		}
 	}
 	{ // "3.1.1"
 		_res = db.Exec("\n  INSERT INTO yyy VALUES(0,0,0,0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: e > 0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e > 0", _res.Error, "\n  INSERT INTO yyy VALUES(0,0,0,0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e > 0", resErrString(_res), "\n  INSERT INTO yyy VALUES(0,0,0,0);\n")
 		}
 	}
 	{ // "3.1.2"
 		_res = db.Exec("\n  INSERT INTO yyy VALUES(0,0,0,0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: e > 0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e > 0", _res.Error, "\n  INSERT INTO yyy VALUES(0,0,0,0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e > 0", resErrString(_res), "\n  INSERT INTO yyy VALUES(0,0,0,0);\n")
 		}
 	}
 	{ // "3.2.1"
 		_res = db.Exec("\n  ALTER TABLE yyy DROP e;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE yyy DROP e;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE yyy DROP e;\n")
 		}
 	}
 	{ // "3.2.2"
 		_res = db.Exec("\n  ALTER TABLE zzz DROP e;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table zzz after drop column: no such column: e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table zzz after drop column: no such column: e", _res.Error, "\n  ALTER TABLE zzz DROP e;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table zzz after drop column: no such column: e", resErrString(_res), "\n  ALTER TABLE zzz DROP e;\n")
 		}
 	}
 }

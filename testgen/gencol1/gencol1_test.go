@@ -248,7 +248,7 @@ func Test_gencol1(t *testing.T) {
 		{ // "gencol1-3.110"
 			_res = db.Exec("\n  UPDATE t0 SET c1 = c0, c3 = c0+1;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  UPDATE t0 SET c1 = c0, c3 = c0+1;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  UPDATE t0 SET c1 = c0, c3 = c0+1;\n")
 			}
 		}
 		db.Close()
@@ -282,7 +282,7 @@ func Test_gencol1(t *testing.T) {
 		{ // "gencol1-6.10"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 NOT NULL AS(c1), c1);\n  REPLACE INTO t0(c1) VALUES(NULL);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t0.c0") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t0.c0", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 NOT NULL AS(c1), c1);\n  REPLACE INTO t0(c1) VALUES(NULL);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t0.c0", resErrString(_res), "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 NOT NULL AS(c1), c1);\n  REPLACE INTO t0(c1) VALUES(NULL);\n")
 			}
 		}
 		db.Close()
@@ -439,7 +439,7 @@ func Test_gencol1(t *testing.T) {
 		{ // "gencol1-8.20"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0,\n    c1 AS(c0 + c2),\n    c2 AS(c1) CHECK(c2)\n  );\n  UPDATE t0 SET c0 = NULL;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "generated column loop on \"c2\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "generated column loop on \"c2\"", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0,\n    c1 AS(c0 + c2),\n    c2 AS(c1) CHECK(c2)\n  );\n  UPDATE t0 SET c0 = NULL;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "generated column loop on \"c2\"", resErrString(_res), "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0,\n    c1 AS(c0 + c2),\n    c2 AS(c1) CHECK(c2)\n  );\n  UPDATE t0 SET c0 = NULL;\n")
 			}
 		}
 		db.Close()
@@ -500,43 +500,43 @@ func Test_gencol1(t *testing.T) {
 		{ // "gencol1-11.20"
 			_res = db.Exec("\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			}
 		}
 		{ // "gencol1-11.30"
 			_res = db.Exec("\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
 			}
 		}
 		{ // "gencol1-11.40"
 			_res = db.Exec("\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			}
 		}
 		{ // "gencol1-11.50"
 			_res = db.Exec("\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
 			}
 		}
 		{ // "gencol1-11.60"
 			_res = db.Exec("\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			}
 		}
 		{ // "gencol1-11.70"
 			_res = db.Exec("\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t0;\n  CREATE TABLE t0(\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
 			}
 		}
 		{ // "gencol1-11.80"
 			_res = db.Exec("\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			}
 		}
 		db, err = frigolite.Open("")
@@ -644,7 +644,7 @@ func Test_gencol1(t *testing.T) {
 		{ // "gencol1-14.10"
 			_res = db.Exec("\n  INSERT INTO t0 VALUES(2);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t0.c1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.c1", _res.Error, "\n  INSERT INTO t0 VALUES(2);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.c1", resErrString(_res), "\n  INSERT INTO t0 VALUES(2);\n")
 			}
 		}
 		db.Close()
@@ -775,7 +775,7 @@ func Test_gencol1(t *testing.T) {
 		{ // "gencol1-19.10"
 			_res = db.Exec("\n  CREATE TABLE t0(\n    c0 INT AS(2) UNIQUE,\n    c1 TEXT UNIQUE,\n    FOREIGN KEY(c0) REFERENCES t0(c1)\n  );\n  INSERT INTO t0(c1) VALUES(0.16334143182538696), (0);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t0.c0") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.c0", _res.Error, "\n  CREATE TABLE t0(\n    c0 INT AS(2) UNIQUE,\n    c1 TEXT UNIQUE,\n    FOREIGN KEY(c0) REFERENCES t0(c1)\n  );\n  INSERT INTO t0(c1) VALUES(0.16334143182538696), (0);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.c0", resErrString(_res), "\n  CREATE TABLE t0(\n    c0 INT AS(2) UNIQUE,\n    c1 TEXT UNIQUE,\n    FOREIGN KEY(c0) REFERENCES t0(c1)\n  );\n  INSERT INTO t0(c1) VALUES(0.16334143182538696), (0);\n")
 			}
 		}
 		{ // "gencol1-20.1"

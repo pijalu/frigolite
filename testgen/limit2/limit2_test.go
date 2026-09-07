@@ -70,7 +70,7 @@ func Test_limit2(t *testing.T) {
 	{ // "limit2-100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
 		}
 	}
 	vtab.TclVarSet("sqlite_search_count", "", "0")
@@ -115,7 +115,7 @@ func Test_limit2(t *testing.T) {
 	{ // "limit2-110"
 		_res = db.Exec("\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES('a',1),('a',2),('a',3),('a',4);\n  INSERT INTO t2(x,y) VALUES('b',1),('c',2),('d',3),('e',4);\n  CREATE INDEX t2xy ON t2(x,y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES('a',1),('a',2),('a',3),('a',4);\n  INSERT INTO t2(x,y) VALUES('b',1),('c',2),('d',3),('e',4);\n  CREATE INDEX t2xy ON t2(x,y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES('a',1),('a',2),('a',3),('a',4);\n  INSERT INTO t2(x,y) VALUES('b',1),('c',2),('d',3),('e',4);\n  CREATE INDEX t2xy ON t2(x,y);\n")
 		}
 	}
 	vtab.TclVarSet("sqlite_search_count", "", "0")
@@ -160,7 +160,7 @@ func Test_limit2(t *testing.T) {
 	{ // "limit2-120"
 		_res = db.Exec("\n  DROP INDEX t1ab;\n  CREATE INDEX t1ab ON t1(a,b DESC);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t1ab;\n  CREATE INDEX t1ab ON t1(a,b DESC);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX t1ab;\n  CREATE INDEX t1ab ON t1(a,b DESC);\n")
 		}
 	}
 	vtab.TclVarSet("sqlite_search_count", "", "0")

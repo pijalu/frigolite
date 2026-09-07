@@ -101,19 +101,19 @@ func Test_triggerG(t *testing.T) {
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE t4(x);\n  CREATE TRIGGER tr4 AFTER INSERT ON t4 BEGIN\n    SELECT 0x2147483648e0e0099 AS y WHERE y;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x);\n  CREATE TRIGGER tr4 AFTER INSERT ON t4 BEGIN\n    SELECT 0x2147483648e0e0099 AS y WHERE y;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(x);\n  CREATE TRIGGER tr4 AFTER INSERT ON t4 BEGIN\n    SELECT 0x2147483648e0e0099 AS y WHERE y;\n  END;\n")
 		}
 	}
 	{ // "310"
 		_res = db.Exec("\n  INSERT INTO t4 VALUES(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "hex literal too big: 0x2147483648e0e0099") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x2147483648e0e0099", _res.Error, "\n  INSERT INTO t4 VALUES(1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x2147483648e0e0099", resErrString(_res), "\n  INSERT INTO t4 VALUES(1);\n")
 		}
 	}
 	{ // "400"
 		_res = db.Exec("\n  CREATE VIEW v0(a) AS SELECT 1234;\n  CREATE TRIGGER t0001 INSTEAD OF DELETE ON v0 BEGIN\n    SELECT old.a;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v0(a) AS SELECT 1234;\n  CREATE TRIGGER t0001 INSTEAD OF DELETE ON v0 BEGIN\n    SELECT old.a;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v0(a) AS SELECT 1234;\n  CREATE TRIGGER t0001 INSTEAD OF DELETE ON v0 BEGIN\n    SELECT old.a;\n  END;\n")
 		}
 	}
 	{ // "405"
@@ -131,7 +131,7 @@ func Test_triggerG(t *testing.T) {
 	{ // "410"
 		_res = db.Exec("\n  DELETE FROM v0;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM v0;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM v0;\n")
 		}
 	}
 }

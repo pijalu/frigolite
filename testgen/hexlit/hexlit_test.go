@@ -176,25 +176,25 @@ func Test_hexlit(t *testing.T) {
 	{ // "hexlist-400"
 		_res = db.Exec("\n  SELECT 0x10000000000000000;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "hex literal too big: 0x10000000000000000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x10000000000000000", _res.Error, "\n  SELECT 0x10000000000000000;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x10000000000000000", resErrString(_res), "\n  SELECT 0x10000000000000000;\n")
 		}
 	}
 	{ // "hexlist-401"
 		_res = db.Exec("\n  SELECT DISTINCT 0x10000000000000000;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "hex literal too big: 0x10000000000000000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x10000000000000000", _res.Error, "\n  SELECT DISTINCT 0x10000000000000000;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x10000000000000000", resErrString(_res), "\n  SELECT DISTINCT 0x10000000000000000;\n")
 		}
 	}
 	{ // "hexlist-402"
 		_res = db.Exec("\n  SELECT DISTINCT -0x08000000000000000;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "hex literal too big: -0x08000000000000000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: -0x08000000000000000", _res.Error, "\n  SELECT DISTINCT -0x08000000000000000;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: -0x08000000000000000", resErrString(_res), "\n  SELECT DISTINCT -0x08000000000000000;\n")
 		}
 	}
 	{ // "hexlist-410"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1+0x10000000000000000);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "hex literal too big: 0x10000000000000000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x10000000000000000", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1+0x10000000000000000);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "hex literal too big: 0x10000000000000000", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1+0x10000000000000000);\n")
 		}
 	}
 }

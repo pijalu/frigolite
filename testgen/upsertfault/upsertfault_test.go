@@ -64,7 +64,7 @@ func Test_upsertfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b, c, d, UNIQUE(b, c));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c, d, UNIQUE(b, c));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, b, c, d, UNIQUE(b, c));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

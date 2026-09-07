@@ -251,7 +251,7 @@ func Test_pragma2(t *testing.T) {
 	{ // "pragma2-4.7"
 		_res = db.Exec("\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n")
 		}
 	}
 	// sqlite3_release_memory (unsupported command, not transpiled)

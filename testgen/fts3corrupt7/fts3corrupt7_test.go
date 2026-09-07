@@ -1538,7 +1538,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';\n")
 		}
 	}
 	db.Close()
@@ -2792,7 +2792,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  SELECT 0 FROM t1 WHERE t1 MATCH 'rtree NEAR rtree\"json1 enable\"';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT 0 FROM t1 WHERE t1 MATCH 'rtree NEAR rtree\"json1 enable\"';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT 0 FROM t1 WHERE t1 MATCH 'rtree NEAR rtree\"json1 enable\"';\n")
 		}
 	}
 	db.Close()
@@ -2820,7 +2820,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + " + sqlLiteral(DEPTH) + ", 100 + " + sqlLiteral(DEPTH) + ", make_interior_node(" + sqlLiteral(DEPTH) + "+1, 100));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + " + sqlLiteral(DEPTH) + ", 100 + " + sqlLiteral(DEPTH) + ", make_interior_node(" + sqlLiteral(DEPTH) + "+1, 100));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + " + sqlLiteral(DEPTH) + ", 100 + " + sqlLiteral(DEPTH) + ", make_interior_node(" + sqlLiteral(DEPTH) + "+1, 100));\n")
 		}
 	}
 	{ // do_test "3.1"
@@ -2852,7 +2852,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  SELECT * FROM fts WHERE fts MATCH 'x';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM fts WHERE fts MATCH 'x';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM fts WHERE fts MATCH 'x';\n")
 		}
 	}
 	db.Close()
@@ -2865,25 +2865,25 @@ func Test_fts3corrupt7(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(content);\n  DELETE FROM t1_segments;\n  DELETE FROM t1_segdir;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(content);\n  DELETE FROM t1_segments;\n  DELETE FROM t1_segdir;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(content);\n  DELETE FROM t1_segments;\n  DELETE FROM t1_segdir;\n")
 		}
 	}
 	{ // "4.2"
 		_res = db.Exec("\n  INSERT INTO t1_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root)\n  VALUES(0, 0, 0, 0, 0, X'000568656C6C6F08010201FFFFFF7F00');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root)\n  VALUES(0, 0, 0, 0, 0, X'000568656C6C6F08010201FFFFFF7F00');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root)\n  VALUES(0, 0, 0, 0, 0, X'000568656C6C6F08010201FFFFFF7F00');\n")
 		}
 	}
 	{ // "4.3"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1_terms USING fts4aux(t1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1_terms USING fts4aux(t1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1_terms USING fts4aux(t1);\n")
 		}
 	}
 	{ // "4.4"
 		_res = db.Exec("\n  SELECT * FROM t1_terms;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT * FROM t1_terms;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM t1_terms;\n")
 		}
 	}
 	db.Close()
@@ -2896,13 +2896,13 @@ func Test_fts3corrupt7(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts3(x);\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(1,0,0,0,'0 -9223372036854775808',x'00');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t USING fts3(x);\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(1,0,0,0,'0 -9223372036854775808',x'00');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t USING fts3(x);\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(1,0,0,0,'0 -9223372036854775808',x'00');\n")
 		}
 	}
 	{ // "7.1"
 		_res = db.Exec("\n  INSERT INTO t(x) VALUES('alpha');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t(x) VALUES('alpha');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t(x) VALUES('alpha');\n")
 		}
 	}
 	db.Close()
@@ -2915,7 +2915,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts4(x);\n  INSERT INTO t_content(docid,c0x) VALUES(1,'a b');\n  DELETE FROM t_segments;\n  DELETE FROM t_segdir;\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(0,0,0,0,0,x'000161110150028001500a818080800103038101000001622c010281008101ffffffffffffffffff010204ffffffffffffffffff01ffffffffffffffffff01c80109323200');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t USING fts4(x);\n  INSERT INTO t_content(docid,c0x) VALUES(1,'a b');\n  DELETE FROM t_segments;\n  DELETE FROM t_segdir;\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(0,0,0,0,0,x'000161110150028001500a818080800103038101000001622c010281008101ffffffffffffffffff010204ffffffffffffffffff01ffffffffffffffffff01c80109323200');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t USING fts4(x);\n  INSERT INTO t_content(docid,c0x) VALUES(1,'a b');\n  DELETE FROM t_segments;\n  DELETE FROM t_segdir;\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(0,0,0,0,0,x'000161110150028001500a818080800103038101000001622c010281008101ffffffffffffffffff010204ffffffffffffffffff01ffffffffffffffffff01c80109323200');\n")
 		}
 	}
 	{ // "8.1"

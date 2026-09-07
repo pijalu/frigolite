@@ -1156,7 +1156,7 @@ func Test_regexp1(t *testing.T) {
 	{ // "regexp1-8.4"
 		_res = db.Exec("\n  SELECT rowid FROM t2 WHERE a REGEXP '[x-]';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unclosed '['") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unclosed '['", _res.Error, "\n  SELECT rowid FROM t2 WHERE a REGEXP '[x-]';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unclosed '['", resErrString(_res), "\n  SELECT rowid FROM t2 WHERE a REGEXP '[x-]';\n")
 		}
 	}
 	{ // "regexp1-8.5"

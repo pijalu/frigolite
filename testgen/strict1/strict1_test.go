@@ -66,43 +66,43 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a) STRICT;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing datatype for t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing datatype for t1.a", _res.Error, "\n  CREATE TABLE t1(a) STRICT;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing datatype for t1.a", resErrString(_res), "\n  CREATE TABLE t1(a) STRICT;\n")
 		}
 	}
 	{ // "strict1-1.2"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY) STRICT, WITHOUT ROWID;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing datatype for t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing datatype for t1.a", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY) STRICT, WITHOUT ROWID;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing datatype for t1.a", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY) STRICT, WITHOUT ROWID;\n")
 		}
 	}
 	{ // "strict1-1.3"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing datatype for t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing datatype for t1.a", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing datatype for t1.a", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
 		}
 	}
 	{ // "strict1-1.4"
 		_res = db.Exec("\n  CREATE TABLE t1(a BANJO PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.a: \"BANJO\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.a: \"BANJO\"", _res.Error, "\n  CREATE TABLE t1(a BANJO PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.a: \"BANJO\"", resErrString(_res), "\n  CREATE TABLE t1(a BANJO PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
 		}
 	}
 	{ // "strict1-1.5"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f DATE) strict;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.f: \"DATE\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \"DATE\"", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f DATE) strict;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \"DATE\"", resErrString(_res), "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f DATE) strict;\n")
 		}
 	}
 	{ // "strict1-1.6"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f TEXT(50)) WITHOUT ROWID, STRICT;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.f: \"TEXT(50)\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \"TEXT(50)\"", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f TEXT(50)) WITHOUT ROWID, STRICT;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \"TEXT(50)\"", resErrString(_res), "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f TEXT(50)) WITHOUT ROWID, STRICT;\n")
 		}
 	}
 	{ // "strict1-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c BLOB,\n    d TEXT,\n    e REAL\n  ) STRICT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c BLOB,\n    d TEXT,\n    e REAL\n  ) STRICT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c BLOB,\n    d TEXT,\n    e REAL\n  ) STRICT;\n")
 		}
 	}
 	{ // "strict1-2.0a"
@@ -120,31 +120,31 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-2.1"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in INT column t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INT column t1.a", _res.Error, "\n  INSERT INTO t1(a) VALUES('xyz');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INT column t1.a", resErrString(_res), "\n  INSERT INTO t1(a) VALUES('xyz');\n")
 		}
 	}
 	{ // "strict1-2.2"
 		_res = db.Exec("\n  INSERT INTO t1(b) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in INTEGER column t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INTEGER column t1.b", _res.Error, "\n  INSERT INTO t1(b) VALUES('xyz');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INTEGER column t1.b", resErrString(_res), "\n  INSERT INTO t1(b) VALUES('xyz');\n")
 		}
 	}
 	{ // "strict1-2.3"
 		_res = db.Exec("\n  INSERT INTO t1(c) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in BLOB column t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column t1.c", _res.Error, "\n  INSERT INTO t1(c) VALUES('xyz');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column t1.c", resErrString(_res), "\n  INSERT INTO t1(c) VALUES('xyz');\n")
 		}
 	}
 	{ // "strict1-2.4"
 		_res = db.Exec("\n  INSERT INTO t1(d) VALUES(x'3142536475');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in TEXT column t1.d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.d", _res.Error, "\n  INSERT INTO t1(d) VALUES(x'3142536475');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.d", resErrString(_res), "\n  INSERT INTO t1(d) VALUES(x'3142536475');\n")
 		}
 	}
 	{ // "strict1-2.5"
 		_res = db.Exec("\n  INSERT INTO t1(e) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in REAL column t1.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column t1.e", _res.Error, "\n  INSERT INTO t1(e) VALUES('xyz');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column t1.e", resErrString(_res), "\n  INSERT INTO t1(e) VALUES('xyz');\n")
 		}
 	}
 	{ // "strict1-3.1"
@@ -162,25 +162,25 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-3.2"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(1.2);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store REAL value in INT column t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INT column t1.a", _res.Error, "\n  INSERT INTO t1(a) VALUES(1.2);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INT column t1.a", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(1.2);\n")
 		}
 	}
 	{ // "strict1-3.3"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(x'313233');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in INT column t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INT column t1.a", _res.Error, "\n  INSERT INTO t1(a) VALUES(x'313233');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INT column t1.a", resErrString(_res), "\n  INSERT INTO t1(a) VALUES(x'313233');\n")
 		}
 	}
 	{ // "strict1-3.4"
 		_res = db.Exec("\n  INSERT INTO t1(b) VALUES(1.2);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store REAL value in INTEGER column t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INTEGER column t1.b", _res.Error, "\n  INSERT INTO t1(b) VALUES(1.2);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INTEGER column t1.b", resErrString(_res), "\n  INSERT INTO t1(b) VALUES(1.2);\n")
 		}
 	}
 	{ // "strict1-3.5"
 		_res = db.Exec("\n  INSERT INTO t1(b) VALUES(x'313233');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in INTEGER column t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INTEGER column t1.b", _res.Error, "\n  INSERT INTO t1(b) VALUES(x'313233');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INTEGER column t1.b", resErrString(_res), "\n  INSERT INTO t1(b) VALUES(x'313233');\n")
 		}
 	}
 	{ // "strict1-4.1"
@@ -198,7 +198,7 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-4.2"
 		_res = db.Exec("\n  INSERT INTO t1(c) VALUES('456');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in BLOB column t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column t1.c", _res.Error, "\n  INSERT INTO t1(c) VALUES('456');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column t1.c", resErrString(_res), "\n  INSERT INTO t1(c) VALUES('456');\n")
 		}
 	}
 	{ // "strict1-5.1"
@@ -216,7 +216,7 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-5.2"
 		_res = db.Exec("\n  INSERT INTO t1(d) VALUES(x'4567');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in TEXT column t1.d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.d", _res.Error, "\n  INSERT INTO t1(d) VALUES(x'4567');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.d", resErrString(_res), "\n  INSERT INTO t1(d) VALUES(x'4567');\n")
 		}
 	}
 	{ // "strict1-6.1"
@@ -234,13 +234,13 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-6.2"
 		_res = db.Exec("\n  INSERT INTO t1(e) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in REAL column t1.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column t1.e", _res.Error, "\n  INSERT INTO t1(e) VALUES('xyz');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column t1.e", resErrString(_res), "\n  INSERT INTO t1(e) VALUES('xyz');\n")
 		}
 	}
 	{ // "strict1-6.3"
 		_res = db.Exec("\n  INSERT INTO t1(e) VALUES(x'3456');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in REAL column t1.e") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in REAL column t1.e", _res.Error, "\n  INSERT INTO t1(e) VALUES(x'3456');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in REAL column t1.e", resErrString(_res), "\n  INSERT INTO t1(e) VALUES(x'3456');\n")
 		}
 	}
 	{ // "strict1-7.1"
@@ -258,13 +258,13 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-7.2"
 		_res = db.Exec("\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t4 after add column: unknown datatype for t4.d: \"VARCHAR\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: unknown datatype for t4.d: \"VARCHAR\"", _res.Error, "\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: unknown datatype for t4.d: \"VARCHAR\"", resErrString(_res), "\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
 		}
 	}
 	{ // "strict1-7.3"
 		_res = db.Exec("\n    ALTER TABLE t4 ADD COLUMN d;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t4 after add column: missing datatype for t4.d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: missing datatype for t4.d", _res.Error, "\n    ALTER TABLE t4 ADD COLUMN d;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: missing datatype for t4.d", resErrString(_res), "\n    ALTER TABLE t4 ADD COLUMN d;\n  ")
 		}
 	}
 	db.Close()
@@ -313,55 +313,55 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-9.2.13"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(13);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in REAL column strict.c1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column strict.c1", _res.Error, "\n  INSERT INTO strict(k) VALUES(13);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column strict.c1", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(13);\n")
 		}
 	}
 	{ // "strict1-9.2.14"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(14);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in REAL column strict.c1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in REAL column strict.c1", _res.Error, "\n  INSERT INTO strict(k) VALUES(14);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in REAL column strict.c1", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(14);\n")
 		}
 	}
 	{ // "strict1-9.2.21"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(21);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store REAL value in INT column strict.c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INT column strict.c2", _res.Error, "\n  INSERT INTO strict(k) VALUES(21);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INT column strict.c2", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(21);\n")
 		}
 	}
 	{ // "strict1-9.2.23"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(23);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in INT column strict.c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INT column strict.c2", _res.Error, "\n  INSERT INTO strict(k) VALUES(23);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INT column strict.c2", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(23);\n")
 		}
 	}
 	{ // "strict1-9.2.24"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(24);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in INT column strict.c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INT column strict.c2", _res.Error, "\n  INSERT INTO strict(k) VALUES(24);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INT column strict.c2", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(24);\n")
 		}
 	}
 	{ // "strict1-9.2.34"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(34);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in TEXT column strict.c3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column strict.c3", _res.Error, "\n  INSERT INTO strict(k) VALUES(34);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column strict.c3", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(34);\n")
 		}
 	}
 	{ // "strict1-9.2.41"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(41);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store REAL value in BLOB column strict.c4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in BLOB column strict.c4", _res.Error, "\n  INSERT INTO strict(k) VALUES(41);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in BLOB column strict.c4", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(41);\n")
 		}
 	}
 	{ // "strict1-9.2.42"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(42);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store INT value in BLOB column strict.c4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store INT value in BLOB column strict.c4", _res.Error, "\n  INSERT INTO strict(k) VALUES(42);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store INT value in BLOB column strict.c4", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(42);\n")
 		}
 	}
 	{ // "strict1-9.2.43"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(43);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in BLOB column strict.c4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column strict.c4", _res.Error, "\n  INSERT INTO strict(k) VALUES(43);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column strict.c4", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(43);\n")
 		}
 	}
 	{ // "strict1-9.3"
@@ -379,55 +379,55 @@ func Test_strict1(t *testing.T) {
 	{ // "strict1-9.4.13"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(13);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in REAL column strict.c1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column strict.c1", _res.Error, "\n  INSERT INTO strict(k) VALUES(13);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in REAL column strict.c1", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(13);\n")
 		}
 	}
 	{ // "strict1-9.4.14"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(14);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in REAL column strict.c1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in REAL column strict.c1", _res.Error, "\n  INSERT INTO strict(k) VALUES(14);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in REAL column strict.c1", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(14);\n")
 		}
 	}
 	{ // "strict1-9.4.21"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(21);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store REAL value in INT column strict.c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INT column strict.c2", _res.Error, "\n  INSERT INTO strict(k) VALUES(21);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in INT column strict.c2", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(21);\n")
 		}
 	}
 	{ // "strict1-9.4.23"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(23);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in INT column strict.c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INT column strict.c2", _res.Error, "\n  INSERT INTO strict(k) VALUES(23);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in INT column strict.c2", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(23);\n")
 		}
 	}
 	{ // "strict1-9.4.24"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(24);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in INT column strict.c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INT column strict.c2", _res.Error, "\n  INSERT INTO strict(k) VALUES(24);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in INT column strict.c2", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(24);\n")
 		}
 	}
 	{ // "strict1-9.4.34"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(34);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in TEXT column strict.c3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column strict.c3", _res.Error, "\n  INSERT INTO strict(k) VALUES(34);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column strict.c3", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(34);\n")
 		}
 	}
 	{ // "strict1-9.4.41"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(41);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store REAL value in BLOB column strict.c4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in BLOB column strict.c4", _res.Error, "\n  INSERT INTO strict(k) VALUES(41);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store REAL value in BLOB column strict.c4", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(41);\n")
 		}
 	}
 	{ // "strict1-9.4.42"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(42);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store INT value in BLOB column strict.c4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store INT value in BLOB column strict.c4", _res.Error, "\n  INSERT INTO strict(k) VALUES(42);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store INT value in BLOB column strict.c4", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(42);\n")
 		}
 	}
 	{ // "strict1-9.4.43"
 		_res = db.Exec("\n  INSERT INTO strict(k) VALUES(43);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in BLOB column strict.c4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column strict.c4", _res.Error, "\n  INSERT INTO strict(k) VALUES(43);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store TEXT value in BLOB column strict.c4", resErrString(_res), "\n  INSERT INTO strict(k) VALUES(43);\n")
 		}
 	}
 }

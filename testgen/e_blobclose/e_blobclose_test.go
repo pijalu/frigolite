@@ -206,7 +206,7 @@ func Test_e_blobclose(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-100, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-1000, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10000, " + sqlLiteral(dots) + ");\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-100, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-1000, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10000, " + sqlLiteral(dots) + ");\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-100, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-1000, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10000, " + sqlLiteral(dots) + ");\n")
 		}
 	}
 	{ // "e_blobclose-1.1" — skipped: lock_status after autocommit setup write N-A (DEFERRED locking) (SQL side effects only)

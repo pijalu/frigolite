@@ -113,13 +113,13 @@ func Test_distinctagg(t *testing.T) {
 	{ // do_test "distinctagg-2.1"
 		_res = db.Exec("\n    SELECT count(distinct) FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT aggregates must have exactly one argument") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", _res.Error, "\n    SELECT count(distinct) FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", resErrString(_res), "\n    SELECT count(distinct) FROM t1;\n  ")
 		}
 	}
 	{ // do_test "distinctagg-2.2"
 		_res = db.Exec("\n    SELECT string_agg(distinct a,b) FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT aggregates must have exactly one argument") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", _res.Error, "\n    SELECT string_agg(distinct a,b) FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT aggregates must have exactly one argument", resErrString(_res), "\n    SELECT string_agg(distinct a,b) FROM t1;\n  ")
 		}
 	}
 	db.Close()
@@ -132,7 +132,7 @@ func Test_distinctagg(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  INSERT INTO t1 VALUES (1, 1, 1);\n  INSERT INTO t1 VALUES (2, 2, 2);\n  INSERT INTO t1 VALUES (3, 3, 3);\n  INSERT INTO t1 VALUES (4, 1, 4);\n  INSERT INTO t1 VALUES (5, 2, 1);\n  INSERT INTO t1 VALUES (5, 3, 2);\n  INSERT INTO t1 VALUES (4, 1, 3);\n  INSERT INTO t1 VALUES (3, 2, 4);\n  INSERT INTO t1 VALUES (2, 3, 1);\n  INSERT INTO t1 VALUES (1, 1, 2);\n\n  INSERT INTO t2 VALUES('a', 'a', 'a');\n  INSERT INTO t2 VALUES('b', 'b', 'b');\n  INSERT INTO t2 VALUES('c', 'c', 'c');\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  INSERT INTO t1 VALUES (1, 1, 1);\n  INSERT INTO t1 VALUES (2, 2, 2);\n  INSERT INTO t1 VALUES (3, 3, 3);\n  INSERT INTO t1 VALUES (4, 1, 4);\n  INSERT INTO t1 VALUES (5, 2, 1);\n  INSERT INTO t1 VALUES (5, 3, 2);\n  INSERT INTO t1 VALUES (4, 1, 3);\n  INSERT INTO t1 VALUES (3, 2, 4);\n  INSERT INTO t1 VALUES (2, 3, 1);\n  INSERT INTO t1 VALUES (1, 1, 2);\n\n  INSERT INTO t2 VALUES('a', 'a', 'a');\n  INSERT INTO t2 VALUES('b', 'b', 'b');\n  INSERT INTO t2 VALUES('c', 'c', 'c');\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  INSERT INTO t1 VALUES (1, 1, 1);\n  INSERT INTO t1 VALUES (2, 2, 2);\n  INSERT INTO t1 VALUES (3, 3, 3);\n  INSERT INTO t1 VALUES (4, 1, 4);\n  INSERT INTO t1 VALUES (5, 2, 1);\n  INSERT INTO t1 VALUES (5, 3, 2);\n  INSERT INTO t1 VALUES (4, 1, 3);\n  INSERT INTO t1 VALUES (3, 2, 4);\n  INSERT INTO t1 VALUES (2, 3, 1);\n  INSERT INTO t1 VALUES (1, 1, 2);\n\n  INSERT INTO t2 VALUES('a', 'a', 'a');\n  INSERT INTO t2 VALUES('b', 'b', 'b');\n  INSERT INTO t2 VALUES('c', 'c', 'c');\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n")
 		}
 	}
 	// foreach {tn use_eph sql res} "1  0  \"SELECT count(DISTINCT a) FROM t1\"                5\n  2  0  \"SELECT count(DISTINCT b) FROM t1\"                3\n  3  1  \"SELECT count(DISTINCT c) FROM t1\"                4\n  4  0  \"SELECT count(DISTINCT c) FROM t1 WHERE b=3\"      3\n  5  0  \"SELECT count(DISTINCT rowid) FROM t1\"           10\n  6  0  \"SELECT count(DISTINCT a) FROM t1, t2\"            5\n  7  0  \"SELECT count(DISTINCT a) FROM t2, t1\"            5\n  8  1  \"SELECT count(DISTINCT a+b) FROM t1, t2, t2, t2\"  6\n  9  0  \"SELECT count(DISTINCT c) FROM t1 WHERE c=2\"      1\n 10  0  \"SELECT count(DISTINCT t1.rowid) FROM t1, t2\"    10"
@@ -152,7 +152,7 @@ func Test_distinctagg(t *testing.T) {
 			{ // "3." + tn + ".2"
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 		}
@@ -178,7 +178,7 @@ func Test_distinctagg(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
 			}
 		}
 		// foreach {tn use_eph sql res} "1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}"
@@ -198,7 +198,7 @@ func Test_distinctagg(t *testing.T) {
 				{ // "4." + tn + ".2"
 					_res = db.Exec(sql)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 					}
 				}
 			}
@@ -224,7 +224,7 @@ func Test_distinctagg(t *testing.T) {
 					{ // "5." + tn + ".2"
 						_res = db.Exec(sql)
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 						}
 					}
 				}
@@ -238,7 +238,7 @@ func Test_distinctagg(t *testing.T) {
 				{ // "6.0"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
 					}
 				}
 				{ // "6.1"

@@ -70,7 +70,7 @@ func Test_rtree9(t *testing.T) {
 	{ // "rtree9-1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, y1, y2, z1, z2);\n  INSERT INTO rt VALUES(1, 1, 2, 1, 2, 1, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, y1, y2, z1, z2);\n  INSERT INTO rt VALUES(1, 1, 2, 1, 2, 1, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, y1, y2, z1, z2);\n  INSERT INTO rt VALUES(1, 1, 2, 1, 2, 1, 2);\n")
 		}
 	}
 	{ // "rtree9-1.2"
@@ -94,7 +94,7 @@ func Test_rtree9(t *testing.T) {
 	{ // "rtree9-1.4"
 		_res = db.Exec("\n  DELETE FROM rt;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM rt;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM rt;\n")
 		}
 	}
 	vtab.TclVarSet("i", "", "0")
@@ -147,7 +147,7 @@ func Test_rtree9(t *testing.T) {
 	{ // "rtree9-3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE rt32 USING rtree_i32(id, x1, x2, y1, y2, z1, z2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt32 USING rtree_i32(id, x1, x2, y1, y2, z1, z2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt32 USING rtree_i32(id, x1, x2, y1, y2, z1, z2);\n")
 		}
 	}
 	vtab.TclVarSet("i", "", "0")
@@ -200,7 +200,7 @@ func Test_rtree9(t *testing.T) {
 	{ // "rtree9-4.1"
 		_res = db.Exec("\n  SELECT id FROM rt32 WHERE id MATCH cube(5.5, 5.5, 1, 1, 1) ORDER BY id;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT id FROM rt32 WHERE id MATCH cube(5.5, 5.5, 1, 1, 1) ORDER BY id;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT id FROM rt32 WHERE id MATCH cube(5.5, 5.5, 1, 1, 1) ORDER BY id;\n")
 		}
 	}
 	vtab.TclVarSet("x", "", "2")
@@ -210,7 +210,7 @@ func Test_rtree9(t *testing.T) {
 		{ // "rtree9-4.2." + tclExprWith("$x/2", map[string]string{"x": x})
 			_res = db.Exec("\n    SELECT id FROM rt WHERE id MATCH randomblob(" + sqlLiteral(x) + ")\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n    SELECT id FROM rt WHERE id MATCH randomblob(" + sqlLiteral(x) + ")\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n    SELECT id FROM rt WHERE id MATCH randomblob(" + sqlLiteral(x) + ")\n  ")
 			}
 		}
 		// incr x 2
@@ -224,14 +224,14 @@ func Test_rtree9(t *testing.T) {
 	{ // "rtree9-4.3"
 		_res = db.Exec("\n  SELECT id FROM rt WHERE id MATCH CAST( \n    (cube(5.5, 5.5, 5.5, 1, 1, 1) || X'1234567812345678') AS blob \n  )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT id FROM rt WHERE id MATCH CAST( \n    (cube(5.5, 5.5, 5.5, 1, 1, 1) || X'1234567812345678') AS blob \n  )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  SELECT id FROM rt WHERE id MATCH CAST( \n    (cube(5.5, 5.5, 5.5, 1, 1, 1) || X'1234567812345678') AS blob \n  )\n")
 		}
 	}
 	if err := db.RegisterRtreeGeometry("circle"); err != nil { t.Fatal(err) }
 	{ // "rtree9-5.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE rt2 USING rtree(id, xmin, xmax, ymin, ymax);\n\n  INSERT INTO rt2 VALUES(1,    1,   2,  1,  2);\n  INSERT INTO rt2 VALUES(2,    1,   2, -2, -1);\n  INSERT INTO rt2 VALUES(3,    -2, -1, -2, -1);\n  INSERT INTO rt2 VALUES(4,    -2, -1,  1,  2);\n\n  INSERT INTO rt2 VALUES(5,    2,   3,  2,  3);\n  INSERT INTO rt2 VALUES(6,    2,   3, -3, -2);\n  INSERT INTO rt2 VALUES(7,    -3, -2, -3, -2);\n  INSERT INTO rt2 VALUES(8,    -3, -2,  2,  3);\n\n  INSERT INTO rt2 VALUES(9,    1.8,   3,  1.8,  3);\n  INSERT INTO rt2 VALUES(10,   1.8,   3, -3, -1.8);\n  INSERT INTO rt2 VALUES(11,   -3, -1.8, -3, -1.8);\n  INSERT INTO rt2 VALUES(12,   -3, -1.8,  1.8,  3);\n\n  INSERT INTO rt2 VALUES(13,   -15, 15, 1.8, 2.2);\n  INSERT INTO rt2 VALUES(14,   -15, 15, -2.2, -1.8);\n  INSERT INTO rt2 VALUES(15,   1.8, 2.2, -15, 15);\n  INSERT INTO rt2 VALUES(16,   -2.2, -1.8, -15, 15);\n\n  INSERT INTO rt2 VALUES(17,   -100, 100, -100, 100);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE rt2 USING rtree(id, xmin, xmax, ymin, ymax);\n\n  INSERT INTO rt2 VALUES(1,    1,   2,  1,  2);\n  INSERT INTO rt2 VALUES(2,    1,   2, -2, -1);\n  INSERT INTO rt2 VALUES(3,    -2, -1, -2, -1);\n  INSERT INTO rt2 VALUES(4,    -2, -1,  1,  2);\n\n  INSERT INTO rt2 VALUES(5,    2,   3,  2,  3);\n  INSERT INTO rt2 VALUES(6,    2,   3, -3, -2);\n  INSERT INTO rt2 VALUES(7,    -3, -2, -3, -2);\n  INSERT INTO rt2 VALUES(8,    -3, -2,  2,  3);\n\n  INSERT INTO rt2 VALUES(9,    1.8,   3,  1.8,  3);\n  INSERT INTO rt2 VALUES(10,   1.8,   3, -3, -1.8);\n  INSERT INTO rt2 VALUES(11,   -3, -1.8, -3, -1.8);\n  INSERT INTO rt2 VALUES(12,   -3, -1.8,  1.8,  3);\n\n  INSERT INTO rt2 VALUES(13,   -15, 15, 1.8, 2.2);\n  INSERT INTO rt2 VALUES(14,   -15, 15, -2.2, -1.8);\n  INSERT INTO rt2 VALUES(15,   1.8, 2.2, -15, 15);\n  INSERT INTO rt2 VALUES(16,   -2.2, -1.8, -15, 15);\n\n  INSERT INTO rt2 VALUES(17,   -100, 100, -100, 100);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE rt2 USING rtree(id, xmin, xmax, ymin, ymax);\n\n  INSERT INTO rt2 VALUES(1,    1,   2,  1,  2);\n  INSERT INTO rt2 VALUES(2,    1,   2, -2, -1);\n  INSERT INTO rt2 VALUES(3,    -2, -1, -2, -1);\n  INSERT INTO rt2 VALUES(4,    -2, -1,  1,  2);\n\n  INSERT INTO rt2 VALUES(5,    2,   3,  2,  3);\n  INSERT INTO rt2 VALUES(6,    2,   3, -3, -2);\n  INSERT INTO rt2 VALUES(7,    -3, -2, -3, -2);\n  INSERT INTO rt2 VALUES(8,    -3, -2,  2,  3);\n\n  INSERT INTO rt2 VALUES(9,    1.8,   3,  1.8,  3);\n  INSERT INTO rt2 VALUES(10,   1.8,   3, -3, -1.8);\n  INSERT INTO rt2 VALUES(11,   -3, -1.8, -3, -1.8);\n  INSERT INTO rt2 VALUES(12,   -3, -1.8,  1.8,  3);\n\n  INSERT INTO rt2 VALUES(13,   -15, 15, 1.8, 2.2);\n  INSERT INTO rt2 VALUES(14,   -15, 15, -2.2, -1.8);\n  INSERT INTO rt2 VALUES(15,   1.8, 2.2, -15, 15);\n  INSERT INTO rt2 VALUES(16,   -2.2, -1.8, -15, 15);\n\n  INSERT INTO rt2 VALUES(17,   -100, 100, -100, 100);\n")
 		}
 	}
 	{ // "rtree9-5.2"

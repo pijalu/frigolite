@@ -120,7 +120,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-1.7"
 		_res = db.Exec("INSERT INTO t2 VALUES(8,9,0);")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", _res.Error, "INSERT INTO t2 VALUES(8,9,0);")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", resErrString(_res), "INSERT INTO t2 VALUES(8,9,0);")
 		}
 	}
 	{ // do_test "temptable-1.8"
@@ -220,43 +220,43 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-4.3"
 		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-4.4.1"
 		_res = db2.Exec("\n    SELECT * FROM temp.t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM temp.t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM temp.t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-4.4.2"
 		_res = db2.Exec("\n    SELECT * FROM main.t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM main.t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM main.t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-4.4.4"
 		_res = db2.Exec("\n    SELECT name FROM main.sqlite_master WHERE type='table';\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM main.sqlite_master WHERE type='table';\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT name FROM main.sqlite_master WHERE type='table';\n  ")
 		}
 	}
 	{ // do_test "temptable-4.4.5"
 		_res = db2.Exec("\n    SELECT * FROM main.t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM main.t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM main.t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-4.4.6"
 		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-4.5"
 		_res = db2.Exec("\n    DROP TABLE t2;     -- should drop TEMP\n    SELECT * FROM t2;  -- data should be from MAIN\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;     -- should drop TEMP\n    SELECT * FROM t2;  -- data should be from MAIN\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE t2;     -- should drop TEMP\n    SELECT * FROM t2;  -- data should be from MAIN\n  ")
 		}
 	}
 	{ // do_test "temptable-4.6"
@@ -270,7 +270,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-4.7"
 		_res = db.Exec("\n    DROP TABLE t2;\n    SELECT * FROM t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", _res.Error, "\n    DROP TABLE t2;\n    SELECT * FROM t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", resErrString(_res), "\n    DROP TABLE t2;\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-4.8"
@@ -292,13 +292,13 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-4.10.1"
 		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-4.10.3"
 		_res = db2.Exec("\n    SELECT name FROM sqlite_master WHERE type='table'\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM sqlite_master WHERE type='table'\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT name FROM sqlite_master WHERE type='table'\n  ")
 		}
 	}
 	{ // do_test "temptable-4.11"
@@ -316,7 +316,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-4.13"
 		_res = db2.Exec("\n    DROP TABLE t2;     -- drops TEMP.T2\n    SELECT * FROM t2;  -- uses MAIN.T2\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;     -- drops TEMP.T2\n    SELECT * FROM t2;  -- uses MAIN.T2\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE t2;     -- drops TEMP.T2\n    SELECT * FROM t2;  -- uses MAIN.T2\n  ")
 		}
 	}
 	{ // do_test "temptable-4.14"
@@ -350,7 +350,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-5.3"
 		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-5.4"
@@ -403,13 +403,13 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-6.4"
 		_res = db.Exec("\n    CREATE TEMP TABLE t9(x,y);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t9(x,y);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TEMP TABLE t9(x,y);\n  ")
 		}
 	}
 	{ // do_test "temptable-6.5"
 		_res = db.Exec("\n    INSERT INTO t9 VALUES(1,2);\n    SELECT * FROM t9;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t9 VALUES(1,2);\n    SELECT * FROM t9;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t9 VALUES(1,2);\n    SELECT * FROM t9;\n  ")
 		}
 	}
 	{ // "temptable-6.6" — skipped: readonly filesystem test requires unprivileged user N-A (no-side-effects)
@@ -417,7 +417,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-6.7"
 		_res = db.Exec("\n    SELECT * FROM t8,t9;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t8,t9;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t8,t9;\n  ")
 		}
 	}
 	{ // do_test "temptable-6.8"
@@ -432,7 +432,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-7.1"
 		_res = db.Exec("\n      ATTACH 'test2.db' AS two;\n      CREATE TEMP TABLE two.abc(x,y);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "temporary table name must be unqualified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "temporary table name must be unqualified", _res.Error, "\n      ATTACH 'test2.db' AS two;\n      CREATE TEMP TABLE two.abc(x,y);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "temporary table name must be unqualified", resErrString(_res), "\n      ATTACH 'test2.db' AS two;\n      CREATE TEMP TABLE two.abc(x,y);\n    ")
 		}
 	}
 	{

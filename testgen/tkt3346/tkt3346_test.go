@@ -109,7 +109,7 @@ func Test_tkt3346(t *testing.T) {
 	{ // do_test "tkt3346-2.1"
 		_res = db.Exec("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    \n    SELECT * FROM (SELECT * FROM t1 WHERE 1=x.a) AS x;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: x.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x.a", _res.Error, "\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    \n    SELECT * FROM (SELECT * FROM t1 WHERE 1=x.a) AS x;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: x.a", resErrString(_res), "\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    \n    SELECT * FROM (SELECT * FROM t1 WHERE 1=x.a) AS x;\n  ")
 		}
 	}
 }

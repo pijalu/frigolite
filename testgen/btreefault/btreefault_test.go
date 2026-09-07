@@ -102,13 +102,13 @@ func Test_btreefault(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1 ON t1(b);\n  CREATE TABLE t2(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1 ON t1(b);\n  CREATE TABLE t2(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1 ON t1(b);\n  CREATE TABLE t2(x, y);\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(25, 25, 25);\n  INSERT INTO t2 VALUES(25, 'a'), (25, 'b'), (25, 'c');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(25, 25, 25);\n  INSERT INTO t2 VALUES(25, 'a'), (25, 'b'), (25, 'c');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(25, 25, 25);\n  INSERT INTO t2 VALUES(25, 'a'), (25, 'b'), (25, 'c');\n")
 		}
 	}
 	// faultsim_save (unsupported command, not transpiled)

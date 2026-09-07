@@ -64,7 +64,7 @@ func Test_notnull2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
 		}
 	}
 	// do_vmstep_test 1.1.1 {\n  SELECT * FROM t1 LEFT JOIN t2 WHERE a=c AND d ...} 100 {} (unsupported command, not transpiled)
@@ -87,7 +87,7 @@ func Test_notnull2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE T1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE T3(k, v);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE T1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE T3(k, v);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE T1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE T3(k, v);\n")
 		}
 	}
 	{ // "2.1"
@@ -106,7 +106,7 @@ func Test_notnull2(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES (0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES (0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0 PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES (0);\n")
 		}
 	}
 	{ // "3.1"

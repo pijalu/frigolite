@@ -125,7 +125,7 @@ func Test_spellfix(t *testing.T) {
 		{ // do_test "1.10"
 			_res = db.Exec("\n    CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;\n  ")
 			}
 		}
 		{ // "1.11"
@@ -179,7 +179,7 @@ func Test_spellfix(t *testing.T) {
 		{ // do_test "1.14"
 			_res = db.Exec("SELECT next_char('','xyzzy','a')")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: xyzzy") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xyzzy", _res.Error, "SELECT next_char('','xyzzy','a')")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xyzzy", resErrString(_res), "SELECT next_char('','xyzzy','a')")
 			}
 		}
 		{ // "1.20"
@@ -269,7 +269,7 @@ func Test_spellfix(t *testing.T) {
 		{ // do_test "1.33"
 			_res = db.Exec("INSERT INTO t1(rowid, word) VALUES(3000,'garden');")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "INSERT INTO t1(rowid, word) VALUES(3000,'garden');")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "INSERT INTO t1(rowid, word) VALUES(3000,'garden');")
 			}
 		}
 		{ // "2.1"
@@ -302,7 +302,7 @@ func Test_spellfix(t *testing.T) {
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);\n")
 			}
 		}
 		{ // do_test "3.2"
@@ -340,7 +340,7 @@ func Test_spellfix(t *testing.T) {
 			{ // "4.0"
 				_res = db.Exec("\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
 				}
 			}
 			// foreach {tn word res} "1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}"
@@ -369,7 +369,7 @@ func Test_spellfix(t *testing.T) {
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
 					}
 				}
 				// foreach {tn word res} "1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}"
@@ -463,19 +463,19 @@ func Test_spellfix(t *testing.T) {
 					{ // "7.2.2"
 						_res = db.Exec("\n  INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');\n")
 						}
 					}
 					{ // "7.2.3"
 						_res = db.Exec("\n  INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
 						}
 					}
 					{ // "7.2.4"
 						_res = db.Exec("\n  INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
 						}
 					}
 					{ // "7.2.5"
@@ -505,19 +505,19 @@ func Test_spellfix(t *testing.T) {
 					{ // "7.3.2"
 						_res = db.Exec("\n  UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;\n")
 						}
 					}
 					{ // "7.3.3"
 						_res = db.Exec("\n  UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;\n")
 						}
 					}
 					{ // "7.3.4"
 						_res = db.Exec("\n  UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;\n")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;\n")
 						}
 					}
 					{ // "7.3.5"
@@ -535,7 +535,7 @@ func Test_spellfix(t *testing.T) {
 					{ // "7.4.1"
 						_res = db.Exec("\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
 						}
 					}
 					// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -580,7 +580,7 @@ func Test_spellfix(t *testing.T) {
 							{ // "7.4.2." + tn + ".1"
 								_res = db.Exec(sql)
 								if !tclCatchsqlMatches(_res, _err_tcl) {
-									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, sql)
+									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, sql)
 								}
 							}
 							{ // "7.4.2." + tn + ".2"
@@ -635,7 +635,7 @@ func Test_spellfix(t *testing.T) {
 								{ // "7.5.2." + tn + ".1"
 									_res = db.Exec(sql)
 									if !tclCatchsqlMatches(_res, _err_tcl) {
-										t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, sql)
+										t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, sql)
 									}
 								}
 								{ // "7.5.2." + tn + ".2"
@@ -683,7 +683,7 @@ func Test_spellfix(t *testing.T) {
 							{ // "8.3"
 								_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');\n")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');\n")
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');\n")
 								}
 							}
 }

@@ -349,7 +349,7 @@ func Test_dbstatus2(t *testing.T) {
 		{ // "4.2"
 			_res = db.Exec("\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
 			}
 		}
 		{ // do_test "4.3"

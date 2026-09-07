@@ -201,7 +201,7 @@ func Test_notify1(t *testing.T) {
 	{ // do_test "notify1-2.2.2"
 		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " SELECT * FROM t1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "notify1-2.2.3"
@@ -210,7 +210,7 @@ func Test_notify1(t *testing.T) {
 	{ // do_test "notify1-2.2.4"
 		_res = db.Exec(" INSERT INTO t2 VALUES('III', 'IV') ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", _res.Error, " INSERT INTO t2 VALUES('III', 'IV') ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", resErrString(_res), " INSERT INTO t2 VALUES('III', 'IV') ")
 		}
 	}
 	{ // do_test "notify1-2.2.5"
@@ -265,19 +265,19 @@ func Test_notify1(t *testing.T) {
 	{ // do_test "notify1-2.3.3"
 		_res = db.Exec(" SELECT * FROM t2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", _res.Error, " SELECT * FROM t2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", resErrString(_res), " SELECT * FROM t2 ")
 		}
 	}
 	{ // do_test "notify1-2.3.4"
 		_res = db2.Exec(" SELECT * FROM t3 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t3", _res.Error, " SELECT * FROM t3 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t3", resErrString(_res), " SELECT * FROM t3 ")
 		}
 	}
 	{ // do_test "notify1-2.3.5"
 		_res = db3.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " SELECT * FROM t1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "notify1-2.3.6"
@@ -426,7 +426,7 @@ func Test_notify1(t *testing.T) {
 				}
 				_ = tclSort("-integer") // lsort result
 				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), lUnlockFinal) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lUnlockFinal, _res.Error, "notify1-" + tn + ".4")
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lUnlockFinal, resErrString(_res), "notify1-" + tn + ".4")
 				}
 			}
 			{ // do_test "notify1-" + tn + ".5"
@@ -477,13 +477,13 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-6.1.2"
 			_res = db.Exec(" SELECT * FROM t2 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t2") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", _res.Error, " SELECT * FROM t2 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", resErrString(_res), " SELECT * FROM t2 ")
 			}
 		}
 		{ // do_test "notify1-6.1.3"
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " SELECT * FROM t1 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "notify1-6.2.1"
@@ -499,7 +499,7 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-6.2.2"
 			_res = db.Exec(" SELECT * FROM t2 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t2") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", _res.Error, " SELECT * FROM t2 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", resErrString(_res), " SELECT * FROM t2 ")
 			}
 		}
 		{ // do_test "notify1-6.2.3"
@@ -522,7 +522,7 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-6.3.2"
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " SELECT * FROM t1 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "notify1-6.3.3"
@@ -538,7 +538,7 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-6.3.4"
 			_res = db.Exec(" SELECT * FROM t2 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t2") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", _res.Error, " SELECT * FROM t2 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t2", resErrString(_res), " SELECT * FROM t2 ")
 			}
 		}
 		{ // do_test "notify1-6.3.5"
@@ -597,13 +597,13 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-7.2"
 			_res = db2.Exec(" SELECT * FROM t1 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " SELECT * FROM t1 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "notify1-7.3"
 			_res = db3.Exec(" SELECT * FROM t1 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " SELECT * FROM t1 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "notify1-7.4"
@@ -674,13 +674,13 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-9.3"
 			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
 			}
 		}
 		{ // do_test "notify1-9.4"
 			_res = db3.Exec(" SELECT * FROM t2 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", _res.Error, " SELECT * FROM t2 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", resErrString(_res), " SELECT * FROM t2 ")
 			}
 		}
 		{ // do_test "notify1-9.5"
@@ -714,13 +714,13 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-9.9"
 			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked: t1") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked: t1", resErrString(_res), " \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
 			}
 		}
 		{ // do_test "notify1-9.10"
 			_res = db3.Exec(" SELECT * FROM t2 ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database table is locked") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", _res.Error, " SELECT * FROM t2 ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database table is locked", resErrString(_res), " SELECT * FROM t2 ")
 			}
 		}
 		{ // do_test "notify1-9.11"

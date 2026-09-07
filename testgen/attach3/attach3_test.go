@@ -249,25 +249,25 @@ func Test_attach3(t *testing.T) {
 	{ // do_test "attach3-10.0"
 		_res = db.Exec("\n    INSERT INTO aux.sqlite_master VALUES(1, 2, 3, 4, 5);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_master may not be modified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_master may not be modified", _res.Error, "\n    INSERT INTO aux.sqlite_master VALUES(1, 2, 3, 4, 5);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_master may not be modified", resErrString(_res), "\n    INSERT INTO aux.sqlite_master VALUES(1, 2, 3, 4, 5);\n  ")
 		}
 	}
 	{ // do_test "attach3-11.0"
 		_res = db.Exec("\n    ATTACH DATABASE '/nodir/nofile.x' AS notadb;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to open database: /nodir/nofile.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to open database: /nodir/nofile.x", _res.Error, "\n    ATTACH DATABASE '/nodir/nofile.x' AS notadb;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to open database: /nodir/nofile.x", resErrString(_res), "\n    ATTACH DATABASE '/nodir/nofile.x' AS notadb;\n  ")
 		}
 	}
 	{ // do_test "attach3-11.1"
 		_res = db.Exec("\n    ATTACH DATABASE ':memory:' AS notadb;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE ':memory:' AS notadb;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH DATABASE ':memory:' AS notadb;\n  ")
 		}
 	}
 	{ // do_test "attach3-11.2"
 		_res = db.Exec("\n    DETACH DATABASE notadb;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DETACH DATABASE notadb;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DETACH DATABASE notadb;\n  ")
 		}
 	}
 	// proc definition (not transpiled)
@@ -340,13 +340,13 @@ func Test_attach3(t *testing.T) {
 	{ // do_test "attach3-12.11"
 		_res = db.Exec("\n    DETACH NULL\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such database:") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database:", _res.Error, "\n    DETACH NULL\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such database:", resErrString(_res), "\n    DETACH NULL\n  ")
 		}
 	}
 	{ // do_test "attach3-12.12"
 		_res = db.Exec("\n    ATTACH null AS null;\n    ATTACH '' AS '';\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database  is already in use") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database  is already in use", _res.Error, "\n    ATTACH null AS null;\n    ATTACH '' AS '';\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database  is already in use", resErrString(_res), "\n    ATTACH null AS null;\n    ATTACH '' AS '';\n  ")
 		}
 	}
 	{ // do_test "attach3-12.13"

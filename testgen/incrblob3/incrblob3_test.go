@@ -211,7 +211,7 @@ func Test_incrblob3(t *testing.T) {
 	{ // "incrblob3-1.1"
 		_res = db.Exec("\n  CREATE TABLE blobs(k INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blobs VALUES(1, zeroblob(100));\n  INSERT INTO blobs VALUES(2, zeroblob(100));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE blobs(k INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blobs VALUES(1, zeroblob(100));\n  INSERT INTO blobs VALUES(2, zeroblob(100));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE blobs(k INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blobs VALUES(1, zeroblob(100));\n  INSERT INTO blobs VALUES(2, zeroblob(100));\n")
 		}
 	}
 	{ // do_test "incrblob3-1.2"
@@ -307,7 +307,7 @@ func Test_incrblob3(t *testing.T) {
 	{ // "incrblob3-2.2.1"
 		_res = db.Exec("\n  INSERT INTO blobs VALUES(3, 42);\n  INSERT INTO blobs VALUES(4, 54.4);\n  INSERT INTO blobs VALUES(5, NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO blobs VALUES(3, 42);\n  INSERT INTO blobs VALUES(4, 54.4);\n  INSERT INTO blobs VALUES(5, NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO blobs VALUES(3, 42);\n  INSERT INTO blobs VALUES(4, 54.4);\n  INSERT INTO blobs VALUES(5, NULL);\n")
 		}
 	}
 	// foreach {tn rowid type} "1 3 integer\n  2 4 real\n  3 5 null"
@@ -817,7 +817,7 @@ func Test_incrblob3(t *testing.T) {
 		{ // "8.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")
 			}
 		}
 		{ // do_test "8.2"

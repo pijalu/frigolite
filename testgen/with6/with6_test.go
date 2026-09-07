@@ -82,7 +82,7 @@ func Test_with6(t *testing.T) {
 	{ // "110"
 		_res = db.Exec("\n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
 		}
 	}
 	{ // "111"
@@ -94,7 +94,7 @@ func Test_with6(t *testing.T) {
 	{ // "120"
 		_res = db.Exec("\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
 		}
 	}
 	{ // "121"
@@ -106,7 +106,7 @@ func Test_with6(t *testing.T) {
 	{ // "130"
 		_res = db.Exec("\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 5) AS c2,\n         (SELECT x FROM c LIMIT 5) AS c3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 5) AS c2,\n         (SELECT x FROM c LIMIT 5) AS c3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 5) AS c2,\n         (SELECT x FROM c LIMIT 5) AS c3;\n")
 		}
 	}
 	{ // "131"
@@ -118,7 +118,7 @@ func Test_with6(t *testing.T) {
 	{ // "140"
 		_res = db.Exec("\n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;\n")
 		}
 	}
 	{ // "141"
@@ -166,7 +166,7 @@ func Test_with6(t *testing.T) {
 	{ // "170"
 		_res = db.Exec("\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;\n")
 		}
 	}
 	{ // "171"
@@ -228,13 +228,13 @@ func Test_with6(t *testing.T) {
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE t2(a INT,b INT,d INT); INSERT INTO t2 VALUES(4,5,6),(7,8,9);\n  CREATE TABLE t3(a INT,b INT,e INT); INSERT INTO t3 VALUES(3,3,3),(8,8,8);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a INT,b INT,d INT); INSERT INTO t2 VALUES(4,5,6),(7,8,9);\n  CREATE TABLE t3(a INT,b INT,e INT); INSERT INTO t3 VALUES(3,3,3),(8,8,8);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a INT,b INT,d INT); INSERT INTO t2 VALUES(4,5,6),(7,8,9);\n  CREATE TABLE t3(a INT,b INT,e INT); INSERT INTO t3 VALUES(3,3,3),(8,8,8);\n")
 		}
 	}
 	{ // "310"
 		_res = db.Exec("\n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
 		}
 	}
 	{ // "311"
@@ -246,7 +246,7 @@ func Test_with6(t *testing.T) {
 	{ // "320"
 		_res = db.Exec("\n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
 		}
 	}
 	{ // "321"

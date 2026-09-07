@@ -64,7 +64,7 @@ func Test_exprfault2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

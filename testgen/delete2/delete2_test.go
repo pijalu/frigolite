@@ -103,7 +103,7 @@ func Test_delete2(t *testing.T) {
 	{ // do_test "delete2-1.6"
 		_res = db.Exec("\n    DELETE FROM q WHERE rowid=1\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM q WHERE rowid=1\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM q WHERE rowid=1\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

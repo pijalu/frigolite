@@ -219,19 +219,19 @@ func Test_func3(t *testing.T) {
 	{ // do_test "func3-5.8"
 		_res = db.Exec("\n    SELECT likelihood(123, 1.000001);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to likelihood() must be a constant between 0.0 and 1.0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", _res.Error, "\n    SELECT likelihood(123, 1.000001);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", resErrString(_res), "\n    SELECT likelihood(123, 1.000001);\n  ")
 		}
 	}
 	{ // do_test "func3-5.9"
 		_res = db.Exec("\n    SELECT likelihood(123, -0.000001);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to likelihood() must be a constant between 0.0 and 1.0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", _res.Error, "\n    SELECT likelihood(123, -0.000001);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", resErrString(_res), "\n    SELECT likelihood(123, -0.000001);\n  ")
 		}
 	}
 	{ // do_test "func3-5.10"
 		_res = db.Exec("\n    SELECT likelihood(123, 0.5+0.3);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to likelihood() must be a constant between 0.0 and 1.0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", _res.Error, "\n    SELECT likelihood(123, 0.5+0.3);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", resErrString(_res), "\n    SELECT likelihood(123, 0.5+0.3);\n  ")
 		}
 	}
 	{ // do_test "func3-5.20"

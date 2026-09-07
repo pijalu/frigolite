@@ -115,7 +115,7 @@ func Test_thread001(t *testing.T) {
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
 				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), shared_cache) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", shared_cache, _res.Error, "thread001." + tn + ".0")
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", shared_cache, resErrString(_res), "thread001." + tn + ".0")
 				}
 			}
 			db, err = frigolite.Open("test.db")

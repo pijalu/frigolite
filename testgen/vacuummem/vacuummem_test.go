@@ -82,7 +82,7 @@ func Test_vacuummem(t *testing.T) {
 	{ // do_test "1.1"
 		// memory_used (unsupported command, not transpiled)
 		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), ans) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, _res.Error, "1.1")
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, resErrString(_res), "1.1")
 		}
 	}
 	{ // "1.2" — skipped: VACUUM not implemented (P8.VACUUM)
@@ -92,7 +92,7 @@ func Test_vacuummem(t *testing.T) {
 	{ // do_test "1.3"
 		// memory_used (unsupported command, not transpiled)
 		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), ans) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, _res.Error, "1.3")
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, resErrString(_res), "1.3")
 		}
 	}
 	{ // "1.4"
@@ -110,7 +110,7 @@ func Test_vacuummem(t *testing.T) {
 	{ // do_test "1.5"
 		// memory_used (unsupported command, not transpiled)
 		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), ans) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, _res.Error, "1.5")
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, resErrString(_res), "1.5")
 		}
 	}
 }

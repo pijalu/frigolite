@@ -144,25 +144,25 @@ func Test_window6(t *testing.T) {
 			{ // "1." + tn + ".1"
 				_res = db.Exec("")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "")
 				}
 			}
 			{ // "1." + tn + ".2"
 				_res = db.Exec("")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "")
 				}
 			}
 			{ // "1." + tn + ".3"
 				_res = db.Exec("")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "")
 				}
 			}
 			{ // "1." + tn + ".4"
 				_res = db.Exec("")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "")
 				}
 			}
 		}
@@ -213,7 +213,7 @@ func Test_window6(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec(" CREATE TABLE t4(x, y); ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t4(x, y); ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t4(x, y); ")
 			}
 		}
 		{ // "4.1"
@@ -317,7 +317,7 @@ func Test_window6(t *testing.T) {
 		{ // "6.2"
 			_res = db.Exec("\n    SELECT LIKE(\"!\",\"\",\"!\")\"\"window\"\";\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"window\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"window\": syntax error", _res.Error, "\n    SELECT LIKE(\"!\",\"\",\"!\")\"\"window\"\";\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"window\": syntax error", resErrString(_res), "\n    SELECT LIKE(\"!\",\"\",\"!\")\"\"window\"\";\n  ")
 			}
 		}
 		db.Close()
@@ -330,7 +330,7 @@ func Test_window6(t *testing.T) {
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
 			}
 		}
 		{ // "7.1"
@@ -348,7 +348,7 @@ func Test_window6(t *testing.T) {
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);\n")
 			}
 		}
 		{ // "8.1"
@@ -402,25 +402,25 @@ func Test_window6(t *testing.T) {
 		{ // "9.3"
 			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT is not supported for window functions") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT is not supported for window functions", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT is not supported for window functions", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;\n")
 			}
 		}
 		{ // "9.4"
 			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FOLLOWING\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FOLLOWING\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FOLLOWING\": syntax error", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
 			}
 		}
 		{ // "9.5"
 			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FOLLOWING\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FOLLOWING\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FOLLOWING\": syntax error", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
 			}
 		}
 		{ // "9.6"
 			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"PRECEDING\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"PRECEDING\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"PRECEDING\": syntax error", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
 			}
 		}
 		// foreach {tn frame} "1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\""
@@ -434,20 +434,20 @@ func Test_window6(t *testing.T) {
 				{ // "9.7." + tn
 					_res = db.Exec("\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    SELECT count() OVER (\n        ORDER BY x ROWS " + frame + " \n    ) FROM c;\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported frame specification") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported frame specification", _res.Error, "\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    SELECT count() OVER (\n        ORDER BY x ROWS " + frame + " \n    ) FROM c;\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported frame specification", resErrString(_res), "\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    SELECT count() OVER (\n        ORDER BY x ROWS " + frame + " \n    ) FROM c;\n  ")
 					}
 				}
 			}
 			{ // "9.8.1"
 				_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame starting offset must be a non-negative integer") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame starting offset must be a non-negative integer", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame starting offset must be a non-negative integer", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;\n")
 				}
 			}
 			{ // "9.8.2"
 				_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame ending offset must be a non-negative integer") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative integer", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative integer", resErrString(_res), "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;\n")
 				}
 			}
 			{ // "10.0"
@@ -473,7 +473,7 @@ func Test_window6(t *testing.T) {
 					{ // "10.1." + tn
 						_res = db.Exec("\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to nth_value must be a positive integer") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to nth_value must be a positive integer", _res.Error, "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to nth_value must be a positive integer", resErrString(_res), "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
 						}
 					}
 				}
@@ -490,7 +490,7 @@ func Test_window6(t *testing.T) {
 						{ // "10.2." + tn
 							_res = db.Exec("\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
 							}
 						}
 					}
@@ -504,7 +504,7 @@ func Test_window6(t *testing.T) {
 					{ // "11.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")
 						}
 					}
 					{ // "11.1"

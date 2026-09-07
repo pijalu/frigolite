@@ -78,7 +78,7 @@ func Test_joinA(t *testing.T) {
 			{ // "joinA-" + id + ".setup"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), schema)
 				}
 			}
 			{ // "joinA-" + id + ".100"

@@ -131,7 +131,7 @@ func Test_fts4incr(t *testing.T) {
 				{ // "2." + tn + "." + s
 					_res = db.Exec(q)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q)
 					}
 				}
 				_tMap[s] = tclLIndex("time [list execsql $q] 100", "0")

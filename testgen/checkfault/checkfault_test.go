@@ -64,7 +64,7 @@ func Test_checkfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );\n")
 		}
 	}
 	// do_faultsim_test 1.1 -faults oom* -body {\n  execsql { INSERT INTO t1 VALUES ('ABCDEFG') }\...} -... (unsupported command, not transpiled)

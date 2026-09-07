@@ -191,31 +191,31 @@ func Test_rowvalueA(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  SELECT (1, 2) IN ( (1, 2), (3, 4, 5), (5, 6) )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "IN(...) element has 3 terms - expected 2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "IN(...) element has 3 terms - expected 2", _res.Error, "\n  SELECT (1, 2) IN ( (1, 2), (3, 4, 5), (5, 6) )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "IN(...) element has 3 terms - expected 2", resErrString(_res), "\n  SELECT (1, 2) IN ( (1, 2), (3, 4, 5), (5, 6) )\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  SELECT (1, 2) IN ( (1, 2), 4, (5, 6) )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "IN(...) element has 1 term - expected 2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "IN(...) element has 1 term - expected 2", _res.Error, "\n  SELECT (1, 2) IN ( (1, 2), 4, (5, 6) )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "IN(...) element has 1 term - expected 2", resErrString(_res), "\n  SELECT (1, 2) IN ( (1, 2), 4, (5, 6) )\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT (1, 2, 3) IN ( (1, 2), (3, 4), (5, 6) )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "IN(...) element has 2 terms - expected 3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "IN(...) element has 2 terms - expected 3", _res.Error, "\n  SELECT (1, 2, 3) IN ( (1, 2), (3, 4), (5, 6) )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "IN(...) element has 2 terms - expected 3", resErrString(_res), "\n  SELECT (1, 2, 3) IN ( (1, 2), (3, 4), (5, 6) )\n")
 		}
 	}
 	{ // "2.3"
 		_res = db.Exec("\n  SELECT 2 IN ( (1, 2), (3, 4), (5, 6) )\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT 2 IN ( (1, 2), (3, 4), (5, 6) )\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT 2 IN ( (1, 2), (3, 4), (5, 6) )\n")
 		}
 	}
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE x2 (x, y);\n  INSERT INTO x2 VALUES (1234, 'abc');\n\n  CREATE TABLE x1 (a, b PRIMARY KEY COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO x1 VALUES (1234, 'ABCD');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x2 (x, y);\n  INSERT INTO x2 VALUES (1234, 'abc');\n\n  CREATE TABLE x1 (a, b PRIMARY KEY COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO x1 VALUES (1234, 'ABCD');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x2 (x, y);\n  INSERT INTO x2 VALUES (1234, 'abc');\n\n  CREATE TABLE x1 (a, b PRIMARY KEY COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO x1 VALUES (1234, 'ABCD');\n")
 		}
 	}
 	{ // "3.1"
@@ -233,7 +233,7 @@ func Test_rowvalueA(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  CREATE INDEX x1a ON x1(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX x1a ON x1(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX x1a ON x1(a);\n")
 		}
 	}
 	{ // "3.3"
@@ -251,7 +251,7 @@ func Test_rowvalueA(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (a PRIMARY KEY, b COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('BBB', 'a');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (a PRIMARY KEY, b COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('BBB', 'a');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (a PRIMARY KEY, b COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('BBB', 'a');\n")
 		}
 	}
 	{ // "4.1"
@@ -269,7 +269,7 @@ func Test_rowvalueA(t *testing.T) {
 	{ // "4.2"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t0 (c0);\n  INSERT INTO t0 VALUES ('True');\n\n  CREATE TABLE t1 (c0 COLLATE NOCASE, c1 PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('a', 1);\n  INSERT INTO t1 VALUES ('a', 'True');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t0 (c0);\n  INSERT INTO t0 VALUES ('True');\n\n  CREATE TABLE t1 (c0 COLLATE NOCASE, c1 PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('a', 1);\n  INSERT INTO t1 VALUES ('a', 'True');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t0 (c0);\n  INSERT INTO t0 VALUES ('True');\n\n  CREATE TABLE t1 (c0 COLLATE NOCASE, c1 PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('a', 1);\n  INSERT INTO t1 VALUES ('a', 'True');\n")
 		}
 	}
 	{ // "4.3"
@@ -287,7 +287,7 @@ func Test_rowvalueA(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b TEXT);\n  CREATE INDEX t1_ab ON t1(a COLLATE NOCASE, b COLLATE NOCASE);\n  INSERT INTO t1 VALUES('a',null),('b', 'ABCD');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b TEXT);\n  CREATE INDEX t1_ab ON t1(a COLLATE NOCASE, b COLLATE NOCASE);\n  INSERT INTO t1 VALUES('a',null),('b', 'ABCD');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b TEXT);\n  CREATE INDEX t1_ab ON t1(a COLLATE NOCASE, b COLLATE NOCASE);\n  INSERT INTO t1 VALUES('a',null),('b', 'ABCD');\n")
 		}
 	}
 	tcl_nullvalue = "NULL"

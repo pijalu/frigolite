@@ -131,31 +131,31 @@ func Test_vtab5(t *testing.T) {
 	{ // do_test "vtab5.3.1"
 		_res = db.Exec("\n      CREATE TRIGGER trig INSTEAD OF INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create triggers on virtual tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create triggers on virtual tables", _res.Error, "\n      CREATE TRIGGER trig INSTEAD OF INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create triggers on virtual tables", resErrString(_res), "\n      CREATE TRIGGER trig INSTEAD OF INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
 		}
 	}
 	{ // do_test "vtab5.3.2"
 		_res = db.Exec("\n      CREATE TRIGGER trig AFTER INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create triggers on virtual tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create triggers on virtual tables", _res.Error, "\n      CREATE TRIGGER trig AFTER INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create triggers on virtual tables", resErrString(_res), "\n      CREATE TRIGGER trig AFTER INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
 		}
 	}
 	{ // do_test "vtab5.3.2"
 		_res = db.Exec("\n      CREATE TRIGGER trig BEFORE INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create triggers on virtual tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create triggers on virtual tables", _res.Error, "\n      CREATE TRIGGER trig BEFORE INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create triggers on virtual tables", resErrString(_res), "\n      CREATE TRIGGER trig BEFORE INSERT ON echo_strings BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
 		}
 	}
 	{ // do_test "vtab5.4.1"
 		_res = db.Exec("\n    CREATE INDEX echo_strings_i ON echo_strings(str);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "virtual tables may not be indexed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be indexed", _res.Error, "\n    CREATE INDEX echo_strings_i ON echo_strings(str);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be indexed", resErrString(_res), "\n    CREATE INDEX echo_strings_i ON echo_strings(str);\n  ")
 		}
 	}
 	{ // do_test "vtab5.4.2"
 		_res = db.Exec("\n      ALTER TABLE echo_strings ADD COLUMN col2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "virtual tables may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", _res.Error, "\n      ALTER TABLE echo_strings ADD COLUMN col2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "virtual tables may not be altered", resErrString(_res), "\n      ALTER TABLE echo_strings ADD COLUMN col2;\n    ")
 		}
 	}
 }

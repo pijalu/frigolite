@@ -64,7 +64,7 @@ func Test_notnullfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -86,7 +86,7 @@ func Test_notnullfault(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

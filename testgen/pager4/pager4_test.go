@@ -81,13 +81,13 @@ func Test_pager4(t *testing.T) {
 	{ // "pager4-1.2"
 		_res = db.Exec("\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "pager4-1.3"
 		_res = db.Exec("\n  UPDATE t1 SET a=537;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  UPDATE t1 SET a=537;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n  UPDATE t1 SET a=537;\n")
 		}
 	}
 	db2, err = frigolite.Open("test.db")
@@ -98,7 +98,7 @@ func Test_pager4(t *testing.T) {
 	{ // "pager4-1.4"
 		_res = db.Exec("\n  UPDATE t1 SET a=948;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  UPDATE t1 SET a=948;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n  UPDATE t1 SET a=948;\n")
 		}
 	}
 	if db2 != nil { db2.Close() }
@@ -107,44 +107,44 @@ func Test_pager4(t *testing.T) {
 	{ // "pager4-1.5"
 		_res = db.Exec("\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "pager4-1.6"
 		_res = db.Exec("\n  UPDATE t1 SET a=537;\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET a=537;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET a=537;\n  SELECT * FROM t1;\n")
 		}
 	}
 	_ = os.Rename("test.db", "test-xyz.db")
 	{ // "pager4-1.7"
 		_res = db.Exec("\n  PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "pager4-1.8"
 		_res = db.Exec("\n  PRAGMA journal_mode=MEMORY;\n  UPDATE t1 SET b='magpie';\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=MEMORY;\n  UPDATE t1 SET b='magpie';\n  SELECT * FROM t1;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA journal_mode=MEMORY;\n  UPDATE t1 SET b='magpie';\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "pager4-1.9"
 		_res = db.Exec("\n  PRAGMA journal_mode=DELETE;\n  UPDATE t1 SET c='jaguar';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  PRAGMA journal_mode=DELETE;\n  UPDATE t1 SET c='jaguar';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n  PRAGMA journal_mode=DELETE;\n  UPDATE t1 SET c='jaguar';\n")
 		}
 	}
 	{ // "pager4-1.10"
 		_res = db.Exec("\n  PRAGMA journal_mode=TRUNCATE;\n  UPDATE t1 SET c='jaguar';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  PRAGMA journal_mode=TRUNCATE;\n  UPDATE t1 SET c='jaguar';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n  PRAGMA journal_mode=TRUNCATE;\n  UPDATE t1 SET c='jaguar';\n")
 		}
 	}
 	{ // "pager4-1.11"
 		_res = db.Exec("\n  PRAGMA journal_mode=PERSIST;\n  UPDATE t1 SET c='jaguar';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  PRAGMA journal_mode=PERSIST;\n  UPDATE t1 SET c='jaguar';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n  PRAGMA journal_mode=PERSIST;\n  UPDATE t1 SET c='jaguar';\n")
 		}
 	}
 }

@@ -455,7 +455,7 @@ func Test_index(t *testing.T) {
 	{ // do_test "index-6.1.1"
 		_res = db.Exec("CREATE INDEX [index1] ON test2(g1)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "index index1 already exists") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index index1 already exists", _res.Error, "CREATE INDEX [index1] ON test2(g1)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index index1 already exists", resErrString(_res), "CREATE INDEX [index1] ON test2(g1)")
 		}
 	}
 	{ // do_test "index-6.1b"
@@ -467,7 +467,7 @@ func Test_index(t *testing.T) {
 	{ // do_test "index-6.1c"
 		_res = db.Exec("CREATE INDEX IF NOT EXISTS index1 ON test1(f1)")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE INDEX IF NOT EXISTS index1 ON test1(f1)")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "CREATE INDEX IF NOT EXISTS index1 ON test1(f1)")
 		}
 	}
 	{ // do_test "index-6.2"
@@ -773,7 +773,7 @@ func Test_index(t *testing.T) {
 		{ // do_test "index-13.3." + i
 			_res = db.Exec("\n      DROP INDEX '" + tclLIndex(idxlist, i) + "';\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped", _res.Error, "\n      DROP INDEX '" + tclLIndex(idxlist, i) + "';\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped", resErrString(_res), "\n      DROP INDEX '" + tclLIndex(idxlist, i) + "';\n    ")
 			}
 		}
 		// incr i 1
@@ -919,50 +919,50 @@ func Test_index(t *testing.T) {
 	{ // do_test "index-17.2"
 		_res = db.Exec("\n    DROP INDEX sqlite_autoindex_t7_1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped", _res.Error, "\n    DROP INDEX sqlite_autoindex_t7_1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped", resErrString(_res), "\n    DROP INDEX sqlite_autoindex_t7_1;\n  ")
 		}
 	}
 	{ // do_test "index-17.3"
 		_res = db.Exec("\n    DROP INDEX IF EXISTS sqlite_autoindex_t7_1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped", _res.Error, "\n    DROP INDEX IF EXISTS sqlite_autoindex_t7_1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped", resErrString(_res), "\n    DROP INDEX IF EXISTS sqlite_autoindex_t7_1;\n  ")
 		}
 	}
 	{ // do_test "index-17.4"
 		_res = db.Exec("\n    DROP INDEX IF EXISTS no_such_index;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX IF EXISTS no_such_index;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DROP INDEX IF EXISTS no_such_index;\n  ")
 		}
 	}
 	{ // do_test "index-18.1"
 		_res = db.Exec("\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_t1", _res.Error, "\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_t1", resErrString(_res), "\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
 		}
 	}
 	{ // do_test "index-18.1.2"
 		_res = db.Exec("\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_t1", _res.Error, "\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_t1", resErrString(_res), "\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
 		}
 	}
 	db.SetDefensive(false)
 	{ // do_test "index-18.2"
 		_res = db.Exec("\n    CREATE INDEX sqlite_i1 ON t7(c);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_i1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_i1", _res.Error, "\n    CREATE INDEX sqlite_i1 ON t7(c);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_i1", resErrString(_res), "\n    CREATE INDEX sqlite_i1 ON t7(c);\n  ")
 		}
 	}
 	{ // do_test "index-18.3"
 		_res = db.Exec("\n    CREATE VIEW sqlite_v1 AS SELECT * FROM t7;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_v1", _res.Error, "\n    CREATE VIEW sqlite_v1 AS SELECT * FROM t7;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_v1", resErrString(_res), "\n    CREATE VIEW sqlite_v1 AS SELECT * FROM t7;\n  ")
 		}
 	}
 	{ // do_test "index-18.4"
 		_res = db.Exec("\n      CREATE TRIGGER sqlite_tr1 BEFORE INSERT ON t7 BEGIN SELECT 1; END;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_tr1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_tr1", _res.Error, "\n      CREATE TRIGGER sqlite_tr1 BEFORE INSERT ON t7 BEGIN SELECT 1; END;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_tr1", resErrString(_res), "\n      CREATE TRIGGER sqlite_tr1 BEFORE INSERT ON t7 BEGIN SELECT 1; END;\n    ")
 		}
 	}
 	{ // do_test "index-18.5"
@@ -980,31 +980,31 @@ func Test_index(t *testing.T) {
 	{ // do_test "index-19.2"
 		_res = db.Exec("\n      BEGIN;\n      INSERT INTO t7 VALUES(1);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t7.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t7.a", _res.Error, "\n      BEGIN;\n      INSERT INTO t7 VALUES(1);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t7.a", resErrString(_res), "\n      BEGIN;\n      INSERT INTO t7 VALUES(1);\n    ")
 		}
 	}
 	{ // do_test "index-19.3"
 		_res = db.Exec("\n      BEGIN;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot start a transaction within a transaction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot start a transaction within a transaction", _res.Error, "\n      BEGIN;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot start a transaction within a transaction", resErrString(_res), "\n      BEGIN;\n    ")
 		}
 	}
 	{ // do_test "index-19.4"
 		_res = db.Exec("\n      INSERT INTO t8 VALUES(1);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t8.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t8.a", _res.Error, "\n      INSERT INTO t8 VALUES(1);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t8.a", resErrString(_res), "\n      INSERT INTO t8 VALUES(1);\n    ")
 		}
 	}
 	{ // do_test "index-19.5"
 		_res = db.Exec("\n      BEGIN;\n      COMMIT;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      COMMIT;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      BEGIN;\n      COMMIT;\n    ")
 		}
 	}
 	{ // do_test "index-19.6"
 		_res = db.Exec("\n      DROP TABLE t7;\n      DROP TABLE t8;\n      CREATE TABLE t7(\n         a PRIMARY KEY ON CONFLICT FAIL, \n         UNIQUE(a) ON CONFLICT IGNORE\n      );\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "conflicting ON CONFLICT clauses specified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "conflicting ON CONFLICT clauses specified", _res.Error, "\n      DROP TABLE t7;\n      DROP TABLE t8;\n      CREATE TABLE t7(\n         a PRIMARY KEY ON CONFLICT FAIL, \n         UNIQUE(a) ON CONFLICT IGNORE\n      );\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "conflicting ON CONFLICT clauses specified", resErrString(_res), "\n      DROP TABLE t7;\n      DROP TABLE t8;\n      CREATE TABLE t7(\n         a PRIMARY KEY ON CONFLICT FAIL, \n         UNIQUE(a) ON CONFLICT IGNORE\n      );\n    ")
 		}
 	}
 	{ // do_test "index-19.7"
@@ -1030,13 +1030,13 @@ func Test_index(t *testing.T) {
 	{ // do_test "index-21.1"
 		_res = db.Exec("\n     CREATE INDEX temp.i21 ON t6(c);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create a TEMP index on non-TEMP table \"t6\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create a TEMP index on non-TEMP table \"t6\"", _res.Error, "\n     CREATE INDEX temp.i21 ON t6(c);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create a TEMP index on non-TEMP table \"t6\"", resErrString(_res), "\n     CREATE INDEX temp.i21 ON t6(c);\n  ")
 		}
 	}
 	{ // do_test "index-21.2"
 		_res = db.Exec("\n     CREATE TEMP TABLE t6(x);\n     INSERT INTO temp.t6 values(1),(5),(9);\n     CREATE INDEX temp.i21 ON t6(x);\n     SELECT x FROM t6 ORDER BY x DESC;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n     CREATE TEMP TABLE t6(x);\n     INSERT INTO temp.t6 values(1),(5),(9);\n     CREATE INDEX temp.i21 ON t6(x);\n     SELECT x FROM t6 ORDER BY x DESC;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n     CREATE TEMP TABLE t6(x);\n     INSERT INTO temp.t6 values(1),(5),(9);\n     CREATE INDEX temp.i21 ON t6(x);\n     SELECT x FROM t6 ORDER BY x DESC;\n  ")
 		}
 	}
 	{ // "index-22.0"

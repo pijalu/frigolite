@@ -250,7 +250,7 @@ func Test_cse(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b);\n  INSERT INTO t1 VALUES('hello', 0);\n  INSERT INTO t1 VALUES('world', 0);\n\n  CREATE TABLE t2(x TEXT);\n  INSERT INTO t2 VALUES('hello');\n  INSERT INTO t2 VALUES('world');\n\n  CREATE TABLE t3(y);\n  INSERT INTO t3 VALUES(1000);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT, b);\n  INSERT INTO t1 VALUES('hello', 0);\n  INSERT INTO t1 VALUES('world', 0);\n\n  CREATE TABLE t2(x TEXT);\n  INSERT INTO t2 VALUES('hello');\n  INSERT INTO t2 VALUES('world');\n\n  CREATE TABLE t3(y);\n  INSERT INTO t3 VALUES(1000);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a TEXT, b);\n  INSERT INTO t1 VALUES('hello', 0);\n  INSERT INTO t1 VALUES('world', 0);\n\n  CREATE TABLE t2(x TEXT);\n  INSERT INTO t2 VALUES('hello');\n  INSERT INTO t2 VALUES('world');\n\n  CREATE TABLE t3(y);\n  INSERT INTO t3 VALUES(1000);\n")
 		}
 	}
 	{ // "3.1"

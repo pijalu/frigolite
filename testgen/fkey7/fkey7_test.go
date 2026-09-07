@@ -221,13 +221,13 @@ func Test_fkey7(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE TABLE pX(x PRIMARY KEY);\n    CREATE TABLE cX(a INTEGER PRIMARY KEY, b REFERENCES pX);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pX(x PRIMARY KEY);\n    CREATE TABLE cX(a INTEGER PRIMARY KEY, b REFERENCES pX);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE pX(x PRIMARY KEY);\n    CREATE TABLE cX(a INTEGER PRIMARY KEY, b REFERENCES pX);\n  ")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n    INSERT INTO cX VALUES(11, zeroblob(40));\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    INSERT INTO cX VALUES(11, zeroblob(40));\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    INSERT INTO cX VALUES(11, zeroblob(40));\n  ")
 		}
 	}
 	{ // "2.2" (prepare-step internals; SQL side effects only)
@@ -249,7 +249,7 @@ func Test_fkey7(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  INSERT OR FAIL INTO child VALUES(123), (123);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR FAIL INTO child VALUES(123), (123);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR FAIL INTO child VALUES(123), (123);\n")
 		}
 	}
 	{ // "4.2"
@@ -267,7 +267,7 @@ func Test_fkey7(t *testing.T) {
 	{ // "4.4"
 		_res = db.Exec("\n  INSERT INTO parent VALUES(123);\n  INSERT OR FAIL INTO child VALUES(123), (123);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: child.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: child.c", _res.Error, "\n  INSERT INTO parent VALUES(123);\n  INSERT OR FAIL INTO child VALUES(123), (123);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: child.c", resErrString(_res), "\n  INSERT INTO parent VALUES(123);\n  INSERT OR FAIL INTO child VALUES(123), (123);\n")
 		}
 	}
 	{ // "4.5"

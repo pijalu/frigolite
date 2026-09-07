@@ -135,7 +135,7 @@ func Test_journal3(t *testing.T) {
 				{ // "journal3-1.2." + tn + ".5"
 					_res = db.Exec(" ROLLBACK ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ROLLBACK ")
 					}
 				}
 			}

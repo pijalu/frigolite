@@ -114,7 +114,7 @@ func Test_fts3defer(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  COMMIT;\n")
 		}
 	}
 	vtab.TclVarSet("tests", "", "\n  1  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a dog\"'}                 {1}\n  2  {SELECT rowid FROM t1 WHERE t1 MATCH '\"is a dog\"'}              {1}\n  3  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}       {3}\n  4  {SELECT snippet(t1) FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}  \n     {\"an instance of <b>a</b> <b>longer</b> <b>phrase</b>\"}\n  5  {SELECT rowid FROM t1 WHERE t1 MATCH 'a dog'}                   {1}\n")
@@ -136,7 +136,7 @@ func Test_fts3defer(t *testing.T) {
 	{ // "1.5"
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t1 ")
 		}
 	}
 	data = ""
@@ -155,13 +155,13 @@ func Test_fts3defer(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n")
 		}
 	}
 	{ // "3.2"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES(\n    '" + tclStringRepeat("d ", "3000") + "', '" + tclStringRepeat("f ", "30000") + "'\n  );\n  INSERT INTO x1(x1) VALUES('optimize');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1 VALUES(\n    '" + tclStringRepeat("d ", "3000") + "', '" + tclStringRepeat("f ", "30000") + "'\n  );\n  INSERT INTO x1(x1) VALUES('optimize');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO x1 VALUES(\n    '" + tclStringRepeat("d ", "3000") + "', '" + tclStringRepeat("f ", "30000") + "'\n  );\n  INSERT INTO x1(x1) VALUES('optimize');\n")
 		}
 	}
 	{ // "3.3"
@@ -179,7 +179,7 @@ func Test_fts3defer(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 VALUES('a b c d e f g h i j k l m n o p q r s t u v w x y m');\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 VALUES('a b c d e f g h i j k l m n o p q r s t u v w x y m');\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 VALUES('a b c d e f g h i j k l m n o p q r s t u v w x y m');\n  COMMIT;\n")
 		}
 	}
 	{ // "4.2"
@@ -208,7 +208,7 @@ func Test_fts3defer(t *testing.T) {
 			{ // "5." + tn + ".1"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
 				}
 			}
 			{ // "5." + tn + ".2"
@@ -226,7 +226,7 @@ func Test_fts3defer(t *testing.T) {
 			{ // "5." + tn + ".3"
 				_res = db.Exec(" DROP TABLE x3 ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE x3 ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE x3 ")
 				}
 			}
 		}
@@ -240,13 +240,13 @@ func Test_fts3defer(t *testing.T) {
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
 			}
 		}
 		{ // "6.1"
 			_res = db.Exec("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;\n")
 			}
 		}
 		{ // do_test "6.2"

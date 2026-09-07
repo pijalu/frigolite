@@ -110,13 +110,13 @@ func Test_rtreecirc(t *testing.T) {
 			{ // "1.1." + tn + ".1"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), schema)
 				}
 			}
 			{ // "1.1." + tn + ".2"
 				_res = db.Exec(sql)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.rt") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.rt", _res.Error, sql)
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.rt", resErrString(_res), sql)
 				}
 			}
 			db.Close()

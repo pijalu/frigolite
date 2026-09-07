@@ -139,13 +139,13 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-1.1.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: echo") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", resErrString(_res), "\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.1.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: echo") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", _res.Error, "\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", resErrString(_res), "\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.2"
@@ -158,13 +158,13 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-1.3.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor did not declare schema: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor did not declare schema: t1", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor did not declare schema: t1", resErrString(_res), "\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.3.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor did not declare schema: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor did not declare schema: t1", _res.Error, "\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor did not declare schema: t1", resErrString(_res), "\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.4"
@@ -176,13 +176,13 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-1.5.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING echo(no_such_table);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor failed: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor failed: t1", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING echo(no_such_table);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor failed: t1", resErrString(_res), "\n    CREATE VIRTUAL TABLE t1 USING echo(no_such_table);\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.5.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo(no_such_table);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor failed: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor failed: t1", _res.Error, "\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo(no_such_table);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor failed: t1", resErrString(_res), "\n    CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo(no_such_table);\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.6"
@@ -206,25 +206,25 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-1.7.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE sqlite_master USING echo;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_master") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_master", _res.Error, "\n    CREATE VIRTUAL TABLE sqlite_master USING echo;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_master", resErrString(_res), "\n    CREATE VIRTUAL TABLE sqlite_master USING echo;\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.7.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE IF NOT EXISTS sqlite_master USING echo;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: sqlite_master") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_master", _res.Error, "\n    CREATE VIRTUAL TABLE IF NOT EXISTS sqlite_master USING echo;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: sqlite_master", resErrString(_res), "\n    CREATE VIRTUAL TABLE IF NOT EXISTS sqlite_master USING echo;\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.8.1"
 		_res = db.Exec("\n    CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE treal USING echo(treal);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table treal already exists") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table treal already exists", _res.Error, "\n    CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE treal USING echo(treal);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table treal already exists", resErrString(_res), "\n    CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE treal USING echo(treal);\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.8.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE IF NOT EXISTS treal USING echo(treal);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE IF NOT EXISTS treal USING echo(treal);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE IF NOT EXISTS treal USING echo(treal);\n  ")
 		}
 	}
 	{ // do_test "vtab1-1.9"
@@ -286,7 +286,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1.2.6"
 		_res = db.Exec(" PRAGMA table_info(t1); ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: echo") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", _res.Error, " PRAGMA table_info(t1); ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", resErrString(_res), " PRAGMA table_info(t1); ")
 		}
 	}
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
@@ -936,7 +936,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1.12-2"
 		_res = db.Exec(" INSERT INTO echo_c SELECT * FROM b; ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "echo-vtab-error: UNIQUE constraint failed: c.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "echo-vtab-error: UNIQUE constraint failed: c.a", _res.Error, " INSERT INTO echo_c SELECT * FROM b; ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "echo-vtab-error: UNIQUE constraint failed: c.a", resErrString(_res), " INSERT INTO echo_c SELECT * FROM b; ")
 		}
 	}
 	{ // do_test "vtab1.12-2.1"
@@ -1128,7 +1128,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-15.4"
 		_res = db.Exec("\n    INSERT INTO echo_t1(rowid) VALUES('new rowid');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", _res.Error, "\n    INSERT INTO echo_t1(rowid) VALUES('new rowid');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", resErrString(_res), "\n    INSERT INTO echo_t1(rowid) VALUES('new rowid');\n  ")
 		}
 	}
 	{ // do_test "vtab1-16.1"
@@ -1193,7 +1193,7 @@ func Test_vtab1(t *testing.T) {
 	{ // "18.1.0"
 		_res = db.Exec("\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  INSERT INTO t6 VALUES(1, 'Peter');\n  INSERT INTO t6 VALUES(2, 'Andrew');\n  INSERT INTO t6 VALUES(3, '8James');\n  INSERT INTO t6 VALUES(4, '8John');\n  INSERT INTO t6 VALUES(5, 'Phillip');\n  INSERT INTO t6 VALUES(6, 'Bartholomew');\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  INSERT INTO t6 VALUES(1, 'Peter');\n  INSERT INTO t6 VALUES(2, 'Andrew');\n  INSERT INTO t6 VALUES(3, '8James');\n  INSERT INTO t6 VALUES(4, '8John');\n  INSERT INTO t6 VALUES(5, 'Phillip');\n  INSERT INTO t6 VALUES(6, 'Bartholomew');\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  INSERT INTO t6 VALUES(1, 'Peter');\n  INSERT INTO t6 VALUES(2, 'Andrew');\n  INSERT INTO t6 VALUES(3, '8James');\n  INSERT INTO t6 VALUES(4, '8John');\n  INSERT INTO t6 VALUES(5, 'Phillip');\n  INSERT INTO t6 VALUES(6, 'Bartholomew');\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		}
 	}
 	// foreach {tn sql res filter} "1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}"
@@ -1214,7 +1214,7 @@ func Test_vtab1(t *testing.T) {
 			{ // "18." + tn + ".1"
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 			{ // "18." + tn + ".2" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -1245,7 +1245,7 @@ func Test_vtab1(t *testing.T) {
 				{ // "18." + tn + ".1"
 					_res = db.Exec(sql)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 					}
 				}
 				{ // "18." + tn + ".2" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -1267,7 +1267,7 @@ func Test_vtab1(t *testing.T) {
 			{ // "20.1"
 				_res = db.Exec("\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
 				}
 			}
 			{ // do_test "20.2"
@@ -1313,7 +1313,7 @@ func Test_vtab1(t *testing.T) {
 			{ // "21.1"
 				_res = db.Exec("\n  CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);\n")
 				}
 			}
 			{ // "21.2"
@@ -1474,13 +1474,13 @@ func Test_vtab1(t *testing.T) {
 			{ // "24.2"
 				_res = db.Exec(" INSERT INTO t4(t4) VALUES('integrity-check') ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4(t4) VALUES('integrity-check') ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t4(t4) VALUES('integrity-check') ")
 				}
 			}
 			{ // "24.3"
 				_res = db.Exec("\n    SAVEPOINT a;\n    CREATE VIRTUAL TABLE t5 USING fts3();\n    SAVEPOINT b;\n    ROLLBACK TO a;\n    SAVEPOINT c;\n    RELEASE a;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT a;\n    CREATE VIRTUAL TABLE t5 USING fts3();\n    SAVEPOINT b;\n    ROLLBACK TO a;\n    SAVEPOINT c;\n    RELEASE a;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    SAVEPOINT a;\n    CREATE VIRTUAL TABLE t5 USING fts3();\n    SAVEPOINT b;\n    ROLLBACK TO a;\n    SAVEPOINT c;\n    RELEASE a;\n  ")
 				}
 			}
 			db.Close()
@@ -1494,7 +1494,7 @@ func Test_vtab1(t *testing.T) {
 			{ // "25.0"
 				_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
 				}
 			}
 			db.Close()
@@ -1508,7 +1508,7 @@ func Test_vtab1(t *testing.T) {
 			{ // "26.1"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
 				}
 			}
 			{ // do_test "26.2"

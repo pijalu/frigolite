@@ -139,13 +139,13 @@ func Test_json101(t *testing.T) {
 	{ // "json101-1.3"
 		_res = db.Exec("\n  SELECT json_array(1,printf('%.1000c','x'),x'abcd',3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT json_array(1,printf('%.1000c','x'),x'abcd',3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", resErrString(_res), "\n  SELECT json_array(1,printf('%.1000c','x'),x'abcd',3);\n")
 		}
 	}
 	{ // "json101-1.3b"
 		_res = db.Exec("\n  SELECT jsonb_array(1,printf('%.1000c','x'),x'abcd',3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT jsonb_array(1,printf('%.1000c','x'),x'abcd',3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", resErrString(_res), "\n  SELECT jsonb_array(1,printf('%.1000c','x'),x'abcd',3);\n")
 		}
 	}
 	{ // "json101-1.4"
@@ -199,13 +199,13 @@ func Test_json101(t *testing.T) {
 	{ // "json101-2.2"
 		_res = db.Exec("\n  SELECT json_object('a',printf('%.1000c','x'),2,2.5);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "json_object() labels must be TEXT") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", _res.Error, "\n  SELECT json_object('a',printf('%.1000c','x'),2,2.5);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", resErrString(_res), "\n  SELECT json_object('a',printf('%.1000c','x'),2,2.5);\n")
 		}
 	}
 	{ // "json101-2.2b"
 		_res = db.Exec("\n  SELECT jsonb_object('a',printf('%.1000c','x'),2,2.5);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "json_object() labels must be TEXT") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", _res.Error, "\n  SELECT jsonb_object('a',printf('%.1000c','x'),2,2.5);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", resErrString(_res), "\n  SELECT jsonb_object('a',printf('%.1000c','x'),2,2.5);\n")
 		}
 	}
 	{ // "json101-2.2.2"
@@ -259,13 +259,13 @@ func Test_json101(t *testing.T) {
 	{ // "json101-2.3"
 		_res = db.Exec("\n  SELECT json_object('a',1,'b');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "json_object() requires an even number of arguments") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() requires an even number of arguments", _res.Error, "\n  SELECT json_object('a',1,'b');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() requires an even number of arguments", resErrString(_res), "\n  SELECT json_object('a',1,'b');\n")
 		}
 	}
 	{ // "json101-2.4"
 		_res = db.Exec("\n  SELECT json_object('a',printf('%.1000c','x'),'b',x'abcd');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT json_object('a',printf('%.1000c','x'),'b',x'abcd');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", resErrString(_res), "\n  SELECT json_object('a',printf('%.1000c','x'),'b',x'abcd');\n")
 		}
 	}
 	{ // "json101-2.5"
@@ -860,19 +860,19 @@ func Test_json101(t *testing.T) {
 		{ // "json101-9.5"
 			_res = db.Exec("\n  SELECT json_quote(x'3031323334');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT json_quote(x'3031323334');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", resErrString(_res), "\n  SELECT json_quote(x'3031323334');\n")
 			}
 		}
 		{ // "json101-9.6"
 			_res = db.Exec("\n  SELECT json_quote(123,456)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function json_quote()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", _res.Error, "\n  SELECT json_quote(123,456)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", resErrString(_res), "\n  SELECT json_quote(123,456)\n")
 			}
 		}
 		{ // "json101-9.7"
 			_res = db.Exec("\n  SELECT json_quote()\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function json_quote()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", _res.Error, "\n  SELECT json_quote()\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", resErrString(_res), "\n  SELECT json_quote()\n")
 			}
 		}
 		{ // "json101-10.1"
@@ -2090,31 +2090,31 @@ func Test_json101(t *testing.T) {
 		{ // "json101-11.0"
 			_res = db.Exec("\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
 			}
 		}
 		{ // "json101-11.1"
 			_res = db.Exec("\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
 			}
 		}
 		{ // "json101-11.2"
 			_res = db.Exec("\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
 			}
 		}
 		{ // "json101-11.3"
 			_res = db.Exec("\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
 			}
 		}
 		{ // "json101-12.100"
 			_res = db.Exec("\n  CREATE TABLE t12(x);\n  INSERT INTO t12(x) VALUES(\n    '{\"settings\":\n        {\"layer2\":\n           {\"hapax.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":true,\n               \"add.footnote\":true,\n               \"summary.report\":true},\n            \"dis.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":true},\n            \"tris.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":false}\n           }\n        }\n     }');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t12(x);\n  INSERT INTO t12(x) VALUES(\n    '{\"settings\":\n        {\"layer2\":\n           {\"hapax.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":true,\n               \"add.footnote\":true,\n               \"summary.report\":true},\n            \"dis.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":true},\n            \"tris.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":false}\n           }\n        }\n     }');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t12(x);\n  INSERT INTO t12(x) VALUES(\n    '{\"settings\":\n        {\"layer2\":\n           {\"hapax.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":true,\n               \"add.footnote\":true,\n               \"summary.report\":true},\n            \"dis.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":true},\n            \"tris.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":false}\n           }\n        }\n     }');\n")
 			}
 		}
 		{ // "json101-12.110"
@@ -2426,19 +2426,19 @@ func Test_json101(t *testing.T) {
 		{ // "json101-18.5"
 			_res = db.Exec("\n  SELECT json_extract('{\"\":8}', '$.');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.'") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.'", _res.Error, "\n  SELECT json_extract('{\"\":8}', '$.');\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.'", resErrString(_res), "\n  SELECT json_extract('{\"\":8}', '$.');\n")
 			}
 		}
 		{ // "json101-19.1"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
 			}
 		}
 		{ // "json101-19.2"
 			_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", resErrString(_res), "\n  BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));\n")
 			}
 		}
 		{ // "json101-19.3"
@@ -2622,7 +2622,7 @@ func Test_json101(t *testing.T) {
 		{ // "json101-21.11"
 			_res = db.Exec("\n  SELECT json_object(NULL,5);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "json_object() labels must be TEXT") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", _res.Error, "\n  SELECT json_object(NULL,5);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", resErrString(_res), "\n  SELECT json_object(NULL,5);\n")
 			}
 		}
 		{ // "json101-21.12"

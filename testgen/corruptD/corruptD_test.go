@@ -110,7 +110,7 @@ func Test_corruptD(t *testing.T) {
 	{ // do_test "corruptD-1.2.2"
 		_res = db.Exec("\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n")
 		}
 	}
 }

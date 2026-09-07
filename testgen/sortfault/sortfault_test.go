@@ -195,7 +195,7 @@ func Test_sortfault(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
 			}
 		}
 		{ // do_test "4.1"
@@ -241,7 +241,7 @@ func Test_sortfault(t *testing.T) {
 		{ // "5.0"
 			_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + "); \n  INSERT INTO t1 VALUES(" + sqlLiteral(c) + ", " + sqlLiteral(b) + ", " + sqlLiteral(a) + "); \n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + "); \n  INSERT INTO t1 VALUES(" + sqlLiteral(c) + ", " + sqlLiteral(b) + ", " + sqlLiteral(a) + "); \n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + "); \n  INSERT INTO t1 VALUES(" + sqlLiteral(c) + ", " + sqlLiteral(b) + ", " + sqlLiteral(a) + "); \n")
 			}
 		}
 		// do_faultsim_test 5.1 -faults oom* -body {\n  execsql { SELECT * FROM t1 ORDER BY a }\n} -test {\n... (unsupported command, not transpiled)

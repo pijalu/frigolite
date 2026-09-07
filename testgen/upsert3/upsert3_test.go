@@ -65,19 +65,19 @@ func Test_upsert3(t *testing.T) {
 	{ // "upsert3-100"
 		_res = db.Exec("\n  CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);\n")
 		}
 	}
 	{ // "upsert3-110"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(k) DO NOTHING;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(k) DO NOTHING;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(k) DO NOTHING;\n")
 		}
 	}
 	{ // "upsert3-120"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(v) DO NOTHING;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(v) DO NOTHING;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", resErrString(_res), "\n  INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(v) DO NOTHING;\n")
 		}
 	}
 	{ // "upsert3-130"

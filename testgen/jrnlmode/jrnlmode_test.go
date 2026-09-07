@@ -609,13 +609,13 @@ func Test_jrnlmode(t *testing.T) {
 	{ // "jrnlmode-8.2"
 		_res = db.Exec(" CREATE TABLE t1(x) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(x) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t1(x) ")
 		}
 	}
 	{ // "jrnlmode-8.3"
 		_res = db.Exec(" INSERT INTO t1 VALUES(123) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(123) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t1 VALUES(123) ")
 		}
 	}
 	{ // "jrnlmode-8.4"
@@ -681,13 +681,13 @@ func Test_jrnlmode(t *testing.T) {
 	{ // "jrnlmode-8.9"
 		_res = db.Exec(" CREATE TABLE t2(y) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(y) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t2(y) ")
 		}
 	}
 	{ // "jrnlmode-8.10"
 		_res = db.Exec(" INSERT INTO t2 VALUES(456) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(456) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2 VALUES(456) ")
 		}
 	}
 	{ // "jrnlmode-8.11"
@@ -789,13 +789,13 @@ func Test_jrnlmode(t *testing.T) {
 	{ // "jrnlmode-8.19"
 		_res = db.Exec(" CREATE TABLE t3(z) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t3(z) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t3(z) ")
 		}
 	}
 	{ // "jrnlmode-8.20"
 		_res = db.Exec(" BEGIN IMMEDIATE ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN IMMEDIATE ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " BEGIN IMMEDIATE ")
 		}
 	}
 	{ // "jrnlmode-8.21"
@@ -813,7 +813,7 @@ func Test_jrnlmode(t *testing.T) {
 	{ // "jrnlmode-8.22"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // "jrnlmode-8.23"
@@ -855,13 +855,13 @@ func Test_jrnlmode(t *testing.T) {
 	{ // "jrnlmode-8.26"
 		_res = db.Exec(" CREATE TABLE t4(w) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t4(w) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t4(w) ")
 		}
 	}
 	{ // "jrnlmode-8.27"
 		_res = db.Exec(" BEGIN IMMEDIATE ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN IMMEDIATE ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " BEGIN IMMEDIATE ")
 		}
 	}
 	{ // "jrnlmode-8.28"
@@ -879,7 +879,7 @@ func Test_jrnlmode(t *testing.T) {
 	{ // "jrnlmode-8.29"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // "jrnlmode-8.30"

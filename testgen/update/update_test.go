@@ -944,55 +944,55 @@ func Test_update(t *testing.T) {
 	{ // do_test "update-10.2"
 		_res = db.Exec("\n    UPDATE t1 SET a=1, e=9 WHERE f=6;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a=1, e=9 WHERE f=6;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1 SET a=1, e=9 WHERE f=6;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.3"
 		_res = db.Exec("\n    UPDATE t1 SET a=1, e=10 WHERE f=7;\n    SELECT * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "\n    UPDATE t1 SET a=1, e=10 WHERE f=7;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "\n    UPDATE t1 SET a=1, e=10 WHERE f=7;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.4"
 		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.5"
 		_res = db.Exec("\n    UPDATE t1 SET b=2, e=11 WHERE f=6;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET b=2, e=11 WHERE f=6;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1 SET b=2, e=11 WHERE f=6;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.6"
 		_res = db.Exec("\n    UPDATE t1 SET b=2, e=12 WHERE f=7;\n    SELECT * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b", _res.Error, "\n    UPDATE t1 SET b=2, e=12 WHERE f=7;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b", resErrString(_res), "\n    UPDATE t1 SET b=2, e=12 WHERE f=7;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.7"
 		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.8"
 		_res = db.Exec("\n    UPDATE t1 SET c=3, d=4, e=13 WHERE f=6;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET c=3, d=4, e=13 WHERE f=6;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1 SET c=3, d=4, e=13 WHERE f=6;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.9"
 		_res = db.Exec("\n    UPDATE t1 SET c=3, d=4, e=14 WHERE f=7;\n    SELECT * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c, t1.d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c, t1.d", _res.Error, "\n    UPDATE t1 SET c=3, d=4, e=14 WHERE f=7;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c, t1.d", resErrString(_res), "\n    UPDATE t1 SET c=3, d=4, e=14 WHERE f=7;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-10.10"
 		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "update-11.1"
@@ -1068,7 +1068,7 @@ func Test_update(t *testing.T) {
 	{ // do_test "update-14.2"
 		_res = db.Exec("\n    UPDATE t3 SET a=1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: nosuchcol") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", _res.Error, "\n    UPDATE t3 SET a=1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", resErrString(_res), "\n    UPDATE t3 SET a=1;\n  ")
 		}
 	}
 	{ // do_test "update-14.3"
@@ -1080,7 +1080,7 @@ func Test_update(t *testing.T) {
 	{ // do_test "update-14.4"
 		_res = db.Exec("\n    UPDATE t4 SET a=1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: nosuchcol") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", _res.Error, "\n    UPDATE t4 SET a=1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", resErrString(_res), "\n    UPDATE t4 SET a=1;\n  ")
 		}
 	}
 	{ // "update-15.1"
@@ -1198,7 +1198,7 @@ func Test_update(t *testing.T) {
 	{ // "update-20.20"
 		_res = db.Exec("\n  UPDATE t1 SET a=0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE t1 SET a=0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", resErrString(_res), "\n  UPDATE t1 SET a=0;\n")
 		}
 	}
 	{ // "update-20.30"
@@ -1223,7 +1223,7 @@ func Test_update(t *testing.T) {
 	{ // "update-21.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);\n")
 		}
 	}
 	tcl_nullvalue = "NULL"
@@ -1266,7 +1266,7 @@ func Test_update(t *testing.T) {
 	{ // "update-21.11"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(d INT);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(d INT);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(d INT);\n")
 		}
 	}
 	{ // "update-21.12"

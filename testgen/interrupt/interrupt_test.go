@@ -232,7 +232,7 @@ func Test_interrupt(t *testing.T) {
 		{ // do_test "interrupt-3." + i + ".4"
 			_res = db.Exec("\n        ROLLBACK\n      ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rollback - no transaction is active") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rollback - no transaction is active", _res.Error, "\n        ROLLBACK\n      ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rollback - no transaction is active", resErrString(_res), "\n        ROLLBACK\n      ")
 			}
 		}
 		{ // do_test "interrupt-3." + i + ".5"

@@ -121,7 +121,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-1.2"
 		_res = db.Exec("\n    ROLLBACK;\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v1", _res.Error, "\n    ROLLBACK;\n    SELECT * FROM v1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v1", resErrString(_res), "\n    ROLLBACK;\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "view-1.3"
@@ -143,7 +143,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-1.4"
 		_res = db.Exec("\n    DROP VIEW IF EXISTS v1;\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v1", _res.Error, "\n    DROP VIEW IF EXISTS v1;\n    SELECT * FROM v1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: v1", resErrString(_res), "\n    DROP VIEW IF EXISTS v1;\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "view-1.5"
@@ -155,7 +155,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-1.6"
 		_res = db.Exec("\n    DROP TABLE t1;\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", _res.Error, "\n    DROP TABLE t1;\n    SELECT * FROM v1 ORDER BY a;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", resErrString(_res), "\n    DROP TABLE t1;\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		}
 	}
 	{ // do_test "view-1.7"
@@ -177,7 +177,7 @@ func Test_view(t *testing.T) {
 	{ // "view-1.10"
 		_res = db.Exec("\n  CREATE TABLE t9(x INTEGER);\n  CREATE VIEW v9a AS SELECT x FROM t9;\n  CREATE VIEW v9b AS SELECT * FROM t9;\n  CREATE VIEW v9c(x) AS SELECT x FROM t9;\n  CREATE VIEW v9d(x) AS SELECT * FROM t9;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t9(x INTEGER);\n  CREATE VIEW v9a AS SELECT x FROM t9;\n  CREATE VIEW v9b AS SELECT * FROM t9;\n  CREATE VIEW v9c(x) AS SELECT x FROM t9;\n  CREATE VIEW v9d(x) AS SELECT * FROM t9;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t9(x INTEGER);\n  CREATE VIEW v9a AS SELECT x FROM t9;\n  CREATE VIEW v9b AS SELECT * FROM t9;\n  CREATE VIEW v9c(x) AS SELECT x FROM t9;\n  CREATE VIEW v9d(x) AS SELECT * FROM t9;\n")
 		}
 	}
 	{ // "view-1.11"
@@ -241,19 +241,19 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-2.2"
 		_res = db.Exec("\n    INSERT INTO v2 VALUES(1,2,3,4);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot modify v2 because it is a view") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot modify v2 because it is a view", _res.Error, "\n    INSERT INTO v2 VALUES(1,2,3,4);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot modify v2 because it is a view", resErrString(_res), "\n    INSERT INTO v2 VALUES(1,2,3,4);\n  ")
 		}
 	}
 	{ // do_test "view-2.3"
 		_res = db.Exec("\n    UPDATE v2 SET a=10 WHERE a=5;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot modify v2 because it is a view") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot modify v2 because it is a view", _res.Error, "\n    UPDATE v2 SET a=10 WHERE a=5;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot modify v2 because it is a view", resErrString(_res), "\n    UPDATE v2 SET a=10 WHERE a=5;\n  ")
 		}
 	}
 	{ // do_test "view-2.4"
 		_res = db.Exec("\n    DELETE FROM v2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot modify v2 because it is a view") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot modify v2 because it is a view", _res.Error, "\n    DELETE FROM v2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot modify v2 because it is a view", resErrString(_res), "\n    DELETE FROM v2;\n  ")
 		}
 	}
 	{ // do_test "view-2.5"
@@ -301,19 +301,19 @@ func Test_view(t *testing.T) {
 	{ // "view-3.3.4"
 		_res = db.Exec("\n  CREATE VIEW v1err(x,y DESC,z) AS SELECT a, b+c, c-b FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "syntax error after column name \"y\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"y\"", _res.Error, "\n  CREATE VIEW v1err(x,y DESC,z) AS SELECT a, b+c, c-b FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"y\"", resErrString(_res), "\n  CREATE VIEW v1err(x,y DESC,z) AS SELECT a, b+c, c-b FROM t1;\n")
 		}
 	}
 	{ // "view-3.3.5"
 		_res = db.Exec("\n  DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(x,y) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "expected 2 columns for 'v1err' but got 3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expected 2 columns for 'v1err' but got 3", _res.Error, "\n  DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(x,y) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expected 2 columns for 'v1err' but got 3", resErrString(_res), "\n  DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(x,y) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;\n")
 		}
 	}
 	{ // "view-3.3.6"
 		_res = db.Exec("\n  DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(w,x,y,z) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "expected 4 columns for 'v1err' but got 3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expected 4 columns for 'v1err' but got 3", _res.Error, "\n  DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(w,x,y,z) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expected 4 columns for 'v1err' but got 3", resErrString(_res), "\n  DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(w,x,y,z) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;\n")
 		}
 	}
 	{ // do_test "view-3.4"
@@ -331,7 +331,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-4.1"
 		_res = db.Exec("\n    DROP VIEW t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "use DROP TABLE to delete table t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "use DROP TABLE to delete table t1", _res.Error, "\n    DROP VIEW t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "use DROP TABLE to delete table t1", resErrString(_res), "\n    DROP VIEW t1;\n  ")
 		}
 	}
 	{ // do_test "view-4.2"
@@ -343,7 +343,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-4.3"
 		_res = db.Exec("\n    DROP TABLE v1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "use DROP VIEW to delete view v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "use DROP VIEW to delete view v1", _res.Error, "\n    DROP TABLE v1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "use DROP VIEW to delete view v1", resErrString(_res), "\n    DROP TABLE v1;\n  ")
 		}
 	}
 	{ // do_test "view-4.4"
@@ -355,7 +355,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-4.5"
 		_res = db.Exec("\n    CREATE INDEX i1v1 ON v1(xyz);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "views may not be indexed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "views may not be indexed", _res.Error, "\n    CREATE INDEX i1v1 ON v1(xyz);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "views may not be indexed", resErrString(_res), "\n    CREATE INDEX i1v1 ON v1(xyz);\n  ")
 		}
 	}
 	{ // do_test "view-5.1"
@@ -575,13 +575,13 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-12.1"
 		_res = db.Exec("\n    CREATE VIEW v12 AS SELECT a FROM t1 WHERE b=?\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "parameters are not allowed in views") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters are not allowed in views", _res.Error, "\n    CREATE VIEW v12 AS SELECT a FROM t1 WHERE b=?\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters are not allowed in views", resErrString(_res), "\n    CREATE VIEW v12 AS SELECT a FROM t1 WHERE b=?\n  ")
 		}
 	}
 	{ // do_test "view-12.2"
 		_res = db.Exec("\n    CREATE VIEW v12(x) AS SELECT a FROM t1 WHERE b=?\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "parameters are not allowed in views") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters are not allowed in views", _res.Error, "\n    CREATE VIEW v12(x) AS SELECT a FROM t1 WHERE b=?\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters are not allowed in views", resErrString(_res), "\n    CREATE VIEW v12(x) AS SELECT a FROM t1 WHERE b=?\n  ")
 		}
 	}
 	{ // do_test "view-13.1"
@@ -592,13 +592,13 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-14.1"
 		_res = db.Exec("\n    CREATE TEMP VIEW t1 AS SELECT a,b FROM t1;\n    SELECT * FROM temp.t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "view t1 is circularly defined") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view t1 is circularly defined", _res.Error, "\n    CREATE TEMP VIEW t1 AS SELECT a,b FROM t1;\n    SELECT * FROM temp.t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view t1 is circularly defined", resErrString(_res), "\n    CREATE TEMP VIEW t1 AS SELECT a,b FROM t1;\n    SELECT * FROM temp.t1;\n  ")
 		}
 	}
 	{ // do_test "view-14.2"
 		_res = db.Exec("\n    DROP VIEW IF EXISTS temp.t1;\n    CREATE TEMP VIEW t1(a,b) AS SELECT a,b FROM t1;\n    SELECT * FROM temp.t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "view t1 is circularly defined") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view t1 is circularly defined", _res.Error, "\n    DROP VIEW IF EXISTS temp.t1;\n    CREATE TEMP VIEW t1(a,b) AS SELECT a,b FROM t1;\n    SELECT * FROM temp.t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view t1 is circularly defined", resErrString(_res), "\n    DROP VIEW IF EXISTS temp.t1;\n    CREATE TEMP VIEW t1(a,b) AS SELECT a,b FROM t1;\n    SELECT * FROM temp.t1;\n  ")
 		}
 	}
 	{ // do_test "view-15.1"
@@ -616,7 +616,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-16.1"
 		_res = db.Exec("\n    CREATE VIEW IF NOT EXISTS v1 AS SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE VIEW IF NOT EXISTS v1 AS SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIEW IF NOT EXISTS v1 AS SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "view-16.2"
@@ -628,19 +628,19 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-16.3"
 		_res = db.Exec("\n    DROP VIEW IF EXISTS nosuchview\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW IF EXISTS nosuchview\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DROP VIEW IF EXISTS nosuchview\n  ")
 		}
 	}
 	{ // do_test "view-17.1"
 		_res = db.Exec("\n    DROP VIEW nosuchview\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such view: nosuchview") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such view: nosuchview", _res.Error, "\n    DROP VIEW nosuchview\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such view: nosuchview", resErrString(_res), "\n    DROP VIEW nosuchview\n  ")
 		}
 	}
 	{ // do_test "view-17.2"
 		_res = db.Exec("\n    DROP VIEW main.nosuchview\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such view: main.nosuchview") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such view: main.nosuchview", _res.Error, "\n    DROP VIEW main.nosuchview\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such view: main.nosuchview", resErrString(_res), "\n    DROP VIEW main.nosuchview\n  ")
 		}
 	}
 	{ // do_test "view-18.1"
@@ -754,7 +754,7 @@ func Test_view(t *testing.T) {
 	{ // "view-27.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT, c1);\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  CREATE VIEW v0(c0, c1) AS SELECT t0.c0, AVG(t0.c1) FROM t0;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 TEXT, c1);\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  CREATE VIEW v0(c0, c1) AS SELECT t0.c0, AVG(t0.c1) FROM t0;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0 TEXT, c1);\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  CREATE VIEW v0(c0, c1) AS SELECT t0.c0, AVG(t0.c1) FROM t0;\n")
 		}
 	}
 	{ // "view-27.1"
@@ -863,7 +863,7 @@ func Test_view(t *testing.T) {
 	{ // "view-28.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0) AS SELECT t0.c0 FROM t0;\n  INSERT INTO t0(c0) VALUES ('0');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0) AS SELECT t0.c0 FROM t0;\n  INSERT INTO t0(c0) VALUES ('0');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0) AS SELECT t0.c0 FROM t0;\n  INSERT INTO t0(c0) VALUES ('0');\n")
 		}
 	}
 	{ // "view-28.1"
@@ -900,13 +900,13 @@ func Test_view(t *testing.T) {
 	{ // "view-29.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed database schema (IF) - near \"AS\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (IF) - near \"AS\": syntax error", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (IF) - near \"AS\": syntax error", resErrString(_res), "\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
 		}
 	}
 	{ // "view-29.1"
 		_res = db.Exec("\n  CREATE TABLE t2(c,d,e);\n  SELECT name FROM sqlite_schema ORDER BY name;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(c,d,e);\n  SELECT name FROM sqlite_schema ORDER BY name;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(c,d,e);\n  SELECT name FROM sqlite_schema ORDER BY name;\n")
 		}
 	}
 	db.Close()
@@ -919,7 +919,7 @@ func Test_view(t *testing.T) {
 	{ // "view-30.0"
 		_res = db.Exec("\n  CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n")
 		}
 	}
 	{ // "view-30.1"
@@ -987,7 +987,7 @@ func Test_view(t *testing.T) {
 	{ // "view-32.1"
 		_res = db.Exec("\n  CREATE TABLE t0(a);\n  INSERT INTO t0 VALUES(0);\n  CREATE VIEW v1(a) AS SELECT a+1 FROM t0;\n  CREATE VIEW v2(a) AS SELECT a+1 FROM v1;\n  CREATE VIEW v3(a) AS SELECT a+1 FROM v2;\n  CREATE VIEW v4(a) AS SELECT a+1 FROM v3;\n  CREATE VIEW v5(a) AS SELECT a+1 FROM v4;\n  CREATE VIEW v6(a) AS SELECT a+1 FROM v5;\n  CREATE VIEW v7(a) AS SELECT a+1 FROM v6;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a);\n  INSERT INTO t0 VALUES(0);\n  CREATE VIEW v1(a) AS SELECT a+1 FROM t0;\n  CREATE VIEW v2(a) AS SELECT a+1 FROM v1;\n  CREATE VIEW v3(a) AS SELECT a+1 FROM v2;\n  CREATE VIEW v4(a) AS SELECT a+1 FROM v3;\n  CREATE VIEW v5(a) AS SELECT a+1 FROM v4;\n  CREATE VIEW v6(a) AS SELECT a+1 FROM v5;\n  CREATE VIEW v7(a) AS SELECT a+1 FROM v6;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(a);\n  INSERT INTO t0 VALUES(0);\n  CREATE VIEW v1(a) AS SELECT a+1 FROM t0;\n  CREATE VIEW v2(a) AS SELECT a+1 FROM v1;\n  CREATE VIEW v3(a) AS SELECT a+1 FROM v2;\n  CREATE VIEW v4(a) AS SELECT a+1 FROM v3;\n  CREATE VIEW v5(a) AS SELECT a+1 FROM v4;\n  CREATE VIEW v6(a) AS SELECT a+1 FROM v5;\n  CREATE VIEW v7(a) AS SELECT a+1 FROM v6;\n")
 		}
 	}
 	if tclBool("sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1" + ">0") {
@@ -995,14 +995,14 @@ func Test_view(t *testing.T) {
 		{ // "view-32.2"
 			_res = db.Exec("\n    SELECT * FROM v7;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "VIEWs and/or subqueries nested too deep") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "VIEWs and/or subqueries nested too deep", _res.Error, "\n    SELECT * FROM v7;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "VIEWs and/or subqueries nested too deep", resErrString(_res), "\n    SELECT * FROM v7;\n  ")
 			}
 		}
 		db.SetExprDepthLimit(toInt(6))
 		{ // "view-32.3"
 			_res = db.Exec("\n    SELECT * FROM v7;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "VIEWs and/or subqueries nested too deep") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "VIEWs and/or subqueries nested too deep", _res.Error, "\n    SELECT * FROM v7;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "VIEWs and/or subqueries nested too deep", resErrString(_res), "\n    SELECT * FROM v7;\n  ")
 			}
 		}
 		db.SetExprDepthLimit(toInt(8))

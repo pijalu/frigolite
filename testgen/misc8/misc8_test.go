@@ -92,7 +92,7 @@ func Test_misc8(t *testing.T) {
 	{ // "misc8-1.2"
 		_res = db.Exec("\n  SELECT quote(eval('SELECT d FROM t1 ORDER BY a'));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: d", _res.Error, "\n  SELECT quote(eval('SELECT d FROM t1 ORDER BY a'));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: d", resErrString(_res), "\n  SELECT quote(eval('SELECT d FROM t1 ORDER BY a'));\n")
 		}
 	}
 	{ // "misc8-1.3"
@@ -110,31 +110,31 @@ func Test_misc8(t *testing.T) {
 	{ // "misc8-1.4"
 		_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n   FROM t1 ORDER BY a;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n   FROM t1 ORDER BY a;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n   FROM t1 ORDER BY a;\n")
 		}
 	}
 	{ // "misc8-1.5"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		}
 	}
 	{ // "misc8-1.6"
 		_res = db.Exec("\n  SELECT a, coalesce(b, eval('DELETE FROM t1; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a, coalesce(b, eval('DELETE FROM t1; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT a, coalesce(b, eval('DELETE FROM t1; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		}
 	}
 	{ // "misc8-1.7"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6),(7,null,9);\n  BEGIN;\n  CREATE TABLE t2(x);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "abort due to ROLLBACK") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "abort due to ROLLBACK", _res.Error, "\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6),(7,null,9);\n  BEGIN;\n  CREATE TABLE t2(x);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "abort due to ROLLBACK", resErrString(_res), "\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6),(7,null,9);\n  BEGIN;\n  CREATE TABLE t2(x);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		}
 	}
 	{ // "misc8-1.8"
 		_res = db.Exec("\n  PRAGMA empty_result_callbacks = 1;\n  SELECT eval('SELECT * FROM t1 WHERE 1 = 0;');\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA empty_result_callbacks = 1;\n  SELECT eval('SELECT * FROM t1 WHERE 1 = 0;');\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  PRAGMA empty_result_callbacks = 1;\n  SELECT eval('SELECT * FROM t1 WHERE 1 = 0;');\n")
 		}
 	}
 	db.Close()
@@ -156,7 +156,7 @@ func Test_misc8(t *testing.T) {
 	{ // "misc8-3.0"
 		_res = db.Exec("\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
 		if !tclCatchsqlMatches(_res, nosuch) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, nosuch, "\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), nosuch, "\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
 		}
 	}
 	db.Close()

@@ -81,20 +81,20 @@ func Test_fts4merge5(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec(" \n  CREATE TABLE t1(docid, words);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(docid, words);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(docid, words);\n")
 		}
 	}
 	ftsKJVGenesis(t, db)
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts3; \n  INSERT INTO x1(x1) VALUES('nodesize=64');\n  INSERT INTO x1(x1) VALUES('maxpending=64');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts3; \n  INSERT INTO x1(x1) VALUES('nodesize=64');\n  INSERT INTO x1(x1) VALUES('maxpending=64');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts3; \n  INSERT INTO x1(x1) VALUES('nodesize=64');\n  INSERT INTO x1(x1) VALUES('maxpending=64');\n")
 		}
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  INSERT INTO x1(docid, content) SELECT * FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1(docid, content) SELECT * FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO x1(docid, content) SELECT * FROM t1;\n")
 		}
 	}
 	vtab.TclVarSet("tn", "", "1")
@@ -106,7 +106,7 @@ func Test_fts4merge5(t *testing.T) {
 		{ // "1.4." + tn + ".1"
 			_res = db.Exec("\n    INSERT INTO x1(x1) VALUES('merge=1,2');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(x1) VALUES('merge=1,2');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO x1(x1) VALUES('merge=1,2');\n  ")
 			}
 		}
 		tc2 = strconv.FormatInt(db.TotalChanges(), 10)
@@ -117,7 +117,7 @@ func Test_fts4merge5(t *testing.T) {
 		{ // "1.4." + tn + ".1"
 			_res = db.Exec("\n    INSERT INTO x1(x1) VALUES('integrity-check');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(x1) VALUES('integrity-check');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO x1(x1) VALUES('integrity-check');\n  ")
 			}
 		}
 		// incr tn 1
@@ -131,7 +131,7 @@ func Test_fts4merge5(t *testing.T) {
 	{ // "1.5"
 		_res = db.Exec("\n  INSERT INTO x1(x1) VALUES('maxpendinAB64');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO x1(x1) VALUES('maxpendinAB64');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO x1(x1) VALUES('maxpendinAB64');\n")
 		}
 	}
 }

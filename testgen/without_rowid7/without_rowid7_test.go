@@ -78,19 +78,19 @@ func Test_without_rowid7(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b COLLATE nocase, PRIMARY KEY(a, a, b)) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b COLLATE nocase, PRIMARY KEY(a, a, b)) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b COLLATE nocase, PRIMARY KEY(a, a, b)) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 'one'), (1, 'ONE');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a, t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a, t1.b", _res.Error, "\n  INSERT INTO t1 VALUES(1, 'one'), (1, 'ONE');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a, t1.b", resErrString(_res), "\n  INSERT INTO t1 VALUES(1, 'one'), (1, 'ONE');\n")
 		}
 	}
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "2.1"
@@ -150,7 +150,7 @@ func Test_without_rowid7(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(\n      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(\n      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
 	db.Close()
@@ -160,7 +160,7 @@ func Test_without_rowid7(t *testing.T) {
 	{ // "3.1.1"
 		_res = db.Exec("\n  SELECT * FROM t1 WHERE a=1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: mysort") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort", _res.Error, "\n  SELECT * FROM t1 WHERE a=1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort", resErrString(_res), "\n  SELECT * FROM t1 WHERE a=1;\n")
 		}
 	}
 	{ // do_test "3.1.2"
@@ -170,7 +170,7 @@ func Test_without_rowid7(t *testing.T) {
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX i1 ON t1(b);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: mysort2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort2", _res.Error, "\n  CREATE UNIQUE INDEX i1 ON t1(b);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort2", resErrString(_res), "\n  CREATE UNIQUE INDEX i1 ON t1(b);\n")
 		}
 	}
 	{ // do_test "3.2.2"
@@ -183,7 +183,7 @@ func Test_without_rowid7(t *testing.T) {
 	{ // "3.3.1"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX i1 ON t1(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: mysort") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort", _res.Error, "\n  CREATE UNIQUE INDEX i1 ON t1(1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort", resErrString(_res), "\n  CREATE UNIQUE INDEX i1 ON t1(1);\n")
 		}
 	}
 	{ // do_test "3.3.2"
@@ -223,7 +223,7 @@ func Test_without_rowid7(t *testing.T) {
 	{ // "3.6"
 		_res = db.Exec("\n  SELECT * FROM t1 WHERE a=1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: mysort") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort", _res.Error, "\n  SELECT * FROM t1 WHERE a=1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: mysort", resErrString(_res), "\n  SELECT * FROM t1 WHERE a=1;\n")
 		}
 	}
 }

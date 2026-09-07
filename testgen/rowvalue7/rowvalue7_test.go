@@ -125,19 +125,19 @@ func Test_rowvalue7(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  UPDATE t1 SET (c,d) = (SELECT x,y,z FROM t2 WHERE w=a);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 columns assigned 3 values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 columns assigned 3 values", _res.Error, "\n  UPDATE t1 SET (c,d) = (SELECT x,y,z FROM t2 WHERE w=a);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 columns assigned 3 values", resErrString(_res), "\n  UPDATE t1 SET (c,d) = (SELECT x,y,z FROM t2 WHERE w=a);\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  UPDATE t1 SET (b,c,d) = (SELECT x,y FROM t2 WHERE w=a);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 columns assigned 2 values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 columns assigned 2 values", _res.Error, "\n  UPDATE t1 SET (b,c,d) = (SELECT x,y FROM t2 WHERE w=a);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 columns assigned 2 values", resErrString(_res), "\n  UPDATE t1 SET (b,c,d) = (SELECT x,y FROM t2 WHERE w=a);\n")
 		}
 	}
 	{ // "3.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  UPDATE t1 SET (a,a,a,b)=(SELECT 99,100);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "4 columns assigned 2 values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "4 columns assigned 2 values", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  UPDATE t1 SET (a,a,a,b)=(SELECT 99,100);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "4 columns assigned 2 values", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  UPDATE t1 SET (a,a,a,b)=(SELECT 99,100);\n")
 		}
 	}
 }

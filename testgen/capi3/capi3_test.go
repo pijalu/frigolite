@@ -639,7 +639,7 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-11.3.1"
 			_res = db.Exec("\n    COMMIT;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    COMMIT;\n  ")
 			}
 		}
 		{ // do_test "capi3-11.3.2"
@@ -661,7 +661,7 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-11.6"
 			_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1;\n  ")
 			}
 		}
 		{ // "capi3-11.7" (prepare-step internals; SQL side effects only)
@@ -690,7 +690,7 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-11.9.2"
 			_res = db.Exec("\n    ROLLBACK;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ROLLBACK;\n  ")
 			}
 		}
 		{ // "capi3-11.9.3" (prepare-step internals; SQL side effects only)
@@ -717,7 +717,7 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-11.15"
 			_res = db.Exec("\n    ROLLBACK;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rollback - no transaction is active") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rollback - no transaction is active", _res.Error, "\n    ROLLBACK;\n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rollback - no transaction is active", resErrString(_res), "\n    ROLLBACK;\n  ")
 			}
 		}
 		{ // "capi3-11.15.1" (prepare-step internals; SQL side effects only)
@@ -750,7 +750,7 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-11.20"
 			_res = db.Exec("\n    BEGIN;\n    COMMIT;\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    COMMIT;\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    COMMIT;\n  ")
 			}
 		}
 		{ // do_test "capi3-11.20"
@@ -772,19 +772,19 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-12.2"
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(3, NULL);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(3, NULL);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(3, NULL);\n  ")
 			}
 		}
 		{ // do_test "capi3-12.3"
 			_res = db.Exec("\n    INSERT INTO t2 VALUES(4);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(4);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t2 VALUES(4);\n  ")
 			}
 		}
 		{ // do_test "capi3-12.4"
 			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);\n  ")
 			}
 		}
 		{ // do_test "capi3-12.5"
@@ -1074,7 +1074,7 @@ func Test_capi3(t *testing.T) {
 		{ // "20.1"
 			_res = db.Exec("\n  CREATE TABLE t4(x);\n  INSERT INTO t4 VALUES('abcdefghij');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x);\n  INSERT INTO t4 VALUES('abcdefghij');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(x);\n  INSERT INTO t4 VALUES('abcdefghij');\n")
 			}
 		}
 		{ // do_test "20.2"

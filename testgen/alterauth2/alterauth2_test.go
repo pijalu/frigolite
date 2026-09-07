@@ -85,7 +85,7 @@ func Test_alterauth2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    DELETE FROM t1 WHERE a<new.a;\n  END;\n\n  CREATE TEMP TRIGGER tr2 AFTER UPDATE OF a, b ON t1 BEGIN\n    UPDATE t1 SET a=a+1 WHERE new.b<b;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    DELETE FROM t1 WHERE a<new.a;\n  END;\n\n  CREATE TEMP TRIGGER tr2 AFTER UPDATE OF a, b ON t1 BEGIN\n    UPDATE t1 SET a=a+1 WHERE new.b<b;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t1(a, b, c); \n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    DELETE FROM t1 WHERE a<new.a;\n  END;\n\n  CREATE TEMP TRIGGER tr2 AFTER UPDATE OF a, b ON t1 BEGIN\n    UPDATE t1 SET a=a+1 WHERE new.b<b;\n  END;\n")
 		}
 	}
 	// do_auth_test 1.1 {\n  ALTER TABLE t1 RENAME TO t2;\n} {\n    {SQLITE_ALTER_TABLE main t1 {} {... (unsupported command, not transpiled)

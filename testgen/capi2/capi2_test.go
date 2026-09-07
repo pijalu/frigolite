@@ -686,7 +686,7 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-6.17"
 		_res = db.Exec("UPDATE t1 SET b=b+1")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET b=b+1")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "UPDATE t1 SET b=b+1")
 		}
 	}
 	{ // do_test "capi2-6.18"
@@ -729,7 +729,7 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-6.27"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2,4,5);\n    SELECT * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "\n    INSERT INTO t1 VALUES(2,4,5);\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "\n    INSERT INTO t1 VALUES(2,4,5);\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "capi2-6.28"

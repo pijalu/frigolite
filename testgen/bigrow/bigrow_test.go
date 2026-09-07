@@ -392,7 +392,7 @@ func Test_bigrow(t *testing.T) {
 	{ // do_test "bigrow-5.3"
 		_res = db.Exec("UPDATE t1 SET b=b||b")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET b=b||b")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "UPDATE t1 SET b=b||b")
 		}
 	}
 	{ // do_test "bigrow-5.4"
@@ -404,7 +404,7 @@ func Test_bigrow(t *testing.T) {
 	{ // do_test "bigrow-5.5"
 		_res = db.Exec("UPDATE t1 SET b=b||b")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET b=b||b")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "UPDATE t1 SET b=b||b")
 		}
 	}
 	{ // do_test "bigrow-5.6"
@@ -425,7 +425,7 @@ func Test_bigrow(t *testing.T) {
 		{ // "bigrow-6.0"
 			_res = db.Exec("\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( " + sqlLiteral(v) + " );\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( " + sqlLiteral(v) + " );\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( " + sqlLiteral(v) + " );\n  ")
 			}
 		}
 		{ // "bigrow-6.1"

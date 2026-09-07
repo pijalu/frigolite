@@ -183,7 +183,7 @@ func Test_e_resolve(t *testing.T) {
 	{ // "2.2"
 		_res = db.Exec(" SELECT * FROM xxx.n1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: xxx.n1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xxx.n1", _res.Error, " SELECT * FROM xxx.n1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xxx.n1", resErrString(_res), " SELECT * FROM xxx.n1 ")
 		}
 	}
 	db.Close()
@@ -243,25 +243,25 @@ func Test_e_resolve(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec(" SELECT * FROM temp.n2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.n2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.n2", _res.Error, " SELECT * FROM temp.n2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.n2", resErrString(_res), " SELECT * FROM temp.n2 ")
 		}
 	}
 	{ // "4.2"
 		_res = db.Exec(" SELECT * FROM main.n2 ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM main.n2 ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM main.n2 ")
 		}
 	}
 	{ // "4.3"
 		_res = db.Exec(" SELECT * FROM at1.n2 ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM at1.n2 ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM at1.n2 ")
 		}
 	}
 	{ // "4.4"
 		_res = db.Exec(" SELECT * FROM at2.n2 ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM at2.n2 ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM at2.n2 ")
 		}
 	}
 	{ // "5.1"
@@ -296,61 +296,61 @@ func Test_e_resolve(t *testing.T) {
 	{ // "6.1"
 		_res = db.Exec("\n  ATTACH 'file.db' AS aux;\n  CREATE TABLE t1(x, y);\n  CREATE TEMP TABLE t1(x, y);\n  CREATE TABLE aux.t1(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'file.db' AS aux;\n  CREATE TABLE t1(x, y);\n  CREATE TEMP TABLE t1(x, y);\n  CREATE TABLE aux.t1(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'file.db' AS aux;\n  CREATE TABLE t1(x, y);\n  CREATE TEMP TABLE t1(x, y);\n  CREATE TABLE aux.t1(x, y);\n")
 		}
 	}
 	{ // "6.2.0"
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t1 ")
 		}
 	}
 	{ // "6.2.1"
 		_res = db.Exec(" SELECT * FROM temp.t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.t1", _res.Error, " SELECT * FROM temp.t1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.t1", resErrString(_res), " SELECT * FROM temp.t1 ")
 		}
 	}
 	{ // "6.2.2"
 		_res = db.Exec(" SELECT * FROM main.t1 ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM main.t1 ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM main.t1 ")
 		}
 	}
 	{ // "6.2.3"
 		_res = db.Exec(" SELECT * FROM aux.t1  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM aux.t1  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM aux.t1  ")
 		}
 	}
 	{ // "6.3.0"
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t1 ")
 		}
 	}
 	{ // "6.3.1"
 		_res = db.Exec(" SELECT * FROM main.t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", _res.Error, " SELECT * FROM main.t1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", resErrString(_res), " SELECT * FROM main.t1 ")
 		}
 	}
 	{ // "6.3.3"
 		_res = db.Exec(" SELECT * FROM aux.t1  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM aux.t1  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM aux.t1  ")
 		}
 	}
 	{ // "6.4.0"
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t1 ")
 		}
 	}
 	{ // "6.4.1"
 		_res = db.Exec(" SELECT * FROM aux.t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: aux.t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: aux.t1", _res.Error, " SELECT * FROM aux.t1 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: aux.t1", resErrString(_res), " SELECT * FROM aux.t1 ")
 		}
 	}
 }

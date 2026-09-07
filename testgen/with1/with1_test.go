@@ -122,19 +122,19 @@ func Test_with1(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  WITH x(a) AS ( SELECT * FROM t1) INSERT INTO t1 VALUES(1,2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH x(a) AS ( SELECT * FROM t1) INSERT INTO t1 VALUES(1,2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH x(a) AS ( SELECT * FROM t1) INSERT INTO t1 VALUES(1,2);\n")
 		}
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  WITH x(a) AS ( SELECT * FROM t1) DELETE FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH x(a) AS ( SELECT * FROM t1) DELETE FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH x(a) AS ( SELECT * FROM t1) DELETE FROM t1;\n")
 		}
 	}
 	{ // "1.4"
 		_res = db.Exec("\n  WITH x(a) AS ( SELECT * FROM t1) UPDATE t1 SET x = y;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH x(a) AS ( SELECT * FROM t1) UPDATE t1 SET x = y;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH x(a) AS ( SELECT * FROM t1) UPDATE t1 SET x = y;\n")
 		}
 	}
 	{ // "2.1"
@@ -200,13 +200,13 @@ func Test_with1(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  WITH tmp2(x) AS ( SELECT * FROM tmp1 ),\n       tmp1(a) AS ( SELECT * FROM tmp2 )\n  SELECT * FROM tmp1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: tmp1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: tmp1", _res.Error, "\n  WITH tmp2(x) AS ( SELECT * FROM tmp1 ),\n       tmp1(a) AS ( SELECT * FROM tmp2 )\n  SELECT * FROM tmp1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: tmp1", resErrString(_res), "\n  WITH tmp2(x) AS ( SELECT * FROM tmp1 ),\n       tmp1(a) AS ( SELECT * FROM tmp2 )\n  SELECT * FROM tmp1;\n")
 		}
 	}
 	{ // "3.2"
 		_res = db.Exec("\n  CREATE TABLE t2(x INTEGER);\n  WITH tmp(a) AS (SELECT * FROM t1),\n       tmp(a) AS (SELECT * FROM t1)\n  SELECT * FROM tmp;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate WITH table name: tmp") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate WITH table name: tmp", _res.Error, "\n  CREATE TABLE t2(x INTEGER);\n  WITH tmp(a) AS (SELECT * FROM t1),\n       tmp(a) AS (SELECT * FROM t1)\n  SELECT * FROM tmp;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate WITH table name: tmp", resErrString(_res), "\n  CREATE TABLE t2(x INTEGER);\n  WITH tmp(a) AS (SELECT * FROM t1),\n       tmp(a) AS (SELECT * FROM t1)\n  SELECT * FROM tmp;\n")
 		}
 	}
 	{ // "3.3"
@@ -248,7 +248,7 @@ func Test_with1(t *testing.T) {
 	{ // "3.6"
 		_res = db.Exec("\n  WITH tmp AS ( SELECT * FROM t3 ),\n  SELECT * FROM tmp;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"SELECT\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"SELECT\": syntax error", _res.Error, "\n  WITH tmp AS ( SELECT * FROM t3 ),\n  SELECT * FROM tmp;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"SELECT\": syntax error", resErrString(_res), "\n  WITH tmp AS ( SELECT * FROM t3 ),\n  SELECT * FROM tmp;\n")
 		}
 	}
 	{ // "4.1"
@@ -302,7 +302,7 @@ func Test_with1(t *testing.T) {
 	{ // "5.2"
 		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i ORDER BY 1)\n  SELECT x FROM i LIMIT 10;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i ORDER BY 1)\n  SELECT x FROM i LIMIT 10;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i ORDER BY 1)\n  SELECT x FROM i LIMIT 10;\n")
 		}
 	}
 	{ // "5.2.1"
@@ -344,7 +344,7 @@ func Test_with1(t *testing.T) {
 	{ // "5.3"
 		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i LIMIT 5)\n  SELECT x FROM i;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i LIMIT 5)\n  SELECT x FROM i;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i LIMIT 5)\n  SELECT x FROM i;\n")
 		}
 	}
 	{ // "5.4"
@@ -374,49 +374,49 @@ func Test_with1(t *testing.T) {
 	{ // "5.6.1"
 		_res = db.Exec("\n  WITH i(x, y) AS ( VALUES(1) )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table i has 1 values for 2 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 1 values for 2 columns", _res.Error, "\n  WITH i(x, y) AS ( VALUES(1) )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 1 values for 2 columns", resErrString(_res), "\n  WITH i(x, y) AS ( VALUES(1) )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "5.6.2"
 		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1,2) )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table i has 2 values for 1 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", _res.Error, "\n  WITH i(x) AS ( VALUES(1,2) )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", resErrString(_res), "\n  WITH i(x) AS ( VALUES(1,2) )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "5.6.3"
 		_res = db.Exec("\n  CREATE TABLE t5(a, b);\n  WITH i(x) AS ( SELECT * FROM t5 )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table i has 2 values for 1 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", _res.Error, "\n  CREATE TABLE t5(a, b);\n  WITH i(x) AS ( SELECT * FROM t5 )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", resErrString(_res), "\n  CREATE TABLE t5(a, b);\n  WITH i(x) AS ( SELECT * FROM t5 )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "5.6.4"
 		_res = db.Exec("\n  WITH i(x) AS ( SELECT 1, 2 UNION ALL SELECT 1 )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table i has 2 values for 1 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", _res.Error, "\n  WITH i(x) AS ( SELECT 1, 2 UNION ALL SELECT 1 )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", resErrString(_res), "\n  WITH i(x) AS ( SELECT 1, 2 UNION ALL SELECT 1 )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "5.6.5"
 		_res = db.Exec("\n  WITH i(x) AS ( SELECT 1 UNION ALL SELECT 1, 2 )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n  WITH i(x) AS ( SELECT 1 UNION ALL SELECT 1, 2 )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n  WITH i(x) AS ( SELECT 1 UNION ALL SELECT 1, 2 )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "5.6.6"
 		_res = db.Exec("\n  WITH i(x) AS ( SELECT 1 UNION ALL SELECT x+1, x*2 FROM i )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION ALL do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", _res.Error, "\n  WITH i(x) AS ( SELECT 1 UNION ALL SELECT x+1, x*2 FROM i )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION ALL do not have the same number of result columns", resErrString(_res), "\n  WITH i(x) AS ( SELECT 1 UNION ALL SELECT x+1, x*2 FROM i )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "5.6.7"
 		_res = db.Exec("\n  WITH i(x) AS ( SELECT 1, 2 UNION SELECT x+1 FROM i )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table i has 2 values for 1 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", _res.Error, "\n  WITH i(x) AS ( SELECT 1, 2 UNION SELECT x+1 FROM i )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table i has 2 values for 1 columns", resErrString(_res), "\n  WITH i(x) AS ( SELECT 1, 2 UNION SELECT x+1 FROM i )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  CREATE TABLE f(\n      id INTEGER PRIMARY KEY, parentid REFERENCES f, name TEXT\n  );\n\n  INSERT INTO f VALUES(0, NULL, '');\n  INSERT INTO f VALUES(1, 0, 'bin');\n    INSERT INTO f VALUES(2, 1, 'true');\n    INSERT INTO f VALUES(3, 1, 'false');\n    INSERT INTO f VALUES(4, 1, 'ls');\n    INSERT INTO f VALUES(5, 1, 'grep');\n  INSERT INTO f VALUES(6, 0, 'etc');\n    INSERT INTO f VALUES(7, 6, 'rc.d');\n      INSERT INTO f VALUES(8, 7, 'rc.apache');\n      INSERT INTO f VALUES(9, 7, 'rc.samba');\n  INSERT INTO f VALUES(10, 0, 'home');\n    INSERT INTO f VALUES(11, 10, 'dan');\n      INSERT INTO f VALUES(12, 11, 'public_html');\n        INSERT INTO f VALUES(13, 12, 'index.html');\n          INSERT INTO f VALUES(14, 13, 'logo.gif');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE f(\n      id INTEGER PRIMARY KEY, parentid REFERENCES f, name TEXT\n  );\n\n  INSERT INTO f VALUES(0, NULL, '');\n  INSERT INTO f VALUES(1, 0, 'bin');\n    INSERT INTO f VALUES(2, 1, 'true');\n    INSERT INTO f VALUES(3, 1, 'false');\n    INSERT INTO f VALUES(4, 1, 'ls');\n    INSERT INTO f VALUES(5, 1, 'grep');\n  INSERT INTO f VALUES(6, 0, 'etc');\n    INSERT INTO f VALUES(7, 6, 'rc.d');\n      INSERT INTO f VALUES(8, 7, 'rc.apache');\n      INSERT INTO f VALUES(9, 7, 'rc.samba');\n  INSERT INTO f VALUES(10, 0, 'home');\n    INSERT INTO f VALUES(11, 10, 'dan');\n      INSERT INTO f VALUES(12, 11, 'public_html');\n        INSERT INTO f VALUES(13, 12, 'index.html');\n          INSERT INTO f VALUES(14, 13, 'logo.gif');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE f(\n      id INTEGER PRIMARY KEY, parentid REFERENCES f, name TEXT\n  );\n\n  INSERT INTO f VALUES(0, NULL, '');\n  INSERT INTO f VALUES(1, 0, 'bin');\n    INSERT INTO f VALUES(2, 1, 'true');\n    INSERT INTO f VALUES(3, 1, 'false');\n    INSERT INTO f VALUES(4, 1, 'ls');\n    INSERT INTO f VALUES(5, 1, 'grep');\n  INSERT INTO f VALUES(6, 0, 'etc');\n    INSERT INTO f VALUES(7, 6, 'rc.d');\n      INSERT INTO f VALUES(8, 7, 'rc.apache');\n      INSERT INTO f VALUES(9, 7, 'rc.samba');\n  INSERT INTO f VALUES(10, 0, 'home');\n    INSERT INTO f VALUES(11, 10, 'dan');\n      INSERT INTO f VALUES(12, 11, 'public_html');\n        INSERT INTO f VALUES(13, 12, 'index.html');\n          INSERT INTO f VALUES(14, 13, 'logo.gif');\n")
 		}
 	}
 	{ // "6.2"
@@ -458,7 +458,7 @@ func Test_with1(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE tree(i, p);\n  INSERT INTO tree VALUES(1, NULL);\n  INSERT INTO tree VALUES(2, 1);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(4, 2);\n  INSERT INTO tree VALUES(5, 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tree(i, p);\n  INSERT INTO tree VALUES(1, NULL);\n  INSERT INTO tree VALUES(2, 1);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(4, 2);\n  INSERT INTO tree VALUES(5, 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tree(i, p);\n  INSERT INTO tree VALUES(1, NULL);\n  INSERT INTO tree VALUES(2, 1);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(4, 2);\n  INSERT INTO tree VALUES(5, 4);\n")
 		}
 	}
 	{ // "7.2"
@@ -488,19 +488,19 @@ func Test_with1(t *testing.T) {
 	{ // "7.4"
 		_res = db.Exec("\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree WHERE p IN (SELECT id FROM t)\n  ) \n  SELECT id FROM t;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: t") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: t", _res.Error, "\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree WHERE p IN (SELECT id FROM t)\n  ) \n  SELECT id FROM t;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: t", resErrString(_res), "\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree WHERE p IN (SELECT id FROM t)\n  ) \n  SELECT id FROM t;\n")
 		}
 	}
 	{ // "7.5"
 		_res = db.Exec("\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id AND p IN (SELECT id FROM t)\n  ) \n  SELECT id FROM t;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "multiple recursive references: t") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "multiple recursive references: t", _res.Error, "\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id AND p IN (SELECT id FROM t)\n  ) \n  SELECT id FROM t;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "multiple recursive references: t", resErrString(_res), "\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id AND p IN (SELECT id FROM t)\n  ) \n  SELECT id FROM t;\n")
 		}
 	}
 	{ // "7.6"
 		_res = db.Exec("\n  WITH t(id) AS (\n    SELECT i FROM tree WHERE 2 IN (SELECT id FROM t)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: t") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: t", _res.Error, "\n  WITH t(id) AS (\n    SELECT i FROM tree WHERE 2 IN (SELECT id FROM t)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: t", resErrString(_res), "\n  WITH t(id) AS (\n    SELECT i FROM tree WHERE 2 IN (SELECT id FROM t)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;\n")
 		}
 	}
 	{ // "8.1-mandelbrot"
@@ -519,7 +519,7 @@ func Test_with1(t *testing.T) {
 	{ // "8.2-soduko"
 		_res = db.Exec("\n  WITH RECURSIVE\n    input(sud) AS (\n      VALUES('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')\n    ),\n  \n    /* A table filled with digits 1..9, inclusive. */\n    digits(z, lp) AS (\n      VALUES('1', 1)\n      UNION ALL SELECT\n      CAST(lp+1 AS TEXT), lp+1 FROM digits WHERE lp<9\n    ),\n  \n    /* The tricky bit. */\n    x(s, ind) AS (\n      SELECT sud, instr(sud, '.') FROM input\n      UNION ALL\n      SELECT\n        substr(s, 1, ind-1) || z || substr(s, ind+1),\n        instr( substr(s, 1, ind-1) || z || substr(s, ind+1), '.' )\n       FROM x, digits AS z\n      WHERE ind>0\n        AND NOT EXISTS (\n              SELECT 1\n                FROM digits AS lp\n               WHERE z.z = substr(s, ((ind-1)/9)*9 + lp, 1)\n                  OR z.z = substr(s, ((ind-1)%9) + (lp-1)*9 + 1, 1)\n                  OR z.z = substr(s, (((ind-1)/3) % 3) * 3\n                          + ((ind-1)/27) * 27 + lp\n                          + ((lp-1) / 3) * 6, 1)\n           )\n    )\n  SELECT s FROM x WHERE ind=0;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    input(sud) AS (\n      VALUES('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')\n    ),\n  \n    /* A table filled with digits 1..9, inclusive. */\n    digits(z, lp) AS (\n      VALUES('1', 1)\n      UNION ALL SELECT\n      CAST(lp+1 AS TEXT), lp+1 FROM digits WHERE lp<9\n    ),\n  \n    /* The tricky bit. */\n    x(s, ind) AS (\n      SELECT sud, instr(sud, '.') FROM input\n      UNION ALL\n      SELECT\n        substr(s, 1, ind-1) || z || substr(s, ind+1),\n        instr( substr(s, 1, ind-1) || z || substr(s, ind+1), '.' )\n       FROM x, digits AS z\n      WHERE ind>0\n        AND NOT EXISTS (\n              SELECT 1\n                FROM digits AS lp\n               WHERE z.z = substr(s, ((ind-1)/9)*9 + lp, 1)\n                  OR z.z = substr(s, ((ind-1)%9) + (lp-1)*9 + 1, 1)\n                  OR z.z = substr(s, (((ind-1)/3) % 3) * 3\n                          + ((ind-1)/27) * 27 + lp\n                          + ((lp-1) / 3) * 6, 1)\n           )\n    )\n  SELECT s FROM x WHERE ind=0;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH RECURSIVE\n    input(sud) AS (\n      VALUES('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')\n    ),\n  \n    /* A table filled with digits 1..9, inclusive. */\n    digits(z, lp) AS (\n      VALUES('1', 1)\n      UNION ALL SELECT\n      CAST(lp+1 AS TEXT), lp+1 FROM digits WHERE lp<9\n    ),\n  \n    /* The tricky bit. */\n    x(s, ind) AS (\n      SELECT sud, instr(sud, '.') FROM input\n      UNION ALL\n      SELECT\n        substr(s, 1, ind-1) || z || substr(s, ind+1),\n        instr( substr(s, 1, ind-1) || z || substr(s, ind+1), '.' )\n       FROM x, digits AS z\n      WHERE ind>0\n        AND NOT EXISTS (\n              SELECT 1\n                FROM digits AS lp\n               WHERE z.z = substr(s, ((ind-1)/9)*9 + lp, 1)\n                  OR z.z = substr(s, ((ind-1)%9) + (lp-1)*9 + 1, 1)\n                  OR z.z = substr(s, (((ind-1)/3) % 3) * 3\n                          + ((ind-1)/27) * 27 + lp\n                          + ((lp-1) / 3) * 6, 1)\n           )\n    )\n  SELECT s FROM x WHERE ind=0;\n")
 		}
 	}
 	_list0 := tclList([]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
@@ -540,7 +540,7 @@ func Test_with1(t *testing.T) {
 	{ // "10.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS tree;\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parentid, payload);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS tree;\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parentid, payload);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS tree;\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parentid, payload);\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -562,7 +562,7 @@ func Test_with1(t *testing.T) {
 	{ // "10.7.1"
 		_res = db.Exec("\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY a\n  ) \n  SELECT * FROM t\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", _res.Error, "\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY a\n  ) \n  SELECT * FROM t\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term does not match any column in the result set", resErrString(_res), "\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY a\n  ) \n  SELECT * FROM t\n")
 		}
 	}
 	{ // "10.7.2"
@@ -692,19 +692,19 @@ func Test_with1(t *testing.T) {
 	{ // "13.1"
 		_res = db.Exec("\n  WITH RECURSIVE c(i) AS (SELECT * UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no tables specified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", _res.Error, "\n  WITH RECURSIVE c(i) AS (SELECT * UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", resErrString(_res), "\n  WITH RECURSIVE c(i) AS (SELECT * UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
 		}
 	}
 	{ // "13.2"
 		_res = db.Exec("\n  WITH RECURSIVE c(i) AS (SELECT 5,* UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no tables specified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", _res.Error, "\n  WITH RECURSIVE c(i) AS (SELECT 5,* UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", resErrString(_res), "\n  WITH RECURSIVE c(i) AS (SELECT 5,* UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
 		}
 	}
 	{ // "13.3"
 		_res = db.Exec("\n  WITH RECURSIVE c(i,j) AS (SELECT 5,* UNION ALL SELECT i+1,11 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table c has 1 values for 2 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table c has 1 values for 2 columns", _res.Error, "\n  WITH RECURSIVE c(i,j) AS (SELECT 5,* UNION ALL SELECT i+1,11 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table c has 1 values for 2 columns", resErrString(_res), "\n  WITH RECURSIVE c(i,j) AS (SELECT 5,* UNION ALL SELECT i+1,11 FROM c WHERE i<10)\n  SELECT i FROM c;\n")
 		}
 	}
 	{ // "14.1"
@@ -716,25 +716,25 @@ func Test_with1(t *testing.T) {
 	{ // "15.1"
 		_res = db.Exec("\n  WITH RECURSIVE\n    d(x) AS (VALUES(1) UNION ALL SELECT rowid+1 FROM d WHERE rowid<10)\n  SELECT x FROM d;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  WITH RECURSIVE\n    d(x) AS (VALUES(1) UNION ALL SELECT rowid+1 FROM d WHERE rowid<10)\n  SELECT x FROM d;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", resErrString(_res), "\n  WITH RECURSIVE\n    d(x) AS (VALUES(1) UNION ALL SELECT rowid+1 FROM d WHERE rowid<10)\n  SELECT x FROM d;\n")
 		}
 	}
 	{ // "16.1"
 		_res = db.Exec("\n  WITH RECURSIVE\n    i(x) AS (VALUES(1) UNION SELECT count(*) FROM i)\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "recursive aggregate queries not supported") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "recursive aggregate queries not supported", _res.Error, "\n  WITH RECURSIVE\n    i(x) AS (VALUES(1) UNION SELECT count(*) FROM i)\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "recursive aggregate queries not supported", resErrString(_res), "\n  WITH RECURSIVE\n    i(x) AS (VALUES(1) UNION SELECT count(*) FROM i)\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "16.2"
 		_res = db.Exec("\n    WITH RECURSIVE\n      i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i)\n      SELECT * FROM i;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot use window functions in recursive queries") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot use window functions in recursive queries", _res.Error, "\n    WITH RECURSIVE\n      i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i)\n      SELECT * FROM i;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot use window functions in recursive queries", resErrString(_res), "\n    WITH RECURSIVE\n      i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i)\n      SELECT * FROM i;\n  ")
 		}
 	}
 	{ // "16.3"
 		_res = db.Exec("\n    WITH RECURSIVE\n      t(id, parent) AS (VALUES(1,2)),\n      q(id, parent, rn) AS (\n          VALUES(1,2,3)\n          UNION ALL\n          SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n          FROM q JOIN t ON t.parent = q.id\n          )\n        SELECT * FROM q;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot use window functions in recursive queries") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot use window functions in recursive queries", _res.Error, "\n    WITH RECURSIVE\n      t(id, parent) AS (VALUES(1,2)),\n      q(id, parent, rn) AS (\n          VALUES(1,2,3)\n          UNION ALL\n          SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n          FROM q JOIN t ON t.parent = q.id\n          )\n        SELECT * FROM q;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot use window functions in recursive queries", resErrString(_res), "\n    WITH RECURSIVE\n      t(id, parent) AS (VALUES(1,2)),\n      q(id, parent, rn) AS (\n          VALUES(1,2,3)\n          UNION ALL\n          SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n          FROM q JOIN t ON t.parent = q.id\n          )\n        SELECT * FROM q;\n  ")
 		}
 	}
 	{ // "17.1"
@@ -786,13 +786,13 @@ func Test_with1(t *testing.T) {
 	{ // "17.3"
 		_res = db.Exec("\n  WITH i AS (\n    WITH j AS (SELECT 5)\n    SELECT 5 FROM i UNION SELECT 8 FROM i\n  )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "circular reference: i") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", _res.Error, "\n  WITH i AS (\n    WITH j AS (SELECT 5)\n    SELECT 5 FROM i UNION SELECT 8 FROM i\n  )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "circular reference: i", resErrString(_res), "\n  WITH i AS (\n    WITH j AS (SELECT 5)\n    SELECT 5 FROM i UNION SELECT 8 FROM i\n  )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "17.4"
 		_res = db.Exec("\n  WITH i AS (\n    WITH j AS (SELECT 5)\n    SELECT 5 FROM t1 UNION SELECT 8 FROM t11\n  )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t11") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t11", _res.Error, "\n  WITH i AS (\n    WITH j AS (SELECT 5)\n    SELECT 5 FROM t1 UNION SELECT 8 FROM t11\n  )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t11", resErrString(_res), "\n  WITH i AS (\n    WITH j AS (SELECT 5)\n    SELECT 5 FROM t1 UNION SELECT 8 FROM t11\n  )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "17.5"
@@ -882,7 +882,7 @@ func Test_with1(t *testing.T) {
 	{ // "19.1a"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
 		}
 	}
 	{ // "19.1b"
@@ -930,7 +930,7 @@ func Test_with1(t *testing.T) {
 	{ // "21.1b"
 		_res = db.Exec("\n   /* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   /* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n   /* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
 		}
 	}
 	{ // "21.2"
@@ -972,7 +972,7 @@ func Test_with1(t *testing.T) {
 	{ // "24.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT max(a), min(b) FROM t1 GROUP BY c;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT max(a), min(b) FROM t1 GROUP BY c;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT max(a), min(b) FROM t1 GROUP BY c;\n")
 		}
 	}
 	{ // do_test "24.1"
@@ -1026,7 +1026,7 @@ func Test_with1(t *testing.T) {
 		{ // "26.0"
 			_res = db.Exec("\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"O\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"O\": syntax error", _res.Error, "\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"O\": syntax error", resErrString(_res), "\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
 			}
 		}
 		db.Close()
@@ -1107,7 +1107,7 @@ func Test_with1(t *testing.T) {
 		{ // "29.1"
 			_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'cte1' is not a function") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'cte1' is not a function", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'cte1' is not a function", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;\n")
 			}
 		}
 }

@@ -393,13 +393,13 @@ func Test_zeroblob(t *testing.T) {
 	{ // do_test "zeroblob-6.4"
 		_res = db.Exec("select length(zeroblob(2147483648))")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "select length(zeroblob(2147483648))")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "select length(zeroblob(2147483648))")
 		}
 	}
 	{ // do_test "zeroblob-6.5"
 		_res = db.Exec("select zeroblob(2147483648)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "select zeroblob(2147483648)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "select zeroblob(2147483648)")
 		}
 	}
 	{ // do_test "zeroblob-6.6"
@@ -568,25 +568,25 @@ func Test_zeroblob(t *testing.T) {
 	{ // "11.1"
 		_res = db.Exec(" \n  SELECT zeroblob(5000 * 1024 * 1024);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, " \n  SELECT zeroblob(5000 * 1024 * 1024);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), " \n  SELECT zeroblob(5000 * 1024 * 1024);\n")
 		}
 	}
 	{ // "11.2"
 		_res = db.Exec(" \n  SELECT quote(zeroblob(5000 * 1024 * 1024));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, " \n  SELECT quote(zeroblob(5000 * 1024 * 1024));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), " \n  SELECT quote(zeroblob(5000 * 1024 * 1024));\n")
 		}
 	}
 	{ // "11.3"
 		_res = db.Exec(" \n  SELECT quote(zeroblob(-1444444444444444));\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n  SELECT quote(zeroblob(-1444444444444444));\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " \n  SELECT quote(zeroblob(-1444444444444444));\n")
 		}
 	}
 	{ // "11.4"
 		_res = db.Exec("\n  SELECT quote(test_zeroblob(-1));\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT quote(test_zeroblob(-1));\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT quote(test_zeroblob(-1));\n")
 		}
 	}
 	// proc definition (not transpiled)

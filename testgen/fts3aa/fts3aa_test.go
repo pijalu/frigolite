@@ -330,13 +330,13 @@ func Test_fts3aa(t *testing.T) {
 	{ // "fts3aa-7.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(xyz=abc);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized parameter: xyz=abc") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: xyz=abc", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(xyz=abc);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: xyz=abc", resErrString(_res), "\n  CREATE VIRTUAL TABLE t3 USING fts4(xyz=abc);\n")
 		}
 	}
 	{ // "fts3aa-7.3"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(xyz = abc);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized parameter: xyz = abc") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: xyz = abc", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(xyz = abc);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: xyz = abc", resErrString(_res), "\n  CREATE VIRTUAL TABLE t3 USING fts4(xyz = abc);\n")
 		}
 	}
 	{ // "fts3aa-7.4"
@@ -348,13 +348,13 @@ func Test_fts3aa(t *testing.T) {
 	{ // "fts3aa-7.5"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t4 USING fts4(tokenize=simple, tokenize=simple);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized parameter: tokenize=simple") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: tokenize=simple", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(tokenize=simple, tokenize=simple);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: tokenize=simple", resErrString(_res), "\n  CREATE VIRTUAL TABLE t4 USING fts4(tokenize=simple, tokenize=simple);\n")
 		}
 	}
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts4(order=desc);\n  BEGIN;\n  INSERT INTO t0(rowid, content) VALUES(1, 'abc');\n  UPDATE t0 SET docid=5 WHERE docid=1;\n  INSERT INTO t0(rowid, content) VALUES(6, 'abc');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts4(order=desc);\n  BEGIN;\n  INSERT INTO t0(rowid, content) VALUES(1, 'abc');\n  UPDATE t0 SET docid=5 WHERE docid=1;\n  INSERT INTO t0(rowid, content) VALUES(6, 'abc');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t0 USING fts4(order=desc);\n  BEGIN;\n  INSERT INTO t0(rowid, content) VALUES(1, 'abc');\n  UPDATE t0 SET docid=5 WHERE docid=1;\n  INSERT INTO t0(rowid, content) VALUES(6, 'abc');\n")
 		}
 	}
 	{ // "8.1"
@@ -378,7 +378,7 @@ func Test_fts3aa(t *testing.T) {
 	{ // "8.3"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " COMMIT ")
 		}
 	}
 	{ // "8.4"
@@ -402,25 +402,25 @@ func Test_fts3aa(t *testing.T) {
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t9 USING fts4(a, \"\", '---');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t9 USING fts4(a, \"\", '---');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t9 USING fts4(a, \"\", '---');\n")
 		}
 	}
 	{ // "9.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t10 USING fts3(<, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t10 USING fts3(<, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t10 USING fts3(<, b, c);\n")
 		}
 	}
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE z1 USING fts3;\n  INSERT INTO z1 VALUES('one two three'),('four one five'),('six two five');\n  CREATE TRIGGER z1r1 AFTER DELETE ON z1_content BEGIN\n    DELETE FROM z1;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE z1 USING fts3;\n  INSERT INTO z1 VALUES('one two three'),('four one five'),('six two five');\n  CREATE TRIGGER z1r1 AFTER DELETE ON z1_content BEGIN\n    DELETE FROM z1;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE z1 USING fts3;\n  INSERT INTO z1 VALUES('one two three'),('four one five'),('six two five');\n  CREATE TRIGGER z1r1 AFTER DELETE ON z1_content BEGIN\n    DELETE FROM z1;\n  END;\n")
 		}
 	}
 	{ // "10.1"
 		_res = db.Exec("\n  DELETE FROM z1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DELETE FROM z1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  DELETE FROM z1;\n")
 		}
 	}
 	// expand_all_sql db (unsupported command, not transpiled)

@@ -74,7 +74,7 @@ func Test_indexexpr3(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, j);\n  INSERT INTO t1 VALUES(1, '{x:\"one\"}');\n  INSERT INTO t1 VALUES(2, '{x:\"two\"}');\n  INSERT INTO t1 VALUES(3, '{x:\"three\"}');\n\n  CREATE INDEX i1 ON t1( json_extract(j, '$.x') );\n  CREATE INDEX i2 ON t1( a, json_extract(j, '$.x') );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, j);\n  INSERT INTO t1 VALUES(1, '{x:\"one\"}');\n  INSERT INTO t1 VALUES(2, '{x:\"two\"}');\n  INSERT INTO t1 VALUES(3, '{x:\"three\"}');\n\n  CREATE INDEX i1 ON t1( json_extract(j, '$.x') );\n  CREATE INDEX i2 ON t1( a, json_extract(j, '$.x') );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, j);\n  INSERT INTO t1 VALUES(1, '{x:\"one\"}');\n  INSERT INTO t1 VALUES(2, '{x:\"two\"}');\n  INSERT INTO t1 VALUES(3, '{x:\"three\"}');\n\n  CREATE INDEX i1 ON t1( json_extract(j, '$.x') );\n  CREATE INDEX i2 ON t1( a, json_extract(j, '$.x') );\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -94,7 +94,7 @@ func Test_indexexpr3(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, j);\n  CREATE INDEX i1 ON t1( a, json_extract(j, '$.x') );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, j);\n  CREATE INDEX i1 ON t1( a, json_extract(j, '$.x') );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, j);\n  CREATE INDEX i1 ON t1( a, json_extract(j, '$.x') );\n")
 		}
 	}
 	{ // "2.1"

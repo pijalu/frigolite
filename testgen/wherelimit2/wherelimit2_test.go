@@ -68,7 +68,7 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
 		}
 	}
 	{ // "1.1"
@@ -122,7 +122,7 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "2.1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 1, 'h');\n  INSERT INTO t2 VALUES(1, 2, 'g');\n  INSERT INTO t2 VALUES(2, 1, 'f');\n  INSERT INTO t2 VALUES(2, 2, 'e');\n  INSERT INTO t2 VALUES(3, 1, 'd');\n  INSERT INTO t2 VALUES(3, 2, 'c');\n  INSERT INTO t2 VALUES(4, 1, 'b');\n  INSERT INTO t2 VALUES(4, 2, 'a');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 1, 'h');\n  INSERT INTO t2 VALUES(1, 2, 'g');\n  INSERT INTO t2 VALUES(2, 1, 'f');\n  INSERT INTO t2 VALUES(2, 2, 'e');\n  INSERT INTO t2 VALUES(3, 1, 'd');\n  INSERT INTO t2 VALUES(3, 2, 'c');\n  INSERT INTO t2 VALUES(4, 1, 'b');\n  INSERT INTO t2 VALUES(4, 2, 'a');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 1, 'h');\n  INSERT INTO t2 VALUES(1, 2, 'g');\n  INSERT INTO t2 VALUES(2, 1, 'f');\n  INSERT INTO t2 VALUES(2, 2, 'e');\n  INSERT INTO t2 VALUES(3, 1, 'd');\n  INSERT INTO t2 VALUES(3, 2, 'c');\n  INSERT INTO t2 VALUES(4, 1, 'b');\n  INSERT INTO t2 VALUES(4, 2, 'a');\n")
 		}
 	}
 	{ // "2.1.1"
@@ -152,7 +152,7 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "2.2.0"
 		_res = db.Exec("\n  DROP TABLE t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 1, 'h');\n  INSERT INTO t2 VALUES(2, 2, 'g');\n  INSERT INTO t2 VALUES(3, 1, 'f');\n  INSERT INTO t2 VALUES(4, 2, 'e');\n  INSERT INTO t2 VALUES(5, 1, 'd');\n  INSERT INTO t2 VALUES(6, 2, 'c');\n  INSERT INTO t2 VALUES(7, 1, 'b');\n  INSERT INTO t2 VALUES(8, 2, 'a');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 1, 'h');\n  INSERT INTO t2 VALUES(2, 2, 'g');\n  INSERT INTO t2 VALUES(3, 1, 'f');\n  INSERT INTO t2 VALUES(4, 2, 'e');\n  INSERT INTO t2 VALUES(5, 1, 'd');\n  INSERT INTO t2 VALUES(6, 2, 'c');\n  INSERT INTO t2 VALUES(7, 1, 'b');\n  INSERT INTO t2 VALUES(8, 2, 'a');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 1, 'h');\n  INSERT INTO t2 VALUES(2, 2, 'g');\n  INSERT INTO t2 VALUES(3, 1, 'f');\n  INSERT INTO t2 VALUES(4, 2, 'e');\n  INSERT INTO t2 VALUES(5, 1, 'd');\n  INSERT INTO t2 VALUES(6, 2, 'c');\n  INSERT INTO t2 VALUES(7, 1, 'b');\n  INSERT INTO t2 VALUES(8, 2, 'a');\n")
 		}
 	}
 	{ // "2.2.1"
@@ -182,7 +182,7 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(x);\n    INSERT INTO ft(rowid, x) VALUES(-45,   'a a');\n    INSERT INTO ft(rowid, x) VALUES(12,    'a b');\n    INSERT INTO ft(rowid, x) VALUES(444,   'a c');\n    INSERT INTO ft(rowid, x) VALUES(12300, 'a d');\n    INSERT INTO ft(rowid, x) VALUES(25400, 'a c');\n    INSERT INTO ft(rowid, x) VALUES(25401, 'a b');\n    INSERT INTO ft(rowid, x) VALUES(50000, 'a a');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts5(x);\n    INSERT INTO ft(rowid, x) VALUES(-45,   'a a');\n    INSERT INTO ft(rowid, x) VALUES(12,    'a b');\n    INSERT INTO ft(rowid, x) VALUES(444,   'a c');\n    INSERT INTO ft(rowid, x) VALUES(12300, 'a d');\n    INSERT INTO ft(rowid, x) VALUES(25400, 'a c');\n    INSERT INTO ft(rowid, x) VALUES(25401, 'a b');\n    INSERT INTO ft(rowid, x) VALUES(50000, 'a a');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE ft USING fts5(x);\n    INSERT INTO ft(rowid, x) VALUES(-45,   'a a');\n    INSERT INTO ft(rowid, x) VALUES(12,    'a b');\n    INSERT INTO ft(rowid, x) VALUES(444,   'a c');\n    INSERT INTO ft(rowid, x) VALUES(12300, 'a d');\n    INSERT INTO ft(rowid, x) VALUES(25400, 'a c');\n    INSERT INTO ft(rowid, x) VALUES(25401, 'a b');\n    INSERT INTO ft(rowid, x) VALUES(50000, 'a a');\n  ")
 		}
 	}
 	{ // "wherelimit2-3.1.1" — skipped: FTS5 MATCH DELETE ORDER BY/LIMIT in transaction not implemented N-A (no-side-effects)
@@ -198,7 +198,7 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE INDEX x1bc ON x1(b, c);\n  INSERT INTO x1 VALUES(1,1,1,1);\n  INSERT INTO x1 VALUES(2,1,2,2);\n  INSERT INTO x1 VALUES(3,2,1,3);\n  INSERT INTO x1 VALUES(4,2,2,3);\n  INSERT INTO x1 VALUES(5,3,1,2);\n  INSERT INTO x1 VALUES(6,3,2,1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE INDEX x1bc ON x1(b, c);\n  INSERT INTO x1 VALUES(1,1,1,1);\n  INSERT INTO x1 VALUES(2,1,2,2);\n  INSERT INTO x1 VALUES(3,2,1,3);\n  INSERT INTO x1 VALUES(4,2,2,3);\n  INSERT INTO x1 VALUES(5,3,1,2);\n  INSERT INTO x1 VALUES(6,3,2,1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE INDEX x1bc ON x1(b, c);\n  INSERT INTO x1 VALUES(1,1,1,1);\n  INSERT INTO x1 VALUES(2,1,2,2);\n  INSERT INTO x1 VALUES(3,2,1,3);\n  INSERT INTO x1 VALUES(4,2,2,3);\n  INSERT INTO x1 VALUES(5,3,1,2);\n  INSERT INTO x1 VALUES(6,3,2,1);\n")
 		}
 	}
 	{ // "4.1"
@@ -240,7 +240,7 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE \"x y\"(\"a b\" PRIMARY KEY, \"c d\") WITHOUT ROWID;\n  CREATE INDEX xycd ON \"x y\"(\"c d\");\n\n  INSERT INTO \"x y\" VALUES('a', 'a');\n  INSERT INTO \"x y\" VALUES('b', 'b');\n  INSERT INTO \"x y\" VALUES('c', 'c');\n  INSERT INTO \"x y\" VALUES('d', 'd');\n  INSERT INTO \"x y\" VALUES('e', 'a');\n  INSERT INTO \"x y\" VALUES('f', 'b');\n  INSERT INTO \"x y\" VALUES('g', 'c');\n  INSERT INTO \"x y\" VALUES('h', 'd');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE \"x y\"(\"a b\" PRIMARY KEY, \"c d\") WITHOUT ROWID;\n  CREATE INDEX xycd ON \"x y\"(\"c d\");\n\n  INSERT INTO \"x y\" VALUES('a', 'a');\n  INSERT INTO \"x y\" VALUES('b', 'b');\n  INSERT INTO \"x y\" VALUES('c', 'c');\n  INSERT INTO \"x y\" VALUES('d', 'd');\n  INSERT INTO \"x y\" VALUES('e', 'a');\n  INSERT INTO \"x y\" VALUES('f', 'b');\n  INSERT INTO \"x y\" VALUES('g', 'c');\n  INSERT INTO \"x y\" VALUES('h', 'd');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE \"x y\"(\"a b\" PRIMARY KEY, \"c d\") WITHOUT ROWID;\n  CREATE INDEX xycd ON \"x y\"(\"c d\");\n\n  INSERT INTO \"x y\" VALUES('a', 'a');\n  INSERT INTO \"x y\" VALUES('b', 'b');\n  INSERT INTO \"x y\" VALUES('c', 'c');\n  INSERT INTO \"x y\" VALUES('d', 'd');\n  INSERT INTO \"x y\" VALUES('e', 'a');\n  INSERT INTO \"x y\" VALUES('f', 'b');\n  INSERT INTO \"x y\" VALUES('g', 'c');\n  INSERT INTO \"x y\" VALUES('h', 'd');\n")
 		}
 	}
 	{ // "5.1"
@@ -272,7 +272,7 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "5.3"
 		_res = db.Exec("\n  CREATE VIEW \"v w\" AS SELECT * FROM \"x y\";\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON \"v w\" BEGIN\n    SELECT log(old.\"a b\", old.\"c d\");\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON \"v w\" BEGIN\n    SELECT log(new.\"a b\", new.\"c d\");\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW \"v w\" AS SELECT * FROM \"x y\";\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON \"v w\" BEGIN\n    SELECT log(old.\"a b\", old.\"c d\");\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON \"v w\" BEGIN\n    SELECT log(new.\"a b\", new.\"c d\");\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW \"v w\" AS SELECT * FROM \"x y\";\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON \"v w\" BEGIN\n    SELECT log(old.\"a b\", old.\"c d\");\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON \"v w\" BEGIN\n    SELECT log(new.\"a b\", new.\"c d\");\n  END;\n")
 		}
 	}
 	{ // do_test "5.4"
@@ -315,13 +315,13 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t2(x);  \n  INSERT INTO t2(x) VALUES(1),(2),(3),(5),(8),(13);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);  \n  INSERT INTO t2(x) VALUES(1),(2),(3),(5),(8),(13);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x);  \n  INSERT INTO t2(x) VALUES(1),(2),(3),(5),(8),(13);\n")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  WITH t2 AS MATERIALIZED (VALUES(5))\n  DELETE FROM t2 ORDER BY rank()OVER() LIMIT 2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t2 AS MATERIALIZED (VALUES(5))\n  DELETE FROM t2 ORDER BY rank()OVER() LIMIT 2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t2 AS MATERIALIZED (VALUES(5))\n  DELETE FROM t2 ORDER BY rank()OVER() LIMIT 2;\n")
 		}
 	}
 	{ // "wherelimit2-6.2" — skipped: depends on window-function DELETE side effect (6.1) N-A (SQL side effects only)
@@ -331,13 +331,13 @@ func Test_wherelimit2(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT); INSERT INTO t1(a) VALUES(0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT); INSERT INTO t1(a) VALUES(0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT); INSERT INTO t1(a) VALUES(0);\n")
 		}
 	}
 	{ // "7.1"
 		_res = db.Exec("\n  WITH t1(b) AS (SELECT * FROM (SELECT * FROM (VALUES(2))))\n  UPDATE t1 SET a=3 LIMIT 1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t1(b) AS (SELECT * FROM (SELECT * FROM (VALUES(2))))\n  UPDATE t1 SET a=3 LIMIT 1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH t1(b) AS (SELECT * FROM (SELECT * FROM (VALUES(2))))\n  UPDATE t1 SET a=3 LIMIT 1;\n")
 		}
 	}
 	{ // "7.2"

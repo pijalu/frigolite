@@ -80,7 +80,7 @@ func Test_windowC(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, x);\n")
 		}
 	}
 	// foreach {tn bBlob seps} "1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}"

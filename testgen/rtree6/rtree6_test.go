@@ -170,13 +170,13 @@ func Test_rtree6(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1);\n")
 		}
 	}
 	{ // "4.1"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE x0>1 AND x1<2 OR y0<92;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE x0>1 AND x1<2 OR y0<92;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE x0>1 AND x1<2 OR y0<92;\n")
 		}
 	}
 	// expand_all_sql db (unsupported command, not transpiled)

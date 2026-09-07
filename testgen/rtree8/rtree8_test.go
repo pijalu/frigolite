@@ -286,7 +286,7 @@ func Test_rtree8(t *testing.T) {
 	{ // "rtree8-2.1.2"
 		_res = db.Exec(" DELETE FROM t1_node ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1_node ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM t1_node ")
 		}
 	}
 	vtab.TclVarSet("i", "", "1")
@@ -296,7 +296,7 @@ func Test_rtree8(t *testing.T) {
 		{ // "rtree8-2.1.3." + i
 			_res = db.Exec(" \n    SELECT * FROM t1 WHERE id = " + sqlLiteral(i) + " \n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, " \n    SELECT * FROM t1 WHERE id = " + sqlLiteral(i) + " \n  ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), " \n    SELECT * FROM t1 WHERE id = " + sqlLiteral(i) + " \n  ")
 			}
 		}
 		// incr i 1
@@ -310,19 +310,19 @@ func Test_rtree8(t *testing.T) {
 	{ // "rtree8-2.1.4"
 		_res = db.Exec(" \n  SELECT * FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, " \n  SELECT * FROM t1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), " \n  SELECT * FROM t1\n")
 		}
 	}
 	{ // "rtree8-2.1.5"
 		_res = db.Exec(" \n  DELETE FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, " \n  DELETE FROM t1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), " \n  DELETE FROM t1\n")
 		}
 	}
 	{ // "rtree8-2.1.6"
 		_res = db.Exec(" \n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING rtree_i32(id, x1, x2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING rtree_i32(id, x1, x2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING rtree_i32(id, x1, x2);\n")
 		}
 	}
 	_res = db.Exec("DELETE FROM t1")
@@ -335,19 +335,19 @@ func Test_rtree8(t *testing.T) {
 	{ // "rtree8-2.2.1"
 		_res = db.Exec("\n  DELETE FROM t1_parent\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1_parent\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1_parent\n")
 		}
 	}
 	{ // "rtree8-2.2.2"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE id=25\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  DELETE FROM t1 WHERE id=25\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  DELETE FROM t1 WHERE id=25\n")
 		}
 	}
 	{ // "rtree8-2.2.3"
 		_res = db.Exec(" \n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING rtree_i32(id, x1, x2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING rtree_i32(id, x1, x2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING rtree_i32(id, x1, x2);\n")
 		}
 	}
 	_res = db.Exec("DELETE FROM t1")
@@ -359,25 +359,25 @@ func Test_rtree8(t *testing.T) {
 	{ // "rtree8-3.1"
 		_res = db.Exec(" \n  SELECT * FROM t1 WHERE x1 MATCH '1234'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1 WHERE x1 MATCH '1234'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT * FROM t1 WHERE x1 MATCH '1234'\n")
 		}
 	}
 	{ // "rtree8-4.1"
 		_res = db.Exec("\n  SELECT rtreedepth('hello world')\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Invalid argument to rtreedepth()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Invalid argument to rtreedepth()", _res.Error, "\n  SELECT rtreedepth('hello world')\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Invalid argument to rtreedepth()", resErrString(_res), "\n  SELECT rtreedepth('hello world')\n")
 		}
 	}
 	{ // "rtree8-4.2"
 		_res = db.Exec("\n  SELECT rtreedepth(X'00')\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Invalid argument to rtreedepth()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Invalid argument to rtreedepth()", _res.Error, "\n  SELECT rtreedepth(X'00')\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Invalid argument to rtreedepth()", resErrString(_res), "\n  SELECT rtreedepth(X'00')\n")
 		}
 	}
 	{ // "rtree8-5.1"
 		_res = db.Exec(" \n  CREATE VIRTUAL TABLE t2 USING rtree_i32(id, x1, x2) \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE VIRTUAL TABLE t2 USING rtree_i32(id, x1, x2) \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE VIRTUAL TABLE t2 USING rtree_i32(id, x1, x2) \n")
 		}
 	}
 	{ // do_test "rtree8-5.2"

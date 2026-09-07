@@ -66,13 +66,13 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-1.1.1"
 		_res = db.Exec("\n     CREATE TRIGGER trig UPDATE ON no_such_table BEGIN\n       SELECT * from sqlite_master;\n     END;\n   ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.no_such_table") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.no_such_table", _res.Error, "\n     CREATE TRIGGER trig UPDATE ON no_such_table BEGIN\n       SELECT * from sqlite_master;\n     END;\n   ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.no_such_table", resErrString(_res), "\n     CREATE TRIGGER trig UPDATE ON no_such_table BEGIN\n       SELECT * from sqlite_master;\n     END;\n   ")
 		}
 	}
 	{ // do_test "trigger1-1.1.2"
 		_res = db.Exec("\n       CREATE TEMP TRIGGER trig UPDATE ON no_such_table BEGIN\n         SELECT * from sqlite_master;\n       END;\n     ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: no_such_table") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: no_such_table", _res.Error, "\n       CREATE TEMP TRIGGER trig UPDATE ON no_such_table BEGIN\n         SELECT * from sqlite_master;\n       END;\n     ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: no_such_table", resErrString(_res), "\n       CREATE TEMP TRIGGER trig UPDATE ON no_such_table BEGIN\n         SELECT * from sqlite_master;\n       END;\n     ")
 		}
 	}
 	_res = db.Exec("\n    CREATE TABLE t1(a);\n")
@@ -82,7 +82,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-1.1.3"
 		_res = db.Exec("\n     CREATE TRIGGER trig UPDATE ON t1 FOR EACH STATEMENT BEGIN\n        SELECT * FROM sqlite_master;\n     END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"STATEMENT\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"STATEMENT\": syntax error", _res.Error, "\n     CREATE TRIGGER trig UPDATE ON t1 FOR EACH STATEMENT BEGIN\n        SELECT * FROM sqlite_master;\n     END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"STATEMENT\": syntax error", resErrString(_res), "\n     CREATE TRIGGER trig UPDATE ON t1 FOR EACH STATEMENT BEGIN\n        SELECT * FROM sqlite_master;\n     END;\n  ")
 		}
 	}
 	_res = db.Exec("\n        CREATE TRIGGER tr1 INSERT ON t1 BEGIN\n          INSERT INTO t1 values(1);\n         END;\n")
@@ -92,37 +92,37 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-1.2.0"
 		_res = db.Exec("\n        CREATE TRIGGER IF NOT EXISTS tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        CREATE TRIGGER IF NOT EXISTS tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        CREATE TRIGGER IF NOT EXISTS tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		}
 	}
 	{ // do_test "trigger1-1.2.1"
 		_res = db.Exec("\n        CREATE TRIGGER tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger tr1 already exists") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger tr1 already exists", _res.Error, "\n        CREATE TRIGGER tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger tr1 already exists", resErrString(_res), "\n        CREATE TRIGGER tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		}
 	}
 	{ // do_test "trigger1-1.2.2"
 		_res = db.Exec("\n        CREATE TRIGGER \"tr1\" DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger \"tr1\" already exists") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger \"tr1\" already exists", _res.Error, "\n        CREATE TRIGGER \"tr1\" DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger \"tr1\" already exists", resErrString(_res), "\n        CREATE TRIGGER \"tr1\" DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		}
 	}
 	{ // do_test "trigger1-1.2.3"
 		_res = db.Exec("\n        CREATE TRIGGER [tr1] DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger [tr1] already exists") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger [tr1] already exists", _res.Error, "\n        CREATE TRIGGER [tr1] DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger [tr1] already exists", resErrString(_res), "\n        CREATE TRIGGER [tr1] DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		}
 	}
 	{ // do_test "trigger1-1.3"
 		_res = db.Exec("\n        BEGIN;\n        CREATE TRIGGER tr2 INSERT ON t1 BEGIN\n            SELECT * from sqlite_master; END;\n        ROLLBACK;\n        CREATE TRIGGER tr2 INSERT ON t1 BEGIN\n            SELECT * from sqlite_master; END;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        BEGIN;\n        CREATE TRIGGER tr2 INSERT ON t1 BEGIN\n            SELECT * from sqlite_master; END;\n        ROLLBACK;\n        CREATE TRIGGER tr2 INSERT ON t1 BEGIN\n            SELECT * from sqlite_master; END;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        BEGIN;\n        CREATE TRIGGER tr2 INSERT ON t1 BEGIN\n            SELECT * from sqlite_master; END;\n        ROLLBACK;\n        CREATE TRIGGER tr2 INSERT ON t1 BEGIN\n            SELECT * from sqlite_master; END;\n    ")
 		}
 	}
 	{ // do_test "trigger1-1.4"
 		_res = db.Exec("\n        DROP TRIGGER IF EXISTS tr1;\n        CREATE TRIGGER tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n        END\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        DROP TRIGGER IF EXISTS tr1;\n        CREATE TRIGGER tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n        END\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        DROP TRIGGER IF EXISTS tr1;\n        CREATE TRIGGER tr1 DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n        END\n    ")
 		}
 	}
 	{ // do_test "trigger1-1.5"
@@ -134,19 +134,19 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-1.6.1"
 		_res = db.Exec("\n        DROP TRIGGER IF EXISTS biggles;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n        DROP TRIGGER IF EXISTS biggles;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n        DROP TRIGGER IF EXISTS biggles;\n    ")
 		}
 	}
 	{ // do_test "trigger1-1.6.2"
 		_res = db.Exec("\n        DROP TRIGGER biggles;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such trigger: biggles") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such trigger: biggles", _res.Error, "\n        DROP TRIGGER biggles;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such trigger: biggles", resErrString(_res), "\n        DROP TRIGGER biggles;\n    ")
 		}
 	}
 	{ // do_test "trigger1-1.7"
 		_res = db.Exec("\n        DROP TABLE t1;\n        DROP TRIGGER tr1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such trigger: tr1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such trigger: tr1", _res.Error, "\n        DROP TABLE t1;\n        DROP TRIGGER tr1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such trigger: tr1", resErrString(_res), "\n        DROP TABLE t1;\n        DROP TRIGGER tr1;\n    ")
 		}
 	}
 	_res = db.Exec("\n    CREATE TEMP TABLE temp_table(a);\n  ")
@@ -162,7 +162,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-1.9"
 		_res = db.Exec("\n    CREATE TRIGGER tr1 AFTER UPDATE ON sqlite_master BEGIN\n       SELECT * FROM sqlite_master;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create trigger on system table") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create trigger on system table", _res.Error, "\n    CREATE TRIGGER tr1 AFTER UPDATE ON sqlite_master BEGIN\n       SELECT * FROM sqlite_master;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create trigger on system table", resErrString(_res), "\n    CREATE TRIGGER tr1 AFTER UPDATE ON sqlite_master BEGIN\n       SELECT * FROM sqlite_master;\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-1.10"
@@ -180,31 +180,31 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-1.12"
 		_res = db.Exec("\n    create table t1(a,b);\n    create trigger t1t instead of update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create INSTEAD OF trigger on table: t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create INSTEAD OF trigger on table: t1", _res.Error, "\n    create table t1(a,b);\n    create trigger t1t instead of update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create INSTEAD OF trigger on table: t1", resErrString(_res), "\n    create table t1(a,b);\n    create trigger t1t instead of update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
 		}
 	}
 	{ // do_test "trigger1-1.13"
 		_res = db.Exec("\n    create view v1 as select * from t1;\n    create trigger v1t before update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create BEFORE trigger on view: v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create BEFORE trigger on view: v1", _res.Error, "\n    create view v1 as select * from t1;\n    create trigger v1t before update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create BEFORE trigger on view: v1", resErrString(_res), "\n    create view v1 as select * from t1;\n    create trigger v1t before update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
 		}
 	}
 	{ // do_test "trigger1-1.14"
 		_res = db.Exec("\n    drop view v1;\n    create view v1 as select * from t1;\n    create trigger v1t AFTER update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot create AFTER trigger on view: v1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create AFTER trigger on view: v1", _res.Error, "\n    drop view v1;\n    create view v1 as select * from t1;\n    create trigger v1t AFTER update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot create AFTER trigger on view: v1", resErrString(_res), "\n    drop view v1;\n    create view v1 as select * from t1;\n    create trigger v1t AFTER update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
 		}
 	}
 	{ // do_test "trigger1-2.1"
 		_res = db.Exec("\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \";\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", _res.Error, "\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", resErrString(_res), "\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-2.2"
 		_res = db.Exec("\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM t1;\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \";\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", _res.Error, "\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM t1;\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", resErrString(_res), "\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM t1;\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-3.1"
@@ -218,7 +218,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-3.2"
 		_res = db.Exec("\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", _res.Error, "\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", resErrString(_res), "\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		}
 	}
 	{ // "trigger1-3.3" (prepare-step internals; SQL side effects only)
@@ -250,25 +250,25 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-3.4"
 		_res = db.Exec("\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", _res.Error, "\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", resErrString(_res), "\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		}
 	}
 	{ // do_test "trigger1-3.5"
 		_res = db.Exec("\n      CREATE TEMP TABLE t2(x,y);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", _res.Error, "\n      CREATE TEMP TABLE t2(x,y);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t2", resErrString(_res), "\n      CREATE TEMP TABLE t2(x,y);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		}
 	}
 	{ // do_test "trigger1-3.6.1"
 		_res = db.Exec("\n      DROP TRIGGER r1;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b), (NEW.b*100, NEW.a*100);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER r1;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b), (NEW.b*100, NEW.a*100);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      DROP TRIGGER r1;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b), (NEW.b*100, NEW.a*100);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		}
 	}
 	{ // do_test "trigger1-3.6.2"
 		_res = db.Exec("\n      DROP TRIGGER r1;\n      DELETE FROM t1;\n      DELETE FROM t2;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER r1;\n      DELETE FROM t1;\n      DELETE FROM t2;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      DROP TRIGGER r1;\n      DELETE FROM t1;\n      DELETE FROM t2;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 		}
 	}
 	{ // do_test "trigger1-3.7"
@@ -352,7 +352,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-6.3"
 		_res = db.Exec("DELETE FROM t2")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "deletes are not permitted") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "deletes are not permitted", _res.Error, "DELETE FROM t2")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "deletes are not permitted", resErrString(_res), "DELETE FROM t2")
 		}
 	}
 	// verify_ex_errcode trigger1-6.3b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
@@ -525,7 +525,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-11.1"
 		_res = db.Exec("SELECT raise(abort,'message');")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "RAISE() may only be used within a trigger-program") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RAISE() may only be used within a trigger-program", _res.Error, "SELECT raise(abort,'message');")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RAISE() may only be used within a trigger-program", resErrString(_res), "SELECT raise(abort,'message');")
 		}
 	}
 	{ // do_test "trigger1-15.1"
@@ -539,7 +539,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-15.2"
 		_res = db.Exec(" INSERT INTO tA VALUES('abc', 2, 3) ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", _res.Error, " INSERT INTO tA VALUES('abc', 2, 3) ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", resErrString(_res), " INSERT INTO tA VALUES('abc', 2, 3) ")
 		}
 	}
 	{ // do_test "trigger1-16.1"
@@ -550,37 +550,37 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-16.2"
 		_res = db.Exec("\n    CREATE TRIGGER main.t16err2 AFTER INSERT ON tA BEGIN\n      UPDATE main.t16 SET rowid=rowid+1;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", _res.Error, "\n    CREATE TRIGGER main.t16err2 AFTER INSERT ON tA BEGIN\n      UPDATE main.t16 SET rowid=rowid+1;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", resErrString(_res), "\n    CREATE TRIGGER main.t16err2 AFTER INSERT ON tA BEGIN\n      UPDATE main.t16 SET rowid=rowid+1;\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-16.3"
 		_res = db.Exec("\n    CREATE TRIGGER main.t16err3 AFTER INSERT ON tA BEGIN\n      DELETE FROM main.t16;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", _res.Error, "\n    CREATE TRIGGER main.t16err3 AFTER INSERT ON tA BEGIN\n      DELETE FROM main.t16;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers", resErrString(_res), "\n    CREATE TRIGGER main.t16err3 AFTER INSERT ON tA BEGIN\n      DELETE FROM main.t16;\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-16.4"
 		_res = db.Exec("\n    CREATE TRIGGER main.t16err4 AFTER INSERT ON tA BEGIN\n      UPDATE t16 NOT INDEXED SET rowid=rowid+1;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers", _res.Error, "\n    CREATE TRIGGER main.t16err4 AFTER INSERT ON tA BEGIN\n      UPDATE t16 NOT INDEXED SET rowid=rowid+1;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers", resErrString(_res), "\n    CREATE TRIGGER main.t16err4 AFTER INSERT ON tA BEGIN\n      UPDATE t16 NOT INDEXED SET rowid=rowid+1;\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-16.5"
 		_res = db.Exec("\n    CREATE TRIGGER main.t16err5 AFTER INSERT ON tA BEGIN\n      UPDATE t16 INDEXED BY t16a SET rowid=rowid+1 WHERE a=1;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers", _res.Error, "\n    CREATE TRIGGER main.t16err5 AFTER INSERT ON tA BEGIN\n      UPDATE t16 INDEXED BY t16a SET rowid=rowid+1 WHERE a=1;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers", resErrString(_res), "\n    CREATE TRIGGER main.t16err5 AFTER INSERT ON tA BEGIN\n      UPDATE t16 INDEXED BY t16a SET rowid=rowid+1 WHERE a=1;\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-16.6"
 		_res = db.Exec("\n    CREATE TRIGGER main.t16err6 AFTER INSERT ON tA BEGIN\n      DELETE FROM t16 NOT INDEXED WHERE a=123;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers", _res.Error, "\n    CREATE TRIGGER main.t16err6 AFTER INSERT ON tA BEGIN\n      DELETE FROM t16 NOT INDEXED WHERE a=123;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers", resErrString(_res), "\n    CREATE TRIGGER main.t16err6 AFTER INSERT ON tA BEGIN\n      DELETE FROM t16 NOT INDEXED WHERE a=123;\n    END;\n  ")
 		}
 	}
 	{ // do_test "trigger1-16.7"
 		_res = db.Exec("\n    CREATE TRIGGER main.t16err7 AFTER INSERT ON tA BEGIN\n      DELETE FROM t16 INDEXED BY t16a WHERE a=123;\n    END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers", _res.Error, "\n    CREATE TRIGGER main.t16err7 AFTER INSERT ON tA BEGIN\n      DELETE FROM t16 INDEXED BY t16a WHERE a=123;\n    END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers", resErrString(_res), "\n    CREATE TRIGGER main.t16err7 AFTER INSERT ON tA BEGIN\n      DELETE FROM t16 INDEXED BY t16a WHERE a=123;\n    END;\n  ")
 		}
 	}
 	{ // "trigger1-17.0"
@@ -650,7 +650,7 @@ func Test_trigger1(t *testing.T) {
 	{ // "trigger1-20.1"
 		_res = db.Exec("\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
 		}
 	}
 	db.Close()
@@ -698,19 +698,19 @@ func Test_trigger1(t *testing.T) {
 	{ // "trigger1-23.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1 SELECT e_master LIMIT 1,#1;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  CREATE TABLE t1(a INT);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1 SELECT e_master LIMIT 1,#1;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", resErrString(_res), "\n  CREATE TABLE t1(a INT);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1 SELECT e_master LIMIT 1,#1;\n  END;\n")
 		}
 	}
 	{ // "trigger1-24.1"
 		_res = db.Exec("\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT raise(abort,format('attempt to insert %d where is not a power of 2',new.a))\n     WHERE (new.a & (new.a-1))!=0;\n  END;\n  INSERT INTO t1 VALUES(0),(1),(2),(4),(8),(65536);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT raise(abort,format('attempt to insert %d where is not a power of 2',new.a))\n     WHERE (new.a & (new.a-1))!=0;\n  END;\n  INSERT INTO t1 VALUES(0),(1),(2),(4),(8),(65536);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT raise(abort,format('attempt to insert %d where is not a power of 2',new.a))\n     WHERE (new.a & (new.a-1))!=0;\n  END;\n  INSERT INTO t1 VALUES(0),(1),(2),(4),(8),(65536);\n")
 		}
 	}
 	{ // "trigger1-24.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(9876);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to insert 9876 where is not a power of 2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to insert 9876 where is not a power of 2", _res.Error, "\n  INSERT INTO t1 VALUES(9876);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to insert 9876 where is not a power of 2", resErrString(_res), "\n  INSERT INTO t1 VALUES(9876);\n")
 		}
 	}
 }

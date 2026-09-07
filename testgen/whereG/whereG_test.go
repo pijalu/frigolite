@@ -68,7 +68,7 @@ func Test_whereG(t *testing.T) {
 	{ // "whereG-1.0"
 		_res = db.Exec("\n  CREATE TABLE composer(\n    cid INTEGER PRIMARY KEY,\n    cname TEXT\n  );\n  CREATE TABLE album(\n    aid INTEGER PRIMARY KEY,\n    aname TEXT\n  );\n  CREATE TABLE track(\n    tid INTEGER PRIMARY KEY,\n    cid INTEGER REFERENCES composer,\n    aid INTEGER REFERENCES album,\n    title TEXT\n  );\n  CREATE INDEX track_i1 ON track(cid);\n  CREATE INDEX track_i2 ON track(aid);\n  INSERT INTO composer VALUES(1, 'W. A. Mozart');\n  INSERT INTO composer VALUES(2, 'Beethoven');\n  INSERT INTO composer VALUES(3, 'Thomas Tallis');\n  INSERT INTO composer VALUES(4, 'Joseph Hayden');\n  INSERT INTO composer VALUES(5, 'Thomas Weelkes');\n  INSERT INTO composer VALUES(6, 'J. S. Bach');\n  INSERT INTO composer VALUES(7, 'Orlando Gibbons');\n  INSERT INTO composer VALUES(8, 'Josquin des Prés');\n  INSERT INTO composer VALUES(9, 'Byrd');\n  INSERT INTO composer VALUES(10, 'Francis Poulenc');\n  INSERT INTO composer VALUES(11, 'Mendelsshon');\n  INSERT INTO composer VALUES(12, 'Zoltán Kodály');\n  INSERT INTO composer VALUES(13, 'Handel');\n  INSERT INTO album VALUES(100, 'Kodály: Missa Brevis');\n  INSERT INTO album VALUES(101, 'Messiah');\n  INSERT INTO album VALUES(102, 'Missa Brevis in D-, K.65');\n  INSERT INTO album VALUES(103, 'The complete English anthems');\n  INSERT INTO album VALUES(104, 'Mass in B Minor, BWV 232');\n  INSERT INTO track VALUES(10005, 12, 100, 'Sanctus');\n  INSERT INTO track VALUES(10007, 12, 100, 'Agnus Dei');\n  INSERT INTO track VALUES(10115, 13, 101, 'Surely He Hath Borne Our Griefs');\n  INSERT INTO track VALUES(10129, 13, 101, 'Since By Man Came Death');\n  INSERT INTO track VALUES(10206, 1, 102, 'Agnus Dei');\n  INSERT INTO track VALUES(10301, 3, 103, 'If Ye Love Me');\n  INSERT INTO track VALUES(10402, 6, 104, 'Domine Deus');\n  INSERT INTO track VALUES(10403, 6, 104, 'Qui tollis');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE composer(\n    cid INTEGER PRIMARY KEY,\n    cname TEXT\n  );\n  CREATE TABLE album(\n    aid INTEGER PRIMARY KEY,\n    aname TEXT\n  );\n  CREATE TABLE track(\n    tid INTEGER PRIMARY KEY,\n    cid INTEGER REFERENCES composer,\n    aid INTEGER REFERENCES album,\n    title TEXT\n  );\n  CREATE INDEX track_i1 ON track(cid);\n  CREATE INDEX track_i2 ON track(aid);\n  INSERT INTO composer VALUES(1, 'W. A. Mozart');\n  INSERT INTO composer VALUES(2, 'Beethoven');\n  INSERT INTO composer VALUES(3, 'Thomas Tallis');\n  INSERT INTO composer VALUES(4, 'Joseph Hayden');\n  INSERT INTO composer VALUES(5, 'Thomas Weelkes');\n  INSERT INTO composer VALUES(6, 'J. S. Bach');\n  INSERT INTO composer VALUES(7, 'Orlando Gibbons');\n  INSERT INTO composer VALUES(8, 'Josquin des Prés');\n  INSERT INTO composer VALUES(9, 'Byrd');\n  INSERT INTO composer VALUES(10, 'Francis Poulenc');\n  INSERT INTO composer VALUES(11, 'Mendelsshon');\n  INSERT INTO composer VALUES(12, 'Zoltán Kodály');\n  INSERT INTO composer VALUES(13, 'Handel');\n  INSERT INTO album VALUES(100, 'Kodály: Missa Brevis');\n  INSERT INTO album VALUES(101, 'Messiah');\n  INSERT INTO album VALUES(102, 'Missa Brevis in D-, K.65');\n  INSERT INTO album VALUES(103, 'The complete English anthems');\n  INSERT INTO album VALUES(104, 'Mass in B Minor, BWV 232');\n  INSERT INTO track VALUES(10005, 12, 100, 'Sanctus');\n  INSERT INTO track VALUES(10007, 12, 100, 'Agnus Dei');\n  INSERT INTO track VALUES(10115, 13, 101, 'Surely He Hath Borne Our Griefs');\n  INSERT INTO track VALUES(10129, 13, 101, 'Since By Man Came Death');\n  INSERT INTO track VALUES(10206, 1, 102, 'Agnus Dei');\n  INSERT INTO track VALUES(10301, 3, 103, 'If Ye Love Me');\n  INSERT INTO track VALUES(10402, 6, 104, 'Domine Deus');\n  INSERT INTO track VALUES(10403, 6, 104, 'Qui tollis');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE composer(\n    cid INTEGER PRIMARY KEY,\n    cname TEXT\n  );\n  CREATE TABLE album(\n    aid INTEGER PRIMARY KEY,\n    aname TEXT\n  );\n  CREATE TABLE track(\n    tid INTEGER PRIMARY KEY,\n    cid INTEGER REFERENCES composer,\n    aid INTEGER REFERENCES album,\n    title TEXT\n  );\n  CREATE INDEX track_i1 ON track(cid);\n  CREATE INDEX track_i2 ON track(aid);\n  INSERT INTO composer VALUES(1, 'W. A. Mozart');\n  INSERT INTO composer VALUES(2, 'Beethoven');\n  INSERT INTO composer VALUES(3, 'Thomas Tallis');\n  INSERT INTO composer VALUES(4, 'Joseph Hayden');\n  INSERT INTO composer VALUES(5, 'Thomas Weelkes');\n  INSERT INTO composer VALUES(6, 'J. S. Bach');\n  INSERT INTO composer VALUES(7, 'Orlando Gibbons');\n  INSERT INTO composer VALUES(8, 'Josquin des Prés');\n  INSERT INTO composer VALUES(9, 'Byrd');\n  INSERT INTO composer VALUES(10, 'Francis Poulenc');\n  INSERT INTO composer VALUES(11, 'Mendelsshon');\n  INSERT INTO composer VALUES(12, 'Zoltán Kodály');\n  INSERT INTO composer VALUES(13, 'Handel');\n  INSERT INTO album VALUES(100, 'Kodály: Missa Brevis');\n  INSERT INTO album VALUES(101, 'Messiah');\n  INSERT INTO album VALUES(102, 'Missa Brevis in D-, K.65');\n  INSERT INTO album VALUES(103, 'The complete English anthems');\n  INSERT INTO album VALUES(104, 'Mass in B Minor, BWV 232');\n  INSERT INTO track VALUES(10005, 12, 100, 'Sanctus');\n  INSERT INTO track VALUES(10007, 12, 100, 'Agnus Dei');\n  INSERT INTO track VALUES(10115, 13, 101, 'Surely He Hath Borne Our Griefs');\n  INSERT INTO track VALUES(10129, 13, 101, 'Since By Man Came Death');\n  INSERT INTO track VALUES(10206, 1, 102, 'Agnus Dei');\n  INSERT INTO track VALUES(10301, 3, 103, 'If Ye Love Me');\n  INSERT INTO track VALUES(10402, 6, 104, 'Domine Deus');\n  INSERT INTO track VALUES(10403, 6, 104, 'Qui tollis');\n")
 		}
 	}
 	{ // "whereG-1.1"
@@ -146,25 +146,25 @@ func Test_whereG(t *testing.T) {
 	{ // do_test "whereG-2.1"
 		_res = db.Exec("\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', -0.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to likelihood() must be a constant between 0.0 and 1.0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", _res.Error, "\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', -0.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", resErrString(_res), "\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', -0.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
 		}
 	}
 	{ // do_test "whereG-2.2"
 		_res = db.Exec("\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', 1.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to likelihood() must be a constant between 0.0 and 1.0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", _res.Error, "\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', 1.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", resErrString(_res), "\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', 1.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
 		}
 	}
 	{ // do_test "whereG-2.3"
 		_res = db.Exec("\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', track.cid)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to likelihood() must be a constant between 0.0 and 1.0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", _res.Error, "\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', track.cid)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to likelihood() must be a constant between 0.0 and 1.0", resErrString(_res), "\n    SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', track.cid)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;\n  ")
 		}
 	}
 	{ // "whereG-3.0"
 		_res = db.Exec("\n  CREATE TABLE a(a1 PRIMARY KEY, a2);\n  CREATE TABLE b(b1 PRIMARY KEY, b2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a(a1 PRIMARY KEY, a2);\n  CREATE TABLE b(b1 PRIMARY KEY, b2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE a(a1 PRIMARY KEY, a2);\n  CREATE TABLE b(b1 PRIMARY KEY, b2);\n")
 		}
 	}
 	{ // "whereG-3.1"
@@ -213,7 +213,7 @@ func Test_whereG(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		}
 	}
 	{ // "5.1.2"
@@ -462,7 +462,7 @@ func Test_whereG(t *testing.T) {
 	{ // "8.11"
 		_res = db.Exec("\n  CREATE TABLE t1(c0 INT);\n  INSERT INTO t1(c0) VALUES (NULL);\n  CREATE INDEX i46 ON t1(CAST( (c0 IS TRUE) AS TEXT));\n  CREATE VIEW v0(c2) AS SELECT CAST( (c0 IS TRUE) AS TEXT ) FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c0 INT);\n  INSERT INTO t1(c0) VALUES (NULL);\n  CREATE INDEX i46 ON t1(CAST( (c0 IS TRUE) AS TEXT));\n  CREATE VIEW v0(c2) AS SELECT CAST( (c0 IS TRUE) AS TEXT ) FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(c0 INT);\n  INSERT INTO t1(c0) VALUES (NULL);\n  CREATE INDEX i46 ON t1(CAST( (c0 IS TRUE) AS TEXT));\n  CREATE VIEW v0(c2) AS SELECT CAST( (c0 IS TRUE) AS TEXT ) FROM t1;\n")
 		}
 	}
 	{ // "8.12"
@@ -530,7 +530,7 @@ func Test_whereG(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES('AAA', 'BBB');\n\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('t2');\n\n  CREATE TABLE t3(x PRIMARY KEY, y);\n  INSERT INTO t3 VALUES('AAA', 'AAA');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES('AAA', 'BBB');\n\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('t2');\n\n  CREATE TABLE t3(x PRIMARY KEY, y);\n  INSERT INTO t3 VALUES('AAA', 'AAA');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES('AAA', 'BBB');\n\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('t2');\n\n  CREATE TABLE t3(x PRIMARY KEY, y);\n  INSERT INTO t3 VALUES('AAA', 'AAA');\n")
 		}
 	}
 	{ // "11.1.1"

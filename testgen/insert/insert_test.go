@@ -416,7 +416,7 @@ func Test_insert(t *testing.T) {
 	{ // do_test "insert-4.3"
 		_res = db.Exec("\n      INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,t3.a,6);\n      SELECT * FROM t3 ORDER BY a;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t3.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t3.a", _res.Error, "\n      INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,t3.a,6);\n      SELECT * FROM t3 ORDER BY a;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t3.a", resErrString(_res), "\n      INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,t3.a,6);\n      SELECT * FROM t3 ORDER BY a;\n    ")
 		}
 	}
 	{ // do_test "insert-4.4"
@@ -438,7 +438,7 @@ func Test_insert(t *testing.T) {
 	{ // do_test "insert-4.6"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(notafunc(2,3),2,3);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: notafunc") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: notafunc", _res.Error, "\n    INSERT INTO t3 VALUES(notafunc(2,3),2,3);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: notafunc", resErrString(_res), "\n    INSERT INTO t3 VALUES(notafunc(2,3),2,3);\n  ")
 		}
 	}
 	{ // do_test "insert-4.7"
@@ -570,7 +570,7 @@ func Test_insert(t *testing.T) {
 	{ // do_test "insert-10.2"
 		_res = db.Exec("\n      INSERT INTO t10 VALUES(11,12,13), (14,15), (16,17,28);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "all VALUES must have the same number of terms") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", _res.Error, "\n      INSERT INTO t10 VALUES(11,12,13), (14,15), (16,17,28);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", resErrString(_res), "\n      INSERT INTO t10 VALUES(11,12,13), (14,15), (16,17,28);\n    ")
 		}
 	}
 	{ // "insert-11.1"
@@ -666,7 +666,7 @@ func Test_insert(t *testing.T) {
 	{ // "insert-16.1"
 		_res = db.Exec("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(c0,c1);\n  CREATE UNIQUE INDEX i0 ON t0(c0);\n  INSERT INTO t0(c0,c1) VALUES(123,1);\n  CREATE TRIGGER tr0 AFTER DELETE ON t0\n  BEGIN\n    INSERT INTO t0 VALUES(123,2);\n  END;\n  REPLACE INTO t0(c0,c1) VALUES(123,3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t0.c0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.c0", _res.Error, "\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(c0,c1);\n  CREATE UNIQUE INDEX i0 ON t0(c0);\n  INSERT INTO t0(c0,c1) VALUES(123,1);\n  CREATE TRIGGER tr0 AFTER DELETE ON t0\n  BEGIN\n    INSERT INTO t0 VALUES(123,2);\n  END;\n  REPLACE INTO t0(c0,c1) VALUES(123,3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.c0", resErrString(_res), "\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(c0,c1);\n  CREATE UNIQUE INDEX i0 ON t0(c0);\n  INSERT INTO t0(c0,c1) VALUES(123,1);\n  CREATE TRIGGER tr0 AFTER DELETE ON t0\n  BEGIN\n    INSERT INTO t0 VALUES(123,2);\n  END;\n  REPLACE INTO t0(c0,c1) VALUES(123,3);\n")
 		}
 	}
 	{ // "insert-16.2"
@@ -686,7 +686,7 @@ func Test_insert(t *testing.T) {
 	{ // "insert-16.4"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES(1, 'one');\n  CREATE TRIGGER tr3 AFTER DELETE ON t1 BEGIN\n    INSERT INTO t1 VALUES(1, 'three');\n  END;\n  REPLACE INTO t1 VALUES(1, 'two');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES(1, 'one');\n  CREATE TRIGGER tr3 AFTER DELETE ON t1 BEGIN\n    INSERT INTO t1 VALUES(1, 'three');\n  END;\n  REPLACE INTO t1 VALUES(1, 'two');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES(1, 'one');\n  CREATE TRIGGER tr3 AFTER DELETE ON t1 BEGIN\n    INSERT INTO t1 VALUES(1, 'three');\n  END;\n  REPLACE INTO t1 VALUES(1, 'two');\n")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -694,7 +694,7 @@ func Test_insert(t *testing.T) {
 	{ // "insert-16.6"
 		_res = db.Exec("\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a, b UNIQUE);\n  CREATE TABLE c1(c, d REFERENCES p1(b) ON DELETE CASCADE);\n  CREATE TRIGGER tr6 AFTER DELETE ON c1 BEGIN\n    INSERT INTO p1 VALUES(4, 1);\n  END;\n  INSERT INTO p1 VALUES(1, 1);\n  INSERT INTO c1 VALUES(2, 1);\n  REPLACE INTO p1 VALUES(3, 1);2\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: p1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: p1.b", _res.Error, "\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a, b UNIQUE);\n  CREATE TABLE c1(c, d REFERENCES p1(b) ON DELETE CASCADE);\n  CREATE TRIGGER tr6 AFTER DELETE ON c1 BEGIN\n    INSERT INTO p1 VALUES(4, 1);\n  END;\n  INSERT INTO p1 VALUES(1, 1);\n  INSERT INTO c1 VALUES(2, 1);\n  REPLACE INTO p1 VALUES(3, 1);2\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: p1.b", resErrString(_res), "\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a, b UNIQUE);\n  CREATE TABLE c1(c, d REFERENCES p1(b) ON DELETE CASCADE);\n  CREATE TRIGGER tr6 AFTER DELETE ON c1 BEGIN\n    INSERT INTO p1 VALUES(4, 1);\n  END;\n  INSERT INTO p1 VALUES(1, 1);\n  INSERT INTO c1 VALUES(2, 1);\n  REPLACE INTO p1 VALUES(3, 1);2\n")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -702,7 +702,7 @@ func Test_insert(t *testing.T) {
 	{ // "insert-17.1"
 		_res = db.Exec("\n  PRAGMA temp.recursive_triggers = true;\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa, bb);\n  CREATE UNIQUE INDEX t0bb ON t0(bb);\n  CREATE TRIGGER \"r17.1\" BEFORE DELETE ON t0\n    BEGIN INSERT INTO t0(aa,bb) VALUES(99,1);\n  END;\n  INSERT INTO t0(aa,bb) VALUES(10,20);\n  REPLACE INTO t0(aa,bb) VALUES(30,20);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t0.rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.rowid", _res.Error, "\n  PRAGMA temp.recursive_triggers = true;\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa, bb);\n  CREATE UNIQUE INDEX t0bb ON t0(bb);\n  CREATE TRIGGER \"r17.1\" BEFORE DELETE ON t0\n    BEGIN INSERT INTO t0(aa,bb) VALUES(99,1);\n  END;\n  INSERT INTO t0(aa,bb) VALUES(10,20);\n  REPLACE INTO t0(aa,bb) VALUES(30,20);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t0.rowid", resErrString(_res), "\n  PRAGMA temp.recursive_triggers = true;\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa, bb);\n  CREATE UNIQUE INDEX t0bb ON t0(bb);\n  CREATE TRIGGER \"r17.1\" BEFORE DELETE ON t0\n    BEGIN INSERT INTO t0(aa,bb) VALUES(99,1);\n  END;\n  INSERT INTO t0(aa,bb) VALUES(10,20);\n  REPLACE INTO t0(aa,bb) VALUES(30,20);\n")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -710,7 +710,7 @@ func Test_insert(t *testing.T) {
 	{ // "insert-17.3"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  INSERT INTO t1(a,b,c) VALUES(1,1,1),(2,2,2),(3,3,3),(4,4,4);\n  CREATE TRIGGER \"r17.3\" AFTER DELETE ON t1 WHEN OLD.c<>3 BEGIN\n    INSERT INTO t1(rowid,a,b,c) VALUES(100,100,100,3);\n  END;\n  REPLACE INTO t1(rowid,a,b,c) VALUES(200,1,2,3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  INSERT INTO t1(a,b,c) VALUES(1,1,1),(2,2,2),(3,3,3),(4,4,4);\n  CREATE TRIGGER \"r17.3\" AFTER DELETE ON t1 WHEN OLD.c<>3 BEGIN\n    INSERT INTO t1(rowid,a,b,c) VALUES(100,100,100,3);\n  END;\n  REPLACE INTO t1(rowid,a,b,c) VALUES(200,1,2,3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  INSERT INTO t1(a,b,c) VALUES(1,1,1),(2,2,2),(3,3,3),(4,4,4);\n  CREATE TRIGGER \"r17.3\" AFTER DELETE ON t1 WHEN OLD.c<>3 BEGIN\n    INSERT INTO t1(rowid,a,b,c) VALUES(100,100,100,3);\n  END;\n  REPLACE INTO t1(rowid,a,b,c) VALUES(200,1,2,3);\n")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -766,7 +766,7 @@ func Test_insert(t *testing.T) {
 	{ // "insert-17.10"
 		_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INT, c INT, d INT);\n  CREATE UNIQUE INDEX t3bpi ON t3(b) WHERE c<=d;\n  CREATE UNIQUE INDEX t3d ON t3(d);\n  INSERT INTO t3(a,b,c,d) VALUES(1,1,1,1),(2,1,3,2),(3,4,5,6);\n  CREATE TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n    SELECT 'hi';\n  END;\n  REPLACE INTO t3(a,b,c,d) VALUES(4,4,8,9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INT, c INT, d INT);\n  CREATE UNIQUE INDEX t3bpi ON t3(b) WHERE c<=d;\n  CREATE UNIQUE INDEX t3d ON t3(d);\n  INSERT INTO t3(a,b,c,d) VALUES(1,1,1,1),(2,1,3,2),(3,4,5,6);\n  CREATE TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n    SELECT 'hi';\n  END;\n  REPLACE INTO t3(a,b,c,d) VALUES(4,4,8,9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INT, c INT, d INT);\n  CREATE UNIQUE INDEX t3bpi ON t3(b) WHERE c<=d;\n  CREATE UNIQUE INDEX t3d ON t3(d);\n  INSERT INTO t3(a,b,c,d) VALUES(1,1,1,1),(2,1,3,2),(3,4,5,6);\n  CREATE TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n    SELECT 'hi';\n  END;\n  REPLACE INTO t3(a,b,c,d) VALUES(4,4,8,9);\n")
 		}
 	}
 	{ // "insert-17.11"
@@ -796,13 +796,13 @@ func Test_insert(t *testing.T) {
 	{ // "insert-17.13"
 		_res = db.Exec("\n  DELETE FROM t3;\n  INSERT INTO t3(a,b,c,d) VALUES(1,1,1,1),(2,1,3,2),(3,4,5,6);\n  DROP TRIGGER t3r1;\n  CREATE TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n    INSERT INTO t3(b,c,d) VALUES(old.b,old.c,old.d);\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t3;\n  INSERT INTO t3(a,b,c,d) VALUES(1,1,1,1),(2,1,3,2),(3,4,5,6);\n  DROP TRIGGER t3r1;\n  CREATE TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n    INSERT INTO t3(b,c,d) VALUES(old.b,old.c,old.d);\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t3;\n  INSERT INTO t3(a,b,c,d) VALUES(1,1,1,1),(2,1,3,2),(3,4,5,6);\n  DROP TRIGGER t3r1;\n  CREATE TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n    INSERT INTO t3(b,c,d) VALUES(old.b,old.c,old.d);\n  END;\n")
 		}
 	}
 	{ // "insert-17.14"
 		_res = db.Exec("\n  REPLACE INTO t3(a,b,c,d) VALUES(4,4,8,9);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t3.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.b", _res.Error, "\n  REPLACE INTO t3(a,b,c,d) VALUES(4,4,8,9);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.b", resErrString(_res), "\n  REPLACE INTO t3(a,b,c,d) VALUES(4,4,8,9);\n")
 		}
 	}
 	{ // "insert-17.15" — skipped: REPLACE + re-inserting AFTER DELETE trigger conflict N-A (no-side-effects)

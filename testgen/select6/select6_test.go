@@ -477,7 +477,7 @@ func Test_select6(t *testing.T) {
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE t(i,j,k);\n  CREATE TABLE j(l,m);\n  CREATE TABLE k(o);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(i,j,k);\n  CREATE TABLE j(l,m);\n  CREATE TABLE k(o);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t(i,j,k);\n  CREATE TABLE j(l,m);\n  CREATE TABLE k(o);\n")
 		}
 	}
 	_list0 := tclList([]string{"1", "SELECTs to the left and right of UNION ALL do not have the same number of result columns"})
@@ -494,37 +494,37 @@ func Test_select6(t *testing.T) {
 	{ // "10.3"
 		_res = db.Exec("\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
 		if !tclCatchsqlMatches(_res, _err_tcl) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
 		}
 	}
 	{ // "10.4"
 		_res = db.Exec("\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
 		if !tclCatchsqlMatches(_res, _err_tcl) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
 		}
 	}
 	{ // "10.5"
 		_res = db.Exec("\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
 		if !tclCatchsqlMatches(_res, _err_tcl) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
 		}
 	}
 	{ // "10.6"
 		_res = db.Exec("\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
 		if !tclCatchsqlMatches(_res, _err_tcl) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
 		}
 	}
 	{ // "10.7"
 		_res = db.Exec("\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
 		if !tclCatchsqlMatches(_res, _err_tcl) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
 		}
 	}
 	{ // "10.8"
 		_res = db.Exec("\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
 		if !tclCatchsqlMatches(_res, _err_tcl) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, _err_tcl, "\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
 		}
 	}
 	{ // "11.1"
@@ -621,7 +621,7 @@ func Test_select6(t *testing.T) {
 	{ // "13.100"
 		_res = db.Exec("\n\n  CREATE  TABLE  t1(y INT);\n  INSERT INTO t1 (y) VALUES (1);\n\n  CREATE  TABLE  t2(x INTEGER);\n  INSERT INTO t2 VALUES(0);\n\n  CREATE  TABLE  empty1(z);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n\n  CREATE  TABLE  t1(y INT);\n  INSERT INTO t1 (y) VALUES (1);\n\n  CREATE  TABLE  t2(x INTEGER);\n  INSERT INTO t2 VALUES(0);\n\n  CREATE  TABLE  empty1(z);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n\n  CREATE  TABLE  t1(y INT);\n  INSERT INTO t1 (y) VALUES (1);\n\n  CREATE  TABLE  t2(x INTEGER);\n  INSERT INTO t2 VALUES(0);\n\n  CREATE  TABLE  empty1(z);\n")
 		}
 	}
 	{ // "13.110"

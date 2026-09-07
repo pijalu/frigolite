@@ -65,7 +65,7 @@ func Test_mallocM(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n")
 		}
 	}
 	// do_faultsim_test 1 -faults oom* -body {\n  execsql {\n    SELECT 'abc' FROM ( SELECT 'xyz...} -te... (unsupported command, not transpiled)

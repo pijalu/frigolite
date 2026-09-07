@@ -66,7 +66,7 @@ func Test_analyzeE(t *testing.T) {
 	{ // "analyzeE-1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-1.1"
@@ -204,7 +204,7 @@ func Test_analyzeE(t *testing.T) {
 	{ // "analyzeE-2.0"
 		_res = db.Exec("\n  DROP INDEX t1a;\n  CREATE INDEX t1a ON t1(a DESC);\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t1a;\n  CREATE INDEX t1a ON t1(a DESC);\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX t1a;\n  CREATE INDEX t1a ON t1(a DESC);\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-2.1"
@@ -342,7 +342,7 @@ func Test_analyzeE(t *testing.T) {
 	{ // "analyzeE-3.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-3.1"
@@ -480,7 +480,7 @@ func Test_analyzeE(t *testing.T) {
 	{ // "analyzeE-4.0"
 		_res = db.Exec("\n  DROP INDEX t1ca;\n  CREATE INDEX t1ca ON t1(c ASC,a DESC);\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t1ca;\n  CREATE INDEX t1ca ON t1(c ASC,a DESC);\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP INDEX t1ca;\n  CREATE INDEX t1ca ON t1(c ASC,a DESC);\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-4.1"
@@ -644,7 +644,7 @@ func Test_analyzeE(t *testing.T) {
 	{ // "analyzeE-6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-6.1"

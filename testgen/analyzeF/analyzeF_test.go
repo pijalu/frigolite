@@ -85,7 +85,7 @@ func Test_analyzeF(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -116,13 +116,13 @@ func Test_analyzeF(t *testing.T) {
 		{ // "2.1"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: func") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: func", _res.Error, "\n  SELECT * FROM t1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: func", resErrString(_res), "\n  SELECT * FROM t1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)\n")
 			}
 		}
 		{ // "2.2"
 			_res = db.Exec("\n  UPDATE t1 SET y=y+1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: func") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: func", _res.Error, "\n  UPDATE t1 SET y=y+1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: func", resErrString(_res), "\n  UPDATE t1 SET y=y+1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)\n")
 			}
 		}
 		// proc definition (not transpiled)
@@ -159,13 +159,13 @@ func Test_analyzeF(t *testing.T) {
 			{ // "4.1"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = error('error one') AND y = 4;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error one") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error one", _res.Error, "\n  SELECT * FROM t1 WHERE x = error('error one') AND y = 4;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error one", resErrString(_res), "\n  SELECT * FROM t1 WHERE x = error('error one') AND y = 4;\n")
 				}
 			}
 			{ // "4.2"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "\n  SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;\n")
 				}
 			}
 			db.SetLimit("SQLITE_LIMIT_LENGTH", toInt(1000000))
@@ -174,13 +174,13 @@ func Test_analyzeF(t *testing.T) {
 			{ // "4.3"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = dstr() AND y = 11;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT * FROM t1 WHERE x = dstr() AND y = 11;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "\n  SELECT * FROM t1 WHERE x = dstr() AND y = 11;\n")
 				}
 			}
 			{ // "4.4"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = test_zeroblob(1100000) AND y = 4;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT * FROM t1 WHERE x = test_zeroblob(1100000) AND y = 4;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "\n  SELECT * FROM t1 WHERE x = test_zeroblob(1100000) AND y = 4;\n")
 				}
 			}
 			{ // "5.1"

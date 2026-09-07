@@ -371,19 +371,19 @@ func Test_collate1(t *testing.T) {
 	{ // "6.2"
 		_res = db.Exec("\n  CREATE TABLE x1(a);\n  SELECT a FROM x1 ORDER BY a COLLATE \"\"\"\"\"\"\"\";\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \"\"\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", _res.Error, "\n  CREATE TABLE x1(a);\n  SELECT a FROM x1 ORDER BY a COLLATE \"\"\"\"\"\"\"\";\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", resErrString(_res), "\n  CREATE TABLE x1(a);\n  SELECT a FROM x1 ORDER BY a COLLATE \"\"\"\"\"\"\"\";\n")
 		}
 	}
 	{ // "6.3"
 		_res = db.Exec("\n  SELECT a FROM x1 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \"\"\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", _res.Error, "\n  SELECT a FROM x1 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", resErrString(_res), "\n  SELECT a FROM x1 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
 		}
 	}
 	{ // "6.4"
 		_res = db.Exec("\n  SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \"\"\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", _res.Error, "\n  SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", resErrString(_res), "\n  SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
 		}
 	}
 	db.RegisterCollation("\"\"\"", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
@@ -396,13 +396,13 @@ func Test_collate1(t *testing.T) {
 	{ // "6.6"
 		_res = db.Exec(" \n  INSERT INTO p1 VALUES('abc'); \n  INSERT INTO c1 VALUES(1, 'ABC'); \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO p1 VALUES('abc'); \n  INSERT INTO c1 VALUES(1, 'ABC'); \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  INSERT INTO p1 VALUES('abc'); \n  INSERT INTO c1 VALUES(1, 'ABC'); \n")
 		}
 	}
 	{ // "6.7"
 		_res = db.Exec(" \n    DELETE FROM p1 WHERE rowid = 1 \n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " \n    DELETE FROM p1 WHERE rowid = 1 \n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " \n    DELETE FROM p1 WHERE rowid = 1 \n  ")
 		}
 	}
 	{ // "6.8"
@@ -492,7 +492,7 @@ func Test_collate1(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
 		}
 	}
 	// do_faultsim_test 9.1 -faults oom* -body {\n  execsql {\n    SELECT * FROM (\n        SELECT...} -... (unsupported command, not transpiled)
@@ -506,7 +506,7 @@ func Test_collate1(t *testing.T) {
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1 VALUES(0,NULL);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x COLLATE x FROM t2;\n  SELECT a,b,z,y,'' FROM t1 JOIN v1a ON b IS NOT FALSE;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: x", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1 VALUES(0,NULL);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x COLLATE x FROM t2;\n  SELECT a,b,z,y,'' FROM t1 JOIN v1a ON b IS NOT FALSE;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: x", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1 VALUES(0,NULL);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x COLLATE x FROM t2;\n  SELECT a,b,z,y,'' FROM t1 JOIN v1a ON b IS NOT FALSE;\n")
 		}
 	}
 }

@@ -433,8 +433,6 @@ var skipTestFiles = map[string]string{
 	"enc3": "UTF-16 storage not implemented N-A (evidence frigolite_enc3_test.go)",
 	// enc4: passes natively.
 	"eval":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"exclusive":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"exclusive2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// (extension01 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 	"fallocate": "VFS/fault-injection harness N-A",
 
@@ -534,7 +532,6 @@ var skipTestFiles = map[string]string{
 	// (3.x/4.x/5.x/7.x) the transpiler emits pass natively.
 	"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
-	"rollback2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollbackfault": "VFS/fault-injection harness N-A",
 	// P7.LOCK-C re-skips (evidence-based). scanstatus.test calls
 	// sqlite3_stmt_scanstatus / sqlite3_db_scanstatus (guarded by `ifcapable

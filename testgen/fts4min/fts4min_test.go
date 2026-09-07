@@ -64,13 +64,13 @@ func Test_fts4min(t *testing.T) {
 	{ // "0.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a NOT NULL, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a NOT NULL, b);\n  CREATE INDEX i1 ON t1(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a NOT NULL, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3(c);\n  INSERT INTO ft(docid, c) VALUES(22, 'hello world');\n  INSERT INTO ft(docid, c) VALUES(44, 'hello world');\n  INSERT INTO ft(docid, c) VALUES(11, 'hello world');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts3(c);\n  INSERT INTO ft(docid, c) VALUES(22, 'hello world');\n  INSERT INTO ft(docid, c) VALUES(44, 'hello world');\n  INSERT INTO ft(docid, c) VALUES(11, 'hello world');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft USING fts3(c);\n  INSERT INTO ft(docid, c) VALUES(22, 'hello world');\n  INSERT INTO ft(docid, c) VALUES(44, 'hello world');\n  INSERT INTO ft(docid, c) VALUES(11, 'hello world');\n")
 		}
 	}
 	{ // "1.1.1"

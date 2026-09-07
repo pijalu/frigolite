@@ -425,7 +425,7 @@ func Test_transitive1(t *testing.T) {
 	{ // "transitive1-600"
 		_res = db.Exec("\n  CREATE TABLE t0(a0 INT, b1 INT);\n  CREATE INDEX t0b1 ON t0(b1);\n  CREATE TABLE t1(w,x,y,z3 INT);\n  INSERT INTO t0(a0, b1) VALUES (0,1);\n  INSERT INTO t1(w,x,y,z3) VALUES (7,8,9,1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a0 INT, b1 INT);\n  CREATE INDEX t0b1 ON t0(b1);\n  CREATE TABLE t1(w,x,y,z3 INT);\n  INSERT INTO t0(a0, b1) VALUES (0,1);\n  INSERT INTO t1(w,x,y,z3) VALUES (7,8,9,1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(a0 INT, b1 INT);\n  CREATE INDEX t0b1 ON t0(b1);\n  CREATE TABLE t1(w,x,y,z3 INT);\n  INSERT INTO t0(a0, b1) VALUES (0,1);\n  INSERT INTO t1(w,x,y,z3) VALUES (7,8,9,1);\n")
 		}
 	}
 	{ // "transitive1-610"
@@ -456,7 +456,7 @@ func Test_transitive1(t *testing.T) {
 	{ // "transitive1-700"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY);\n  INSERT INTO t1(a) VALUES(1),(2),(3);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY,y INT);\n  INSERT INTO t2(y) VALUES(2),(3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT PRIMARY KEY);\n  INSERT INTO t1(a) VALUES(1),(2),(3);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY,y INT);\n  INSERT INTO t2(y) VALUES(2),(3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT PRIMARY KEY);\n  INSERT INTO t1(a) VALUES(1),(2),(3);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY,y INT);\n  INSERT INTO t2(y) VALUES(2),(3);\n")
 		}
 	}
 	{ // "transitive1-710"

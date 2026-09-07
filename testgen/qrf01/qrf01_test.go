@@ -75,7 +75,7 @@ func Test_qrf01(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1,2.5,'three'),(x'424c4f42',NULL,'Ἀμήν');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1,2.5,'three'),(x'424c4f42',NULL,'Ἀμήν');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1,2.5,'three'),(x'424c4f42',NULL,'Ἀμήν');\n")
 		}
 	}
 	{ // do_test "1.10"
@@ -892,7 +892,7 @@ func Test_qrf01(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,'The quick fox jumps over the lazy brown dog.');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,'The quick fox jumps over the lazy brown dog.');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,'The quick fox jumps over the lazy brown dog.');\n")
 		}
 	}
 	{ // do_test "2.1"
@@ -1073,7 +1073,7 @@ func Test_qrf01(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));\n")
 		}
 	}
 	{ // do_test "3.1"
@@ -1136,7 +1136,7 @@ func Test_qrf01(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(json('{a:5,b:6}'), jsonb('{c:1,d:2}'), 99);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(json('{a:5,b:6}'), jsonb('{c:1,d:2}'), 99);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(json('{a:5,b:6}'), jsonb('{c:1,d:2}'), 99);\n")
 		}
 	}
 	{ // do_test "4.1"
@@ -1172,7 +1172,7 @@ func Test_qrf01(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));\n")
 		}
 	}
 	{ // do_test "5.1"
@@ -1274,7 +1274,7 @@ func Test_qrf01(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES\n     (1, 2.5, 'three', x'342028666f757229', null);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES\n     (1, 2.5, 'three', x'342028666f757229', null);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES\n     (1, 2.5, 'three', x'342028666f757229', null);\n")
 		}
 	}
 	{ // do_test "6.1a"
@@ -1290,7 +1290,7 @@ func Test_qrf01(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t7(a,b);\n  INSERT INTO t7 VALUES('abcdefghijklmnop',\n    'abcぁdefかghiのjklはmnop');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(a,b);\n  INSERT INTO t7 VALUES('abcdefghijklmnop',\n    'abcぁdefかghiのjklはmnop');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t7(a,b);\n  INSERT INTO t7 VALUES('abcdefghijklmnop',\n    'abcぁdefかghiのjklはmnop');\n")
 		}
 	}
 	{ // do_test "7.1"

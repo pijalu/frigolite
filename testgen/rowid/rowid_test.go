@@ -244,37 +244,37 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-2.1"
 		_res = db.Exec("\n    INSERT INTO t1(rowid,x,y) VALUES(1234,5,6);\n    SELECT rowid, * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(rowid,x,y) VALUES(1234,5,6);\n    SELECT rowid, * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1(rowid,x,y) VALUES(1234,5,6);\n    SELECT rowid, * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "rowid-2.2"
 		_res = db.Exec("\n    UPDATE t1 SET rowid=12345 WHERE x==1;\n    SELECT rowid, * FROM t1\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET rowid=12345 WHERE x==1;\n    SELECT rowid, * FROM t1\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1 SET rowid=12345 WHERE x==1;\n    SELECT rowid, * FROM t1\n  ")
 		}
 	}
 	{ // do_test "rowid-2.3"
 		_res = db.Exec("\n    INSERT INTO t1(y,x,oid) VALUES(8,7,1235);\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(y,x,oid) VALUES(8,7,1235);\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1(y,x,oid) VALUES(8,7,1235);\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
 		}
 	}
 	{ // do_test "rowid-2.4"
 		_res = db.Exec("\n    UPDATE t1 SET oid=12346 WHERE x==1;\n    SELECT rowid, * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET oid=12346 WHERE x==1;\n    SELECT rowid, * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1 SET oid=12346 WHERE x==1;\n    SELECT rowid, * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "rowid-2.5"
 		_res = db.Exec("\n    INSERT INTO t1(x,_rowid_,y) VALUES(9,1236,10);\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(x,_rowid_,y) VALUES(9,1236,10);\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1(x,_rowid_,y) VALUES(9,1236,10);\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
 		}
 	}
 	{ // do_test "rowid-2.6"
 		_res = db.Exec("\n    UPDATE t1 SET _rowid_=12347 WHERE x==1;\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET _rowid_=12347 WHERE x==1;\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t1 SET _rowid_=12347 WHERE x==1;\n    SELECT rowid, * FROM t1 WHERE rowid>1000;\n  ")
 		}
 	}
 	{ // do_test "rowid-2.7"
@@ -1159,7 +1159,7 @@ func Test_rowid(t *testing.T) {
 	{ // "rowid-14.0"
 		_res = db.Exec("\n  CREATE TABLE t14(x INTEGER PRIMARY KEY);\n  INSERT INTO t14(x) VALUES (100);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t14(x INTEGER PRIMARY KEY);\n  INSERT INTO t14(x) VALUES (100);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t14(x INTEGER PRIMARY KEY);\n  INSERT INTO t14(x) VALUES (100);\n")
 		}
 	}
 	{ // "rowid-14.1"
@@ -1225,7 +1225,7 @@ func Test_rowid(t *testing.T) {
 	{ // "16.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);\n")
 		}
 	}
 	vtab.TclVarSet("nosuch", "", "1 {ambiguous column name: rowid}")
@@ -1246,13 +1246,13 @@ func Test_rowid(t *testing.T) {
 	{ // "16.2"
 		_res = db.Exec(" SELECT rowid FROM t1, v1; ")
 		if !tclCatchsqlMatches(_res, nosuch) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, nosuch, " SELECT rowid FROM t1, v1; ")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), nosuch, " SELECT rowid FROM t1, v1; ")
 		}
 	}
 	{ // "16.3"
 		_res = db.Exec(" SELECT rowid FROM t3, v1; ")
 		if !tclCatchsqlMatches(_res, nosuch) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, nosuch, " SELECT rowid FROM t3, v1; ")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), nosuch, " SELECT rowid FROM t3, v1; ")
 		}
 	}
 	{ // "rowid-16.4" — skipped: rowid in derived-table join is version-dependent (3.51: resolves) N-A (no-side-effects)
@@ -1262,13 +1262,13 @@ func Test_rowid(t *testing.T) {
 	{ // "16.6"
 		_res = db.Exec(" SELECT rowid FROM v1, t1; ")
 		if !tclCatchsqlMatches(_res, nosuch) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, nosuch, " SELECT rowid FROM v1, t1; ")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), nosuch, " SELECT rowid FROM v1, t1; ")
 		}
 	}
 	{ // "16.7"
 		_res = db.Exec(" SELECT rowid FROM v1, t3; ")
 		if !tclCatchsqlMatches(_res, nosuch) {
-			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, nosuch, " SELECT rowid FROM v1, t3; ")
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), nosuch, " SELECT rowid FROM v1, t3; ")
 		}
 	}
 	{ // "rowid-16.8" — skipped: unqualified rowid in derived-table join resolution N-A (no-side-effects)
@@ -1276,7 +1276,7 @@ func Test_rowid(t *testing.T) {
 	{ // "16.9"
 		_res = db.Exec(" \n  SELECT rowid FROM t1, t3; \n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: rowid", _res.Error, " \n  SELECT rowid FROM t1, t3; \n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: rowid", resErrString(_res), " \n  SELECT rowid FROM t1, t3; \n")
 		}
 	}
 }

@@ -87,7 +87,7 @@ func Test_fts3fault(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n")
 		}
 	}
 	// do_faultsim_test 2 -prep { \n  sqlite3 db test.db\n  execsql {\n    BEGIN;\n...} -body {\n  execs... (unsupported command, not transpiled)
@@ -278,7 +278,7 @@ func Test_fts3fault(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

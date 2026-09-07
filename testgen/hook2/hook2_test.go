@@ -103,14 +103,14 @@ func Test_hook2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "1.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  INSERT INTO t1 VALUES('one', 1);\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('one', 1);\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES('one', 1);\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("INSERT main t1 0 0 one 1"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("INSERT main t1 0 0 one 1"), " "), "1.1")
@@ -120,7 +120,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE t1 SET b=2 WHERE a='one';\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=2 WHERE a='one';\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1 SET b=2 WHERE a='one';\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("UPDATE main t1 0 0 one 1 one 2"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("UPDATE main t1 0 0 one 1 one 2"), " "), "1.2")
@@ -130,7 +130,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  DELETE FROM t1 WHERE a='one';\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a='one';\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE a='one';\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("DELETE main t1 0 0 one 2"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("DELETE main t1 0 0 one 2"), " "), "1.3")
@@ -139,14 +139,14 @@ func Test_hook2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2a ON t2(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2a ON t2(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2a ON t2(a);\n")
 		}
 	}
 	{ // "2.1.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  INSERT INTO t2(b, c) VALUES(1, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(b, c) VALUES(1, 1);\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2(b, c) VALUES(1, 1);\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("INSERT main t2 0 0 4 1 1"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("INSERT main t2 0 0 4 1 1"), " "), "2.1.1")
@@ -155,14 +155,14 @@ func Test_hook2(t *testing.T) {
 	{ // "2.1.2.0"
 		_res = db.Exec("\n  CREATE TABLE d1(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX d1a ON d1(a);\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(11, 12, 13);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE d1(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX d1a ON d1(a);\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(11, 12, 13);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE d1(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX d1a ON d1(a);\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(11, 12, 13);\n")
 		}
 	}
 	{ // "2.1.2.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  INSERT INTO t2 SELECT * FROM d1;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 SELECT * FROM d1;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2 SELECT * FROM d1;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  INSERT main t2 0 0  1 2 3\n  INSERT main t2 0 0  11 12 13\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  INSERT main t2 0 0  1 2 3\n  INSERT main t2 0 0  11 12 13\n"), " "), "2.1.2.1")
@@ -172,7 +172,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  INSERT INTO t2 SELECT a+20, b+20, c+20 FROM d1;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 SELECT a+20, b+20, c+20 FROM d1;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2 SELECT a+20, b+20, c+20 FROM d1;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  INSERT main t2 0 0  21 22 23\n  INSERT main t2 0 0  31 32 33\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  INSERT main t2 0 0  21 22 23\n  INSERT main t2 0 0  31 32 33\n"), " "), "2.1.2.2")
@@ -194,7 +194,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  REPLACE INTO t2 VALUES(45, 22, 23);\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  REPLACE INTO t2 VALUES(45, 22, 23);\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  REPLACE INTO t2 VALUES(45, 22, 23);\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t2 0 0 21 22 23\n  INSERT main t2 0 0 45 22 23\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t2 0 0 21 22 23\n  INSERT main t2 0 0 45 22 23\n"), " "), "2.1.3")
@@ -204,7 +204,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  REPLACE INTO t2 VALUES(11, 100, 100);\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  REPLACE INTO t2 VALUES(11, 100, 100);\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  REPLACE INTO t2 VALUES(11, 100, 100);\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t2 0 0 11 12 13\n  INSERT main t2 0 0 11 100 100\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t2 0 0 11 12 13\n  INSERT main t2 0 0 11 100 100\n"), " "), "2.1.4")
@@ -214,7 +214,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  REPLACE INTO t2(c, b) VALUES(33, 32)\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  REPLACE INTO t2(c, b) VALUES(33, 32)\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  REPLACE INTO t2(c, b) VALUES(33, 32)\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t2 0 0 4 1 1 \n  DELETE main t2 0 0 31 32 33\n  INSERT main t2 0 0 4 32 33\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t2 0 0 4 1 1 \n  DELETE main t2 0 0 31 32 33\n  INSERT main t2 0 0 4 32 33\n"), " "), "2.1.5")
@@ -236,7 +236,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  DELETE FROM t2 WHERE b=22;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2 WHERE b=22;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2 WHERE b=22;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("DELETE main t2 0 0 45 22 23"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("DELETE main t2 0 0 45 22 23"), " "), "2.2.1")
@@ -246,7 +246,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  DELETE FROM t2;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t2 0 0 1 2 3 \n  DELETE main t2 0 0 4 32 33 \n  DELETE main t2 0 0 11 100 100\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t2 0 0 1 2 3 \n  DELETE main t2 0 0 4 32 33 \n  DELETE main t2 0 0 11 100 100\n"), " "), "2.2.2")
@@ -255,14 +255,14 @@ func Test_hook2(t *testing.T) {
 	{ // "2.3.0"
 		_res = db.Exec("\n  CREATE TABLE t3(x, y PRIMARY KEY, z UNIQUE) WITHOUT ROWID;\n  INSERT INTO t3 VALUES('a', 'b', 'c');\n  INSERT INTO t3 VALUES('d', 'e', 'f');\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x, y PRIMARY KEY, z UNIQUE) WITHOUT ROWID;\n  INSERT INTO t3 VALUES('a', 'b', 'c');\n  INSERT INTO t3 VALUES('d', 'e', 'f');\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(x, y PRIMARY KEY, z UNIQUE) WITHOUT ROWID;\n  INSERT INTO t3 VALUES('a', 'b', 'c');\n  INSERT INTO t3 VALUES('d', 'e', 'f');\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);\n")
 		}
 	}
 	{ // "2.3.1" (preupdate)
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE t3 SET x=4 WHERE y IN ('b', 'e', 'x');\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t3 SET x=4 WHERE y IN ('b', 'e', 'x');\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t3 SET x=4 WHERE y IN ('b', 'e', 'x');\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  UPDATE main t3 0 0  a b c   4 b c\n  UPDATE main t3 0 0  d e f   4 e f\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  UPDATE main t3 0 0  a b c   4 b c\n  UPDATE main t3 0 0  d e f   4 e f\n"), " "), "2.3.1")
@@ -272,7 +272,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE t3 SET y=y||y WHERE z IN('c', 'f');\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t3 SET y=y||y WHERE z IN('c', 'f');\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t3 SET y=y||y WHERE z IN('c', 'f');\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  UPDATE main t3 0 0  4 b c   4 bb c\n  UPDATE main t3 0 0  4 e f   4 ee f\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  UPDATE main t3 0 0  4 b c   4 bb c\n  UPDATE main t3 0 0  4 e f   4 ee f\n"), " "), "2.3.2")
@@ -282,7 +282,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE OR REPLACE t3 SET y='bb' WHERE z='f'\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE OR REPLACE t3 SET y='bb' WHERE z='f'\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE OR REPLACE t3 SET y='bb' WHERE z='f'\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t3 0 0  4 bb c\n  UPDATE main t3 0 0  4 ee f   4 bb f\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t3 0 0  4 bb c\n  UPDATE main t3 0 0  4 ee f   4 bb f\n"), " "), "2.3.3")
@@ -292,7 +292,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE OR REPLACE t3 SET z=2 WHERE y=1;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE OR REPLACE t3 SET z=2 WHERE y=1;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE OR REPLACE t3 SET z=2 WHERE y=1;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t3 0 0  2 2 2\n  UPDATE main t3 0 0  1 1 1  1 1 2\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t3 0 0  2 2 2\n  UPDATE main t3 0 0  1 1 1  1 1 2\n"), " "), "2.3.4")
@@ -302,7 +302,7 @@ func Test_hook2(t *testing.T) {
 		preupdate = ""
 		_res = db.Exec("\n  UPDATE OR REPLACE t3 SET z=2, y='bb' WHERE y=3;\n")
 		if _res.Error != nil {
-			t.Errorf("preupdate exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE OR REPLACE t3 SET z=2, y='bb' WHERE y=3;\n")
+			t.Errorf("preupdate exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE OR REPLACE t3 SET z=2, y='bb' WHERE y=3;\n")
 		}
 		if tclListFlatten(preupdate) != strings.Join(tclSplitList("\n  DELETE main t3 0 0  1 1 2\n  DELETE main t3 0 0  4 bb f\n  UPDATE main t3 0 0  3 3 3  3 bb 2\n"), " ") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_preupdate_test %s", tclListFlatten(preupdate), strings.Join(tclSplitList("\n  DELETE main t3 0 0  1 1 2\n  DELETE main t3 0 0  4 bb f\n  UPDATE main t3 0 0  3 3 3  3 bb 2\n"), " "), "2.3.5")

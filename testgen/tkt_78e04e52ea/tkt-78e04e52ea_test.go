@@ -65,7 +65,7 @@ func Test_tkt_78e04e52ea(t *testing.T) {
 	{ // do_test "tkt-78e04-1.1"
 		_res = db.Exec("\n    INSERT INTO \"\"(\"\") VALUES(1);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: .") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: .", _res.Error, "\n    INSERT INTO \"\"(\"\") VALUES(1);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: .", resErrString(_res), "\n    INSERT INTO \"\"(\"\") VALUES(1);\n  ")
 		}
 	}
 	{ // do_test "tkt-78e04-1.2"

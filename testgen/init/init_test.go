@@ -90,13 +90,13 @@ func Test_init(t *testing.T) {
 				// eval (dynamic, not transpiled)
 				// sqlite3_initialize (unsupported command, not transpiled)
 				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "init-" + _t + ".1")
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, resErrString(_res), "init-" + _t + ".1")
 				}
 			}
 			{ // do_test "init-" + _t + ".2"
 				// init_wrapper_query (unsupported command, not transpiled)
 				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), started) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", started, _res.Error, "init-" + _t + ".2")
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", started, resErrString(_res), "init-" + _t + ".2")
 				}
 			}
 			{ // do_test "init-" + _t + ".3"
@@ -106,13 +106,13 @@ func Test_init(t *testing.T) {
 			{ // do_test "init-" + _t + ".4"
 				// sqlite3_initialize (unsupported command, not transpiled)
 				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "init-" + _t + ".4")
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, resErrString(_res), "init-" + _t + ".4")
 				}
 			}
 			{ // do_test "init-" + _t + ".5"
 				// init_wrapper_query (unsupported command, not transpiled)
 				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), started) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", started, _res.Error, "init-" + _t + ".5")
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", started, resErrString(_res), "init-" + _t + ".5")
 				}
 			}
 			{ // do_test "init-" + _t + ".6"

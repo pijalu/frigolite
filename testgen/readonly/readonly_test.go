@@ -71,7 +71,7 @@ func Test_readonly(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);\n")
 		}
 	}
 	db.Close()
@@ -82,7 +82,7 @@ func Test_readonly(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  INSERT INTO t1 VALUES(7, 8);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", resErrString(_res), "\n  INSERT INTO t1 VALUES(7, 8);\n")
 		}
 	}
 	{ // "1.2"

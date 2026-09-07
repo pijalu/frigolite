@@ -76,7 +76,7 @@ func Test_swarmvtabfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

@@ -95,7 +95,7 @@ func Test_mallocA(t *testing.T) {
 	{ // "6-prep"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('abc', 'w'); -- rowid=1\n  INSERT INTO t1 VALUES('abc', 'x'); -- rowid=2\n  INSERT INTO t1 VALUES('abc', 'y'); -- rowid=3\n  INSERT INTO t1 VALUES('abc', 'z'); -- rowid=4\n\n  INSERT INTO t1 VALUES('def', 'w'); -- rowid=5\n  INSERT INTO t1 VALUES('def', 'x'); -- rowid=6\n  INSERT INTO t1 VALUES('def', 'y'); -- rowid=7\n  INSERT INTO t1 VALUES('def', 'z'); -- rowid=8\n\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('abc', 'w'); -- rowid=1\n  INSERT INTO t1 VALUES('abc', 'x'); -- rowid=2\n  INSERT INTO t1 VALUES('abc', 'y'); -- rowid=3\n  INSERT INTO t1 VALUES('abc', 'z'); -- rowid=4\n\n  INSERT INTO t1 VALUES('def', 'w'); -- rowid=5\n  INSERT INTO t1 VALUES('def', 'x'); -- rowid=6\n  INSERT INTO t1 VALUES('def', 'y'); -- rowid=7\n  INSERT INTO t1 VALUES('def', 'z'); -- rowid=8\n\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('abc', 'w'); -- rowid=1\n  INSERT INTO t1 VALUES('abc', 'x'); -- rowid=2\n  INSERT INTO t1 VALUES('abc', 'y'); -- rowid=3\n  INSERT INTO t1 VALUES('abc', 'z'); -- rowid=4\n\n  INSERT INTO t1 VALUES('def', 'w'); -- rowid=5\n  INSERT INTO t1 VALUES('def', 'x'); -- rowid=6\n  INSERT INTO t1 VALUES('def', 'y'); -- rowid=7\n  INSERT INTO t1 VALUES('def', 'z'); -- rowid=8\n\n  ANALYZE;\n")
 		}
 	}
 	// do_faultsim_test 6.1 -faults oom* -body {\n  execsql { SELECT rowid FROM t1 WHERE a='abc' A...} -... (unsupported command, not transpiled)

@@ -94,7 +94,7 @@ func Test_instrfault(t *testing.T) {
 		{ // "1." + enc + ".1"
 			_res = db.Exec("\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES(" + sqlLiteral(NEEDLE) + ", " + sqlLiteral(HAYSTACK) + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES(" + sqlLiteral(NEEDLE) + ", " + sqlLiteral(HAYSTACK) + ");\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES(" + sqlLiteral(NEEDLE) + ", " + sqlLiteral(HAYSTACK) + ");\n  ")
 			}
 		}
 		// do_faultsim_test 1.$enc.1 -faults oom-t* -prep {\n    execsql { SELECT instr(h, n) FROM t1 }\n  }... (unsupported command, not transpiled)
@@ -104,7 +104,7 @@ func Test_instrfault(t *testing.T) {
 		{ // "1." + enc + ".5.0"
 			_res = db.Exec("\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			}
 		}
 		// do_faultsim_test 1.$enc.5 -faults oom-t* -body {\n    execsql { SELECT rowid FROM h1 WHERE instr(... (unsupported command, not transpiled)

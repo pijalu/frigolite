@@ -78,7 +78,7 @@ func Test_shell7(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec(" \n  CREATE TABLE f1(tn INTEGER PRIMARY KEY, x BLOB); \n  CREATE TABLE f2(tn INTEGER PRIMARY KEY, x BLOB); \n\n  INSERT INTO f1 VALUES(1, X'01020304');\n  INSERT INTO f1 VALUES(2, X'01000304');\n  INSERT INTO f1 VALUES(3, randomblob(200));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE f1(tn INTEGER PRIMARY KEY, x BLOB); \n  CREATE TABLE f2(tn INTEGER PRIMARY KEY, x BLOB); \n\n  INSERT INTO f1 VALUES(1, X'01020304');\n  INSERT INTO f1 VALUES(2, X'01000304');\n  INSERT INTO f1 VALUES(3, randomblob(200));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE f1(tn INTEGER PRIMARY KEY, x BLOB); \n  CREATE TABLE f2(tn INTEGER PRIMARY KEY, x BLOB); \n\n  INSERT INTO f1 VALUES(1, X'01020304');\n  INSERT INTO f1 VALUES(2, X'01000304');\n  INSERT INTO f1 VALUES(3, randomblob(200));\n")
 		}
 	}
 	// skip: foreach over unresolved TCL command
@@ -86,7 +86,7 @@ func Test_shell7(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
 			}
 		}
 		{ // "2.1" (CLI shell subprocess harness, not transpiled)
@@ -95,7 +95,7 @@ func Test_shell7(t *testing.T) {
 		{ // "2.2"
 			_res = db.Exec("\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
 			}
 		}
 		{ // "2.3" (CLI shell subprocess harness, not transpiled)

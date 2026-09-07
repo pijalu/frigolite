@@ -65,13 +65,13 @@ func Test_with3(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: m") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: m", _res.Error, "\n  WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: m", resErrString(_res), "\n  WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIEW v1(x,y) AS\n    WITH t1(a,b) AS (VALUES(1,2))\n    SELECT * FROM nosuchtable JOIN t1;\n  SELECT * FROM v1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.nosuchtable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.nosuchtable", _res.Error, "\n  CREATE VIEW v1(x,y) AS\n    WITH t1(a,b) AS (VALUES(1,2))\n    SELECT * FROM nosuchtable JOIN t1;\n  SELECT * FROM v1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.nosuchtable", resErrString(_res), "\n  CREATE VIEW v1(x,y) AS\n    WITH t1(a,b) AS (VALUES(1,2))\n    SELECT * FROM nosuchtable JOIN t1;\n  SELECT * FROM v1;\n")
 		}
 	}
 	{ // "2.0"
@@ -101,7 +101,7 @@ func Test_with3(t *testing.T) {
 	{ // "3.1.1"
 		_res = db.Exec("\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
 		}
 	}
 	{ // "3.1.2"
@@ -119,7 +119,7 @@ func Test_with3(t *testing.T) {
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE TABLE w1(pk INTEGER PRIMARY KEY, x INTEGER);\n  CREATE TABLE w2(pk INTEGER PRIMARY KEY);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE w1(pk INTEGER PRIMARY KEY, x INTEGER);\n  CREATE TABLE w2(pk INTEGER PRIMARY KEY);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE w1(pk INTEGER PRIMARY KEY, x INTEGER);\n  CREATE TABLE w2(pk INTEGER PRIMARY KEY);\n")
 		}
 	}
 	{ // "3.2.2"
@@ -185,13 +185,13 @@ func Test_with3(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 )\n  select * from cte2, cte1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table cte1 has 3 values for 2 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table cte1 has 3 values for 2 columns", _res.Error, "\n  with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 )\n  select * from cte2, cte1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table cte1 has 3 values for 2 columns", resErrString(_res), "\n  with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 )\n  select * from cte2, cte1;\n")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 UNION ALL SELECT z+1 FROM cte2 WHERE z<5)\n  select * from cte2, cte1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table cte1 has 3 values for 2 columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table cte1 has 3 values for 2 columns", _res.Error, "\n  with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 UNION ALL SELECT z+1 FROM cte2 WHERE z<5)\n  select * from cte2, cte1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table cte1 has 3 values for 2 columns", resErrString(_res), "\n  with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 UNION ALL SELECT z+1 FROM cte2 WHERE z<5)\n  select * from cte2, cte1;\n")
 		}
 	}
 }

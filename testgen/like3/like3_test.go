@@ -451,7 +451,7 @@ func Test_like3(t *testing.T) {
 	{ // "like3-6.100"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(path TEXT COLLATE nocase PRIMARY KEY,a,b,c) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(path TEXT COLLATE nocase PRIMARY KEY,a,b,c) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(path TEXT COLLATE nocase PRIMARY KEY,a,b,c) WITHOUT ROWID;\n")
 		}
 	}
 	{ // "like3-6.110"
@@ -469,7 +469,7 @@ func Test_like3(t *testing.T) {
 	{ // "like3-6.200"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(path TEXT,x,y,z);\n  CREATE INDEX t2path ON t2(path COLLATE nocase);\n  CREATE INDEX t2path2 ON t2(path);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(path TEXT,x,y,z);\n  CREATE INDEX t2path ON t2(path COLLATE nocase);\n  CREATE INDEX t2path2 ON t2(path);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(path TEXT,x,y,z);\n  CREATE INDEX t2path ON t2(path COLLATE nocase);\n  CREATE INDEX t2path2 ON t2(path);\n")
 		}
 	}
 	{ // "like3-6.210"
@@ -531,7 +531,7 @@ func Test_like3(t *testing.T) {
 				{ // "like3-8." + tn + ".1"
 					_res = db.Exec("\n      CREATE TABLE t1(x);\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x);\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      CREATE TABLE t1(x);\n    ")
 					}
 				}
 				{ // "like3-8." + tn + ".2"
@@ -549,7 +549,7 @@ func Test_like3(t *testing.T) {
 				{ // "like3-8." + tn + ".3"
 					_res = db.Exec("\n      INSERT INTO t1 VALUES( " + expr + " )\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES( " + expr + " )\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      INSERT INTO t1 VALUES( " + expr + " )\n    ")
 					}
 				}
 				{ // "like3-8." + tn + ".4"
@@ -582,7 +582,7 @@ func Test_like3(t *testing.T) {
 				{ // "like3-8." + tn + ".6"
 					_res = db.Exec("\n      CREATE INDEX i1 ON t1(x);\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE INDEX i1 ON t1(x);\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n      CREATE INDEX i1 ON t1(x);\n    ")
 					}
 				}
 				{ // "like3-8." + tn + ".7"

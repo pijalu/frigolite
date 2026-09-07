@@ -200,7 +200,7 @@ func Test_carray01(t *testing.T) {
 	{ // "400"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table-function argument references tables to its right") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table-function argument references tables to its right", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table-function argument references tables to its right", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;\n")
 		}
 	}
 }

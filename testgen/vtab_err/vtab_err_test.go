@@ -71,7 +71,7 @@ func Test_vtab_err(t *testing.T) {
 	{ // "vtab_err-3.0"
 		_res = db.Exec("\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

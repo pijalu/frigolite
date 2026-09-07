@@ -100,7 +100,7 @@ func Test_nockpt(t *testing.T) {
 	{ // "1.5"
 		_res = db.Exec("\n  INSERT INTO c1 VALUES(4, 5, 6);\n  INSERT INTO c1 VALUES(7, 8, 9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO c1 VALUES(4, 5, 6);\n  INSERT INTO c1 VALUES(7, 8, 9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO c1 VALUES(4, 5, 6);\n  INSERT INTO c1 VALUES(7, 8, 9);\n")
 		}
 	}
 	{ // do_test "1.6"
@@ -255,7 +255,7 @@ func Test_nockpt(t *testing.T) {
 		{ // "2.4"
 			_res = db2.Exec("\n  COMMIT\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT\n")
 			}
 		}
 		{ // "2.5" (prepare-step internals; SQL side effects only)

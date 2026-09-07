@@ -523,7 +523,7 @@ func Test_fkey5(t *testing.T) {
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE p30 (id INTEGER PRIMARY KEY);\n  CREATE TABLE IF NOT EXISTS c30 (\n      line INTEGER, \n      master REFERENCES p30(id), \n      PRIMARY KEY(master)\n  ) WITHOUT ROWID;\n\n  INSERT INTO p30 (id) VALUES (1);\n  INSERT INTO c30 (master, line)  VALUES (1, 999);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE p30 (id INTEGER PRIMARY KEY);\n  CREATE TABLE IF NOT EXISTS c30 (\n      line INTEGER, \n      master REFERENCES p30(id), \n      PRIMARY KEY(master)\n  ) WITHOUT ROWID;\n\n  INSERT INTO p30 (id) VALUES (1);\n  INSERT INTO c30 (master, line)  VALUES (1, 999);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE p30 (id INTEGER PRIMARY KEY);\n  CREATE TABLE IF NOT EXISTS c30 (\n      line INTEGER, \n      master REFERENCES p30(id), \n      PRIMARY KEY(master)\n  ) WITHOUT ROWID;\n\n  INSERT INTO p30 (id) VALUES (1);\n  INSERT INTO c30 (master, line)  VALUES (1, 999);\n")
 		}
 	}
 	{ // "10.2"
@@ -554,13 +554,13 @@ func Test_fkey5(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE tt(y);\n  CREATE TABLE c11(x REFERENCES tt(y));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tt(y);\n  CREATE TABLE c11(x REFERENCES tt(y));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE tt(y);\n  CREATE TABLE c11(x REFERENCES tt(y));\n")
 		}
 	}
 	{ // "11.1"
 		_res = db.Exec("\n  PRAGMA foreign_key_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"c11\" referencing \"tt\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"c11\" referencing \"tt\"", _res.Error, "\n  PRAGMA foreign_key_check;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"c11\" referencing \"tt\"", resErrString(_res), "\n  PRAGMA foreign_key_check;\n")
 		}
 	}
 	db.Close()
@@ -609,7 +609,7 @@ func Test_fkey5(t *testing.T) {
 	{ // "13.1"
 		_res = db.Exec("\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1','main');\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", _res.Error, "\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1','main');\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", resErrString(_res), "\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1','main');\n  ")
 		}
 	}
 	{ // "13.2"

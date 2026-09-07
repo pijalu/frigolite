@@ -116,7 +116,7 @@ func Test_misuse(t *testing.T) {
 	{ // do_test "misuse-1.6"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1\n  ")
 		}
 	}
 	{ // do_test "misuse-2.1"
@@ -178,7 +178,7 @@ func Test_misuse(t *testing.T) {
 	{ // do_test "misuse-2.5"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1\n  ")
 		}
 	}
 	{ // do_test "misuse-3.1"
@@ -240,7 +240,7 @@ func Test_misuse(t *testing.T) {
 	{ // do_test "misuse-3.5"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    SELECT * FROM t1\n  ")
 		}
 	}
 	{ // do_test "misuse-4.1"
@@ -299,7 +299,7 @@ func Test_misuse(t *testing.T) {
 		{ // do_test "misuse-4.5"
 			_res = db.Exec("\n      SELECT * FROM t1\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad parameter or other API misuse") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad parameter or other API misuse", _res.Error, "\n      SELECT * FROM t1\n    ")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad parameter or other API misuse", resErrString(_res), "\n      SELECT * FROM t1\n    ")
 			}
 		}
 		{ // do_test "misuse-5.1"

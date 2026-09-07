@@ -82,19 +82,19 @@ func Test_fts3defer2(t *testing.T) {
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
 		}
 	}
 	{ // "1.1.2"
 		_res = db.Exec("INSERT INTO t1 VALUES('" + tclStringRepeat("a ", "20000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('" + tclStringRepeat("a ", "20000") + "')")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t1 VALUES('" + tclStringRepeat("a ", "20000") + "')")
 		}
 	}
 	{ // "1.1.3"
 		_res = db.Exec("INSERT INTO t1 VALUES('" + tclStringRepeat("z ", "20000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('" + tclStringRepeat("z ", "20000") + "')")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t1 VALUES('" + tclStringRepeat("z ", "20000") + "')")
 		}
 	}
 	{ // "fts3defer2-1.1.4" — skipped: zeroed-block deferred corruption detection N-A: per-term readability requires lazy segment loading (SQL side effects only)
@@ -117,37 +117,37 @@ func Test_fts3defer2(t *testing.T) {
 	{ // "1.3.1"
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t1 ")
 		}
 	}
 	{ // "2.1.1"
 		_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING fts4")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "CREATE VIRTUAL TABLE t2 USING fts4")
 		}
 	}
 	{ // "2.1.2"
 		_res = db.Exec("INSERT INTO t2 VALUES('" + tclStringRepeat("a ", "10000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('" + tclStringRepeat("a ", "10000") + "')")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t2 VALUES('" + tclStringRepeat("a ", "10000") + "')")
 		}
 	}
 	{ // "2.1.3"
 		_res = db.Exec("INSERT INTO t2 VALUES('b " + tclStringRepeat("z ", "10000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('b " + tclStringRepeat("z ", "10000") + "')")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t2 VALUES('b " + tclStringRepeat("z ", "10000") + "')")
 		}
 	}
 	{ // "2.1.4"
 		_res = db.Exec(tclStringRepeat("INSERT INTO t2 VALUES('x');", "50"))
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, tclStringRepeat("INSERT INTO t2 VALUES('x');", "50"))
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), tclStringRepeat("INSERT INTO t2 VALUES('x');", "50"))
 		}
 	}
 	{ // "2.1.5"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES('a b c d e f g z');\n  INSERT INTO t2 VALUES('a b c d e f g');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 VALUES('a b c d e f g z');\n  INSERT INTO t2 VALUES('a b c d e f g');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2 VALUES('a b c d e f g z');\n  INSERT INTO t2 VALUES('a b c d e f g');\n")
 		}
 	}
 	// foreach {tn sql} "1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }"
@@ -189,13 +189,13 @@ func Test_fts3defer2(t *testing.T) {
 		{ // "2.3.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n")
 			}
 		}
 		{ // "2.3.2"
 			_res = db.Exec("\n  INSERT INTO t3 VALUES('f e d c b " + tclStringRepeat("a ", "10000") + "')\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES('f e d c b " + tclStringRepeat("a ", "10000") + "')\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3 VALUES('f e d c b " + tclStringRepeat("a ", "10000") + "')\n")
 			}
 		}
 		// foreach {tn sql} "1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }"
@@ -219,7 +219,7 @@ func Test_fts3defer2(t *testing.T) {
 			{ // "2.5"
 				_res = db.Exec("\n  INSERT INTO t3(t3) VALUES('rebuild');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(t3) VALUES('rebuild');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t3(t3) VALUES('rebuild');\n")
 				}
 			}
 			{ // "fts3defer2-2.6" — skipped: deferred-token offsets length N-A: requires fts3EvalSelectDeferred overflow-page cost model (SQL side effects only)

@@ -270,7 +270,7 @@ func Test_fts4unicode(t *testing.T) {
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x, y);\n  INSERT INTO t1 VALUES(NULL, 'a b c');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x, y);\n  INSERT INTO t1 VALUES(NULL, 'a b c');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x, y);\n  INSERT INTO t1 VALUES(NULL, 'a b c');\n")
 			}
 		}
 		{ // "3.2"
@@ -288,7 +288,7 @@ func Test_fts4unicode(t *testing.T) {
 		{ // "3.3"
 			_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 VALUES('a b c', NULL);\n  INSERT INTO t1 VALUES('a x c', NULL);\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 VALUES('a b c', NULL);\n  INSERT INTO t1 VALUES('a x c', NULL);\n  COMMIT;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 VALUES('a b c', NULL);\n  INSERT INTO t1 VALUES('a x c', NULL);\n  COMMIT;\n")
 			}
 		}
 		{ // "3.4"
@@ -438,7 +438,7 @@ func Test_fts4unicode(t *testing.T) {
 				{ // "8.1.1"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\xd6');\n  INSERT INTO t3 VALUES('\xc4');\n  INSERT INTO t3 VALUES('\xf6');\n  INSERT INTO t3 VALUES('\xe4');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\xd6');\n  INSERT INTO t3 VALUES('\xc4');\n  INSERT INTO t3 VALUES('\xf6');\n  INSERT INTO t3 VALUES('\xe4');\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\xd6');\n  INSERT INTO t3 VALUES('\xc4');\n  INSERT INTO t3 VALUES('\xf6');\n  INSERT INTO t3 VALUES('\xe4');\n")
 					}
 				}
 				{ // "8.1.2"
@@ -468,7 +468,7 @@ func Test_fts4unicode(t *testing.T) {
 				{ // "8.2.1"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE t4 USING fts4(tokenize=unicode61 \"remove_diacritics=0\");\n  INSERT INTO t4 SELECT * FROM t3;\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(tokenize=unicode61 \"remove_diacritics=0\");\n  INSERT INTO t4 SELECT * FROM t3;\n")
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t4 USING fts4(tokenize=unicode61 \"remove_diacritics=0\");\n  INSERT INTO t4 SELECT * FROM t3;\n")
 					}
 				}
 				{ // "8.2.2"
@@ -506,13 +506,13 @@ func Test_fts4unicode(t *testing.T) {
 						{ // "9." + tn + ".0"
 							_res = db.Exec(" \n    DROP TABLE IF EXISTS t5;\n    DROP TABLE IF EXISTS t5aux;\n    DROP TABLE IF EXISTS t6;\n    DROP TABLE IF EXISTS t6aux;\n    DROP TABLE IF EXISTS t7;\n    DROP TABLE IF EXISTS t7aux;\n  ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DROP TABLE IF EXISTS t5;\n    DROP TABLE IF EXISTS t5aux;\n    DROP TABLE IF EXISTS t6;\n    DROP TABLE IF EXISTS t6aux;\n    DROP TABLE IF EXISTS t7;\n    DROP TABLE IF EXISTS t7aux;\n  ")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n    DROP TABLE IF EXISTS t5;\n    DROP TABLE IF EXISTS t5aux;\n    DROP TABLE IF EXISTS t6;\n    DROP TABLE IF EXISTS t6aux;\n    DROP TABLE IF EXISTS t7;\n    DROP TABLE IF EXISTS t7aux;\n  ")
 							}
 						}
 						{ // "9." + tn + ".1"
 							_res = db.Exec(sql)
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 							}
 						}
 						{ // "9." + tn + ".2"
@@ -603,7 +603,7 @@ func Test_fts4unicode(t *testing.T) {
 					{ // "12.1"
 						_res = db.Exec("\n  INSERT INTO t12(t12) VALUES('integrity-check');\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t12(t12) VALUES('integrity-check');\n")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t12(t12) VALUES('integrity-check');\n")
 						}
 					}
 					{ // "12.2"

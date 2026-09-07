@@ -103,7 +103,7 @@ func Test_zipfilefault(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');\n")
 		}
 	}
 	// do_faultsim_test 2.1 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test....} -... (unsupported command, not transpiled)
@@ -119,7 +119,7 @@ func Test_zipfilefault(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n")
 		}
 	}
 	// do_faultsim_test 3 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test....} -te... (unsupported command, not transpiled)
@@ -136,7 +136,7 @@ func Test_zipfilefault(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip') \n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip') \n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip') \n")
 		}
 	}
 	// do_faultsim_test 5.1 -faults oom* -prep {\n  forcedelete test.zip\n} -body {\n  execsql {\n    IN... (unsupported command, not transpiled)

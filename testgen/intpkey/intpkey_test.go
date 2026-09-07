@@ -552,19 +552,19 @@ func Test_intpkey(t *testing.T) {
 	{ // do_test "intpkey-13.3"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('1.5',3,4);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", _res.Error, "\n    INSERT INTO t1 VALUES('1.5',3,4);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", resErrString(_res), "\n    INSERT INTO t1 VALUES('1.5',3,4);\n  ")
 		}
 	}
 	{ // do_test "intpkey-13.4"
 		_res = db.Exec("\n      INSERT INTO t1 VALUES(x'123456',3,4);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", _res.Error, "\n      INSERT INTO t1 VALUES(x'123456',3,4);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", resErrString(_res), "\n      INSERT INTO t1 VALUES(x'123456',3,4);\n    ")
 		}
 	}
 	{ // do_test "intpkey-13.5"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('+1234567890',3,4);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES('+1234567890',3,4);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES('+1234567890',3,4);\n  ")
 		}
 	}
 	{ // do_test "intpkey-14.1"
@@ -648,7 +648,7 @@ func Test_intpkey(t *testing.T) {
 	{ // "intpkey-16.0"
 		_res = db.Exec("\n  CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b [TEXT], c `INT`);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b [TEXT], c `INT`);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b [TEXT], c `INT`);\n")
 		}
 	}
 	{ // "intpkey-16.1"

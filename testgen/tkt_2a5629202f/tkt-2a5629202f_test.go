@@ -71,7 +71,7 @@ func Test_tkt_2a5629202f(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t8(b TEXT, c TEXT);\n  INSERT INTO t8 VALUES('a',  'one');\n  INSERT INTO t8 VALUES('b',  'two');\n  INSERT INTO t8 VALUES(NULL, 'three');\n  INSERT INTO t8 VALUES(NULL, 'four');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(b TEXT, c TEXT);\n  INSERT INTO t8 VALUES('a',  'one');\n  INSERT INTO t8 VALUES('b',  'two');\n  INSERT INTO t8 VALUES(NULL, 'three');\n  INSERT INTO t8 VALUES(NULL, 'four');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t8(b TEXT, c TEXT);\n  INSERT INTO t8 VALUES('a',  'one');\n  INSERT INTO t8 VALUES('b',  'two');\n  INSERT INTO t8 VALUES(NULL, 'three');\n  INSERT INTO t8 VALUES(NULL, 'four');\n")
 		}
 	}
 	{ // "1.2"
@@ -113,7 +113,7 @@ func Test_tkt_2a5629202f(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b NOT NULL, c);\n  CREATE UNIQUE INDEX t2ab ON t2(a, b);\n  CREATE UNIQUE INDEX t2ba ON t2(b, a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b NOT NULL, c);\n  CREATE UNIQUE INDEX t2ab ON t2(a, b);\n  CREATE UNIQUE INDEX t2ba ON t2(b, a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b NOT NULL, c);\n  CREATE UNIQUE INDEX t2ab ON t2(a, b);\n  CREATE UNIQUE INDEX t2ba ON t2(b, a);\n")
 		}
 	}
 	{ // do_test "2.2"

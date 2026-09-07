@@ -65,37 +65,37 @@ func Test_with4(t *testing.T) {
 	{ // "100"
 		_res = db.Exec("\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE main.t1(a,b);\n  CREATE TABLE aux.t2(x,y);\n  INSERT INTO t1 VALUES(1,2);\n  INSERT INTO t2 VALUES(3,4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE main.t1(a,b);\n  CREATE TABLE aux.t2(x,y);\n  INSERT INTO t1 VALUES(1,2);\n  INSERT INTO t2 VALUES(3,4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE main.t1(a,b);\n  CREATE TABLE aux.t2(x,y);\n  INSERT INTO t1 VALUES(1,2);\n  INSERT INTO t2 VALUES(3,4);\n")
 		}
 	}
 	{ // "110"
 		_res = db.Exec("\n  CREATE VIEW v1 AS SELECT * FROM t1, aux.t2;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "view v1 cannot reference objects in database aux") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v1 cannot reference objects in database aux", _res.Error, "\n  CREATE VIEW v1 AS SELECT * FROM t1, aux.t2;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v1 cannot reference objects in database aux", resErrString(_res), "\n  CREATE VIEW v1 AS SELECT * FROM t1, aux.t2;\n")
 		}
 	}
 	{ // "120"
 		_res = db.Exec("\n  CREATE VIEW v2 AS WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "view v2 cannot reference objects in database aux") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v2 cannot reference objects in database aux", _res.Error, "\n  CREATE VIEW v2 AS WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v2 cannot reference objects in database aux", resErrString(_res), "\n  CREATE VIEW v2 AS WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n")
 		}
 	}
 	{ // "130"
 		_res = db.Exec("\n  CREATE VIEW v2 AS WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "parameters are not allowed in views") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters are not allowed in views", _res.Error, "\n  CREATE VIEW v2 AS WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "parameters are not allowed in views", resErrString(_res), "\n  CREATE VIEW v2 AS WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;\n")
 		}
 	}
 	{ // "200"
 		_res = db.Exec("\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger r1 cannot reference objects in database aux") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r1 cannot reference objects in database aux", _res.Error, "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger r1 cannot reference objects in database aux", resErrString(_res), "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n  END;\n")
 		}
 	}
 	{ // "210"
 		_res = db.Exec("\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger cannot use variables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger cannot use variables", _res.Error, "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger cannot use variables", resErrString(_res), "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;\n  END;\n")
 		}
 	}
 }

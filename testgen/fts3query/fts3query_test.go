@@ -202,14 +202,14 @@ func Test_fts3query(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING FTS4;\n  INSERT INTO t2 VALUES('it was the first time in history');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING FTS4;\n  INSERT INTO t2 VALUES('it was the first time in history');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING FTS4;\n  INSERT INTO t2 VALUES('it was the first time in history');\n")
 		}
 	}
 	{ // 5.2 (do_select_tests)
 		{ // 5.2.1
 			_res = db.Exec("SELECT matchinfo() FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("wrong number of arguments to function %s()", "matchinfo")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("wrong number of arguments to function %s()", "matchinfo"), _res.Error, "SELECT matchinfo() FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("wrong number of arguments to function %s()", "matchinfo"), resErrString(_res), "SELECT matchinfo() FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 	}
@@ -217,25 +217,25 @@ func Test_fts3query(t *testing.T) {
 		{ // 5.3.1
 			_res = db.Exec("SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "matchinfo")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "matchinfo"), _res.Error, "SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "matchinfo"), resErrString(_res), "SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 		{ // 5.3.2
 			_res = db.Exec("SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "offsets")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "offsets"), _res.Error, "SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "offsets"), resErrString(_res), "SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 		{ // 5.3.3
 			_res = db.Exec("SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "snippet")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "snippet"), _res.Error, "SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "snippet"), resErrString(_res), "SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 		{ // 5.3.4
 			_res = db.Exec("SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "optimize")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "optimize"), _res.Error, "SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "optimize"), resErrString(_res), "SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 	}
@@ -243,57 +243,57 @@ func Test_fts3query(t *testing.T) {
 	{ // "5.4.0"
 		_res = db.Exec(" UPDATE t2_content SET c0content = X'1234' ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_content SET c0content = X'1234' ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE t2_content SET c0content = X'1234' ")
 		}
 	}
 	{ // 5.4 (do_select_tests)
 		{ // 5.4.1
 			_res = db.Exec("SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "matchinfo")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "matchinfo"), _res.Error, "SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "matchinfo"), resErrString(_res), "SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 		{ // 5.4.2
 			_res = db.Exec("SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "offsets")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "offsets"), _res.Error, "SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "offsets"), resErrString(_res), "SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 		{ // 5.4.3
 			_res = db.Exec("SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "snippet")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "snippet"), _res.Error, "SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "snippet"), resErrString(_res), "SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 		{ // 5.4.4
 			_res = db.Exec("SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclFormat("illegal first argument to %s", "optimize")) {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "optimize"), _res.Error, "SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclFormat("illegal first argument to %s", "optimize"), resErrString(_res), "SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'")
 			}
 		}
 	}
 	{ // "5.5.1"
 		_res = db.Exec("\n  SELECT matchinfo(t2, 'abcd') FROM t2 WHERE t2 MATCH 'history'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo request: d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: d", _res.Error, "\n  SELECT matchinfo(t2, 'abcd') FROM t2 WHERE t2 MATCH 'history'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: d", resErrString(_res), "\n  SELECT matchinfo(t2, 'abcd') FROM t2 WHERE t2 MATCH 'history'\n")
 		}
 	}
 	{ // "5.5"
 		_res = db.Exec(" DROP TABLE t2 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t2 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE t2 ")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING FTS4(a, b);\n  INSERT INTO t3 VALUES('no gestures', 'another intriguing discovery by observing the hand gestures (called beats) people make while speaking. Research has shown that such gestures do more than add visual emphasis to our words (many people gesture while they''re on the telephone, for example); it seems they actually help our brains find words');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING FTS4(a, b);\n  INSERT INTO t3 VALUES('no gestures', 'another intriguing discovery by observing the hand gestures (called beats) people make while speaking. Research has shown that such gestures do more than add visual emphasis to our words (many people gesture while they''re on the telephone, for example); it seems they actually help our brains find words');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t3 USING FTS4(a, b);\n  INSERT INTO t3 VALUES('no gestures', 'another intriguing discovery by observing the hand gestures (called beats) people make while speaking. Research has shown that such gestures do more than add visual emphasis to our words (many people gesture while they''re on the telephone, for example); it seems they actually help our brains find words');\n")
 		}
 	}
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft4 USING fts4(x);\n  CREATE TABLE t4(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft4 USING fts4(x);\n  CREATE TABLE t4(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE ft4 USING fts4(x);\n  CREATE TABLE t4(x);\n")
 		}
 	}
 	vtab.TclVarSet("SMALLINT", "", "-9223372036854775808")

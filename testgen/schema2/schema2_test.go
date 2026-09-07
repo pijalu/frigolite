@@ -346,7 +346,7 @@ func Test_schema2(t *testing.T) {
 	{ // do_test "schema2-10.2"
 		_res = db.Exec("\n    CREATE TABLE t2(a, b, c);\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a, b, c);\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t2(a, b, c);\n  ")
 		}
 	}
 	{ // "schema2-10.3" (prepare-step internals; SQL side effects only)

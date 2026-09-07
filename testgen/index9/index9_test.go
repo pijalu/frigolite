@@ -80,7 +80,7 @@ func Test_index9(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;\n")
 		}
 	}
 	y = "45"
@@ -99,7 +99,7 @@ func Test_index9(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111\n")
 		}
 	}
 	// do_sqluses_test 2.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
@@ -115,7 +115,7 @@ func Test_index9(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807\n")
 		}
 	}
 	y = "9223372036854775807"
@@ -138,7 +138,7 @@ func Test_index9(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808\n")
 		}
 	}
 	y = "-9223372036854775808"

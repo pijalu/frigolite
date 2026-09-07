@@ -83,7 +83,7 @@ func Test_memjournal(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES( randomblob(500) );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES( randomblob(500) );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    INSERT INTO t1 VALUES( randomblob(500) );\n")
 		}
 	}
 	{ // do_test "1.2"
@@ -119,7 +119,7 @@ func Test_memjournal(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec("\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  COMMIT;\n")
 		}
 	}
 }

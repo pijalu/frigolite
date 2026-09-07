@@ -89,13 +89,13 @@ func Test_values(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, c);\n")
 		}
 	}
 	{ // "1.1.1"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4);\n")
 		}
 	}
 	{ // "1.1.2"
@@ -113,7 +113,7 @@ func Test_values(t *testing.T) {
 	{ // "1.2.0"
 		_res = db.Exec("\n  DELETE FROM x1\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM x1\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM x1\n")
 		}
 	}
 	{ // "1.2.1"
@@ -177,7 +177,7 @@ func Test_values(t *testing.T) {
 	{ // "1.2.5"
 		_res = db.Exec("\n  DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), \n        (4, 4, " + sqlLiteral(a) + "), (5, 5, " + sqlLiteral(b) + "), (6, 6, " + sqlLiteral(c) + ")\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), \n        (4, 4, " + sqlLiteral(a) + "), (5, 5, " + sqlLiteral(b) + "), (6, 6, " + sqlLiteral(c) + ")\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), \n        (4, 4, " + sqlLiteral(a) + "), (5, 5, " + sqlLiteral(b) + "), (6, 6, " + sqlLiteral(c) + ")\n")
 		}
 	}
 	{ // "1.2.6"
@@ -202,33 +202,33 @@ func Test_values(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b, c);\n")
 		}
 	}
 	db.SetLimit("SQLITE_LIMIT_COMPOUND_SELECT", toInt(3))
 	{ // "2.1.1"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10, 10)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "all VALUES must have the same number of terms") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", _res.Error, "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10, 10)\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", resErrString(_res), "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10, 10)\n")
 		}
 	}
 	{ // "2.1.2"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "all VALUES must have the same number of terms") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", _res.Error, "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", resErrString(_res), "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		}
 	}
 	db.SetLimit("SQLITE_LIMIT_COMPOUND_SELECT", toInt(0))
 	{ // "2.2"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		}
 	}
 	{ // "2.3"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n      UNION ALL \n      SELECT 5, 12, 12\n      ORDER BY 1\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n      UNION ALL \n      SELECT 5, 12, 12\n      ORDER BY 1\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n      UNION ALL \n      SELECT 5, 12, 12\n      ORDER BY 1\n")
 		}
 	}
 	db.Close()
@@ -241,13 +241,13 @@ func Test_values(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE y1(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE y1(x, y);\n")
 		}
 	}
 	{ // "3.1.1"
 		_res = db.Exec("\n  DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (1, 5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (1, 5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (1, 5);\n")
 		}
 	}
 	{ // "3.1.2"
@@ -265,7 +265,7 @@ func Test_values(t *testing.T) {
 	{ // "3.2.1"
 		_res = db.Exec("\n  DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (1, 6)\n    , (1, 7)\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (1, 6)\n    , (1, 7)\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (1, 6)\n    , (1, 7)\n")
 		}
 	}
 	{ // "3.1.2"
@@ -290,7 +290,7 @@ func Test_values(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a PRIMARY KEY, b) WITHOUT ROWID;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a PRIMARY KEY, b) WITHOUT ROWID;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a PRIMARY KEY, b) WITHOUT ROWID;\n")
 		}
 	}
 	// foreach {tn iLimit} "1 0    2 3"
@@ -305,7 +305,7 @@ func Test_values(t *testing.T) {
 			{ // "4.1.1"
 				_res = db.Exec("\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
 				}
 			}
 			{ // "4.1.2"
@@ -323,7 +323,7 @@ func Test_values(t *testing.T) {
 			{ // "4.2.1"
 				_res = db.Exec("\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, 2),\n        (3, 3),\n        (4, 4),\n        (5, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, 2),\n        (3, 3),\n        (4, 4),\n        (5, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, 2),\n        (3, 3),\n        (4, 4),\n        (5, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
 				}
 			}
 			{ // "4.2.2"
@@ -341,7 +341,7 @@ func Test_values(t *testing.T) {
 			{ // "4.3.1"
 				_res = db.Exec("\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d'), ('e')) ))\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d'), ('e')) ))\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d'), ('e')) ))\n  ")
 				}
 			}
 			{ // "4.3.2"
@@ -367,7 +367,7 @@ func Test_values(t *testing.T) {
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE VIEW v1 AS VALUES(1, 2, 3), (4, 5, 6), (7, 8, 9);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS VALUES(1, 2, 3), (4, 5, 6), (7, 8, 9);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v1 AS VALUES(1, 2, 3), (4, 5, 6), (7, 8, 9);\n")
 			}
 		}
 		{ // "5.1"
@@ -392,7 +392,7 @@ func Test_values(t *testing.T) {
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2);\n")
 			}
 		}
 		{ // "6.1"
@@ -417,7 +417,7 @@ func Test_values(t *testing.T) {
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('x'), ('y');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('x'), ('y');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('x'), ('y');\n")
 			}
 		}
 		{ // "6.1"
@@ -472,7 +472,7 @@ func Test_values(t *testing.T) {
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('d'), (NULL), (123)\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('d'), (NULL), (123)\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('d'), (NULL), (123)\n")
 			}
 		}
 		// foreach {tn q res} "1 \"SELECT * FROM t1 LEFT JOIN VVV\" {\n    d a b   d c d   d 123 {}\n    {} a b   {} c d   {} 123 {}\n    123 a b   123 c d   123 123 {}\n  }\n\n  2 \"SELECT * FROM t1 LEFT JOIN VVV ON (column1=x)\" {\n    d {} {}\n    {} {} {}\n    123 123 {}\n  }\n\n  3 \"SELECT * FROM t1 RIGHT JOIN VVV\" {\n    d a b   d c d   d 123 {}\n    {} a b   {} c d   {} 123 {}\n    123 a b   123 c d   123 123 {}\n  }\n\n  4 \"SELECT * FROM t1 RIGHT JOIN VVV ON (column1=x)\" {\n    123 123 {}\n    {} a b\n    {} c d\n  }\n\n  5 \"SELECT * FROM t1 FULL OUTER JOIN VVV ON (column1=x)\" {\n    d {} {}\n    {} {} {}\n    123 123 {}\n    {} a b\n    {} c d\n  }\n\n  6 \"SELECT count(*) FROM VVV\" { 3 }\n\n  7 \"SELECT (SELECT column1 FROM VVV)\" { a }\n\n  8 \"SELECT * FROM VVV UNION ALL SELECT * FROM VVV\" {\n    a b c d 123 {}\n    a b c d 123 {}\n  }\n\n  9 \"SELECT * FROM VVV INTERSECT SELECT * FROM VVV\" {\n    123 {} a b c d \n  }\n\n  10 \"SELECT * FROM VVV eXCEPT SELECT * FROM VVV\" { }\n\n  11 \"SELECT * FROM VVV eXCEPT SELECT 'a', 'b'\" { 123 {} c d }"
@@ -495,19 +495,19 @@ func Test_values(t *testing.T) {
 				{ // "8.1." + tn + ".1"
 					_res = db.Exec(q1)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q1)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q1)
 					}
 				}
 				{ // "8.1." + tn + ".2"
 					_res = db.Exec(q2)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q2)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q2)
 					}
 				}
 				{ // "8.1." + tn + ".3"
 					_res = db.Exec(q3)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q3)
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q3)
 					}
 				}
 			}
@@ -545,13 +545,13 @@ func Test_values(t *testing.T) {
 			{ // "10.1"
 				_res = db.Exec("\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n")
 				}
 			}
 			{ // "10.2"
 				_res = db.Exec("\n  INSERT INTO a2(a) VALUES(3),(4);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO a2(a) VALUES(3),(4);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO a2(a) VALUES(3),(4);\n")
 				}
 			}
 			db.Close()
@@ -564,13 +564,13 @@ func Test_values(t *testing.T) {
 			{ // "11.0"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n  ")
 				}
 			}
 			{ // "11.1"
 				_res = db.Exec("\n    INSERT INTO ft VALUES('one'), ('two');\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO ft VALUES('one'), ('two');\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO ft VALUES('one'), ('two');\n  ")
 				}
 			}
 			db.Close()
@@ -583,13 +583,13 @@ func Test_values(t *testing.T) {
 			{ // "12.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n")
 				}
 			}
 			{ // "12.1"
 				_res = db.Exec("\n  INSERT INTO t1 SELECT 1, 2 UNION ALL VALUES(3, 4), (5, 6);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 SELECT 1, 2 UNION ALL VALUES(3, 4), (5, 6);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 SELECT 1, 2 UNION ALL VALUES(3, 4), (5, 6);\n")
 				}
 			}
 			{ // "12.2"
@@ -645,7 +645,7 @@ func Test_values(t *testing.T) {
 			{ // "14.2"
 				_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));\n")
 				}
 			}
 			db.Close()
@@ -664,7 +664,7 @@ func Test_values(t *testing.T) {
 			{ // "15.2"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n")
 				}
 			}
 			{ // "15.3"
@@ -688,7 +688,7 @@ func Test_values(t *testing.T) {
 			{ // "15.6"
 				_res = db.Exec("\n  CREATE TABLE t2(x,y);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x,y);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(x,y);\n")
 				}
 			}
 			{ // "15.7"
@@ -707,7 +707,7 @@ func Test_values(t *testing.T) {
 			{ // "16.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b);\n")
 				}
 			}
 			{ // "16.2"
@@ -767,7 +767,7 @@ func Test_values(t *testing.T) {
 			{ // "17.1"
 				_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1 AS SELECT * FROM (VALUES(1,2), (3,4 IN (1,2,3)));\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1 AS SELECT * FROM (VALUES(1,2), (3,4 IN (1,2,3)));\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1 AS SELECT * FROM (VALUES(1,2), (3,4 IN (1,2,3)));\n")
 				}
 			}
 			{ // "17.2"
@@ -785,19 +785,19 @@ func Test_values(t *testing.T) {
 			{ // "18.1"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(RAISE(IGNORE)),(0);\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "RAISE() may only be used within a trigger-program") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RAISE() may only be used within a trigger-program", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(RAISE(IGNORE)),(0);\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RAISE() may only be used within a trigger-program", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(RAISE(IGNORE)),(0);\n")
 				}
 			}
 			{ // "18.2"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
 				}
 			}
 			{ // "18.3.1"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(ABORT,'error 18.3')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error 18.3") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error 18.3", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(ABORT,'error 18.3')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error 18.3", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(ABORT,'error 18.3')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n")
 				}
 			}
 			{ // "18.3.2"
@@ -809,7 +809,7 @@ func Test_values(t *testing.T) {
 			{ // "18.4.1"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),(RAISE(ABORT,'error 18.4')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error 18.4") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error 18.4", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),(RAISE(ABORT,'error 18.4')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error 18.4", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),(RAISE(ABORT,'error 18.4')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n")
 				}
 			}
 			{ // "18.4.2"
@@ -821,19 +821,19 @@ func Test_values(t *testing.T) {
 			{ // "18.5.1"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
 				}
 			}
 			{ // "18.5.2"
 				_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,13);\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error 18.5") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error 18.5", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,13);\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error 18.5", resErrString(_res), "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,13);\n")
 				}
 			}
 			{ // "18.5.3"
 				_res = db.Exec("\n  SELECT * FROM t1;\n")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1;\n")
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t1;\n")
 				}
 			}
 			db.Close()
@@ -896,7 +896,7 @@ func Test_values(t *testing.T) {
 			{ // "19.5"
 				_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a,b);              INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(column1,column2);  INSERT INTO t2 VALUES(11,22),(33,44);\n  CREATE TABLE t3(d,e);              INSERT INTO t3 VALUES(3,4);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a,b);              INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(column1,column2);  INSERT INTO t2 VALUES(11,22),(33,44);\n  CREATE TABLE t3(d,e);              INSERT INTO t3 VALUES(3,4);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a,b);              INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(column1,column2);  INSERT INTO t2 VALUES(11,22),(33,44);\n  CREATE TABLE t3(d,e);              INSERT INTO t3 VALUES(3,4);\n")
 				}
 			}
 			{ // "19.6"

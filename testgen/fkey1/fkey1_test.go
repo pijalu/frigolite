@@ -156,13 +156,13 @@ func Test_fkey1(t *testing.T) {
 	{ // "fkey1-5.1"
 		_res = db.Exec("\n  CREATE TABLE t11(\n    x INTEGER PRIMARY KEY, \n    parent REFERENCES t11 ON DELETE CASCADE\n  );\n  INSERT INTO t11 VALUES (1, NULL), (2, 1), (3, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t11(\n    x INTEGER PRIMARY KEY, \n    parent REFERENCES t11 ON DELETE CASCADE\n  );\n  INSERT INTO t11 VALUES (1, NULL), (2, 1), (3, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t11(\n    x INTEGER PRIMARY KEY, \n    parent REFERENCES t11 ON DELETE CASCADE\n  );\n  INSERT INTO t11 VALUES (1, NULL), (2, 1), (3, 2);\n")
 		}
 	}
 	{ // "fkey1-5.2"
 		_res = db.Exec("\n  INSERT OR REPLACE INTO t11 VALUES (2, 3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t11 VALUES (2, 3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO t11 VALUES (2, 3);\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -183,31 +183,31 @@ func Test_fkey1(t *testing.T) {
 	{ // "fkey1-5.3"
 		_res = db.Exec("\n  CREATE TABLE Foo (\n    Id INTEGER PRIMARY KEY, \n    ParentId INTEGER REFERENCES Foo(Id) ON DELETE CASCADE, C1\n  );\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (1, null, 'A');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 1, 'A-2-1');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (3, 2, 'A-3-2');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (4, 3, 'A-4-3');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE Foo (\n    Id INTEGER PRIMARY KEY, \n    ParentId INTEGER REFERENCES Foo(Id) ON DELETE CASCADE, C1\n  );\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (1, null, 'A');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 1, 'A-2-1');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (3, 2, 'A-3-2');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (4, 3, 'A-4-3');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE Foo (\n    Id INTEGER PRIMARY KEY, \n    ParentId INTEGER REFERENCES Foo(Id) ON DELETE CASCADE, C1\n  );\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (1, null, 'A');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 1, 'A-2-1');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (3, 2, 'A-3-2');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (4, 3, 'A-4-3');\n")
 		}
 	}
 	{ // "fkey1-5.4"
 		_res = db.Exec("\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 3, 'A-2-3');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 3, 'A-2-3');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 3, 'A-2-3');\n")
 		}
 	}
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE p1(x, y);\n  CREATE UNIQUE INDEX p1x ON p1(x) WHERE y<2;\n  INSERT INTO p1 VALUES(1, 1);\n  CREATE TABLE c1(a REFERENCES p1(x));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE p1(x, y);\n  CREATE UNIQUE INDEX p1x ON p1(x) WHERE y<2;\n  INSERT INTO p1 VALUES(1, 1);\n  CREATE TABLE c1(a REFERENCES p1(x));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE p1(x, y);\n  CREATE UNIQUE INDEX p1x ON p1(x) WHERE y<2;\n  INSERT INTO p1 VALUES(1, 1);\n  CREATE TABLE c1(a REFERENCES p1(x));\n")
 		}
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  INSERT INTO c1 VALUES(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"c1\" referencing \"p1\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"c1\" referencing \"p1\"", _res.Error, "\n  INSERT INTO c1 VALUES(1);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"c1\" referencing \"p1\"", resErrString(_res), "\n  INSERT INTO c1 VALUES(1);\n")
 		}
 	}
 	{ // "6.2"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX p1x2 ON p1(x);\n  INSERT INTO c1 VALUES(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE UNIQUE INDEX p1x2 ON p1(x);\n  INSERT INTO c1 VALUES(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE UNIQUE INDEX p1x2 ON p1(x);\n  INSERT INTO c1 VALUES(1);\n")
 		}
 	}
 	db.Close()

@@ -264,7 +264,7 @@ func Test_without_rowid3(t *testing.T) {
 			{ // do_test "without_rowid3-1.1." + tn + ".1"
 				_res = db.Exec(zSql)
 				if !tclCatchsqlMatches(_res, res) {
-					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, zSql)
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, zSql)
 				}
 			}
 			{ // do_test "without_rowid3-1.1." + tn + ".2"
@@ -341,7 +341,7 @@ func Test_without_rowid3(t *testing.T) {
 				{ // do_test "without_rowid3-1.2." + tn
 					_res = db.Exec(zSql)
 					if !tclCatchsqlMatches(_res, res) {
-						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, zSql)
+						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, zSql)
 					}
 				}
 				{ // do_test "without_rowid3-1.2." + tn + ".2"
@@ -427,7 +427,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-1.3." + tn
 						_res = db.Exec(zSql)
 						if !tclCatchsqlMatches(_res, res) {
-							t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, zSql)
+							t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, zSql)
 						}
 					}
 					{ // do_test "without_rowid3-1.3." + tn + ".2"
@@ -521,7 +521,7 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-1.4." + tn
 							_res = db.Exec(zSql)
 							if !tclCatchsqlMatches(_res, res) {
-								t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", _res.Error, res, zSql)
+								t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), res, zSql)
 							}
 						}
 						_res = db.Exec("COMMIT")
@@ -560,7 +560,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-1.5.2"
 						_res = db.Exec(" DELETE FROM i ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM i ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM i ")
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -590,7 +590,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-1.6.2"
 						_res = db.Exec(" DELETE FROM i ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM i ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM i ")
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -723,7 +723,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-2-test-67"
 						_res = db.Exec("INSERT INTO node SELECT parent, 3 FROM leaf")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: node.nodeid") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: node.nodeid", _res.Error, "INSERT INTO node SELECT parent, 3 FROM leaf")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: node.nodeid", resErrString(_res), "INSERT INTO node SELECT parent, 3 FROM leaf")
 						}
 					}
 					// without_rowid3-2-test 68 0 COMMIT FKV (unsupported command, not transpiled)
@@ -767,7 +767,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-3.1.3"
 						_res = db.Exec(" UPDATE ab SET a = 5 ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: e!=5") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e!=5", _res.Error, " UPDATE ab SET a = 5 ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e!=5", resErrString(_res), " UPDATE ab SET a = 5 ")
 						}
 					}
 					{ // do_test "without_rowid3-3.1.4"
@@ -974,7 +974,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-7.2"
 						_res = db.Exec(" INSERT INTO t2 VALUES(1, 'A'); ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO t2 VALUES(1, 'A'); ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO t2 VALUES(1, 'A'); ")
 						}
 					}
 					{ // do_test "without_rowid3-7.3"
@@ -992,13 +992,13 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-7.5"
 						_res = db.Exec(" UPDATE t2 SET c = 3 ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t2 SET c = 3 ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t2 SET c = 3 ")
 						}
 					}
 					{ // do_test "without_rowid3-7.6"
 						_res = db.Exec(" DELETE FROM t1 WHERE a = 2 ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM t1 WHERE a = 2 ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM t1 WHERE a = 2 ")
 						}
 					}
 					{ // do_test "without_rowid3-7.7"
@@ -1010,7 +1010,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-7.8"
 						_res = db.Exec(" UPDATE t1 SET a = 3 ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t1 SET a = 3 ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t1 SET a = 3 ")
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1093,7 +1093,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-9.1.5"
 						_res = db.Exec(" DELETE FROM t1 ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM t1 ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM t1 ")
 						}
 					}
 					{ // do_test "without_rowid3-9.2.1"
@@ -1301,7 +1301,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-12.1.4"
 						_res = db.Exec("UPDATE t1 SET b = 'five' WHERE b = 'two'")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "UPDATE t1 SET b = 'five' WHERE b = 'two'")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "UPDATE t1 SET b = 'five' WHERE b = 'two'")
 						}
 					}
 					{ // do_test "without_rowid3-12.1.5"
@@ -1313,7 +1313,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-12.1.6"
 						_res = db.Exec("COMMIT")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "COMMIT")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "COMMIT")
 						}
 					}
 					{ // do_test "without_rowid3-12.1.7"
@@ -1403,7 +1403,7 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-12.3.3"
 						_res = db.Exec(" INSERT INTO down(c39, c38) VALUES('yes', 'no') ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO down(c39, c38) VALUES('yes', 'no') ")
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO down(c39, c38) VALUES('yes', 'no') ")
 						}
 					}
 					{ // do_test "without_rowid3-12.3.4"
@@ -1455,7 +1455,7 @@ func Test_without_rowid3(t *testing.T) {
 							{ // do_test "without_rowid3-13.1." + tn + ".1"
 								_res = db.Exec(stmt)
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, stmt)
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), stmt)
 								}
 							}
 							{ // do_test "without_rowid3-13.1." + tn + ".2"
@@ -1508,25 +1508,25 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.1.2"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.1.3"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
 							}
 						}
 						{ // do_test "without_rowid3-14.1.4"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, " ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), " ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
 							}
 						}
 						{ // do_test "without_rowid3-14.1.5"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, " ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), " ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.1.6"
@@ -1586,7 +1586,7 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.2.2.3"
 							_res = db.Exec(" INSERT INTO t3 VALUES(1, 2, 3) ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO t3 VALUES(1, 2, 3) ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO t3 VALUES(1, 2, 3) ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2.2.4"
@@ -1598,13 +1598,13 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.2.2.5"
 							_res = db.Exec(" UPDATE t4 SET b = 5 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t4 SET b = 5 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t4 SET b = 5 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2.2.6"
 							_res = db.Exec(" UPDATE t4 SET b = 1 ")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " UPDATE t4 SET b = 1 ")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " UPDATE t4 SET b = 1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2.2.7"
@@ -1642,25 +1642,25 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.1tmp.2"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.1tmp.3"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
 							}
 						}
 						{ // do_test "without_rowid3-14.1tmp.4"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, " ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), " ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
 							}
 						}
 						{ // do_test "without_rowid3-14.1tmp.5"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, " ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), " ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.1tmp.6"
@@ -1719,7 +1719,7 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.2tmp.2.3"
 							_res = db.Exec(" INSERT INTO t3 VALUES(1, 2, 3) ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO t3 VALUES(1, 2, 3) ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO t3 VALUES(1, 2, 3) ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2tmp.2.4"
@@ -1731,13 +1731,13 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.2tmp.2.5"
 							_res = db.Exec(" UPDATE t4 SET b = 5 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t4 SET b = 5 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t4 SET b = 5 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2tmp.2.6"
 							_res = db.Exec(" UPDATE t4 SET b = 1 ")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " UPDATE t4 SET b = 1 ")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " UPDATE t4 SET b = 1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2tmp.2.7"
@@ -1775,25 +1775,25 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.1aux.2"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.1aux.3"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL")
 							}
 						}
 						{ // do_test "without_rowid3-14.1aux.4"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, " ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), " ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'")
 							}
 						}
 						{ // do_test "without_rowid3-14.1aux.5"
 							_res = db.Exec(" ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Cannot add a REFERENCES column with non-NULL default value") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", _res.Error, " ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Cannot add a REFERENCES column with non-NULL default value", resErrString(_res), " ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.1aux.6"
@@ -1852,7 +1852,7 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.2aux.2.3"
 							_res = db.Exec(" INSERT INTO t3 VALUES(1, 2, 3) ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO t3 VALUES(1, 2, 3) ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO t3 VALUES(1, 2, 3) ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2aux.2.4"
@@ -1864,13 +1864,13 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-14.2aux.2.5"
 							_res = db.Exec(" UPDATE t4 SET b = 5 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t4 SET b = 5 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t4 SET b = 5 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2aux.2.6"
 							_res = db.Exec(" UPDATE t4 SET b = 1 ")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " UPDATE t4 SET b = 1 ")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " UPDATE t4 SET b = 1 ")
 							}
 						}
 						{ // do_test "without_rowid3-14.2aux.2.7"
@@ -1912,7 +1912,7 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-2.14.3.3"
 							_res = db.Exec(" DROP TABLE t1 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DROP TABLE t1 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DROP TABLE t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-2.14.3.4"
@@ -1924,7 +1924,7 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-2.14.3.4"
 							_res = db.Exec(" INSERT INTO t2 VALUES('x') ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t1") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", _res.Error, " INSERT INTO t2 VALUES('x') ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", resErrString(_res), " INSERT INTO t2 VALUES('x') ")
 							}
 						}
 						{ // do_test "without_rowid3-2.14.3.5"
@@ -1940,7 +1940,7 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-2.14.3.6"
 							_res = db.Exec(" DROP TABLE t1 ")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DROP TABLE t1 ")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DROP TABLE t1 ")
 							}
 						}
 						{ // do_test "without_rowid3-2.14.3.7"
@@ -2141,25 +2141,25 @@ func Test_without_rowid3(t *testing.T) {
 								{ // do_test "without_rowid3-16.1." + tn + ".3"
 									_res = db.Exec(" UPDATE self SET b = 15 ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE self SET b = 15 ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE self SET b = 15 ")
 									}
 								}
 								{ // do_test "without_rowid3-16.1." + tn + ".4"
 									_res = db.Exec(" UPDATE self SET a = 15 ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE self SET a = 15 ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE self SET a = 15 ")
 									}
 								}
 								{ // do_test "without_rowid3-16.1." + tn + ".5"
 									_res = db.Exec(" UPDATE self SET a = 15, b = 16 ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE self SET a = 15, b = 16 ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE self SET a = 15, b = 16 ")
 									}
 								}
 								{ // do_test "without_rowid3-16.1." + tn + ".6"
 									_res = db.Exec(" UPDATE self SET a = 17, b = 17 ")
 									if _res.Error != nil {
-										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " UPDATE self SET a = 17, b = 17 ")
+										t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " UPDATE self SET a = 17, b = 17 ")
 									}
 								}
 								{ // do_test "without_rowid3-16.1." + tn + ".7"
@@ -2171,7 +2171,7 @@ func Test_without_rowid3(t *testing.T) {
 								{ // do_test "without_rowid3-16.1." + tn + ".8"
 									_res = db.Exec(" INSERT INTO self VALUES(20, 21) ")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO self VALUES(20, 21) ")
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO self VALUES(20, 21) ")
 									}
 								}
 							}
@@ -2232,13 +2232,13 @@ func Test_without_rowid3(t *testing.T) {
 							{ // do_test "without_rowid3-16.4.1.4"
 								_res = db.Exec("\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
 								}
 							}
 							{ // do_test "without_rowid3-16.4.1.5"
 								_res = db.Exec("\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
 								}
 							}
 							{ // "without_rowid3-16.4.1.6"
@@ -2292,13 +2292,13 @@ func Test_without_rowid3(t *testing.T) {
 							{ // do_test "without_rowid3-16.4.2.4"
 								_res = db.Exec("\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
 								}
 							}
 							{ // do_test "without_rowid3-16.4.2.5"
 								_res = db.Exec("\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
 								}
 							}
 							{ // "without_rowid3-16.4.2.6"
@@ -2369,7 +2369,7 @@ func Test_without_rowid3(t *testing.T) {
 							{ // do_test "without_rowid3-17.1.6"
 								_res = db.Exec("\n    BEGIN;\n      INSERT INTO one VALUES(0, 0, 0);\n      UPDATE two SET e=e+1, f=f+1;\n  ")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    BEGIN;\n      INSERT INTO one VALUES(0, 0, 0);\n      UPDATE two SET e=e+1, f=f+1;\n  ")
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    BEGIN;\n      INSERT INTO one VALUES(0, 0, 0);\n      UPDATE two SET e=e+1, f=f+1;\n  ")
 								}
 							}
 							{ // do_test "without_rowid3-17.1.7"
@@ -2592,7 +2592,7 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-20.2." + tn + ".1"
 										_res = db.Exec(insert + " INTO cc VALUES(1, 2)")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, insert + " INTO cc VALUES(1, 2)")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), insert + " INTO cc VALUES(1, 2)")
 										}
 									}
 									{ // do_test "without_rowid3-20.2." + tn + ".2"
@@ -2639,7 +2639,7 @@ func Test_without_rowid3(t *testing.T) {
 										{ // do_test "without_rowid3-20.3." + tn + ".2"
 											_res = db.Exec(update + " pp SET a = 1")
 											if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-												t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, update + " pp SET a = 1")
+												t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), update + " pp SET a = 1")
 											}
 										}
 										{ // do_test "without_rowid3-20.3." + tn + ".3"
@@ -2651,7 +2651,7 @@ func Test_without_rowid3(t *testing.T) {
 										{ // do_test "without_rowid3-20.3." + tn + ".4"
 											_res = db.Exec(update + " cc SET d = 1")
 											if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-												t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, update + " cc SET d = 1")
+												t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), update + " cc SET d = 1")
 											}
 										}
 										{ // do_test "without_rowid3-20.3." + tn + ".5"
@@ -2722,7 +2722,7 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-genfkey.1.2"
 										_res = db.Exec(" INSERT INTO t2 VALUES(1, 2) ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO t2 VALUES(1, 2) ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO t2 VALUES(1, 2) ")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.3"
@@ -2740,7 +2740,7 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-genfkey.1.5"
 										_res = db.Exec(" UPDATE t2 SET e = 5 WHERE e IS NULL ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t2 SET e = 5 WHERE e IS NULL ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t2 SET e = 5 WHERE e IS NULL ")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.6"
@@ -2758,19 +2758,19 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-genfkey.1.8"
 										_res = db.Exec(" UPDATE t1 SET a = 10 ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t1 SET a = 10 ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t1 SET a = 10 ")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.9"
 										_res = db.Exec(" UPDATE t1 SET a = NULL ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.a") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", _res.Error, " UPDATE t1 SET a = NULL ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.a", resErrString(_res), " UPDATE t1 SET a = NULL ")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.10"
 										_res = db.Exec(" DELETE FROM t1 ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM t1 ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM t1 ")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.11"
@@ -2794,7 +2794,7 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-genfkey.1.14"
 										_res = db.Exec(" INSERT INTO t3 VALUES(3, 1, 4) ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " INSERT INTO t3 VALUES(3, 1, 4) ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " INSERT INTO t3 VALUES(3, 1, 4) ")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.15"
@@ -2806,13 +2806,13 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-genfkey.1.16"
 										_res = db.Exec(" DELETE FROM t1 ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " DELETE FROM t1 ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " DELETE FROM t1 ")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.17"
 										_res = db.Exec(" UPDATE t1 SET b = 10")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t1 SET b = 10")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t1 SET b = 10")
 										}
 									}
 									{ // do_test "without_rowid3-genfkey.1.18"
@@ -2824,7 +2824,7 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-genfkey.1.19"
 										_res = db.Exec(" UPDATE t3 SET h = 'hello' WHERE i = 3")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " UPDATE t3 SET h = 'hello' WHERE i = 3")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), " UPDATE t3 SET h = 'hello' WHERE i = 3")
 										}
 									}
 									_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2944,7 +2944,7 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-dd08e5.1.2"
 										_res = db.Exec("\n    DELETE FROM tdd08;\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    DELETE FROM tdd08;\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    DELETE FROM tdd08;\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-dd08e5.1.3"
@@ -2956,19 +2956,19 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-dd08e5.1.4"
 										_res = db.Exec("\n    INSERT INTO tdd08_b VALUES(400,500,300);\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    INSERT INTO tdd08_b VALUES(400,500,300);\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    INSERT INTO tdd08_b VALUES(400,500,300);\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-dd08e5.1.5"
 										_res = db.Exec("\n    UPDATE tdd08_b SET x=x+1;\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE tdd08_b SET x=x+1;\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE tdd08_b SET x=x+1;\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-dd08e5.1.6"
 										_res = db.Exec("\n    UPDATE tdd08 SET a=a+1;\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE tdd08 SET a=a+1;\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE tdd08 SET a=a+1;\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-ce7c13.1.1"
@@ -2980,13 +2980,13 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-ce7c13.1.2"
 										_res = db.Exec("\n    UPDATE tce71 set b = 201 where a = 100;\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE tce71 set b = 201 where a = 100;\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE tce71 set b = 201 where a = 100;\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-ce7c13.1.3"
 										_res = db.Exec("\n    UPDATE tce71 set a = 101 where a = 100;\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE tce71 set a = 101 where a = 100;\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE tce71 set a = 101 where a = 100;\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-ce7c13.1.4"
@@ -2998,13 +2998,13 @@ func Test_without_rowid3(t *testing.T) {
 									{ // do_test "without_rowid3-ce7c13.1.5"
 										_res = db.Exec("\n    UPDATE tce73 set b = 201 where a = 100;\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE tce73 set b = 201 where a = 100;\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE tce73 set b = 201 where a = 100;\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-ce7c13.1.6"
 										_res = db.Exec("\n    UPDATE tce73 set a = 101 where a = 100;\n  ")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    UPDATE tce73 set a = 101 where a = 100;\n  ")
+											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n    UPDATE tce73 set a = 101 where a = 100;\n  ")
 										}
 									}
 									db.Close()

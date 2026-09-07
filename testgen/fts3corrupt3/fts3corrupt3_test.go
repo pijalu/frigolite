@@ -89,13 +89,13 @@ func Test_fts3corrupt3(t *testing.T) {
 	{ // "1.2"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = X'00036F6E650EFFFFFFFFFFFFFFFFFFFFFFFF0200';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1_segdir SET root = X'00036F6E650EFFFFFFFFFFFFFFFFFFFFFFFF0200';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t1_segdir SET root = X'00036F6E650EFFFFFFFFFFFFFFFFFFFFFFFF0200';\n")
 		}
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
 		}
 	}
 	doc1 = tclStringRepeat("x ", "600")
@@ -107,7 +107,7 @@ func Test_fts3corrupt3(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc1) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc2) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc3) + ");\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc1) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc2) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc3) + ");\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc1) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc2) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc3) + ");\n  COMMIT;\n")
 		}
 	}
 	{ // "2.1"

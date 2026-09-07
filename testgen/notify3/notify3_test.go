@@ -120,13 +120,13 @@ func Test_notify3(t *testing.T) {
 	{ // do_test "notify3-1.4"
 		_res = db.Exec(" ATTACH 'test.db2' AS aux ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " ATTACH 'test.db2' AS aux ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " ATTACH 'test.db2' AS aux ")
 		}
 	}
 	{ // do_test "notify3-1.5"
 		_res = db.Exec(" SELECT * FROM t2 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database schema is locked: aux") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database schema is locked: aux", _res.Error, " SELECT * FROM t2 ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database schema is locked: aux", resErrString(_res), " SELECT * FROM t2 ")
 		}
 	}
 	{ // do_test "notify3-1.6"
@@ -181,7 +181,7 @@ func Test_notify3(t *testing.T) {
 	{ // do_test "notify3-1.9"
 		_res = db.Exec(" SELECT * FROM t2 ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t2 ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM t2 ")
 		}
 	}
 	db.Close()
@@ -244,7 +244,7 @@ func Test_notify3(t *testing.T) {
 					_res = db1.Exec("ATTACH 'test.db2' AS two")
 					_ = _res // catchsql
 					if !tclCatchsqlMatches(_res, result) {
-						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, result, "notify3-2." + tn + ".1")
+						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", resErrString(_res), result, "notify3-2." + tn + ".1")
 					}
 				}
 				{ // do_test "notify3-2." + tn + ".2"

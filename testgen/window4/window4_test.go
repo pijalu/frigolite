@@ -71,7 +71,7 @@ func Test_window4(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a TEXT PRIMARY KEY);\n  INSERT INTO t3 VALUES('a'), ('b'), ('c'), ('d'), ('e');\n  INSERT INTO t3 VALUES('f'), ('g'), ('h'), ('i'), ('j');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a TEXT PRIMARY KEY);\n  INSERT INTO t3 VALUES('a'), ('b'), ('c'), ('d'), ('e');\n  INSERT INTO t3 VALUES('f'), ('g'), ('h'), ('i'), ('j');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a TEXT PRIMARY KEY);\n  INSERT INTO t3 VALUES('a'), ('b'), ('c'), ('d'), ('e');\n  INSERT INTO t3 VALUES('f'), ('g'), ('h'), ('i'), ('j');\n")
 		}
 	}
 	{ // "1.1"
@@ -305,7 +305,7 @@ func Test_window4(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a INTEGER PRIMARY KEY, b TEXT, c INTEGER);\n  INSERT INTO t4 VALUES(1, 'A', 9);\n  INSERT INTO t4 VALUES(2, 'B', 3);\n  INSERT INTO t4 VALUES(3, 'C', 2);\n  INSERT INTO t4 VALUES(4, 'D', 10);\n  INSERT INTO t4 VALUES(5, 'E', 5);\n  INSERT INTO t4 VALUES(6, 'F', 1);\n  INSERT INTO t4 VALUES(7, 'G', 1);\n  INSERT INTO t4 VALUES(8, 'H', 2);\n  INSERT INTO t4 VALUES(9, 'I', 10);\n  INSERT INTO t4 VALUES(10, 'J', 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a INTEGER PRIMARY KEY, b TEXT, c INTEGER);\n  INSERT INTO t4 VALUES(1, 'A', 9);\n  INSERT INTO t4 VALUES(2, 'B', 3);\n  INSERT INTO t4 VALUES(3, 'C', 2);\n  INSERT INTO t4 VALUES(4, 'D', 10);\n  INSERT INTO t4 VALUES(5, 'E', 5);\n  INSERT INTO t4 VALUES(6, 'F', 1);\n  INSERT INTO t4 VALUES(7, 'G', 1);\n  INSERT INTO t4 VALUES(8, 'H', 2);\n  INSERT INTO t4 VALUES(9, 'I', 10);\n  INSERT INTO t4 VALUES(10, 'J', 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a INTEGER PRIMARY KEY, b TEXT, c INTEGER);\n  INSERT INTO t4 VALUES(1, 'A', 9);\n  INSERT INTO t4 VALUES(2, 'B', 3);\n  INSERT INTO t4 VALUES(3, 'C', 2);\n  INSERT INTO t4 VALUES(4, 'D', 10);\n  INSERT INTO t4 VALUES(5, 'E', 5);\n  INSERT INTO t4 VALUES(6, 'F', 1);\n  INSERT INTO t4 VALUES(7, 'G', 1);\n  INSERT INTO t4 VALUES(8, 'H', 2);\n  INSERT INTO t4 VALUES(9, 'I', 10);\n  INSERT INTO t4 VALUES(10, 'J', 4);\n")
 		}
 	}
 	{ // "2.1"
@@ -407,7 +407,7 @@ func Test_window4(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d INTEGER);\n  INSERT INTO t5 VALUES(1, 'A', 'one',   5);\n  INSERT INTO t5 VALUES(2, 'B', 'two',   4);\n  INSERT INTO t5 VALUES(3, 'A', 'three', 3);\n  INSERT INTO t5 VALUES(4, 'B', 'four',  2);\n  INSERT INTO t5 VALUES(5, 'A', 'five',  1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d INTEGER);\n  INSERT INTO t5 VALUES(1, 'A', 'one',   5);\n  INSERT INTO t5 VALUES(2, 'B', 'two',   4);\n  INSERT INTO t5 VALUES(3, 'A', 'three', 3);\n  INSERT INTO t5 VALUES(4, 'B', 'four',  2);\n  INSERT INTO t5 VALUES(5, 'A', 'five',  1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d INTEGER);\n  INSERT INTO t5 VALUES(1, 'A', 'one',   5);\n  INSERT INTO t5 VALUES(2, 'B', 'two',   4);\n  INSERT INTO t5 VALUES(3, 'A', 'three', 3);\n  INSERT INTO t5 VALUES(4, 'B', 'four',  2);\n  INSERT INTO t5 VALUES(5, 'A', 'five',  1);\n")
 		}
 	}
 	{ // "3.1"
@@ -533,7 +533,7 @@ func Test_window4(t *testing.T) {
 	{ // "4.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS ttt;\n  CREATE TABLE ttt(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER);\n  INSERT INTO ttt VALUES(1, 1, 1);\n  INSERT INTO ttt VALUES(2, 2, 2);\n  INSERT INTO ttt VALUES(3, 3, 3);\n\n  INSERT INTO ttt VALUES(4, 1, 2);\n  INSERT INTO ttt VALUES(5, 2, 3);\n  INSERT INTO ttt VALUES(6, 3, 4);\n\n  INSERT INTO ttt VALUES(7, 1, 3);\n  INSERT INTO ttt VALUES(8, 2, 4);\n  INSERT INTO ttt VALUES(9, 3, 5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS ttt;\n  CREATE TABLE ttt(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER);\n  INSERT INTO ttt VALUES(1, 1, 1);\n  INSERT INTO ttt VALUES(2, 2, 2);\n  INSERT INTO ttt VALUES(3, 3, 3);\n\n  INSERT INTO ttt VALUES(4, 1, 2);\n  INSERT INTO ttt VALUES(5, 2, 3);\n  INSERT INTO ttt VALUES(6, 3, 4);\n\n  INSERT INTO ttt VALUES(7, 1, 3);\n  INSERT INTO ttt VALUES(8, 2, 4);\n  INSERT INTO ttt VALUES(9, 3, 5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS ttt;\n  CREATE TABLE ttt(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER);\n  INSERT INTO ttt VALUES(1, 1, 1);\n  INSERT INTO ttt VALUES(2, 2, 2);\n  INSERT INTO ttt VALUES(3, 3, 3);\n\n  INSERT INTO ttt VALUES(4, 1, 2);\n  INSERT INTO ttt VALUES(5, 2, 3);\n  INSERT INTO ttt VALUES(6, 3, 4);\n\n  INSERT INTO ttt VALUES(7, 1, 3);\n  INSERT INTO ttt VALUES(8, 2, 4);\n  INSERT INTO ttt VALUES(9, 3, 5);\n")
 		}
 	}
 	{ // "4.1"
@@ -2339,7 +2339,7 @@ func Test_window4(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n")
 		}
 	}
 	{ // "7.1"
@@ -2405,7 +2405,7 @@ func Test_window4(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER, b INTEGER, c INTEGER, d INTEGER);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER, b INTEGER, c INTEGER, d INTEGER);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER, b INTEGER, c INTEGER, d INTEGER);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		}
 	}
 	{ // "8.1"
@@ -2435,7 +2435,7 @@ func Test_window4(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INTEGER);\n  INSERT INTO t2 VALUES(1), (1), (1), (4), (4), (6), (7);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INTEGER);\n  INSERT INTO t2 VALUES(1), (1), (1), (4), (4), (6), (7);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INTEGER);\n  INSERT INTO t2 VALUES(1), (1), (1), (4), (4), (6), (7);\n")
 		}
 	}
 	{ // "9.1"
@@ -2558,7 +2558,7 @@ func Test_window4(t *testing.T) {
 	{ // "10.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t7;\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, a INTEGER, b INTEGER);\n  INSERT INTO t7(id, a, b) VALUES\n    (1, 1, 2), (2, 1, NULL), (3, 1, 4),\n    (4, 3, NULL), (5, 3, 8), (6, 3, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t7;\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, a INTEGER, b INTEGER);\n  INSERT INTO t7(id, a, b) VALUES\n    (1, 1, 2), (2, 1, NULL), (3, 1, 4),\n    (4, 3, NULL), (5, 3, 8), (6, 3, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t7;\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, a INTEGER, b INTEGER);\n  INSERT INTO t7(id, a, b) VALUES\n    (1, 1, 2), (2, 1, NULL), (3, 1, 4),\n    (4, 3, NULL), (5, 3, 8), (6, 3, 1);\n")
 		}
 	}
 	{ // "10.1"
@@ -2600,7 +2600,7 @@ func Test_window4(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  DROP VIEW IF EXISTS v8;\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(t INT, total INT);\n  INSERT INTO t8 VALUES(0,2);\n  INSERT INTO t8 VALUES(5,1);\n  INSERT INTO t8 VALUES(10,1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW IF EXISTS v8;\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(t INT, total INT);\n  INSERT INTO t8 VALUES(0,2);\n  INSERT INTO t8 VALUES(5,1);\n  INSERT INTO t8 VALUES(10,1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP VIEW IF EXISTS v8;\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(t INT, total INT);\n  INSERT INTO t8 VALUES(0,2);\n  INSERT INTO t8 VALUES(5,1);\n  INSERT INTO t8 VALUES(10,1);\n")
 		}
 	}
 	{ // "11.1"
@@ -2618,7 +2618,7 @@ func Test_window4(t *testing.T) {
 	{ // "11.2"
 		_res = db.Exec("\n  CREATE VIEW v8 AS SELECT NTILE(256) OVER (ORDER BY total) - 1 AS nt FROM t8;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v8 AS SELECT NTILE(256) OVER (ORDER BY total) - 1 AS nt FROM t8;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIEW v8 AS SELECT NTILE(256) OVER (ORDER BY total) - 1 AS nt FROM t8;\n")
 		}
 	}
 	{ // "11.3"
@@ -2696,7 +2696,7 @@ func Test_window4(t *testing.T) {
 	{ // "12.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER);\n  INSERT INTO t2 VALUES(1), (2), (3);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER);\n  INSERT INTO t2 VALUES(1), (2), (3);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER);\n  INSERT INTO t2 VALUES(1), (2), (3);\n")
 		}
 	}
 	{ // "12.1"

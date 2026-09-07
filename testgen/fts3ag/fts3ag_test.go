@@ -116,7 +116,7 @@ func Test_fts3ag(t *testing.T) {
 	{ // do_test "fts3ag-1.10"
 		_res = db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '-this -something'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed MATCH expression: [-this -something]") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [-this -something]", _res.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '-this -something'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed MATCH expression: [-this -something]", resErrString(_res), "SELECT rowid FROM t1 WHERE t1 MATCH '-this -something'")
 		}
 	}
 	{ // do_test "fts3ag-1.11"

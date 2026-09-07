@@ -77,7 +77,7 @@ func Test_expridx1(t *testing.T) {
 	{ // "1.0.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b REAL);\n  INSERT INTO t1 VALUES(10, 10.0);\n  INSERT INTO t1 VALUES(15, 15.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 25.0);\n  INSERT INTO t1 VALUES(30, 30.0);\n  CREATE INDEX i1 ON t1((b+0.0));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b REAL);\n  INSERT INTO t1 VALUES(10, 10.0);\n  INSERT INTO t1 VALUES(15, 15.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 25.0);\n  INSERT INTO t1 VALUES(30, 30.0);\n  CREATE INDEX i1 ON t1((b+0.0));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b REAL);\n  INSERT INTO t1 VALUES(10, 10.0);\n  INSERT INTO t1 VALUES(15, 15.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 25.0);\n  INSERT INTO t1 VALUES(30, 30.0);\n  CREATE INDEX i1 ON t1((b+0.0));\n")
 		}
 	}
 	vtab.TclVarSet("idxcheck", "", "\n  SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)\n")
@@ -92,7 +92,7 @@ func Test_expridx1(t *testing.T) {
 	{ // "1.1.1"
 		_res = db.Exec("\n  UPDATE x1 SET b=21.0 WHERE rowid=20;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE x1 SET b=21.0 WHERE rowid=20;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE x1 SET b=21.0 WHERE rowid=20;\n")
 		}
 	}
 	{ // "expridx1-1.1.1b" — skipped: integrity_check index b-tree corruption detection N-A (SQL side effects only)
@@ -102,13 +102,13 @@ func Test_expridx1(t *testing.T) {
 	{ // "1.1.1c"
 		_res = db.Exec(idxcheck)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 		}
 	}
 	{ // "1.1.2"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE a=20;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a=20;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE a=20;\n")
 		}
 	}
 	{ // "1.1.3"
@@ -126,7 +126,7 @@ func Test_expridx1(t *testing.T) {
 	{ // "1.1.4"
 		_res = db.Exec(idxcheck)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 		}
 	}
 	{ // "expridx1-1.2.1" — skipped: integrity_check index b-tree corruption detection N-A (SQL side effects only)
@@ -136,13 +136,13 @@ func Test_expridx1(t *testing.T) {
 	{ // "1.2.2"
 		_res = db.Exec(idxcheck)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 		}
 	}
 	{ // "1.2.3"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE a=25;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a=25;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE a=25;\n")
 		}
 	}
 	{ // "1.2.4"
@@ -160,7 +160,7 @@ func Test_expridx1(t *testing.T) {
 	{ // "1.2.5"
 		_res = db.Exec(idxcheck)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 		}
 	}
 	{ // "expridx1-1.3.1" — skipped: integrity_check index b-tree corruption detection N-A (SQL side effects only)
@@ -170,7 +170,7 @@ func Test_expridx1(t *testing.T) {
 	{ // "1.3.2"
 		_res = db.Exec(idxcheck)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 		}
 	}
 	// foreach {tn a} "1 15   2 30   3 20   4 10   5 25"
@@ -184,7 +184,7 @@ func Test_expridx1(t *testing.T) {
 			{ // "1.3.3." + tn
 				_res = db.Exec("\n    DELETE FROM t1 WHERE a=" + sqlLiteral(a) + "\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE a=" + sqlLiteral(a) + "\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1 WHERE a=" + sqlLiteral(a) + "\n  ")
 				}
 			}
 		}
@@ -203,7 +203,7 @@ func Test_expridx1(t *testing.T) {
 		{ // "1.3.5"
 			_res = db.Exec(idxcheck)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 			}
 		}
 		db.Close()
@@ -218,7 +218,7 @@ func Test_expridx1(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
 			}
 		}
 		vtab.TclVarSet("idxcheck", "", "\n  SELECT a, b FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND +b=o.b AND +c=o.c)\n")
@@ -233,7 +233,7 @@ func Test_expridx1(t *testing.T) {
 		{ // "2.2"
 			_res = db.Exec("\n  UPDATE x1 SET c=hex(randomblob(50)) WHERE (a%2)!=0\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE x1 SET c=hex(randomblob(50)) WHERE (a%2)!=0\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE x1 SET c=hex(randomblob(50)) WHERE (a%2)!=0\n")
 			}
 		}
 		{ // "expridx1-2.3" — skipped: imposter-index corruption query (idxcheck) N-A (SQL side effects only)
@@ -284,7 +284,7 @@ func Test_expridx1(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);\n")
 			}
 		}
 		vtab.TclVarSet("idxcheck", "", "\n  SELECT rowid FROM y1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM y1 WHERE +rowid=o.rowid AND c=o.c)\n")
@@ -299,25 +299,25 @@ func Test_expridx1(t *testing.T) {
 		{ // "3.2"
 			_res = db.Exec("\n  UPDATE x1 SET c=19 WHERE rowid=2;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE x1 SET c=19 WHERE rowid=2;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE x1 SET c=19 WHERE rowid=2;\n")
 			}
 		}
 		{ // "3.3"
 			_res = db.Exec(idxcheck)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 			}
 		}
 		{ // "3.4"
 			_res = db.Exec("\n  DELETE FROM y1 WHERE a=4;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM y1 WHERE a=4;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM y1 WHERE a=4;\n")
 			}
 		}
 		{ // "3.5"
 			_res = db.Exec(idxcheck)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idxcheck)
 			}
 		}
 		db.Close()
@@ -330,7 +330,7 @@ func Test_expridx1(t *testing.T) {
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);\n")
 			}
 		}
 		_dbone4 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_schema WHERE name='z1b'}")
@@ -342,7 +342,7 @@ func Test_expridx1(t *testing.T) {
 		{ // "4.2"
 			_res = db.Exec("\n  UPDATE x1 SET b=4.000000000000001 WHERE a=2;          -- 1 ULP\n  UPDATE x1 SET b=4.000000000000002 WHERE a=3;          -- 2 ULP\n  UPDATE x1 SET b=4.000000000000003 WHERE a=4;          -- 3 ULP\n  UPDATE x1 SET b=3.9999999999999996 WHERE a=5;         -- -1 ULP\n  UPDATE x1 SET b=3.9999999999999992 WHERE a=6;         -- -2 ULP\n  UPDATE x1 SET b=3.9999999999999988 WHERE a=7;         -- -3 ULP\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE x1 SET b=4.000000000000001 WHERE a=2;          -- 1 ULP\n  UPDATE x1 SET b=4.000000000000002 WHERE a=3;          -- 2 ULP\n  UPDATE x1 SET b=4.000000000000003 WHERE a=4;          -- 3 ULP\n  UPDATE x1 SET b=3.9999999999999996 WHERE a=5;         -- -1 ULP\n  UPDATE x1 SET b=3.9999999999999992 WHERE a=6;         -- -2 ULP\n  UPDATE x1 SET b=3.9999999999999988 WHERE a=7;         -- -3 ULP\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE x1 SET b=4.000000000000001 WHERE a=2;          -- 1 ULP\n  UPDATE x1 SET b=4.000000000000002 WHERE a=3;          -- 2 ULP\n  UPDATE x1 SET b=4.000000000000003 WHERE a=4;          -- 3 ULP\n  UPDATE x1 SET b=3.9999999999999996 WHERE a=5;         -- -1 ULP\n  UPDATE x1 SET b=3.9999999999999992 WHERE a=6;         -- -2 ULP\n  UPDATE x1 SET b=3.9999999999999988 WHERE a=7;         -- -3 ULP\n")
 			}
 		}
 		{ // "expridx1-4.3" — skipped: imprecise floating-point index entry integrity_check N-A (SQL side effects only)
@@ -364,7 +364,7 @@ func Test_expridx1(t *testing.T) {
 		{ // "4.5"
 			_res = db.Exec("\n  UPDATE x1 SET b=-4.000000000000001 WHERE a=2;          -- -1 ULP\n  UPDATE x1 SET b=-4.000000000000002 WHERE a=3;          -- -2 ULP\n  UPDATE x1 SET b=-4.000000000000003 WHERE a=4;          -- -3 ULP\n  UPDATE x1 SET b=-3.9999999999999996 WHERE a=5;         -- 1 ULP\n  UPDATE x1 SET b=-3.9999999999999992 WHERE a=6;         -- 2 ULP\n  UPDATE x1 SET b=-3.9999999999999988 WHERE a=7;         -- 3 ULP\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE x1 SET b=-4.000000000000001 WHERE a=2;          -- -1 ULP\n  UPDATE x1 SET b=-4.000000000000002 WHERE a=3;          -- -2 ULP\n  UPDATE x1 SET b=-4.000000000000003 WHERE a=4;          -- -3 ULP\n  UPDATE x1 SET b=-3.9999999999999996 WHERE a=5;         -- 1 ULP\n  UPDATE x1 SET b=-3.9999999999999992 WHERE a=6;         -- 2 ULP\n  UPDATE x1 SET b=-3.9999999999999988 WHERE a=7;         -- 3 ULP\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE x1 SET b=-4.000000000000001 WHERE a=2;          -- -1 ULP\n  UPDATE x1 SET b=-4.000000000000002 WHERE a=3;          -- -2 ULP\n  UPDATE x1 SET b=-4.000000000000003 WHERE a=4;          -- -3 ULP\n  UPDATE x1 SET b=-3.9999999999999996 WHERE a=5;         -- 1 ULP\n  UPDATE x1 SET b=-3.9999999999999992 WHERE a=6;         -- 2 ULP\n  UPDATE x1 SET b=-3.9999999999999988 WHERE a=7;         -- 3 ULP\n")
 			}
 		}
 		{ // "expridx1-4.6" — skipped: imprecise floating-point index entry integrity_check N-A (SQL side effects only)

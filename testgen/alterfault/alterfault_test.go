@@ -68,7 +68,7 @@ func Test_alterfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -90,7 +90,7 @@ func Test_alterfault(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

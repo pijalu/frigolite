@@ -163,7 +163,7 @@ func Test_tkt_80ba201079(t *testing.T) {
 	{ // "301"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(d, e);\n\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t2 VALUES('D', 'E');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(d, e);\n\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t2 VALUES('D', 'E');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(d, e);\n\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t2 VALUES('D', 'E');\n")
 		}
 	}
 	{ // "302"

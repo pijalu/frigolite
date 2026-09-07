@@ -101,7 +101,7 @@ func Test_lock3(t *testing.T) {
 	{ // do_test "lock3-3.2"
 		_res = db2.Exec("INSERT INTO t1 VALUES(3)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "INSERT INTO t1 VALUES(3)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "INSERT INTO t1 VALUES(3)")
 		}
 	}
 	{ // do_test "lock3-3.3"
@@ -121,7 +121,7 @@ func Test_lock3(t *testing.T) {
 	{ // do_test "lock3-4.2"
 		_res = db2.Exec("INSERT INTO t1 VALUES(3)")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "INSERT INTO t1 VALUES(3)")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "INSERT INTO t1 VALUES(3)")
 		}
 	}
 	{ // do_test "lock3-4.3"

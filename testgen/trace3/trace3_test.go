@@ -505,7 +505,7 @@ func Test_trace3(t *testing.T) {
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
 		}
 	}
 	// proc definition (not transpiled)

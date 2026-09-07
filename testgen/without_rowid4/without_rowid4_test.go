@@ -487,7 +487,7 @@ func Test_without_rowid4(t *testing.T) {
 	{ // do_test "without_rowid4-6.1b"
 		_res = db.Exec("\n      INSERT OR ABORT INTO tbl values (2, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      INSERT OR ABORT INTO tbl values (2, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      INSERT OR ABORT INTO tbl values (2, 2, 3);\n    ")
 		}
 	}
 	{ // do_test "without_rowid4-6.1c"
@@ -499,7 +499,7 @@ func Test_without_rowid4(t *testing.T) {
 	{ // do_test "without_rowid4-6.1d"
 		_res = db.Exec("\n      INSERT OR FAIL INTO tbl values (2, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      INSERT OR FAIL INTO tbl values (2, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      INSERT OR FAIL INTO tbl values (2, 2, 3);\n    ")
 		}
 	}
 	{ // do_test "without_rowid4-6.1e"
@@ -517,7 +517,7 @@ func Test_without_rowid4(t *testing.T) {
 	{ // do_test "without_rowid4-6.1g"
 		_res = db.Exec("\n      INSERT OR ROLLBACK INTO tbl values (3, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      INSERT OR ROLLBACK INTO tbl values (3, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      INSERT OR ROLLBACK INTO tbl values (3, 2, 3);\n    ")
 		}
 	}
 	{ // do_test "without_rowid4-6.1h"
@@ -543,7 +543,7 @@ func Test_without_rowid4(t *testing.T) {
 	{ // do_test "without_rowid4-6.2b"
 		_res = db.Exec("\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
 		}
 	}
 	{ // do_test "without_rowid4-6.2c"
@@ -555,7 +555,7 @@ func Test_without_rowid4(t *testing.T) {
 	{ // do_test "without_rowid4-6.2d"
 		_res = db.Exec("\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
 		}
 	}
 	{ // do_test "without_rowid4-6.2e"
@@ -579,7 +579,7 @@ func Test_without_rowid4(t *testing.T) {
 	{ // do_test "without_rowid4-6.2g"
 		_res = db.Exec("\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
 		}
 	}
 	{ // do_test "without_rowid4-6.2h"

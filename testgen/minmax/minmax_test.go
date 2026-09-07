@@ -672,7 +672,7 @@ func Test_minmax(t *testing.T) {
 	{ // "13.2"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(a, b, c) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(a, b, c) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE INDEX i1 ON t1(a, b, c) ")
 		}
 	}
 	// do_test_13_opt 13.3 {\n  SELECT min(b) FROM t1 WHERE a='b'\n} {\n  SELECT min(c) FROM t1 WHERE ... (unsupported command, not transpiled)

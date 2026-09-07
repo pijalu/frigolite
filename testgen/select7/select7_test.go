@@ -86,7 +86,7 @@ func Test_select7(t *testing.T) {
 	{ // do_test "select7-3.1"
 		_res = db.Exec("\n      SELECT * FROM (SELECT * FROM sqlite_master) GROUP BY name\n    ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM (SELECT * FROM sqlite_master) GROUP BY name\n    ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n      SELECT * FROM (SELECT * FROM sqlite_master) GROUP BY name\n    ")
 		}
 	}
 	{ // do_test "select7-4.1"
@@ -104,25 +104,25 @@ func Test_select7(t *testing.T) {
 	{ // do_test "select7-5.1"
 		_res = db.Exec("\n      CREATE TABLE t2(a,b);\n      SELECT 5 IN (SELECT a,b FROM t2);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n      CREATE TABLE t2(a,b);\n      SELECT 5 IN (SELECT a,b FROM t2);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n      CREATE TABLE t2(a,b);\n      SELECT 5 IN (SELECT a,b FROM t2);\n    ")
 		}
 	}
 	{ // do_test "select7-5.2"
 		_res = db.Exec("\n      SELECT 5 IN (SELECT * FROM t2);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n      SELECT 5 IN (SELECT * FROM t2);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n      SELECT 5 IN (SELECT * FROM t2);\n    ")
 		}
 	}
 	{ // do_test "select7-5.3"
 		_res = db.Exec("\n      SELECT 5 IN (SELECT a,b FROM t2 UNION SELECT b,a FROM t2);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n      SELECT 5 IN (SELECT a,b FROM t2 UNION SELECT b,a FROM t2);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n      SELECT 5 IN (SELECT a,b FROM t2 UNION SELECT b,a FROM t2);\n    ")
 		}
 	}
 	{ // do_test "select7-5.4"
 		_res = db.Exec("\n      SELECT 5 IN (SELECT * FROM t2 UNION SELECT * FROM t2);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n      SELECT 5 IN (SELECT * FROM t2 UNION SELECT * FROM t2);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", resErrString(_res), "\n      SELECT 5 IN (SELECT * FROM t2 UNION SELECT * FROM t2);\n    ")
 		}
 	}
 	if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
@@ -150,14 +150,14 @@ func Test_select7(t *testing.T) {
 			{ // do_test "select7-6.1"
 				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+					t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), sql)
 				}
 			}
 			sql += " UNION ALL SELECT 99999999"
 			{ // do_test "select7-6.2"
 				_res = db.Exec(sql)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many terms in compound SELECT") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in compound SELECT", _res.Error, sql)
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many terms in compound SELECT", resErrString(_res), sql)
 				}
 			}
 		}
@@ -165,7 +165,7 @@ func Test_select7(t *testing.T) {
 	{ // "select7-6.5"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n")
 		}
 	}
 	db.SetLimit("SQLITE_LIMIT_COMPOUND_SELECT", toInt(10))
@@ -173,7 +173,7 @@ func Test_select7(t *testing.T) {
 	{ // "select7-6.6"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \"\" - should this be a string literal in single-quotes?") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"\" - should this be a string literal in single-quotes?", _res.Error, "\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"\" - should this be a string literal in single-quotes?", resErrString(_res), "\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		}
 	}
 	{ // "select7-6.7"
@@ -192,7 +192,7 @@ func Test_select7(t *testing.T) {
 	{ // "select7-6.8"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		}
 	}
 	{ // "select7-6.9"
@@ -252,19 +252,19 @@ func Test_select7(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec(" \n  CREATE TABLE t01(x, y);\n  CREATE TABLE t02(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t01(x, y);\n  CREATE TABLE t02(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t01(x, y);\n  CREATE TABLE t02(x, y);\n")
 		}
 	}
 	{ // "8.1"
 		_res = db.Exec("\n  SELECT * FROM (\n    SELECT * FROM t01 UNION SELECT x FROM t02\n  ) WHERE y=1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n  SELECT * FROM (\n    SELECT * FROM t01 UNION SELECT x FROM t02\n  ) WHERE y=1\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n  SELECT * FROM (\n    SELECT * FROM t01 UNION SELECT x FROM t02\n  ) WHERE y=1\n")
 		}
 	}
 	{ // "8.2"
 		_res = db.Exec("\n  CREATE VIEW v0 as SELECT x, y FROM t01 UNION SELECT x FROM t02;\n  EXPLAIN QUERY PLAN SELECT * FROM v0 WHERE x='0' OR y;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECTs to the left and right of UNION do not have the same number of result columns") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", _res.Error, "\n  CREATE VIEW v0 as SELECT x, y FROM t01 UNION SELECT x FROM t02;\n  EXPLAIN QUERY PLAN SELECT * FROM v0 WHERE x='0' OR y;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECTs to the left and right of UNION do not have the same number of result columns", resErrString(_res), "\n  CREATE VIEW v0 as SELECT x, y FROM t01 UNION SELECT x FROM t02;\n  EXPLAIN QUERY PLAN SELECT * FROM v0 WHERE x='0' OR y;\n")
 		}
 	}
 }

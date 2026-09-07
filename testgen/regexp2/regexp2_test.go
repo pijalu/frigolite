@@ -107,19 +107,19 @@ func Test_regexp2(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(c, d);\n  CREATE TABLE t4(e, f);\n\n  CREATE TRIGGER t2_tr1 AFTER UPDATE ON t2 BEGIN\n    UPDATE t3 SET d = new.b WHERE c = old.a;\n  END;\n\n  CREATE TRIGGER t3_tr1 AFTER UPDATE ON t3 BEGIN\n    UPDATE t4 SET f = new.d WHERE e = old.c AND new.d REGEXP 'a.*';\n  END;\n\n  CREATE TRIGGER t4_tr1 AFTER UPDATE ON t4 BEGIN\n    SELECT CASE WHEN new.f REGEXP '.*y.*' THEN error() ELSE 1 END;\n  END;\n\n  INSERT INTO t2 VALUES(1, 'a_x_1');\n  INSERT INTO t2 VALUES(2, 'a_y_1');\n\n  INSERT INTO t3 VALUES(1, 'b1');\n  INSERT INTO t3 VALUES(2, 'b2');\n\n  INSERT INTO t4 VALUES(1, 'b1');\n  INSERT INTO t4 VALUES(2, 'b2');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(c, d);\n  CREATE TABLE t4(e, f);\n\n  CREATE TRIGGER t2_tr1 AFTER UPDATE ON t2 BEGIN\n    UPDATE t3 SET d = new.b WHERE c = old.a;\n  END;\n\n  CREATE TRIGGER t3_tr1 AFTER UPDATE ON t3 BEGIN\n    UPDATE t4 SET f = new.d WHERE e = old.c AND new.d REGEXP 'a.*';\n  END;\n\n  CREATE TRIGGER t4_tr1 AFTER UPDATE ON t4 BEGIN\n    SELECT CASE WHEN new.f REGEXP '.*y.*' THEN error() ELSE 1 END;\n  END;\n\n  INSERT INTO t2 VALUES(1, 'a_x_1');\n  INSERT INTO t2 VALUES(2, 'a_y_1');\n\n  INSERT INTO t3 VALUES(1, 'b1');\n  INSERT INTO t3 VALUES(2, 'b2');\n\n  INSERT INTO t4 VALUES(1, 'b1');\n  INSERT INTO t4 VALUES(2, 'b2');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(c, d);\n  CREATE TABLE t4(e, f);\n\n  CREATE TRIGGER t2_tr1 AFTER UPDATE ON t2 BEGIN\n    UPDATE t3 SET d = new.b WHERE c = old.a;\n  END;\n\n  CREATE TRIGGER t3_tr1 AFTER UPDATE ON t3 BEGIN\n    UPDATE t4 SET f = new.d WHERE e = old.c AND new.d REGEXP 'a.*';\n  END;\n\n  CREATE TRIGGER t4_tr1 AFTER UPDATE ON t4 BEGIN\n    SELECT CASE WHEN new.f REGEXP '.*y.*' THEN error() ELSE 1 END;\n  END;\n\n  INSERT INTO t2 VALUES(1, 'a_x_1');\n  INSERT INTO t2 VALUES(2, 'a_y_1');\n\n  INSERT INTO t3 VALUES(1, 'b1');\n  INSERT INTO t3 VALUES(2, 'b2');\n\n  INSERT INTO t4 VALUES(1, 'b1');\n  INSERT INTO t4 VALUES(2, 'b2');\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  UPDATE t2 SET a=a+1 WHERE b REGEXP 'a.*' AND b REGEXP '.*1';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL error!") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL error!", _res.Error, "\n  UPDATE t2 SET a=a+1 WHERE b REGEXP 'a.*' AND b REGEXP '.*1';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL error!", resErrString(_res), "\n  UPDATE t2 SET a=a+1 WHERE b REGEXP 'a.*' AND b REGEXP '.*1';\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  UPDATE t2 SET b = 'a_abc_1';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET b = 'a_abc_1';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t2 SET b = 'a_abc_1';\n")
 		}
 	}
 	{ // "2.3"
@@ -377,7 +377,7 @@ func Test_regexp2(t *testing.T) {
 	{ // "5.1"
 		_res = db.Exec("\n  SELECT 'abc' REGEXP 'a{1,25000}bc';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "REGEXP pattern too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "REGEXP pattern too big", _res.Error, "\n  SELECT 'abc' REGEXP 'a{1,25000}bc';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "REGEXP pattern too big", resErrString(_res), "\n  SELECT 'abc' REGEXP 'a{1,25000}bc';\n")
 		}
 	}
 	{ // "5.2"
@@ -395,7 +395,7 @@ func Test_regexp2(t *testing.T) {
 	{ // "5.3"
 		_res = db.Exec("\n  SELECT 'abc' REGEXP 'a{25000}bc';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "REGEXP pattern too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "REGEXP pattern too big", _res.Error, "\n  SELECT 'abc' REGEXP 'a{25000}bc';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "REGEXP pattern too big", resErrString(_res), "\n  SELECT 'abc' REGEXP 'a{25000}bc';\n")
 		}
 	}
 }

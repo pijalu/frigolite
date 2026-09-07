@@ -105,61 +105,61 @@ func Test_blob(t *testing.T) {
 	{ // do_test "blob-1.4"
 		_res = db.Exec("SELECT X'01020k304', 100")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"X'01020k304'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01020k304'\"", _res.Error, "SELECT X'01020k304', 100")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01020k304'\"", resErrString(_res), "SELECT X'01020k304', 100")
 		}
 	}
 	{ // do_test "blob-1.5"
 		_res = db.Exec("SELECT X'01020, 100")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"X'01020, 100\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01020, 100\"", _res.Error, "SELECT X'01020, 100")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01020, 100\"", resErrString(_res), "SELECT X'01020, 100")
 		}
 	}
 	{ // do_test "blob-1.6"
 		_res = db.Exec("SELECT X'01020 100'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"X'01020 100'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01020 100'\"", _res.Error, "SELECT X'01020 100'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01020 100'\"", resErrString(_res), "SELECT X'01020 100'")
 		}
 	}
 	{ // do_test "blob-1.7"
 		_res = db.Exec("SELECT X'01001'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"X'01001'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01001'\"", _res.Error, "SELECT X'01001'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"X'01001'\"", resErrString(_res), "SELECT X'01001'")
 		}
 	}
 	{ // do_test "blob-1.8"
 		_res = db.Exec("SELECT x'012/45'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'012/45'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012/45'\"", _res.Error, "SELECT x'012/45'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012/45'\"", resErrString(_res), "SELECT x'012/45'")
 		}
 	}
 	{ // do_test "blob-1.9"
 		_res = db.Exec("SELECT x'012:45'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'012:45'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012:45'\"", _res.Error, "SELECT x'012:45'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012:45'\"", resErrString(_res), "SELECT x'012:45'")
 		}
 	}
 	{ // do_test "blob-1.10"
 		_res = db.Exec("SELECT x'012@45'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'012@45'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012@45'\"", _res.Error, "SELECT x'012@45'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012@45'\"", resErrString(_res), "SELECT x'012@45'")
 		}
 	}
 	{ // do_test "blob-1.11"
 		_res = db.Exec("SELECT x'012G45'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'012G45'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012G45'\"", _res.Error, "SELECT x'012G45'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012G45'\"", resErrString(_res), "SELECT x'012G45'")
 		}
 	}
 	{ // do_test "blob-1.12"
 		_res = db.Exec("SELECT x'012`45'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'012`45'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012`45'\"", _res.Error, "SELECT x'012`45'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012`45'\"", resErrString(_res), "SELECT x'012`45'")
 		}
 	}
 	{ // do_test "blob-1.13"
 		_res = db.Exec("SELECT x'012g45'")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"x'012g45'\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012g45'\"", _res.Error, "SELECT x'012g45'")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"x'012g45'\"", resErrString(_res), "SELECT x'012g45'")
 		}
 	}
 	{ // do_test "blob-2.0"

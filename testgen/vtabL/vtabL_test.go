@@ -87,7 +87,7 @@ func Test_vtabL(t *testing.T) {
 			{ // "1." + tn
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "declare_vtab: syntax error") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "declare_vtab: syntax error", _res.Error, "\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "declare_vtab: syntax error", resErrString(_res), "\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 				}
 			}
 		}
@@ -106,7 +106,7 @@ func Test_vtabL(t *testing.T) {
 				{ // "1." + tn
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "declare_vtab: SQL logic error") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "declare_vtab: SQL logic error", _res.Error, "\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "declare_vtab: SQL logic error", resErrString(_res), "\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 					}
 				}
 			}
@@ -129,7 +129,7 @@ func Test_vtabL(t *testing.T) {
 					{ // "2." + tn + ".1"
 						_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 						}
 					}
 					{ // "2." + tn + ".2"

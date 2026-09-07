@@ -492,7 +492,7 @@ func Test_trigger2(t *testing.T) {
 	{ // do_test "trigger2-6.1b"
 		_res = db.Exec("\n      INSERT OR ABORT INTO tbl values (2, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      INSERT OR ABORT INTO tbl values (2, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      INSERT OR ABORT INTO tbl values (2, 2, 3);\n    ")
 		}
 	}
 	{ // do_test "trigger2-6.1c"
@@ -504,7 +504,7 @@ func Test_trigger2(t *testing.T) {
 	{ // do_test "trigger2-6.1d"
 		_res = db.Exec("\n      INSERT OR FAIL INTO tbl values (2, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      INSERT OR FAIL INTO tbl values (2, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      INSERT OR FAIL INTO tbl values (2, 2, 3);\n    ")
 		}
 	}
 	{ // do_test "trigger2-6.1e"
@@ -522,7 +522,7 @@ func Test_trigger2(t *testing.T) {
 	{ // do_test "trigger2-6.1g"
 		_res = db.Exec("\n      INSERT OR ROLLBACK INTO tbl values (3, 2, 3);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      INSERT OR ROLLBACK INTO tbl values (3, 2, 3);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      INSERT OR ROLLBACK INTO tbl values (3, 2, 3);\n    ")
 		}
 	}
 	{ // do_test "trigger2-6.1h"
@@ -548,7 +548,7 @@ func Test_trigger2(t *testing.T) {
 	{ // do_test "trigger2-6.2b"
 		_res = db.Exec("\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
 		}
 	}
 	{ // do_test "trigger2-6.2c"
@@ -560,7 +560,7 @@ func Test_trigger2(t *testing.T) {
 	{ // do_test "trigger2-6.2d"
 		_res = db.Exec("\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
 		}
 	}
 	{ // do_test "trigger2-6.2e"
@@ -584,7 +584,7 @@ func Test_trigger2(t *testing.T) {
 	{ // do_test "trigger2-6.2g"
 		_res = db.Exec("\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", _res.Error, "\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
 		}
 	}
 	{ // do_test "trigger2-6.2h"
@@ -691,13 +691,13 @@ func Test_trigger2(t *testing.T) {
 	{ // "11.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c REAL, d, e);\n  CREATE TABLE t2(a INT, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t2d ON t2(d);\n  CREATE UNIQUE INDEX t2e ON t2(e);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c REAL, d, e);\n  CREATE TABLE t2(a INT, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t2d ON t2(d);\n  CREATE UNIQUE INDEX t2e ON t2(e);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c REAL, d, e);\n  CREATE TABLE t2(a INT, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t2d ON t2(d);\n  CREATE UNIQUE INDEX t2e ON t2(e);\n")
 		}
 	}
 	{ // "11.2"
 		_res = db.Exec("\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2(a,b,c,d,e) VALUES(91,NULL,93,94,?1)\n      ON CONFLICT(b,a) DO NOTHING\n      ON CONFLICT DO UPDATE SET b=?1;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "trigger cannot use variables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger cannot use variables", _res.Error, "\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2(a,b,c,d,e) VALUES(91,NULL,93,94,?1)\n      ON CONFLICT(b,a) DO NOTHING\n      ON CONFLICT DO UPDATE SET b=?1;\n  END;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "trigger cannot use variables", resErrString(_res), "\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2(a,b,c,d,e) VALUES(91,NULL,93,94,?1)\n      ON CONFLICT(b,a) DO NOTHING\n      ON CONFLICT DO UPDATE SET b=?1;\n  END;\n")
 		}
 	}
 }

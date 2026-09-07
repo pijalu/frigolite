@@ -112,7 +112,7 @@ func Test_insert4(t *testing.T) {
 	{ // do_test "insert4-2.2.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM v2;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM v2;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM v2;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	// xferopt_test insert4-2.2.2 0 (unsupported command, not transpiled)
@@ -126,7 +126,7 @@ func Test_insert4(t *testing.T) {
 	{ // do_test "insert4-2.3.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: b>a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b>a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b>a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	// xferopt_test insert4-2.3.4 0 (unsupported command, not transpiled)
@@ -140,7 +140,7 @@ func Test_insert4(t *testing.T) {
 	{ // do_test "insert4-2.4.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT DISTINCT * FROM t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: b>a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b>a", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT DISTINCT * FROM t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: b>a", resErrString(_res), "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT DISTINCT * FROM t2;\n  ")
 		}
 	}
 	// xferopt_test insert4-2.4.4 0 (unsupported command, not transpiled)
@@ -172,13 +172,13 @@ func Test_insert4(t *testing.T) {
 	{ // do_test "insert4-5.1"
 		_res = db.Exec(" INSERT INTO t2 SELECT a, b FROM nosuchtable ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: nosuchtable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: nosuchtable", _res.Error, " INSERT INTO t2 SELECT a, b FROM nosuchtable ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: nosuchtable", resErrString(_res), " INSERT INTO t2 SELECT a, b FROM nosuchtable ")
 		}
 	}
 	{ // do_test "insert4-5.2"
 		_res = db.Exec(" \n    CREATE TABLE t5(a, b, c);\n    INSERT INTO t4 SELECT * FROM t5;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table t4 has 2 columns but 3 values were supplied") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table t4 has 2 columns but 3 values were supplied", _res.Error, " \n    CREATE TABLE t5(a, b, c);\n    INSERT INTO t4 SELECT * FROM t5;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table t4 has 2 columns but 3 values were supplied", resErrString(_res), " \n    CREATE TABLE t5(a, b, c);\n    INSERT INTO t4 SELECT * FROM t5;\n  ")
 		}
 	}
 	{ // do_test "insert4-6.1"
@@ -377,7 +377,7 @@ func Test_insert4(t *testing.T) {
 	{ // do_test "insert4-8.10"
 		_res = db.Exec("COMMIT")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot commit - no transaction is active") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", _res.Error, "COMMIT")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot commit - no transaction is active", resErrString(_res), "COMMIT")
 		}
 	}
 	{ // do_test "insert4-8.11"
@@ -419,13 +419,13 @@ func Test_insert4(t *testing.T) {
 	{ // "insert4-9.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(5 COLLATE xyzzy) UNION SELECT 0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: xyzzy") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: xyzzy", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(5 COLLATE xyzzy) UNION SELECT 0;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: xyzzy", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(5 COLLATE xyzzy) UNION SELECT 0;\n")
 		}
 	}
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE t8(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n  CREATE TEMP TABLE x(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n  CREATE TEMP TABLE x(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t8(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n  CREATE TEMP TABLE x(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n")
 		}
 	}
 	{ // "insert4-10.2" — skipped: INSERT transfer optimization counter not implemented N-A
@@ -480,7 +480,7 @@ func Test_insert4(t *testing.T) {
 	{ // "12.1"
 		_res = db.Exec("\n  INSERT INTO dest SELECT * FROM src;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c2", _res.Error, "\n  INSERT INTO dest SELECT * FROM src;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c2", resErrString(_res), "\n  INSERT INTO dest SELECT * FROM src;\n")
 		}
 	}
 	{ // do_test "12.2"
@@ -505,7 +505,7 @@ func Test_insert4(t *testing.T) {
 	{ // "12.4"
 		_res = db.Exec("\n    ALTER TABLE src DROP CONSTRAINT c1;\n    ALTER TABLE dest DROP CONSTRAINT c2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE src DROP CONSTRAINT c1;\n    ALTER TABLE dest DROP CONSTRAINT c2;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE src DROP CONSTRAINT c1;\n    ALTER TABLE dest DROP CONSTRAINT c2;\n  ")
 		}
 	}
 	vtab.TclVarSet("sqlite3_xferopt_count", "", "0")
@@ -514,7 +514,7 @@ func Test_insert4(t *testing.T) {
 	{ // "12.5"
 		_res = db.Exec("\n    INSERT INTO dest SELECT * FROM src;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO dest SELECT * FROM src;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO dest SELECT * FROM src;\n  ")
 		}
 	}
 	{ // "insert4-12.6" — skipped: INSERT transfer optimization counter not implemented N-A

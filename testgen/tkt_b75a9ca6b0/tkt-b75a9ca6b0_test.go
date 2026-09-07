@@ -80,13 +80,13 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (1, 3); \n  INSERT INTO t1 VALUES (2, 2);\n  INSERT INTO t1 VALUES (3, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (1, 3); \n  INSERT INTO t1 VALUES (2, 2);\n  INSERT INTO t1 VALUES (3, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (1, 3); \n  INSERT INTO t1 VALUES (2, 2);\n  INSERT INTO t1 VALUES (3, 1);\n")
 		}
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE INDEX i1 ON t1(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(x, y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i1 ON t1(x, y);\n")
 		}
 	}
 	vtab.TclVarSet("idxscan", "", "SCAN t1 USING COVERING INDEX i1")
@@ -116,7 +116,7 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 			{ // "1." + tn + ".1"
 				_res = db.Exec(q)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q)
 				}
 			}
 			{ // "1." + tn + ".2"

@@ -128,7 +128,7 @@ func Test_insert3(t *testing.T) {
 	{ // do_test "insert3-3.2"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1,2,3)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: nosuchcol") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", _res.Error, "\n    INSERT INTO t3 VALUES(1,2,3)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", resErrString(_res), "\n    INSERT INTO t3 VALUES(1,2,3)\n  ")
 		}
 	}
 	{ // do_test "insert3-3.3"
@@ -140,7 +140,7 @@ func Test_insert3(t *testing.T) {
 	{ // do_test "insert3-3.4"
 		_res = db.Exec("\n    INSERT INTO t4 VALUES(1,2,3)\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: nosuchcol") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", _res.Error, "\n    INSERT INTO t4 VALUES(1,2,3)\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: nosuchcol", resErrString(_res), "\n    INSERT INTO t4 VALUES(1,2,3)\n  ")
 		}
 	}
 	{ // do_test "insert3-3.5"

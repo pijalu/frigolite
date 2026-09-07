@@ -5,8 +5,526 @@
 package exclusive
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_exclusive(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_exclusive(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test2.db-journal")
+	_ = os.Remove("test2.db")
+	_ = os.Remove("test3.db-journal")
+	_ = os.Remove("test3.db")
+	_ = os.Remove("test4.db-journal")
+	_ = os.Remove("test4.db")
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var exists string
+	_ = exists // pre-declared from TCL source
+	var content string
+	_ = content // pre-declared from TCL source
+	var hdr string
+	_ = hdr // pre-declared from TCL source
+	var X string
+	_ = X // pre-declared from TCL source
+	var using_proxy string
+	_ = using_proxy // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var extrafds string
+	_ = extrafds // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "exclusive-1.0"
+		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.1"
+		r = db.Query("\n    pragma locking_mode = exclusive;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode = exclusive;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.2"
+		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.3"
+		r = db.Query("\n    pragma locking_mode = normal;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode = normal;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.4"
+		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.5"
+		r = db.Query("\n    pragma locking_mode = invalid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode = invalid;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.6"
+		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.7"
+		r = db.Query("\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.8"
+		r = db.Query("\n      pragma main.locking_mode = normal;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode = normal;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.9"
+		r = db.Query("\n      pragma locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.10"
+		_res = db.Exec("\n      ATTACH 'test3.db' as aux2;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test3.db' as aux2;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.11"
+		r = db.Query("\n      pragma aux.locking_mode = normal;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.locking_mode = normal;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.12"
+		r = db.Query("\n      pragma locking_mode = normal;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma locking_mode = normal;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.13"
+		_res = db.Exec("\n      ATTACH 'test4.db' as aux3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test4.db' as aux3;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n      pragma aux3.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n      pragma aux3.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.99"
+		_res = db.Exec("\n      DETACH aux;\n      DETACH aux2;\n      DETACH aux3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DETACH aux;\n      DETACH aux2;\n      DETACH aux3;\n    ")
+		}
+	}
+	{ // do_test "exclusive-2.0"
+		r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    PRAGMA locking_mode = exclusive;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    PRAGMA locking_mode = exclusive;\n  ")
+		}
+	}
+	{ // do_test "exclusive-2.1"
+		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc;\n  ")
+		}
+	}
+	{ // do_test "exclusive-2.2"
+		r = db.Query("\n    SELECT * FROM abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
+		}
+	}
+	{ // do_test "exclusive-2.4"
+		r = db2.Query("\n    SELECT * FROM abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
+		}
+	}
+	{ // do_test "exclusive-2.5"
+		_res = db2.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		}
+	}
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
+	{ // do_test "exclusive-2.6"
+		_res = db2.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		}
+		_res = db2.Exec("\n    COMMIT\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "exclusive-2.7"
+		_res = db2.Exec("\n    COMMIT\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", resErrString(_res), "\n    COMMIT\n  ")
+		}
+	}
+	{ // do_test "exclusive-2.8"
+		_res = db2.Exec("\n    ROLLBACK;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
+		}
+	}
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
+	{ // do_test "exclusive-2.9"
+		_res = db.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		}
+		_res = db2.Exec("\n    SELECT * FROM abc;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "exclusive-2.10"
+		r = db.Query("\n    PRAGMA locking_mode = normal;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n  ")
+		}
+		_res = db2.Exec("\n    SELECT * FROM abc;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "exclusive-2.11"
+		r = db.Query("\n    SELECT * FROM abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
+		}
+		r = db2.Query("\n    SELECT * FROM abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	if tclBool(tcl_platform_platform + " != \"windows\"\n && " + "atomic_batch_write test.db" + "==0") {
+		// proc definition (not transpiled)
+		{ // do_test "exclusive-3.0"
+			// filestate test.db-journal (unsupported command, not transpiled)
+		}
+		{ // do_test "exclusive-3.1"
+			r = db.Query("\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
+			}
+			// filestate test.db-journal (unsupported command, not transpiled)
+		}
+		{ // do_test "exclusive-3.2"
+			_res = db.Exec("\n      COMMIT;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n    ")
+			}
+			// filestate test.db-journal (unsupported command, not transpiled)
+		}
+		{ // do_test "exclusive-3.3"
+			r = db.Query("\n      INSERT INTO abc VALUES('A', 'B', 'C');\n      SELECT * FROM abc;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO abc VALUES('A', 'B', 'C');\n      SELECT * FROM abc;\n    ")
+			}
+		}
+		{ // do_test "exclusive-3.4"
+			r = db.Query("\n      BEGIN;\n      UPDATE abc SET a = 1, b = 2, c = 3;\n      ROLLBACK;\n      SELECT * FROM abc;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      UPDATE abc SET a = 1, b = 2, c = 3;\n      ROLLBACK;\n      SELECT * FROM abc;\n    ")
+			}
+		}
+		{ // do_test "exclusive-3.5"
+			// filestate test.db-journal (unsupported command, not transpiled)
+		}
+		{ // do_test "exclusive-3.6"
+			r = db.Query("\n      PRAGMA locking_mode = normal;\n      SELECT * FROM abc;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA locking_mode = normal;\n      SELECT * FROM abc;\n    ")
+			}
+			// filestate test.db-journal (unsupported command, not transpiled)
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "exclusive-4.0"
+		r = db.Query(" PRAGMA locking_mode = exclusive; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA locking_mode = exclusive; ")
+		}
+		r = db.Query(" PRAGMA default_cache_size = 10; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA default_cache_size = 10; ")
+		}
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n  ")
+		}
+		r = db.Query("SELECT count(*) FROM t3;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t3;")
+		}
+	}
+	_dbeval0 := tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+	X = _dbeval0
+	_ = X // suppress unused warning
+	{ // do_test "exclusive-4.1"
+		r = db.Query("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
+		}
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+		if _r != X {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, X, "exclusive-4.1")
+		}
+	}
+	{ // do_test "exclusive-4.2"
+		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
+		}
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+		if _r != X {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, X, "exclusive-4.2")
+		}
+	}
+	{ // do_test "exclusive-4.3"
+		_res = db.Exec("\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;\n  ")
+		}
+	}
+	{ // do_test "exclusive-4.4"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_r = ""
+			vtab.TclVarSet("X", "", "signature")
+			X = "signature" // TCL namespace variable
+			_ = X // suppress unused warning
+		}
+	}
+	{ // do_test "exclusive-4.5"
+		r = db.Query("\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
+		}
+	}
+	if tclBool("atomic_batch_write test.db" + "==0") {
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		vtab.TclVarSet("using_proxy", "", "0")
+		using_proxy = "0"
+		_ = using_proxy // suppress unused warning
+		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
+		_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			name := _items0[_idx0+0]
+			_ = name // suppress unused warning
+			value := _items0[_idx0+1]
+			_ = value // suppress unused warning
+			_ = _idx0
+				vtab.TclVarSet("using_proxy", "", value)
+				using_proxy = value
+				_ = using_proxy // suppress unused warning
+			}
+			vtab.TclVarSet("extrafds", "", "0")
+			extrafds = "0"
+			_ = extrafds // suppress unused warning
+			if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n != 0 }() {
+				vtab.TclVarSet("extrafds", "", "2")
+				extrafds = "2"
+				_ = extrafds // suppress unused warning
+			}
+			{ // do_test "exclusive-5.0"
+				_res = db.Exec("\n    CREATE TABLE abc(a UNIQUE, b UNIQUE, c UNIQUE);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a+1, b+1, c+1 FROM abc;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a UNIQUE, b UNIQUE, c UNIQUE);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a+1, b+1, c+1 FROM abc;\n  ")
+				}
+			}
+			{ // do_test "exclusive-5.1"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
+			}
+			{ // do_test "exclusive-5.2"
+				_res = db.Exec("\n    COMMIT;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
+			}
+			{ // do_test "exclusive-5.3"
+				r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
+			}
+			{ // do_test "exclusive-5.4"
+				_res = db.Exec("\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
+			}
+			{ // do_test "exclusive-5.5"
+				_res = db.Exec("\n    COMMIT;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
+			}
+			{ // do_test "exclusive-5.6"
+				r = db.Query("\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
+				}
+			}
+			{ // do_test "exclusive-5.7"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
+			}
+			{ // "exclusive-6.1"
+				_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);\n")
+				}
+			}
+			{ // do_test "exclusive-6.2"
+				os.Remove("test2.db")
+				tclFileCopy("test.db", "test2.db")
+				tclFileCopy("test.db-journal", "test2.db-journal")
+				db, err = frigolite.Open("test2.db")
+				tclConnRegister("db", db)
+				if err != nil { t.Fatal(err) }
+			}
+			{ // "exclusive-6.3"
+				r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t4;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t4;\n")
+					return
+				}
+				got := flatten(r)
+				want := "exclusive Eden 1955"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "exclusive-6.4"
+				db.Close()
+				os.Remove("test.db")
+				_ = os.WriteFile("test.db-journal", nil, 0644)
+				fd = "test.db-journal"
+				_ = fd // suppress unused warning
+				tclChannelAppendAt("test.db-journal", "x"+"\n", fileChannelSeek["fd"])
+				// close $fd
+				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
+				if err != nil { t.Fatal(err) }
+			}
+			{ // "exclusive-6.5"
+				r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM sqlite_master;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM sqlite_master;\n")
+					return
+				}
+				got := flatten(r)
+				want := "exclusive"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			if "" != "journaltest" {
+				{ // do_test "exclusive-7.1"
+					db.Close()
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec("\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
+				}
+			}
+		}
+}

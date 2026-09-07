@@ -64,7 +64,7 @@ func Test_rowvaluefault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE xyz(one, two, thr, fou);\n  INSERT INTO xyz VALUES('A', 'A', 'A',  1);\n  INSERT INTO xyz VALUES('B', 'B', 'B',  2);\n  INSERT INTO xyz VALUES('C', 'C', 'C',  3);\n  INSERT INTO xyz VALUES('D', 'D', 'D',  4);\n\n  CREATE UNIQUE INDEX xyz_one_two ON xyz(one, two);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xyz(one, two, thr, fou);\n  INSERT INTO xyz VALUES('A', 'A', 'A',  1);\n  INSERT INTO xyz VALUES('B', 'B', 'B',  2);\n  INSERT INTO xyz VALUES('C', 'C', 'C',  3);\n  INSERT INTO xyz VALUES('D', 'D', 'D',  4);\n\n  CREATE UNIQUE INDEX xyz_one_two ON xyz(one, two);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE xyz(one, two, thr, fou);\n  INSERT INTO xyz VALUES('A', 'A', 'A',  1);\n  INSERT INTO xyz VALUES('B', 'B', 'B',  2);\n  INSERT INTO xyz VALUES('C', 'C', 'C',  3);\n  INSERT INTO xyz VALUES('D', 'D', 'D',  4);\n\n  CREATE UNIQUE INDEX xyz_one_two ON xyz(one, two);\n")
 		}
 	}
 	// do_faultsim_test 1 -faults oom* -body {\n  execsql { SELECT fou FROM xyz WHERE (one, two,...} -te... (unsupported command, not transpiled)

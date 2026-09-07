@@ -153,7 +153,7 @@ func Test_securedel2(t *testing.T) {
 	{ // "1.3.2"
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid = 1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM t1 WHERE rowid = 1 ")
 		}
 	}
 	{ // do_test "1.3.3"
@@ -179,7 +179,7 @@ func Test_securedel2(t *testing.T) {
 	{ // "1.4.2"
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid = 1 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM t1 WHERE rowid = 1 ")
 		}
 	}
 	{ // do_test "1.4.3"
@@ -188,7 +188,7 @@ func Test_securedel2(t *testing.T) {
 	{ // "1.5.1"
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid>850 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid>850 ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM t1 WHERE rowid>850 ")
 		}
 	}
 	{ // do_test "1.5.2"

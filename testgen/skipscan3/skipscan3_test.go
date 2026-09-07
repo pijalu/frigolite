@@ -58,7 +58,7 @@ func Test_skipscan3(t *testing.T) {
 	{ // "skipscan3-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,PRIMARY KEY(a,b,c));\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t1(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,PRIMARY KEY(a,b,c));\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t1(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a,b,c,d,PRIMARY KEY(a,b,c));\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t1(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
 		}
 	}
 	{ // "skipscan3-1.2eqp"
@@ -112,7 +112,7 @@ func Test_skipscan3(t *testing.T) {
 	{ // "skipscan3-2.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a,b,c,d,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t2(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a,b,c,d,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t2(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a,b,c,d,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t2(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
 		}
 	}
 	{ // "skipscan3-2.2eqp"

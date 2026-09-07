@@ -89,7 +89,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(docid, words) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(docid, words) ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " CREATE TABLE t1(docid, words) ")
 		}
 	}
 	ftsKJVGenesis(t, db)
@@ -130,7 +130,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "1.3"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
 	// prepare_for_optimize t2 (inlined)
@@ -139,7 +139,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "1.4"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
 	{ // "1.5"
@@ -176,7 +176,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "1.7"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
 	{ // "1.8"
@@ -194,7 +194,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  DELETE FROM t2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2;\n")
 		}
 	}
 	{ // do_test "2.1"
@@ -269,7 +269,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "2.3"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
 	// prepare_for_optimize t2 (inlined)
@@ -278,7 +278,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "2.4"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
 	{ // "2.5"
@@ -315,7 +315,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "2.7"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
 	{ // "2.8"
@@ -333,7 +333,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');\n")
 		}
 	}
 	{ // "3.2"
@@ -375,7 +375,7 @@ func Test_fts4opt(t *testing.T) {
 	{ // "3.5"
 		_res = db.Exec("\n  INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');\n")
 		}
 	}
 	{ // do_test "3.6"

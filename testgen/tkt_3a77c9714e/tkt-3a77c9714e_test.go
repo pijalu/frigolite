@@ -64,7 +64,7 @@ func Test_tkt_3a77c9714e(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(t1_id INTEGER PRIMARY KEY, t1_title TEXT);\n  CREATE TABLE t2(t2_id INTEGER PRIMARY KEY, t2_title TEXT);\n  CREATE TABLE t3(t3_id INTEGER PRIMARY KEY, t3_title TEXT);\n\n  INSERT INTO t1 (t1_id, t1_title) VALUES (888, 'ABCDEF');\n  INSERT INTO t2 (t2_id, t2_title) VALUES (999, 'ABCDEF');\n  INSERT INTO t3 (t3_id, t3_title) VALUES (999, 'ABCDEF');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(t1_id INTEGER PRIMARY KEY, t1_title TEXT);\n  CREATE TABLE t2(t2_id INTEGER PRIMARY KEY, t2_title TEXT);\n  CREATE TABLE t3(t3_id INTEGER PRIMARY KEY, t3_title TEXT);\n\n  INSERT INTO t1 (t1_id, t1_title) VALUES (888, 'ABCDEF');\n  INSERT INTO t2 (t2_id, t2_title) VALUES (999, 'ABCDEF');\n  INSERT INTO t3 (t3_id, t3_title) VALUES (999, 'ABCDEF');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(t1_id INTEGER PRIMARY KEY, t1_title TEXT);\n  CREATE TABLE t2(t2_id INTEGER PRIMARY KEY, t2_title TEXT);\n  CREATE TABLE t3(t3_id INTEGER PRIMARY KEY, t3_title TEXT);\n\n  INSERT INTO t1 (t1_id, t1_title) VALUES (888, 'ABCDEF');\n  INSERT INTO t2 (t2_id, t2_title) VALUES (999, 'ABCDEF');\n  INSERT INTO t3 (t3_id, t3_title) VALUES (999, 'ABCDEF');\n")
 		}
 	}
 	{ // "1.2"
@@ -82,7 +82,7 @@ func Test_tkt_3a77c9714e(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE [Beginnings] (\n    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,[Title] TEXT, [EndingId] INTEGER\n  );\n  CREATE TABLE [Endings] (Id INT,Title TEXT,EndingId INT);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (1, 'FACTOR', 18);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (2, 'SWIMM', 18);\n  INSERT INTO Endings (Id, Title, EndingId) VALUES (1, 'ING', 18);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE [Beginnings] (\n    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,[Title] TEXT, [EndingId] INTEGER\n  );\n  CREATE TABLE [Endings] (Id INT,Title TEXT,EndingId INT);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (1, 'FACTOR', 18);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (2, 'SWIMM', 18);\n  INSERT INTO Endings (Id, Title, EndingId) VALUES (1, 'ING', 18);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE [Beginnings] (\n    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,[Title] TEXT, [EndingId] INTEGER\n  );\n  CREATE TABLE [Endings] (Id INT,Title TEXT,EndingId INT);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (1, 'FACTOR', 18);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (2, 'SWIMM', 18);\n  INSERT INTO Endings (Id, Title, EndingId) VALUES (1, 'ING', 18);\n")
 		}
 	}
 	{ // "2.2"

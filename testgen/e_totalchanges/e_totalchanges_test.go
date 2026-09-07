@@ -73,13 +73,13 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX t2_y ON t2(y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX t2_y ON t2(y);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX t2_y ON t2(y);\n")
 		}
 	}
 	{ // "1.1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  UPDATE t1 SET a = a+1;\n  DELETE FROM t1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  UPDATE t1 SET a = a+1;\n  DELETE FROM t1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  UPDATE t1 SET a = a+1;\n  DELETE FROM t1;\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -91,7 +91,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "1.1.2"
 		_res = db.Exec("\n  DELETE FROM t1\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -103,7 +103,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "1.1.3"
 		_res = db.Exec("\n  WITH data(a,b) AS (\n      SELECT 0, 0 UNION ALL SELECT a+1, b+1 FROM data WHERE a<99\n  )\n  INSERT INTO t1 SELECT * FROM data;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH data(a,b) AS (\n      SELECT 0, 0 UNION ALL SELECT a+1, b+1 FROM data WHERE a<99\n  )\n  INSERT INTO t1 SELECT * FROM data;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  WITH data(a,b) AS (\n      SELECT 0, 0 UNION ALL SELECT a+1, b+1 FROM data WHERE a<99\n  )\n  INSERT INTO t1 SELECT * FROM data;\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -115,7 +115,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "1.1.4"
 		_res = db.Exec("\n  INSERT INTO t2 SELECT * FROM t1 WHERE a<50;\n  UPDATE t2 SET y=y+1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 SELECT * FROM t1 WHERE a<50;\n  UPDATE t2 SET y=y+1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t2 SELECT * FROM t1 WHERE a<50;\n  UPDATE t2 SET y=y+1;\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -127,7 +127,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "1.1.5"
 		_res = db.Exec("\n  DELETE FROM t2 WHERE y<=25\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2 WHERE y<=25\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t2 WHERE y<=25\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -139,7 +139,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "1.2.1"
 		_res = db.Exec("\n  DELETE FROM t1;\n  DELETE FROM t2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  DELETE FROM t2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1;\n  DELETE FROM t2;\n")
 		}
 	}
 	_dbtmp0, err := frigolite.Open("test.db")
@@ -150,7 +150,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "1.2.2"
 		_res = db.Exec("\n  CREATE TABLE log(detail);\n  CREATE TRIGGER t1_after_insert AFTER INSERT ON t1 BEGIN \n    INSERT INTO log VALUES('inserted into t1');\n  END;\n\n  CREATE TRIGGER t1_before_delete BEFORE DELETE ON t1 BEGIN \n    INSERT INTO log VALUES('deleting from t1');\n    INSERT INTO log VALUES('here we go!');\n  END;\n\n  CREATE TRIGGER t1_after_update AFTER UPDATE ON t1 BEGIN \n    INSERT INTO log VALUES('update');\n    DELETE FROM log;\n  END;\n\n  INSERT INTO t1 VALUES('a', 'b');   -- 1 + 1\n  UPDATE t1 SET b='c';               -- 1 + 1 + 2\n  DELETE FROM t1;                    -- 1 + 1 + 1\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(detail);\n  CREATE TRIGGER t1_after_insert AFTER INSERT ON t1 BEGIN \n    INSERT INTO log VALUES('inserted into t1');\n  END;\n\n  CREATE TRIGGER t1_before_delete BEFORE DELETE ON t1 BEGIN \n    INSERT INTO log VALUES('deleting from t1');\n    INSERT INTO log VALUES('here we go!');\n  END;\n\n  CREATE TRIGGER t1_after_update AFTER UPDATE ON t1 BEGIN \n    INSERT INTO log VALUES('update');\n    DELETE FROM log;\n  END;\n\n  INSERT INTO t1 VALUES('a', 'b');   -- 1 + 1\n  UPDATE t1 SET b='c';               -- 1 + 1 + 2\n  DELETE FROM t1;                    -- 1 + 1 + 1\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE log(detail);\n  CREATE TRIGGER t1_after_insert AFTER INSERT ON t1 BEGIN \n    INSERT INTO log VALUES('inserted into t1');\n  END;\n\n  CREATE TRIGGER t1_before_delete BEFORE DELETE ON t1 BEGIN \n    INSERT INTO log VALUES('deleting from t1');\n    INSERT INTO log VALUES('here we go!');\n  END;\n\n  CREATE TRIGGER t1_after_update AFTER UPDATE ON t1 BEGIN \n    INSERT INTO log VALUES('update');\n    DELETE FROM log;\n  END;\n\n  INSERT INTO t1 VALUES('a', 'b');   -- 1 + 1\n  UPDATE t1 SET b='c';               -- 1 + 1 + 2\n  DELETE FROM t1;                    -- 1 + 1 + 1\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -162,7 +162,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2), (3, 4);\n    INSERT INTO t2 VALUES(1, 2), (3, 4);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2), (3, 4);\n    INSERT INTO t2 VALUES(1, 2), (3, 4);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    INSERT INTO t1 VALUES(1, 2), (3, 4);\n    INSERT INTO t2 VALUES(1, 2), (3, 4);\n  ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -188,7 +188,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "2.3"
 		_res = db.Exec("\n    CREATE TABLE t4(a, b);\n    ALTER TABLE t4 ADD COLUMN c;\n    CREATE INDEX i4 ON t4(c);\n    ALTER TABLE t4 RENAME TO t5;\n    ANALYZE;\n    BEGIN;\n    DROP TABLE t2;\n    ROLLBACK;\n    VACUUM;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a, b);\n    ALTER TABLE t4 ADD COLUMN c;\n    CREATE INDEX i4 ON t4(c);\n    ALTER TABLE t4 RENAME TO t5;\n    ANALYZE;\n    BEGIN;\n    DROP TABLE t2;\n    ROLLBACK;\n    VACUUM;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t4(a, b);\n    ALTER TABLE t4 ADD COLUMN c;\n    CREATE INDEX i4 ON t4(c);\n    ALTER TABLE t4 RENAME TO t5;\n    ANALYZE;\n    BEGIN;\n    DROP TABLE t2;\n    ROLLBACK;\n    VACUUM;\n  ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -219,7 +219,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.2"
 		_res = db.Exec(" DELETE FROM p1 WHERE c=1; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p1 WHERE c=1; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM p1 WHERE c=1; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -231,7 +231,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.3"
 		_res = db.Exec(" DELETE FROM p1 WHERE c=2; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p1 WHERE c=2; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM p1 WHERE c=2; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -243,7 +243,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.4"
 		_res = db.Exec(" DELETE FROM p1 WHERE c=3; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p1 WHERE c=3; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM p1 WHERE c=3; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -255,7 +255,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.5"
 		_res = db.Exec(" DELETE FROM p1 WHERE c=4; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p1 WHERE c=4; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DELETE FROM p1 WHERE c=4; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -286,7 +286,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.7"
 		_res = db.Exec(" UPDATE p1 SET c=c+4 WHERE c=1; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE p1 SET c=c+4 WHERE c=1; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE p1 SET c=c+4 WHERE c=1; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -298,7 +298,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.8"
 		_res = db.Exec(" UPDATE p1 SET c=c+4 WHERE c=2; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE p1 SET c=c+4 WHERE c=2; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE p1 SET c=c+4 WHERE c=2; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -310,7 +310,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.9"
 		_res = db.Exec(" UPDATE p1 SET c=c+4 WHERE c=3; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE p1 SET c=c+4 WHERE c=3; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE p1 SET c=c+4 WHERE c=3; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -322,7 +322,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.1.10"
 		_res = db.Exec(" UPDATE p1 SET c=c+4 WHERE c=4; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE p1 SET c=c+4 WHERE c=4; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE p1 SET c=c+4 WHERE c=4; ")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -339,7 +339,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE TABLE t3(a UNIQUE, b UNIQUE);\n  INSERT INTO t3 VALUES('one', 'one');\n  INSERT INTO t3 VALUES('two', 'two');\n  INSERT OR REPLACE INTO t3 VALUES('one', 'two');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a UNIQUE, b UNIQUE);\n  INSERT INTO t3 VALUES('one', 'one');\n  INSERT INTO t3 VALUES('two', 'two');\n  INSERT OR REPLACE INTO t3 VALUES('one', 'two');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a UNIQUE, b UNIQUE);\n  INSERT INTO t3 VALUES('one', 'one');\n  INSERT INTO t3 VALUES('two', 'two');\n  INSERT OR REPLACE INTO t3 VALUES('one', 'two');\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -370,7 +370,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t6(x);\n  CREATE VIEW v1 AS SELECT * FROM t6;\n  CREATE TRIGGER v1_tr1 INSTEAD OF INSERT ON v1 BEGIN\n    SELECT 'no-op';\n  END;\n\n  INSERT INTO v1 VALUES('a');\n  INSERT INTO v1 VALUES('b');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(x);\n  CREATE VIEW v1 AS SELECT * FROM t6;\n  CREATE TRIGGER v1_tr1 INSTEAD OF INSERT ON v1 BEGIN\n    SELECT 'no-op';\n  END;\n\n  INSERT INTO v1 VALUES('a');\n  INSERT INTO v1 VALUES('b');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(x);\n  CREATE VIEW v1 AS SELECT * FROM t6;\n  CREATE TRIGGER v1_tr1 INSTEAD OF INSERT ON v1 BEGIN\n    SELECT 'no-op';\n  END;\n\n  INSERT INTO v1 VALUES('a');\n  INSERT INTO v1 VALUES('b');\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))
@@ -382,7 +382,7 @@ func Test_e_totalchanges(t *testing.T) {
 	{ // "4.2"
 		_res = db.Exec("\n  CREATE TRIGGER v1_tr2 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO t6 VALUES(new.x);\n  END;\n\n  INSERT INTO v1 VALUES('c');\n  INSERT INTO v1 VALUES('d');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER v1_tr2 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO t6 VALUES(new.x);\n  END;\n\n  INSERT INTO v1 VALUES('c');\n  INSERT INTO v1 VALUES('d');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TRIGGER v1_tr2 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO t6 VALUES(new.x);\n  END;\n\n  INSERT INTO v1 VALUES('c');\n  INSERT INTO v1 VALUES('d');\n")
 		}
 		got := ""
 		got = strings.TrimSpace(got + " " + strconv.FormatInt(db.TotalChanges(), 10))

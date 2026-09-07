@@ -157,7 +157,7 @@ func Test_in5(t *testing.T) {
 	{ // "6.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a COLLATE nocase);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('ONE');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a COLLATE nocase);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('ONE');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a COLLATE nocase);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('ONE');\n")
 		}
 	}
 	{ // "6.1.2"
@@ -175,7 +175,7 @@ func Test_in5(t *testing.T) {
 	{ // "6.2.1"
 		_res = db.Exec("\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 4);\n  INSERT INTO t3 VALUES(2, 5);\n  INSERT INTO t3 VALUES(2, 6);\n  INSERT INTO t3 VALUES(3, 7);\n  INSERT INTO t3 VALUES(3, 8);\n  INSERT INTO t3 VALUES(3, 9);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 4);\n  INSERT INTO t3 VALUES(2, 5);\n  INSERT INTO t3 VALUES(2, 6);\n  INSERT INTO t3 VALUES(3, 7);\n  INSERT INTO t3 VALUES(3, 8);\n  INSERT INTO t3 VALUES(3, 9);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 4);\n  INSERT INTO t3 VALUES(2, 5);\n  INSERT INTO t3 VALUES(2, 6);\n  INSERT INTO t3 VALUES(3, 7);\n  INSERT INTO t3 VALUES(3, 8);\n  INSERT INTO t3 VALUES(3, 9);\n")
 		}
 	}
 	{ // "6.2.2"
@@ -217,7 +217,7 @@ func Test_in5(t *testing.T) {
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE y1(a, b);\n  CREATE TABLE y2(c);\n\n  INSERT INTO y1 VALUES(1,     'one');\n  INSERT INTO y1 VALUES('two', 'two');\n  INSERT INTO y1 VALUES(3,     'three');\n\n  INSERT INTO y2 VALUES('one');\n  INSERT INTO y2 VALUES('two');\n  INSERT INTO y2 VALUES('three');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a, b);\n  CREATE TABLE y2(c);\n\n  INSERT INTO y1 VALUES(1,     'one');\n  INSERT INTO y1 VALUES('two', 'two');\n  INSERT INTO y1 VALUES(3,     'three');\n\n  INSERT INTO y2 VALUES('one');\n  INSERT INTO y2 VALUES('two');\n  INSERT INTO y2 VALUES('three');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE y1(a, b);\n  CREATE TABLE y2(c);\n\n  INSERT INTO y1 VALUES(1,     'one');\n  INSERT INTO y1 VALUES('two', 'two');\n  INSERT INTO y1 VALUES(3,     'three');\n\n  INSERT INTO y2 VALUES('one');\n  INSERT INTO y2 VALUES('two');\n  INSERT INTO y2 VALUES('three');\n")
 		}
 	}
 	{ // "7.2.1"
@@ -271,7 +271,7 @@ func Test_in5(t *testing.T) {
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE n1(a INTEGER PRIMARY KEY, b VARCHAR(500));\n  CREATE UNIQUE INDEX n1a ON n1(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE n1(a INTEGER PRIMARY KEY, b VARCHAR(500));\n  CREATE UNIQUE INDEX n1a ON n1(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE n1(a INTEGER PRIMARY KEY, b VARCHAR(500));\n  CREATE UNIQUE INDEX n1a ON n1(a);\n")
 		}
 	}
 	{ // "8.1"
@@ -325,7 +325,7 @@ func Test_in5(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t9(a INTEGER PRIMARY KEY);\n  INSERT INTO t9 VALUES (44), (45);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t9(a INTEGER PRIMARY KEY);\n  INSERT INTO t9 VALUES (44), (45);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t9(a INTEGER PRIMARY KEY);\n  INSERT INTO t9 VALUES (44), (45);\n")
 		}
 	}
 	{ // "9.1"
@@ -350,7 +350,7 @@ func Test_in5(t *testing.T) {
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE VIEW v0(c0) AS SELECT LOWER(CAST('1e500' AS TEXT)) FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  CREATE VIEW v0(c0) AS SELECT LOWER(CAST('1e500' AS TEXT)) FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t0(c0);\n  CREATE VIEW v0(c0) AS SELECT LOWER(CAST('1e500' AS TEXT)) FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
 		}
 	}
 	{ // "9.1"
@@ -387,7 +387,7 @@ func Test_in5(t *testing.T) {
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t1 VALUES('ghi', 'jkl');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t1 VALUES('ghi', 'jkl');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t1 VALUES('ghi', 'jkl');\n")
 		}
 	}
 	{ // "10.1"
@@ -405,7 +405,7 @@ func Test_in5(t *testing.T) {
 	{ // "10.2"
 		_res = db.Exec("\n  CREATE INDEX i1 ON t1(a, b COLLATE BINARY);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(a, b COLLATE BINARY);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE INDEX i1 ON t1(a, b COLLATE BINARY);\n")
 		}
 	}
 	{ // "10.3"

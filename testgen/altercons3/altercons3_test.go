@@ -70,7 +70,7 @@ func Test_altercons3(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a));\n")
 		}
 	}
 	{ // "1.1"
@@ -95,7 +95,7 @@ func Test_altercons3(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b, CONSTRAINT fk FOREIGN KEY (b) REFERENCES p1(a));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b, CONSTRAINT fk FOREIGN KEY (b) REFERENCES p1(a));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b, CONSTRAINT fk FOREIGN KEY (b) REFERENCES p1(a));\n")
 		}
 	}
 	{ // "2.1"
@@ -120,7 +120,7 @@ func Test_altercons3(t *testing.T) {
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE generated(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES generated(a));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE generated(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES generated(a));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE generated(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES generated(a));\n")
 		}
 	}
 	{ // "3.1"
@@ -155,19 +155,19 @@ func Test_altercons3(t *testing.T) {
 			{ // "4." + tn + ".1"
 				_res = db.Exec(" DROP TABLE IF EXISTS c1 ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS c1 ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " DROP TABLE IF EXISTS c1 ")
 				}
 			}
 			{ // "4." + tn + ".2"
 				_res = db.Exec(before)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), before)
 				}
 			}
 			{ // "4." + tn + ".3"
 				_res = db.Exec(" ALTER TABLE c1 DROP CONSTRAINT fk ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE c1 DROP CONSTRAINT fk ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " ALTER TABLE c1 DROP CONSTRAINT fk ")
 				}
 			}
 			{ // "4." + tn + ".4"
@@ -199,7 +199,7 @@ func Test_altercons3(t *testing.T) {
 		{ // "5.1"
 			_res = db.Exec("\n  ALTER TABLE x1 DROP CONSTRAINT ott;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE x1 DROP CONSTRAINT ott;\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ALTER TABLE x1 DROP CONSTRAINT ott;\n")
 			}
 		}
 		{ // "altercons3-5.2" — skipped: DROP CONSTRAINT on malformed schema keeps malformed text not matched (SQL side effects only)

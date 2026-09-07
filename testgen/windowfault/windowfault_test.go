@@ -80,7 +80,7 @@ func Test_windowfault(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix
@@ -153,7 +153,7 @@ func Test_windowfault(t *testing.T) {
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);\n")
 		}
 	}
 	// do_faultsim_test 10 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT row_number() OVER wi... (unsupported command, not transpiled)
@@ -167,7 +167,7 @@ func Test_windowfault(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")
 		}
 	}
 	// do_faultsim_test 11.1 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT * FROM t0 WHERE \n... (unsupported command, not transpiled)
@@ -182,7 +182,7 @@ func Test_windowfault(t *testing.T) {
 	{ // "12.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n")
 		}
 	}
 	// do_faultsim_test 12 -faults oom* -prep {\n} -body {\n  execsql {\n    WITH v(a, b, row_number) AS... (unsupported command, not transpiled)
@@ -196,7 +196,7 @@ func Test_windowfault(t *testing.T) {
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")
 		}
 	}
 	_list2 := tclList([]string{"*", "\n  1b22\n  1b22c333\n  22c333dddd4444 \n  333dddd4444e55555 \n  4444e55555f666666\n  55555f666666gggggggggg7777777 \n  666666gggggggggg7777777\n"})

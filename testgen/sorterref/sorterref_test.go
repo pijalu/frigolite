@@ -64,7 +64,7 @@ func Test_sorterref(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  ALTER TABLE t1 ADD COLUMN d DEFAULT 'string';\n  INSERT INTO t1 VALUES(7, 8, 9, 'text');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  ALTER TABLE t1 ADD COLUMN d DEFAULT 'string';\n  INSERT INTO t1 VALUES(7, 8, 9, 'text');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  ALTER TABLE t1 ADD COLUMN d DEFAULT 'string';\n  INSERT INTO t1 VALUES(7, 8, 9, 'text');\n")
 		}
 	}
 	{ // "1.1"
@@ -82,7 +82,7 @@ func Test_sorterref(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d, PRIMARY KEY(c)) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(3, 4);\n\n  INSERT INTO t2 VALUES(1, 'one');\n  INSERT INTO t2 VALUES(3, 'three');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d, PRIMARY KEY(c)) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(3, 4);\n\n  INSERT INTO t2 VALUES(1, 'one');\n  INSERT INTO t2 VALUES(3, 'three');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d, PRIMARY KEY(c)) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(3, 4);\n\n  INSERT INTO t2 VALUES(1, 'one');\n  INSERT INTO t2 VALUES(3, 'three');\n")
 		}
 	}
 	{ // "2.1"

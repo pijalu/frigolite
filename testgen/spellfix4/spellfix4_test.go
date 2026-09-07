@@ -282,19 +282,19 @@ func Test_spellfix4(t *testing.T) {
 	{ // "400"
 		_res = db.Exec("\n  SELECT editdist3(format('%.10001c','x'),'abc');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT editdist3(format('%.10001c','x'),'abc');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "\n  SELECT editdist3(format('%.10001c','x'),'abc');\n")
 		}
 	}
 	{ // "401"
 		_res = db.Exec("\n  SELECT editdist3('xxxabc',format('%.10001c','x'));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT editdist3('xxxabc',format('%.10001c','x'));\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", resErrString(_res), "\n  SELECT editdist3('xxxabc',format('%.10001c','x'));\n")
 		}
 	}
 	{ // "410"
 		_res = db.Exec("\n  SELECT editdist3(format('abc%.9997c','x'),format('abc%.9997c','x'));\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT editdist3(format('abc%.9997c','x'),format('abc%.9997c','x'));\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT editdist3(format('abc%.9997c','x'),format('abc%.9997c','x'));\n")
 		}
 	}
 }

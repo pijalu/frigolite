@@ -84,7 +84,7 @@ func Test_nulls1(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER);\n  INSERT INTO t3 VALUES(NULL), (10), (30), (20), (NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER);\n  INSERT INTO t3 VALUES(NULL), (10), (30), (20), (NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER);\n  INSERT INTO t3 VALUES(NULL), (10), (30), (20), (NULL);\n")
 		}
 	}
 	vtab.TclVarSet("a", "", "0")
@@ -167,7 +167,7 @@ func Test_nulls1(t *testing.T) {
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX i2 ON t2(a, b);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(1, NULL, 2);\n  INSERT INTO t2 VALUES(1, NULL, 3);\n  INSERT INTO t2 VALUES(1, 4, 4);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX i2 ON t2(a, b);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(1, NULL, 2);\n  INSERT INTO t2 VALUES(1, NULL, 3);\n  INSERT INTO t2 VALUES(1, 4, 4);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX i2 ON t2(a, b);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(1, NULL, 2);\n  INSERT INTO t2 VALUES(1, NULL, 3);\n  INSERT INTO t2 VALUES(1, 4, 4);\n")
 			}
 		}
 		{ // "2.1"
@@ -196,7 +196,7 @@ func Test_nulls1(t *testing.T) {
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, UNIQUE (b));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d, UNIQUE (b));\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c, d, UNIQUE (b));\n")
 			}
 		}
 		// foreach {tn sql err} "1 { CREATE INDEX i1 ON t1(a ASC NULLS LAST) }           LAST\n  2 { CREATE INDEX i1 ON t1(a ASC NULLS FIRST) }          FIRST\n  3 { CREATE INDEX i1 ON t1(a, b ASC NULLS LAST) }        LAST\n  4 { CREATE INDEX i1 ON t1(a, b ASC NULLS FIRST) }       FIRST\n  5 { CREATE INDEX i1 ON t1(a DESC NULLS LAST) }          LAST\n  6 { CREATE INDEX i1 ON t1(a DESC NULLS FIRST) }         FIRST\n  7 { CREATE INDEX i1 ON t1(a, b DESC NULLS LAST) }       LAST\n  8 { CREATE INDEX i1 ON t1(a, b DESC NULLS FIRST) }      FIRST\n  9  { CREATE TABLE t2(a, b, PRIMARY KEY(a DESC, b NULLS FIRST)) } FIRST\n  10 { CREATE TABLE t2(a, b, UNIQUE(a DESC NULLS FIRST, b)) }      FIRST\n  11 { INSERT INTO t1 VALUES(1, 2, 3, 4)\n          ON CONFLICT (b DESC NULLS LAST) DO UPDATE SET a = a+1 } LAST\n  12 {\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t1 VALUES(1, 2, 3, 4)\n      ON CONFLICT (b DESC NULLS FIRST) DO UPDATE SET a = a+1;\n    END\n  } FIRST"
@@ -212,7 +212,7 @@ func Test_nulls1(t *testing.T) {
 				{ // "3.1." + tn
 					_res = db.Exec(sql)
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported use of NULLS " + _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS " + _err_tcl, _res.Error, sql)
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS " + _err_tcl, resErrString(_res), sql)
 					}
 				}
 			}
@@ -232,7 +232,7 @@ func Test_nulls1(t *testing.T) {
 			{ // "4.0"
 				_res = db.Exec("\n    CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);\n    CREATE INDEX i1 ON tx(b);\n    INSERT INTO tx VALUES(1, 1, 1);\n    INSERT INTO tx VALUES(2, NULL, 2);\n    INSERT INTO tx VALUES(3, 3, 3);\n    INSERT INTO tx VALUES(4, NULL, 4);\n    INSERT INTO tx VALUES(5, 5, 5);\n    CREATE VIRTUAL TABLE te USING echo(tx);\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);\n    CREATE INDEX i1 ON tx(b);\n    INSERT INTO tx VALUES(1, 1, 1);\n    INSERT INTO tx VALUES(2, NULL, 2);\n    INSERT INTO tx VALUES(3, 3, 3);\n    INSERT INTO tx VALUES(4, NULL, 4);\n    INSERT INTO tx VALUES(5, 5, 5);\n    CREATE VIRTUAL TABLE te USING echo(tx);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);\n    CREATE INDEX i1 ON tx(b);\n    INSERT INTO tx VALUES(1, 1, 1);\n    INSERT INTO tx VALUES(2, NULL, 2);\n    INSERT INTO tx VALUES(3, 3, 3);\n    INSERT INTO tx VALUES(4, NULL, 4);\n    INSERT INTO tx VALUES(5, 5, 5);\n    CREATE VIRTUAL TABLE te USING echo(tx);\n  ")
 				}
 			}
 			{ // "4.1"
@@ -270,7 +270,7 @@ func Test_nulls1(t *testing.T) {
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(1, 1, 11);\n  INSERT INTO t4 VALUES(1, 2, 12);\n  INSERT INTO t4 VALUES(1, NULL, 1);\n\n  INSERT INTO t4 VALUES(2, NULL, 1);\n  INSERT INTO t4 VALUES(2, 2, 12);\n  INSERT INTO t4 VALUES(2, 1, 11);\n\n  INSERT INTO t4 VALUES(3, NULL, 1);\n  INSERT INTO t4 VALUES(3, 2, 12);\n  INSERT INTO t4 VALUES(3, NULL, 3);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(1, 1, 11);\n  INSERT INTO t4 VALUES(1, 2, 12);\n  INSERT INTO t4 VALUES(1, NULL, 1);\n\n  INSERT INTO t4 VALUES(2, NULL, 1);\n  INSERT INTO t4 VALUES(2, 2, 12);\n  INSERT INTO t4 VALUES(2, 1, 11);\n\n  INSERT INTO t4 VALUES(3, NULL, 1);\n  INSERT INTO t4 VALUES(3, 2, 12);\n  INSERT INTO t4 VALUES(3, NULL, 3);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(1, 1, 11);\n  INSERT INTO t4 VALUES(1, 2, 12);\n  INSERT INTO t4 VALUES(1, NULL, 1);\n\n  INSERT INTO t4 VALUES(2, NULL, 1);\n  INSERT INTO t4 VALUES(2, 2, 12);\n  INSERT INTO t4 VALUES(2, 1, 11);\n\n  INSERT INTO t4 VALUES(3, NULL, 1);\n  INSERT INTO t4 VALUES(3, 2, 12);\n  INSERT INTO t4 VALUES(3, NULL, 3);\n")
 				}
 			}
 			{ // "5.1"
@@ -316,7 +316,7 @@ func Test_nulls1(t *testing.T) {
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;\n")
 				}
 			}
 			_dbeval2 := tclExecSQL(db, "SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c")
@@ -370,7 +370,7 @@ func Test_nulls1(t *testing.T) {
 			{ // "8.0"
 				_res = db.Exec("\n  CREATE TABLE t80(a, b INTEGER, PRIMARY KEY(b NULLS LAST)) WITHOUT ROWID;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported use of NULLS LAST") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS LAST", _res.Error, "\n  CREATE TABLE t80(a, b INTEGER, PRIMARY KEY(b NULLS LAST)) WITHOUT ROWID;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS LAST", resErrString(_res), "\n  CREATE TABLE t80(a, b INTEGER, PRIMARY KEY(b NULLS LAST)) WITHOUT ROWID;\n")
 				}
 			}
 			db.Close()
@@ -383,19 +383,19 @@ func Test_nulls1(t *testing.T) {
 			{ // "9.0"
 				_res = db.Exec("\n  CREATE TABLE v0 (c1, c2, c3);\n  CREATE INDEX v3 ON v0 (c1, c2, c3);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0 (c1, c2, c3);\n  CREATE INDEX v3 ON v0 (c1, c2, c3);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE v0 (c1, c2, c3);\n  CREATE INDEX v3 ON v0 (c1, c2, c3);\n")
 				}
 			}
 			{ // "9.1"
 				_res = db.Exec("\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('v0','v3','648 324 81');\n  ANALYZE sqlite_master;\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('v0','v3','648 324 81');\n  ANALYZE sqlite_master;\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('v0','v3','648 324 81');\n  ANALYZE sqlite_master;\n")
 				}
 			}
 			{ // "9.2"
 				_res = db.Exec("\n  INSERT INTO v0 VALUES\n      (1, 10, 'b'),\n      (1, 10, 'd'),\n      (1, 10, NULL),\n      (2, 10, 'a'),\n      (2, 10, NULL),\n      (1, 10, 'c'),\n      (2, 10, 'b'),\n      (1, 10, 'a'),\n      (1, 10, NULL),\n      (2, 10, NULL),\n      (2, 10, 'd'),\n      (2, 10, 'c');\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO v0 VALUES\n      (1, 10, 'b'),\n      (1, 10, 'd'),\n      (1, 10, NULL),\n      (2, 10, 'a'),\n      (2, 10, NULL),\n      (1, 10, 'c'),\n      (2, 10, 'b'),\n      (1, 10, 'a'),\n      (1, 10, NULL),\n      (2, 10, NULL),\n      (2, 10, 'd'),\n      (2, 10, 'c');\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO v0 VALUES\n      (1, 10, 'b'),\n      (1, 10, 'd'),\n      (1, 10, NULL),\n      (2, 10, 'a'),\n      (2, 10, NULL),\n      (1, 10, 'c'),\n      (2, 10, 'b'),\n      (1, 10, 'a'),\n      (1, 10, NULL),\n      (2, 10, NULL),\n      (2, 10, 'd'),\n      (2, 10, 'c');\n")
 				}
 			}
 			{ // "9.3"
@@ -537,13 +537,13 @@ func Test_nulls1(t *testing.T) {
 					{ // "11." + tn + ".1"
 						_res = db.Exec("\n    CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');\n  ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');\n  ")
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');\n  ")
 						}
 					}
 					{ // "11." + tn + ".2"
 						_res = db.Exec(idx)
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), idx)
 						}
 					}
 					// foreach {tn sql res} "0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL"
@@ -560,7 +560,7 @@ func Test_nulls1(t *testing.T) {
 							{ // "11." + tn + ".3." + tn
 								_res = db.Exec(sql)
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sql)
 								}
 							}
 						}

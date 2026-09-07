@@ -294,7 +294,7 @@ func Test_insert2(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec(" \n  CREATE TABLE t5(a, b, c DEFAULT 'c', d);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t5(a, b, c DEFAULT 'c', d);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " \n  CREATE TABLE t5(a, b, c DEFAULT 'c', d);\n")
 		}
 	}
 	{ // "6.1"
@@ -312,7 +312,7 @@ func Test_insert2(t *testing.T) {
 	{ // "6.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t0 USING fts4(a);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t0 USING fts4(a);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE t0 USING fts4(a);\n  ")
 		}
 	}
 	{ // "6.3"

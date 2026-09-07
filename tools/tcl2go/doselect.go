@@ -265,7 +265,7 @@ func (tp *transpiler) emitSelectErrorCase(name string, tc selectTestCase, errorM
 	sqlExpr := tp.collectSQLExpression([]tcl.RawWord{tc.sqlWord})
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", msgExpr)
-	tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %s, _res.Error, %s)", msgExpr, sqlExpr)
+	tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %s, resErrString(_res), %s)", msgExpr, sqlExpr)
 	tp.emitLine("}")
 }
 
@@ -281,7 +281,7 @@ func (tp *transpiler) emitSelectQueryCase(name string, tc selectTestCase, query 
 
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 	tp.emitLine("}")
 	tp.emitLine("r = db.Query(%s)", queryExpr)
 	tp.emitLine("if r.Error != nil {")
@@ -368,7 +368,7 @@ func (tp *transpiler) emitSelectPlainCase(name string, tc selectTestCase) {
 	}
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 	tp.emitLine("}")
 }
 
@@ -401,7 +401,7 @@ func (tp *transpiler) emitSelectTCLQueryCase(name string, tc selectTestCase, tcl
 
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
 	tp.emitLine("}")
 
 	tq := strings.TrimSpace(tclquery)

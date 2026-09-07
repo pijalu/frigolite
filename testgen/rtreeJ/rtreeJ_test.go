@@ -76,7 +76,7 @@ func Test_rtreeJ(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);\n")
 		}
 	}
 	{ // "1.1"
@@ -387,7 +387,7 @@ func Test_rtreeJ(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);\n  CREATE TABLE t2(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);\n  CREATE TABLE t2(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);\n  CREATE TABLE t2(x);\n")
 		}
 	}
 	{ // do_test "2.1"
@@ -437,7 +437,7 @@ func Test_rtreeJ(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE bak_node(nodeno, data);\n  CREATE TABLE bak_parent(nodeno, parentnode);\n  CREATE TABLE bak_rowid(rowid, nodeno);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE bak_node(nodeno, data);\n  CREATE TABLE bak_parent(nodeno, parentnode);\n  CREATE TABLE bak_rowid(rowid, nodeno);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE bak_node(nodeno, data);\n  CREATE TABLE bak_parent(nodeno, parentnode);\n  CREATE TABLE bak_rowid(rowid, nodeno);\n")
 		}
 	}
 	// proc definition (not transpiled)

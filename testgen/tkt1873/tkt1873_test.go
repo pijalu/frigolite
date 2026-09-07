@@ -110,13 +110,13 @@ func Test_tkt1873(t *testing.T) {
 	{ // do_test "tkt1873-1.4"
 		_res = db.Exec("\n    select * from t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", _res.Error, "\n    select * from t2;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", resErrString(_res), "\n    select * from t2;\n  ")
 		}
 	}
 	{ // do_test "tkt1873-1.5"
 		_res = db.Exec("\n    ATTACH 'test2.db' AS aux;\n    select * from t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test2.db' AS aux;\n    select * from t2;\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ATTACH 'test2.db' AS aux;\n    select * from t2;\n  ")
 		}
 	}
 }

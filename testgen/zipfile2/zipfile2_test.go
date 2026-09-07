@@ -153,7 +153,7 @@ func Test_zipfile2(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
 		}
 	}
 	{ // do_test "2.0"
@@ -214,7 +214,7 @@ func Test_zipfile2(t *testing.T) {
 		{ // "3.3." + i
 			_res = db.Exec("\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 			if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*", _res.Error.Error()); return m }() {
-				t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*", _res.Error, "\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
+				t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*", resErrString(_res), "\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 			}
 		}
 		// incr i 1
@@ -319,7 +319,7 @@ func Test_zipfile2(t *testing.T) {
 	{ // "4.1"
 		_res = db.Exec("\n  SELECT name,mtime,data,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "inflate() failed (0)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "inflate() failed (0)", _res.Error, "\n  SELECT name,mtime,data,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "inflate() failed (0)", resErrString(_res), "\n  SELECT name,mtime,data,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 		}
 	}
 	blob = string(tclHexDecode(strings.ReplaceAll(archive2, "0800", "0900")))
@@ -349,7 +349,7 @@ func Test_zipfile2(t *testing.T) {
 			{ // "4.3." + tn
 				_res = db.Exec("\n    SELECT * FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot find end of central directory record") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot find end of central directory record", _res.Error, "\n    SELECT * FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot find end of central directory record", resErrString(_res), "\n    SELECT * FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 				}
 			}
 		}
@@ -372,20 +372,20 @@ func Test_zipfile2(t *testing.T) {
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n")
 			}
 		}
 		{ // "6.1"
 			_res = db.Exec("\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"test1\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"test1\"", _res.Error, "\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"test1\"", resErrString(_res), "\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
 			}
 		}
 		os.Remove("test.zip")
 		{ // "6.2"
 			_res = db.Exec("\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"testnew\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"testnew\"", _res.Error, "\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"testnew\"", resErrString(_res), "\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
 			}
 		}
 		os.Remove("test.zip")
@@ -407,7 +407,7 @@ func Test_zipfile2(t *testing.T) {
 		{ // "7.0"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
 			}
 		}
 		{ // "7.1"
@@ -432,7 +432,7 @@ func Test_zipfile2(t *testing.T) {
 			{ // "8.0"
 				_res = db.Exec("\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "failed to read LFH at offset 0") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "failed to read LFH at offset 0", _res.Error, "\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "failed to read LFH at offset 0", resErrString(_res), "\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")
 				}
 			}
 		}

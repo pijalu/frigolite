@@ -175,19 +175,19 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(matchinfo=fs3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo: fs3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo: fs3", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(matchinfo=fs3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo: fs3", resErrString(_res), "\n  CREATE VIRTUAL TABLE x1 USING fts4(matchinfo=fs3);\n")
 		}
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x2 USING fts4(mtchinfo=fts3);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized parameter: mtchinfo=fts3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: mtchinfo=fts3", _res.Error, "\n  CREATE VIRTUAL TABLE x2 USING fts4(mtchinfo=fts3);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized parameter: mtchinfo=fts3", resErrString(_res), "\n  CREATE VIRTUAL TABLE x2 USING fts4(mtchinfo=fts3);\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x2 USING fts4(matchinfo=fts5);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo: fts5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo: fts5", _res.Error, "\n  CREATE VIRTUAL TABLE x2 USING fts4(matchinfo=fts5);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo: fts5", resErrString(_res), "\n  CREATE VIRTUAL TABLE x2 USING fts4(matchinfo=fts5);\n")
 		}
 	}
 	{ // "3.1"
@@ -205,7 +205,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "3.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE xx USING FTS4;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE xx USING FTS4;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE xx USING FTS4;\n")
 		}
 	}
 	{ // "3.3"
@@ -225,7 +225,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "4.1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t4 USING fts4(x, y);\n  INSERT INTO t4 VALUES('a b c d e', 'f g h i j');\n  INSERT INTO t4 VALUES('f g h i j', 'a b c d e');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(x, y);\n  INSERT INTO t4 VALUES('a b c d e', 'f g h i j');\n  INSERT INTO t4 VALUES('f g h i j', 'a b c d e');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t4 USING fts4(x, y);\n  INSERT INTO t4 VALUES('a b c d e', 'f g h i j');\n  INSERT INTO t4 VALUES('f g h i j', 'a b c d e');\n")
 		}
 	}
 	// do_matchinfo_test 4.1.1 t4 {t4 MATCH 'a b c'} {\n  p {3 3}\n  c {2 2}\n  x {\n    {1 1 1   0 1 1 .... (unsupported command, not transpiled)
@@ -239,7 +239,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "4.2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');\n")
 		}
 	}
 	// do_matchinfo_test 4.2.1 t5 {t5 MATCH 'a a'} { \n  x {{5 8 2   5 8 2} {3 8 2   3 8 2}}\n  s {2 1...... (unsupported command, not transpiled)
@@ -251,7 +251,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "4.3.0"
 		_res = db.Exec("INSERT INTO t5 VALUES('x y " + tclStringRepeat("b ", "50000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES('x y " + tclStringRepeat("b ", "50000") + "')")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "INSERT INTO t5 VALUES('x y " + tclStringRepeat("b ", "50000") + "')")
 		}
 	}
 	if false {
@@ -265,14 +265,14 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "4.4.0.1"
 		_res = db.Exec(" INSERT INTO t5(t5) VALUES('optimize') ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t5(t5) VALUES('optimize') ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " INSERT INTO t5(t5) VALUES('optimize') ")
 		}
 	}
 	db.SetDefensive(false)
 	{ // "4.4.0.2"
 		_res = db.Exec("\n    UPDATE t5_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t5_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    UPDATE t5_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n  ")
 		}
 	}
 	// do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} } (unsupported command, not transpiled)
@@ -284,38 +284,38 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "4.5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');\n")
 		}
 	}
 	// do_matchinfo_test 4.5.1 t6 {t6 MATCH 'a b c'} { s {{1 1 1}} } (unsupported command, not transpiled)
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t7 USING fts3(a, b);\n  INSERT INTO t7 VALUES('u v w', 'x y z');\n\n  CREATE VIRTUAL TABLE t8 USING fts4(a, b, matchinfo=fts3);\n  INSERT INTO t8 VALUES('u v w', 'x y z');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t7 USING fts3(a, b);\n  INSERT INTO t7 VALUES('u v w', 'x y z');\n\n  CREATE VIRTUAL TABLE t8 USING fts4(a, b, matchinfo=fts3);\n  INSERT INTO t8 VALUES('u v w', 'x y z');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t7 USING fts3(a, b);\n  INSERT INTO t7 VALUES('u v w', 'x y z');\n\n  CREATE VIRTUAL TABLE t8 USING fts4(a, b, matchinfo=fts3);\n  INSERT INTO t8 VALUES('u v w', 'x y z');\n")
 		}
 	}
 	{ // "5.2.1"
 		_res = db.Exec(" \n  SELECT matchinfo(t7, 'a') FROM t7 WHERE t7 MATCH 'x y'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo request: a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: a", _res.Error, " \n  SELECT matchinfo(t7, 'a') FROM t7 WHERE t7 MATCH 'x y'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: a", resErrString(_res), " \n  SELECT matchinfo(t7, 'a') FROM t7 WHERE t7 MATCH 'x y'\n")
 		}
 	}
 	{ // "5.2.2"
 		_res = db.Exec(" \n  SELECT matchinfo(t7, 'l') FROM t7 WHERE t7 MATCH 'x y'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo request: l") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: l", _res.Error, " \n  SELECT matchinfo(t7, 'l') FROM t7 WHERE t7 MATCH 'x y'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: l", resErrString(_res), " \n  SELECT matchinfo(t7, 'l') FROM t7 WHERE t7 MATCH 'x y'\n")
 		}
 	}
 	{ // "5.2.3"
 		_res = db.Exec(" \n  SELECT matchinfo(t7, 'n') FROM t7 WHERE t7 MATCH 'x y'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo request: n") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: n", _res.Error, " \n  SELECT matchinfo(t7, 'n') FROM t7 WHERE t7 MATCH 'x y'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: n", resErrString(_res), " \n  SELECT matchinfo(t7, 'n') FROM t7 WHERE t7 MATCH 'x y'\n")
 		}
 	}
 	{ // "5.3.1"
 		_res = db.Exec(" \n  SELECT matchinfo(t8, 'l') FROM t8 WHERE t8 MATCH 'x y'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo request: l") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: l", _res.Error, " \n  SELECT matchinfo(t8, 'l') FROM t8 WHERE t8 MATCH 'x y'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized matchinfo request: l", resErrString(_res), " \n  SELECT matchinfo(t8, 'l') FROM t8 WHERE t8 MATCH 'x y'\n")
 		}
 	}
 	{ // "6.1"
@@ -334,13 +334,13 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "6.2"
 		_res = db.Exec("\n  UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';\n")
 		}
 	}
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t10 USING fts4;\n  INSERT INTO t10 VALUES('first record');\n  INSERT INTO t10 VALUES('second record');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t10 USING fts4;\n  INSERT INTO t10 VALUES('first record');\n  INSERT INTO t10 VALUES('second record');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t10 USING fts4;\n  INSERT INTO t10 VALUES('first record');\n  INSERT INTO t10 VALUES('second record');\n")
 		}
 	}
 	{ // "7.2"
@@ -382,7 +382,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t11 USING fts4;\n  INSERT INTO t11(t11) VALUES('nodesize=24');\n  INSERT INTO t11 VALUES('quitealongstringoftext');\n  INSERT INTO t11 VALUES('anotherquitealongstringoftext');\n  INSERT INTO t11 VALUES('athirdlongstringoftext');\n  INSERT INTO t11 VALUES('andonemoreforgoodluck');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t11 USING fts4;\n  INSERT INTO t11(t11) VALUES('nodesize=24');\n  INSERT INTO t11 VALUES('quitealongstringoftext');\n  INSERT INTO t11 VALUES('anotherquitealongstringoftext');\n  INSERT INTO t11 VALUES('athirdlongstringoftext');\n  INSERT INTO t11 VALUES('andonemoreforgoodluck');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t11 USING fts4;\n  INSERT INTO t11(t11) VALUES('nodesize=24');\n  INSERT INTO t11 VALUES('quitealongstringoftext');\n  INSERT INTO t11 VALUES('anotherquitealongstringoftext');\n  INSERT INTO t11 VALUES('athirdlongstringoftext');\n  INSERT INTO t11 VALUES('andonemoreforgoodluck');\n")
 		}
 	}
 	{ // do_test "8.2"
@@ -423,37 +423,37 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "8.4.1.1"
 		_res = db.Exec(" UPDATE t11_stat SET value = X'0000'; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t11_stat SET value = X'0000'; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE t11_stat SET value = X'0000'; ")
 		}
 	}
 	{ // "8.5.1.2"
 		_res = db.Exec("\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
 		}
 	}
 	{ // "8.4.2.1"
 		_res = db.Exec(" UPDATE t11_stat SET value = X'00'; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t11_stat SET value = X'00'; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE t11_stat SET value = X'00'; ")
 		}
 	}
 	{ // "8.5.2.2"
 		_res = db.Exec("\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
 		}
 	}
 	{ // "8.4.3.1"
 		_res = db.Exec(" UPDATE t11_stat SET value = NULL; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t11_stat SET value = NULL; ")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " UPDATE t11_stat SET value = NULL; ")
 		}
 	}
 	{ // "8.5.3.2"
 		_res = db.Exec("\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'\n")
 		}
 	}
 	{ // "8.1"
@@ -529,7 +529,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10\n")
 		}
 	}
 	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) {

@@ -221,7 +221,7 @@ func Test_aggnested(t *testing.T) {
 	{ // do_test "aggnested-3.15"
 		_res = db.Exec("\n    SELECT max(value1), (SELECT sum(value2=max(value1)) FROM t2)\n      FROM t1\n     GROUP BY id1;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "misuse of aggregate function max()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate function max()", _res.Error, "\n    SELECT max(value1), (SELECT sum(value2=max(value1)) FROM t2)\n      FROM t1\n     GROUP BY id1;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "misuse of aggregate function max()", resErrString(_res), "\n    SELECT max(value1), (SELECT sum(value2=max(value1)) FROM t2)\n      FROM t1\n     GROUP BY id1;\n  ")
 		}
 	}
 	{ // do_test "aggnested-3.16"
@@ -294,7 +294,7 @@ func Test_aggnested(t *testing.T) {
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n  CREATE TABLE x2(x);\n  INSERT INTO x2 VALUES(NULL), (NULL), (NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n  CREATE TABLE x2(x);\n  INSERT INTO x2 VALUES(NULL), (NULL), (NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n  CREATE TABLE x2(x);\n  INSERT INTO x2 VALUES(NULL), (NULL), (NULL);\n")
 		}
 	}
 	{ // "5.1"
@@ -324,7 +324,7 @@ func Test_aggnested(t *testing.T) {
 	{ // "5.3"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n")
 		}
 	}
 	{ // "5.4"
@@ -355,7 +355,7 @@ func Test_aggnested(t *testing.T) {
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n\n  INSERT INTO t1 VALUES('x');\n  INSERT INTO t2 VALUES(1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n\n  INSERT INTO t1 VALUES('x');\n  INSERT INTO t2 VALUES(1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n\n  INSERT INTO t1 VALUES('x');\n  INSERT INTO t2 VALUES(1);\n")
 		}
 	}
 	{ // "6.1.1"
@@ -385,7 +385,7 @@ func Test_aggnested(t *testing.T) {
 	{ // "6.2.0"
 		_res = db.Exec("\n  UPDATE t2 SET b=0\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET b=0\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  UPDATE t2 SET b=0\n")
 		}
 	}
 	{ // "6.2.1"
@@ -422,7 +422,7 @@ func Test_aggnested(t *testing.T) {
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE invoice (\n      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,\n      amount DOUBLE PRECISION DEFAULT NULL,\n      name VARCHAR(100) DEFAULT NULL\n  );\n\n  INSERT INTO invoice (amount, name) VALUES \n      (4.0, 'Michael'), (15.0, 'Bara'), (4.0, 'Michael'), (6.0, 'John');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE invoice (\n      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,\n      amount DOUBLE PRECISION DEFAULT NULL,\n      name VARCHAR(100) DEFAULT NULL\n  );\n\n  INSERT INTO invoice (amount, name) VALUES \n      (4.0, 'Michael'), (15.0, 'Bara'), (4.0, 'Michael'), (6.0, 'John');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE invoice (\n      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,\n      amount DOUBLE PRECISION DEFAULT NULL,\n      name VARCHAR(100) DEFAULT NULL\n  );\n\n  INSERT INTO invoice (amount, name) VALUES \n      (4.0, 'Michael'), (15.0, 'Bara'), (4.0, 'Michael'), (6.0, 'John');\n")
 		}
 	}
 	{ // "7.1"
@@ -557,7 +557,7 @@ func Test_aggnested(t *testing.T) {
 	{ // "11.1"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(c1); INSERT INTO t1 VALUES(11);\n  DROP TABLE t2;\n  CREATE TABLE t2(c2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(c1); INSERT INTO t1 VALUES(11);\n  DROP TABLE t2;\n  CREATE TABLE t2(c2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(c1); INSERT INTO t1 VALUES(11);\n  DROP TABLE t2;\n  CREATE TABLE t2(c2);\n")
 		}
 	}
 	{ // "aggnested-11.2" — skipped: nested aggregate inside compound SELECT validation not implemented N-A

@@ -206,7 +206,7 @@ func Test_capi3d(t *testing.T) {
 	{ // "capi3d-4.1"
 		_res = db.Exec("\n  CREATE TABLE t4(x,y);\n  BEGIN;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x,y);\n  BEGIN;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(x,y);\n  BEGIN;\n")
 		}
 	}
 	{ // "capi3d-4.2.1" (prepare-step internals; SQL side effects only)

@@ -76,7 +76,7 @@ func Test_shell9(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');\n")
 		}
 	}
 	db.Close()
@@ -114,7 +114,7 @@ func Test_shell9(t *testing.T) {
 	{ // "1.2.1"
 		_res = db.Exec("\n  CREATE TABLE t4(hello);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(hello);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(hello);\n")
 		}
 	}
 	db.Close()
@@ -149,7 +149,7 @@ func Test_shell9(t *testing.T) {
 	{ // "2.0.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t2 VALUES('two');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t2 VALUES('two');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t2 VALUES('two');\n")
 		}
 	}
 	{ // "2.0.2" (CLI shell subprocess harness, not transpiled)
@@ -158,7 +158,7 @@ func Test_shell9(t *testing.T) {
 	{ // "2.1.1"
 		_res = db.Exec("\n  CREATE virtual TABLE r1 USING fts5(x);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE virtual TABLE r1 USING fts5(x);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE virtual TABLE r1 USING fts5(x);\n")
 		}
 	}
 	{ // "2.1.2" (CLI shell subprocess harness, not transpiled)
@@ -181,7 +181,7 @@ func Test_shell9(t *testing.T) {
 	{ // "3.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
 		}
 	}
 	db.Close()

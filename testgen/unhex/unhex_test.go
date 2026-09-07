@@ -139,13 +139,13 @@ func Test_unhex(t *testing.T) {
 			{ // "3.0"
 				_res = db.Exec("\n  SELECT unhex();\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function unhex()") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", _res.Error, "\n  SELECT unhex();\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", resErrString(_res), "\n  SELECT unhex();\n")
 				}
 			}
 			{ // "3.1"
 				_res = db.Exec("\n  SELECT unhex('ABCD', '1234', '');\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function unhex()") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", _res.Error, "\n  SELECT unhex('ABCD', '1234', '');\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", resErrString(_res), "\n  SELECT unhex('ABCD', '1234', '');\n")
 				}
 			}
 			if tclBool("array exists x") {

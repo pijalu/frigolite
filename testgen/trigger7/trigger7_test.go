@@ -71,7 +71,7 @@ func Test_trigger7(t *testing.T) {
 	{ // do_test "trigger7-1.2"
 		_res = db.Exec("\n    CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n      SELECT 'no nothing';\n    END\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown database not_a_db") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database not_a_db", _res.Error, "\n    CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n      SELECT 'no nothing';\n    END\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database not_a_db", resErrString(_res), "\n    CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n      SELECT 'no nothing';\n    END\n  ")
 		}
 	}
 	{ // do_test "trigger7-2.1"

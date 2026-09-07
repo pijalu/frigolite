@@ -1032,19 +1032,19 @@ func Test_like2(t *testing.T) {
 	{ // do_test "like-2.59.1"
 		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE ';%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE ';%'")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "SELECT x FROM t1 WHERE y LIKE ';%'")
 		}
 	}
 	{ // do_test "like-2.59.2"
 		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE ';%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE ';%'")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "SELECT x FROM t2 WHERE y LIKE ';%'")
 		}
 	}
 	{ // do_test "like-2.59.3"
 		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc;%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc;%'")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "SELECT x FROM t3 WHERE y LIKE 'abc;%'")
 		}
 	}
 	{ // do_test "like-2.60.1"

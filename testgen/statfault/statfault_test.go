@@ -65,7 +65,7 @@ func Test_statfault(t *testing.T) {
 	{ // "statfault-1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 VALUES(randomblob(500), 1);\n  INSERT INTO t1 VALUES(2, randomblob(250));\n  INSERT INTO t1 VALUES(randomblob(250), 2);\n  CREATE VIRTUAL TABLE sss USING dbstat;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 VALUES(randomblob(500), 1);\n  INSERT INTO t1 VALUES(2, randomblob(250));\n  INSERT INTO t1 VALUES(randomblob(250), 2);\n  CREATE VIRTUAL TABLE sss USING dbstat;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 VALUES(randomblob(500), 1);\n  INSERT INTO t1 VALUES(2, randomblob(250));\n  INSERT INTO t1 VALUES(randomblob(250), 2);\n  CREATE VIRTUAL TABLE sss USING dbstat;\n")
 		}
 	}
 	// db_save_and_close: snapshot test.db* under sv_ prefix

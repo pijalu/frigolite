@@ -107,7 +107,7 @@ func Test_tkt1567(t *testing.T) {
 	{ // do_test "tkt1567-1.4"
 		_res = db.Exec("\n    UPDATE t1 SET a = CASE WHEN rowid<90 THEN substr(a,1,10) ELSE '9999' END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "\n    UPDATE t1 SET a = CASE WHEN rowid<90 THEN substr(a,1,10) ELSE '9999' END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "\n    UPDATE t1 SET a = CASE WHEN rowid<90 THEN substr(a,1,10) ELSE '9999' END;\n  ")
 		}
 	}
 	{ // do_test "tkt1567-1.5"
@@ -159,7 +159,7 @@ func Test_tkt1567(t *testing.T) {
 	{ // do_test "tkt1567-2.4"
 		_res = db.Exec("\n    UPDATE t2 SET a = CASE WHEN rowid<90 THEN substr(a,1,10) ELSE '9999' END;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t2.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.a", _res.Error, "\n    UPDATE t2 SET a = CASE WHEN rowid<90 THEN substr(a,1,10) ELSE '9999' END;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t2.a", resErrString(_res), "\n    UPDATE t2 SET a = CASE WHEN rowid<90 THEN substr(a,1,10) ELSE '9999' END;\n  ")
 		}
 	}
 	{ // do_test "tkt1567-2.5"

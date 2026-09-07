@@ -109,7 +109,7 @@ func Test_json106(t *testing.T) {
 		{ // ii + ".4"
 			_res = db.Exec("\n    DELETE FROM kv;\n    INSERT INTO kv\n      SELECT rt.rowid, rt.fullkey, rt.atom\n        FROM t1, json_tree(j0) AS rt\n       WHERE rt.type NOT IN ('object','array');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM kv;\n    INSERT INTO kv\n      SELECT rt.rowid, rt.fullkey, rt.atom\n        FROM t1, json_tree(j0) AS rt\n       WHERE rt.type NOT IN ('object','array');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM kv;\n    INSERT INTO kv\n      SELECT rt.rowid, rt.fullkey, rt.atom\n        FROM t1, json_tree(j0) AS rt\n       WHERE rt.type NOT IN ('object','array');\n  ")
 			}
 		}
 		{ // ii + ".5"

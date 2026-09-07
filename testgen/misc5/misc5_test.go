@@ -197,7 +197,7 @@ func Test_misc5(t *testing.T) {
 	{ // do_test "misc5-6.1"
 		_res = db.Exec("\n      SELECT * FROM sqlite_master \n      UNION ALL \n      SELECT * FROM sqlite_master\n      LIMIT (SELECT count(*) FROM blah);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: blah") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: blah", _res.Error, "\n      SELECT * FROM sqlite_master \n      UNION ALL \n      SELECT * FROM sqlite_master\n      LIMIT (SELECT count(*) FROM blah);\n    ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: blah", resErrString(_res), "\n      SELECT * FROM sqlite_master \n      UNION ALL \n      SELECT * FROM sqlite_master\n      LIMIT (SELECT count(*) FROM blah);\n    ")
 		}
 	}
 	{ // do_test "misc5-6.2"
@@ -290,13 +290,13 @@ func Test_misc5(t *testing.T) {
 	{ // do_test "misc5-10.1"
 		_res = db.Exec("\n    SELECT 123abc\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"123abc\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123abc\"", _res.Error, "\n    SELECT 123abc\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123abc\"", resErrString(_res), "\n    SELECT 123abc\n  ")
 		}
 	}
 	{ // do_test "misc5-10.2"
 		_res = db.Exec("\n    SELECT 1*123.4e5ghi;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"123.4e5ghi\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123.4e5ghi\"", _res.Error, "\n    SELECT 1*123.4e5ghi;\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123.4e5ghi\"", resErrString(_res), "\n    SELECT 1*123.4e5ghi;\n  ")
 		}
 	}
 	{ // do_test "misc5-11.1"

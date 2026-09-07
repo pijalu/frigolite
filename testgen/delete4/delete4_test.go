@@ -66,13 +66,13 @@ func Test_delete4(t *testing.T) {
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 1);\n  INSERT INTO t1 VALUES(3, 0);\n  INSERT INTO t1 VALUES(4, 1);\n  INSERT INTO t1 VALUES(5, 0);\n  INSERT INTO t1 VALUES(6, 1);\n  INSERT INTO t1 VALUES(7, 0);\n  INSERT INTO t1 VALUES(8, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 1);\n  INSERT INTO t1 VALUES(3, 0);\n  INSERT INTO t1 VALUES(4, 1);\n  INSERT INTO t1 VALUES(5, 0);\n  INSERT INTO t1 VALUES(6, 1);\n  INSERT INTO t1 VALUES(7, 0);\n  INSERT INTO t1 VALUES(8, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 1);\n  INSERT INTO t1 VALUES(3, 0);\n  INSERT INTO t1 VALUES(4, 1);\n  INSERT INTO t1 VALUES(5, 0);\n  INSERT INTO t1 VALUES(6, 1);\n  INSERT INTO t1 VALUES(7, 0);\n  INSERT INTO t1 VALUES(8, 1);\n")
 		}
 	}
 	{ // "1.2"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE y=1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE y=1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE y=1;\n")
 		}
 	}
 	{ // "1.3"
@@ -97,13 +97,13 @@ func Test_delete4(t *testing.T) {
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  INSERT INTO t1 VALUES(1, 0, randomblob(200));\n  INSERT INTO t1 VALUES(2, 1, randomblob(200));\n  INSERT INTO t1 VALUES(3, 0, randomblob(200));\n  INSERT INTO t1 VALUES(4, 1, randomblob(200));\n  INSERT INTO t1 VALUES(5, 0, randomblob(200));\n  INSERT INTO t1 VALUES(6, 1, randomblob(200));\n  INSERT INTO t1 VALUES(7, 0, randomblob(200));\n  INSERT INTO t1 VALUES(8, 1, randomblob(200));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  INSERT INTO t1 VALUES(1, 0, randomblob(200));\n  INSERT INTO t1 VALUES(2, 1, randomblob(200));\n  INSERT INTO t1 VALUES(3, 0, randomblob(200));\n  INSERT INTO t1 VALUES(4, 1, randomblob(200));\n  INSERT INTO t1 VALUES(5, 0, randomblob(200));\n  INSERT INTO t1 VALUES(6, 1, randomblob(200));\n  INSERT INTO t1 VALUES(7, 0, randomblob(200));\n  INSERT INTO t1 VALUES(8, 1, randomblob(200));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  INSERT INTO t1 VALUES(1, 0, randomblob(200));\n  INSERT INTO t1 VALUES(2, 1, randomblob(200));\n  INSERT INTO t1 VALUES(3, 0, randomblob(200));\n  INSERT INTO t1 VALUES(4, 1, randomblob(200));\n  INSERT INTO t1 VALUES(5, 0, randomblob(200));\n  INSERT INTO t1 VALUES(6, 1, randomblob(200));\n  INSERT INTO t1 VALUES(7, 0, randomblob(200));\n  INSERT INTO t1 VALUES(8, 1, randomblob(200));\n")
 		}
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE y=1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE y=1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE y=1;\n")
 		}
 	}
 	{ // "2.3"
@@ -159,13 +159,13 @@ func Test_delete4(t *testing.T) {
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n  INSERT INTO t1 VALUES(3, 'three', 'iii');\n  INSERT INTO t1 VALUES(4, 'four', 'iv');\n  INSERT INTO t1 VALUES(5, 'one', 'i');\n  INSERT INTO t1 VALUES(6, 'two', 'ii');\n  INSERT INTO t1 VALUES(7, 'three', 'iii');\n  INSERT INTO t1 VALUES(8, 'four', 'iv');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n  INSERT INTO t1 VALUES(3, 'three', 'iii');\n  INSERT INTO t1 VALUES(4, 'four', 'iv');\n  INSERT INTO t1 VALUES(5, 'one', 'i');\n  INSERT INTO t1 VALUES(6, 'two', 'ii');\n  INSERT INTO t1 VALUES(7, 'three', 'iii');\n  INSERT INTO t1 VALUES(8, 'four', 'iv');\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n  INSERT INTO t1 VALUES(3, 'three', 'iii');\n  INSERT INTO t1 VALUES(4, 'four', 'iv');\n  INSERT INTO t1 VALUES(5, 'one', 'i');\n  INSERT INTO t1 VALUES(6, 'two', 'ii');\n  INSERT INTO t1 VALUES(7, 'three', 'iii');\n  INSERT INTO t1 VALUES(8, 'four', 'iv');\n")
 		}
 	}
 	{ // "3.2"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE a='two' OR b='iv';\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a='two' OR b='iv';\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t1 WHERE a='two' OR b='iv';\n")
 		}
 	}
 	{ // "3.3"
@@ -282,13 +282,13 @@ func Test_delete4(t *testing.T) {
 	{ // "7.1.0"
 		_res = db.Exec("\n  CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);\n  INSERT INTO t3 VALUES(4, 4, 1);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);\n  INSERT INTO t3 VALUES(4, 4, 1);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);\n  INSERT INTO t3 VALUES(4, 4, 1);\n")
 		}
 	}
 	{ // "7.1.1"
 		_res = db.Exec("\n  DELETE FROM t3 WHERE a=4 OR b=1;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t3 WHERE a=4 OR b=1;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t3 WHERE a=4 OR b=1;\n")
 		}
 	}
 	{ // "7.1.2"
@@ -316,7 +316,7 @@ func Test_delete4(t *testing.T) {
 	{ // "7.2.1"
 		_res = db.Exec("\n  DELETE FROM t4 WHERE b='world'\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4 WHERE b='world'\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DELETE FROM t4 WHERE b='world'\n")
 		}
 	}
 	db.Close()
@@ -329,7 +329,7 @@ func Test_delete4(t *testing.T) {
 	{ // "7.3.0"
 		_res = db.Exec("\n  CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id+3;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id+3;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id+3;\n  END;\n")
 		}
 	}
 	{ // "7.3.1"
@@ -341,7 +341,7 @@ func Test_delete4(t *testing.T) {
 	{ // "7.3.2"
 		_res = db.Exec("\n  DROP TRIGGER t3t;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id;\n  END;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER t3t;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id;\n  END;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TRIGGER t3t;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id;\n  END;\n")
 		}
 	}
 	{ // "7.3.3"

@@ -82,7 +82,7 @@ func Test_rowvalue4(t *testing.T) {
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1bac ON t1(b, a, c);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1bac ON t1(b, a, c);\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1bac ON t1(b, a, c);\n")
 		}
 	}
 	// foreach {tn e} "1 \"(1, 2, 3)\"\n  2 \"1 + (1, 2)\"\n  3 \"(1,2,3) == (1, 2)\""
@@ -96,7 +96,7 @@ func Test_rowvalue4(t *testing.T) {
 			{ // "1." + tn
 				_res = db.Exec("SELECT " + e)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "SELECT " + e)
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "SELECT " + e)
 				}
 			}
 		}
@@ -113,14 +113,14 @@ func Test_rowvalue4(t *testing.T) {
 				{ // "2." + tn
 					_res = db.Exec(s)
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _error, _res.Error, s)
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _error, resErrString(_res), s)
 					}
 				}
 			}
 			{ // "2.0"
 				_res = db.Exec("\n  CREATE TABLE t2(a, b, c, d);\n  INSERT INTO t2 VALUES(1, 1, 1,   1);\n  INSERT INTO t2 VALUES(1, 1, 2,   2);\n  INSERT INTO t2 VALUES(1, 1, 3,   3);\n  INSERT INTO t2 VALUES(1, 2, 1,   4);\n  INSERT INTO t2 VALUES(1, 2, 2,   5);\n  INSERT INTO t2 VALUES(1, 2, 3,   6);\n  INSERT INTO t2 VALUES(1, 3, 1,   7);\n  INSERT INTO t2 VALUES(1, 3, 2,   8);\n  INSERT INTO t2 VALUES(1, 3, 3,   9);\n\n  INSERT INTO t2 VALUES(2, 1, 1,   10);\n  INSERT INTO t2 VALUES(2, 1, 2,   11);\n  INSERT INTO t2 VALUES(2, 1, 3,   12);\n  INSERT INTO t2 VALUES(2, 2, 1,   13);\n  INSERT INTO t2 VALUES(2, 2, 2,   14);\n  INSERT INTO t2 VALUES(2, 2, 3,   15);\n  INSERT INTO t2 VALUES(2, 3, 1,   16);\n  INSERT INTO t2 VALUES(2, 3, 2,   17);\n  INSERT INTO t2 VALUES(2, 3, 3,   18);\n\n  INSERT INTO t2 VALUES(3, 1, 1,   19);\n  INSERT INTO t2 VALUES(3, 1, 2,   20);\n  INSERT INTO t2 VALUES(3, 1, 3,   21);\n  INSERT INTO t2 VALUES(3, 2, 1,   22);\n  INSERT INTO t2 VALUES(3, 2, 2,   23);\n  INSERT INTO t2 VALUES(3, 2, 3,   24);\n  INSERT INTO t2 VALUES(3, 3, 1,   25);\n  INSERT INTO t2 VALUES(3, 3, 2,   26);\n  INSERT INTO t2 VALUES(3, 3, 3,   27);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c, d);\n  INSERT INTO t2 VALUES(1, 1, 1,   1);\n  INSERT INTO t2 VALUES(1, 1, 2,   2);\n  INSERT INTO t2 VALUES(1, 1, 3,   3);\n  INSERT INTO t2 VALUES(1, 2, 1,   4);\n  INSERT INTO t2 VALUES(1, 2, 2,   5);\n  INSERT INTO t2 VALUES(1, 2, 3,   6);\n  INSERT INTO t2 VALUES(1, 3, 1,   7);\n  INSERT INTO t2 VALUES(1, 3, 2,   8);\n  INSERT INTO t2 VALUES(1, 3, 3,   9);\n\n  INSERT INTO t2 VALUES(2, 1, 1,   10);\n  INSERT INTO t2 VALUES(2, 1, 2,   11);\n  INSERT INTO t2 VALUES(2, 1, 3,   12);\n  INSERT INTO t2 VALUES(2, 2, 1,   13);\n  INSERT INTO t2 VALUES(2, 2, 2,   14);\n  INSERT INTO t2 VALUES(2, 2, 3,   15);\n  INSERT INTO t2 VALUES(2, 3, 1,   16);\n  INSERT INTO t2 VALUES(2, 3, 2,   17);\n  INSERT INTO t2 VALUES(2, 3, 3,   18);\n\n  INSERT INTO t2 VALUES(3, 1, 1,   19);\n  INSERT INTO t2 VALUES(3, 1, 2,   20);\n  INSERT INTO t2 VALUES(3, 1, 3,   21);\n  INSERT INTO t2 VALUES(3, 2, 1,   22);\n  INSERT INTO t2 VALUES(3, 2, 2,   23);\n  INSERT INTO t2 VALUES(3, 2, 3,   24);\n  INSERT INTO t2 VALUES(3, 3, 1,   25);\n  INSERT INTO t2 VALUES(3, 3, 2,   26);\n  INSERT INTO t2 VALUES(3, 3, 3,   27);\n")
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2(a, b, c, d);\n  INSERT INTO t2 VALUES(1, 1, 1,   1);\n  INSERT INTO t2 VALUES(1, 1, 2,   2);\n  INSERT INTO t2 VALUES(1, 1, 3,   3);\n  INSERT INTO t2 VALUES(1, 2, 1,   4);\n  INSERT INTO t2 VALUES(1, 2, 2,   5);\n  INSERT INTO t2 VALUES(1, 2, 3,   6);\n  INSERT INTO t2 VALUES(1, 3, 1,   7);\n  INSERT INTO t2 VALUES(1, 3, 2,   8);\n  INSERT INTO t2 VALUES(1, 3, 3,   9);\n\n  INSERT INTO t2 VALUES(2, 1, 1,   10);\n  INSERT INTO t2 VALUES(2, 1, 2,   11);\n  INSERT INTO t2 VALUES(2, 1, 3,   12);\n  INSERT INTO t2 VALUES(2, 2, 1,   13);\n  INSERT INTO t2 VALUES(2, 2, 2,   14);\n  INSERT INTO t2 VALUES(2, 2, 3,   15);\n  INSERT INTO t2 VALUES(2, 3, 1,   16);\n  INSERT INTO t2 VALUES(2, 3, 2,   17);\n  INSERT INTO t2 VALUES(2, 3, 3,   18);\n\n  INSERT INTO t2 VALUES(3, 1, 1,   19);\n  INSERT INTO t2 VALUES(3, 1, 2,   20);\n  INSERT INTO t2 VALUES(3, 1, 3,   21);\n  INSERT INTO t2 VALUES(3, 2, 1,   22);\n  INSERT INTO t2 VALUES(3, 2, 2,   23);\n  INSERT INTO t2 VALUES(3, 2, 3,   24);\n  INSERT INTO t2 VALUES(3, 3, 1,   25);\n  INSERT INTO t2 VALUES(3, 3, 2,   26);\n  INSERT INTO t2 VALUES(3, 3, 3,   27);\n")
 				}
 			}
 			// foreach {nm idx} "idx1 {}\n  idx2 { CREATE INDEX t2abc ON t2(a, b, c); }\n  idx3 { CREATE INDEX t2abc ON t2(a, b DESC, c); }\n  idx4 { CREATE INDEX t2abc ON t2(a DESC, b DESC, c DESC); }\n  idx5 { CREATE INDEX t2abc ON t2(a ASC, b ASC, c ASC); }\n  idx6 { CREATE INDEX t2abc ON t2(a DESC, b, c); }\n  idx7 { CREATE INDEX t2abc ON t2(a DESC, b DESC) }\n  idx8 { CREATE INDEX t2abc ON t2(c, b, a); }\n  idx9 { CREATE INDEX t2d ON t2(d); }\n  idx10 { CREATE INDEX t2abc ON t2(a DESC, b, c DESC); }"
@@ -184,7 +184,7 @@ func Test_rowvalue4(t *testing.T) {
 						{ // "5.0"
 							_res = db.Exec("\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
 							}
 						}
 						{ // "5.1"
@@ -196,7 +196,7 @@ func Test_rowvalue4(t *testing.T) {
 						{ // "6.0"
 							_res = db.Exec("\n  CREATE TABLE e1(a, b, c, d, e);\n  CREATE INDEX e1ab ON e1(a, b);\n  CREATE INDEX e1cde ON e1(c, d, e);\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE e1(a, b, c, d, e);\n  CREATE INDEX e1ab ON e1(a, b);\n  CREATE INDEX e1cde ON e1(c, d, e);\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE e1(a, b, c, d, e);\n  CREATE INDEX e1ab ON e1(a, b);\n  CREATE INDEX e1cde ON e1(c, d, e);\n")
 							}
 						}
 						{ // "6.1"
@@ -232,25 +232,25 @@ func Test_rowvalue4(t *testing.T) {
 						{ // "7.1"
 							_res = db.Exec("\n  CREATE TABLE f1(a, b, c);\n  CREATE INDEX f1ab ON f1(a, b);\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE f1(a, b, c);\n  CREATE INDEX f1ab ON f1(a, b);\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE f1(a, b, c);\n  CREATE INDEX f1ab ON f1(a, b);\n")
 							}
 						}
 						{ // "7.2"
 							_res = db.Exec("\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
 							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
+								t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
 							}
 						}
 						{ // "7.3"
 							_res = db.Exec("\n  SELECT (a COLLATE nose, b) IN (SELECT a, b FROM f1) FROM f1;\n")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: nose") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT (a COLLATE nose, b) IN (SELECT a, b FROM f1) FROM f1;\n")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", resErrString(_res), "\n  SELECT (a COLLATE nose, b) IN (SELECT a, b FROM f1) FROM f1;\n")
 							}
 						}
 						{ // "7.4"
 							_res = db.Exec("\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: nose") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", resErrString(_res), "\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
 							}
 						}
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -274,13 +274,13 @@ func Test_rowvalue4(t *testing.T) {
 						{ // "8.1"
 							_res = db.Exec("\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
+								t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
 							}
 						}
 						{ // "8.2"
 							_res = db.Exec("\n  SELECT * FROM c2 CROSS JOIN c3 WHERE \n    ( (a, b) == (SELECT x, y FROM c1) AND c3.d = c ) OR\n    ( c == (SELECT x, y FROM c1) AND c3.d = c )\n")
 							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM c2 CROSS JOIN c3 WHERE \n    ( (a, b) == (SELECT x, y FROM c1) AND c3.d = c ) OR\n    ( c == (SELECT x, y FROM c1) AND c3.d = c )\n")
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", resErrString(_res), "\n  SELECT * FROM c2 CROSS JOIN c3 WHERE \n    ( (a, b) == (SELECT x, y FROM c1) AND c3.d = c ) OR\n    ( c == (SELECT x, y FROM c1) AND c3.d = c )\n")
 							}
 						}
 }

@@ -65,13 +65,13 @@ func Test_index3(t *testing.T) {
 	{ // do_test "index3-1.2"
 		_res = db.Exec("\n    BEGIN;\n    CREATE UNIQUE INDEX i1 ON t1(a);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", _res.Error, "\n    BEGIN;\n    CREATE UNIQUE INDEX i1 ON t1(a);\n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.a", resErrString(_res), "\n    BEGIN;\n    CREATE UNIQUE INDEX i1 ON t1(a);\n  ")
 		}
 	}
 	{ // do_test "index3-1.3"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "COMMIT")
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "COMMIT")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -79,7 +79,7 @@ func Test_index3(t *testing.T) {
 	{ // "index3-2.1"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d, e, \n                  PRIMARY KEY('a'), UNIQUE('b' COLLATE nocase DESC));\n  CREATE INDEX t1c ON t1('c');\n  CREATE INDEX t1d ON t1('d' COLLATE binary ASC);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<30)\n    INSERT INTO t1(a,b,c,d,e) \n      SELECT x, printf('ab%03xxy',x), x, x, x FROM c;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d, e, \n                  PRIMARY KEY('a'), UNIQUE('b' COLLATE nocase DESC));\n  CREATE INDEX t1c ON t1('c');\n  CREATE INDEX t1d ON t1('d' COLLATE binary ASC);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<30)\n    INSERT INTO t1(a,b,c,d,e) \n      SELECT x, printf('ab%03xxy',x), x, x, x FROM c;\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d, e, \n                  PRIMARY KEY('a'), UNIQUE('b' COLLATE nocase DESC));\n  CREATE INDEX t1c ON t1('c');\n  CREATE INDEX t1d ON t1('d' COLLATE binary ASC);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<30)\n    INSERT INTO t1(a,b,c,d,e) \n      SELECT x, printf('ab%03xxy',x), x, x, x FROM c;\n")
 		}
 	}
 	{ // "index3-2.2"
@@ -113,7 +113,7 @@ func Test_index3(t *testing.T) {
 	{ // "index3-2.4"
 		_res = db.Exec("\n  CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c([a] integer, b, PRIMARY KEY([a]));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c([a] integer, b, PRIMARY KEY([a]));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c([a] integer, b, PRIMARY KEY([a]));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));\n")
 		}
 	}
 	{ // "index3-2.5"

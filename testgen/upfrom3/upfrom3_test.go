@@ -87,7 +87,7 @@ func Test_upfrom3(t *testing.T) {
 		{ // "2.1.1"
 			_res = db.Exec("\n  CREATE TABLE u1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO u1 VALUES(0, 0, 0);\n  INSERT INTO u1 VALUES(1, 0, 1);\n  INSERT INTO u1 VALUES(2, 1, 0);\n  INSERT INTO u1 VALUES(3, 1, 1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE u1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO u1 VALUES(0, 0, 0);\n  INSERT INTO u1 VALUES(1, 0, 1);\n  INSERT INTO u1 VALUES(2, 1, 0);\n  INSERT INTO u1 VALUES(3, 1, 1);\n")
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE u1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO u1 VALUES(0, 0, 0);\n  INSERT INTO u1 VALUES(1, 0, 1);\n  INSERT INTO u1 VALUES(2, 1, 0);\n  INSERT INTO u1 VALUES(3, 1, 1);\n")
 			}
 		}
 		{ // "2.1.2"
