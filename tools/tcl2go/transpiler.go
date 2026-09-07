@@ -15,6 +15,7 @@ import (
 // transpiler converts TCL commands to Go code.
 type transpiler struct {
 	expectPreFlattened  bool // expectLiteral: word already normalized to flat form
+	wantHoistCount      int  // hoisted expected-value reads (vacuum2-2.x hexio counters)
 	sb                  *strings.Builder
 	indent              int
 	dbVar               string
@@ -32,6 +33,7 @@ type transpiler struct {
 	unsetVars           map[string]bool         // TCL vars unset via `unset`; `$var` renders as SQL NULL
 	dbVarFuncs          map[string]bool         // `db function NAME proc` registrations: NAME reads a TCL var
 	constFuncs          map[string]string       // `proc NAME {args} { return CONST }`: NAME returns CONST
+	stringConstFuncs    map[string]string       // `proc NAME {} { return "LIT" }`: NAME returns a fixed string
 	identityFuncs       map[string]bool         // `proc NAME {x} { return $x }`: NAME returns its first argument
 	lindexFuncs         map[string]int          // `proc NAME {x} { lindex $x N }`: NAME returns element N of its arg
 	stringMapFuncs      map[string]string       // `proc NAME {x} { return [string map {O N ...} $x] }`: NAME applies replacements in order

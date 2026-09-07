@@ -555,6 +555,11 @@ func (s *AttachStmt) stmt() {}
 type VacuumStmt struct {
 	// Into holds the VACUUM INTO target filename (empty for plain VACUUM).
 	Into string
+	// IntoExpr holds the raw INTO expression when it is NOT a string
+	// literal (vacuum.c vinto ::= INTO expr; only TK_STRING is accepted —
+	// NULL reports "non-text filename", a column reference resolves first
+	// so an unknown column reports "no such column").
+	IntoExpr Expr
 	// Schema is the optional schema being vacuumed (empty = "main").
 	Schema string
 }

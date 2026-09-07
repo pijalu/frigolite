@@ -33,6 +33,13 @@ type Backup struct {
 	// pre-sizes the vacuum database at a PENDING page size
 	// (pragma.c pNextPagesize) that must survive the copy.
 	KeepDestPageSize bool
+
+	// FullImageReplace marks the VACUUM copy-back (vacuum.c's second backup:
+	// "copy vacuum_db back to the source"). backup.c overwrites the whole
+	// destination image, so a populated destination is reset EMPTY first and
+	// rebuilt — free pages are reclaimed and the file shrinks. A plain
+	// backup leaves a populated destination untouched at the head.
+	FullImageReplace bool
 }
 
 // NewBackup starts a backup of srcSchema on src into dstSchema on dst,
@@ -112,7 +119,27 @@ func (b *Backup) Step(nPages int) string {
 	// holds pages and a mismatch fails with SQLITE_READONLY. A populated
 	// file-backed destination proceeds: frigolite rebuilds it logically,
 	// so the destination page size adapts through the copy itself.
-	if b.dstPageMismatch() {
+	// A FullImageReplace destination (the VACUUM copy-back) mirrors backup.c's
+	// whole-image overwrite: the destination is reset EMPTY first (at the
+	// pending page size when KeepDestPageSize is set — vacuumRebuild has
+	// already applied it — otherwise at the source's), so free pages are
+	// reclaimed and the rebuilt image is compact.
+	if b.FullImageReplace && b.copied == 0 && !b.done {
+		srcCtx := b.src.engine.GetDB(b.srcSchema)
+		dstCtx := b.dst.engine.GetDB(b.dstSchema)
+		if srcCtx == nil || dstCtx == nil {
+			b.rc = "SQLITE_ERROR"
+			b.lastErr = "unknown database"
+			return b.rc
+		}
+		if !b.KeepDestPageSize {
+			dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
+			if !dstCtx.IsMemory {
+				_ = dstCtx.Pager.Flush()
+			}
+			dstCtx.Schema.InvalidateCache()
+		}
+	} else if b.dstPageMismatch() {
 		srcCtx := b.src.engine.GetDB(b.srcSchema)
 		dstCtx := b.dst.engine.GetDB(b.dstSchema)
 		if srcCtx == nil || dstCtx == nil {
@@ -126,9 +153,11 @@ func (b *Backup) Step(nPages int) string {
 				b.lastErr = "attempt to write a readonly database"
 				return b.rc
 			}
-			dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
+			if !b.KeepDestPageSize {
+				dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
+			}
 			dstCtx.Schema.InvalidateCache()
-		} else if dstCtx.Pager.OpenedEmpty() || dstCtx.Pager.NumPages() == 0 {
+		} else if !b.KeepDestPageSize && (dstCtx.Pager.OpenedEmpty() || dstCtx.Pager.NumPages() == 0) {
 			// setDestPgsz for a file destination never written to:
 			// re-create it at the source page size. ResetToEmpty +
 			// immediate Flush keeps the on-disk image self-consistent
@@ -369,21 +398,21 @@ func (b *Backup) copyLocked() error {
 	dropQual := schemaQualifier(b.dstSchema)
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeTrigger {
-			if r := b.dst.Exec("DROP TRIGGER " + dropQual + bareTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP TRIGGER " + dropQual + quotedTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
 	}
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeView {
-			if r := b.dst.Exec("DROP VIEW " + dropQual + bareTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP VIEW " + dropQual + quotedTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
 	}
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeTable && !isSystemSchemaTable(e.Name) {
-			if r := b.dst.Exec("DROP TABLE " + dropQual + bareTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP TABLE " + dropQual + quotedTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
@@ -394,10 +423,21 @@ func (b *Backup) copyLocked() error {
 	// sqlite_master rows in rowid order). Table data is copied right after
 	// each table is created; the engine resolves references (indexes,
 	// triggers) lazily so a table may be created before its index.
+	// sqlite_sequence is NOT created (its DDL is engine-reserved and the
+	// AUTOINCREMENT tables recreate it) but its rows ARE copied, matching
+	// vacuum.c: the CREATE pass excludes sqlite_sequence while the data-copy
+	// loop (rootpage>0) includes it — so an AUTOINCREMENT counter survives a
+	// backup/VACUUM unchanged.
 	sort.Slice(srcEntries, func(i, j int) bool { return srcEntries[i].RowID < srcEntries[j].RowID })
 	for _, e := range srcEntries {
 		switch e.Type {
 		case schema.TypeTable:
+			if strings.EqualFold(e.Name, "sqlite_sequence") {
+				if err := b.copySequenceTable(e); err != nil {
+					return err
+				}
+				continue
+			}
 			if isSystemSchemaTable(e.Name) {
 				continue
 			}
@@ -427,6 +467,67 @@ func (b *Backup) copyLocked() error {
 	return nil
 }
 
+// copySequenceTable copies the AUTOINCREMENT counter rows of sqlite_sequence
+// into the destination. The table itself is NOT created (its DDL is
+// engine-reserved; creating an AUTOINCREMENT table on the destination
+// materializes it, so it exists by the time this runs — vacuum.c relies on
+// the same ordering). Rows are replaced, not appended: a page-level backup
+// overwrites the whole table.
+func (b *Backup) copySequenceTable(e *schema.Entry) error {
+	dstCtx := b.dst.engine.GetDB(b.dstSchema)
+	if dstCtx == nil {
+		return fmt.Errorf("unknown database %s", b.dstSchema)
+	}
+	if _, err := dstCtx.Schema.GetEntries(""); err != nil {
+		return err
+	}
+	found := false
+	for _, de := range dstEntriesOfType(dstCtx.Schema, schema.TypeTable) {
+		if strings.EqualFold(de.Name, "sqlite_sequence") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil
+	}
+	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
+	if r := b.dst.Exec("DELETE FROM " + destTable); r.Error != nil {
+		return r.Error
+	}
+	srcQual := schemaQualifier(b.srcSchema)
+	r := b.src.Query("SELECT * FROM " + qualifiedTableRef(srcQual, e.Name))
+	if r.Error != nil {
+		return r.Error
+	}
+	for _, row := range r.Rows {
+		var vals []string
+		for _, v := range row {
+			vals = append(vals, sqlLiteral(v))
+		}
+		ins := "INSERT INTO " + destTable + " VALUES(" + strings.Join(vals, ", ") + ")"
+		if ir := b.dst.Exec(ins); ir.Error != nil {
+			return ir.Error
+		}
+	}
+	return nil
+}
+
+// dstEntriesOfType lists the destination schema entries of one type.
+func dstEntriesOfType(m *schema.Manager, typ schema.SchemaType) []*schema.Entry {
+	entries, err := m.GetEntries("")
+	if err != nil {
+		return nil
+	}
+	var out []*schema.Entry
+	for _, e := range entries {
+		if e.Type == typ {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
 // copyStatTable copies a sqlite_statN ANALYZE statistics table: create it via
 // the engine's stat-table path (CREATE TABLE sqlite_statN is reserved) then
 // copy its rows.
@@ -444,11 +545,11 @@ func (b *Backup) copyStatTable(e *schema.Entry) error {
 		}
 	}
 	srcQual := schemaQualifier(b.srcSchema)
-	r := b.src.Query("SELECT * FROM " + srcQual + bareTableName(e.Name))
+	r := b.src.Query("SELECT * FROM " + qualifiedTableRef(srcQual, e.Name))
 	if r.Error != nil {
 		return r.Error
 	}
-	destTable := schemaQualifier(b.dstSchema) + bareTableName(e.Name)
+	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
 	for _, row := range r.Rows {
 		var vals []string
 		for _, v := range row {
@@ -496,7 +597,7 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	// quoted table after a schema prefix ("temp.\"t1\"").
 	withoutRowid := strings.Contains(strings.ToUpper(e.SQL), "WITHOUT ROWID")
 	srcQual := schemaQualifier(b.srcSchema)
-	tableRef := srcQual + bareTableName(e.Name)
+	tableRef := qualifiedTableRef(srcQual, e.Name)
 	var srcQuery string
 	var colNames []string
 	if withoutRowid {
@@ -510,7 +611,7 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	}
 	// Column list for the INSERT: for rowid tables the first SELECT column is
 	// rowid (insert as "rowid"); the rest are the table's columns.
-	destTable := schemaQualifier(b.dstSchema) + bareTableName(e.Name)
+	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
 	if !withoutRowid {
 		colNames = append(colNames, "rowid")
 	}

@@ -99,6 +99,7 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 	knownGlobals := knownGlobalVars()
 	incrOnly := collectIncrOnlyVars(cmds)
 	constFuncs := collectConstFuncs(cmds)
+	stringConstFuncs := collectStringConstFuncs(cmds)
 	unzipDirs := collectUnzipDirs(cmds)
 	identityFuncs := collectIdentityFuncs(cmds)
 	lindexFuncs := collectLIndexFuncs(cmds)
@@ -211,33 +212,34 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 	globalUserProcs = map[string]bool{}
 	globalProcBodies = map[string]string{}
 	tp := &transpiler{
-		sb:              &body,
-		indent:          1,
-		dbVar:           "db",
-		t:               "t",
-		vars:            initialVars,
-		currentTestFile: base,
-		dqsDDL:          true, // SQLite default: DQS allowed in DDL
-		dqsDML:          true, // SQLite default: DQS allowed in DML
-		testDir:         testDir,
-		connPredeclared: connPredeclared,
-		constFuncs:      constFuncs,
-		unzipDirs:       unzipDirs,
-		identityFuncs:   identityFuncs,
-		lindexFuncs:     lindexFuncs,
-		stringMapFuncs:  stringMapFuncs,
-		counterFuncs:    counterFuncs,
-		incrRetFuncs:    incrRetFuncs,
-		predFuncs:       predFuncs,
-		errorFuncs:      errorFuncs,
-		queryFuncs:      queryFuncs,
-		specialFuncs:    specialFuncs,
-		rangeListFuncs:  rangeListFuncs,
-		arrayMapVars:    arrayMapVars,
-			quotaCallbacks:  collectQuotaCallbacks(cmds),
-		collateGoFuncs:  collectCollateFuncs(cmds),
-		collateDtorVars: collectCollateDtorVars(cmds),
-		prepareTailVars: prepareTailSet,
+		sb:               &body,
+		indent:           1,
+		dbVar:            "db",
+		t:                "t",
+		vars:             initialVars,
+		currentTestFile:  base,
+		dqsDDL:           true, // SQLite default: DQS allowed in DDL
+		dqsDML:           true, // SQLite default: DQS allowed in DML
+		testDir:          testDir,
+		connPredeclared:  connPredeclared,
+		constFuncs:       constFuncs,
+		stringConstFuncs: stringConstFuncs,
+		unzipDirs:        unzipDirs,
+		identityFuncs:    identityFuncs,
+		lindexFuncs:      lindexFuncs,
+		stringMapFuncs:   stringMapFuncs,
+		counterFuncs:     counterFuncs,
+		incrRetFuncs:     incrRetFuncs,
+		predFuncs:        predFuncs,
+		errorFuncs:       errorFuncs,
+		queryFuncs:       queryFuncs,
+		specialFuncs:     specialFuncs,
+		rangeListFuncs:   rangeListFuncs,
+		arrayMapVars:     arrayMapVars,
+		quotaCallbacks:   collectQuotaCallbacks(cmds),
+		collateGoFuncs:   collectCollateFuncs(cmds),
+		collateDtorVars:  collectCollateDtorVars(cmds),
+		prepareTailVars:  prepareTailSet,
 	}
 	tp.processCommands(cmds)
 
@@ -384,9 +386,9 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 	// Files that switch FP_DIGITS (sqlite3_db_config) start from the library
 	// default 0 (shortest round-trip); the harness default for other files is
 	// 15 significant digits (matching the pre-shortest-fpconv test corpus).
-		if strings.Contains(strings.ToUpper(src), "FP_DIGITS") {
-	body.WriteString("\ttcl_fp_digits = 0 // sqlite3_db_config FP_DIGITS file: library default\n")
-		}
+	if strings.Contains(strings.ToUpper(src), "FP_DIGITS") {
+		body.WriteString("\ttcl_fp_digits = 0 // sqlite3_db_config FP_DIGITS file: library default\n")
+	}
 	// sqlite_options(default_autovacuum) is a TCL test-harness global set by
 	// the C test fixture based on the SQLITE_DEFAULT_AUTOVACUUM compile flag
 	// (default = "0" = NONE). The transpiler pre-declares the corresponding
@@ -398,7 +400,7 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 	// the var exists before the pre-declared-var loop emits `var ... string`.
 	if strings.Contains(src, "sqlite_options_default_autovacuum") || strings.Contains(src, "sqlite_options(default_autovacuum)") {
 		body.WriteString("\tvar sqlite_options_default_autovacuum = \"0\" // SQLITE_DEFAULT_AUTOVACUUM=0 (NONE)\n")
-		}
+	}
 	// `::sqlite_pending_byte` is a TCL test-harness global set by
 	// tester.tcl:102 to 0x10000 (65536) via sqlite3_test_control_pending_byte,
 	// so `file size` checks in autovacuum-9.3/9.5 etc. observe a small
@@ -426,7 +428,7 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 		body.WriteString("\t// malformed\". The test harness pins the byte in C via\n")
 		body.WriteString("\t// sqlite3_test_control_pending_byte; mirror that here.\n")
 		body.WriteString("\tdb.SetPendingByte(0x10000)\n")
-		}
+	}
 	body.WriteString("\n")
 	// Pre-declare secondary DB connection variables (TCL scope is function-wide)
 	for i := 1; i <= 9; i++ {
@@ -663,21 +665,21 @@ func preambleDeclaredNames(src string, preDeclared []string) map[string]bool {
 	}
 	// Common vars declared unconditionally at the top of every test function.
 	declared := map[string]bool{"msg": true, "_res": true, "r": true, "_r": true}
-		// sqlite_options_default_autovacuum is declared (with initial value) by
-		// emitTestPreamble when the TCL source references it. Without this entry,
-		// the preDeclared loop would emit a second `var ... string` declaration
-		// and the build would fail with "sqlite_options_default_autovacuum
-		// redeclared in this block".
+	// sqlite_options_default_autovacuum is declared (with initial value) by
+	// emitTestPreamble when the TCL source references it. Without this entry,
+	// the preDeclared loop would emit a second `var ... string` declaration
+	// and the build would fail with "sqlite_options_default_autovacuum
+	// redeclared in this block".
 	if strings.Contains(src, "sqlite_options_default_autovacuum") || strings.Contains(src, "sqlite_options(default_autovacuum)") {
 		declared["sqlite_options_default_autovacuum"] = true
-		}
+	}
 	// sqlite_pending_byte is shadow-declared (initialised) by
 	// emitTestPreamble whenever the TCL source references
 	// ::sqlite_pending_byte; the preDeclared loop must skip it to
 	// avoid a redeclared-in-this-block build error.
 	if strings.Contains(src, "sqlite_pending_byte") {
 		declared["sqlite_pending_byte"] = true
-		}
+	}
 	for _, bn := range collectBackupNames(src) {
 		declared[bn] = true
 	}
@@ -847,7 +849,6 @@ func knownGlobalVars() map[string]bool {
 // collectSqlite3Targets recursively walks TCL commands and returns a set of
 // variable names that are targets of sqlite3 commands (these are *frigolite.DB,
 // not string, so must NOT be pre-declared as string).
-
 
 // genPreDeleted holds the paths of leading forcedelete/file-delete commands
 // already emitted before the preamble Open for the file being generated

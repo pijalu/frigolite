@@ -53,6 +53,12 @@ func (e *Engine) collectTreeFindings(ctx *DatabaseContext) (findings, orphans []
 		}
 		findings = append(findings, e.checkOneTree(te.RootPage, ctx.Pager, referenced)...)
 	}
+	// The schema btree is rooted at page 1 itself, which the per-entry walk
+	// above skips. When it grows into an interior root (enough CREATE
+	// statements split it), its child pages must be accounted for —
+	// otherwise they are reported as "Page N: never used" (without_rowid1
+	// 6.1's t48 after a VACUUM rebuild).
+	findings = append(findings, e.checkOneTree(1, ctx.Pager, referenced)...)
 	return findings, e.findOrphans(ctx, referenced)
 }
 
@@ -132,8 +138,9 @@ func (e *Engine) checkOneTree(rootPgno uint32, pg *pager.Pager, referenced map[u
 	seen := map[uint32]bool{rootPgno: true}
 	referenced[rootPgno] = firstRef{tree: rootPgno, page: rootPgno, cell: -1}
 	pageSize := int(pg.PageSize())
-	walked := e.walkChildren(rootPgno, pg, referenced, seen, pageSize)
-	e.markLeafOverflow(walked, pg, referenced, rootPgno, pageSize)
+	usableSize := int(pg.UsableSize())
+	walked := e.walkChildren(rootPgno, pg, referenced, seen, pageSize, usableSize)
+	e.markLeafOverflow(walked, pg, referenced, rootPgno, pageSize, usableSize)
 	return walked.finds
 }
 
@@ -148,13 +155,13 @@ type treeWalk struct {
 // walkChildren performs the depth-first interior-page walk for
 // checkOneTree, returning the set of pages visited and any duplicate
 // references discovered.
-func (e *Engine) walkChildren(rootPgno uint32, pg *pager.Pager, referenced map[uint32]firstRef, seen map[uint32]bool, pageSize int) treeWalk {
+func (e *Engine) walkChildren(rootPgno uint32, pg *pager.Pager, referenced map[uint32]firstRef, seen map[uint32]bool, pageSize, usableSize int) treeWalk {
 	var finds []string
 	pages := []uint32{rootPgno}
 	for len(pages) > 0 {
 		pgno := pages[0]
 		pages = pages[1:]
-		next, more := e.processInteriorPage(rootPgno, pgno, pg, referenced, seen, pageSize)
+		next, more := e.processInteriorPage(rootPgno, pgno, pg, referenced, seen, pageSize, usableSize)
 		finds = append(finds, next...)
 		pages = append(pages, more...)
 	}
@@ -164,8 +171,8 @@ func (e *Engine) walkChildren(rootPgno uint32, pg *pager.Pager, referenced map[u
 // processInteriorPage handles one interior page: walks each cell's left
 // pointer plus the rightmost pointer, returning (findings, new pages
 // to descend into).
-func (e *Engine) processInteriorPage(rootPgno, pgno uint32, pg *pager.Pager, referenced map[uint32]firstRef, seen map[uint32]bool, pageSize int) ([]string, []uint32) {
-	page, ok := e.readInteriorPage(pg, pgno, pageSize)
+func (e *Engine) processInteriorPage(rootPgno, pgno uint32, pg *pager.Pager, referenced map[uint32]firstRef, seen map[uint32]bool, pageSize, usableSize int) ([]string, []uint32) {
+	page, ok := e.readInteriorPage(pg, pgno, pageSize, usableSize)
 	if !ok {
 		return nil, nil
 	}
@@ -229,7 +236,7 @@ type interiorPageResult struct {
 // pointer of an interior page in a single page fetch. The boolean is
 // false when the page cannot be read, has the wrong type, or is too
 // small to contain a valid header.
-func (e *Engine) readInteriorPage(pg *pager.Pager, pgno uint32, pageSize int) (interiorPageResult, bool) {
+func (e *Engine) readInteriorPage(pg *pager.Pager, pgno uint32, pageSize, usableSize int) (interiorPageResult, bool) {
 	page, err := pg.ReadPage(pgno)
 	if err != nil {
 		return interiorPageResult{}, false
@@ -262,7 +269,7 @@ func (e *Engine) readInteriorPage(pg *pager.Pager, pgno uint32, pageSize int) (i
 			break
 		}
 		off := int(binary.BigEndian.Uint16(page.Data[ptrOff : ptrOff+2]))
-		cell, derr := storage.DecodeCell(page.Data, off, cellType, pageSize)
+		cell, derr := storage.DecodeCell(page.Data, off, cellType, usableSize)
 		if derr != nil || cell == nil {
 			cells = append(cells, interiorCell{leftPtr: 0})
 			continue
@@ -276,9 +283,9 @@ func (e *Engine) readInteriorPage(pg *pager.Pager, pgno uint32, pageSize int) (i
 // leaf-cell overflow chain into `referenced`. The first walk only
 // followed interior child pointers; leaf payloads may also spill to
 // overflow pages. Mirrors btree.c::checkTreePage / btreeIntegrityCheckpoint.
-func (e *Engine) markLeafOverflow(walked treeWalk, pg *pager.Pager, referenced map[uint32]firstRef, rootPgno uint32, pageSize int) {
+func (e *Engine) markLeafOverflow(walked treeWalk, pg *pager.Pager, referenced map[uint32]firstRef, rootPgno uint32, pageSize, usableSize int) {
 	for pgno := range walked.seen {
-		overflows, ok := e.leafOverflows(pg, pgno, pageSize)
+		overflows, ok := e.leafOverflows(pg, pgno, pageSize, usableSize)
 		if !ok {
 			continue
 		}
@@ -293,7 +300,7 @@ func (e *Engine) markLeafOverflow(walked treeWalk, pg *pager.Pager, referenced m
 // leafOverflows reads the cell-pointer array of a leaf page and returns
 // the overflow page number for each cell (0 if the cell has no overflow).
 // A nil/zero-length result with ok=false means the page is not a leaf.
-func (e *Engine) leafOverflows(pg *pager.Pager, pgno uint32, pageSize int) ([]uint32, bool) {
+func (e *Engine) leafOverflows(pg *pager.Pager, pgno uint32, pageSize, usableSize int) ([]uint32, bool) {
 	page, err := pg.ReadPage(pgno)
 	if err != nil {
 		return nil, false
@@ -326,7 +333,7 @@ func (e *Engine) leafOverflows(pg *pager.Pager, pgno uint32, pageSize int) ([]ui
 			break
 		}
 		off := int(binary.BigEndian.Uint16(page.Data[ptrOff : ptrOff+2]))
-		cell, derr := storage.DecodeCell(page.Data, off, cellType, pageSize)
+		cell, derr := storage.DecodeCell(page.Data, off, cellType, usableSize)
 		if derr != nil || cell == nil {
 			out = append(out, 0)
 			continue

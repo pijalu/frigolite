@@ -36,6 +36,9 @@ type Pager struct {
 	mu       sync.RWMutex
 	pageSize uint32
 	reserved uint32 // bytes reserved at page end per header byte 20
+	// requestedReserve holds a SQLITE_FCNTL_RESERVE_BYTES request that has
+	// not been materialized in the file yet (applied by the next VACUUM).
+	requestedReserve uint32
 	file     *os.File
 	pages    map[uint32]*Page
 	dirty    map[uint32]bool
@@ -992,18 +995,41 @@ func (p *Pager) SetMaxPageCount(n uint32) {
 	p.maxPageCount = n
 }
 
-// SetReservedBytes sets the per-page reserved-space byte count (the database
-// header's byte 20; sqlite3_file_control SQLITE_FCNTL_RESERVE_BYTES). The
-// btree's usable size is pageSize minus this value. The header change is
-// materialized on page 1 and flushed with the next commit (reservebytes.test
-// 1.3.x/1.4.x reads it back via hexio).
+// SetReservedBytes records a REQUESTED per-page reserved-space byte count
+// (sqlite3_file_control SQLITE_FCNTL_RESERVE_BYTES → btree.c
+// sqlite3BtreeSetPageSize(-1, nRes)). Like a requested page size, the value
+// is NOT written to the file immediately: header byte 20 keeps its current
+// value until the next VACUUM materializes the requested reserve
+// (reservebytes.test 1.2.1 reads 00 after requesting 8; 1.3.5 reads 08 only
+// after VACUUM).
 func (p *Pager) SetReservedBytes(n uint32) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if uint32(p.pageSize) < n {
 		return
 	}
+	p.requestedReserve = n
+}
+
+// RequestedReserve returns the pending reserve request (0 when none).
+func (p *Pager) RequestedReserve() uint32 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.requestedReserve
+}
+
+// ApplyReservedBytes materializes the per-page reserved-space byte count:
+// header byte 20 and the usable-size base change together, on page 1 and in
+// the cached header (vacuum.c applies the requested reserve when the rebuilt
+// image is written back).
+func (p *Pager) ApplyReservedBytes(n uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if uint32(p.pageSize) < n {
+		return
+	}
 	p.reserved = n
+	p.requestedReserve = 0
 	if p.header != nil && len(p.header) >= 21 {
 		p.header[20] = byte(n)
 		p.dirty[1] = true

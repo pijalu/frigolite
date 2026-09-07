@@ -1022,6 +1022,9 @@ func (tp *transpiler) emitRegisteredFunction(name, procName string, rest []tcl.R
 	if tp.emitConstFunction(name, procName) {
 		return true
 	}
+	if tp.emitStringConstFunction(name, procName) {
+		return true
+	}
 	if tp.emitStringMapFunction(name, procName) {
 		return true
 	}
@@ -1121,6 +1124,20 @@ func (tp *transpiler) emitConstFunction(name, procName string) bool {
 		return false
 	}
 	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { return int64(%s), nil }, 0, -1)", tp.dbVar, name, constVal)
+	return true
+}
+
+// emitStringConstFunction registers a fixed-string-returning proc
+// (`proc target {} { return "test.db2" }` — vacuum-into-410's VACUUM INTO
+// target() filename) as a scalar SQL function returning the constant. The
+// proc body is resolved by the pre-pass (collectStringConstFuncs), so the
+// registration may appear BEFORE the proc definition in the test file.
+func (tp *transpiler) emitStringConstFunction(name, procName string) bool {
+	constVal, ok := tp.stringConstFuncs[procName]
+	if !ok || name == "" {
+		return false
+	}
+	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { return %q, nil }, 0, -1)", tp.dbVar, name, constVal)
 	return true
 }
 

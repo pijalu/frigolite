@@ -770,15 +770,46 @@ func rule248(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 249: cmd ::= VACUUM into_opt
-// VACUUM with an optional INTO <file> clause (into_opt: empty, rule 252,
-// or "INTO ids", rule 251).
+// VACUUM with an optional INTO <expr> clause (into_opt: empty, rule 252,
+// or "INTO expr", rule 251). Only a string literal fills Into; any other
+// expression node is carried in IntoExpr for the exec-side checks
+// (vacuum.c: NULL → "non-text filename", column → resolved first).
 func rule249(ruleNo int, p *Parser) interface{} {
-	return &sql.VacuumStmt{Into: getString(getRHS(p, ruleNo, 2))}
+	return vacuumStmtFromInto("", getRHS(p, ruleNo, 2))
 }
 
-// Rule 251: into_opt ::= INTO ids — the VACUUM INTO target filename.
+// vacuumStmtFromInto builds a VacuumStmt from an INTO-clause RHS value: a
+// string (or string-lit token) is the target filename; any other expression
+// node is preserved for the exec-side error reporting.
+func vacuumStmtFromInto(schema string, v interface{}) *sql.VacuumStmt {
+	vs := &sql.VacuumStmt{Schema: schema}
+	switch t := v.(type) {
+	case nil:
+	case string:
+		vs.Into = t
+	case *sql.StringLit:
+		vs.Into = t.Value
+	case sql.Token:
+		vs.Into = t.Value
+	default:
+		if e, ok := v.(sql.Expr); ok {
+			vs.IntoExpr = e
+		}
+	}
+	return vs
+}
+
+// Rule 250: cmd ::= VACUUM nm vinto
+// Schema-qualified VACUUM ("VACUUM main", "VACUUM aux INTO 'f'"): nm is the
+// schema name, vinto the optional INTO target (empty when absent).
+func rule250(ruleNo int, p *Parser) interface{} {
+	return vacuumStmtFromInto(getString(getRHS(p, ruleNo, 2)), getRHS(p, ruleNo, 3))
+}
+
+// Rule 251: into_opt ::= INTO expr — the VACUUM INTO target. The raw value
+// is returned (string for a literal, expression node otherwise).
 func rule251(ruleNo int, p *Parser) interface{} {
-	return getString(getRHS(p, ruleNo, 2))
+	return getRHS(p, ruleNo, 2)
 }
 
 // Rule 253: cmd ::= PRAGMA nm dbnm

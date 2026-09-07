@@ -53,6 +53,29 @@ func (p *Pager) CheckExternalFile() bool {
 			buf := make([]byte, HeaderSize)
 			if _, err := p.file.ReadAt(buf, 0); err == nil {
 				p.header = buf
+				// btree.c lockBtree re-reads the page size from the freshly
+				// loaded page 1 (header bytes 16..17; the value 1 means
+				// 65536): a connection that watched another connection's
+				// VACUUM adopt a new page size must resize before its next
+				// page read, or it re-interprets the image at the old page
+				// size and reads "malformed".
+				if len(buf) >= 18 {
+					psz := int(binary.BigEndian.Uint16(buf[16:18]))
+					switch {
+					case psz == 1:
+						p.pageSize = 65536
+					case psz >= 512 && psz <= 32768 && psz&(psz-1) == 0:
+						p.pageSize = uint32(psz)
+					}
+				}
+				// Byte 20 (reserved space per page) is re-read with the same
+				// lockBtree reload: another connection's VACUUM may have
+				// materialized a new reserve, and the usable size drives
+				// every cell parse (reservebytes 1.3.4 integrity_check on a
+				// second connection).
+				if len(buf) >= 21 {
+					p.reserved = uint32(buf[20])
+				}
 			}
 			if info, err := p.file.Stat(); err == nil {
 				p.fileSize = info.Size()

@@ -7,12 +7,31 @@ import (
 	"strings"
 )
 
-// bareTableName returns the table name for a qualified reference
-// (schema.tablename). The engine's INSERT rejects a quoted table after a
-// schema prefix ("temp.\"t1\"" → "no such table"), so simple identifiers
-// are emitted bare.
-func bareTableName(name string) string {
-	return name
+// quotedTableName renders a table reference with the name quoted when it
+// contains characters outside identifier-safe ASCII (spaces, quotes,
+// punctuation): "abc abc" etc. Qualified references built by concatenating
+// a bare name break on the first space (the engine resolves main.abc abc
+// as main.abc with an alias).
+func quotedTableName(name string) string {
+	// Only names with SPACES need quoting here: the qualified reference is
+	// split at the first space by the engine's name resolution. Other
+	// special characters (a leading digit, a double quote inside the name)
+	// reach the schema lookup verbatim either way.
+	if !strings.ContainsAny(name, " \t\n") {
+		return name
+	}
+	return "\"" + strings.ReplaceAll(name, "\"", "\"\"") + "\""
+}
+
+// qualifiedTableRef renders qual.name with both parts properly quoted.
+func qualifiedTableRef(qual, name string) string {
+	if qual == "" {
+		return quotedTableName(name)
+	}
+	if strings.HasSuffix(qual, ".") {
+		return qual + quotedTableName(name)
+	}
+	return qual + "." + quotedTableName(name)
 }
 
 // qualifyCreateObjectSQL rewrites a stored CREATE VIEW/INDEX/TRIGGER DDL to

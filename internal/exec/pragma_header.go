@@ -120,6 +120,34 @@ func (e *Engine) updateFileChangeCounter(ctx *DatabaseContext) {
 	}
 }
 
+// SetFileChangeCounter pins the database file's change counter (header
+// offset 24) at value. VACUUM is ONE write transaction (vacuum.c's copy-back
+// commit) even though frigolite's rebuild runs many statements internally —
+// each of which would bump the counter on its own — so the VACUUM path pins
+// the counter at its pre-VACUUM value + 1 once the copy completes.
+func (e *Engine) SetFileChangeCounter(schemaName string, value uint32) error {
+	ctx := e.GetDB(schemaName)
+	if ctx == nil || ctx.Pager == nil {
+		return fmt.Errorf("unknown database %s", schemaName)
+	}
+	if err := e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
+		h.FileChangeCount = value
+		// pager.c pager_write_changecounter: bytes 92..95 carry the change
+		// counter the version number is valid for, bytes 96..99 the SQLite
+		// version that wrote the file; offset 28 keeps the in-header size
+		// current on every write transaction.
+		h.VersionValidFor = value
+		h.SQLiteVersionNum = sqliteVersionNumber
+		h.DatabaseSize = ctx.Pager.NumPages()
+	}); err != nil {
+		return err
+	}
+	if ctx.Schema != nil {
+		ctx.Schema.NoteOwnWrite(value)
+	}
+	return nil
+}
+
 // execPragmaDefaultCacheSize implements PRAGMA default_cache_size (with and
 // without an argument). The value is stored in the database header at offset
 // 48 (the "default page cache size" field) and read back as a signed 32-bit
@@ -269,9 +297,10 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 		if e.tx.inTransaction {
 			return &Result{}
 		}
-		// Only honored before any table exists (SQLite errors with
-		// "unsupported file format" only for a mismatch at open; setting
-		// after creation is silently ignored).
+		// Only honored immediately before any table exists (SQLite errors
+		// with "unsupported file format" only for a mismatch at open).
+		// Otherwise the value is REMEMBERED and applied by the next VACUUM
+		// (pragma.c pNextPagesize, applied by sqlite3RunVacuum).
 		if e.schemaIsEmpty(ctx) {
 			ctx.Pager.SetPageSize(uint32(n))
 			if err := e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
@@ -279,6 +308,9 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 			}); err != nil {
 				return &Result{Error: err}
 			}
+			ctx.PendingPageSize = 0
+		} else {
+			ctx.PendingPageSize = uint32(n)
 		}
 		return &Result{}
 	}

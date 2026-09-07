@@ -5099,3 +5099,58 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   written %% in the template (Sprintf("%08X") became "%!X(MISSING)").
 - **No backticks inside template-inserted comments**: the templates are Go
   raw string literals; a ` terminates them with a syntax error.
+
+## P8.VACUUM close (2026-09-07) — full-image-replace rebuild, counter pinning, WR autoindex absorption
+
+- **VACUUM = logical rebuild + FULL-IMAGE-REPLACE copy-back** (backup.c
+  sqlite3BtreeCopyFile overwrites the whole destination). The Backup needs a
+  FullImageReplace mode that resets a POPULATED destination empty before the
+  logical rebuild: that is what compacts (memdb1 page_count 115→2). Plain
+  backups must NOT reset a populated destination (backup.test asserts
+  head-insertion semantics).
+- **The file change counter moves exactly +1 per VACUUM** — the copy-back is
+  ONE commit even though the logical rebuild runs many statements. Pin it:
+  capture pre-VACUUM counter, run the copy, `SetFileChangeCounter(pre+1)` +
+  Flush. Oracle: CREATE+DROP+VACUUM=3; VACUUM afterwards = 7 (6+1).
+- **sqlite_sequence survives VACUUM via the DATA copy, not the CREATE pass**
+  (vacuum.c): the CREATE pass excludes it (DDL is engine-reserved); the
+  INSERT..SELECT loop (rootpage>0) includes it. The destination table
+  materializes when the AUTOINCREMENT table is created (rowid order), and
+  rows are replaced (DELETE+INSERT), not appended.
+- **TCL evaluates do_test's EXPECTED argument before the body** — a hexio
+  counter read in the expected position must be HOISTED ahead of the
+  generated body (`_wantBaseN := tclHexioReadInt(...)+K`), otherwise both
+  comparison sides read after the body and the assertion is unpassable.
+  Braced form `[expr {...}]` needs the braces stripped before matching.
+- **WR autoindex numbering is positional with PK absorption** (build.c): a
+  UNIQUE constraint before the PK creates its entry; a WITHOUT ROWID PK
+  absorbs an equivalent earlier index (entry REMOVED, slot CONSUMED — t48
+  ends with only sqlite_autoindex_t48_2); INTEGER PRIMARY KEY UNIQUE on WR
+  keeps absorption; rowid-table IPK consumes no slot. Allocate surviving
+  roots after the loop → compact rootpages. Pre-merging UNIQUE-with-PK
+  (the old approach) renumbers and diverges.
+- **External-change reload must adopt page size AND reserve** (header bytes
+  16..17, 20): a connection that watched another connection's VACUUM adopt a
+  new page size/reserve re-interprets the image at stale geometry otherwise
+  (vacuum3-4.5 "malformed").
+- **integrity_check must (a) walk the schema btree at page 1** (its split
+  children otherwise report "never used") and **(b) decode cells with
+  UsableSize not pageSize** — the overflow local/overflow split shifts with
+  reserve≠0 and every overflow page then reports "never used".
+- **`cmd ::= VACUUM nm vinto` was already in the LALR tables** — only the
+  rule action was missing (rule250). Check the rule table (yyRuleInfoLhs/
+  NRhs) before assuming a grammar regen is needed.
+- **VACUUM INTO's target is an EXPRESSION** (vinto ::= INTO expr): NULL →
+  "non-text filename"; unknown column/function resolve first ("no such
+  column: t1.nosuchcol"); UDF/subquery targets evaluate and must be TEXT.
+  Engine.EvalExpr + a ColumnRef fallback error covers it; non-string
+  targets need AST carriage (VacuumStmt.IntoExpr) because getString
+  stringifies nodes into garbage.
+- **file_control_reservebytes REQUESTS; VACUUM applies** (nRes propagation,
+  vacuum.c SetPageSize(pTemp,…,nRes)): the requested reserve must not touch
+  header byte 20 until the rebuild (reservebytes 1.2.1 reads 00 after
+  requesting 8).
+- **tcl2go pre-pass collectors are the fix for forward references** (db func
+  target target BEFORE proc target): walk all file commands up-front
+  (collectStringConstFuncs) instead of relying on sequential proc
+  registration. Watch the cmd index: proc NAME PARAMS BODY → body is cmd[3].

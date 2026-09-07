@@ -70,6 +70,46 @@ func collectConstFuncs(cmds [][]tcl.RawWord) map[string]string {
 	return result
 }
 
+// collectStringConstFuncs scans all TCL commands for procs that return a
+// fixed double-quoted string (`proc target {} { return "test.db2" }`,
+// vacuum-into-410: the VACUUM INTO target() filename). Collected as a
+// PRE-PASS so a `db func target target` line that precedes the proc
+// definition still resolves the body at registration time.
+func collectStringConstFuncs(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	walkCommands(cmds, func(cmd []tcl.RawWord) {
+		// cmd: proc NAME PARAMS BODY — the body is at index 3.
+		if cmd[0].Text == "proc" && len(cmd) >= 4 {
+			if val := stringConstProcValue(cmd[3].Text); val != "" {
+				result[cmd[1].Text] = val
+			}
+		}
+	})
+	return result
+}
+
+// stringConstProcValue extracts a double-quoted constant return value from a
+// simple proc body (`{ return "LIT" }`). Returns "" for anything else.
+func stringConstProcValue(body string) string {
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	if !strings.HasPrefix(strings.ToLower(body), "return ") {
+		return ""
+	}
+	val := strings.TrimSpace(body[len("return "):])
+	if len(val) >= 2 && val[0] == '"' && val[len(val)-1] == '"' {
+		if unquoted, err := strconv.Unquote(val); err == nil && !strings.Contains(unquoted, "$") {
+			// Bodies with $ interpolation are NOT constants (window6's
+			// "window: $args" joiner, func's "$a->$b") — leave those to the
+			// shape-specific emitters.
+			return unquoted
+		}
+	}
+	return ""
+}
+
 // collectRangeListFuncs scans all TCL commands for range-list procs (bodies
 // like the vtabI.test `all_col_list` helper that build "c1 c2 ... cN" with a
 // lappend loop) and returns a map of proc name → the generated list. Callers

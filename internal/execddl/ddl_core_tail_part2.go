@@ -54,6 +54,23 @@ func (e *DDLExecutor) echoSourceRows(srcName string) ([][]interface{}, error) {
 
 // createAutoIndexes creates sqlite_autoindex_* entries for a new table's
 // UNIQUE and PRIMARY KEY constraints.
+//
+// Constraints are processed positionally (build.c creates each implicit
+// index as its constraint is parsed):
+//   - a UNIQUE constraint equivalent to an already-created index is a
+//     duplicate: no entry, no slot consumed;
+//   - on WITHOUT ROWID the PRIMARY KEY becomes the table's own clustered
+//     key: no separate entry, but a UNIQUE constraint created EARLIER for
+//     the same column set is absorbed — its entry is removed while its
+//     sequence slot stays consumed, so later indexes keep their SQLite
+//     names (without_rowid1 6.1's t48 ends with sqlite_autoindex_t48_2
+//     only);
+//   - an INTEGER PRIMARY KEY rowid alias gets no index and consumes no
+//     slot.
+//
+// Root pages are allocated after the loop, in sequence order, so the
+// surviving entries' rootpages are compact regardless of which constraint
+// slots were absorbed along the way.
 func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, s *sql.CreateTableStmt, tableEntry *schema.Entry) *Result {
 	uniq := collectUniqueDefs(s)
 	if len(uniq) == 0 {
@@ -61,25 +78,46 @@ func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, 
 	}
 	colType := columnTypeLookup(s)
 	colPKDesc := columnPKDescLookup(s)
-	pkCols := pkConstraintCols(uniq)
-	seen := map[string]bool{}
+	seen := map[string]bool{} // column-sets covered by an index or the clustered PK
+	created := map[string]int{}
 	seq := 0
+	lowerKey := func(cols []string) string {
+		lowered := make([]string, len(cols))
+		for i, c := range cols {
+			lowered[i] = strings.ToLower(c)
+		}
+		return strings.Join(lowered, ",")
+	}
 	for _, u := range uniq {
-		if !needsAutoIndex(s, u, pkCols, colType, colPKDesc) {
+		// A rowid table's INTEGER PRIMARY KEY alias gets no index and
+		// consumes no slot. On WITHOUT ROWID the PK is the clustered key
+		// handled by the branch below (x INTEGER PRIMARY KEY UNIQUE keeps
+		// its UNIQUE absorbed by the PK — without_rowid1 8.1).
+		if !s.WithoutRowid && u.IsPK && len(u.Cols) == 1 && execdml.IsIPKRowidAliasCol(sql.ColumnDef{PrimaryKey: true, Type: colType(u.Cols[0]), PKDesc: colPKDesc(u.Cols[0])}) {
+			continue
+		}
+		key := lowerKey(u.Cols)
+		if u.IsPK && s.WithoutRowid {
+			// The clustered PRIMARY KEY: no entry of its own; absorb an
+			// equivalent index created earlier in the constraint list.
+			seen[key] = true
+			delete(created, key)
+			continue
+		}
+		if seen[key] {
 			continue
 		}
 		seq++
-		key := strings.Join(u.Cols, ",")
-		if seen[key] {
-			continue // duplicate constraint — no entry, no slot consumed
-		}
 		seen[key] = true
-		// On WITHOUT ROWID, the PK is the table's own key: no separate
-		// sqlite_master entry, but the sequence slot is consumed.
-		if u.IsPK && s.WithoutRowid {
-			continue
-		}
-		if err := addAutoIndexEntry(ctx, tableName, seq); err != nil {
+		created[key] = seq
+	}
+	seqs := make([]int, 0, len(created))
+	for _, sq := range created {
+		seqs = append(seqs, sq)
+	}
+	sort.Ints(seqs)
+	for _, sq := range seqs {
+		if err := addAutoIndexEntry(ctx, tableName, sq); err != nil {
 			return &Result{Error: err}
 		}
 	}

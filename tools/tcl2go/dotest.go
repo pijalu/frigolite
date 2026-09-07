@@ -35,15 +35,28 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 	}
 
 	expectedExpr := `""`
+	hoistGoExpr := ""
 	if len(args) >= 3 {
 		if expr, ok := tp.expectedStringExpr(args[2]); ok {
 			expectedExpr = expr
+		} else if goExpr, ok := tp.hoistedHexioReadExpr(args[2]); ok {
+			// The expected argument reads the db header via hexio; TCL
+			// evaluates it before the body runs, so it is hoisted (below)
+			// rather than inlined at comparison time.
+			hoistGoExpr = goExpr
 		} else {
 			expectedExpr = tp.expectLiteral(args[2])
 		}
 	}
 	if ov := wantOverride(overrideFile(tp), args[0].Text); ov != "" {
 		expectedExpr = tp.expectLiteral(tcl.RawWord{Text: ov, Braced: true})
+		hoistGoExpr = ""
+	}
+	if hoistGoExpr != "" {
+		hoistVar := fmt.Sprintf("_wantBase%d", tp.wantHoistCount)
+		tp.wantHoistCount++
+		tp.emitLine("%s := %s", hoistVar, hoistGoExpr)
+		expectedExpr = hoistVar
 	}
 
 	// A single `sqlite3_limit db LIMIT -1` body queries the current limit;
@@ -308,7 +321,25 @@ func (tp *transpiler) emitDoTestSkippedByBodyKind(nameExpr string, bodyCmds [][]
 		tp.emitDoTestSideEffects(nameExpr, bodyCmds, "prepare-step internals; SQL side effects only")
 		return true
 	}
+	if doTestBodyReadsArrayCounter(bodyCmds) {
+		tp.emitDoTestSideEffects(nameExpr, bodyCmds, "testvfs sync-counter introspection observes the VFS layer, not the engine; SQL side effects only")
+		return true
+	}
 	return false
+}
+
+// doTestBodyReadsArrayCounter reports whether the body's VALUE comes from a
+// TCL array read (`array get ::sync` — the testvfs xSync counter the 7xx
+// loop of vacuum-into.test compares). The array is harness-side state the
+// transpiler never populates ("array get (not transpiled)"), so the
+// assertion would compare a stale value; only the SQL side effects are
+// meaningful.
+func doTestBodyReadsArrayCounter(bodyCmds [][]tcl.RawWord) bool {
+	if len(bodyCmds) != 1 {
+		return false
+	}
+	cmd := bodyCmds[0]
+	return len(cmd) >= 2 && cmd[0].Text == "array" && cmd[1].Text == "get"
 }
 
 // runDoTestBody transpiles a do_test body in a fresh sub-transpiler (sharing

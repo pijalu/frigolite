@@ -1372,3 +1372,26 @@ func (tp *transpiler) cmdExprDefault(cmdName, cmdText string, args []string) str
 // "[hexio_get_int [hexio_read FILE OFF N]]+K" (or -K): a header-word read
 // plus a small integer adjustment (vacuum2-2.x).
 var hexioReadExpr = regexp.MustCompile(`(?i)^\[hexio_get_int \[hexio_read (\S+) (\d+) (\d+)\]\]([+-]\d+)$`)
+
+// hoistedHexioReadExpr recognizes a do_test EXPECTED argument that reads the
+// database header through hexio (the vacuum2-2.x change-counter checks). TCL
+// evaluates the expected argument BEFORE running the body, so the read must
+// be hoisted ahead of the generated body — inlining it at comparison time
+// (the buildStringExpr path) reads the counter twice after the body ran,
+// making the assertion unpassable. Returns the Go expression to hoist.
+func (tp *transpiler) hoistedHexioReadExpr(w tcl.RawWord) (string, bool) {
+	text := strings.TrimSpace(w.Text)
+	if strings.HasPrefix(text, "[expr ") && strings.HasSuffix(text, "]") {
+		text = strings.TrimSpace(text[len("[expr ") : len(text)-1])
+		// [expr {...}] — a braced expr script: strip the script braces.
+		if len(text) >= 2 && text[0] == '{' && text[len(text)-1] == '}' {
+			text = strings.TrimSpace(text[1 : len(text)-1])
+		}
+	}
+	m := hexioReadExpr.FindStringSubmatch(text)
+	if m == nil {
+		return "", false
+	}
+	return fmt.Sprintf("strconv.FormatInt(tclHexioReadInt(%s, %s, %s)%s, 10)",
+		tp.goStringLiteral(tcl.RawWord{Text: m[1]}), m[2], m[3], m[4]), true
+}
