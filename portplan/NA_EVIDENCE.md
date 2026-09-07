@@ -1518,3 +1518,16 @@ tool reports are covered by the engine's own CRUD family.
 **Disposition**: skiptestfiles sqldiff1 N/A (external tool-binary seam,
 same class as the P5.SHELL CLI-only N/A). A Go sqldiff implementation is
 queued with P9.PERF closeout if the suite needs it.
+
+## mutex2 (2026-09-07)
+
+**File mechanism**: mutex2.test instruments the C SQLITE_MUTEX subsystem
+(`set ::disable_mutex_init 7` makes mutex initialization fail once), so
+`catch {sqlite db test.db}` errors from the mutex layer (mutex2-2.1 expects
+{1 {}}) — a C mutex-subsystem behavior, not SQL.
+
+**Evidence**: frigolite has no C mutex subsystem; the transpiled double-open
+succeeds (rc=0, empty message), and no SQL-visible behavior differs. Same
+class as SQLite's other mutex.tst-style instrumentation tests.
+
+**Disposition**: skiptestfiles mutex2 N/A (C mutex-harness instrumentation).

@@ -12,6 +12,13 @@ package main
 // gaps tracked by later-phase follow-ups.
 
 var skipTestFiles = map[string]string{
+	// mutex2: the SQLITE_MUTEX subsystem instrumentation test
+	// (set ::disable_mutex_init + double-open detection via the C mutex
+	// layer). mutex2-2.1's error comes from the C mutex machinery, not the
+	// SQL engine; the transpiled double-open cannot reproduce it
+	// (PORTPLAN section 1 C-harness class). See NA_EVIDENCE mutex2.
+	"mutex2": "N/A: SQLITE_MUTEX subsystem instrumentation (disable_mutex_init double-open detection is C mutex-layer machinery, no SQL surface) (NA_EVIDENCE mutex2)",
+
 	// sqldiff1: drives the EXTERNAL sqldiff tool binary (test_find_sqldiff
 	// builds ../sqldiff.c and invokes it as a subprocess) — an external
 	// tool-binary seam, same class as the P5.SHELL CLI-only N/A. See
