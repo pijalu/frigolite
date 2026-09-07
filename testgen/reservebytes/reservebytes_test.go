@@ -111,9 +111,11 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "1.3.2" — skipped: VACUUM not implemented (P8.VACUUM)
+	{ // "1.3.2"
 		_res = db.Exec(" VACUUM ")
-		_ = _res
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " VACUUM ")
+		}
 	}
 	{ // "1.3.4"
 		r = db2.Query(" PRAGMA integrity_check ")
@@ -140,9 +142,11 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "08", "1.4.1")
 		}
 	}
-	{ // "1.4.2" — skipped: VACUUM not implemented (P8.VACUUM)
+	{ // "1.4.2"
 		_res = db.Exec(" VACUUM ")
-		_ = _res
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), " VACUUM ")
+		}
 	}
 	{ // "1.4.3"
 		r = db2.Query(" PRAGMA integrity_check ")

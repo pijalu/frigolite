@@ -79,7 +79,10 @@ func Test_rtree7(t *testing.T) {
 		}
 	}
 	{ // do_test "rtree7-1.3"
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		r = db.Query(" \n    PRAGMA page_size = 2048;\n    VACUUM;\n    SELECT * FROM rt;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 2048;\n    VACUUM;\n    SELECT * FROM rt;\n  ")
+		}
 	}
 	{ // do_test "rtree7-1.4"
 		vtab.TclVarSet("i", "", "2")
@@ -104,7 +107,10 @@ func Test_rtree7(t *testing.T) {
 		}
 	}
 	{ // do_test "rtree7-1.5"
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		r = db.Query(" \n    PRAGMA page_size = 512;\n    VACUUM;\n    SELECT sum(x1), sum(x2), sum(y1), sum(y2) FROM rt\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 512;\n    VACUUM;\n    SELECT sum(x1), sum(x2), sum(y1), sum(y2) FROM rt\n  ")
+		}
 	}
 	// do_rtree_integrity_test rtree7-1.6 rt (unsupported command, not transpiled)
 }

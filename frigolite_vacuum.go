@@ -59,13 +59,55 @@ func (db *DB) vacuumInto(schema, target string) *exec.Result {
 // Pager.Restore corrupts: the snapshot's page size/fileSize come from a
 // different pager; a file-level copy + cache reload is the next option).
 func (db *DB) vacuumRebuild(schema string) *exec.Result {
-	tmp, err := Open(":memory:")
+	if db.path == "" || db.pager == nil {
+		// An in-memory main cannot be file-replaced: rebuild content-only
+		// (no file-shrink).
+		tmp, err := Open(":memory:")
+		if err != nil {
+			return &exec.Result{Error: err}
+		}
+		defer tmp.Close()
+		if err := copyViaBackup(db, schema, tmp); err != nil {
+			return &exec.Result{Error: err}
+		}
+		return &exec.Result{}
+	}
+
+	// Rebuild the database into a temporary file (a logical copy: objects
+	// re-created and data re-inserted — free pages are not carried over),
+	// then replace main's file image with the compact one and make the
+	// pager reload from disk (sqlite3BtreeCopyFile equivalent).
+	tmpPath := db.path + "-vacuum-tmp"
+	os.Remove(tmpPath)
+	tmp, err := Open(tmpPath)
 	if err != nil {
 		return &exec.Result{Error: err}
 	}
-	defer tmp.Close()
-	if err := copyViaBackup(db, schema, tmp); err != nil {
+	copyErr := copyViaBackup(db, schema, tmp)
+	if cerr := tmp.Close(); cerr != nil && copyErr == nil {
+		copyErr = cerr
+	}
+	if copyErr != nil {
+		os.Remove(tmpPath)
+		return &exec.Result{Error: copyErr}
+	}
+	data, err := os.ReadFile(tmpPath)
+	if err != nil {
+		os.Remove(tmpPath)
 		return &exec.Result{Error: err}
+	}
+	// Persist any pending main state, then replace the file image in place
+	// (truncate + write, keeping the inode the pager holds open) and reload
+	// the pager cache/header/page count from the new image.
+	_ = db.pager.Flush()
+	if err := os.WriteFile(db.path, data, 0644); err != nil {
+		os.Remove(tmpPath)
+		return &exec.Result{Error: err}
+	}
+	os.Remove(tmpPath)
+	db.pager.CheckExternalFile()
+	if ctx := db.engine.GetDB(schema); ctx != nil && ctx.Schema != nil {
+		ctx.Schema.InvalidateCache()
 	}
 	return &exec.Result{}
 }

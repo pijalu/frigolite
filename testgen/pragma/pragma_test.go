@@ -244,7 +244,10 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma-1.9.2"
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		r = db.Query("\n      VACUUM;\n      PRAGMA cache_size;\n      PRAGMA default_cache_size;\n      PRAGMA synchronous;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      VACUUM;\n      PRAGMA cache_size;\n      PRAGMA default_cache_size;\n      PRAGMA synchronous;\n    ")
+		}
 	}
 	{ // do_test "pragma-1.10"
 		r = db.Query("\n    PRAGMA synchronous=NORMAL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
@@ -1185,7 +1188,10 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma-8.2.4.2"
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		r = db.Query("\n      VACUUM;\n      PRAGMA user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      VACUUM;\n      PRAGMA user_version;\n    ")
+		}
 	}
 	{ // do_test "pragma-8.2.4.3"
 		r = db.Query("\n      PRAGMA schema_version;\n    ")

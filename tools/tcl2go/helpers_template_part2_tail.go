@@ -871,6 +871,53 @@ func tclDBCksum(db *frigolite.DB, schemaName string) string {
 }
 
 // tclFileSize returns a file's size in bytes (0 when missing).
+// tclCksum replicates tester.tcl's cksum proc: a fingerprint over
+// sqlite_master (name/type/sql ordered by name), every table's full
+// contents (tables ordered by name), and the default_synchronous /
+// default_cache_size pragmas, rendered as "LEN-MD5".
+func tclCksum(db *frigolite.DB) string {
+	var txt []byte
+	appendQuery := func(sql string) {
+		r := db.Query(sql)
+		if r.Error != nil {
+			return
+		}
+		for _, row := range r.Rows {
+			for _, v := range row {
+				if v != nil {
+					txt = append(txt, []byte(fmt.Sprint(v))...)
+				}
+			}
+		}
+		txt = append(txt, '\n')
+	}
+	appendQuery("SELECT name, type, sql FROM sqlite_master ORDER BY name")
+	var tables []string
+	if r := db.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"); r.Error == nil {
+		for _, row := range r.Rows {
+			if len(row) > 0 && row[0] != nil {
+				tables = append(tables, fmt.Sprint(row[0]))
+			}
+		}
+	}
+	for _, tbl := range tables {
+		appendQuery("SELECT * FROM " + quoteTableName(tbl))
+	}
+	for _, prag := range []string{"default_synchronous", "default_cache_size"} {
+		txt = append(txt, []byte(prag+"-")...)
+		appendQuery("PRAGMA " + prag)
+	}
+	h := md5.New()
+	h.Write(txt)
+	return fmt.Sprintf("%%d-%%s", len(txt), hex.EncodeToString(h.Sum(nil)))
+}
+
+// quoteTableName wraps a table name in double quotes for safe interpolation
+// into a SELECT.
+func quoteTableName(name string) string {
+	return "\"" + strings.ReplaceAll(name, "\"", "\"\"") + "\""
+}
+
 // tclReadPagerChangeCounter returns the database file change counter
 // (big-endian uint32 at header offset 24; 0 when the file is missing or too
 // short) — mirrors exclusive2.test's readPagerChangeCounter proc.

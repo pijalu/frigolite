@@ -2389,7 +2389,10 @@ func Test_pager1(t *testing.T) {
 								tclConnRegister("db", db)
 								if err != nil { t.Fatal(err) }
 								db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-								// execsql skipped: VACUUM not implemented (P8.VACUUM)
+								r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
+								}
 							}
 							{ // do_test "pager1-20.1.1"
 								{
@@ -2834,7 +2837,10 @@ func Test_pager1(t *testing.T) {
 									}
 								} else {
 									{ // do_test "pager1-29.2"
-										// execsql skipped: VACUUM not implemented (P8.VACUUM)
+										r = db.Query("\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
+										}
 										_r = strconv.Itoa(tclFileSize("test.db"))
 										if _r != "12288" {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "12288", "pager1-29.2")
@@ -3028,9 +3034,17 @@ func Test_pager1(t *testing.T) {
 												if err != nil { t.Fatal(err) }
 												_res = db.Exec("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      SELECT * FROM t1;\n    ")
 											}
-											{ // "37." + tn + ".2" — skipped: VACUUM not implemented (P8.VACUUM)
-												_res = db.Exec("\n    VACUUM;\n    SELECT * FROM t1;\n  ")
-												_ = _res
+											{ // "37." + tn + ".2"
+												r = db.Query("\n    VACUUM;\n    SELECT * FROM t1;\n  ")
+												if r.Error != nil {
+													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    VACUUM;\n    SELECT * FROM t1;\n  ")
+													return
+												}
+												got := flatten(r)
+												want := "1"
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+												}
 											}
 											db.Close()
 											// sqlite3_shutdown (unsupported command, not transpiled)

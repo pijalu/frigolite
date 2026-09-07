@@ -327,9 +327,17 @@ func Test_index7(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	{ // "index7-4.0" — skipped: VACUUM not implemented (P8.VACUUM)
-		_res = db.Exec("\n  VACUUM;\n  PRAGMA integrity_check;\n")
-		_ = _res
+	{ // "index7-4.0"
+		r = db.Query("\n  VACUUM;\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // "index7-5.0" — skipped: ANALYZE sqlite_stat1 stat not matched (G5.ANALYZE) (SQL side effects only)
 		_res = db.Exec("\n  CREATE INDEX t3b ON t3(b) WHERE xyzzy.t3.b BETWEEN 5 AND 10;\n                               /* ^^^^^-- ignored */\n  ANALYZE;\n  SELECT count(*) FROM t3 WHERE t3.b BETWEEN 5 AND 10;\n  SELECT stat+0 FROM sqlite_stat1 WHERE idx='t3b';\n")

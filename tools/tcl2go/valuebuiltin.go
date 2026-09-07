@@ -47,6 +47,8 @@ var valueReturningBuiltins = map[string]bool{
 	// exclusive2.test change-counter procs (transpiled to harness helpers).
 	"readPagerChangeCounter": true,
 	"pagerChangeCounter":     true,
+	// tester.tcl framework fingerprint (transpiled to the tclCksum helper).
+	"cksum": true,
 }
 
 // bodyEndsWithValueBuiltin reports whether a do_test body's last command is

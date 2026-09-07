@@ -75,9 +75,11 @@ func Test_vacuum6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 1);\n")
 		}
 	}
-	{ // "1.1" — skipped: VACUUM not implemented (P8.VACUUM)
+	{ // "1.1"
 		_res = db.Exec("\n  VACUUM\n")
-		_ = _res
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  VACUUM\n")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -86,9 +88,11 @@ func Test_vacuum6(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	{ // "1.2" — skipped: VACUUM not implemented (P8.VACUUM)
+	{ // "1.2"
 		_res = db.Exec("\n  CREATE TABLE t1(x,b);\n  CREATE INDEX x1 ON t1(x);\n  CREATE INDEX x2 ON t1(x);\n  CREATE INDEX x3 ON t1(x);\n  INSERT INTO t1 SELECT 2,'';\n  VACUUM;\n")
-		_ = _res
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x,b);\n  CREATE INDEX x1 ON t1(x);\n  CREATE INDEX x2 ON t1(x);\n  CREATE INDEX x3 ON t1(x);\n  INSERT INTO t1 SELECT 2,'';\n  VACUUM;\n")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -118,9 +122,11 @@ func Test_vacuum6(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob(" + sqlLiteral(sz) + ") FROM s;\n  ")
 				}
 			}
-			{ // "2." + tn + ".2" — skipped: VACUUM not implemented (P8.VACUUM)
+			{ // "2." + tn + ".2"
 				_res = db.Exec("\n    vacuum;\n  ")
-				_ = _res
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    vacuum;\n  ")
+				}
 			}
 			{ // "2." + tn + ".3"
 				r = db.Query("\n    PRAGMA integrity_check;\n  ")
@@ -148,9 +154,11 @@ func Test_vacuum6(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
 			}
 		}
-		{ // "3.1" — skipped: VACUUM not implemented (P8.VACUUM)
-			_res = db.Exec("\n  PRAGMA page_size = 512;\n  VACUUM;\n")
-			_ = _res
+		{ // "3.1"
+			r = db.Query("\n  PRAGMA page_size = 512;\n  VACUUM;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  VACUUM;\n")
+			}
 		}
 		{ // "3.2"
 			r = db.Query("\n  PRAGMA integrity_check\n")
@@ -199,9 +207,11 @@ func Test_vacuum6(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
 					}
 				}
-				{ // "4.1." + tn + ".2" — skipped: VACUUM not implemented (P8.VACUUM)
+				{ // "4.1." + tn + ".2"
 					_res = db.Exec("VACUUM")
-					_ = _res
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "VACUUM")
+					}
 				}
 				_res = db.Exec("PRAGMA integrity_check")
 				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

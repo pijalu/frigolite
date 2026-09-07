@@ -67,9 +67,17 @@ func Test_autovacuum2(t *testing.T) {
 	_ = pagesize // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // "autovacuum2-1.0" — skipped: VACUUM not implemented (P8.VACUUM)
-		_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(x);\n  VACUUM;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  PRAGMA page_count;\n")
-		_ = _res
+	{ // "autovacuum2-1.0"
+		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(x);\n  VACUUM;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  PRAGMA page_count;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(x);\n  VACUUM;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  PRAGMA page_count;\n")
+			return
+		}
+		got := flatten(r)
+		want := "12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	// proc autovac_page_callback {schema filesize freesize pagesize}: appends callback args to
 	// autovac_callback_data and returns freesize/2 (per-batch vacuum limit).

@@ -541,18 +541,13 @@ func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []t
 func unsupportedSQL(sql string) string {
 	// Window functions (OVER clauses) are implemented by the engine (P4.WINDOW)
 	// and no longer skipped.
-	// VACUUM (including VACUUM INTO and VACUUM aux) rebuilds the database
-	// file, reclaiming free pages and renumbering rowids. Frigolite has no
-	// file-level VACUUM (P8.VACUUM), so statements that run it or assert its
-	// effects (file size, freelist, rowid renumbering, fragment counts) are
+	// VACUUM is implemented (P8.VACUUM): the statement runs through
+	// DB.execVacuumStmt, so execsql blocks containing it are no longer
 	// skipped.
 	// Keyword checks must ignore SQL comments: "-- Vacuum up the two
 	// pages." (incrvacuum-5.2.3) is a comment, not a VACUUM statement —
 	// matching it caused a whole-block skip that left tbl2 uncreated.
 	sql = stripSQLComments(sql)
-	if reVACUUM.MatchString(sql) {
-		return "VACUUM not implemented (P8.VACUUM)"
-	}
 	// PRAGMA freelist_count reports free pages left after deletes, which only
 	// has meaning relative to VACUUM/auto_vacuum page management.
 	if strings.Contains(strings.ToUpper(sql), "PRAGMA FREELIST_COUNT") {
@@ -625,8 +620,6 @@ func isIdentChar(c byte) bool {
 	return c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'
 }
 
-// reVACUUM matches a VACUUM statement (plain, VACUUM INTO, or VACUUM schema).
-var reVACUUM = regexp.MustCompile(`(?i)\bVACUUM\b`)
 
 // stripSQLComments removes SQL line comments (`-- ...` to end of line) and
 // block comments (`/* ... */`) from sql so keyword matching in

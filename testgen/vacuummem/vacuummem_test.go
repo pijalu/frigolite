@@ -85,9 +85,11 @@ func Test_vacuummem(t *testing.T) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, resErrString(_res), "1.1")
 		}
 	}
-	{ // "1.2" — skipped: VACUUM not implemented (P8.VACUUM)
+	{ // "1.2"
 		_res = db.Exec("VACUUM")
-		_ = _res
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "VACUUM")
+		}
 	}
 	{ // do_test "1.3"
 		// memory_used (unsupported command, not transpiled)

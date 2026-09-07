@@ -738,6 +738,17 @@ func (tp *transpiler) inlineDefaultQueryProc(cmdName string, args []tcl.RawWord)
 		tp.emitLine("_r = tclTableSig(%s, %q, %q)", connVar, table, col)
 		return true
 	}
+	// cksum [CONN] (tester.tcl framework proc): the database fingerprint.
+	if cmdName == "cksum" {
+		connVar := tp.dbVar
+		if len(args) >= 1 {
+			if v := strings.TrimSpace(args[0].Text); isValidGoIdent(tclVarToGo(v)) {
+				connVar = tclVarToGo(v)
+			}
+		}
+		tp.emitLine("_r = tclCksum(%s)", connVar)
+		return true
+	}
 	// readPagerChangeCounter FILE (exclusive2.test): the database header
 	// change counter (big-endian uint32 at offset 24).
 	if cmdName == "readPagerChangeCounter" && len(args) == 1 {

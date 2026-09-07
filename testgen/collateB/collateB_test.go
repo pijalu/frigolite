@@ -218,9 +218,11 @@ func Test_collateB(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	{ // "2.1" — skipped: VACUUM not implemented (P8.VACUUM)
+	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a COLLATE binary);\n  CREATE INDEX i4 ON t4(a);\n  INSERT INTO t4 VALUES('one'), ('two'), ('three');\n  VACUUM;\n")
-		_ = _res
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t4(a COLLATE binary);\n  CREATE INDEX i4 ON t4(a);\n  INSERT INTO t4 VALUES('one'), ('two'), ('three');\n  VACUUM;\n")
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
