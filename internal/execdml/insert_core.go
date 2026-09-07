@@ -213,24 +213,24 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	}
 
 	// Snapshot the pager so a statement-end FOREIGN KEY failure (checked
-		// after AFTER triggers, SQLite checks immediate FKs at statement end) can
-		// roll back the row, index entries, and any trigger side effects. Skip the
-		// snapshot for the FTS flush's internal shadow-table writes: they are part
-		// of the enclosing statement's rollback scope, and copying the whole
-		// pager (which holds the growing %_segments blocks) per block insert is
-		// O(n^2) across the automerge's many flushes (fts4merge4 2.2.x).
-		//
-		// P8.PRAGMA (tkt2686): also skip when FK enforcement is OFF — the
-		// RestorePager call site is gated on ForeignKeys(), so the snapshot
-		// would be dead weight for plain inserts in the test's max_page_count
-		// loop. Cap enforcement happens at the pager itself (AllocatePage
-		// returns nil once numPages exceeds maxPageCount), so transaction-
-		// level consistency is preserved by the BEGIN/ROLLBACK pairing without
-		// a per-row pager snapshot.
-		var snap *pager.PagerState
-		if !e.ctx.InFTSFlush() && e.ctx.ForeignKeys() {
-			snap = pg.Snapshot()
-		}
+	// after AFTER triggers, SQLite checks immediate FKs at statement end) can
+	// roll back the row, index entries, and any trigger side effects. Skip the
+	// snapshot for the FTS flush's internal shadow-table writes: they are part
+	// of the enclosing statement's rollback scope, and copying the whole
+	// pager (which holds the growing %_segments blocks) per block insert is
+	// O(n^2) across the automerge's many flushes (fts4merge4 2.2.x).
+	//
+	// P8.PRAGMA (tkt2686): also skip when FK enforcement is OFF — the
+	// RestorePager call site is gated on ForeignKeys(), so the snapshot
+	// would be dead weight for plain inserts in the test's max_page_count
+	// loop. Cap enforcement happens at the pager itself (AllocatePage
+	// returns nil once numPages exceeds maxPageCount), so transaction-
+	// level consistency is preserved by the BEGIN/ROLLBACK pairing without
+	// a per-row pager snapshot.
+	var snap *pager.PagerState
+	if !e.ctx.InFTSFlush() && e.ctx.ForeignKeys() {
+		snap = pg.Snapshot()
+	}
 
 	nextRowID, res := e.prepareInsertRowValues(tableEntry, colDefs, values, fixedRowID, orConflict)
 	if res != nil {

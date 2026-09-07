@@ -696,6 +696,12 @@ func (c *ConstraintEnforcer) fkCheckChildTable(entry *schema.Entry, ctx *Databas
 			break
 		}
 		remapWRRecord(c, entry, colDefs, rec)
+		// Rowid-alias convention: the child's IPK column reads back NULL;
+		// its value IS the rowid. foreign_key_check must treat that value
+		// as the child key, not as an exempt NULL.
+		if !withoutRowid {
+			fillRowidAliasSlots(colDefs, rec, cell.RowID)
+		}
 		rowID := interface{}(cell.RowID)
 		if withoutRowid {
 			rowID = nil
@@ -803,6 +809,11 @@ func (c *ConstraintEnforcer) fkParentRowInTable(rfk resolvedFK, childKey []inter
 			break
 		}
 		remapWRRecord(c, rfk.parentEntry, rfk.parentDefs, pRec)
+		// Rowid-alias convention: the parent's IPK column reads back NULL
+		// from the record; its value IS the rowid, so the parent-key
+		// comparison must see the rowid (an INSERT of a valid child key
+		// would otherwise be reported as a violation).
+		fillRowidAliasSlots(rfk.parentDefs, pRec, pCell.RowID)
 		allMatch := c.fkRecordMatchesParent(pRec, rfk, parentIndex, childKey)
 		if allMatch {
 			return true, true
@@ -963,8 +974,11 @@ func (c *ConstraintEnforcer) fkParentRowExists(cursor *btree.Cursor, parentEntry
 	// skipped.
 	selfRef := strings.EqualFold(parentRef, tableName) && !execdml.HasWithoutRowidKeyword(strings.ToUpper(parentEntry.SQL))
 	ex := fkRowExcluder{selfRef: selfRef, rowID: excludeRowID}
-	return fkScanCells(cursor, ex, func(_ *storage.Cell, rec *storage.Record) bool {
+	return fkScanCells(cursor, ex, func(cell *storage.Cell, rec *storage.Record) bool {
 		remapWRRecord(c, parentEntry, parentDefs, rec)
+		// Rowid-alias convention: the parent's IPK column reads back NULL
+		// from the record; its value IS the rowid.
+		fillRowidAliasSlots(parentDefs, rec, cell.RowID)
 		return fkParentRecordMatches(c, rec, parentIdx, childKey, parentDefs)
 	})
 }

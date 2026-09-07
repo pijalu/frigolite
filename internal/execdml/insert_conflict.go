@@ -512,6 +512,12 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 	row := make(RowMap)
 	for i, v := range values {
 		if i < len(colDefs) {
+			// Rowid-alias convention: the IPK column reads back NULL from the
+			// record; its value is the rowid (trigger OLD/NEW and FK rows
+			// must expose the real value, not NULL).
+			if v == nil && isIPKRowidAliasCol(colDefs[i]) {
+				v = rowID
+			}
 			row[colDefs[i].Name] = wrapValueForRowMap(v, colDefs[i])
 		}
 	}

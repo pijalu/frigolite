@@ -62,6 +62,32 @@ Seed triage established during the P8.VACUUM close:
 - **Un-skip queue**: uri, uri2, utf16align (P8.ENCODING close note);
   pendingrace-class re-checks.
 
+### T1 RESULT (2026-09-07)
+
+Root cause found: the rowid-alias storage convention (an INTEGER PRIMARY KEY
+column is stored NULL in the record; its value is the rowid — see
+NullIPKAliasForWrite) was not honored by four row-reading seams, so any
+feature comparing raw record values against real key values missed IPK rows:
+
+1. `execdml.scanAllUniqueConflicts` — substitute cell.RowID for a NULL IPK
+   slot before the UNIQUE/PK comparison (upsert arbiter hits were empty).
+2. `execdml.buildRowMapFromValues` — trigger OLD/NEW rows exposed NULL for
+   the IPK column (update/delete trigger old.a/new.a were "-").
+3. `execconstraint.fkParentRowInTable` + `fkParentRowExists` — the parent-key
+   lookup missed every parent row whose key was a rowid alias (valid child
+   inserts reported "FOREIGN KEY constraint failed"; deferred COMMITs failed
+   on repairable transactions).
+4. `execconstraint.fkCheckChildTable` — foreign_key_check treated the
+   rowid-alias child key as an exempt NULL (no violations reported).
+
+`go test .`: 16 → 8 failures (TestP1InsertUpsert, TestP3FKey ×5,
+TestP3Trigger ×2 fixed; zero new failures; remaining 8 pre-existing —
+WAL/rtree/oracle-fixture classes, later tranches). testgen: fkey3 flipped
+fail→pass (a fix flip, ledger re-seeded); fkey1/fkey2/trigger1/trigger2 stay
+at ledger baseline. fk_constraint.go is at 1008 lines (>1000 hard gate) —
+pre-existing 999-line file + 9 lines of this fix; split deferred to the
+file-size remediation tranche per §5c.
+
 ### Tranches (execute in order; one tranche per commit series)
 
 - **T1 standard-suite drift**: repair the hand-written P1/P3 upsert, FK and

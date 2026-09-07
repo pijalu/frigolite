@@ -780,6 +780,16 @@ func (e *DMLExecutor) scanAllUniqueConflicts(tableEntry *schema.Entry, colDefs [
 		if err != nil || rec == nil {
 			break
 		}
+		// Rowid-alias convention: the IPK column is stored NULL in the
+		// record (NullIPKAliasForWrite) and its value IS the rowid, so the
+		// UNIQUE/PK comparison must read the rowid for that slot — otherwise
+		// a row inserted with an explicit IPK value never conflicts
+		// (upsert arbiter and INSERT ... ON CONFLICT miss it).
+		for i, cd := range colDefs {
+			if i < len(rec.Values) && rec.Values[i] == nil && isIPKRowidAliasCol(cd) {
+				rec.Values[i] = cell.RowID
+			}
+		}
 		result = collectRowConflicts(result, foundCols, uniqueCols, rec.Values, values, cell)
 		hasNext, err := cursor.Next()
 		if err != nil || !hasNext {
