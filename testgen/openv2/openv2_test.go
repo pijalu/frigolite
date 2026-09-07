@@ -97,7 +97,8 @@ func Test_openv2(t *testing.T) {
 		db.ResetChangesCounters()
 		_res = db.Exec("CREATE TABLE t1(x)")
 		db.Close()
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.OpenReadOnly("test.db")
+		if err != nil { t.Fatal(err) }
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT name FROM sqlite_master")
@@ -110,7 +111,8 @@ func Test_openv2(t *testing.T) {
 	}
 	{ // do_test "openv2-2.1"
 		db.Close()
-		db, err = frigolite.Open("")
+		db, err = frigolite.OpenReadOnly(":memory:")
+		if err != nil { t.Fatal(err) }
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM sqlite_master")

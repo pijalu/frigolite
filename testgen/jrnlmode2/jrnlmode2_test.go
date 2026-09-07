@@ -129,7 +129,8 @@ func Test_jrnlmode2(t *testing.T) {
 		}
 	}
 	{ // do_test "jrnlmode2-2.4"
-		db2, err = frigolite.Open("test.db")
+		db2, err = frigolite.OpenReadOnly("test.db")
+		if err != nil { t.Fatal(err) }
 		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" SELECT * FROM t1 ")
@@ -140,7 +141,8 @@ func Test_jrnlmode2(t *testing.T) {
 		os.Remove("test.db-journal")
 	}
 	{ // do_test "jrnlmode2-2.6"
-		db2, err = frigolite.Open("test.db")
+		db2, err = frigolite.OpenReadOnly("test.db")
+		if err != nil { t.Fatal(err) }
 		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" SELECT * FROM t1 ")

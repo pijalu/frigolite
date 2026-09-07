@@ -214,6 +214,29 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 		}
 		tp.pendingConnRegister = nil
 	}()
+	// `sqlite3 db FILE -readonly 1` — SQLITE_OPEN_READONLY
+	// (tkt-5ee23731f-1.1): every write on the returned connection fails with
+	// "attempt to write a readonly database". A missing file is an open
+	// error (no create).
+	for i := 2; i+1 < len(args); i++ {
+		if strings.TrimSpace(args[i].Text) == "-readonly" {
+			if strings.TrimSpace(args[i+1].Text) == "1" {
+				if tp.isVarDeclared(goName) && !isPreDeclaredDB(goName) {
+					tp.emitLine("%s, err = frigolite.OpenReadOnly(%s)", goName, filename)
+				} else {
+					tp.emitLine("%s, err = frigolite.OpenReadOnly(%s)", goName, filename)
+				}
+				if tp.catchMode {
+					tp.emitLine("if err != nil { _catchErr = err; %s = nil }", goName)
+				} else {
+					tp.emitLine("if err != nil { t.Fatal(err) }")
+				}
+				tp.dbConnVars[goName] = true
+				tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
+				return true
+			}
+		}
+	}
 	// Record that goName holds a *frigolite.DB connection so execsql/db
 	// dispatch resolves it as a connection rather than a string variable.
 	wasOpened := tp.dbConnVars[goName]

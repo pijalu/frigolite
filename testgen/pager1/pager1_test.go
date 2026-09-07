@@ -963,7 +963,8 @@ func Test_pager1(t *testing.T) {
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					db.Close()
-					db, err = frigolite.Open("test.db")
+					db, err = frigolite.OpenReadOnly("test.db")
+					if err != nil { t.Fatal(err) }
 					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
 					{ // "pager1.4.5.6"

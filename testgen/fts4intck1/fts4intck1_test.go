@@ -174,7 +174,8 @@ func Test_fts4intck1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.OpenReadOnly("test.db")
+	if err != nil { t.Fatal(err) }
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"

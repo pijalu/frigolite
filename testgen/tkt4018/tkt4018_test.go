@@ -126,7 +126,8 @@ func Test_tkt4018(t *testing.T) {
 	}
 	{ // do_test "tkt4018-2.3"
 		if db2 != nil { db2.Close() }
-		db2, err = frigolite.Open("test.db")
+		db2, err = frigolite.OpenReadOnly("test.db")
+		if err != nil { t.Fatal(err) }
 		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("COMMIT")

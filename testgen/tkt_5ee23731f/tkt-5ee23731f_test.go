@@ -66,7 +66,8 @@ func Test_tkt_5ee23731f(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n  ")
 		db.Close()
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.OpenReadOnly("test.db")
+		if err != nil { t.Fatal(err) }
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	_ = rc // suppress unused warning

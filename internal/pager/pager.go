@@ -304,7 +304,17 @@ func (p *Pager) Restore(s *PagerState) {
 // Open opens a database file. If the file already exists, the page size is
 // read from the database header (SQLite stores the actual page size in bytes
 // 16-17 of the header); the pageSize argument is only a default for new files.
-func Open(path string, pageSize uint32) (*Pager, error) {
+func Open(path string, pageSize uint32) (*Pager, error) { return openPager(path, pageSize, false) }
+
+// OpenReadOnly opens an existing database file read-only:
+// sqlite3_open_v2 with SQLITE_OPEN_READONLY (the TCL harness's
+// "sqlite3 db test.db -readonly 1"). A missing file is an open error (no
+// create, SQLITE_CANTOPEN); every write fails SQLITE_READONLY.
+func OpenReadOnly(path string, pageSize uint32) (*Pager, error) {
+	return openPager(path, pageSize, true)
+}
+
+func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error) {
 	if pageSize == 0 {
 		pageSize = DefaultPageSize
 	}
@@ -315,8 +325,19 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	// the lexical equivalent (no symlink resolution, matching SQLite's
 	// no-readlink fallback).
 	cleanPath := filepath.Clean(path)
-	readOnlyFallback := false
+	readOnlyFallback := forceReadOnly
 	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE, 0644)
+	if forceReadOnly {
+		// SQLITE_OPEN_READONLY: open an EXISTING file read-only; a missing
+		// file is SQLITE_CANTOPEN (no create).
+		rf, rerr := os.OpenFile(cleanPath, os.O_RDONLY, 0644)
+		if rerr != nil {
+			return nil, fmt.Errorf("pager: open %s: unable to open database file", path)
+		}
+		f, err = rf, nil
+	} else {
+		f, err = os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE, 0644)
+	}
 	if err != nil {
 		// sqlite3OsOpen failure maps to SQLITE_CANTOPEN "unable to open
 		// database file" — including opening a path that is a directory
@@ -364,7 +385,7 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 		// many bytes after a commit; negative means unlimited, 0 means zero.
 		journalSizeLimit: 32768,
 	}
-	pr.readOnly = readOnlyFallback
+	pr.readOnly = readOnlyFallback || forceReadOnly
 	// Quota layer (test_quota.c quotaOpen): a database file opened while
 	// the quota layer is initialized joins its matching quota group and
 	// its size counts toward the group cap. No-op when uninitialized.

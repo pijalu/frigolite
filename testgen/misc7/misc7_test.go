@@ -213,7 +213,8 @@ func Test_misc7(t *testing.T) {
 	}
 	{ // do_test "misc7-7.3"
 		db.Close()
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.OpenReadOnly("test.db")
+		if err != nil { t.Fatal(err) }
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;\n  ")

@@ -667,6 +667,41 @@ func releaseMemdb(db *DB) {
 // A SQLite URI filename ("file:path?mode=ro") is reduced to its real path
 // ("path") — URI access-mode parameters are a C-API feature the engine does
 // not enforce, but the file the URI names is still opened.
+// OpenReadOnly opens an existing database file in read-only mode
+// (sqlite3_open_v2 with SQLITE_OPEN_READONLY — the TCL harness's
+// `sqlite3 db test.db -readonly 1`). Every write fails with SQLITE_READONLY,
+// "attempt to write a readonly database". A missing file is an open error.
+func OpenReadOnly(path string) (*DB, error) {
+	path = normalizeURIPath(path)
+	if path != "" && path != ":memory:" {
+		path = filepath.Clean(path)
+	}
+	var pg *pager.Pager
+	var err error
+	if path == "" || path == ":memory:" {
+		pg = pager.OpenInMemory(pager.DefaultPageSize)
+	} else {
+		pg, err = pager.OpenReadOnly(path, pager.DefaultPageSize)
+		if err != nil {
+			return nil, fmt.Errorf("frigolite: open: %w", err)
+		}
+	}
+	db := &DB{
+		pager:  pg,
+		engine: exec.NewEngine(pg),
+		path:   path,
+	}
+	if path != "" && path != ":memory:" {
+		db.engine.SetMainFilePath(path)
+	}
+	db.schema = schema.NewManager(pg)
+	if err := db.schema.Init(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("frigolite: init schema: %w", err)
+	}
+	return db, nil
+}
+
 func Open(path string) (*DB, error) {
 	// memdb VFS URIs (memdb.c: file:/name?vfs=memdb) name a process-global
 	// shared in-memory store, NOT a filesystem path. Route them to the
