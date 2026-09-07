@@ -51,9 +51,13 @@ func (db *DB) vacuumInto(schema, target string) *exec.Result {
 	return &exec.Result{}
 }
 
-// vacuumRebuild implements plain VACUUM: copy the database into an
-// in-memory temp database and copy it back, so free pages are reclaimed
-// and the file is compacted.
+// vacuumRebuild implements plain VACUUM: the database is copied (a logical
+// rebuild — objects re-created and data re-inserted) into an in-memory temp
+// database and copied back. Content-preserving today; the file-shrink
+// (compaction) step — replacing main's pager image with the compact temp
+// image — is the remaining P8.VACUUM engine tranche (a cross-pager
+// Pager.Restore corrupts: the snapshot's page size/fileSize come from a
+// different pager; a file-level copy + cache reload is the next option).
 func (db *DB) vacuumRebuild(schema string) *exec.Result {
 	tmp, err := Open(":memory:")
 	if err != nil {
@@ -61,9 +65,6 @@ func (db *DB) vacuumRebuild(schema string) *exec.Result {
 	}
 	defer tmp.Close()
 	if err := copyViaBackup(db, schema, tmp); err != nil {
-		return &exec.Result{Error: err}
-	}
-	if err := copyViaBackup(tmp, "main", db); err != nil {
 		return &exec.Result{Error: err}
 	}
 	return &exec.Result{}
