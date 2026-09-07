@@ -18,6 +18,17 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 	// set VAR [sqlite3_limit ...] — sqlite3_limit forms (sqllimits1-1.30:
 	// `set prior [sqlite3_limit db SQLITE_LIMIT_LENGTH 1]` binds VAR to
 	// the PRIOR value; `... -1` queries without changing).
+	// set VAR [cksum] / [cksum db2] — the tester.tcl fingerprint helper.
+	if parts := strings.Fields(cmdText); len(parts) >= 1 && parts[0] == "cksum" {
+		connVar := tp.dbVar
+		if len(parts) >= 2 {
+			if v := strings.TrimSpace(parts[1]); isValidGoIdent(tclVarToGo(v)) {
+				connVar = tclVarToGo(v)
+			}
+		}
+		tp.assignSetValue(goName, fmt.Sprintf("tclCksum(%s)", connVar))
+		return true
+	}
 	if parts := strings.Fields(cmdText); len(parts) >= 3 && parts[0] == "sqlite3_limit" {
 		// Forms: [sqlite3_limit db LIMIT VAL] (4 parts) or
 		// [sqlite3_limit LIMIT VAL] (3 parts, db omitted).

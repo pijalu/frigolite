@@ -123,7 +123,7 @@ func Test_vacuum2(t *testing.T) {
 		}
 		// expr [file size test.db]/$pageSize (not evaluated)
 	}
-	cksum = "cksum"
+	cksum = tclCksum(db)
 	_ = cksum // suppress unused warning
 	{ // do_test "vacuum2-3.2"
 		_r = tclCksum(db2)
