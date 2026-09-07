@@ -5,8 +5,364 @@
 package recover_pkg
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_recover(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_recover(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db2")
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var opts string
+	_ = opts // pre-declared from TCL source
+	var tsql string
+	_ = tsql // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "recover")
+	testprefix = "recover"
+	_ = testprefix // suppress unused warning
+	CLI = "test_find_cli"
+	_ = CLI // suppress unused warning
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	vtab.TclVarSet("doc", "", "\n  hello\n  world\n")
+	doc = "\n  hello\n  world\n"
+	_ = doc // suppress unused warning
+	{ // "1.1.1"
+		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, " + sqlLiteral(doc) + ", 8.4);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, " + sqlLiteral(doc) + ", 8.4);\n")
+		}
+	}
+	{ // do_recover_test "1.1.2"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		tclRecoverCompareDBs(t, db, db2)
+		db2.Close()
+	}
+	{ // "1.2.1"
+		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
+		}
+	}
+	{ // do_recover_test "1.2.2"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		tclRecoverCompareDBs(t, db, db2)
+		db2.Close()
+	}
+	{ // "1.3.1"
+		_res = db.Exec("\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t2 VALUES(NULL, 1, 2);\n  INSERT INTO t2 VALUES(NULL, 3, 4);\n  INSERT INTO t2 VALUES(NULL, 5, 6);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t3 VALUES(NULL, 1, 2);\n  INSERT INTO t3 VALUES(NULL, 3, 4);\n  INSERT INTO t3 VALUES(NULL, 5, 6);\n  DELETE FROM t2;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t2 VALUES(NULL, 1, 2);\n  INSERT INTO t2 VALUES(NULL, 3, 4);\n  INSERT INTO t2 VALUES(NULL, 5, 6);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t3 VALUES(NULL, 1, 2);\n  INSERT INTO t3 VALUES(NULL, 3, 4);\n  INSERT INTO t3 VALUES(NULL, 5, 6);\n  DELETE FROM t2;\n")
+		}
+	}
+	{ // do_recover_test "1.3.2"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		tclRecoverCompareDBs(t, db, db2)
+		db2.Close()
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "2.1.0"
+		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+		}
+	}
+	{ // do_recover_test "2.1.1"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		tclRecoverCompareDBs(t, db, db2)
+		db2.Close()
+	}
+	{ // "2.2.0"
+		r = db.Query("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
+		}
+	}
+	{ // do_recover_test "2.2.1"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		r = db2.Query("\n  SELECT name FROM sqlite_master\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master\n")
+			return
+		}
+		got := flatten(r)
+		want := "lost_and_found"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+		db2.Close()
+	}
+	{ // "2.3.0"
+		_res = db.Exec("\n  CREATE TABLE lost_and_found(a, b, c);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE lost_and_found(a, b, c);\n")
+		}
+	}
+	{ // do_recover_test "2.3.1"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		r = db2.Query("\n  SELECT name FROM sqlite_master\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master\n")
+			return
+		}
+		got := flatten(r)
+		want := "lost_and_found lost_and_found_0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+		db2.Close()
+	}
+	{ // "2.4.0"
+		_res = db.Exec("\n  CREATE TABLE lost_and_found_0(a, b, c);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE lost_and_found_0(a, b, c);\n")
+		}
+	}
+	{ // do_recover_test "2.4.1"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		r = db2.Query("\n  SELECT name FROM sqlite_master;\n  SELECT * FROM lost_and_found_1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master;\n  SELECT * FROM lost_and_found_1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "lost_and_found lost_and_found_0 lost_and_found_1 2 2 3 {} 2 3 1 2 2 3 {} 5 6 4 2 2 3 {} 8 9 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+		db2.Close()
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // do_recover_test "3.0"
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		db2, _derr := frigolite.Open("test.db2")
+		if _derr != nil { t.Fatal(_derr) }
+		tclConnRegister("db2", db2)
+		if _rr := db2.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+		tclRecoverCompareDBs(t, db, db2)
+		db2.Close()
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	r = db.Query(" PRAGMA secure_delete = 0 ")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA secure_delete = 0 ")
+	}
+	r = db.Query(" PRAGMA auto_vacuum = 0 ")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0 ")
+	}
+	{ // "4.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g, h, i);\n\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n\n  INSERT INTO t3 VALUES('one', 'two', 'three');\n  DROP TABLE t1;\n  DROP TABLE t2;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g, h, i);\n\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n\n  INSERT INTO t3 VALUES('one', 'two', 'three');\n  DROP TABLE t1;\n  DROP TABLE t2;\n")
+		}
+	}
+	{ // recover_with_opts 
+		_recSQL, _recErr := db.RecoverSQL(false)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		{
+			_rdb, _rerr := frigolite.Open("test.db2")
+			if _rerr != nil { t.Fatal(_rerr) }
+			if _rr := _rdb.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+			if _cerr := _rdb.Close(); _cerr != nil { t.Fatalf("recover close: %v", _cerr) }
+		}
+	}
+	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
+	if err != nil { t.Fatal(err) }
+	{ // "4.1.1"
+		r = db2.Query("\n  SELECT name FROM sqlite_schema\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema\n")
+			return
+		}
+		got := flatten(r)
+		want := "t3 lost_and_found"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.1.2"
+		r = db2.Query("\n  SELECT id, c0, c1, c2 FROM lost_and_found\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, c0, c1, c2 FROM lost_and_found\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 3 2 a b c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if db2 != nil { db2.Close() }
+	{ // recover_with_opts -ignore-freelist
+		_recSQL, _recErr := db.RecoverSQL(true)
+		if _recErr != nil { t.Fatalf("recover: %v", _recErr) }
+		_ = os.Remove("test.db2")
+		{
+			_rdb, _rerr := frigolite.Open("test.db2")
+			if _rerr != nil { t.Fatal(_rerr) }
+			if _rr := _rdb.Exec(_recSQL); _rr.Error != nil { t.Fatalf("recover replay: %v", _rr.Error) }
+			if _cerr := _rdb.Close(); _cerr != nil { t.Fatalf("recover close: %v", _cerr) }
+		}
+	}
+	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
+	if err != nil { t.Fatal(err) }
+	{ // "4.2.1"
+		r = db2.Query("\n  SELECT name FROM sqlite_schema\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema\n")
+			return
+		}
+		got := flatten(r)
+		want := "t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.2.2"
+		r = db2.Query("\n  SELECT * FROM t3\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3\n")
+			return
+		}
+		got := flatten(r)
+		want := "one two three"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if db2 != nil { db2.Close() }
+}

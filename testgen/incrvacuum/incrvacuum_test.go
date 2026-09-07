@@ -368,7 +368,7 @@ func Test_incrvacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 		}
-		// compare_dbs db1 db2 incrvacuum-5.3.${tn} (unsupported command, not transpiled)
+		tclRecoverCompareDBs(t, db1, db2)
 		{ // do_test "incrvacuum-5.3." + tn + ".integrity1"
 			r = db1.Query(" PRAGMA integrity_check; ")
 			if r.Error != nil {
