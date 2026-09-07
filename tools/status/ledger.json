@@ -1,11 +1,11 @@
 {
  "version": 1,
  "generated_at": "2026-09-06T06:46:07Z",
- "baseline_run_stamp": "2026-09-06T06:33:30Z",
- "baseline_total": 1219,
- "baseline_pass": 700,
- "baseline_fail": 235,
- "baseline_skip": 271,
+ "baseline_run_stamp": "2026-09-07T00:18:59Z",
+ "baseline_total": null,
+ "baseline_pass": 0,
+ "baseline_fail": 0,
+ "baseline_skip": 0,
  "timeout_suspects": 13,
  "packages": {
   "affinity2": {
@@ -328,7 +328,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "autoinc": {
-   "state": "pass",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan FULL-SUITE-DRIFT",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -439,7 +439,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "basexx1": {
-   "state": "fail",
+   "state": "pass",
    "goal": "P6.EXT",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.EXT; tail: --- FAIL: Test_basexx1 (0.13s)\n    basexx1_test.go:273: expected error matching \".*too big.*\", got: base64 accepts only blob or text\n          sql: \n        ...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -544,13 +544,13 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "bigfile": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "bigfile2": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -625,13 +625,13 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "btree01": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "btree02": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -654,7 +654,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "cache": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -733,7 +733,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "changes": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: ine_core.go:737 +0x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x2b05d06be120, {0x2b05d07d6200, 0x7b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:745 +0x258\ng...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -758,7 +758,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "cksumvfs": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P8.MISC",
    "evidence": "Serial PASS 178.5s (2026-09-06) but exceeds the 60s/pkg status budget (testgenslow-gated 8500-row loop, commit 1abce648) \u2014 seeds as timeout-suspect. Owner: P8.MISC. | baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P8.MISC; tail: _core.go:7",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -769,7 +769,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "closure01": {
-   "state": "pass",
+   "state": "fail",
    "goal": "P6.VTAB",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan plan/goals/P6.VTAB.md",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -870,7 +870,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "corrupt": {
-   "state": "pass",
+   "state": "fail",
    "goal": "P8.CORRUPT",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan plan/goals/P8.CORRUPT.md",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -1063,7 +1063,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "createtab": {
-   "state": "pass",
+   "state": "fail",
    "goal": "P2.CONSTRAINT",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan plan/goals/P2.CONSTRAINT.md",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -1162,7 +1162,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "dbstatus2": {
-   "state": "fail",
+   "state": "pass",
    "goal": "P5.HOOKS",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P5.HOOKS; tail: --- FAIL: Test_dbstatus2 (0.00s)\n    dbstatus2_test.go:327: query error: database disk image is malformed\n          sql: \n          PRAGMA journal_mode=DELET...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -1189,7 +1189,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "delete4": {
-   "state": "pass",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan FULL-SUITE-DRIFT",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -1536,7 +1536,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "filefmt": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -1822,7 +1822,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts3defer": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P6.FTS-B",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.FTS-B; tail: go:737 +0x360\ngithub.com/pijalu/frigolite.(*DB).Query(0x73c73cf902a0, {0x100aca323, 0x33b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:801 +0x308\ngithub.com/...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -1998,7 +1998,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts3snippet": {
-   "state": "pass",
+   "state": "fail",
    "goal": "P6.FTS-E",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan plan/goals/P6.FTS-E.md",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2038,7 +2038,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts4check": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P6.FTS-F",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.FTS-F; tail: , 0x162bde066300, {0x100a4cb7a?, 0x4?}, {0x100a4fc9e?, 0x9?}, 0x4e20)\n\t/Users/muaddib/dev/frigolite/testgen/fts4check/fts4check_test.go:62 +0x254\ngithub.com/...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2092,7 +2092,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts4merge": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P6.FTS-G",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.FTS-G; tail: , 0x63f27388ac60, {0x1025a0bcb?, 0xf?}, {0x0?, 0x10259fe85?}, 0x7558)\n\t/Users/muaddib/dev/frigolite/testgen/fts4merge/fts4merge_test.go:62 +0x254\ngithub.com/...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2110,7 +2110,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts4merge4": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P6.FTS-G",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.FTS-G; tail: x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x5db8708e43c0, {0x5db87bd80000, 0x30dfe})\n\t/Users/muaddib/dev/frigolite/frigolite.go:745 +0x258\ngithub.com/pijal...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2140,7 +2140,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts4opt": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P6.FTS-F",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.FTS-F; tail: ngine_core.go:737 +0x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x701bb93802a0, {0x100fc4573, 0x28})\n\t/Users/muaddib/dev/frigolite/frigolite.go:745 +0x258\ngi...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2164,7 +2164,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts4unicode": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P6.FTS-F",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.FTS-F; tail: x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x624c3afe6960, {0x1050dbd7e, 0x2f5})\n\t/Users/muaddib/dev/frigolite/frigolite.go:745 +0x258\ngithub.com/pijalu/fri...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2424,7 +2424,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "incrvacuum3": {
-   "state": "pass",
+   "state": "fail",
    "goal": "P8.INCRVACUUM",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan plan/goals/P8.INCRVACUUM.md",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2450,7 +2450,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "index4": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: xec/engine_core.go:737 +0x360\ngithub.com/pijalu/frigolite.(*DB).Query(0x4b4420118300, {0x101285cc3, 0x95})\n\t/Users/muaddib/dev/frigolite/frigolite.go:801 +0x...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -2564,7 +2564,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "intarray": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P6.VTAB",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.VTAB; tail: _core.go:737 +0x360\ngithub.com/pijalu/frigolite.(*DB).Query(0x63e01aeb4240, {0x105236cd9, 0x73})\n\t/Users/muaddib/dev/frigolite/frigolite.go:801 +0x308\ngithub...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2870,7 +2870,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "limit": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "goal": "P1.CRUD",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P1.CRUD; tail: ce(1)\n          \n    limit_test.go:545: expected error containing \"wrong number of arguments to function replace()\", got: <nil>\n          sql: \n             ...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -2928,7 +2928,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "lock5": {
-   "state": "pass",
+   "state": "fail",
    "goal": "P7.LOCK-A",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan plan/goals/P7.LOCK-A.md",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -3077,19 +3077,19 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "memdb": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "memdb1": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "memdb2": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -3157,7 +3157,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "misc3": {
-   "state": "pass",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan FULL-SUITE-DRIFT",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -3263,8 +3263,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "mutex2": {
-   "state": "pass",
-   "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan FULL-SUITE-DRIFT",
+   "state": "skipped",
+   "evidence": "N/A: SQLITE_MUTEX subsystem instrumentation (C mutex-layer double-open detection, no SQL surface); NA_EVIDENCE mutex2; skiptestfiles 2026-09-07",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "nan": {
@@ -3430,25 +3430,25 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "pager1": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "pager2": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "pager3": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "pager4": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -3474,7 +3474,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "pagesize": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -3496,7 +3496,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "pendingrace": {
-   "state": "fail",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "Un-skipped (collateral of P8.PRAGMA 7b1756b7 block edit, intentional visibility); FAILS: integrity_check during pending lock does not raise \"database is locked\". Owner: P8.PAGER (next queued goal). | baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P8.PAGER; tail: --- FAIL:",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -3518,7 +3518,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "pragma2": {
-   "state": "pass",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan FULL-SUITE-DRIFT",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -3619,7 +3619,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "quickcheck": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -3660,7 +3660,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "readonly": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -4099,7 +4099,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "select6": {
-   "state": "fail",
+   "state": "pass",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: SELECT * FROM t UNION ALL \n            SELECT l,m,l FROM j UNION ALL\n            SELECT * FROM k\n          )\n    select6_test.go:524: catchsql mismatch\n     ...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -4494,7 +4494,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "sqllimits1": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -4526,7 +4526,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "stmtrand": {
-   "state": "skipped",
+   "state": "pass",
    "goal": "P8.PAGER",
    "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7P8.PAGER",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -5422,7 +5422,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "tkt_d11f09d36e": {
-   "state": "timeout-suspect",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: om/pijalu/frigolite.(*DB).Exec(0x1eb796f9c300, {0x100aa799e, 0x3d})\n\t/Users/muaddib/dev/frigolite/frigolite.go:745 +0x258\ngithub.com/pijalu/frigolite/testgen...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -5517,7 +5517,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "transitive1": {
-   "state": "pass",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan FULL-SUITE-DRIFT",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -5919,7 +5919,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "vtabC": {
-   "state": "pass",
+   "state": "fail",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan FULL-SUITE-DRIFT",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -5940,7 +5940,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "vtabH": {
-   "state": "timeout-suspect",
+   "state": "pass",
    "goal": "P6.VTAB",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner P6.VTAB; tail: nal/exec/engine_core.go:737 +0x360\ngithub.com/pijalu/frigolite.(*DB).Query(0x9117fd670e0, {0x916da8fafa0, 0x9a})\n\t/Users/muaddib/dev/frigolite/frigolite.go:8...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -6619,7 +6619,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "zipfile": {
-   "state": "pass",
+   "state": "fail",
    "goal": "P6.VTAB",
    "evidence": "baseline 2026-09-06T06:33:30Z pass (last_run.json); sub-plan plan/goals/P6.VTAB.md",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
@@ -7299,5 +7299,6 @@
    "speed2",
    "speed3"
   ]
- }
+ },
+ "baseline": "2026-09-07T00:18:59Z"
 }
