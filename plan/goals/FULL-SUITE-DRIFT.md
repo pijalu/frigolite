@@ -581,3 +581,18 @@ above as the acceptance tests.
    ) with original whitespace.
 3. attach2 'database is locked': cross-connection lock gate emits
    "database is locked" for the wrong attachment scenario.
+
+### T4 check-4.9 narrowing (2026-09-09)
+
+Probe isolation: the UPDATE path (checkTableUpdateChecks →
+tableCheckConstraintText) already emits the FULL verbatim multiline text
+("x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n
+OR -x==y+10") — matches the oracle. The truncation to "x+y==11" is in the
+INSERT path (insert_constraints.go's checkText, checkConstraintText/
+checkConstraintTextFromPart): it stops at the first newline inside the
+CHECK body. Next action: find the line-boundary cut in the INSERT path's
+text extraction (splitColumnDefs/checkParenExpr are depth-based, so the
+cut is likely in an earlier line-splitting of the stored SQL or a
+part-boundary), and make the INSERT path reuse tableCheckConstraintText's
+full-span extraction. The failing setup inserts (1,1),(2,4),(4,6) are
+correct CHECK violations — only the message text is truncated.
