@@ -646,3 +646,16 @@ Acceptance cases (oracle-matched, from the T-log probe):
 
 filter1-6.1 passes. Regression net: window1-5, filter1's other cases,
 func4/subquery (baseline-fail, unchanged), native P1/P3/P6/P8 all green.
+
+### T4 trigger2 triage (2026-09-09) — root cause found: tclExprWith lacks TCL int()
+
+trigger2-1.x.1/.2 (and without_rowid4's same shape) fail because the
+generated `tclExprWith("int($v)", ...)` cannot evaluate TCL's `int()`
+coercion function — it falls back to string semantics, producing the
+literal strings "int1".."int5" instead of the integers 1..5 from each
+rlog row's idx column. The engine's multi-statement Query and trigger
+execution are fine (probe: rlog rows are 7-wide with int64 idx; the two
+SELECT statements concatenate correctly). Fix: teach the generated
+tclExprWith helper (helpers template) to coerce with int()/wide()/
+boolean() TCL functions, then regenerate. trigger2 and without_rowid4
+should flip fail->pass (their remaining assertions are the same shape).
