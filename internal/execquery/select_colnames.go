@@ -388,7 +388,11 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 			if _, ok := rowMaps[i].Get(key); ok {
 				continue
 			}
-			v, err := e.ctx.EvalExpr(ob.Expr, rowMaps[i])
+			// Output column names are visible inside ORDER BY expressions
+			// (SQLite resolves ORDER BY names against the result set):
+			// filter1-4.2's ORDER BY (h+1.0) resolves the alias h.
+			cm := combinedOutputRowMap(rowMaps[i], result.Columns, result.Rows[i])
+			v, err := e.ctx.EvalExpr(ob.Expr, cm)
 			if err != nil {
 				return err
 			}

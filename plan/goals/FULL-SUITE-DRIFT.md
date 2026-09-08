@@ -519,3 +519,18 @@ queued: 4.2 (ORDER BY an alias inside an expression — ORDER BY (h+1.0)
 does not resolve the alias h), 6.1 (FILTER on a correlated scalar
 subquery's aggregate), 440 (mixed FILTER shapes). minmax/minmax3/4/
 select families verified unchanged; the unfiltered path is byte-identical.
+
+### T4 session 6 (2026-09-09) — ORDER BY names resolve SELECT aliases inside expressions
+
+`SELECT avg(c) FILTER (WHERE b!=1) AS h FROM t1 GROUP BY a ORDER BY
+(h+1.0)` — names inside ORDER BY expressions resolve against the result
+set (SQLite's resolveOrderGroupBy tries output aliases). The comparator's
+fallback evaluation and the ORDER BY pre-evaluation pass now evaluate
+against a combined row map (source columns + output column names mapped to
+their result values, output shadowing source on name conflicts, matching
+alias shadowing per resolver01-4.1's documented precedence).
+
+filter1-4.2 passes; filter1 3 → 2 failing assertions (6.1: FILTER on a
+correlated scalar subquery's aggregate; 440: mixed FILTER shapes — both
+queued). Regression net: native P1/P3/P5/P6/P8 green; orderby1-5,
+select*, minmax*, resolver01, with1/2 unchanged vs ledger.

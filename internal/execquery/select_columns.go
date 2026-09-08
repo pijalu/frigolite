@@ -595,17 +595,43 @@ func (e *SelectEngine) compareOrderByFallback(ob sql.OrderByTerm, obExpr sql.Exp
 		if v, ok := rowMaps[i].Get(sql.ExprString(ob.Expr)); ok {
 			left = v
 		} else {
-			left, _ = e.ctx.EvalExpr(ob.Expr, rowMaps[i])
+			left, _ = e.ctx.EvalExpr(ob.Expr, combinedOutputRowMap(rowMaps[i], resultCols, rowAt(rows, i)))
 		}
 	}
 	if !rok {
 		if v, ok := rowMaps[j].Get(sql.ExprString(ob.Expr)); ok {
 			right = v
 		} else {
-			right, _ = e.ctx.EvalExpr(ob.Expr, rowMaps[j])
+			right, _ = e.ctx.EvalExpr(ob.Expr, combinedOutputRowMap(rowMaps[j], resultCols, rowAt(rows, j)))
 		}
 	}
 	return e.compareOrderByValues(left, right, ob)
+}
+
+// combinedOutputRowMap merges a source row map with the output row's values
+// keyed by result column name, so names inside ORDER BY expressions resolve
+// against SELECT-list aliases (SQLite resolves ORDER BY names against the
+// result set; filter1-4.2's ORDER BY (h+1.0) needs the alias h). Output
+// values shadow same-named source columns, matching alias shadowing.
+func combinedOutputRowMap(src RowMap, resultCols []string, row []interface{}) RowMap {
+	m := make(RowMap, len(src)+len(resultCols))
+	for k, v := range src {
+		m[k] = v
+	}
+	for ci, cn := range resultCols {
+		if cn != "" && ci < len(row) {
+			m[cn] = row[ci]
+		}
+	}
+	return m
+}
+
+// rowAt returns rows[idx] or nil when out of range.
+func rowAt(rows [][]interface{}, idx int) []interface{} {
+	if idx < 0 || idx >= len(rows) {
+		return nil
+	}
+	return rows[idx]
 }
 
 // compareOrderByValues compares two values for an ORDER BY term, applying
