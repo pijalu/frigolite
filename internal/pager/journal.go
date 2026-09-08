@@ -614,6 +614,38 @@ func (p *Pager) rollbackFromJournalLocked() error {
 		recs = append(recs, rec{pageNum: pn, data: pg})
 		off += 4 + int(p.pageSize)
 	}
+	// C nTrunc semantics (pager.c pager_rollback): when the transaction
+	// shrank the file (in-transaction incremental-vacuum steps truncate
+	// through the journal-protected path), restore the file length to the
+	// size recorded at journal start (header[16:20], dbOrigSize) BEFORE
+	// replaying records, writing the journalled before-images of tail
+	// pages back to disk — the file.Truncate in truncatePages removed
+	// them mid-transaction and cache-only replay would leave zeros on
+	// disk. The in-memory page count is repaired and cache pages beyond
+	// the restored size dropped.
+	if p.file != nil && p.journalDBOrigSize > 0 && p.numPages < p.journalDBOrigSize {
+		newSize := int64(p.journalDBOrigSize) * int64(p.pageSize)
+		if err := p.file.Truncate(newSize); err == nil {
+			p.fileSize = newSize
+			for i := len(recs) - 1; i >= 0; i-- {
+				if r := recs[i]; r.pageNum > p.numPages && r.pageNum <= p.journalDBOrigSize {
+					if _, err := p.file.WriteAt(r.data, int64(r.pageNum-1)*int64(p.pageSize)); err != nil {
+						break
+					}
+				}
+			}
+			for pgno := range p.pages {
+				if pgno > p.journalDBOrigSize {
+					delete(p.pages, pgno)
+					delete(p.dirty, pgno)
+				}
+			}
+			p.numPages = p.journalDBOrigSize
+			if p.header != nil && len(p.header) >= 32 {
+				binary.BigEndian.PutUint32(p.header[28:32], p.journalDBOrigSize)
+			}
+		}
+	}
 	// Restore in reverse order (so later records' before-images win).
 	for i := len(recs) - 1; i >= 0; i-- {
 		r := recs[i]

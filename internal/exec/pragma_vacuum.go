@@ -71,20 +71,13 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	if nFree == 0 {
 		return &execpragma.Result{}
 	}
-	// Transactional guard (P8.INCRVACUUM.phase7): yield the row and
-	// return without modifying the file or the chain count. The journal
-	// machinery does not yet capture the BEFORE image of the truncated
-	// tail page, so a ROLLBACK after an in-transaction shrink would
-	// leave the file shorter than the btree expects. In a transaction we
-	// still yield the row but do NOT call runIncrVacuumStep — the chain
-	// still references the page, so a count decrement would create a
-	// header.count / chain-walked-count mismatch. C runs the steps
-	// inside the transaction (journal-protected); the engine's deferral
-	// is a documented divergence until the journal captures tail-page
-	// before-images.
-	if e.tx.inTransaction {
-		return &execpragma.Result{Rows: [][]interface{}{{}}}
-	}
+	// C runs the steps inside the open transaction: every page write and
+	// every tail-page truncation is protected by the rollback journal —
+	// truncatePages journals each removed tail page's before-image and
+	// rollbackFromJournalLocked restores the file length via the journal
+	// header's dbOrigSize (pager.c's nTrunc playback) — so ROLLBACK undoes
+	// the drain exactly like any other write. The former in-transaction
+	// no-op (P8.INCRVACUUM.phase7 divergence) is retired.
 	// btree.c sqlite3BtreeIncrVacuum + pragma.c PragTyp_INCREMENTAL_VACUUM:
 	// the VDBE loops OP_IncrVacuum — one incrVacuumStep per iteration —
 	// until SQLITE_DONE or the N-step limit. Each step (truncate a free

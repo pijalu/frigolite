@@ -1484,6 +1484,17 @@ func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 	if adjustFreelistCount {
 		p.freelistPagesAboveLocked(n)
 	}
+	// C-parity (nTrunc): while a rollback journal is open, the before-image
+	// of every truncated tail page must be captured so a ROLLBACK can
+	// restore both its content and the file length (pager.c syncJournal's
+	// nTrunc field + pager_rollback playback). The on-disk image is still
+	// the before-image here — dirty pages flush only at COMMIT — and the
+	// journal must be appended BEFORE the file shrinks.
+	if p.journalFile != nil && n < p.numPages {
+		for pgno := n + 1; pgno <= p.numPages; pgno++ {
+			p.journalPageBeforeLocked(pgno)
+		}
+	}
 	for pgno := range p.pages {
 		if pgno > n {
 			delete(p.pages, pgno)

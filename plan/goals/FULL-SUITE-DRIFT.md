@@ -359,3 +359,33 @@ update this T-log → commit ("FULL-SUITE-DRIFT.Tn: …") → push.
 
 Sweep re-seeded: 1219 packages, **734 pass / 234 fail / 244 skip / 7
 timeout-suspect** (T2 close: 730/238). `tools/status -check` PASS.
+
+### T4 session 1 (2026-09-08) — native freelist/autovacuum-drain reds fixed
+
+Both native reds left from the T3 note are fixed with oracle/C grounding:
+
+- **maxTrunkLeaves now uses usableSize** (src/btree.c:6871: `nLeaf <
+  pBt->usableSize/4 - 8`): FreePage's trunk-fill cap was computed from
+  pageSize, overfilling trunks by the reserved-byte margin. For the
+  engine's default reserved=0 the cap is unchanged (248); databases with
+  reserved bytes no longer overfill. Oracle cross-check (macOS sqlite3,
+  reserved=12): its trunks fill to exactly (1024-12)/4-8 = 245.
+  TestP8FreelistMultitrunkInspectChain's constant was ALSO wrong (it
+  assumed reserved=8): the test now derives the cap from the db's own
+  header byte 20.
+- **In-transaction incremental_vacuum now actually drains** — the
+  P8.INCRVACUUM.phase7 no-op divergence is retired. C runs the drain
+  steps inside the open transaction, journal-protected. The pager
+  gained the two missing pieces: truncatePages journals the before-image
+  of every removed tail page, and rollbackFromJournalLocked restores the
+  file length to the journal header's dbOrigSize (pager.c's nTrunc
+  playback), including re-writing the journalled tail before-images to
+  disk before the cache replay (cache-only replay would leave zeros in
+  the restored tail). TestP8IncrVacuum3OracleSequence's tn8
+  (BEGIN; double; incremental_vacuum=1000; double; COMMIT) now ends at
+  freelist_count=0, integrity "ok", matching the oracle.
+
+Regression net: TestP8*/TestP6*/TestP5*/TestIncrcorrupt/TestCorrupt2
+native families green; testgen incrvacuum/autovacuum2/corrupt9/vacuum*/
+journal2/journal3/rollback/savepoint*/without_rowid1/memdb1 unchanged
+(savepoint's failure is pre-existing, same signature at HEAD).

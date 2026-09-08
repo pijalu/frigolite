@@ -18,10 +18,12 @@ import (
 // maxTrunkLeaves returns the btree.c back-compat leaf cap: a trunk takes
 // another leaf only while its leaf count is below usableSize/4 - 8
 // (freePage2: "newer versions of SQLite still avoid using the last six
-// entries in the freelist trunk page array"). usableSize == pageSize (the
-// engine reserves no bytes).
+// entries in the freelist trunk page array"; src/btree.c:6871). The cap is
+// computed from usableSize — pageSize minus the header's reserved bytes —
+// not from pageSize, so databases with reserved space do not overfill
+// trunks past the limit readers accept.
 func (p *Pager) maxTrunkLeaves() uint32 {
-	return p.pageSize/4 - 8
+	return p.UsableSize()/4 - 8
 }
 
 // journalPageBeforeLocked appends the page's on-disk (pre-transaction)

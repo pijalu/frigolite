@@ -135,7 +135,13 @@ func TestP8FreelistMultitrunkInspectChain(t *testing.T) {
 	walked := 0
 	trunkCount := 0
 	const maxIter = 100000
-	const maxLeavesPerTrunk = (pageSize - 8) / 4 - 8 // SQLite's back-compat margin (246 for 1024-byte pages)
+	// SQLite's back-compat margin (btree.c freePage2, src/btree.c:6871): a
+	// trunk takes leaves only while nLeaf < usableSize/4 - 8, where
+	// usableSize = pageSize - header byte 20 (reserved space). The oracle
+	// (macOS sqlite3, reserved=12) fills its trunks to exactly (1024-12)/4-8
+	// = 245; this engine reserves 0 bytes, so its cap is 248.
+	reserved := int(data[20])
+	maxLeavesPerTrunk := (pageSize-reserved)/4 - 8
 	for iter := 0; trunk != 0 && iter < maxIter; iter++ {
 		if seen[trunk] {
 			t.Fatalf("cycle at trunk=%d after walking %d pages", trunk, walked)
