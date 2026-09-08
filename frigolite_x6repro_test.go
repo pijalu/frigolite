@@ -25,9 +25,7 @@ func TestX6Repro(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Chdir(dir); err != nil {
-		t.Fatal(err)
-	}
+	t.Chdir(dir)
 	db, err := Open("test.db")
 	if err != nil {
 		t.Fatal(err)

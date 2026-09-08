@@ -8,7 +8,6 @@
 package frigolite_test
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -16,9 +15,7 @@ import (
 )
 
 func TestP8AutovacuumInsertOnlyIntegrity(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -92,9 +89,7 @@ func TestP8AutovacuumInsertOnlyIntegrity(t *testing.T) {
 // of the second iteration — indicating the freelist chain is corrupted
 // at the end of iteration 1 in a way the second iteration trips over.
 func TestP8AutovacuumTwoIterations(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -151,9 +146,7 @@ func TestP8AutovacuumTwoIterations(t *testing.T) {
 // SELECT a FROM av1 should return 0 rows. The test fails if the
 // engine leaves a phantom row in the table.
 func TestP8AutovacuumIter1SelectAfter20Deletes(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)

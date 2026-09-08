@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
@@ -232,7 +233,9 @@ func TestP6_VacuumReindex(t *testing.T) {
 		t.Errorf("VACUUM: %v", err)
 	}
 
-	// VACUUM INTO <file> parses (no-op execution).
+	// VACUUM INTO <file> — the target must not pre-exist, so clear any
+	// artifact left by a previous run.
+	os.Remove("vacuum_out.db")
 	if err := db.Exec("VACUUM INTO 'vacuum_out.db'").Error; err != nil {
 		t.Errorf("VACUUM INTO: %v", err)
 	}

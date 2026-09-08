@@ -11,7 +11,7 @@ import (
 func TestBackupEmptySourceRewritesDestAsOnePage(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	os.Chdir(dir)
+	t.Chdir(dir)
 
 	// Destination with content at the default page size (3 pages on disk).
 	dst, err := Open("dest.db")
@@ -89,7 +89,7 @@ func TestBackupEmptySourceRewritesDestAsOnePage(t *testing.T) {
 func TestBackupBasicBackup(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	os.Chdir(dir)
+	t.Chdir(dir)
 
 	src, err := Open("test.db")
 	if err != nil {
@@ -147,7 +147,7 @@ func TestBackupBasicBackup(t *testing.T) {
 func TestBackupPageCounting(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	os.Chdir(dir)
+	t.Chdir(dir)
 
 	src, err := Open("test.db")
 	if err != nil {
@@ -213,7 +213,7 @@ func TestBackupPageCounting(t *testing.T) {
 func TestBackupErrors(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	os.Chdir(dir)
+	t.Chdir(dir)
 
 	src, err := Open("test.db")
 	if err != nil {
@@ -261,7 +261,7 @@ func TestBackupErrors(t *testing.T) {
 func TestBackupMemoryDestEmptyPageSizeAdoptsSource(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	os.Chdir(dir)
+	t.Chdir(dir)
 
 	src, err := Open("test.db")
 	if err != nil {
@@ -296,7 +296,7 @@ func TestBackupMemoryDestEmptyPageSizeAdoptsSource(t *testing.T) {
 func TestBackupMemoryDestPageSizeMismatch(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	os.Chdir(dir)
+	t.Chdir(dir)
 
 	src, err := Open("test.db")
 	if err != nil {
@@ -328,7 +328,7 @@ func TestBackupMemoryDestPageSizeMismatch(t *testing.T) {
 func TestBackupCloseBusy(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	os.Chdir(dir)
+	t.Chdir(dir)
 
 	src, err := Open("test.db")
 	if err != nil {
@@ -387,14 +387,7 @@ func TestBackupCloseBusy(t *testing.T) {
 func TestBackupBusyLocking(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "backup")
 	defer os.RemoveAll(dir)
-	oldDir, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(oldDir)
-	if err := os.Chdir(dir); err != nil {
-		t.Fatal(err)
-	}
+	t.Chdir(dir)
 
 	src, err := Open("test.db")
 	if err != nil {

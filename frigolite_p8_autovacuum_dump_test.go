@@ -5,7 +5,6 @@ package frigolite_test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -13,9 +12,7 @@ import (
 )
 
 func TestP8AutovacuumDumpState(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -77,6 +74,7 @@ func TestP8AutovacuumDumpState(t *testing.T) {
 }
 
 var _ = itoaDump
+
 func itoaDump(i int) string {
 	if i == 0 {
 		return "0"

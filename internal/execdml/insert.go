@@ -728,6 +728,17 @@ func scanForConflict(cursor *btree.Cursor, uniqueCols []int, values []interface{
 			break
 		}
 
+		// Rowid-alias convention: the IPK column reads back NULL from the
+		// record (NullIPKAliasForWrite); its value IS the rowid. Without the
+		// substitution an inserted row with an explicit IPK value never
+		// conflicts when the scan runs (tables whose IPK is one of several
+		// UNIQUE columns skip the rowid-seek fast path).
+		for i, cd := range colDefs {
+			if i < len(rec.Values) && rec.Values[i] == nil && isIPKRowidAliasCol(cd) {
+				rec.Values[i] = cell.RowID
+			}
+		}
+
 		if idx := hasConflictAt(rec.Values, uniqueCols, values, colDefs); idx >= 0 {
 			return cell.RowID, rec.Values, idx, true
 		}

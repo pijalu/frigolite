@@ -16,7 +16,6 @@
 package frigolite_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/pijalu/frigolite"
@@ -68,9 +67,7 @@ func p8BugDIntegrity(t *testing.T, db *frigolite.DB, tag string) {
 // never damage a surviving table (av4), and the drain must keep
 // integrity_check clean.
 func TestP8DropTablesSurviveSiblingDrops(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -127,9 +124,7 @@ func TestP8DropTablesSurviveSiblingDrops(t *testing.T) {
 // and sit BELOW the tables' data pages. With roots interleaved among data
 // pages (the old AllocatePage behavior) the commit drain truncates them.
 func TestP8RootPagesInRootBlock(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)

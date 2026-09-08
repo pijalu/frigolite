@@ -88,6 +88,38 @@ at ledger baseline. fk_constraint.go is at 1008 lines (>1000 hard gate) —
 pre-existing 999-line file + 9 lines of this fix; split deferred to the
 file-size remediation tranche per §5c.
 
+### T1.2 RESULT (2026-09-07/08) — the other 6 standard-suite failures
+
+All six were ORDER-DEPENDENT casualties of one hygiene bug: hand-written
+tests calling `os.Chdir(t.TempDir())` (or MkdirTemp+Chdir) without
+restoring — t.TempDir DELETES the directory at test cleanup, leaving the
+process CWD dangling for every later test (file creations fail ENOENT;
+fixture-relative paths resolve into deleted dirs). Converted all 21 sites
+across 8 files to `t.Chdir` (Go 1.24+, auto-restores; go.mod `go`
+directive bumped 1.22.0 → 1.24.0 — toolchain is 1.27).
+
+Two real fixes alongside:
+- `execdml.scanForConflict` substitutes cell.RowID for the NULL IPK slot
+  (T1 root cause, second seam): a table whose IPK is one of SEVERAL unique
+  columns skips the rowid-seek fast path, so INSERT OR IGNORE with an
+  explicit duplicate IPK silently REPLACED the row (TestP1InsertOrIgnore:
+  expected count=1 sum=1, got 2/3).
+- TestP6_VacuumReindex removes a stale `vacuum_out.db` target before
+  VACUUM INTO (the target-must-not-exist contract is correct; the test
+  lacked cleanup).
+
+After: `go test .` reports ZERO failing tests; the earlier
+TestNativeBtreeDividerFixtureReference / TestNativeWalCheckpointPassive
+FixtureReference / TestWALConformanceReadParity / TestRtreeStressChurn /
+TestNativeRtreeCircleMatch / TestP8FreelistMultitrunk / TestP8IncrVacuum3
+failures all disappear with the CWD fix.
+
+NOTE (perf, P9.PERF scope): the root TestSQLiteSuite binary runs ~all 1219
+JSON files in one process and sits right at the default 10-minute test
+timeout (savepoint4 alone = 131s standalone, identical at HEAD db031d58c
+and this tree — no regression from these fixes). Use `-timeout 1500s` for
+full-suite verification until the perf tranche lands.
+
 ### Tranches (execute in order; one tranche per commit series)
 
 - **T1 standard-suite drift**: repair the hand-written P1/P3 upsert, FK and

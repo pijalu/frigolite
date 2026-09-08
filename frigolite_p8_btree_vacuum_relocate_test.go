@@ -8,7 +8,7 @@ import (
 )
 
 func TestP8AutovacuumNoDataCorruption(t *testing.T) {
-	os.Chdir(t.TempDir())
+	t.Chdir(t.TempDir())
 	defer os.Remove("test.db")
 	db, err := Open("test.db")
 	if err != nil {

@@ -29,7 +29,7 @@ import (
 // well-formed (no duplicate leaves, no cycles, every page accounted
 // for) and PRAGMA integrity_check must return "ok".
 func TestP8AutovacuumChainPop(t *testing.T) {
-	os.Chdir(t.TempDir())
+	t.Chdir(t.TempDir())
 	defer os.Remove("test.db")
 	db, err := Open("test.db")
 	if err != nil {
@@ -71,7 +71,7 @@ func TestP8AutovacuumChainPop(t *testing.T) {
 // pages have been freed. (Vacuum operations free pages; INSERTs
 // don't.)
 func TestP8AutovacuumChainPopFreeListCount(t *testing.T) {
-	os.Chdir(t.TempDir())
+	t.Chdir(t.TempDir())
 	defer os.Remove("test.db")
 	db, err := Open("test.db")
 	if err != nil {

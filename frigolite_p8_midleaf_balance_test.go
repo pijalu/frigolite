@@ -18,7 +18,6 @@
 package frigolite_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/pijalu/frigolite"
@@ -94,9 +93,7 @@ func p8BugCCheckRowids(t *testing.T, db *frigolite.DB, deleted map[int]bool) {
 // rowids when a middle leaf empties and the parent's divider cells are
 // rebuilt.
 func TestP8BalanceMidLeafDeleteNoVacuum(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -121,9 +118,7 @@ func TestP8BalanceMidLeafDeleteNoVacuum(t *testing.T) {
 // the same rebalance plus the commit-time page drain must preserve every
 // surviving row and leave integrity_check clean.
 func TestP8BalanceMidLeafDeleteAutoVacuum(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	t.Chdir(t.TempDir())
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatalf("open: %v", err)
