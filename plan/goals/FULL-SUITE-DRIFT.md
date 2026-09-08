@@ -556,3 +556,28 @@ This is a scoped redesign of evalAggOverOuterRowsWithInner /
 aggregateHasOnlyOuterRefs (the FILTER expression must participate in the
 inner-reference scan) — queued as its own batch with the probe cases
 above as the acceptance tests.
+
+### T4 next-batch plan (2026-09-09) — scoped entry points
+
+1. **Correlated-aggregate inner-row stepping** (filter1-6.1): the change
+   lives in evalAggOverOuterRowsWithInner (select_agg.go:451) — when the
+   subquery SELECT has a FROM clause, the aggregate's stepping rows must be
+   the INNER rows (allRowMaps, each merged over the current outer row's
+   values so outer-constant args resolve) instead of outerRows, and the
+   FILTER must evaluate on the inner row. The single-evaluation caching of
+   the scalar subquery result must also treat an aggregate arg that misses
+   the inner columns as correlated. Acceptance cases (oracle-verified):
+   (SELECT COUNT(a) FILTER(WHERE x) FROM t2) FROM t1 -> [1,1];
+   (SELECT COUNT(a) FROM t2) FROM t1 -> [1,1] (currently [2], steps outer
+   rows); (SELECT COUNT(x) FILTER(WHERE x) FROM t2) FROM t1 -> [1,1]
+   (already green — do not regress). FROM-less correlated aggregates
+   (window1 76.5) keep outer-row stepping.
+2. **check-4.9 verbatim multiline text via the UPDATE path**: the UPDATE
+   emitted "CHECK constraint failed: x+y==11" — the first line only —
+   where the oracle carries the full verbatim CHECK body including
+   newlines. Trace whether the message came from the column-level
+   checkConstraintText fallback or a truncated tableCheckConstraintText
+   span; the oracle target is the raw span between CHECK( and its matching
+   ) with original whitespace.
+3. attach2 'database is locked': cross-connection lock gate emits
+   "database is locked" for the wrong attachment scenario.
