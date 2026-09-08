@@ -502,3 +502,20 @@ TCL db-func fixture registration — converter gap (NA class, see func3).
 - autoinc-12.5: AUTOINCREMENT sequence corruption should surface
   "database disk image is malformed" (error-detection gap like the T2
   class).
+
+### T4 session 5 (2026-09-09) — filter1 bare column with filtered aggregate
+
+`reorderRowsForMinMax`/`minMaxSourceRow` now honor the aggregate's FILTER
+clause: minMaxAggregate carries the FILTER expression, filtered-out rows
+cannot produce the extreme value, and when a filtered MIN/MAX has no
+contributing row the bare columns take the group's FIRST row (C's
+aggregate-with-FILTER semantics: no accumulator ever records, so the
+output column reads the group's first row — filter1-3.3 expects
+[1,3,{}],[2,6,{}], was [1,4,{}],[2,8,{}]). The unfiltered all-NULL
+fallback (last row) is unchanged.
+
+filter1: 4 → 3 failing assertions (3.3 fixed). Remaining filter1 failures
+queued: 4.2 (ORDER BY an alias inside an expression — ORDER BY (h+1.0)
+does not resolve the alias h), 6.1 (FILTER on a correlated scalar
+subquery's aggregate), 440 (mixed FILTER shapes). minmax/minmax3/4/
+select families verified unchanged; the unfiltered path is byte-identical.

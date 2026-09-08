@@ -184,8 +184,9 @@ func (e *SelectEngine) exprCaseHasAggregate(v *sql.CaseExpr) bool {
 // queries: SQLite evaluates bare columns against the input row that produced
 // the last min/max aggregate in the result set.
 type minMaxAggregate struct {
-	name string // "MIN" or "MAX" (uppercased)
-	arg  sql.Expr
+	name   string // "MIN" or "MAX" (uppercased)
+	arg    sql.Expr
+	filter sql.Expr // FILTER (WHERE ...) clause; nil when absent
 }
 
 // lastMinMaxAggregate returns the last (rightmost) single-argument MIN/MAX
@@ -214,6 +215,15 @@ func (e *SelectEngine) minMaxSourceRow(mm *minMaxAggregate, rowMaps []RowMap) in
 	bestIdx := -1
 	var bestVal interface{}
 	for i, row := range rowMaps {
+		if mm.filter != nil {
+			// FILTER (WHERE ...) excludes rows from the aggregate entirely:
+			// a filtered-out row can never be the row that produced the
+			// extreme value (filter1-3.3).
+			fv, ferr := e.ctx.EvalExpr(mm.filter, row)
+			if ferr != nil || fv == nil || !execexpr.ToBool(fv) {
+				continue
+			}
+		}
 		val, err := e.ctx.EvalExpr(mm.arg, row)
 		if err != nil || val == nil {
 			continue
@@ -231,8 +241,13 @@ func (e *SelectEngine) minMaxSourceRow(mm *minMaxAggregate, rowMaps []RowMap) in
 		}
 	}
 	if bestIdx < 0 {
-		// All arguments NULL (or empty rows): bare columns come from the
-		// last row.
+		// No row produced a value. With a FILTER excluding every row the
+		// aggregate yields NULL and bare columns take the group's FIRST row
+		// (filter1-3.3: max(b) FILTER (WHERE c='x') -> c of the first row);
+		// the unfiltered all-NULL case keeps the last-row behavior.
+		if mm.filter != nil {
+			return 0
+		}
 		return len(rowMaps) - 1
 	}
 	return bestIdx

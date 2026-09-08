@@ -64,7 +64,7 @@ func minMaxAggregateMatch(fc *sql.FuncCall, funcs *function.Registry) (*minMaxAg
 	if !ok || fn.Type != function.TypeAggregate {
 		return nil, false
 	}
-	return &minMaxAggregate{name: strings.ToUpper(fc.Name), arg: fc.Args[0]}, true
+	return &minMaxAggregate{name: strings.ToUpper(fc.Name), arg: fc.Args[0], filter: fc.Filter}, true
 }
 
 // isMinMaxName reports whether name is MIN or MAX (case-insensitive).
