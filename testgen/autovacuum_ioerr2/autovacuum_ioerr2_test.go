@@ -12,9 +12,6 @@ import (
 
 func Test_autovacuum_ioerr2(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("backup.db")
-	_ = os.Remove("test.db")
-	_ = os.Remove("test.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -69,6 +66,7 @@ func Test_autovacuum_ioerr2(t *testing.T) {
 	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)... (unsupported command, not transpiled)
 	// do_ioerr_test autovacuum-ioerr2-2 -tclprep {\n  execsql {\n    PRAGMA auto_vacuum = 1;\n    PR... (unsupported command, not transpiled)
 	// do_ioerr_test autovacuum-ioerr2-3 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)... (unsupported command, not transpiled)
+	os.Remove("backup.db")
 	// do_ioerr_test autovacuum-ioerr2-4 -tclprep {\n    if {![file exists backup.db]} {\n      sqlit... (unsupported command, not transpiled)
 	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)... (unsupported command, not transpiled)
 }

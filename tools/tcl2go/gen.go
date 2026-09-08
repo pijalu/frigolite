@@ -867,6 +867,17 @@ func sourceLeadingDeletes(src string) []string {
 	var paths []string
 	for _, line := range strings.Split(head, "\n") {
 		t := strings.TrimSpace(line)
+		// A loop header starts a re-executed region: forcedelete/file-delete
+		// occurrences after it are LOOP-BODY deletes (fts3snippet's
+		// `forcedelete test.db` inside the foreach, run once per encoding),
+		// not one-shot leading deletes. Stop the scan so they are emitted at
+		// their real position by processFileDelete — pre-consuming them here
+		// swallowed every per-iteration delete and left stale databases
+		// behind ("table ft already exists" on the loop's second pass).
+		if strings.HasPrefix(t, "foreach ") || strings.HasPrefix(t, "for {") ||
+			strings.HasPrefix(t, "while {") {
+			break
+		}
 		t = strings.TrimPrefix(t, "catch {")
 		for _, kw := range []string{"forcedelete ", "delete_file ", "file delete "} {
 			if strings.HasPrefix(t, kw) {

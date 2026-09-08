@@ -14,9 +14,6 @@ import (
 
 func Test_notify2(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db")
-	_ = os.Remove("test2.db")
-	_ = os.Remove("test3.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -165,6 +162,7 @@ func Test_notify2(t *testing.T) {
 		xPrepare := _items0[_idx0+2]
 		_ = xPrepare // suppress unused warning
 		_ = _idx0
+			os.Remove("test.db")
 			vtab.TclVarSet("ThreadSetup", "", "set xStep " + xStep + ";set xPrepare " + xPrepare + ";set nSecond " + nSecond)
 			ThreadSetup = "set xStep " + xStep + ";set xPrepare " + xPrepare + ";set nSecond " + nSecond
 			_ = ThreadSetup // suppress unused warning

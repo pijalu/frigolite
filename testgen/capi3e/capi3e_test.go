@@ -14,8 +14,6 @@ import (
 
 func Test_capi3e(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("base.db")
-	_ = os.Remove("$name")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -140,7 +138,9 @@ func Test_capi3e(t *testing.T) {
 	{ // do_test "capi3e-3.4"
 		if db2 != nil { db2.Close() }
 	}
+	os.Remove("base.db")
 	for _, name := range tclSplitList(names) {
 	_ = name // suppress unused warning
+		os.Remove(name)
 	}
 }

@@ -23,11 +23,6 @@ func Test_zipfile(t *testing.T) {
 	_ = os.Remove("dirname")
 	_ = os.Remove("dirname2")
 	_ = os.Remove("test.zip")
-	_ = os.Remove("test1.zip")
-	_ = os.Remove("test2.zip")
-	_ = os.Remove("test_unzip")
-	_ = os.Remove("test_unzip")
-	_ = os.Remove("test.zip")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -705,6 +700,7 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			if tclBool(tclBool01(vtab.TclVarExists("UNZIP", ""))) {
+				os.Remove("test1.zip")
 				{ // do_test "6.0"
 					r = db.Query("\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
 					if r.Error != nil {

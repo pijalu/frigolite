@@ -14,10 +14,6 @@ import (
 
 func Test_tkt_2d1a5c67d(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db")
-	_ = os.Remove("test.db-wal")
-	_ = os.Remove("test.db")
-	_ = os.Remove("test.db-wal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -211,6 +207,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 10 }() {
 		{ // do_test "tkt-2d1a5c67d.1." + ii
 			db.Close()
+			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }

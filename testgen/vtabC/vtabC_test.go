@@ -14,8 +14,6 @@ import (
 
 func Test_vtabC(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db")
-	_ = os.Remove("test.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -78,6 +76,7 @@ func Test_vtabC(t *testing.T) {
 	_ = N // suppress unused warning
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return N_n <= 20 }() {
 		db.Close()
+		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

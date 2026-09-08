@@ -14,8 +14,6 @@ import (
 
 func Test_enc4(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db")
-	_ = os.Remove("test.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -104,11 +102,10 @@ func Test_enc4(t *testing.T) {
 	_ = i // suppress unused warning
 	for _, enc := range tclSplitList(encodings) {
 	_ = enc // suppress unused warning
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
-		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-		_ = err
-		db.ResetChangesCounters()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
 		{ // do_test "enc4-" + i + ".1"
 			r = db.Query("PRAGMA encoding")

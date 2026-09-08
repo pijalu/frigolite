@@ -15,11 +15,6 @@ import (
 func Test_shell8(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
 	_ = os.Remove("$dirname")
-	_ = os.Remove("ar1")
-	_ = os.Remove("ar3")
-	_ = os.Remove("ar3")
-	_ = os.Remove("test_xyz.db")
-	_ = os.Remove("ar1")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -193,7 +188,9 @@ func Test_shell8(t *testing.T) {
 				// catchcmd shell8.db .ar -x
 			}
 			os.Remove("shell8.db")
+			os.Remove("ar1")
 			os.Remove("ar2")
+			os.Remove("ar3")
 			os.MkdirAll("ar2", 0755)
 			os.MkdirAll("ar3", 0755)
 			pwd = func() string { wd, _ := os.Getwd(); return wd }()

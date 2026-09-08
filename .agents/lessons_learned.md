@@ -5255,3 +5255,37 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   NOT remove untracked files — an untracked zz probe test still compiles
   into the test binary (harmless for separate Test functions, but delete
   probes before A/B runs to keep the comparison clean).
+
+## FULL-SUITE-DRIFT T3 session (2026-09-08) — two more quadratic freelist hotspots + forcedelete-in-loop
+
+- **integrity_check had TWO more O(n²)/unbounded hotspots**, both exposed by
+  corrupt-3.x (a 900s+ hang in the testgen corrupt package, 303% CPU):
+  1. `findOrphans` called `isFreelistPage(p)` PER unreferenced page — each
+     call re-walked the whole freelist chain. Fixed by hoisting ONE walk
+     (`isFreelistOwnedSet`) that preserves the per-page verdicts EXACTLY:
+     entries collected before the first duplicate/abort are owned; pages
+     the walk never reached are not. Mirroring the abort semantics matters
+     — corrupt-image output ("2nd reference" vs "never used" split) must
+     stay byte-identical.
+  2. The orphan scan bounded by `FilePageCount()` explodes when the file
+     was extended sparsely by hexio-style steps (millions of
+     `fmt.Sprintf("Page %d: never used")` appends). C scans i=2..mxPage
+     where mxPage = pBt->nPage (header count, clamped by the file) — use
+     `min(HeaderPageCount(), FilePageCount())`.
+- **tcl2go `sourceLeadingDeletes` scanned LINE-WISE past loop headers**, so
+  a `forcedelete test.db` inside a foreach body was treated as a one-shot
+  leading delete: pre-emitted before the preamble Open AND consumed
+  (genPreDeleted) at its real position — net effect: never deleted per
+  iteration → stale db → "table ft already exists" (fts3snippet). Fix:
+  stop the leading-region scan at `foreach `/`for {`/`while {` headers;
+  in-loop deletes then emit `os.Remove` at their real position.
+- When a test binary's runtime explodes N-fold between runs with unchanged
+  generated code, don't trust the earlier "completed" run's apparent
+  health — re-time it, and use the timeout panic's runnable-goroutine
+  stack (pprof watchdog if it never yields) to find the CURRENT hotspot;
+  there can be MORE THAN ONE stacked quadratic (corrupt had both).
+- Native root tests TestP8FreelistMultitrunkInspectChain and
+  TestP8IncrVacuum3OracleSequence fail identically at the dc1325ae9
+  "green" worktree — pre-existing freelist/autovacuum-drain parity bugs
+  (trunk leaf-count cap vs reserved bytes; incomplete drain), T4 batch
+  scope, NOT introduced by T2/T3.

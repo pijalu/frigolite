@@ -82,18 +82,28 @@ func (e *Engine) allRoots(ctx *DatabaseContext) []*schema.Entry {
 // by the freelist. The caller decides whether to emit the per-database
 // banner based on whether this slice is empty.
 func (e *Engine) findOrphans(ctx *DatabaseContext, referenced map[uint32]firstRef) []string {
-	nPages := ctx.Pager.FilePageCount()
-	if nPages == 0 {
-		nPages = ctx.Pager.HeaderPageCount()
+	// C scans i=2..mxPage where mxPage is pBt->nPage — the header's page
+	// count (lockBtree), clamped by the real file size. Preferring the file
+	// size alone explodes on images whose file was extended sparsely by
+	// hexio-style corruption steps (millions of "never used" appends).
+	nPages := ctx.Pager.HeaderPageCount()
+	if fp := ctx.Pager.FilePageCount(); fp < nPages {
+		nPages = fp
 	}
 	pageSize := ctx.Pager.PageSize()
 	autoVacuum := ctx.Pager.AutoVacuum()
+	// One chain walk for ALL candidate pages: isFreelistOwnedSet preserves
+	// isFreelistPage's per-page verdicts exactly, but re-walking the whole
+	// chain per orphan page is O(orphans × chain) and stalls integrity_check
+	// on images with long free lists (corrupt-3.x ran minutes per call
+	// site).
+	owned := isFreelistOwnedSet(ctx.Pager)
 	var out []string
 	for p := uint32(2); p <= nPages; p++ {
 		if _, ok := referenced[p]; ok {
 			continue
 		}
-		if isFreelistPage(ctx.Pager, p) {
+		if owned[p] {
 			continue
 		}
 		// Auto-vacuum databases reserve pointer-map pages at fixed
@@ -371,32 +381,34 @@ func markOverflowChain(head uint32, pg *pager.Pager, out map[uint32]firstRef, ro
 	}
 }
 
-// isFreelistPage reports whether pgno is part of the on-disk freelist
-// chain (header-declared trunk + leaf pages). Mirrors
-// btree.c::checkTree freelist walk: pages reachable from hdr[32..36]
-// are owned by the freelist, not the b-trees, and are not orphans.
-func isFreelistPage(pg *pager.Pager, pgno uint32) bool {
+// isFreelistOwnedSet answers "is pgno owned by the freelist chain?" for
+// every page in ONE chain walk, preserving isFreelistPage's exact per-page
+// verdicts: pages appearing before the first duplicate/invalid entry are
+// owned; a duplicated leaf (or an unreadable page) aborts the walk, and
+// pages the walk never reached are NOT owned — so corrupt-image output
+// (the "2nd reference" vs "never used" split) is byte-identical to the
+// per-page walk.
+func isFreelistOwnedSet(pg *pager.Pager) map[uint32]bool {
+	out := map[uint32]bool{}
 	hdr := pg.Header()
 	if len(hdr) < 40 {
-		return false
+		return out
 	}
 	trunk := binary.BigEndian.Uint32(hdr[32:36])
 	if trunk == 0 {
-		return false
+		return out
 	}
 	seen := map[uint32]bool{}
 	const maxIter = 100000
 	for iter := 0; trunk != 0 && iter < maxIter; iter++ {
 		if seen[trunk] {
-			return false
+			return out
 		}
 		seen[trunk] = true
-		if trunk == pgno {
-			return true
-		}
+		out[trunk] = true
 		page, err := pg.ReadPage(trunk)
 		if err != nil {
-			return false
+			return out
 		}
 		coff := 0
 		if trunk == 1 {
@@ -404,7 +416,7 @@ func isFreelistPage(pg *pager.Pager, pgno uint32) bool {
 		}
 		data := page.Data
 		if coff+4 > len(data) {
-			return false
+			return out
 		}
 		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
 		// SQLite freelist trunk format: offset 4-7 = leaf count (4 bytes),
@@ -419,21 +431,19 @@ func isFreelistPage(pg *pager.Pager, pgno uint32) bool {
 		for i := uint32(0); i < leafCount; i++ {
 			off := coff + 8 + int(i)*4
 			if off+4 > len(data) {
-				break
+				break // leaf array truncated; the chain walk continues
 			}
 			leaf := binary.BigEndian.Uint32(data[off : off+4])
 			if leaf == 0 {
 				continue
 			}
 			if seen[leaf] {
-				return false
+				return out
 			}
 			seen[leaf] = true
-			if leaf == pgno {
-				return true
-			}
+			out[leaf] = true
 		}
 		trunk = nextTrunk
 	}
-	return false
+	return out
 }

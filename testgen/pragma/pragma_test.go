@@ -18,10 +18,6 @@ import (
 
 func Test_pragma(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db")
-	_ = os.Remove("test.db-journal")
-	_ = os.Remove("test3.db")
-	_ = os.Remove("test3.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -403,6 +399,7 @@ func Test_pragma(t *testing.T) {
 	}
 	{ // do_test "pragma-3.1"
 		db.Close()
+		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

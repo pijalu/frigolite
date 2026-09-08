@@ -15,10 +15,6 @@ import (
 
 func Test_waloverwrite(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db2")
-	_ = os.Remove("test.db2-wal")
-	_ = os.Remove("test.db2")
-	_ = os.Remove("test.db2-wal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -163,6 +159,7 @@ func Test_waloverwrite(t *testing.T) {
 				}
 			}
 			{ // do_test "1." + tn + ".4"
+				os.Remove("test.db2")
 				tclFileCopy("test.db", "test.db2")
 				db2, err = frigolite.Open("test.db2")
 				tclConnRegister("db2", db2)

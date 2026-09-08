@@ -323,3 +323,39 @@ No pass→fail flips anywhere.
 
 Per tranche: fix → tranche verify → `tools/status ledger` + `--check` →
 update this T-log → commit ("FULL-SUITE-DRIFT.Tn: …") → push.
+
+### T3 RESULT (2026-09-08) — fts window + timeout-suspect serial re-runs
+
+- **fts3snippet fail→pass** (transpiler): `sourceLeadingDeletes` scanned
+  line-wise past loop headers, so a `forcedelete test.db` INSIDE a foreach
+  body was pre-emitted before the preamble Open AND swallowed at its real
+  position (genPreDeleted) — the per-iteration delete never happened and
+  pass 2+ hit "table ft already exists". The leading-region scan now stops
+  at foreach/for/while headers; in-loop deletes emit os.Remove at their
+  real position. testgen regenerated.
+- **corrupt: 900s+ hang → 31.7s honest fail.** Two stacked hotspots beyond
+  T2's fixes, both in integrity_check on junk-corrupted images:
+  (1) findOrphans re-walked the whole freelist chain per unreferenced page
+  (O(orphans × chain)) — hoisted to a single walk (isFreelistOwnedSet)
+  with per-page verdicts preserved byte-for-byte, including the
+  duplicate-abort semantics that split "2nd reference" findings from
+  "never used" orphans; (2) the orphan scan bounded by FilePageCount alone
+  exploded on sparsely-extended files (millions of "never used" appends) —
+  now min(HeaderPageCount(), FilePageCount()), which is C's
+  i=2..pBt->nPage scan shape (lockBtree clamps nPage to the file).
+- **fts4opt**: verified pre-existing — identical 3331 exec errors at HEAD
+  (stash-run) and on this tree; deep FTS-optimize gap, stays P6.FTS-F.
+- **Timeout-suspects serially re-run** (-p 1, 900s cap): avtrans 143.6s,
+  fts3defer 65.5s, fts4check 107.9s, fts4merge4 473.4s, fts4unicode
+  46.6s, rtree2 69.4s — all complete and fail honestly (deep parity reds
+  for their P6 goals); corrupt completes in 32s. No hangs remain in the
+  suspect set.
+- **No-drift proofs**: testgen/autovacuum's failure (autovacuum-2.4.5) and
+  the native TestP8FreelistMultitrunkInspectChain /
+  TestP8IncrVacuum3OracleSequence failures reproduce IDENTICALLY at HEAD
+  and at the dc1325ae9 worktree — pre-existing reds, recorded for T4
+  (native freelist/autovacuum-drain parity: trunk leaf-count cap vs
+  reserved bytes; incomplete drain).
+
+Sweep re-seeded: 1219 packages, **734 pass / 234 fail / 244 skip / 7
+timeout-suspect** (T2 close: 730/238). `tools/status -check` PASS.

@@ -12,10 +12,6 @@ import (
 
 func Test_attachmalloc(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test$i.db")
-	_ = os.Remove("test$i.db-journal")
-	_ = os.Remove("test2.db")
-	_ = os.Remove("test2.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)

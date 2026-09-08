@@ -14,7 +14,6 @@ import (
 
 func Test_shell7(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("shell7_test.bin")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
