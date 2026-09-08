@@ -178,6 +178,14 @@ func readPendingPageSize(db *DB, schema string) uint32 {
 // (backup.c's whole-image overwrite: the destination is reset empty and
 // rebuilt), which is what compacts a VACUUM rebuild.
 func copyViaBackup(src *DB, srcSchema string, dst *DB, dstSchema string, keepDestPageSize bool) error {
+	// vacuum.c/backup.c parity: the VACUUM rebuild copies the image, it does
+	// not re-insert rows through the constraint machinery — a row that was
+	// stored while ignore_check_constraints=ON survives VACUUM (check-4.10,
+	// oracle-verified). Suppress CHECK enforcement on the destination for
+	// the copy and restore the caller's flag afterwards.
+	prevIgnoreChecks := dst.engine.IgnoreCheckConstraints()
+	dst.engine.SetIgnoreCheckConstraints(true)
+	defer dst.engine.SetIgnoreCheckConstraints(prevIgnoreChecks)
 	b, err := src.NewBackup(dst, dstSchema, srcSchema)
 	if err != nil {
 		return err

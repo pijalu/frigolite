@@ -596,3 +596,19 @@ cut is likely in an earlier line-splitting of the stored SQL or a
 part-boundary), and make the INSERT path reuse tableCheckConstraintText's
 full-span extraction. The failing setup inserts (1,1),(2,4),(4,6) are
 correct CHECK violations — only the message text is truncated.
+
+### T4 session 7 (2026-09-09) — check-4.9/4.10 fixed (VACUUM does not re-evaluate CHECKs)
+
+Oracle isolation showed the 4.9 UPDATE message is already correct — the
+real gap was 4.10: a row stored while ignore_check_constraints=ON must
+SURVIVE VACUUM (C's VACUUM is a page/image copy and never re-evaluates
+CHECK constraints; oracle-verified: VACUUM succeeds, the violating row
+persists, integrity_check afterwards reports "CHECK constraint failed in
+t4"). frigolite's logical rebuild re-inserted rows through the constraint
+machinery and failed. Fix: copyViaBackup suppresses CHECK enforcement on
+the destination engine for the copy's duration and restores the caller's
+flag (matching C's page-copy semantics for both VACUUM and VACUUM INTO).
+
+check package: 7 → 3 failing assertions; the remaining three (7.x myfunc)
+need the TCL db-func fixture registration — converter/NA class. Vacuum
+family + native suites green; sweep reseeded 741/234/244, -check PASS.
