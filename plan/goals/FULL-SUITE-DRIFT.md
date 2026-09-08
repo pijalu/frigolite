@@ -461,3 +461,28 @@ Flips: openv2 fail→pass, rdonly fail→pass. Regression net: filefmt,
 journal2/3, wal2, walbak, backup/2, vacuum, corrupt9, incrvacuum/2/3, and
 the native P1/P3/P5/P6/P8 families all green. savepoint2's sweep suspect
 flag was load noise (passes serially in 32s).
+
+### T4 session 4 (2026-09-08) — CHECK constraint validation and naming
+
+check package: 7 → 4 failing assertions. Fixes, all grounded in
+build.c/alter.c's prepare-time CHECK handling:
+
+- Table-level and column-level CHECK expressions resolve their column
+  references at CREATE TABLE: bare unknown columns report "no such
+  column: q" (check-3.3); foreign-qualified refs report the qualified
+  spelling "no such column: t2.x" (check-3.5); the table's own
+  qualification (t3.x<25, check-3.7) and db/schema-qualified chains
+  (main.t810.a, xyzzy.t811.b — check-8.1) resolve; rowid/oid/_rowid_
+  resolve (check-9.1). Double-quoted tokens keep the DQS string fallback
+  (check-2.1's "integer"). The failed 3.3 CREATE no longer leaks the
+  table, un-cascading 3.4/3.6.
+- CHECK expressions reject bound parameters: "parameters prohibited in
+  CHECK constraints" (check-5.1/5.2).
+- The named-CHECK violation reports the constraint name immediately
+  before the CHECK keyword — the LAST stacked CONSTRAINT wins
+  (check-2.12/2.13: "CHECK constraint failed: x_two", was x_one).
+
+Remaining check failures (4): check-4.9 wants the verbatim multiline
+CHECK text through the UPDATE path's tableCheckConstraintText extractor;
+check-4.9's span extraction stops early. check-7.x (myfunc) requires the
+TCL db-func fixture registration — converter gap (NA class, see func3).

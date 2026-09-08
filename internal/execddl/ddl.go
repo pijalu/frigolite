@@ -183,6 +183,7 @@ func (e *DDLExecutor) runCreateTableValidations(ctx *DatabaseContext, s *sql.Cre
 		func() *Result { return e.validateForeignKeys(s) },
 		func() *Result { return e.validateDDLQuote(s) },
 		func() *Result { return e.validateCheckSubqueries(s) },
+		func() *Result { return e.validateCheckExprColumns(s) },
 		func() *Result { return e.validateSchemaFunctionSafety(s) },
 	}
 	for _, v := range validators {
@@ -989,4 +990,87 @@ func stripTriggerTempKeyword(sqlStr string) string {
 		}
 	}
 	return sqlStr
+}
+
+// validateCheckExprColumns resolves the column references of every CHECK
+// constraint (column-level and table-level) against the new table's columns
+// and rejects bound parameters (build.c sqlite3AddCheckConstraint /
+// sqlite3ExprCodeTarget on the check expression): check-3.3's CHECK(q<x)
+// reports "no such column: q"; check-5.1/5.2 report "parameters prohibited
+// in CHECK constraints".
+func (e *DDLExecutor) validateCheckExprColumns(s *sql.CreateTableStmt) *Result {
+	checks := []sql.Expr{}
+	for i := range s.Columns {
+		if s.Columns[i].Check != nil {
+			checks = append(checks, s.Columns[i].Check)
+		}
+	}
+	for i := range s.Constraints {
+		if s.Constraints[i].Type == sql.ConstraintCheck && s.Constraints[i].Expr != nil {
+			checks = append(checks, s.Constraints[i].Expr)
+		}
+	}
+	for _, expr := range checks {
+		var res *Result
+		execquery.WalkExprFull(expr, func(n sql.Expr) {
+			if res != nil {
+				return
+			}
+			switch v := n.(type) {
+			case *sql.ParameterExpr:
+				res = &Result{Error: fmt.Errorf("parameters prohibited in CHECK constraints")}
+			case *sql.ColumnRef:
+				// Double-quoted tokens keep the DQS string fallback inside
+				// CHECK expressions ("integer" in check-2.1), so only bare
+				// identifiers must resolve (check-3.3's bare q). A
+				// foreign-qualified reference (t2.x inside t3's CHECK)
+				// reports the qualified spelling (check-3.5).
+				if !v.Quoted && !createTableRefResolves(s, tableNameOf(s), v) {
+					res = &Result{Error: fmt.Errorf("no such column: %s", checkRefText(v))}
+				}
+			}
+		})
+		if res != nil {
+			return res
+		}
+	}
+	return nil
+}
+
+// createTableRefResolves reports whether a column reference inside a CHECK
+// constraint resolves against the table being created. The qualifier chain
+// (db.table or schema.table, e.g. "main.t810.a", "xyzzy.t811.b") resolves
+// when its LAST segment matches the table's own name; "rowid"/"oid"/
+// "_rowid_" always resolve (check-8.1, check-9.1).
+func createTableRefResolves(s *sql.CreateTableStmt, tableName string, ref *sql.ColumnRef) bool {
+	switch strings.ToLower(ref.Name) {
+	case "rowid", "oid", "_rowid_":
+		return true
+	}
+	if ref.Table != "" {
+		qual := ref.Table
+		if i := strings.LastIndex(qual, "."); i >= 0 {
+			qual = qual[i+1:]
+		}
+		if !strings.EqualFold(qual, tableName) {
+			return false
+		}
+	}
+	for i := range s.Columns {
+		if strings.EqualFold(s.Columns[i].Name, ref.Name) {
+			return true
+		}
+	}
+	return false
+}
+
+func tableNameOf(s *sql.CreateTableStmt) string { return s.Name }
+
+// checkRefText renders a column reference as written (qualifier chain
+// included) for "no such column" messages inside CHECK constraints.
+func checkRefText(ref *sql.ColumnRef) string {
+	if ref.Table != "" {
+		return ref.Table + "." + ref.Name
+	}
+	return ref.Name
 }

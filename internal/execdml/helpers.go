@@ -52,8 +52,12 @@ func parseIndexColumns(sqlStr string) []string {
 // position ci (the CHECK keyword offset).
 func constraintNameBefore(part string, ci int) string {
 	pUpper := strings.ToUpper(part)
-	cIdx := strings.Index(pUpper, "CONSTRAINT")
-	if cIdx < 0 || cIdx >= ci {
+	// The reported name is the constraint name IMMEDIATELY before the
+	// CHECK keyword — stacked CONSTRAINT clauses mean the last one wins
+	// (check-2.12: "CONSTRAINT x_one CONSTRAINT x_two CHECK(...)" reports
+	// x_two).
+	cIdx := strings.LastIndex(pUpper[:ci], "CONSTRAINT")
+	if cIdx < 0 {
 		return ""
 	}
 	rest := strings.TrimSpace(part[cIdx+len("CONSTRAINT"):])
