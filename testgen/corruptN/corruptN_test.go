@@ -1143,7 +1143,7 @@ func Test_corruptN(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	if tclBool("!" + tclBool01(GMap[perm:presql] != "")) {
+	if tclBool("!" + "0") {
 		{ // "3.0"
 			r = db.Query("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';\n  ")
 			if r.Error != nil {

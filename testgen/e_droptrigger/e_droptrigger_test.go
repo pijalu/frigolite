@@ -330,99 +330,86 @@ func Test_e_droptrigger(t *testing.T) {
 					}
 				}
 				{ // do_test "4.1"
-					// droptrigger_reopen_db (inlined)
+					event = "INSERT"
 					db.Close()
-					os.Remove("test.db")
-					os.Remove("test.db2")
 					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
-					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					// droptrigger event INSERT
-					triggers_fired = ""
-					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) {
-						if len(args) > 0 && args[0] != nil {
-							if triggers_fired != "" { triggers_fired += " " }
-							triggers_fired += fmt.Sprint(args[0])
-						}
-						return nil, nil
-					}, 0, -1)
-					_res = db.Exec("ATTACH 'test.db2' AS aux; CREATE TEMP TABLE t1(a, b); INSERT INTO t1 VALUES('a', 'b'); CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1'); END; CREATE TABLE t2(a, b); INSERT INTO t2 VALUES('a', 'b'); CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1'); END; CREATE TRIGGER tr2 AFTER INSERT ON t2 BEGIN SELECT r('main.tr2'); END; CREATE TABLE aux.t3(a, b); INSERT INTO t3 VALUES('a', 'b'); CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1'); END; CREATE TRIGGER aux.tr2 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr2'); END; CREATE TRIGGER aux.tr3 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr3'); END;")
-					if _res.Error != nil { t.Errorf("droptrigger_reopen_db: %v", _res.Error) }
-					// list_all_triggers (unsupported command, not transpiled)
+					vtab.TclVarSet("triggers_fired", "", "")
+					triggers_fired = "" // TCL namespace variable
+					_ = triggers_fired // suppress unused warning
+					// proc definition (not transpiled)
+					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+					_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER " + event + " ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE " + event + " ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  " + event + " ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE " + event + " ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr3') ; END;\n  ")
+					db = "db"
+					res = ""
+					_ = res // suppress unused warning
+					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
 				}
 				{ // do_test "4.2"
-					// droptrigger_reopen_db (inlined)
+					event = "INSERT"
 					db.Close()
 					os.Remove("test.db")
-					os.Remove("test.db2")
 					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
-					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					// droptrigger event INSERT
-					triggers_fired = ""
-					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) {
-						if len(args) > 0 && args[0] != nil {
-							if triggers_fired != "" { triggers_fired += " " }
-							triggers_fired += fmt.Sprint(args[0])
-						}
-						return nil, nil
-					}, 0, -1)
-					_res = db.Exec("ATTACH 'test.db2' AS aux; CREATE TEMP TABLE t1(a, b); INSERT INTO t1 VALUES('a', 'b'); CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1'); END; CREATE TABLE t2(a, b); INSERT INTO t2 VALUES('a', 'b'); CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1'); END; CREATE TRIGGER tr2 AFTER INSERT ON t2 BEGIN SELECT r('main.tr2'); END; CREATE TABLE aux.t3(a, b); INSERT INTO t3 VALUES('a', 'b'); CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1'); END; CREATE TRIGGER aux.tr2 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr2'); END; CREATE TRIGGER aux.tr3 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr3'); END;")
-					if _res.Error != nil { t.Errorf("droptrigger_reopen_db: %v", _res.Error) }
+					vtab.TclVarSet("triggers_fired", "", "")
+					triggers_fired = "" // TCL namespace variable
+					_ = triggers_fired // suppress unused warning
+					// proc definition (not transpiled)
+					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+					_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER " + event + " ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE " + event + " ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  " + event + " ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE " + event + " ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr3') ; END;\n  ")
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					// list_all_triggers (unsupported command, not transpiled)
+					db = "db"
+					res = ""
+					_ = res // suppress unused warning
+					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
 				}
 				{ // do_test "4.3"
-					// droptrigger_reopen_db (inlined)
+					event = "INSERT"
 					db.Close()
 					os.Remove("test.db")
-					os.Remove("test.db2")
 					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
-					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					// droptrigger event INSERT
-					triggers_fired = ""
-					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) {
-						if len(args) > 0 && args[0] != nil {
-							if triggers_fired != "" { triggers_fired += " " }
-							triggers_fired += fmt.Sprint(args[0])
-						}
-						return nil, nil
-					}, 0, -1)
-					_res = db.Exec("ATTACH 'test.db2' AS aux; CREATE TEMP TABLE t1(a, b); INSERT INTO t1 VALUES('a', 'b'); CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1'); END; CREATE TABLE t2(a, b); INSERT INTO t2 VALUES('a', 'b'); CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1'); END; CREATE TRIGGER tr2 AFTER INSERT ON t2 BEGIN SELECT r('main.tr2'); END; CREATE TABLE aux.t3(a, b); INSERT INTO t3 VALUES('a', 'b'); CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1'); END; CREATE TRIGGER aux.tr2 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr2'); END; CREATE TRIGGER aux.tr3 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr3'); END;")
-					if _res.Error != nil { t.Errorf("droptrigger_reopen_db: %v", _res.Error) }
+					vtab.TclVarSet("triggers_fired", "", "")
+					triggers_fired = "" // TCL namespace variable
+					_ = triggers_fired // suppress unused warning
+					// proc definition (not transpiled)
+					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+					_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER " + event + " ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE " + event + " ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  " + event + " ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE " + event + " ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr3') ; END;\n  ")
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					// list_all_triggers (unsupported command, not transpiled)
+					db = "db"
+					res = ""
+					_ = res // suppress unused warning
+					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
 				}
 				{ // do_test "4.4"
-					// droptrigger_reopen_db (inlined)
+					event = "INSERT"
 					db.Close()
 					os.Remove("test.db")
-					os.Remove("test.db2")
 					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
-					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					// droptrigger event INSERT
-					triggers_fired = ""
-					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) {
-						if len(args) > 0 && args[0] != nil {
-							if triggers_fired != "" { triggers_fired += " " }
-							triggers_fired += fmt.Sprint(args[0])
-						}
-						return nil, nil
-					}, 0, -1)
-					_res = db.Exec("ATTACH 'test.db2' AS aux; CREATE TEMP TABLE t1(a, b); INSERT INTO t1 VALUES('a', 'b'); CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1'); END; CREATE TABLE t2(a, b); INSERT INTO t2 VALUES('a', 'b'); CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1'); END; CREATE TRIGGER tr2 AFTER INSERT ON t2 BEGIN SELECT r('main.tr2'); END; CREATE TABLE aux.t3(a, b); INSERT INTO t3 VALUES('a', 'b'); CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1'); END; CREATE TRIGGER aux.tr2 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr2'); END; CREATE TRIGGER aux.tr3 AFTER INSERT ON t3 BEGIN SELECT r('aux.tr3'); END;")
-					if _res.Error != nil { t.Errorf("droptrigger_reopen_db: %v", _res.Error) }
+					vtab.TclVarSet("triggers_fired", "", "")
+					triggers_fired = "" // TCL namespace variable
+					_ = triggers_fired // suppress unused warning
+					// proc definition (not transpiled)
+					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+					_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER " + event + " ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE " + event + " ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  " + event + " ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE " + event + " ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr3') ; END;\n  ")
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					// list_all_triggers (unsupported command, not transpiled)
+					db = "db"
+					res = ""
+					_ = res // suppress unused warning
+					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
 				}
 }

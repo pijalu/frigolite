@@ -117,6 +117,7 @@ func (p *Pager) writeFreelistTrunkLocked(t freelistTrunk) {
 		}
 		binary.BigEndian.PutUint32(pg.Data[off:off+4], leaf)
 	}
+	p.invalidateFreelistSetLocked()
 	// Zero out any remaining leaf slots so a popped leaf's number
 	// is not left in the page buffer (btree.c freePage2 line 6850
 	// zeros the slot explicitly when a leaf is consumed). The chain
@@ -201,6 +202,7 @@ func (p *Pager) allocateFreelistLocked() uint32 {
 	p.journalPageBeforeLocked(1)
 	binary.BigEndian.PutUint32(p.header[36:40], n-1)
 	p.mirrorHeaderToPage1Locked()
+	p.invalidateFreelistSetLocked()
 	if len(t.leaves) == 0 {
 		// k == 0 && !searchList: extract the trunk page itself.
 		p.journalPageBeforeLocked(t.pgno)
@@ -306,6 +308,7 @@ func (p *Pager) allocateFreelistNearLocked(nearby uint32, le bool) uint32 {
 				p.journalPageBeforeLocked(1)
 				binary.BigEndian.PutUint32(p.header[36:40], n-1)
 				p.mirrorHeaderToPage1Locked()
+				p.invalidateFreelistSetLocked()
 				// Copy the LAST leaf into the freed slot
 				// (memcpy(&aData[8+closest*4], &aData[4+k*4], 4)).
 				t.leaves[i] = t.leaves[len(t.leaves)-1]
@@ -385,6 +388,7 @@ func (p *Pager) FreePage(pageNum uint32) error {
 	p.journalPageBeforeLocked(pageNum)
 	nFree := binary.BigEndian.Uint32(p.header[36:40])
 	binary.BigEndian.PutUint32(p.header[36:40], nFree+1)
+	p.invalidateFreelistSetLocked()
 	if nFree != 0 {
 		// A head trunk exists: leaf-add while it has room.
 		head := binary.BigEndian.Uint32(p.header[32:36])
@@ -447,18 +451,67 @@ func (p *Pager) AllocatePageANY() (*Page, error) {
 
 // IsPageOnFreelist reports whether pgno is on the freelist. C answers this
 // from the pointer-map (incrVacuumStep: ptrmapGet(iLastPg) ==
-// PTRMAP_FREEPAGE); non-autovacuum databases fall back to a chain walk.
+// PTRMAP_FREEPAGE); non-autovacuum databases fall back to the memoized
+// chain set (freelistSetLocked) — one chain walk amortized across queries,
+// invalidated by every chain mutator.
 func IsPageOnFreelist(p *Pager, pgno uint32) bool {
 	if p == nil || pgno < 2 {
 		return false
 	}
-	p.mu.RLock()
-	defer p.mu.RUnlock()
 	if p.autoVacuum {
+		p.mu.RLock()
+		defer p.mu.RUnlock()
 		eType, _, err := p.ReadPtrmapLocked(pgno)
 		return err == nil && eType == storage.PtrmapFreelist
 	}
-	return p.chainContainsLocked(pgno)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	_, ok := p.freelistSetLocked()[pgno]
+	return ok
+}
+
+// freelistSetLocked returns the memoized freelist membership set, rebuilt
+// from the on-disk chain when stale. Semantically identical to per-page
+// chainContainsLocked walks (trunk + leaf pages, unreadable trunk ends the
+// walk); cycle- and count-bounded so a corrupt chain cannot spin the
+// rebuild. Caller holds p.mu (write lock).
+func (p *Pager) freelistSetLocked() map[uint32]struct{} {
+	if p.freeSet != nil {
+		return p.freeSet
+	}
+	out := make(map[uint32]struct{})
+	if p.header != nil && len(p.header) >= 40 {
+		n := binary.BigEndian.Uint32(p.header[36:40])
+		cur := binary.BigEndian.Uint32(p.header[32:36])
+		for visited := uint32(0); cur != 0 && visited <= n; visited++ {
+			if _, dup := out[cur]; dup {
+				break // chain cycle
+			}
+			t, ok := p.readFreelistTrunkLocked(cur)
+			if !ok {
+				break
+			}
+			out[cur] = struct{}{}
+			for _, leaf := range t.leaves {
+				out[leaf] = struct{}{}
+			}
+			if uint32(len(out)) > n {
+				// The chain cannot name more pages than the declared
+				// freelist count; more means duplication (corrupt).
+				break
+			}
+			cur = t.next
+		}
+	}
+	p.freeSet = out
+	return out
+}
+
+// invalidateFreelistSetLocked drops the memoized freelist set after a chain
+// mutation (FreePage, pops, unlink, truncation). Caller holds p.mu (write
+// lock).
+func (p *Pager) invalidateFreelistSetLocked() {
+	p.freeSet = nil
 }
 
 // ReadPtrmapLocked is ReadPtrmap for callers already holding p.mu (RLock).
@@ -560,6 +613,7 @@ func (p *Pager) freelistPagesAboveLocked(n uint32) uint32 {
 		p.journalPageBeforeLocked(1)
 		binary.BigEndian.PutUint32(p.header[36:40], total-removed)
 		p.mirrorHeaderToPage1Locked()
+		p.invalidateFreelistSetLocked()
 	}
 	return removed
 }

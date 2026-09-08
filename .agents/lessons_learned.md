@@ -5154,3 +5154,104 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   target target BEFORE proc target): walk all file commands up-front
   (collectStringConstFuncs) instead of relying on sequential proc
   registration. Watch the cmd index: proc NAME PARAMS BODY → body is cmd[3].
+
+## FULL-SUITE-DRIFT T2 (2026-09-08) — corruption-family unblock + freelist-duplicate detection + memory-bomb fix
+
+- **The engine's "record header" parsers were unbounded** — the single biggest
+  memory hazard in the repo. `parseRecordSerialTypes` (execquery),
+  `storage.ParseRecordHeader`, `storage.DecodeRecord` looped
+  `for pos < hdrEnd` with hdrEnd taken from the payload's own (possibly
+  garbage) varint. corrupt-2.x appends 256 junk bytes at EVERY 256-byte
+  offset; a junk header size made the loop append billions of serial types:
+  9-12 GB RSS in ~2s, OOM-pressure on the host. Fix is vdbe.c OP_Column's
+  op_column_corrupt parity: hdrEnd must satisfy `pos <= hdrEnd <= len(data)`
+  else "database disk image is malformed". Same guard added wherever a
+  header parse exists — grep `hdrEnd` to find them all.
+- **Overflow-chain assembly needs a geometric bound** (readOverflow): the
+  chain lives IN the file, so a cell payload can never exceed
+  numPages*(usableSize-4). A corrupt payload length promising more must
+  error BEFORE `make([]byte, 0, PayloadLen)` allocates. This bound also
+  caps the chain loop at numPages iterations (cycles re-read cached pages
+  but `remaining` still decrements).
+- **Memory-bomb debugging without dlv**: a runaway goroutine that never
+  yields prints "goroutine running on other thread; stack unavailable" on
+  SIGQUIT/timeout, and `dlv attach` (lldb backend) hangs on a spinning
+  target. Working recipe: embed a watchdog goroutine in a probe test
+  (`time.AfterFunc(3s)` → `pprof.Lookup("goroutine").WriteTo(os.Stderr,1)`
+  → os.Exit(9)) — pprof CAN print the spinning goroutine's stack. Then
+  heap-classify with `go tool pprof -sample_index=inuse_space` and RSS
+  monitors (`ps -o rss=` in a loop; GOMEMLIMIT does NOT cap live growth;
+  darwin Go MADV_FREE is NOT the explanation here — GODEBUG=madvdontneed=1
+  showed identical peaks).
+- **corrupt9's freelist-duplicate detection is refcount-parity, not chain
+  scanning**: C catches duplicate freelist entries lazily via
+  btreeGetUnusedPage (src/btree.c:2449): the popped page is already held by
+  the allocating tree (refcount>1) → SQLITE_CORRUPT. The duplicate leaf is
+  always the root the statement just allocated (trunk leaves[0] pops first
+  as the CREATE INDEX root). Engine port: `Pager.AllocatePageForTree(
+  liveRoot)` — a freelist pop returning the calling BTree's own root is
+  corruption by construction (a live root is never on the freelist);
+  btree.allocPage routes through it. Do NOT scan the chain for duplicates
+  (C doesn't; O(n) per alloc).
+- **DROP INDEX must free the index's b-tree** (btree.c sqlite3DropIndex →
+  OP_Destroy): execDropIndex only removed the schema entry, so DROP INDEX
+  leaked pages and the freelist never grew (corrupt9-1.1's setup requires
+  free pages). Fix: dropBtreeRoot(ctx, name, root, false) +
+  refreshLargestRootPage after RemoveEntryOfType.
+- **tcl2go: `::G` is the TCL runner's options array and never populated** in
+  the Go harness — special-case it (info exists → "0", reads → "") instead
+  of collecting it as a normal array map. And runDoTestBody's sub-transpiler
+  must copy inlineProcs/inlineProcParams or zero-arg procs called inside
+  do_test bodies ("create_test_db"-shape) emit as unsupported comments.
+- **tclCorruptFreelist must not use encoding/binary**: detectImports'
+  allStandardImports list governs generated files' imports — helpers in the
+  template must use manual byte arithmetic (or extend the import list).
+- **corruptL/corrupt "timeout suspects" were the memory bomb all along**:
+  their baseline "timeout" ledger state came from unbounded allocation, not
+  slow SQL. After the header/overflow bounds, corrupt completes in ~90s and
+  corruptL in 17s. Re-triage timeout-suspects after allocation fixes.
+
+## FULL-SUITE-DRIFT T2 addendum — freelist memoization + two-ledger-names trap (2026-09-08)
+
+- **Correct page-freeing can unmask an O(n²) hotspot**: once DROP INDEX
+  frees pages (as btree.c does), legitimate freelists get longer, and every
+  `pager.IsPageOnFreelist` call in a bulk loop re-walks the chain. The fix
+  shape: memoize the chain into `Pager.freeSet` (one walk, invalidated by
+  EVERY chain mutator — FreePage, allocateFreelist*, writeFreelistTrunkLocked,
+  freelistPagesAboveLocked, ZeroFreelistChain), with the rebuild bounded by
+  the declared count n and a cycle guard so corrupt chains can't spin it.
+  After the fix temptable2 4.1.2 went minutes → 0.00s.
+- **The ledger has TWO entries named temptable2-family**: the JSON harness
+  (testdata/temptable2.json, run unskipped by the root suite) and the
+  testgen package (testgen/temptable2/, a transpiler no-op listed in
+  tools/tcl2go/skiptestfiles.go). tools/status records only the testgen one
+  ("temptable2: skipped"), which hides JSON-harness drift for the same
+  name. When a harness file misbehaves, check BOTH surfaces; stash-run at
+  HEAD to classify pre-existing vs regression (3.1.1 "table t1 already
+  exists" fails identically at HEAD — pre-existing drift, T4 scope).
+- **Never run CPU-heavy probes in parallel with the 1500s root-suite
+  verification** — the parallel corrupt.test runs starved the suite and
+  turned a ~40s stall into a 24-minute timeout, muddying the diagnosis.
+  Serialize the big runs.
+
+## FULL-SUITE-DRIFT T2 addendum 2 — the root JSON suite is chaotic (2026-09-08)
+
+- **Do NOT use `go test .` (TestSQLiteSuite over testdata/*.json) as a
+  flip gate.** Three compounding classes make its failure set
+  non-reproducible: (1) the JSON converter has no step type for TCL
+  `db function NAME PROC` fixture registrations — files using them
+  (alias.test's `sequence`, tkt_d635236375's lost `db close / file
+  delete / sqlite3 db` reset) fail deterministically at EVERY commit;
+  (2) subtests run t.Parallel() across files in one process, so a file's
+  outcome can depend on which benefactor file ran concurrently; (3) the
+  pre-memoization O(n²) freelist walk made completion time unstable (the
+  dc1325ae9 "fully green" baseline commit times out at 25 min in
+  temptable2/4.1.2 when re-run tonight). Verify suspicious files in
+  ISOLATION (FRIGOLITE_TEST=<file>) on both the working tree and a
+  HEAD-stash, and gate tranches on the testgen sweep + internal packages
+  instead. Harness determinism (per-file engine globals + `db function`
+  registration) is queued as T4 scope.
+- When a stash-discriminator "fails at HEAD too", remember git stash does
+  NOT remove untracked files — an untracked zz probe test still compiles
+  into the test binary (harmless for separate Test functions, but delete
+  probes before A/B runs to keep the comparison clean).

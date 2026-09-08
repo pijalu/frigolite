@@ -153,7 +153,10 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.3"
-		// list_all_views (unsupported command, not transpiled)
+		db = "db"
+		res = ""
+		_ = res // suppress unused warning
+		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
 	}
 	{ // do_test "3.1.4"
 		strings.Compare("list_all_data", databasedata)
@@ -183,7 +186,10 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.3"
-		// list_all_views (unsupported command, not transpiled)
+		db = "db"
+		res = ""
+		_ = res // suppress unused warning
+		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
 	}
 	{ // do_test "3.2.4"
 		strings.Compare("list_all_data", databasedata)
@@ -213,7 +219,10 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3.3"
-		// list_all_views (unsupported command, not transpiled)
+		db = "db"
+		res = ""
+		_ = res // suppress unused warning
+		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3.4"
 		strings.Compare("list_all_data", databasedata)
@@ -243,7 +252,10 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.4.3"
-		// list_all_views (unsupported command, not transpiled)
+		db = "db"
+		res = ""
+		_ = res // suppress unused warning
+		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
 	}
 	{ // do_test "3.4.4"
 		strings.Compare("list_all_data", databasedata)
@@ -273,7 +285,10 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.5.3"
-		// list_all_views (unsupported command, not transpiled)
+		db = "db"
+		res = ""
+		_ = res // suppress unused warning
+		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
 	}
 	{ // do_test "3.5.4"
 		strings.Compare("list_all_data", databasedata)
@@ -303,7 +318,10 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.6.3"
-		// list_all_views (unsupported command, not transpiled)
+		db = "db"
+		res = ""
+		_ = res // suppress unused warning
+		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
 	}
 	{ // do_test "3.6.4"
 		strings.Compare("list_all_data", databasedata)

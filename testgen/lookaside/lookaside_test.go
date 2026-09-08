@@ -69,7 +69,7 @@ func Test_lookaside(t *testing.T) {
 	_ = G_perm_dbconfig // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool(tclBool01(GMap[perm:dbconfig] != "") + " && " + G_perm_dbconfig + "!=\"\"") {
+	if tclBool("0" + " && " + "" + "!=\"\"") {
 		return
 	}
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)

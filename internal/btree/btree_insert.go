@@ -258,9 +258,21 @@ func (t *BTree) writeOverflowPages(payload []byte, ownerPgno uint32) (uint32, er
 // following the overflow chain. The returned cell is a copy when expansion is
 // needed; the input cell is never mutated so it can still be re-encoded.
 // Cells without overflow are returned unchanged.
+//
+// The chain is bounded by the file's own geometry (btree.c accessPayload
+// parity): every overflow page lives in the database file, so a payload can
+// never exceed numPages usable-size chunks. A corrupt cell whose payload
+// length promises more than the file can hold reports
+// "database disk image is malformed" BEFORE any allocation — without this
+// bound a garbage payload length makes the assembly allocate gigabytes
+// (corrupt-2.x junk-in-the-file probes).
 func (t *BTree) readOverflow(c *storage.Cell) (*storage.Cell, error) {
 	if c.Overflow == 0 {
 		return c, nil
+	}
+	if c.PayloadLen < 0 ||
+		uint64(c.PayloadLen) > uint64(t.pager.NumPages())*uint64(t.usableSize-4) {
+		return nil, fmt.Errorf("database disk image is malformed")
 	}
 	full := make([]byte, 0, c.PayloadLen)
 	full = append(full, c.Payload...)

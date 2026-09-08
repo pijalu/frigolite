@@ -190,6 +190,13 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 			// {[info exists ::UNZIP]} reflect whether an earlier branch ran.
 			if len(args) == 2 && args[0] == "exists" {
 				nm := strings.TrimPrefix(strings.TrimPrefix(args[1], "$"), "::")
+				// The harness options array ::G is set by the TCL test
+				// runner's command line (-soak, -perm, ...). The Go harness
+				// never sets any option, so `info exists ::G(anything)` is
+				// always false (corruptC's issoak, corruptN's perm:presql).
+				if nm == "G" || strings.HasPrefix(nm, "G(") {
+					return `"0"`
+				}
 				// Dynamic-key form: `info exists NAME($key)` (parsed
 				// as a single arg with `(` because the TCL parser
 				// does not split it). Translate to a Go map lookup
@@ -200,9 +207,13 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 					key := nm[idx+1 : len(nm)-1] // strip "($key)" → "key"
 					key = strings.TrimPrefix(key, "$") // strip leading "$" (TCL var sigil)
 					if isValidGoIdent(base[:len(base)-len("Map")]) {
-						// `key` is the variable name (e.g. "i"). The
-						// Go-side var of that name holds the runtime
-						// value; emit `baseMap[keyVarName] != ""`.
+						// `key` is the variable name (e.g. "i") when it
+						// carries the $ sigil — the Go-side var of that name
+						// holds the runtime value; a literal key must be
+						// quoted.
+						if !strings.Contains(key, "$") {
+							return fmt.Sprintf("tclBool01(%s[%q] != \"\")", base, key)
+						}
 						return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, key)
 					}
 				}

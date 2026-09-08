@@ -80,14 +80,16 @@ func Test_descidx1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);\n  ")
 		}
-		// get_file_format (unsupported command, not transpiled)
+		fname = "test.db"
+		return
 	}
 	{ // do_test "descidx1-1.2"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t1(a DESC);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i2 ON t1(a DESC);\n  ")
 		}
-		// get_file_format (unsupported command, not transpiled)
+		fname = "test.db"
+		return
 	}
 	{ // do_test "descidx1-2.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;\n  ")
@@ -273,7 +275,8 @@ func Test_descidx1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n  ")
 		}
-		// get_file_format (unsupported command, not transpiled)
+		fname = "test.db"
+		return
 	}
 	{ // do_test "descidx1-6.3.1"
 		_res = db.Exec("VACUUM")
@@ -295,7 +298,8 @@ func Test_descidx1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a ASC, b DESC, c ASC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,1,0);\n    INSERT INTO t1 VALUES(1,2,1);\n    INSERT INTO t1 VALUES(1,3,4);\n  ")
 		}
-		// get_file_format (unsupported command, not transpiled)
+		fname = "test.db"
+		return
 	}
 	{ // do_test "descidx1-6.6"
 		_res = db.Exec("VACUUM")

@@ -501,7 +501,10 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 func (st *scanState) decodeAndFilterRow(cursor *btree.Cursor, payload []byte, rowID int64) (passesWhere, filtered bool, err error) {
 	// Parse header ONCE per row — parseRecordSerialTypes uses a stack buffer to
 	// avoid the heap allocation of ParseRecordHeader (saves ~40% of total alloc bytes).
-	serialTypes, dataStart := parseRecordSerialTypes(payload)
+	serialTypes, dataStart, err := parseRecordSerialTypes(payload)
+	if err != nil {
+		return false, false, err
+	}
 	if st.useLazyDecode {
 		return st.decodeRowLazy(cursor, payload, dataStart, rowID, serialTypes)
 	}

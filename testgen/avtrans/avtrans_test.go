@@ -1188,7 +1188,7 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	if tclBool(tclBool01(GMap[isquick] != "")) {
+	if false {
 		vtab.TclVarSet("limit", "", "20")
 		limit = "20"
 		_ = limit // suppress unused warning

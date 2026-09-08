@@ -55,7 +55,7 @@ func Test_mem5(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool(tclBool01(GMap[perm:presql] != "")) {
+	if false {
 		return
 	}
 	{ // do_test "mem5-1.1"

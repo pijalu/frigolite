@@ -443,7 +443,7 @@ func Test_rtreeJ(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "2.3"
-		// save_t1 (unsupported command, not transpiled)
+		_res = db.Exec("\n    DELETE FROM bak_node;\n    DELETE FROM bak_parent;\n    DELETE FROM bak_rowid;\n    INSERT INTO bak_node SELECT * FROM t1_node;\n    INSERT INTO bak_parent SELECT * FROM t1_parent;\n    INSERT INTO bak_rowid SELECT * FROM t1_rowid;")
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -499,7 +499,7 @@ func Test_rtreeJ(t *testing.T) {
 		}
 	}
 	{ // do_test "2.5"
-		// save_t1 (unsupported command, not transpiled)
+		_res = db.Exec("\n    DELETE FROM bak_node;\n    DELETE FROM bak_parent;\n    DELETE FROM bak_rowid;\n    INSERT INTO bak_node SELECT * FROM t1_node;\n    INSERT INTO bak_parent SELECT * FROM t1_parent;\n    INSERT INTO bak_rowid SELECT * FROM t1_rowid;")
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -555,7 +555,7 @@ func Test_rtreeJ(t *testing.T) {
 		}
 	}
 	{ // do_test "2.7"
-		// save_t1 (unsupported command, not transpiled)
+		_res = db.Exec("\n    DELETE FROM bak_node;\n    DELETE FROM bak_parent;\n    DELETE FROM bak_rowid;\n    INSERT INTO bak_node SELECT * FROM t1_node;\n    INSERT INTO bak_parent SELECT * FROM t1_parent;\n    INSERT INTO bak_rowid SELECT * FROM t1_rowid;")
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
 		vtab.TclVarSet("res", "", "")
 		res = "" // TCL namespace variable

@@ -93,19 +93,23 @@ func Test_corruptD(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "corruptD-1.1.1"
-		// incr_change_counter (unsupported command, not transpiled)
+		tclHexioWrite("test.db", int64(24), "hexio_render_int32 [expr [hexio_get_int [hexio_read test.db 24 4]] + 1]")
 		tclHexioWrite("test.db", int64(1024+1), "FFFF")
 		_res = db.Exec(" PRAGMA quick_check ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptD-1.1.2"
-		// incr_change_counter (unsupported command, not transpiled)
+		tclHexioWrite("test.db", int64(24), "hexio_render_int32 [expr [hexio_get_int [hexio_read test.db 24 4]] + 1]")
 		tclHexioWrite("test.db", int64(1024+1), "hexio_render_int32 1021")
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY rowid ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptD-1.2.1"
-		// restore_file (unsupported command, not transpiled)
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "corruptD-1.2.2"
 		_res = db.Exec("\n")

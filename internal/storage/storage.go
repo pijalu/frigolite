@@ -628,6 +628,13 @@ func DecodeRecord(data []byte) (*Record, error) {
 	pos += n
 	hdrEnd := int(hdrSize)
 
+	// The header must lie within the record's own bytes (vdbe.c OP_Column
+	// op_column_corrupt parity): a header extending past the data is a
+	// corrupt record, not an invitation to parse unbounded bytes.
+	if hdrEnd < pos || hdrEnd > len(data) {
+		return nil, fmt.Errorf("database disk image is malformed")
+	}
+
 	// Decode serial type codes
 	var serialTypes []uint64
 	for pos < hdrEnd {
@@ -661,6 +668,9 @@ func DecodeRecord(data []byte) (*Record, error) {
 // codes for each column and the byte offset where the value data begins.
 // The value data starts at the returned dataStart offset within the data slice.
 // Serial types are allocated on a stack buffer when there are ≤16 columns.
+// The header must lie within the record's own bytes (vdbe.c OP_Column
+// op_column_corrupt parity) — a corrupt record reports
+// "database disk image is malformed".
 func ParseRecordHeader(data []byte) (serialTypes []uint64, dataStart int, err error) {
 	pos := 0
 
@@ -668,6 +678,9 @@ func ParseRecordHeader(data []byte) (serialTypes []uint64, dataStart int, err er
 	hdrSize, n := util.GetVarint(data[pos:])
 	pos += n
 	hdrEnd := int(hdrSize)
+	if hdrEnd < pos || hdrEnd > len(data) {
+		return nil, 0, fmt.Errorf("database disk image is malformed")
+	}
 
 	// Decode serial type codes. Use a stack-allocated array for common
 	// column counts (≤16) to avoid heap allocation per row.

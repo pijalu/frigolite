@@ -362,6 +362,7 @@ func (tp *transpiler) runDoTestBody(bodyCmds [][]tcl.RawWord) *preparedState {
 		unsetVars:     tp.unsetVars,
 		dbVarFuncs:    tp.dbVarFuncs,
 		constFuncs:    tp.constFuncs, quotaCallbacks: tp.quotaCallbacks,
+		inlineProcs:   tp.inlineProcs, inlineProcParams: tp.inlineProcParams,
 		identityFuncs: tp.identityFuncs,
 		predFuncs:     tp.predFuncs,
 		queryFuncs:    tp.queryFuncs,

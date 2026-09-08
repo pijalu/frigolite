@@ -1516,6 +1516,38 @@ func tclHexioRead(file string, offset, amt int64) string {
 	return strings.ToUpper(hex.EncodeToString(buf[:n]))
 }
 
+// tclCorruptFreelist mirrors corrupt9.test's corrupt_freelist proc: overwrite
+// the freelist trunk page leaf entries (after the first) with duplicates of
+// the first leaf page number, so the free list contains the same page more
+// than once. No-op when the freelist is empty or the file is too small.
+func tclCorruptFreelist(filename string, n int) {
+	data, err := os.ReadFile(filename)
+	if err != nil || len(data) < 40 || n <= 0 {
+		return
+	}
+	get4 := func(off int) uint32 {
+		return uint32(data[off])<<24 | uint32(data[off+1])<<16 | uint32(data[off+2])<<8 | uint32(data[off+3])
+	}
+	if get4(36) == 0 {
+		return
+	}
+	pgno := int(get4(32))
+	psz := int(data[16])<<8 | int(data[17])
+	if psz == 1 {
+		psz = 65536
+	}
+	off := (pgno - 1) * psz
+	if off+12 > len(data) || off+4 > len(data) {
+		return
+	}
+	cnt := int(get4(off + 4))
+	firstLeaf := append([]byte(nil), data[off+8:off+12]...)
+	for i := 12; n > 0 && i < 8+4*cnt && i+4 <= len(data)-off; i, n = i+4, n-1 {
+		copy(data[off+i:off+i+4], firstLeaf)
+	}
+	os.WriteFile(filename, data, 0644)
+}
+
 // tclHexioReadInt reads amt bytes at offset as a big-endian integer
 // (hexio_get_int [hexio_read file off amt]).
 func tclHexioReadInt(file string, offset, amt int64) int64 {

@@ -89,7 +89,7 @@ func Test_corrupt9(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	db.Close()
 	tclFileCopy("test.db", "test.db-template")
-	// corrupt_freelist test.db 1 (unsupported command, not transpiled)
+	tclCorruptFreelist("test.db", 1)
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -107,7 +107,7 @@ func Test_corrupt9(t *testing.T) {
 	}
 	db.Close()
 	tclFileCopy("test.db-template", "test.db")
-	// corrupt_freelist test.db 2 (unsupported command, not transpiled)
+	tclCorruptFreelist("test.db", 2)
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -125,7 +125,7 @@ func Test_corrupt9(t *testing.T) {
 	}
 	db.Close()
 	tclFileCopy("test.db-template", "test.db")
-	// corrupt_freelist test.db 3 (unsupported command, not transpiled)
+	tclCorruptFreelist("test.db", 3)
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

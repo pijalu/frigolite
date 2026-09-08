@@ -346,6 +346,7 @@ func (p *Pager) ZeroFreelistChain() {
 	}
 	binary.BigEndian.PutUint32(p.header[32:36], 0)
 	binary.BigEndian.PutUint32(p.header[36:40], 0)
+	p.invalidateFreelistSetLocked()
 	p.dirty[1] = true
 	if pg, ok := p.pages[1]; ok && pg != nil {
 		copy(pg.Data[:HeaderSize], p.header)

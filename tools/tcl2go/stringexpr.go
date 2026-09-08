@@ -372,6 +372,11 @@ func splitTclArrayRef(vn string) (string, string) {
 // a dynamic-key array (registered in arrayMapVars) it returns a map lookup
 // arrMap[key] instead.
 func (tp *transpiler) arrayLookupExpr(base, key string) string {
+	if base == "G" || base == "::G" {
+		// The TCL runner's options array (::G, set by -soak/-perm/...) is
+		// never populated in the Go harness: every read yields "".
+		return `""`
+	}
 	if tp.arrayMapVars != nil && tp.arrayMapVars[base] {
 		mapVar := tclVarToGo(base) + "Map"
 		keyExpr := strings.TrimPrefix(key, "$")

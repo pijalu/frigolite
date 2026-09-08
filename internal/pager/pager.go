@@ -152,6 +152,13 @@ type Pager struct {
 	// per statement.
 	knownFileVers [16]byte
 	knownFileSize int64
+	// freeSet memoizes the on-disk freelist chain's membership (trunk +
+	// leaf pages) for bulk "is this page on the freelist?" queries
+	// (btree_tail's leaf sweeps, findParentInBtree's BFS). Walking the
+	// chain per query is O(pages × chain) and stalls mass UPDATE/DELETE on
+	// long chains. nil means stale — rebuilt from the chain on next use by
+	// freelistSetLocked; every chain mutator nils it.
+	freeSet map[uint32]struct{}
 }
 
 type Page struct {
@@ -1160,7 +1167,7 @@ func (p *Pager) AllocatePageSkipFreelist() *Page {
 // AllocatePageMode allocates a page, optionally bypassing the freelist
 // (always extending the file). P8.INCRVACUUM.phase9: the schema btree
 // uses skipFreelist=true so the schema btree's pages don't take slots
-// from the user-rootpage range.
+// from the user rootpage range.
 func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -1174,6 +1181,46 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 			return p.grabPageLocked(pgno)
 		}
 	}
+	pg := p.allocateExtendLocked()
+	if pg == nil {
+		return nil
+	}
+	return pg
+}
+
+// AllocatePageForTree is the b-tree write-path allocation (btree.c
+// allocateBtreePage called from a live b-tree operation): liveRoot is the
+// calling tree's root page number. When the freelist pop hands back
+// liveRoot itself, the popped page is still in use by the open tree —
+// btreeGetUnusedPage's "page already in use" corruption check
+// (sqlite3PagerPageRefcount>1 → SQLITE_CORRUPT_BKPT, src/btree.c:2457-2461),
+// which fires on images with duplicated freelist entries (corrupt9): the
+// duplicated leaf was consumed as this tree's root moments earlier, so the
+// second pop returns a live page. The root of the allocating tree is the
+// one page its own write path always holds, making it the faithful
+// refcount>1 signal; a legitimate allocation can never return the tree's
+// own root because a live root is never on the freelist.
+func (p *Pager) AllocatePageForTree(liveRoot uint32) (*Page, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if pgno := p.allocateFreelistLocked(); pgno != 0 {
+		if liveRoot != 0 && pgno == liveRoot {
+			return nil, fmt.Errorf("database disk image is malformed")
+		}
+		return p.grabPageLocked(pgno), nil
+	}
+	pg := p.allocateExtendLocked()
+	if pg == nil {
+		return nil, fmt.Errorf("database or disk is full")
+	}
+	return pg, nil
+}
+
+// allocateExtendLocked grows the file by one page and returns it (the
+// no-freelist tail of btree.c allocateBtreePage). Returns nil when
+// max_page_count blocks the extend (caller reports SQLITE_FULL).
+// Caller holds p.mu.
+func (p *Pager) allocateExtendLocked() *Page {
 	// P8.PRAGMA: PRAGMA max_page_count enforcement. pager.c::getPageNo
 	// rejects writes beyond mxPgno with SQLITE_FULL. We mirror that here:
 	// if the new page number would exceed maxPageCount, return nil so the

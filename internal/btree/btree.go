@@ -149,13 +149,16 @@ func (t *BTree) allocPage() (*pager.Page, error) {
 	// (sqllimits1-8.8 at the max_page_count cap).
 	if t.isSchema && t.pager.AutoVacuum() {
 		pg = t.pager.AllocatePageSkipFreelist()
-	} else {
-		pg = t.pager.AllocatePage()
+		if pg == nil {
+			return nil, fmt.Errorf("database or disk is full")
+		}
+		return pg, nil
 	}
-	if pg == nil {
-		return nil, fmt.Errorf("database or disk is full")
-	}
-	return pg, nil
+	// AllocatePageForTree carries the live root for btreeGetUnusedPage's
+	// "page already in use" corruption check: a freelist pop returning this
+	// tree's own root means the image has duplicated freelist entries
+	// (corrupt9) and must fail with SQLITE_CORRUPT, not reuse the root.
+	return t.pager.AllocatePageForTree(t.rootPage)
 }
 
 // OpenCursor creates a new cursor positioned at the beginning.

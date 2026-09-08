@@ -73,7 +73,21 @@ func Test_corruptF(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		// create_test_db (unsupported command, not transpiled)
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_r = ""
+			db.Close()
+		}
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		db.RegisterFunction("str", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n  ")
+		}
+		db.Close()
 	}
 	{ // do_test "1.2" (file size test.db)
 		got := strconv.Itoa(tclFileSize("test.db"))
@@ -95,11 +109,9 @@ func Test_corruptF(t *testing.T) {
 	}
 	{ // do_test "1.5"
 		tclHexioWrite("test.db", int64(2*1024 + 8), "00000006")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
-		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-		_ = err
-		db.ResetChangesCounters()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.6"
 		r = db.Query(" \n  CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;\n")
@@ -159,7 +171,22 @@ func Test_corruptF(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		// create_test_db (unsupported command, not transpiled)
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_r = ""
+			db.Close()
+		}
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		db.RegisterFunction("str", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n  ")
+		}
+		db.Close()
 	}
 	{ // do_test "2.2" (file size test.db)
 		got := strconv.Itoa(tclFileSize("test.db"))
@@ -181,11 +208,9 @@ func Test_corruptF(t *testing.T) {
 	}
 	{ // do_test "2.5"
 		tclHexioWrite("test.db", int64(2*1024 + 8), "00000005")
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
-		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-		_ = err
-		db.ResetChangesCounters()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
 	}
 	{ // "2.6"
 		r = db.Query(" \n  CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;\n")

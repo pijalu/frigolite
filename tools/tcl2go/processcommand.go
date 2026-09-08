@@ -686,6 +686,17 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 		return
 	}
 
+	// corrupt_freelist FILE N — corrupt9.test's proc that overwrites the
+	// freelist trunk's leaf entries with duplicates of the first leaf page
+	// number (creating duplicate free-list entries). Emit a call to the
+	// harness helper implementing the same file surgery.
+	if cmdName == "corrupt_freelist" && len(args) >= 2 {
+		fileExpr := tp.goStringLiteral(args[0])
+		nExpr := tp.valueExpr(args[1])
+		tp.emitLine("tclCorruptFreelist(%s, %s)", fileExpr, nExpr)
+		return
+	}
+
 	// make_corrupt_file FNAME — the zipfile2.test proc that writes a crafted
 	// archive (60000-byte entry name, huge extra) to FNAME. Emit a call to
 	// the harness helper implementing the same construction.

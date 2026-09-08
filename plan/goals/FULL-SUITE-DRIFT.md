@@ -153,6 +153,158 @@ manipulation procs; the transpiler needs a small library of file-corruption
 helpers (tclCorruptFreelist first) plus proc-call inlining for test-local
 procs that only wrap execsql/hexio sequences.
 
+### T2 RESULT (2026-09-08)
+
+Transpiler (tools/tcl2go):
+
+- **::G harness array** — the TCL runner's `::G` options array (-soak/-perm/
+  etc.) is never populated in the Go harness, so `info exists ::G(k)` is
+  always false and a read yields "". cmdexpr.go's "info" handler special-
+  cases `G`/`G(...)` to emit `"0"`, and stringexpr.go's arrayLookupExpr
+  returns `""` for `::G` reads. This unblocked corruptC/corruptN's build
+  (GMap/issoak/perm/presql declarations resolved through the same path).
+- **proc-body inlining inside do_test** — runDoTestBody's sub-transpiler now
+  copies `inlineProcs`/`inlineProcParams` from the outer transpiler, so
+  zero-arg test-local procs (corruptF's `create_test_db`) inline into
+  do_test bodies (processcommand.go's proc-call path).
+- **tclCorruptFreelist helper** — helpers_template_part1_tail.go gains
+  `tclCorruptFreelist(file, n)` mirroring corrupt9.test's `corrupt_freelist`
+  proc (reads header freelist fields with manual byte arithmetic —
+  encoding/binary is not in detectImports' list; overwrites trunk leaf
+  slots 2..n+1 with a copy of the first leaf), and processcommand.go
+  recognizes `corrupt_freelist FILE N`.
+
+Engine (corrupt9 contract, oracle-verified with /usr/bin/sqlite3):
+
+- **DROP INDEX now frees the index's pages** (ddl_drop.go):
+  sqlite3DropIndex emits OP_Destroy/btreeDropTable; execDropIndex now calls
+  dropBtreeRoot + refreshLargestRootPage after removing the schema entry.
+  Without it the freelist never grows on DROP INDEX (corrupt9-1.1 needs
+  free pages for the corruption step to have leaves).
+- **Freelist-pop "page already in use" detection** (pager.go
+  AllocatePageForTree + btree.go allocPage): btreeGetUnusedPage
+  (src/btree.c:2449) reports SQLITE_CORRUPT when the popped page's pager
+  refcount is >1, i.e. the page is still held by the allocating tree —
+  corrupt9's duplicated leaf IS the root the build just consumed (leaves[0]
+  pops first as the CREATE INDEX root). The faithful in-engine signal: a
+  freelist pop returning the calling BTree's own root is always corruption
+  (a live root is never on the freelist); AllocatePageForTree(liveRoot)
+  returns "database disk image is malformed" in that case.
+- **Record-header bound** (op_column_corrupt parity, vdbe.c OP_Column):
+  parseRecordSerialTypes / storage.ParseRecordHeader / storage.DecodeRecord
+  now require the record header to lie within the record's own bytes;
+  otherwise "database disk image is malformed". Without it a junk-corrupted
+  record header (corrupt-2.x appends 256 junk bytes at every 256-byte
+  offset of the file) spins the serial-type loop appending billions of
+  entries — measured 9-12 GB RSS in ~2s, the cause of the corrupt and
+  corruptL baseline "timeout" states.
+- **Overflow-chain geometric bound** (btree_insert.go readOverflow): the
+  chain lives in the file, so a cell payload can never exceed
+  numPages×(usable-4); a corrupt payload length promising more reports
+  "database disk image is malformed" before any allocation (the second
+  half of the same memory bomb: garbage plen allocated a GB-scale buffer
+  that then fed the header spin).
+
+Results (vs ledger baseline 2026-09-08):
+
+- pass flips: corrupt4 (was GMap build fail), corrupt9.
+- hang→clean: corrupt and corruptL now complete fast — corrupt FAILs on
+  result mismatches in 90s (was: timeout-suspect + memory bomb), corruptL
+  completes in 17s at -timeout 600s serial (was: timeout-suspect).
+  Both are deep corruption-parity reds (P8.CORRUPT long tail), now
+  actionable.
+- compile-fail→run: corruptC/corruptN now build and run to deep
+  multi-assertion corruption contracts (each assertion is a separate btree
+  gap — P8.CORRUPT scope).
+- unchanged reds: corruptB (same 3.1.1 autovacuum root-relocation failure
+  as baseline; the ledger tail text was the SQL echo of the same error),
+  corruptF (1.2 file-size split parity + late assertion), fts3corrupt
+  family (P6.FTS-B).
+- memory safety (user-reported system-memory risk): the unbounded
+  allocation is fixed; a 1400-iteration corrupt-image Open/Exec/Close
+  probe retains ~0 MB (heap 0MB / sys 35MB); the corrupt testgen binary
+  peaks ~1.3 GB RSS over its full 1344-offset run (bounded, harness-side).
+
+Tranche verify: corruption family packages re-run individually (no
+pass→fail flips), internal/... all green except the pre-existing
+internal/fts TestWriterConformance (fails identically at HEAD 395738c7f),
+root suite + SOLID in this commit's verification.
+
+### T2 addendum — freelist-membership memoization (2026-09-08)
+
+The corrupt-engine work (correctly freeing pages on DROP INDEX, bigger
+legitimate freelists) pushed an EXISTING quadratic hotspot over the
+suite-timeout edge: `TestSQLiteSuite/temptable2/4.1.2`
+(BEGIN; UPDATE t1 SET b=randomblob(100); ROLLBACK; on a temp table seeded
+with 100k rows by section 1) spends minutes inside `DeleteCellsWhere →
+maybeRebalanceAfterDelete → findParentByWalk → IsPageOnFreelist`, each
+call re-walking the on-disk freelist chain (`chainContainsLocked`) —
+O(pages × chain) per walk-family. Verified pre-existing at HEAD
+395738c7f by stash-run (identical stall, 5-min -timeout kill).
+
+Fix: `Pager.freeSet` memoizes the chain membership (trunks + leaves) in
+ONE walk, rebuilt whenever any chain mutator nils it
+(`invalidateFreelistSetLocked` from FreePage / allocateFreelistLocked /
+allocateFreelistNearLocked / freelistPagesAboveLocked / writeFreelistTrunkLocked /
+ZeroFreelistChain). IsPageOnFreelist (non-autovacuum) answers from the
+memo; rebuild is cycle- and count-bounded (≤ n entries) so corrupt chains
+cannot spin it. 4.1.2: minutes → 0.00s; the whole file: 300s-timeout → 42s.
+
+Note: temptable2's "table t1 already exists" cascade at 3.1.1+ is
+pre-existing at HEAD (stash-verified, identical messages) — the JSON
+harness runs testdata/temptable2.json unskipped, while the ledger's
+'temptable2: skipped' entry refers to the testgen no-op package. The
+in-suite behavior of that file is re-verified in this commit's root-suite
+run; its assertion drift is FULL-SUITE-DRIFT T4 scope either way.
+
+### T2 addendum 2 — root JSON suite is NOT a deterministic gate (2026-09-08)
+
+Tonight's full `go test . -timeout 1500s` runs could not reproduce the
+T1.2 "zero failing tests" state, and the investigation shows the root
+JSON-harness suite is intrinsically non-reproducible; do NOT use it as a
+flip gate until T4 fixes these three classes:
+
+1. **Converter-dropped fixture functions.** alias.test line 42 registers
+   `db function sequence` — the JSON has no step type for it, so
+   `alias/setup_0` fails "no such function: sequence" deterministically,
+   in any run, at any commit (HEAD-stash verified). Files exercising
+   `db function`/`db func` were never individually green. Same class:
+   tkt_d635236375 (the converter lost the TCL `db close / file delete /
+   sqlite3 db` between 1.0 and 1.1, so 1.1's re-CREATE batch cannot pass;
+   "UNIQUE constraint failed: t1.id1" reproduces identically at HEAD).
+2. **Parallel-interleaving dependence.** Subtests run t.Parallel() across
+   files sharing one process; combined with class 1, whether a file's
+   setup sees state from a benefactor file depends on scheduling. The
+   failure SET (400 files tonight) is not stable across runs of the same
+   tree.
+3. **The pre-memoization O(n²)** (freelist-walk per IsPageOnFreelist in
+   bulk delete/rebalance) made suite completion time unstable: the
+   dc1325ae9 worktree re-run tonight TIMED OUT at 25 minutes inside
+   temptable2/4.1.2 — the "fully green" baseline commit does not
+   reproduce green tonight even before this tranche's engine changes.
+   The memoization in this tranche removes that instability source.
+
+T2 verification therefore rests on the deterministic surfaces: the
+testgen packages (corruption family + flips, ledger-governed),
+internal/... unit packages, SOLID, and the per-file -v comparisons
+against HEAD-stash for every suspicious file (tkt_d635236375, alias,
+temptable2 — all identical at HEAD). Harness determinism (per-file engine
+globals, `db function` fixture registration in the converter) is queued
+as T4 scope.
+
+### T2 CLOSE (2026-09-08)
+
+Final state: sweep re-seeded — 1219 packages, **730 pass / 238 fail /
+244 skip / 7 timeout-suspect** (baseline was 724/251/244 at the T2
+census; net +6 pass). `tools/status -check` PASS (no unexpected flips).
+The 7 duration-suspects (≥55s class) carry to T3's serial re-runs;
+corrupt (90s) and corruptL (17.6s) have already been serially verified
+this tranche and are honest fails, not hangs.
+
+Flips this tranche: corrupt4 (compile-fail → pass), corrupt9 (fail →
+pass), corrupt + corruptL (timeout-suspect → fail, evidence recorded).
+No pass→fail flips anywhere.
+
 ### Tranches (execute in order; one tranche per commit series)
 
 - **T1 standard-suite drift**: repair the hand-written P1/P3 upsert, FK and

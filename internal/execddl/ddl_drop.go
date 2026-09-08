@@ -117,6 +117,17 @@ func (e *DDLExecutor) execDropIndex(s *sql.DropIndexStmt) *Result {
 		}
 		return &Result{Error: err}
 	}
+	// Free the index's b-tree pages (src/build.c sqlite3DropIndex emits
+	// OP_Destroy for the index root, which runs btreeDropTable): without
+	// this the index's pages leak — the freelist never grows on DROP INDEX
+	// and the file grows without bound (corrupt9-1.1's DROP INDEX i2 must
+	// leave 8 pages on the freelist for the corruption step to corrupt).
+	if entry != nil && entry.RootPage != 0 {
+		if err := e.dropBtreeRoot(ctx, entry.Name, entry.RootPage, false); err != nil {
+			return &Result{Error: err}
+		}
+		e.refreshLargestRootPage(ctx)
+	}
 	return &Result{}
 }
 

@@ -1,6 +1,7 @@
 package execquery
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -68,20 +69,26 @@ func SelectNeedsRowMaps(e *SelectEngine, s *sql.SelectStmt, tableName string) bo
 }
 
 // parseRecordSerialTypes parses a b-tree record payload header, returning the
-// serial types and the byte offset where the data section begins.
-func parseRecordSerialTypes(payload []byte) ([]uint64, int) {
+// serial types and the byte offset where the data section begins. The header
+// size must lie within the payload (vdbe.c OP_Column's op_column_corrupt
+// check) — a header extending past the fetched bytes is a corrupt record and
+// must error, not spin appending serial types.
+func parseRecordSerialTypes(payload []byte) ([]uint64, int, error) {
 	var stackSerialTypes [16]uint64
 	serialTypes := stackSerialTypes[:0]
 	pos := 0
 	hdrSize, n := util.GetVarint(payload[pos:])
 	pos += n
 	hdrEnd := int(hdrSize)
+	if hdrEnd < pos || hdrEnd > len(payload) {
+		return nil, 0, fmt.Errorf("database disk image is malformed")
+	}
 	for pos < hdrEnd {
 		st, n2 := util.GetVarint(payload[pos:])
 		pos += n2
 		serialTypes = append(serialTypes, st)
 	}
-	return serialTypes, pos
+	return serialTypes, pos, nil
 }
 
 // appendScanStarValues appends the active (non-dropped) column values of a

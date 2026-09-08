@@ -96,11 +96,11 @@ func Test_fuzz_malloc(t *testing.T) {
 	_ = testresult // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool(tclBool01(GMap[isquick] != "")) {
+	if false {
 		vtab.TclVarSet("REPEATS", "", "20")
 		REPEATS = "20" // TCL namespace variable
 		_ = REPEATS // suppress unused warning
-	} else if tclBool(tclBool01(GMap[issoak] != "")) {
+	} else if false {
 		vtab.TclVarSet("REPEATS", "", "100")
 		REPEATS = "100" // TCL namespace variable
 		_ = REPEATS // suppress unused warning

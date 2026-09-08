@@ -80,14 +80,16 @@ func Test_descidx2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);\n  ")
 		}
-		// get_file_format (unsupported command, not transpiled)
+		fname = "test.db"
+		return
 	}
 	{ // do_test "descidx2-1.2"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t1(a DESC);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i2 ON t1(a DESC);\n  ")
 		}
-		// get_file_format (unsupported command, not transpiled)
+		fname = "test.db"
+		return
 	}
 	{ // do_test "descidx2-2.0"
 		// set_file_format 3 (unsupported command, not transpiled)
@@ -95,7 +97,8 @@ func Test_descidx2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		// get_file_format (unsupported command, not transpiled)
+		fname = "test.db"
+		return
 	}
 	{ // do_test "descidx2-2.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;\n  ")

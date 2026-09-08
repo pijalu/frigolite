@@ -88,24 +88,42 @@ func Test_delete_db(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		// copydb (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		for _, f := range tclSplitList(tclGlob("test3*")) {
+		_ = f // suppress unused warning
+			_ = os.Remove(f)
+		}
+		for _, f := range tclSplitList(tclGlob("test2*")) {
+		_ = f // suppress unused warning
+			p = tclStringRange(f, "5", "end")
+			_ = p // suppress unused warning
+			// file copy test2$p test3$p
+		}
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	{ // do_test "1.1.1"
 		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	{ // do_test "1.2.0"
 		r = db.Query("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		}
-		// copydb (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		for _, f := range tclSplitList(tclGlob("test3*")) {
+		_ = f // suppress unused warning
+			_ = os.Remove(f)
+		}
+		for _, f := range tclSplitList(tclGlob("test2*")) {
+		_ = f // suppress unused warning
+			p = tclStringRange(f, "5", "end")
+			_ = p // suppress unused warning
+			// file copy test2$p test3$p
+		}
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	{ // do_test "1.2.1"
 		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	db.Close()
 	for _, f := range tclSplitList(tclGlob("test2*")) {
@@ -130,24 +148,42 @@ func Test_delete_db(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b);\n    WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n    INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n    BEGIN;\n      UPDATE x1 SET a=randomblob(101)\n  ")
 		}
-		// copydb (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		for _, f := range tclSplitList(tclGlob("test3*")) {
+		_ = f // suppress unused warning
+			_ = os.Remove(f)
+		}
+		for _, f := range tclSplitList(tclGlob("test2*")) {
+		_ = f // suppress unused warning
+			p = tclStringRange(f, "5", "end")
+			_ = p // suppress unused warning
+			// file copy test2$p test3$p
+		}
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	{ // do_test "1.3.1"
 		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	{ // do_test "1.4.0"
 		r = db.Query("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
 		}
-		// copydb (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		for _, f := range tclSplitList(tclGlob("test3*")) {
+		_ = f // suppress unused warning
+			_ = os.Remove(f)
+		}
+		for _, f := range tclSplitList(tclGlob("test2*")) {
+		_ = f // suppress unused warning
+			p = tclStringRange(f, "5", "end")
+			_ = p // suppress unused warning
+			// file copy test2$p test3$p
+		}
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	{ // do_test "1.4.1"
 		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
-		// files (unsupported command, not transpiled)
+		_ = tclSort(tclGlob("test3*")) // lsort result
 	}
 	db.Close()
 	// delete_all (unsupported command, not transpiled)

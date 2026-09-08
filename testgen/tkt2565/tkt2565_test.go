@@ -78,7 +78,19 @@ func Test_tkt2565(t *testing.T) {
 	// sqlite3_config_alt_pcache 1 100 0 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "tkt2565-1.0"
-		// reopen_database (unsupported command, not transpiled)
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_r = ""
+			db.Close()
+		}
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;")
+		}
 		_res = db.Exec(" CREATE TABLE A(Id INTEGER, Name TEXT) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE A(Id INTEGER, Name TEXT) ")
