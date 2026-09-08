@@ -435,3 +435,29 @@ rest are a pre-existing temp-trigger state issue, T4 later). func3
 improved; its 3 remaining assertions need the C-API destroy callback
 (not expressible — NA class). Regression net: native P1/P3/P5/P6/P8
 green; testgen func/limit/where families unchanged vs ledger.
+
+### T4 session 3 (2026-09-08) — read-only connections (openv2, rdonly)
+
+Two gaps closed, oracle/C-grounded:
+
+- **Statement-level read-only gate** (execEntry): a connection whose main
+  pager is read-only fails every writing statement — DML, DDL, VACUUM/
+  ANALYZE/REINDEX — with "attempt to write a readonly database" (pager.c
+  sqlite3PagerWrite → SQLITE_READONLY); reads are unaffected. This is the
+  frigolite statement-gate analogue of pager.c's per-write SQLITE_READONLY.
+- **Write-version gate** (openPager): a database whose file-format WRITE
+  version exceeds 1 (WAL or a newer format) cannot be written by a
+  journal-mode connection — the pager is marked read-only at open
+  (rdonly-1.3/1.4 write version 3 into header byte 18; reads succeed,
+  writes fail). WAL databases reopening with their -wal file enter WAL
+  mode first and stay writable.
+- **OpenReadOnly(":memory:")** now returns a read-only pager
+  (OpenInMemoryReadOnly) — openv2-2.1 opens successfully and 2.2's
+  CREATE TABLE fails — and schema.Init skips bootstrapping an empty
+  read-only database instead of erroring (openv2-2.1 regression caught
+  during the fix).
+
+Flips: openv2 fail→pass, rdonly fail→pass. Regression net: filefmt,
+journal2/3, wal2, walbak, backup/2, vacuum, corrupt9, incrvacuum/2/3, and
+the native P1/P3/P5/P6/P8 families all green. savepoint2's sweep suspect
+flag was load noise (passes serially in 32s).

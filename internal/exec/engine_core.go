@@ -789,6 +789,14 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 	if e.WriteBlockedByPreparedRead(stmt) {
 		return &Result{Error: fmt.Errorf("database is locked")}
 	}
+	// Read-only connection gate (SQLITE_OPEN_READONLY, pager.c
+	// sqlite3PagerWrite → SQLITE_READONLY): every statement that writes —
+	// DML, DDL, VACUUM/ANALYZE — fails with "attempt to write a readonly
+	// database" on a connection opened read-only; reads are unaffected
+	// (openv2-1.4/2.2, rdonly).
+	if e.pager != nil && e.pager.ReadOnly() && e.stmtWritesDatabase(stmt) {
+		return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
+	}
 	// Cross-connection pager lock matrix (src/pager.c + os_unix.c): another
 	// connection's RESERVED lock blocks our writes; its EXCLUSIVE lock blocks
 	// our reads and writes (lock3-3.2/4.1/4.2).

@@ -516,6 +516,17 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		}
 	}
 
+	// A database whose file-format WRITE version exceeds 1 (WAL or a newer
+	// format) cannot be written by a journal-mode connection: C marks the
+	// pager read-only at lockBtree (rdonly-1.3/1.4 write version 3 into
+	// byte 18 and expect reads to succeed while writes fail
+	// SQLITE_READONLY, "attempt to write a readonly database"). WAL-mode
+	// databases reopening with their -wal file enter WAL mode above and
+	// stay writable.
+	if !pr.readOnly && pr.wal == nil && len(pr.header) > 18 && pr.header[18] > 1 {
+		pr.readOnly = true
+	}
+
 	return pr, nil
 }
 
@@ -556,6 +567,16 @@ func OpenInMemory(pageSize uint32) *Pager {
 		numPages: 0,
 		header:   dh.Encode(),
 	}
+}
+
+// OpenInMemoryReadOnly is OpenInMemory for a :memory: database opened with
+// SQLITE_OPEN_READONLY (sqlite3 db :memory: -readonly 1): every write fails
+// with SQLITE_READONLY, "attempt to write a readonly database"
+// (openv2-2.2).
+func OpenInMemoryReadOnly(pageSize uint32) *Pager {
+	pg := OpenInMemory(pageSize)
+	pg.readOnly = true
+	return pg
 }
 
 // deriveCksumInit produces a non-zero random-ish uint32 used as the

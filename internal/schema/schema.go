@@ -123,6 +123,15 @@ func (m *Manager) Init() error {
 		return nil // already initialized
 	}
 
+	// A read-only connection cannot bootstrap a fresh database: an empty
+	// read-only database has an empty schema — sqlite3 db :memory:
+	// -readonly opens successfully, SELECT * FROM sqlite_master returns no
+	// rows, and the first WRITE fails SQLITE_READONLY at the statement gate
+	// (openv2-2.1/2.2).
+	if m.pager.ReadOnly() {
+		return nil
+	}
+
 	// Ensure database header is set
 	if m.pager.Header() == nil {
 		dh := storage.DefaultHeader(m.pager.PageSize())

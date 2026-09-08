@@ -575,3 +575,25 @@ func (e *Engine) flushAttachedPagers() {
 		}
 	}
 }
+
+// stmtWritesDatabase reports whether a statement writes to the database:
+// DML, DDL (create/drop/alter), VACUUM, ANALYZE, and transaction-control
+// are rejected on read-only connections (pager.c SQLITE_READONLY). SELECT
+// and PRAGMA queries are reads; BEGIN is tolerated (SQLite defers the
+// readonly error to the first write inside the transaction).
+func (e *Engine) stmtWritesDatabase(stmt sql.Stmt) bool {
+	switch stmt.(type) {
+	case *sql.InsertStmt, *sql.UpdateStmt, *sql.DeleteStmt:
+		return true
+	case *sql.CreateTableStmt, *sql.CreateIndexStmt, *sql.CreateViewStmt,
+		*sql.CreateTriggerStmt, *sql.CreateVirtualTableStmt:
+		return true
+	case *sql.DropTableStmt, *sql.DropIndexStmt, *sql.DropViewStmt, *sql.DropTriggerStmt:
+		return true
+	case *sql.AlterTableStmt:
+		return true
+	case *sql.VacuumStmt, *sql.AnalyzeStmt, *sql.ReindexStmt:
+		return true
+	}
+	return false
+}

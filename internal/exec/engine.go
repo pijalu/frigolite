@@ -1069,3 +1069,7 @@ func (e *Engine) UnregisterVTabModulesExcept(keep []string) {
 		}
 	}
 }
+
+// PagerReadOnly reports whether the main pager was opened read-only
+// (SQLITE_OPEN_READONLY).
+func (e *Engine) PagerReadOnly() bool { return e.pager.ReadOnly() }

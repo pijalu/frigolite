@@ -681,7 +681,7 @@ func OpenReadOnly(path string) (*DB, error) {
 	var pg *pager.Pager
 	var err error
 	if path == "" || path == ":memory:" {
-		pg = pager.OpenInMemory(pager.DefaultPageSize)
+		pg = pager.OpenInMemoryReadOnly(pager.DefaultPageSize)
 	} else {
 		pg, err = pager.OpenReadOnly(path, pager.DefaultPageSize)
 		if err != nil {
