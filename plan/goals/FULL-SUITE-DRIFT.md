@@ -120,6 +120,39 @@ timeout (savepoint4 alone = 131s standalone, identical at HEAD db031d58c
 and this tree — no regression from these fixes). Use `-timeout 1500s` for
 full-suite verification until the perf tranche lands.
 
+### T2 CENSUS (2026-09-08)
+
+corrupt9/corruptC/corruptF/corruptL/corruptN triaged (per-package -timeout
+120s runs):
+
+- **corrupt9** (3 asserts): the corruption step is a TCL proc
+  `corrupt_freelist test.db N` (hexio overwrites freelist trunk leaf
+  entries with duplicates of the first entry) — emitted as
+  "unsupported command, not transpiled", so the db is never actually
+  corrupt and REINDEX legitimately succeeds. Needs (a) a tcl2go helper
+  `tclCorruptFreelist(file, n)` + call recognition mirroring the proc
+  (header offset 32/36 → trunk offset → overwrite leaves), and (b) an
+  engine check: allocating/popping from a freelist with duplicate entries
+  (or REINDEX writing through one) reports "database disk image is
+  malformed" (btree.c freeList checks).
+- **corruptC / corruptN** (build failed): generated code references
+  `GMap[...]` / `issoak` / `perm` / `presql` without declaring them — a
+  tcl2go array-map collection gap: `set ::GMap(key) val` style writes (or
+  `global GMap` declarations) are not registered in `arrayKeys`/
+  `arrayMapVars` for these files, so the preamble omits the map vars and
+  the helper vars.
+- **corruptF** (1.2 file size 0 != 6144): the test's setup proc
+  `create_test_db` is "unsupported command, not transpiled" — test.db is
+  never created. Needs a shape detector for the proc (it wraps a fixed
+  execsql script) or inlining of user procs at call sites.
+- **corruptL**: FAIL at 102s of a 120s cap — timeout-class; serial run
+  with -timeout 600s required before triaging assertions.
+
+Common theme: these corrupt files drive corruption via TCL-side file
+manipulation procs; the transpiler needs a small library of file-corruption
+helpers (tclCorruptFreelist first) plus proc-call inlining for test-local
+procs that only wrap execsql/hexio sequences.
+
 ### Tranches (execute in order; one tranche per commit series)
 
 - **T1 standard-suite drift**: repair the hand-written P1/P3 upsert, FK and
