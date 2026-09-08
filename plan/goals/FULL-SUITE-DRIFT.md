@@ -534,3 +534,25 @@ filter1-4.2 passes; filter1 3 → 2 failing assertions (6.1: FILTER on a
 correlated scalar subquery's aggregate; 440: mixed FILTER shapes — both
 queued). Regression net: native P1/P3/P5/P6/P8 green; orderby1-5,
 select*, minmax*, resolver01, with1/2 unchanged vs ledger.
+
+### T4 queue addendum (2026-09-09) — filter1-6.1 correlated-aggregate FILTER diagnosis
+
+Probe evidence for `SELECT (SELECT COUNT(a) FILTER(WHERE x) FROM t2) FROM t1`
+(t1: 2 rows; t2: 1 row x=1; oracle [1,1], engine [0]):
+
+- The engine's correlated-aggregate machinery steps the aggregate over the
+  OUTER rows (aggRowMaps = outerRows), so a FILTER referencing an INNER
+  column (x) evaluates against outer columns, misses, and the count is 0.
+- The unfiltered correlated count (SELECT COUNT(a) FROM t2 inside an outer
+  query) steps over outer rows too, yielding 2 (C: 1 per outer row — the
+  subquery scans its own FROM). This predates the FILTER gap.
+- C model to port: when the subquery has a FROM, the aggregate steps over
+  the INNER table's rows; the FILTER evaluates on the inner row; argument
+  names that miss the inner row resolve as outer constants (per-outer-row).
+  The FROM-less correlated aggregate case (SELECT (SELECT max(y)) with y
+  outer — window1 76.5) keeps the current outer-row stepping.
+
+This is a scoped redesign of evalAggOverOuterRowsWithInner /
+aggregateHasOnlyOuterRefs (the FILTER expression must participate in the
+inner-reference scan) — queued as its own batch with the probe cases
+above as the acceptance tests.
