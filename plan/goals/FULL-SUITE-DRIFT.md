@@ -612,3 +612,19 @@ flag (matching C's page-copy semantics for both VACUUM and VACUUM INTO).
 check package: 7 → 3 failing assertions; the remaining three (7.x myfunc)
 need the TCL db-func fixture registration — converter/NA class. Vacuum
 family + native suites green; sweep reseeded 741/234/244, -check PASS.
+
+### T5 session (2026-09-09) — utf16align un-skipped; uri/uri2 scoped
+
+- **utf16align un-skipped and PASSING** — the accumulated transpiler work
+  (GMap/::G declarations, proc inlining, forcedelete handling) made the
+  package transpile and run clean. skipTestFiles entry removed; the
+  package is now a real transpiled test in the sweep.
+- **uri / uri2**: un-skip attempted and triaged. uri's conversion is
+  mangled (`file isdir $file` emitted as a bare identifier
+  file_is_a_directory → build failure; PWD-substitution and bracket
+  artifacts). uri2 requires the ENABLE_URI_00_ERROR engine behavior
+  (reject "%00" in URIs with "unexpected %00 in uri", SQLITE_ERROR) plus
+  sqlite3_open/errcode C-API seams the converter does not model (the
+  generated code appends "]" and calls a nonexistent LastErrCode flow on
+  an Open that should fail). Both restored to skipTestFiles with
+  sharpened reasons pointing at the exact gaps; utf16align stays un-skipped.

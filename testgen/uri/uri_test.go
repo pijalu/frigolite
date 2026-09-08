@@ -9,4 +9,4 @@ import (
 )
 
 func Test_uri(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: converter gaps: file-isdir helper + error-variable emission (T5 follow-up)

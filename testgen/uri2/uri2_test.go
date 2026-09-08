@@ -9,4 +9,4 @@ import (
 )
 
 func Test_uri2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: converter + engine gaps: %00-in-URI rejection (ENABLE_URI_00_ERROR) and sqlite3_open/errcode seams (T5 follow-up)
