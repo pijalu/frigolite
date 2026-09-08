@@ -13,6 +13,14 @@ import (
 // --- COMMIT ---
 
 func (e *Engine) execCommit() *Result {
+	// SQLite raises "cannot commit - no transaction is active" when COMMIT
+	// runs with no open transaction — e.g. after a constraint-aborted
+	// statement rolled the transaction back (src/vdbe.c OP_Transaction /
+	// sqlite3VdbeExec's OP_AutoCommit path: "cannot commit - no transaction
+	// is active").
+	if !e.tx.inTransaction {
+		return &Result{Error: fmt.Errorf("cannot commit - no transaction is active")}
+	}
 	// Deferred foreign key constraints are checked at COMMIT. On a violation
 	// the COMMIT fails and the transaction stays open (SQLite semantics:
 	// "cannot start a transaction within a transaction" after a failed

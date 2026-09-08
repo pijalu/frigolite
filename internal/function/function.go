@@ -44,11 +44,6 @@ type Func struct {
 	// SQL (SQLITE_DIRECTONLY): it is never allowed in schema objects,
 	// regardless of trusted_schema.
 	DirectOnly bool
-	// WrongArgMsg selects SQLite's per-function "wrong number of arguments
-	// to function X()" error instead of the generic "function X expects
-	// N-M arguments, got K" message. SQLite emits the former for functions
-	// that validate their own argument count (unhex, percentile, etc.).
-	WrongArgMsg bool
 }
 
 // Aggregator is the interface for aggregate functions.
@@ -144,10 +139,10 @@ func (r *Registry) registerDefaults() {
 	//   percentile_cont(Y,P) P in [0,1], continuous
 	//   percentile_disc(Y,P) P in [0,1], discrete
 	//   median(Y)            == percentile(Y,50)
-	r.register(&Func{Name: "PERCENTILE", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }, WrongArgMsg: true})
-	r.register(&Func{Name: "PERCENTILE_CONT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, false) }, WrongArgMsg: true})
-	r.register(&Func{Name: "PERCENTILE_DISC", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(true, false) }, WrongArgMsg: true})
-	r.register(&Func{Name: "MEDIAN", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }, WrongArgMsg: true})
+	r.register(&Func{Name: "PERCENTILE", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }})
+	r.register(&Func{Name: "PERCENTILE_CONT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, false) }})
+	r.register(&Func{Name: "PERCENTILE_DISC", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(true, false) }})
+	r.register(&Func{Name: "MEDIAN", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }})
 
 	// Scalar functions
 	r.register(&Func{Name: "ABS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnABS})
@@ -235,8 +230,8 @@ func (r *Registry) registerDefaults() {
 
 	// Compile-time option diagnostics (sqlite_compileoption_used/get), ported
 	// from SQLite's ctime.c. Fixed arity 1; SQLite enforces this at prepare.
-	r.register(&Func{Name: "SQLITE_COMPILEOPTION_USED", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCompileOptionUsed, WrongArgMsg: true})
-	r.register(&Func{Name: "SQLITE_COMPILEOPTION_GET", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCompileOptionGet, WrongArgMsg: true})
+	r.register(&Func{Name: "SQLITE_COMPILEOPTION_USED", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCompileOptionUsed})
+	r.register(&Func{Name: "SQLITE_COMPILEOPTION_GET", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCompileOptionGet})
 	// md5sum is a test-harness aggregate (SQLite's test_config.c registers it
 	// as an aggregate that MD5-hashes the concatenation of its arguments per
 	// row). Used by trans/trans2 signature checks: SELECT md5sum(u1) ...
@@ -245,7 +240,7 @@ func (r *Registry) registerDefaults() {
 	// Extension/compat functions
 	r.register(&Func{Name: "TOINTEGER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOINTEGER})
 	r.register(&Func{Name: "FORMAT", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnPRINTF})
-	r.register(&Func{Name: "CONCAT_WS", Type: TypeScalar, MinArgs: 2, MaxArgs: -1, ScalarFn: fnCONCATWS, WrongArgMsg: true})
+	r.register(&Func{Name: "CONCAT_WS", Type: TypeScalar, MinArgs: 2, MaxArgs: -1, ScalarFn: fnCONCATWS})
 	r.register(&Func{Name: "EDITDIST3", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnEDITDIST3})
 	r.register(&Func{Name: "SPELLFIX1_SCRIPTCODE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSPELLFIX1SCRIPTCODE})
 	// Decimal extension (ext/misc/decimal.c port, see decimal.go)
@@ -282,7 +277,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "JSON_VALID", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnJSON_VALID, Innocuous: true})
 	r.register(&Func{Name: "JSON_ERROR_POSITION", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnJSON_ERROR_POSITION, Innocuous: true})
 	r.register(&Func{Name: "JSON_TYPE", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnJSON_TYPE, Innocuous: true})
-	r.register(&Func{Name: "JSON_QUOTE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnJSON_QUOTE, Innocuous: true, WrongArgMsg: true})
+	r.register(&Func{Name: "JSON_QUOTE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnJSON_QUOTE, Innocuous: true})
 	r.register(&Func{Name: "JSON_ARRAY_LENGTH", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnJSON_ARRAY_LENGTH, Innocuous: true})
 	r.register(&Func{Name: "JSON_GROUP_ARRAY", Type: TypeAggregate, MinArgs: 0, MaxArgs: 1, AggregateFn: func() Aggregator { return &jsonGroupArrayAgg{} }, Innocuous: true})
 	r.register(&Func{Name: "JSON_GROUP_OBJECT", Type: TypeAggregate, MinArgs: 2, MaxArgs: 2, AggregateFn: func() Aggregator { return &jsonGroupObjectAgg{} }, Innocuous: true})
@@ -340,8 +335,8 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "TOCHAR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOCHAR})
 	r.register(&Func{Name: "TOBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOBLOB})
 	r.register(&Func{Name: "TOHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOHEX})
-	r.register(&Func{Name: "UNHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnUNHEX, WrongArgMsg: true})
-	r.register(&Func{Name: "CONCAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCAT, WrongArgMsg: true})
+	r.register(&Func{Name: "UNHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnUNHEX})
+	r.register(&Func{Name: "CONCAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCAT})
 	r.register(&Func{Name: "SUBSTRING", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSUBSTR})
 	r.register(&Func{Name: "UNISTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNISTR})
 	r.register(&Func{Name: "UNISTR_QUOTE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNISTRQUOTE})

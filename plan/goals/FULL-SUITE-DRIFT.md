@@ -389,3 +389,49 @@ Regression net: TestP8*/TestP6*/TestP5*/TestIncrcorrupt/TestCorrupt2
 native families green; testgen incrvacuum/autovacuum2/corrupt9/vacuum*/
 journal2/journal3/rollback/savepoint*/without_rowid1/memdb1 unchanged
 (savepoint's failure is pre-existing, same signature at HEAD).
+
+### T4 session 2 (2026-09-08) — missing prepare-time error class (10 packages)
+
+One shared root cause — the engine accepting constructs SQLite rejects at
+prepare time — covered ten packages with nine error checks (each verified
+against src/ C references):
+
+- **COMMIT with no active transaction** → "cannot commit - no transaction
+  is active" (src/vdbe.c OP_Transaction; insert4-8.10, tkt2920-1.9).
+- **SQLITE_FULL rolls back the whole transaction** (vdbeaux.c:3352-3383
+  isSpecialError class, same as the existing INTERRUPT handling):
+  an INSERT/UPDATE/DELETE failing "database or disk is full" inside BEGIN
+  cancels the txn, so the later COMMIT fails (tkt2920's scenario).
+- **Wrong function arity** → C's canonical "wrong number of arguments to
+  function X()" for EVERY built-in (sqlite3WrongNumArgs); the per-function
+  WrongArgMsg gate is removed (func2-1.2.1 SUBSTR(), limit-12.1
+  replace()). The name echoes the SQL's spelling.
+- **likelihood() second argument** must be a constant in [0.0,1.0]
+  (src/expr.c sqlite3ExprCodeTarget; func3, whereG).
+- **Compound arm-width mismatch** now fires in scalar-subquery and
+  INSERT-VALUES contexts ahead of the IN/column-count checks
+  (sqlite3SelectWrongNumTermsError; in-12.6+, select4-11.16). The AST
+  gained SelectStmt.ExplicitSetOp to distinguish explicit UNION links from
+  comma-desugared VALUES rows; pure-VALUES mismatches use the SF_Values
+  message "all VALUES must have the same number of terms" (values-2.1.x).
+- **ALTER TABLE ADD COLUMN check order** now mirrors alter.c:350-400:
+  PRIMARY KEY, UNIQUE, REFERENCES default, NOT NULL default, non-constant
+  default; "duplicate column name: b" unquoted (alter3-2.x, alter4-2.x).
+  DEFAULT NULL (NullLit) allowed; arithmetic/function defaults rejected.
+- **Partial-index WHERE clause** validation names its constructs
+  (index6-1.4/1.5, index7-1.2-1.6): "parameters prohibited in partial
+  index WHERE clauses", "non-deterministic functions prohibited in
+  partial index WHERE clauses" (incl. julianday('now')), "subqueries
+  prohibited in partial index WHERE clauses" (incl. EXISTS); index key
+  columns resolve against the table ("no such column: x") so failed
+  CREATE INDEX statements no longer leak entries.
+- **WHERE (SELECT 0,0) OR ...**: the subquery-arity validator now
+  recurses through ParenExpr and treats AND/OR operands as scalar
+  contexts (in-13.15).
+
+Flips this batch: func2, insert4, tkt2920, whereG, in, select4, values,
+alter4, index6, index7 (fail→pass); alter3 7→2 remaining failures (the
+rest are a pre-existing temp-trigger state issue, T4 later). func3
+improved; its 3 remaining assertions need the C-API destroy callback
+(not expressible — NA class). Regression net: native P1/P3/P5/P6/P8
+green; testgen func/limit/where families unchanged vs ledger.

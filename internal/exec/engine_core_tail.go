@@ -347,9 +347,16 @@ func (e *Engine) execRollbackOnError(stmt sql.Stmt, res *Result, snaps []pagerSn
 	// active" (interrupt-3.x). The error message produced by checkProgress()
 	// and Exec() is exactly "interrupted".
 	isInterrupted := res.Error != nil && strings.EqualFold(res.Error.Error(), "interrupted")
+	// SQLITE_FULL is in vdbeaux.c's isSpecialError class (src/vdbeaux.c:3352-
+	// 3383): an INSERT/UPDATE/DELETE that fails with "database or disk is
+	// full" rolls back the WHOLE transaction, not just the statement —
+	// tkt2920: the subsequent COMMIT fails "cannot commit - no transaction
+	// is active".
+	isDiskFull := res.Error != nil && strings.Contains(res.Error.Error(), "database or disk is full")
 	if isDML && res.Error != nil && !res.KeepPriorRowsOnError() &&
 		(!isOrFail || res.ForceRollbackOnError()) {
-		forceTxRollback := isOrRollback || res.RollbackTxOnError() || (isInterrupted && e.tx.inTransaction)
+		forceTxRollback := isOrRollback || res.RollbackTxOnError() ||
+			((isInterrupted || isDiskFull) && e.tx.inTransaction)
 		if forceTxRollback && e.tx.inTransaction {
 			// OR ROLLBACK (or a per-constraint ON CONFLICT ROLLBACK, or an
 			// interrupted write) aborts the statement AND rolls back the whole

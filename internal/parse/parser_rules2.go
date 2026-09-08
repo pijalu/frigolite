@@ -59,6 +59,7 @@ func rule88(ruleNo int, p *Parser) interface{} {
 	if sr, ok := getRHS(p, ruleNo, 2).(setOpResult); ok {
 		all = sr.All
 	}
+	right.ExplicitSetOp = true
 	left.AppendUnion(right, op, all)
 	return left
 
@@ -741,6 +742,47 @@ func rule164(ruleNo int, p *Parser) interface{} {
 	// (even one without a FROM clause) keeps s.Select.
 	var values [][]sql.Expr
 	if sel != nil && sel.ValuesChain {
+		// sqlite3SelectWrongNumTermsError fires during compound generation:
+		// a VALUES chain whose arms have differing widths names the set op
+		// (select4-11.16: "INSERT INTO t2(rowid) VALUES(2) UNION SELECT 3,4"
+		// reports the UNION, not the INSERT column-count check). Arms with
+		// a star cannot be counted statically and abort the check.
+		width := -1
+		badOp := ""
+		badValues := false
+		for cur := sel; cur != nil && badOp == ""; cur = cur.Union {
+			n := 0
+			star := false
+			for _, col := range cur.Columns {
+				if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+					star = true
+					break
+				}
+				n++
+			}
+			if star {
+				break
+			}
+			if width >= 0 && n != width {
+				if !cur.ExplicitSetOp {
+					// Comma-linked VALUES row: the SF_Values branch of
+					// sqlite3SelectWrongNumTermsError (values-2.1.x).
+					badValues = true
+				} else {
+					badOp = opNameOf(cur)
+				}
+				break
+			}
+			width = n
+		}
+		if badValues {
+			p.SemanticErr = fmt.Errorf("all VALUES must have the same number of terms")
+			return nil
+		}
+		if badOp != "" {
+			p.SemanticErr = fmt.Errorf("SELECTs to the left and right of %s do not have the same number of result columns", badOp)
+			return nil
+		}
 		values = valuesFromSelect(sel)
 		sel = nil
 	}

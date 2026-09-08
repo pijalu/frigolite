@@ -290,6 +290,12 @@ func (e *SelectEngine) execRecursiveCTEPath(s *sql.SelectStmt, cte *sql.CTEDef) 
 // (leftmost) member's width, skipping the check when the width cannot be
 // determined statically (mutual recursion cycle).
 func (e *SelectEngine) checkCTEColumnCount(cte *sql.CTEDef) error {
+	// The compound width error fires during code generation, ahead of the
+	// declared-column check (select4-11.16: "INSERT INTO t2(rowid)
+	// VALUES(2) UNION SELECT 3,4" names the UNION, not the column count).
+	if err := e.validateCompoundColumnCounts(cte.Select); err != nil {
+		return err
+	}
 	anchorCols, aerr := e.cteAnchorColumnCount(cte.Select)
 	if aerr == errUndeterminedCTEWidth {
 		// Mutual recursion cycle: skip the width check; the execution-time

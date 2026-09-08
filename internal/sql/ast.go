@@ -42,6 +42,11 @@ type SelectStmt struct {
 	// INSERT...SELECT that happens to have no FROM clause.
 	ValuesChain bool
 
+	// ExplicitSetOp marks a chain member linked by an explicit
+	// multiselect_op (UNION/UNION ALL/EXCEPT/INTERSECT) as opposed to a
+	// comma-linked VALUES row (which the grammar desugars to UNION ALL).
+	// Used to pick sqlite3SelectWrongNumTermsError's SF_Values message.
+	ExplicitSetOp bool
 	// unionTail caches the last element of the Union chain so appending a new
 	// member is O(1). It is only maintained by AppendUnion; callers that build
 	// chains by assigning Union directly must not rely on it.

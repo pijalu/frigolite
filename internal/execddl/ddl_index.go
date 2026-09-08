@@ -574,12 +574,20 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 	// functions, and other prohibited constructs in index expressions
 	// (build.c sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction).
 	for _, term := range s.Terms {
+		if err := validateIndexColumnRefs(term.Expr, colDefs); err != nil {
+			return &Result{Error: err}
+		}
 		if err := validateIndexKeyExpr(term.Expr); err != nil {
 			return &Result{Error: err}
 		}
 	}
 	if s.Where != nil {
-		if err := validateIndexKeyExpr(s.Where); err != nil {
+		if err := validateIndexColumnRefs(s.Where, colDefs); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	if s.Where != nil {
+		if err := validateIndexExprContext(s.Where, true); err != nil {
 			return &Result{Error: err}
 		}
 	}
@@ -703,4 +711,31 @@ func (e *DDLExecutor) indexKeyForCreate(row RowMap, colDefs []sql.ColumnDef, key
 		return v, kerr
 	}
 	return nil, nil
+}
+
+// validateIndexColumnRefs resolves every column reference in an index key
+// term or partial-index WHERE clause against the table's column definitions
+// (build.c: "no such column: x"; index7-1.5 — an unresolved column must fail
+// the CREATE INDEX, not leak the index entry).
+func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef) error {
+	if len(colDefs) == 0 || expr == nil {
+		return nil
+	}
+	var err error
+	execquery.WalkExprFull(expr, func(n sql.Expr) {
+		if err != nil {
+			return
+		}
+		ref, ok := n.(*sql.ColumnRef)
+		if !ok {
+			return
+		}
+		for _, cd := range colDefs {
+			if strings.EqualFold(cd.Name, ref.Name) {
+				return
+			}
+		}
+		err = fmt.Errorf("no such column: %s", ref.Name)
+	})
+	return err
 }

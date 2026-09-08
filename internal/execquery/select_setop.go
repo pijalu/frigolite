@@ -173,6 +173,13 @@ func (e *SelectEngine) validateCompoundFromTables(s *sql.SelectStmt) error {
 	return nil
 }
 
+// ValidateCompoundColumnCounts is the exported hook for the DML layer: the
+// compound-width error fires during compound generation, ahead of per-row
+// INSERT VALUES validation (select4-11.16).
+func (e *SelectEngine) ValidateCompoundColumnCounts(s *sql.SelectStmt) error {
+	return e.validateCompoundColumnCounts(s)
+}
+
 // validateCompoundColumnCounts checks that all members of a compound SELECT
 // chain produce the same number of result columns, matching SQLite's
 // "SELECTs to the left and right of <OP> do not have the same number of

@@ -48,6 +48,12 @@ func (e *Engine) ExecSelect(s *sql.SelectStmt) *Result {
 	return e.execSelect(s)
 }
 
+// ValidateCompoundWidths raises sqlite3SelectWrongNumTermsError's message
+// when a compound chain attached to an INSERT has mismatched arm widths.
+func (e *Engine) ValidateCompoundWidths(s *sql.SelectStmt) error {
+	return e.selectEngine.ValidateCompoundColumnCounts(s)
+}
+
 // ExecSelectView executes a SELECT over a view body (delegated).
 func (e *Engine) ExecSelectView(viewEntry *schema.Entry) *Result {
 	return e.execSelectView(viewEntry)

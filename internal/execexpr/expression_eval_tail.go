@@ -7,6 +7,7 @@ package execexpr
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/function"
@@ -16,12 +17,35 @@ import (
 
 func validateFuncArgs(fn *function.Func, f *sql.FuncCall, args []interface{}) error {
 	if len(args) < fn.MinArgs || (fn.MaxArgs > 0 && len(args) > fn.MaxArgs) {
-		if fn.WrongArgMsg {
-			return fmt.Errorf("wrong number of arguments to function %s()", f.Name)
+		// C's sqlite3WrongNumArgs emits this for EVERY built-in; the name
+		// is echoed exactly as written in the SQL (func2-1.2.1 "SUBSTR()",
+		// limit-12.1 "replace()").
+		return fmt.Errorf("wrong number of arguments to function %s()", f.Name)
+	}
+	// src/expr.c sqlite3ExprCodeTarget's likelihood() prepare-time check:
+	// the second argument must be a compile-time constant whose value lies
+	// in [0.0, 1.0] (func3/whereG).
+	if strings.EqualFold(f.Name, "LIKELIHOOD") && len(f.Args) == 2 {
+		if v, ok := likelihoodConstProb(f.Args[1]); !ok || v < 0.0 || v > 1.0 {
+			return fmt.Errorf("second argument to likelihood() must be a constant between 0.0 and 1.0")
 		}
-		return fmt.Errorf("function %s expects %d-%d arguments, got %d", f.Name, fn.MinArgs, fn.MaxArgs, len(args))
 	}
 	return nil
+}
+
+// likelihoodConstProb reports whether expr is a compile-time numeric
+// constant (sqlite3ExprIsConstant for the likelihood() check: literal or
+// parenthesized literal) and returns its float value.
+func likelihoodConstProb(expr sql.Expr) (float64, bool) {
+	switch e := expr.(type) {
+	case *sql.NumericLit:
+		f, err := strconv.ParseFloat(e.Value, 64)
+		return f, err == nil
+	case *sql.ParenExpr:
+		return likelihoodConstProb(e.Expr)
+	default:
+		return 0, false
+	}
 }
 
 // evalRenameQuotefix routes sqlite_rename_quotefix through the engine for

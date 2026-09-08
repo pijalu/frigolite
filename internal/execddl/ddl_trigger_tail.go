@@ -225,6 +225,15 @@ func (e *DDLExecutor) checkPartialIndexUsable(idxEntry *schema.Entry, s *sql.Sel
 // validateIndexKeyExpr rejects non-deterministic functions, window functions,
 // and subqueries in index expressions.
 func validateIndexKeyExpr(expr sql.Expr) error {
+	return validateIndexExprContext(expr, false)
+}
+
+// validateIndexExprContext validates one index key expression or the
+// partial-index WHERE clause. In the WHERE context SQLite names the
+// construct differently (build.c: "non-deterministic functions prohibited
+// in partial index WHERE clauses", "parameters prohibited in partial index
+// WHERE clauses"; index6-1.4/1.5).
+func validateIndexExprContext(expr sql.Expr, whereClause bool) error {
 	var err error
 	execquery.WalkExprFull(expr, func(n sql.Expr) {
 		if err != nil {
@@ -236,9 +245,23 @@ func validateIndexKeyExpr(expr sql.Expr) error {
 				err = fmt.Errorf("misuse of window function %s()", strings.ToLower(e.Name))
 				return
 			}
-			err = checkIndexKeyFunc(e)
+			err = checkIndexKeyFuncCtx(e, whereClause)
 		case *sql.Subquery:
-			err = fmt.Errorf("subqueries prohibited in index expressions")
+			if whereClause {
+				err = fmt.Errorf("subqueries prohibited in partial index WHERE clauses")
+			} else {
+				err = fmt.Errorf("subqueries prohibited in index expressions")
+			}
+		case *sql.ExistsExpr:
+			if whereClause {
+				err = fmt.Errorf("subqueries prohibited in partial index WHERE clauses")
+			} else {
+				err = fmt.Errorf("subqueries prohibited in index expressions")
+			}
+		case *sql.ParameterExpr:
+			if whereClause {
+				err = fmt.Errorf("parameters prohibited in partial index WHERE clauses")
+			}
 		}
 	})
 	return err
@@ -247,13 +270,22 @@ func validateIndexKeyExpr(expr sql.Expr) error {
 // checkIndexKeyFunc validates one function call appearing in an index
 // expression: non-deterministic functions are prohibited, and julianday('now')
 // is a non-deterministic use.
-func checkIndexKeyFunc(e *sql.FuncCall) error {
+func checkIndexKeyFuncCtx(e *sql.FuncCall, whereClause bool) error {
+	nondet := "non-deterministic functions prohibited in index expressions"
+	if whereClause {
+		nondet = "non-deterministic functions prohibited in partial index WHERE clauses"
+	}
 	switch strings.ToUpper(e.Name) {
-	case "RANDOM", "RANDOMBLOB", "ZEROBLOB":
+	case "RANDOM", "RANDOMBLOB":
+		return fmt.Errorf("%s", nondet)
+	case "ZEROBLOB":
 		return fmt.Errorf("non-deterministic functions prohibited in index expressions")
 	case "JULIANDAY":
 		for _, a := range e.Args {
 			if sl, ok := a.(*sql.StringLit); ok && strings.EqualFold(sl.Value, "now") {
+				if whereClause {
+					return fmt.Errorf("%s", nondet)
+				}
 				return fmt.Errorf("non-deterministic use of julianday() in an index")
 			}
 		}

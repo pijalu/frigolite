@@ -15,6 +15,26 @@ import (
 )
 
 func (e *DDLExecutor) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, newCol sql.ColumnDef) *Result {
+	// Check order mirrors alter.c sqlite3AlterAddColumn (src/alter.c:350-400):
+	// PRIMARY KEY, UNIQUE, REFERENCES default, NOT NULL default, non-constant
+	// default.
+	if newCol.PrimaryKey {
+		//lint:ignore ST1005 SQLite capitalizes this exact message.
+		return &Result{Error: fmt.Errorf("Cannot add a PRIMARY KEY column")}
+	}
+	if newCol.Unique {
+		//lint:ignore ST1005 SQLite capitalizes this exact message.
+		return &Result{Error: fmt.Errorf("Cannot add a UNIQUE column")}
+	}
+	// SQLite: "Cannot add a column with non-constant default" (alter.c):
+	// the DEFAULT of an added column must be a compile-time constant.
+	// alter3-2.6 rejects DEFAULT CURRENT_TIME (parsed as a ColumnRef
+	// keyword). Parenthesized constant expressions and signed literals stay
+	// allowed (sqlite3ExprIsConstant).
+	if !isConstantDefaultExpr(newCol.Default) {
+		//lint:ignore ST1005 SQLite capitalizes this exact message.
+		return &Result{Error: fmt.Errorf("Cannot add a column with non-constant default")}
+	}
 	// SQLite: "Cannot add a REFERENCES column with non-NULL default value" —
 	// a column with a REFERENCES clause may not have a non-NULL constant
 	// default (the FK would be ambiguous for existing rows).
@@ -356,7 +376,7 @@ func (e *DDLExecutor) addTableColumn(tableName string, tableEntry *schema.Entry,
 		colDefs = e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	}
 	if hasColumnDefFold(colDefs, colDef.Name) {
-		return &Result{Error: fmt.Errorf("duplicate column name: %q", colDef.Name)}
+		return &Result{Error: fmt.Errorf("duplicate column name: %s", colDef.Name)}
 	}
 	// STRICT tables only allow the standard datatypes (INT, INTEGER, REAL,
 	// TEXT, BLOB, ANY). Reject custom or missing datatypes with SQLite's
@@ -827,4 +847,34 @@ func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef) string {
 
 	insertAt := findConstraintInsertPoint(origSQL, parenStart, parenEnd)
 	return origSQL[:insertAt] + ", " + colText + origSQL[insertAt:]
+}
+
+// isConstantDefaultExpr reports whether a column's DEFAULT expression is a
+// compile-time constant (sqlite3ExprIsConstant for alter.c's add-column
+// check): literals, signed literals, parenthesized constants, and constant
+// arithmetic. Function calls (CURRENT_TIME parses as a ColumnRef keyword)
+// and column references are non-constant. A nil Default means no DEFAULT
+// clause, which is fine.
+func isConstantDefaultExpr(expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case nil:
+		return true
+	case *sql.NumericLit, *sql.StringLit, *sql.BlobLit, *sql.NullLit:
+		return true
+	case *sql.UnaryOp:
+		// Signed literals: -5 parses as a unary minus over the literal.
+		return isConstantDefaultExpr(v.Operand)
+	case *sql.ParenExpr:
+		// (-5+1) stays rejected: the parens wrap an arithmetic expression,
+		// which sqlite3ValueFromExpr cannot convert (alter4-2.7).
+		return isConstantDefaultExpr(v.Expr)
+	case *sql.ColumnRef:
+		// CURRENT_TIME/CURRENT_DATE/CURRENT_TIMESTAMP parse as ColumnRef
+		// keywords and are non-constant (alter3-2.6).
+		return false
+	default:
+		// Arithmetic (BinaryOp) and function calls are expressions
+		// sqlite3ValueFromExpr cannot reduce to a value.
+		return false
+	}
 }

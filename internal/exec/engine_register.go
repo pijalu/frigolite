@@ -72,13 +72,7 @@ func (e *Engine) registerVTabModules() {
 	e.vtabs.Register("rtree", vtab.NewRtreeModule[float32](e.Database()))
 	e.vtabs.Register("rtree_i32", vtab.NewRtreeModule[int32](e.Database()))
 	// ext/rtree global SQL functions (rtreenode/rtreedepth/rtreecheck).
-	// SQLite reports arity errors with the per-function wording.
 	vtab.RegisterRTreeSQLFunctions(e.Database())
-	for _, fn := range []string{"rtreenode", "rtreedepth", "rtreecheck"} {
-		if f, ok := e.funcs.Find(fn); ok {
-			f.WrongArgMsg = true
-		}
-	}
 	// transitive_closure (ext/misc/closure.c): closure of a tree/DAG base
 	// table; the source resolves edges through this connection's tables.
 	e.vtabs.Register("transitive_closure", vtab.NewTransitiveClosureModule(closureEdgeSource{e: e}))

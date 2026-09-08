@@ -259,6 +259,11 @@ func (e *SelectEngine) validateExprSubqueriesCtxMode(expr sql.Expr, rowValueOK, 
 		return e.validateSubqFuncCall(v, dmlArity)
 	case *sql.BinaryOp:
 		return e.validateExprSubqueriesBinaryOp(v, dmlArity)
+	case *sql.ParenExpr:
+		// Parenthesized subqueries must not escape the walk: WHERE
+		// ((SELECT 0,0) OR ...) is a scalar context for the subquery
+		// (in-13.15).
+		return e.validateExprSubqueriesCtxMode(v.Expr, rowValueOK, dmlArity)
 	case *sql.UnaryOp:
 		return e.validateExprSubqueriesCtxMode(v.Operand, false, dmlArity)
 	case *sql.CaseExpr:
@@ -334,6 +339,11 @@ func (e *SelectEngine) validateSubqueryNode(v *sql.Subquery, rowValueOK bool) er
 		}
 	}
 	if !rowValueOK {
+		// sqlite3SelectWrongNumTermsError fires during subquery code
+		// generation, ahead of the scalar-column check (in-12.6).
+		if err := e.validateCompoundColumnCounts(v.Select); err != nil {
+			return err
+		}
 		if n := e.subqueryColumnCount(v.Select); n > 1 {
 			return fmt.Errorf("sub-select returns %d columns - expected 1", n)
 		}
@@ -407,6 +417,16 @@ func (e *SelectEngine) validateSubqIsExpr(left, right sql.Expr, dmlArity bool) e
 // validateExprSubqueriesBinaryOp validates a binary-operation expression's
 // subqueries, handling row-value comparisons and scalar-vs-multi-column misuse.
 func (e *SelectEngine) validateExprSubqueriesBinaryOp(v *sql.BinaryOp, dmlArity bool) error {
+	// Boolean connectives keep each operand in scalar (single-column)
+	// subquery context: checkSubqMisuse's "row value misused" applies to
+	// comparison operands, not to AND/OR branches (in-13.15: WHERE
+	// (SELECT 0,0) OR (0 IN (1,2)) reports the subquery column count).
+	if strings.EqualFold(v.Operator, "AND") || strings.EqualFold(v.Operator, "OR") {
+		if err := e.validateExprSubqueriesCtxMode(v.Left, false, dmlArity); err != nil {
+			return err
+		}
+		return e.validateExprSubqueriesCtxMode(v.Right, false, dmlArity)
+	}
 	_, leftRow := v.Left.(*sql.RowValue)
 	_, rightRow := v.Right.(*sql.RowValue)
 	_, leftSub := v.Left.(*sql.Subquery)
@@ -483,6 +503,9 @@ func (e *SelectEngine) checkSubqMisuseDML(rightSub bool, right sql.Expr, leftRow
 	if !ok {
 		return nil
 	}
+	if err := e.validateCompoundColumnCounts(sq.Select); err != nil {
+		return err
+	}
 	n := e.subqueryColumnCount(sq.Select)
 	if n <= 1 {
 		return nil
@@ -540,6 +563,12 @@ func (e *SelectEngine) validateInListSubqueryItem(val sql.Expr, opIsRow, opIsSub
 		return e.validateExprSubqueriesCtxMode(val, false, dmlArity)
 	}
 	if !opIsRow && !opIsSub {
+		// sqlite3SelectWrongNumTermsError fires during subquery code
+		// generation, ahead of the scalar-column check (in-12.6: mismatched
+		// compound arms name the set op, not the IN-column count).
+		if err := e.validateCompoundColumnCounts(subq.Select); err != nil {
+			return err
+		}
 		if n := e.subqueryColumnCount(subq.Select); n > 1 {
 			return fmt.Errorf("sub-select returns %d columns - expected 1", n)
 		}

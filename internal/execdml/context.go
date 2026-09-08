@@ -85,6 +85,7 @@ type DMLContext interface {
 
 	// SELECT delegation (INSERT...SELECT, RETURNING, subquery validation).
 	ExecSelect(s *sql.SelectStmt) *Result
+	ValidateCompoundWidths(s *sql.SelectStmt) error
 	ExecSelectView(viewEntry *schema.Entry) *Result
 	BuildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) RowMap
 	RemapWRRecordToDeclared(rec *storage.Record, createSQL string, colDefs []sql.ColumnDef)
