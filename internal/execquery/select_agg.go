@@ -453,8 +453,34 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 	if len(allRowMaps) > 0 {
 		innerRow = allRowMaps[0]
 	}
-	e.aggRowMaps = outerRows
-	defer func() { e.aggRowMaps = nil }()
+	// C semantics (resolve.c + select.c): a subquery WITH a FROM clause scans
+	// its own tables — the aggregate steps over the INNER rows, its FILTER
+	// evaluates on the inner row, and argument names missing from the inner
+	// row resolve as outer constants (constant per outer-row evaluation, so
+	// the first outer row is the representative). FROM-less correlated
+	// aggregates (SELECT (SELECT max(y)) with y outer) keep stepping over the
+	// outer rows. filter1-6.1: COUNT(a) FILTER(WHERE x) with a outer and x
+	// inner counts the inner rows, not the outer rows.
+	if len(allRowMaps) > 0 && len(outerRows) > 0 &&
+		(s.From.Name != "" || s.From.Subquery != nil || len(s.From.Args) > 0) {
+		fallback := outerRows[0]
+		stepping := make([]RowMap, len(allRowMaps))
+		for i, inner := range allRowMaps {
+			m := make(RowMap, len(inner)+len(fallback))
+			for k, v := range fallback {
+				m[k] = v
+			}
+			for k, v := range inner {
+				m[k] = v // inner columns shadow the outer fallback
+			}
+			stepping[i] = m
+		}
+		e.aggRowMaps = stepping
+		defer func() { e.aggRowMaps = nil }()
+	} else {
+		e.aggRowMaps = outerRows
+		defer func() { e.aggRowMaps = nil }()
+	}
 	var outRow []interface{}
 	for _, col := range s.Columns {
 		if e.exprHasWindowFunc(col.Expr) {

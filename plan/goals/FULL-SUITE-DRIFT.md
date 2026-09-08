@@ -628,3 +628,21 @@ family + native suites green; sweep reseeded 741/234/244, -check PASS.
   generated code appends "]" and calls a nonexistent LastErrCode flow on
   an Open that should fail). Both restored to skipTestFiles with
   sharpened reasons pointing at the exact gaps; utf16align stays un-skipped.
+
+### T4 session 8 (2026-09-09) — correlated-aggregate inner-row stepping landed
+
+evalAggOverOuterRowsWithInner now steps a correlated subquery's aggregate
+over the INNER rows when the subquery SELECT has a FROM clause: each step
+row merges the representative outer row's values UNDER the inner row
+(inner shadows outer), so the FILTER evaluates on the inner row and
+argument names missing inner-side resolve as outer constants. FROM-less
+correlated aggregates (window1 76.5) keep outer-row stepping.
+
+Acceptance cases (oracle-matched, from the T-log probe):
+- (SELECT COUNT(a) FILTER(WHERE x) FROM t2) FROM t1 -> [1] (was [0])
+- (SELECT COUNT(a) FROM t2) FROM t1 -> [1] (was [2] — stepped outer rows)
+- (SELECT COUNT(x) FILTER(WHERE x) FROM t2) FROM t1 -> [1,1] (unchanged)
+- (SELECT SUM(a) FILTER(WHERE x) FROM t2) FROM t1 -> [1]
+
+filter1-6.1 passes. Regression net: window1-5, filter1's other cases,
+func4/subquery (baseline-fail, unchanged), native P1/P3/P6/P8 all green.
