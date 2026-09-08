@@ -486,3 +486,19 @@ Remaining check failures (4): check-4.9 wants the verbatim multiline
 CHECK text through the UPDATE path's tableCheckConstraintText extractor;
 check-4.9's span extraction stops early. check-7.x (myfunc) requires the
 TCL db-func fixture registration — converter gap (NA class, see func3).
+
+### T4 queue note (2026-09-08) — triaged samples from the mismatch cluster
+
+- filter1-3.3: bare column with a filtered aggregate — C's bare column
+  takes the group's FIRST row when the FILTER excludes every row
+  ([1,3,{}]); frigolite takes the last ([1,4,{}]). Fix belongs in the
+  GROUP BY bare-column representative selection (select_agg.go;
+  groupRows[0] is not consulted on the filtered-aggregate path).
+- existsexpr: EXPLAIN QUERY PLAN tree-rendering differences
+  (CORRELATED SCALAR SUBQUERY indentation) — EQP text parity, isolated.
+- distinct: DISTINCT output ordering/collation (C emits A B C a b c,
+  engine emits a b c A B C) — collation-aware DISTINCT sort.
+- fkey1-5.2.1: FK error-message list accumulation shape.
+- autoinc-12.5: AUTOINCREMENT sequence corruption should surface
+  "database disk image is malformed" (error-detection gap like the T2
+  class).
