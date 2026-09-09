@@ -4,6 +4,7 @@
 package execddl
 
 import (
+	"os"
 	"container/heap"
 	"fmt"
 
@@ -345,8 +346,14 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			e.writeFTSStatRow(tableName, 1, ftsEncodeHintList(hintList))
 		}
 	}
+	mergeDbg := func(format string, args ...interface{}) {
+		if os.Getenv("FRIGOLITE_MERGE_DEBUG") != "" {
+			fmt.Fprintf(os.Stderr, "[merge "+tableName+"] "+format+"\n", args...)
+		}
+	}
 	for {
 		if nRem <= 0 {
+			mergeDbg("nRem exhausted, done (nRem=%d)", nRem)
 			return
 		}
 		// A %_stat id=1 hint from a previous merge (fts4merge 4.3: the hint
@@ -367,6 +374,7 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		effMin := nMin
 		fromHint := false
 		nMod := 1024 * (1 + len(ftsTable.PrefixLengths()))
+		mergeDbg("iter: nRem=%d foundLevel=%d hintLen=%d nMod=%d", nRem, foundLevel, len(hintList), nMod)
 		if len(hintList) > 0 {
 			popped := hintList[len(hintList)-1]
 			hintList = hintList[:len(hintList)-1]
@@ -379,6 +387,7 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 				// lone segment upward (which cascaded outputs 1057→1058→…).
 				rows2 := e.readFTSSegdirRows(tableName, hLevel)
 				cap2 := nSegCap(nMin, foundCountAt(e, tableName, foundLevel), hSeg)
+				mergeDbg("hint popped: level=%d nSeg=%d rows2=%d cap2=%d use=%v", hLevel, hSeg, len(rows2), cap2, len(rows2) >= cap2)
 				if len(rows2) >= cap2 {
 					level = hLevel
 					effMin = cap2
@@ -397,12 +406,15 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			// nMin segments.
 			level = foundLevel
 			if level < 0 {
+				mergeDbg("no level found and no hint: done")
 				return
 			}
 		}
 		rows := e.readFTSSegdirRows(tableName, level)
+		mergeDbg("chosen level=%d fromHint=%v effMin=%d rows=%d nRem=%d", level, fromHint, effMin, len(rows), nRem)
 		if len(rows) == 0 {
 			// The hinted level was consumed; clear the hint and retry.
+			mergeDbg("chosen level empty; clear hint, retry")
 			e.clearFTSStatRow(tableName, 1)
 			continue
 		}
