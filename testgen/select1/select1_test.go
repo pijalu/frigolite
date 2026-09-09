@@ -2366,9 +2366,11 @@ func Test_select1(t *testing.T) {
 	}
 	for _, _row8 := range _rows8.Rows {
 	_ = _row8 // suppress unused warning
-	tab := fmt.Sprint(_row8[0])
+	for _, _cell9 := range _row8 {
+	tab := fmt.Sprint(_cell9)
 	_ = tab // suppress unused warning
-		_res = db.Exec("DROP TABLE " + tab)
+			_res = db.Exec("DROP TABLE " + tab)
+		}
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")

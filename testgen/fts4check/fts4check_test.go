@@ -304,11 +304,13 @@ func Test_fts4check(t *testing.T) {
 				}
 				for _, _row2 := range _rows2.Rows {
 				_ = _row2 // suppress unused warning
-				docid := fmt.Sprint(_row2[0])
+				for _, _cell3 := range _row2 {
+				docid := fmt.Sprint(_cell3)
 				_ = docid // suppress unused warning
-					_res = db.Exec("\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + sqlLiteral(docid) + ";\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + sqlLiteral(docid) + ";\n    ")
+						_res = db.Exec("\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + sqlLiteral(docid) + ";\n    ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + sqlLiteral(docid) + ";\n    ")
+						}
 					}
 				}
 			}
@@ -316,13 +318,13 @@ func Test_fts4check(t *testing.T) {
 				// fts_integrity db t3 (unsupported command, not transpiled)
 			}
 			// foreach {tn disruption} "1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }"
-			_items3 := tclSplitList("1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }")
-			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-				tn := _items3[_idx3+0]
+			_items4 := tclSplitList("1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }")
+			for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+				tn := _items4[_idx4+0]
 				_ = tn // suppress unused warning
-				disruption := _items3[_idx3+1]
+				disruption := _items4[_idx4+1]
 				_ = disruption // suppress unused warning
-				_ = _idx3
+				_ = _idx4
 					db.SetDefensive(false)
 					{ // "3.2.1." + tn
 						_res = db.Exec("BEGIN; " + disruption)

@@ -518,11 +518,13 @@ func Test_fts4merge(t *testing.T) {
 					}
 					for _, _row2 := range _rows2.Rows {
 					_ = _row2 // suppress unused warning
-					docid := fmt.Sprint(_row2[0])
+					for _, _cell3 := range _row2 {
+					docid := fmt.Sprint(_cell3)
 					_ = docid // suppress unused warning
-						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
+							_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
+							}
 						}
 					}
 				}
@@ -568,17 +570,19 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "5.9"
 					L = "1852"
 					_ = L // suppress unused warning
-					_rows3 := db.Query("SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
-					if _rows3.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
+					_rows4 := db.Query("SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
+					if _rows4.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
 					}
-					for _, _row3 := range _rows3.Rows {
-					_ = _row3 // suppress unused warning
-					docid := fmt.Sprint(_row3[0])
+					for _, _row4 := range _rows4.Rows {
+					_ = _row4 // suppress unused warning
+					for _, _cell5 := range _row4 {
+					docid := fmt.Sprint(_cell5)
 					_ = docid // suppress unused warning
-						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
+							_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
+							}
 						}
 					}
 				}

@@ -726,9 +726,11 @@ func Test_window2(t *testing.T) {
 		}
 		for _, _row0 := range _rows0.Rows {
 		_ = _row0 // suppress unused warning
-		_r := fmt.Sprint(_row0[0])
+		for _, _cell1 := range _row0 {
+		_r := fmt.Sprint(_cell1)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000")
 		res2 = "1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000"
@@ -773,15 +775,17 @@ func Test_window2(t *testing.T) {
 		vtab.TclVarSet("myres", "", "")
 		myres = ""
 		_ = myres // suppress unused warning
-		_rows1 := db.Query("SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;")
-		if _rows1.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;")
+		_rows2 := db.Query("SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;")
+		if _rows2.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;")
 		}
-		for _, _row1 := range _rows1.Rows {
-		_ = _row1 // suppress unused warning
-		_r := fmt.Sprint(_row1[0])
+		for _, _row2 := range _rows2.Rows {
+		_ = _row2 // suppress unused warning
+		for _, _cell3 := range _row2 {
+		_r := fmt.Sprint(_cell3)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "7.2000 8.7500 10.0000 11.0000 15.0000")
 		res2 = "7.2000 8.7500 10.0000 11.0000 15.0000"

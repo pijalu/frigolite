@@ -240,9 +240,11 @@ func Test_filter2(t *testing.T) {
 		}
 		for _, _row0 := range _rows0.Rows {
 		_ = _row0 // suppress unused warning
-		_r := fmt.Sprint(_row0[0])
+		for _, _cell1 := range _row0 {
+		_r := fmt.Sprint(_cell1)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "30.8333 13.7273 31.4167 13.0000")
 		res2 = "30.8333 13.7273 31.4167 13.0000"

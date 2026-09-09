@@ -180,27 +180,31 @@ func Test_fts4growth(t *testing.T) {
 		}
 		for _, _row0 := range _rows0.Rows {
 		_ = _row0 // suppress unused warning
-		id := fmt.Sprint(_row0[0])
+		for _, _cell1 := range _row0 {
+		id := fmt.Sprint(_cell1)
 		_ = id // suppress unused warning
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT " + sqlLiteral(id) + ", words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT " + sqlLiteral(id) + ", words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
+				_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT " + sqlLiteral(id) + ", words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT " + sqlLiteral(id) + ", words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
+				}
 			}
 		}
-		_rows1 := db.Query("SELECT docid FROM t1")
-		if _rows1.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "SELECT docid FROM t1")
+		_rows2 := db.Query("SELECT docid FROM t1")
+		if _rows2.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT docid FROM t1")
 		}
-		for _, _row1 := range _rows1.Rows {
-		_ = _row1 // suppress unused warning
-		id := fmt.Sprint(_row1[0])
+		for _, _row2 := range _rows2.Rows {
+		_ = _row2 // suppress unused warning
+		for _, _cell3 := range _row2 {
+		id := fmt.Sprint(_cell3)
 		_ = id // suppress unused warning
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
-			}
-			if func() bool { r := db.Query("SELECT count(*) FROM x2_segdir WHERE level<2"); if r.Error != nil || len(r.Rows) == 0 || len(r.Rows[0]) == 0 { return false }; l, err := strconv.ParseFloat(tclRenderCell(r.Rows[0][0]), 64); if err != nil { return false }; rr, rerr := strconv.ParseFloat("2", 64); if rerr != nil { return false }; return l == rr }() {
-				break
+				_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
+				}
+				if func() bool { r := db.Query("SELECT count(*) FROM x2_segdir WHERE level<2"); if r.Error != nil || len(r.Rows) == 0 || len(r.Rows[0]) == 0 { return false }; l, err := strconv.ParseFloat(tclRenderCell(r.Rows[0][0]), 64); if err != nil { return false }; rr, rerr := strconv.ParseFloat("2", 64); if rerr != nil { return false }; return l == rr }() {
+					break
+				}
 			}
 		}
 	}
@@ -440,30 +444,34 @@ func Test_fts4growth(t *testing.T) {
 		return tclLIndex(tclStr(args[0]), 0), nil
 	}, 0, -1)
 	{ // do_test "5.2"
-		_rows2 := db.Query("SELECT rowid FROM t1")
-		if _rows2.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT rowid FROM t1")
+		_rows4 := db.Query("SELECT rowid FROM t1")
+		if _rows4.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT rowid FROM t1")
 		}
-		for _, _row2 := range _rows2.Rows {
-		_ = _row2 // suppress unused warning
-		_r := fmt.Sprint(_row2[0])
+		for _, _row4 := range _rows4.Rows {
+		_ = _row4 // suppress unused warning
+		for _, _cell5 := range _row4 {
+		_r := fmt.Sprint(_cell5)
 		_ = _r // suppress unused warning
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n    ")
+				_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n    ")
+				}
 			}
 		}
-		_rows3 := db.Query("SELECT docid FROM t1 LIMIT -1 OFFSET 20")
-		if _rows3.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT docid FROM t1 LIMIT -1 OFFSET 20")
+		_rows6 := db.Query("SELECT docid FROM t1 LIMIT -1 OFFSET 20")
+		if _rows6.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows6.Error, "SELECT docid FROM t1 LIMIT -1 OFFSET 20")
 		}
-		for _, _row3 := range _rows3.Rows {
-		_ = _row3 // suppress unused warning
-		d := fmt.Sprint(_row3[0])
+		for _, _row6 := range _rows6.Rows {
+		_ = _row6 // suppress unused warning
+		for _, _cell7 := range _row6 {
+		d := fmt.Sprint(_cell7)
 		_ = d // suppress unused warning
-			_res = db.Exec(" DELETE FROM x2 WHERE docid = " + sqlLiteral(d) + " ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x2 WHERE docid = " + sqlLiteral(d) + " ")
+				_res = db.Exec(" DELETE FROM x2 WHERE docid = " + sqlLiteral(d) + " ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x2 WHERE docid = " + sqlLiteral(d) + " ")
+				}
 			}
 		}
 		r = db.Query("\n    INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir\n  ")

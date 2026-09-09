@@ -680,6 +680,7 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 		}
 		tp.emitLine("%s := fmt.Sprint(%s)", goVN, cellVar)
 		tp.emitLine("_ = %s // suppress unused warning", goVN)
+		tp.indent++
 	} else {
 		// Bind each loop variable to the corresponding row column.
 		for i, vn := range varNames {

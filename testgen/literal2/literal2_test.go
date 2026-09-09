@@ -99,9 +99,11 @@ func Test_literal2(t *testing.T) {
 		}
 		for _, _row0 := range _rows0.Rows {
 		_ = _row0 // suppress unused warning
-		_r := fmt.Sprint(_row0[0])
+		for _, _cell1 := range _row0 {
+		_r := fmt.Sprint(_cell1)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "1000000000000.0000")
 		res2 = "1000000000000.0000"

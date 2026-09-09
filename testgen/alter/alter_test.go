@@ -570,11 +570,13 @@ func Test_alter(t *testing.T) {
 	}
 	for _, _row0 := range _rows0.Rows {
 	_ = _row0 // suppress unused warning
-	tblname := fmt.Sprint(_row0[0])
+	for _, _cell1 := range _row0 {
+	tblname := fmt.Sprint(_cell1)
 	_ = tblname // suppress unused warning
-		_res = db.Exec("DROP TABLE \"" + tblname + "\"")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \"" + tblname + "\"")
+			_res = db.Exec("DROP TABLE \"" + tblname + "\"")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \"" + tblname + "\"")
+			}
 		}
 	}
 	vtab.TclVarSet("tbl_name", "", "abcꯍdef")
@@ -675,13 +677,13 @@ func Test_alter(t *testing.T) {
 	{ // "alter-9.1" — skipped: test-only internal function SQLITE_RENAME_COLUMN not implemented
 	}
 	// foreach {tn sql} "1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }"
-	_items1 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items2 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		sql := _items1[_idx1+1]
+		sql := _items2[_idx2+1]
 		_ = sql // suppress unused warning
-		_ = _idx1
+		_ = _idx2
 			{ // "alter-9.2." + tn — skipped: test-only internal function sqlite_rename_table not implemented (alter.test legacy)
 			}
 		}
@@ -833,13 +835,13 @@ func Test_alter(t *testing.T) {
 		_ = _res // catchsql
 		system_table_list = tclListAppend(system_table_list, "2", "sqlite_stat1")
 		// foreach {tn tbl} system_table_list
-		_items2 := tclSplitList(system_table_list)
-		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-			tn := _items2[_idx2+0]
+		_items3 := tclSplitList(system_table_list)
+		for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+			tn := _items3[_idx3+0]
 			_ = tn // suppress unused warning
-			tbl := _items2[_idx2+1]
+			tbl := _items3[_idx3+1]
 			_ = tbl // suppress unused warning
-			_ = _idx2
+			_ = _idx3
 				{ // do_test "alter-15." + tn + ".1"
 					_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table " + tbl + " may not be altered") {

@@ -127,11 +127,13 @@ func Test_waloverwrite(t *testing.T) {
 					}
 					for _, _row2 := range _rows2.Rows {
 					_ = _row2 // suppress unused warning
-					x := fmt.Sprint(_row2[0])
+					for _, _cell3 := range _row2 {
+					x := fmt.Sprint(_cell3)
 					_ = x // suppress unused warning
-						_res = db.Exec(" UPDATE t1 SET y = randomblob(799) WHERE x=" + sqlLiteral(x) + " ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(799) WHERE x=" + sqlLiteral(x) + " ")
+							_res = db.Exec(" UPDATE t1 SET y = randomblob(799) WHERE x=" + sqlLiteral(x) + " ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(799) WHERE x=" + sqlLiteral(x) + " ")
+							}
 						}
 					}
 					// incr i 1
@@ -197,17 +199,19 @@ func Test_waloverwrite(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1 }() {
-					_rows3 := db.Query("SELECT x FROM t1")
-					if _rows3.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT x FROM t1")
+					_rows4 := db.Query("SELECT x FROM t1")
+					if _rows4.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT x FROM t1")
 					}
-					for _, _row3 := range _rows3.Rows {
-					_ = _row3 // suppress unused warning
-					x := fmt.Sprint(_row3[0])
+					for _, _row4 := range _rows4.Rows {
+					_ = _row4 // suppress unused warning
+					for _, _cell5 := range _row4 {
+					x := fmt.Sprint(_cell5)
 					_ = x // suppress unused warning
-						_res = db.Exec(" UPDATE t1 SET y = randomblob(798) WHERE x=" + sqlLiteral(x) + " ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(798) WHERE x=" + sqlLiteral(x) + " ")
+							_res = db.Exec(" UPDATE t1 SET y = randomblob(798) WHERE x=" + sqlLiteral(x) + " ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(798) WHERE x=" + sqlLiteral(x) + " ")
+							}
 						}
 					}
 					// incr i 1
@@ -230,17 +234,19 @@ func Test_waloverwrite(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
-					_rows4 := db.Query("SELECT x FROM t1")
-					if _rows4.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT x FROM t1")
+					_rows6 := db.Query("SELECT x FROM t1")
+					if _rows6.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows6.Error, "SELECT x FROM t1")
 					}
-					for _, _row4 := range _rows4.Rows {
-					_ = _row4 // suppress unused warning
-					x := fmt.Sprint(_row4[0])
+					for _, _row6 := range _rows6.Rows {
+					_ = _row6 // suppress unused warning
+					for _, _cell7 := range _row6 {
+					x := fmt.Sprint(_cell7)
 					_ = x // suppress unused warning
-						_res = db.Exec(" UPDATE t1 SET y = randomblob(797) WHERE x=" + sqlLiteral(x) + " ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(797) WHERE x=" + sqlLiteral(x) + " ")
+							_res = db.Exec(" UPDATE t1 SET y = randomblob(797) WHERE x=" + sqlLiteral(x) + " ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(797) WHERE x=" + sqlLiteral(x) + " ")
+							}
 						}
 					}
 					// incr i 1

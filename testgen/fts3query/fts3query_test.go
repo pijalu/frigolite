@@ -378,66 +378,68 @@ func Test_fts3query(t *testing.T) {
 			}
 			for _, _row4 := range _rows4.Rows {
 			_ = _row4 // suppress unused warning
-			ii := fmt.Sprint(_row4[0])
+			for _, _cell5 := range _row4 {
+			ii := fmt.Sprint(_cell5)
 			_ = ii // suppress unused warning
-				_dbeval5 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid > " + sqlLiteral(ii))
-				res1 = _dbeval5
-				_ = res1 // suppress unused warning
-				_dbeval6 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid < " + sqlLiteral(ii))
-				res2 = _dbeval6
-				_ = res2 // suppress unused warning
-				_dbeval7 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid > " + sqlLiteral(ii) + " ORDER BY +rowid DESC")
-				res1s = _dbeval7
-				_ = res1s // suppress unused warning
-				_dbeval8 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid < " + sqlLiteral(ii) + " ORDER BY +rowid DESC")
-				res2s = _dbeval8
-				_ = res2s // suppress unused warning
-				{ // "7.3." + ii + ".1"
-					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + "\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + "\n  ")
-						return
+					_dbeval6 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid > " + sqlLiteral(ii))
+					res1 = _dbeval6
+					_ = res1 // suppress unused warning
+					_dbeval7 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid < " + sqlLiteral(ii))
+					res2 = _dbeval7
+					_ = res2 // suppress unused warning
+					_dbeval8 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid > " + sqlLiteral(ii) + " ORDER BY +rowid DESC")
+					res1s = _dbeval8
+					_ = res1s // suppress unused warning
+					_dbeval9 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE rowid < " + sqlLiteral(ii) + " ORDER BY +rowid DESC")
+					res2s = _dbeval9
+					_ = res2s // suppress unused warning
+					{ // "7.3." + ii + ".1"
+						r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + "\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + "\n  ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten(res1)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
 					}
-					got := flatten(r)
-					want := tclListFlatten(res1)
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					{ // "7.3." + ii + ".2"
+						r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + "\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + "\n  ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten(res2)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
 					}
-				}
-				{ // "7.3." + ii + ".2"
-					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + "\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + "\n  ")
-						return
+					{ // "7.3." + ii + ".3"
+						r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten(res1s)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
 					}
-					got := flatten(r)
-					want := tclListFlatten(res2)
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-					}
-				}
-				{ // "7.3." + ii + ".3"
-					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
-						return
-					}
-					got := flatten(r)
-					want := tclListFlatten(res1s)
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-					}
-				}
-				{ // "7.3." + ii + ".4"
-					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
-						return
-					}
-					got := flatten(r)
-					want := tclListFlatten(res2s)
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					{ // "7.3." + ii + ".4"
+						r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < " + sqlLiteral(ii) + " ORDER BY rowid DESC\n  ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten(res2s)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
 					}
 				}
 			}

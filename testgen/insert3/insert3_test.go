@@ -167,9 +167,11 @@ func Test_insert3(t *testing.T) {
 	}
 	for _, _row0 := range _rows0.Rows {
 	_ = _row0 // suppress unused warning
-	tab := fmt.Sprint(_row0[0])
+	for _, _cell1 := range _row0 {
+	tab := fmt.Sprint(_cell1)
 	_ = tab // suppress unused warning
-		_res = db.Exec("DROP TABLE " + tab)
+			_res = db.Exec("DROP TABLE " + tab)
+		}
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")

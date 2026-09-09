@@ -353,7 +353,7 @@ func tclVarToGo(name string) string {
 // and produces a Go string concatenation expression.
 func (tp *transpiler) goStringLiteral(w tcl.RawWord) string {
 	if w.Braced {
-		return fmt.Sprintf("%q", w.Text)
+		return fmt.Sprintf("%q", foldBackslashNewline(w.Text))
 	}
 	if w.Quoted {
 		// TCL double-quoted words process backslash escapes: "\n" is a real
@@ -410,4 +410,24 @@ func (tp *transpiler) exprVarValue(name string) string {
 		return "strconv.Itoa(db.InterruptCount())"
 	}
 	return tclVarToGo(name)
+}
+
+// foldBackslashNewline applies TCL's brace-word line-continuation rule: a
+// backslash-newline sequence (with any following spaces/tabs) folds to a
+// single space even inside braces (TclManual: backslash-newline is the one
+// backslash form processed in brace words). Without this, a continued line
+// leaves a literal backslash in the generated SQL string and the engine
+// rejects it ("unrecognized token"; trigger2-2.x).
+func foldBackslashNewline(s string) string {
+	for {
+		i := strings.Index(s, "\\\n")
+		if i < 0 {
+			return s
+		}
+		j := i + 2
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		s = s[:i] + " " + s[j:]
+	}
 }

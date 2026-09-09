@@ -149,9 +149,11 @@ func Test_without_rowid4(t *testing.T) {
 			}
 			for _, _row1 := range _rows1.Rows {
 			_ = _row1 // suppress unused warning
-			v := fmt.Sprint(_row1[0])
+			for _, _cell2 := range _row1 {
+			v := fmt.Sprint(_cell2)
 			_ = v // suppress unused warning
-				_r = tclListAppend(_r, tclExprWith("int($v)", map[string]string{"v": v}))
+					_r = tclListAppend(_r, tclExprWith("int($v)", map[string]string{"v": v}))
+				}
 			}
 			got := tclListFlatten(_r)
 			want := tclListFlatten("1"+" "+"1"+" "+"2"+" "+"4"+" "+"6"+" "+"10"+" "+"20"+" "+"2"+" "+"1"+" "+"2"+" "+"13"+" "+"24"+" "+"10"+" "+"20"+" "+"3"+" "+"3"+" "+"4"+" "+"13"+" "+"24"+" "+"30"+" "+"40"+" "+"4"+" "+"3"+" "+"4"+" "+"40"+" "+"60"+" "+"30"+" "+"40"+" "+"1"+" "+"1"+" "+"2"+" "+"13"+" "+"24"+" "+"10"+" "+"20")
@@ -167,15 +169,17 @@ func Test_without_rowid4(t *testing.T) {
 			vtab.TclVarSet("r", "", "")
 			_r = ""
 			_ = _r // suppress unused warning
-			_rows2 := db.Query("DELETE FROM tbl;\n        SELECT * FROM rlog;")
-			if _rows2.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "DELETE FROM tbl;\n        SELECT * FROM rlog;")
+			_rows3 := db.Query("DELETE FROM tbl;\n        SELECT * FROM rlog;")
+			if _rows3.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "DELETE FROM tbl;\n        SELECT * FROM rlog;")
 			}
-			for _, _row2 := range _rows2.Rows {
-			_ = _row2 // suppress unused warning
-			v := fmt.Sprint(_row2[0])
+			for _, _row3 := range _rows3.Rows {
+			_ = _row3 // suppress unused warning
+			for _, _cell4 := range _row3 {
+			v := fmt.Sprint(_cell4)
 			_ = v // suppress unused warning
-				_r = tclListAppend(_r, tclExprWith("int($v)", map[string]string{"v": v}))
+					_r = tclListAppend(_r, tclExprWith("int($v)", map[string]string{"v": v}))
+				}
 			}
 			got := tclListFlatten(_r)
 			want := tclListFlatten("1"+" "+"100"+" "+"100"+" "+"400"+" "+"300"+" "+"0"+" "+"0"+" "+"2"+" "+"100"+" "+"100"+" "+"300"+" "+"200"+" "+"0"+" "+"0"+" "+"3"+" "+"300"+" "+"200"+" "+"300"+" "+"200"+" "+"0"+" "+"0"+" "+"4"+" "+"300"+" "+"200"+" "+"0"+" "+"0"+" "+"0"+" "+"0")
@@ -203,7 +207,7 @@ func Test_without_rowid4(t *testing.T) {
 	_ = ii // suppress unused warning
 	for _, tr_program := range tclSplitList("{UPDATE tbl SET b = old.b;}\n  {INSERT INTO log VALUES(new.c, 2, 3);}\n  {DELETE FROM log WHERE a = 1;}\n  {INSERT INTO tbl VALUES(500, new.b * 10, 700); \n    UPDATE tbl SET c = old.c; \n    DELETE FROM log;}\n  {INSERT INTO log select * from tbl;}") {
 	_ = tr_program // suppress unused warning
-		type _varset3 struct {
+		type _varset5 struct {
 			statement string
 			statementSet bool
 			prep string
@@ -221,12 +225,12 @@ func Test_without_rowid4(t *testing.T) {
 			oldC string
 			oldCSet bool
 		}
-		_varsets3 := []_varset3{
+		_varsets5 := []_varset5{
 			{"UPDATE tbl SET c = 10 WHERE a = 1;", true, "INSERT INTO tbl VALUES(1, 2, 3);", true, "10", true, "2", true, "1", true, "1", true, "2", true, "3", true},
 			{"DELETE FROM tbl WHERE a = 1;", true, "INSERT INTO tbl VALUES(1, 2, 3);", true, "", false, "", false, "", false, "1", true, "2", true, "3", true},
 			{"INSERT INTO tbl VALUES(1, 2, 3);", true, "", false, "3", true, "2", true, "1", true, "", false, "", false, "", false},
 		}
-		for _, test_varset := range _varsets3 {
+		for _, test_varset := range _varsets5 {
 		_ = test_varset // suppress unused warning
 			vtab.TclVarSet("statement", "", "")
 			statement = ""
@@ -396,9 +400,9 @@ func Test_without_rowid4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE tbl;\n  DROP TABLE log;\n")
 	}
-	_list4 := tclList([]string{"t1 BEFORE INSERT ON tbl WHEN new.a > 20"})
-	_ = _list4
-	_r = _list4
+	_list6 := tclList([]string{"t1 BEFORE INSERT ON tbl WHEN new.a > 20"})
+	_ = _list6
+	_r = _list6
 	when_triggers = _r
 	_ = when_triggers // suppress unused warning
 	when_triggers = tclListAppend(when_triggers, "t2 BEFORE INSERT ON tbl WHEN (SELECT count(*) FROM tbl) = 0")

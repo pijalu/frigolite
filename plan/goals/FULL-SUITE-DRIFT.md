@@ -712,3 +712,19 @@ are preserved as literal backslashes in the generated SQL strings, which
 the engine then rejects with `unrecognized token: "\"`. The converter's
 list splitter must fold backslash-newline continuations inside braced
 list elements (same class as tclSplitList's handling) — queued.
+
+### T4 backslash fold + regen fix (2026-09-09)
+
+- foldBackslashNewline: goStringLiteral's Braced branch now applies TCL's
+  brace-word line-continuation rule (backslash-newline + following
+  whitespace folds to a single space), eliminating the literal '\'
+  preserved in generated SQL strings (trigger2-2.x "unrecognized token").
+- Found and fixed the reason trigger2's cell loop never appeared: the
+  T4.10 regeneration had CRASHED partway (strings.Repeat negative count —
+  the cell-loop emission incremented indent once but the tail decremented
+  twice), leaving a mixed on-disk state; the committed "cell iteration"
+  did not fully land. With the indent balance the regen completes and
+  trigger2/without_rowid4's 1.x rows evaluate correctly.
+- LESSON: when a regen command exits non-zero, the on-disk generated tree
+  is PARTIAL — never commit it as if complete; re-run to completion
+  first.

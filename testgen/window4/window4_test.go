@@ -2472,9 +2472,11 @@ func Test_window4(t *testing.T) {
 		}
 		for _, _row0 := range _rows0.Rows {
 		_ = _row0 // suppress unused warning
-		_r := fmt.Sprint(_row0[0])
+		for _, _cell1 := range _row0 {
+		_r := fmt.Sprint(_cell1)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "1.0000 0.0000 1.0000 0.0000 1.0000 0.0000 4.0000 0.0000 4.0000 0.0000 6.0000 0.0000 7.0000 0.0000")
 		res2 = "1.0000 0.0000 1.0000 0.0000 1.0000 0.0000 4.0000 0.0000 4.0000 0.0000 6.0000 0.0000 7.0000 0.0000"
@@ -2513,15 +2515,17 @@ func Test_window4(t *testing.T) {
 		vtab.TclVarSet("myres", "", "")
 		myres = ""
 		_ = myres // suppress unused warning
-		_rows1 := db.Query("SELECT percent_rank() OVER () FROM t1")
-		if _rows1.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "SELECT percent_rank() OVER () FROM t1")
+		_rows2 := db.Query("SELECT percent_rank() OVER () FROM t1")
+		if _rows2.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT percent_rank() OVER () FROM t1")
 		}
-		for _, _row1 := range _rows1.Rows {
-		_ = _row1 // suppress unused warning
-		_r := fmt.Sprint(_row1[0])
+		for _, _row2 := range _rows2.Rows {
+		_ = _row2 // suppress unused warning
+		for _, _cell3 := range _row2 {
+		_r := fmt.Sprint(_cell3)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "0.0000 0.0000 0.0000")
 		res2 = "0.0000 0.0000 0.0000"
@@ -2536,15 +2540,17 @@ func Test_window4(t *testing.T) {
 		vtab.TclVarSet("myres", "", "")
 		myres = ""
 		_ = myres // suppress unused warning
-		_rows2 := db.Query("SELECT cume_dist() OVER () FROM t1")
-		if _rows2.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT cume_dist() OVER () FROM t1")
+		_rows4 := db.Query("SELECT cume_dist() OVER () FROM t1")
+		if _rows4.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT cume_dist() OVER () FROM t1")
 		}
-		for _, _row2 := range _rows2.Rows {
-		_ = _row2 // suppress unused warning
-		_r := fmt.Sprint(_row2[0])
+		for _, _row4 := range _rows4.Rows {
+		_ = _row4 // suppress unused warning
+		for _, _cell5 := range _row4 {
+		_r := fmt.Sprint(_cell5)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "1.0000 1.0000 1.0000")
 		res2 = "1.0000 1.0000 1.0000"
@@ -2715,15 +2721,17 @@ func Test_window4(t *testing.T) {
 		vtab.TclVarSet("myres", "", "")
 		myres = ""
 		_ = myres // suppress unused warning
-		_rows3 := db.Query("SELECT (SELECT avg(a)) FROM t2 ORDER BY 1")
-		if _rows3.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT (SELECT avg(a)) FROM t2 ORDER BY 1")
+		_rows6 := db.Query("SELECT (SELECT avg(a)) FROM t2 ORDER BY 1")
+		if _rows6.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows6.Error, "SELECT (SELECT avg(a)) FROM t2 ORDER BY 1")
 		}
-		for _, _row3 := range _rows3.Rows {
-		_ = _row3 // suppress unused warning
-		_r := fmt.Sprint(_row3[0])
+		for _, _row6 := range _rows6.Rows {
+		_ = _row6 // suppress unused warning
+		for _, _cell7 := range _row6 {
+		_r := fmt.Sprint(_cell7)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "2.0000")
 		res2 = "2.0000"
@@ -2738,15 +2746,17 @@ func Test_window4(t *testing.T) {
 		vtab.TclVarSet("myres", "", "")
 		myres = ""
 		_ = myres // suppress unused warning
-		_rows4 := db.Query("SELECT \n    (SELECT avg(a) UNION SELECT min(a) OVER ()) \n  FROM t2 GROUP BY a\n  ORDER BY 1")
-		if _rows4.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT \n    (SELECT avg(a) UNION SELECT min(a) OVER ()) \n  FROM t2 GROUP BY a\n  ORDER BY 1")
+		_rows8 := db.Query("SELECT \n    (SELECT avg(a) UNION SELECT min(a) OVER ()) \n  FROM t2 GROUP BY a\n  ORDER BY 1")
+		if _rows8.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows8.Error, "SELECT \n    (SELECT avg(a) UNION SELECT min(a) OVER ()) \n  FROM t2 GROUP BY a\n  ORDER BY 1")
 		}
-		for _, _row4 := range _rows4.Rows {
-		_ = _row4 // suppress unused warning
-		_r := fmt.Sprint(_row4[0])
+		for _, _row8 := range _rows8.Rows {
+		_ = _row8 // suppress unused warning
+		for _, _cell9 := range _row8 {
+		_r := fmt.Sprint(_cell9)
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+			}
 		}
 		vtab.TclVarSet("res2", "", "1.0000 2.0000 3.0000")
 		res2 = "1.0000 2.0000 3.0000"
