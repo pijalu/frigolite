@@ -5325,3 +5325,25 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **fts4opt acceptance state**: merge=5,2 cascade now converges (no [SEG3],
   no UNIQUE/FLU1 cascades); remaining: 2 result mismatches (1.8/2.x level
   counts — merge-count parity 9 vs 5 segments per level).
+- **FTS merge hint persistence + segment density (2026-09-09, session 2)**:
+  1. `readFTSStatRow` matched `rec.Values[0] == id`, but %_stat's `id` is the
+     table's INTEGER PRIMARY KEY — the record slot decodes as NULL and the
+     real value is the CELL ROWID. Match on `cell.RowID` instead. The broken
+     read made every merge= call lose the %_stat id=1 hint, so continuations
+     never engaged across calls and each call created a NEW output row —
+     the fts4opt "level trail" divergence (33:1→33:2→33:3…) vs the oracle's
+     ONE output per band. With the fix, our merge=5,2 loop converges to the
+     oracle's exact fixed point [33:1 1057:1 2081:1 3105:1] (66 vs 22
+     iterations — slower but same shape; fts4opt fully green, 3× faster).
+  2. Oracle-replay methodology that pinned both gaps: replay the TCL test's
+     SQL against the real sqlite3 (Python stdlib sqlite3 has total_changes;
+     per-row COMMIT to reproduce flush-time automerges), dump
+     `SELECT level, count(*) … GROUP BY level` per iteration, then mirror it
+     with a /tmp go-mode-replace harness against frigolite.
+  3. NEXT-LEVEL GAP (scoped, unstarted): segment ENCODING DENSITY. Same data,
+     same row counts, same page_size 4096 (nodeSize = pageSize-35): oracle
+     level-1 segment = root-only, 2775-byte root; ours = 3 × ~4KB leaves.
+     Our segment leaves are ~4-5× less compact — suspect the flush writer's
+     term prefix-compression or doclist position encoding. Consequences:
+     bigger segments, slower merge convergence (fts4merge4 timeout risk),
+     larger DBs.

@@ -834,7 +834,10 @@ func (e *DDLExecutor) readFTSStatRow(tableName string, id int) []byte {
 		if derr != nil || rec == nil || len(rec.Values) < 2 {
 			break
 		}
-		if rowID, ok := rec.Values[0].(int64); ok && int(rowID) == id {
+		// id is the %_stat table's INTEGER PRIMARY KEY: the value IS the
+		// rowid and the record slot decodes as NULL (SQLite's rowid-alias
+		// storage convention), so the match must use the cell's rowid.
+		if cell.RowID == int64(id) {
 			switch v := rec.Values[1].(type) {
 			case []byte:
 				return v
