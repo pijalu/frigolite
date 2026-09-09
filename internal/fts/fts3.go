@@ -128,6 +128,12 @@ type FTS3Table struct {
 	segdirNextIdx    map[int]int
 	nextBlockIDValid bool
 	nextBlockID      int
+	// blockIDHighWater is the largest %_segments block id this table has
+	// ever allocated. It survives cache invalidations so a re-derivation
+	// after chomp deletions cannot reuse ids that live segments above the
+	// deleted range still hold (C's p->iNextBlock never decreases within a
+	// session).
+	blockIDHighWater int
 	// automerge mirrors the FTS 'automerge=X' setting (fts3.c fts3DoAutoincrmerge):
 	// 0 = off, >=2 = flush-time incremental merge uses this many segments as
 	// nMin. automergeKnown distinguishes "explicitly set" from the default
@@ -262,6 +268,14 @@ func (t *FTS3Table) NextBlockID() (int, bool) {
 	return t.nextBlockID, t.nextBlockIDValid
 }
 
+// BlockIDHighWater returns the largest block id the table has ever
+// allocated (survives cache invalidations).
+func (t *FTS3Table) BlockIDHighWater() int {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.blockIDHighWater
+}
+
 // SetNextBlockID records the next %_segments block ID (max(blockid)+1) so the
 // per-flush block allocation is O(1).
 func (t *FTS3Table) SetNextBlockID(id int) {
@@ -269,6 +283,9 @@ func (t *FTS3Table) SetNextBlockID(id int) {
 	defer t.mu.Unlock()
 	t.nextBlockID = id
 	t.nextBlockIDValid = true
+	if id > t.blockIDHighWater {
+		t.blockIDHighWater = id
+	}
 }
 
 // InvalidateSegmentCache drops the segdir-idx / segments-block caches after a
@@ -279,6 +296,9 @@ func (t *FTS3Table) InvalidateSegmentCache() {
 	defer t.mu.Unlock()
 	t.segdirIdxValid = false
 	t.segdirNextIdx = nil
+	if t.nextBlockID > t.blockIDHighWater {
+		t.blockIDHighWater = t.nextBlockID
+	}
 	t.nextBlockIDValid = false
 	t.nextBlockID = 0
 	t.mergeCtx = nil

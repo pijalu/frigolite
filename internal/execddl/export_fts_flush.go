@@ -562,6 +562,12 @@ func (e *DDLExecutor) ftsNextBlockID(tableName string) int {
 			return id
 		}
 		id := e.nextFTSBlockID(tableName)
+		// Strictly monotonic within the session (C's p->iNextBlock): a
+		// re-derivation after chomp deletions must not reuse ids that
+		// surviving segments above the deleted range still hold.
+		if hw := t.BlockIDHighWater(); id < hw {
+			id = hw
+		}
 		t.SetNextBlockID(id)
 		return id
 	}

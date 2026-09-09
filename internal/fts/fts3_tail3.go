@@ -634,6 +634,9 @@ func (t *FTS3Table) Clear() {
 	t.deleteMarkerTerms = nil
 	t.segdirIdxValid = false
 	t.segdirNextIdx = nil
+	if t.nextBlockID > t.blockIDHighWater {
+		t.blockIDHighWater = t.nextBlockID
+	}
 	t.nextBlockIDValid = false
 	t.nextBlockID = 0
 	t.mergeCtx = nil
