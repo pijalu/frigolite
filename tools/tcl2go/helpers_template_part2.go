@@ -352,6 +352,50 @@ func tclExprWith(expr string, vars map[string]string) string {
 		}
 		s = s[:i] + val + s[j:]
 	}
+	// TCL coercions int(X)/wide(X)/double(X)/boolean(X): the argument is
+	// evaluated arithmetically, then coerced (trigger2 accumulates
+	// int($idx) per rlog row). Must run BEFORE resolveParens, which would
+	// otherwise strip the parentheses and glue the function name to the
+	// value ("int(1)" -> "int1").
+	lower := strings.ToLower(s)
+	if strings.HasSuffix(s, ")") {
+		coerced := ""
+		switch {
+		case strings.HasPrefix(lower, "int(") || strings.HasPrefix(lower, "wide("):
+			fnEnd := strings.Index(lower, "(")
+			inner := resolveParens(s[fnEnd+1 : len(s)-1])
+			if iv, err := evalSimpleArith(inner); err == nil {
+				if f, perr := strconv.ParseFloat(strings.TrimSpace(iv), 64); perr == nil {
+					coerced = strconv.FormatInt(int64(f), 10)
+				} else if strings.TrimSpace(iv) != "" {
+					coerced = strings.TrimSpace(iv)
+				}
+			}
+		case strings.HasPrefix(lower, "double("):
+			fnEnd := strings.Index(lower, "(")
+			inner := resolveParens(s[fnEnd+1 : len(s)-1])
+			if iv, err := evalSimpleArith(inner); err == nil {
+				if f, perr := strconv.ParseFloat(strings.TrimSpace(iv), 64); perr == nil {
+					coerced = strconv.FormatFloat(f, 'g', -1, 64)
+				}
+			}
+		case strings.HasPrefix(lower, "boolean("):
+			fnEnd := strings.Index(lower, "(")
+			inner := resolveParens(s[fnEnd+1 : len(s)-1])
+			if iv, err := evalSimpleArith(inner); err == nil {
+				if f, perr := strconv.ParseFloat(strings.TrimSpace(iv), 64); perr == nil {
+					if f != 0 {
+						coerced = "1"
+					} else {
+						coerced = "0"
+					}
+				}
+			}
+		}
+		if coerced != "" {
+			return coerced
+		}
+	}
 	s = resolveBracketCommands(s)
 	s = resolveParens(s)
 	s = resolveLogicalOperators(resolveStringComparisons(s))

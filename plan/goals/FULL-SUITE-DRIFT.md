@@ -659,3 +659,28 @@ SELECT statements concatenate correctly). Fix: teach the generated
 tclExprWith helper (helpers template) to coerce with int()/wide()/
 boolean() TCL functions, then regenerate. trigger2 and without_rowid4
 should flip fail->pass (their remaining assertions are the same shape).
+
+### T4 trigger2 triage continued (2026-09-09) — int() coercion landed; multi-column db-eval accumulation scoped
+
+tclExprWith now supports TCL coercions int(X)/wide(X)/double(X)/
+boolean(X) before paren resolution (resolveParens was gluing the function
+name to the value: "int(1)" -> "int1"). The "int1..int4" string artifacts
+are gone from trigger2.
+
+trigger2/without_rowid4 still fail on a SECOND converter gap: the db-eval
+row loop appends only the FIRST column (v := _row1[0]) per row while the
+assertions need every column of rlog/clog (35-value lists). The converter
+must translate `db eval {SELECT * FROM t} r { lappend r $r(c1) $r(c2) ... }`
+into per-column appends — queued as the db-eval multi-column accumulation
+feature (harness-determinism batch).
+
+### FLAKY flag (2026-09-09) — rtreecheck
+
+rtreecheck flipped pass->fail between sweeps with NO generated-code or
+engine delta in its path (verified: testgen/rtreecheck is byte-identical
+across the sweep states; stash-runs on both trees fail 5/5 now while the
+21:32 sweep recorded pass). The 5.1/5.2 assertions do shadow-table
+corruption writes (set_int32 on r3_node) inside BEGIN and read
+rtreecheck('r3') inside the transaction — the pass/fail boundary is
+suspected to be uncommitted-shadow-write visibility ordering. Flagged
+for P6.RTREE with a determinism investigation requirement.
