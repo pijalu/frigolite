@@ -333,14 +333,14 @@ func (e *DDLExecutor) RunFTSIntegrityCheck(tableName string) *Result {
 			if derr != nil || rec == nil {
 				break
 			}
-			var docID int64
-			if isContentExternal {
-				docID = cell.RowID
-			} else if len(rec.Values) > 0 {
-				if iv, ok := rec.Values[0].(int64); ok {
-					docID = iv
-				}
-			}
+			// The docid of an FTS content row is the ROWID alias: stored
+			// NULL in the record (the rowid-alias storage convention), so
+			// the cell's rowid is the authoritative docid for both external
+			// and ordinary content tables. Extracting rec.Values[0] would
+			// read the NULL and collapse every document into docs[0]
+			// (fts4opt's integrity-check compared ONE re-tokenized document
+			// against the whole index).
+			docID := cell.RowID
 			// Build a row map of the record's stored values keyed by column
 			// name. The engine's records store every declared column
 			// (including the INTEGER PRIMARY KEY rowid alias and the
