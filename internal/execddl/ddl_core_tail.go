@@ -9,6 +9,7 @@
 package execddl
 
 import (
+	"os"
 	"encoding/binary"
 	"fmt"
 
@@ -167,6 +168,12 @@ segdirCheck:
 			if len(rec.Values) >= 5 {
 				if sb, ok := rec.Values[2].(int64); ok && sb > 0 {
 					blk, verr := e.readFTSBlock(tableName, int(sb))
+					if verr != nil && os.Getenv("FRIGOLITE_FTS_DEBUG") != "" {
+						if f, ferr := os.CreateTemp("", "ftsdbg"); ferr == nil {
+							fmt.Fprintf(f, "level=%v idx=%v start=%v err=%v\n", rec.Values[0], rec.Values[1], rec.Values[2], verr)
+							f.Close()
+						}
+					}
 					if verr != nil {
 						return &Result{Error: fmt.Errorf("database disk image is malformed")}
 					}
