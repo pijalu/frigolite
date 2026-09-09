@@ -663,17 +663,33 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 	tp.emitLine("}")
 	tp.emitLine("for _, %s := range %s.Rows {", rowVar, rowsVar)
 	tp.emitLine("_ = %s // suppress unused warning", rowVar)
-	// Bind each loop variable to the corresponding row column. A single
-	// variable gets column 0; multiple variables destructure the row columns
-	// in order (fts4opt 1.1: foreach {docid words} [db eval {SELECT * FROM
-	// t1}] { INSERT INTO t2(docid, words) VALUES($docid, $words) }).
-	for i, vn := range varNames {
-		goVN := tclVarToGo(vn)
+	// execsql semantics: [db eval SQL] returns a FLAT list of every cell of
+	// every result row. A single loop variable therefore iterates CELLS —
+	// emit a nested cell loop (trigger2-1.x: foreach v [execsql {...}]
+	// lappends int($v) for all seven rlog columns; binding only column 0
+	// dropped every other column). Multiple variables destructure the row
+	// columns in order (fts4opt 1.1: foreach {docid words} [db eval {...]}).
+	cellLoop := len(varNames) == 1
+	if cellLoop {
+		cellVar := fmt.Sprintf("_cell%d", tp.varCount)
+		tp.varCount++
+		tp.emitLine("for _, %s := range %s {", cellVar, rowVar)
+		goVN := tclVarToGo(varNames[0])
 		if goVN == tp.dbVar {
 			goVN = goVN + "_iter"
 		}
-		tp.emitLine("%s := fmt.Sprint(%s[%d])", goVN, rowVar, i)
+		tp.emitLine("%s := fmt.Sprint(%s)", goVN, cellVar)
 		tp.emitLine("_ = %s // suppress unused warning", goVN)
+	} else {
+		// Bind each loop variable to the corresponding row column.
+		for i, vn := range varNames {
+			goVN := tclVarToGo(vn)
+			if goVN == tp.dbVar {
+				goVN = goVN + "_iter"
+			}
+			tp.emitLine("%s := fmt.Sprint(%s[%d])", goVN, rowVar, i)
+			tp.emitLine("_ = %s // suppress unused warning", goVN)
+		}
 	}
 	tp.indent++
 	bodyTP := &transpiler{
@@ -703,6 +719,10 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 		tp.usedChannels = bodyTP.usedChannels
 	}
 	tp.blobSeq = bodyTP.blobSeq
+	if cellLoop {
+		tp.indent--
+		tp.emitLine("}")
+	}
 	tp.indent--
 	tp.emitLine("}")
 	return true

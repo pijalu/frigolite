@@ -696,3 +696,19 @@ copyViaBackup CHECK suppression; the check package's only remaining
 failures are the three myfunc fixture-seam assertions (TCL db-func
 registration, converter/NA class). CLOSED — no further work needed on
 check-4.9.
+
+### T4 db-eval cell iteration (2026-09-09) — single-variable db-eval loops iterate cells
+
+emitDBEvalForeach now emits a nested cell loop when the foreach has ONE
+loop variable: [db eval SQL] returns a FLAT list of every cell of every
+row (TCL execsql semantics), so `foreach v [execsql {SELECT * FROM
+rlog}]` must bind v to each cell, not only column 0. Multi-variable
+destructuring is unchanged. This fixed trigger2-1.x's row shape (idx
+values now numeric and complete); without_rowid4 improved.
+
+Remaining trigger2-2.x failures are the backslash-continuation mangling:
+TCL list entries ending in "\" (line continuations, e.g. tbl_definitions)
+are preserved as literal backslashes in the generated SQL strings, which
+the engine then rejects with `unrecognized token: "\"`. The converter's
+list splitter must fold backslash-newline continuations inside braced
+list elements (same class as tclSplitList's handling) — queued.
