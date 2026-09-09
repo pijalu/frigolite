@@ -9,6 +9,7 @@
 package execddl
 
 import (
+	"os"
 	"encoding/binary"
 	"fmt"
 
@@ -167,6 +168,9 @@ segdirCheck:
 			if len(rec.Values) >= 5 {
 				if sb, ok := rec.Values[2].(int64); ok && sb > 0 {
 					blk, verr := e.readFTSBlock(tableName, int(sb))
+					if verr != nil && os.Getenv("FRIGOLITE_FTS_DEBUG") != "" {
+						fmt.Fprintf(os.Stderr, "DBG SEG3: table=%s level=%v idx=%v start=%v verr=%v\n", tableName, rec.Values[0], rec.Values[1], rec.Values[2], verr)
+					}
 					if verr != nil {
 						return &Result{Error: fmt.Errorf("database disk image is malformed [SEG3]")}
 					}
@@ -429,30 +433,39 @@ func (e *DDLExecutor) readFTSBlock(tableName string, blockID int) ([]byte, *Resu
 	if err != nil || segEntry == nil {
 		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG11]")}
 	}
+	// Scan-based lookup: SeekToRowID's binary-search descent mis-routes on
+	// merge-built %_segment trees whose interior separators were laid out by
+	// the cascade's chomp/renumber sequence (the scan path walks every row
+	// and matches — the same traversal the SQL engine's range scan uses,
+	// which is why the SQL query finds the block while the seek misses).
 	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
 	cursor, cerr := tree.OpenCursor()
 	if cerr != nil {
 		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG12]")}
 	}
-	found, serr := cursor.SeekToRowID(int64(blockID))
-	if serr != nil || !found {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG13]")}
+	for {
+		payload, rid, rerr := cursor.ReadCellData()
+		if rerr != nil {
+			break
+		}
+		if int(rid) == blockID {
+			rec, derr := storage.DecodeRecord(payload)
+			if derr != nil || rec == nil || len(rec.Values) < 2 {
+				return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG15]")}
+			}
+			switch bv := rec.Values[1].(type) {
+			case []byte:
+				return bv, nil
+			case string:
+				return []byte(bv), nil
+			}
+			return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG16]")}
+		}
+		if ok, nerr := cursor.Next(); nerr != nil || !ok {
+			break
+		}
 	}
-	cell, rerr := cursor.ReadCell()
-	if rerr != nil || cell == nil {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG14]")}
-	}
-	rec, derr := storage.DecodeRecord(cell.Payload)
-	if derr != nil || rec == nil || len(rec.Values) < 2 {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG15]")}
-	}
-	switch bv := rec.Values[1].(type) {
-	case []byte:
-		return bv, nil
-	case string:
-		return []byte(bv), nil
-	}
-	return nil, nil
+	return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG13]")}
 }
 
 // real FTS columns are mapped (doc.Columns); hidden vtab columns must not overwrite aliases.

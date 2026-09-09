@@ -5,6 +5,7 @@
 package execddl
 
 import (
+	"os"
 	"fmt"
 
 	"sort"
@@ -365,6 +366,9 @@ func (e *DDLExecutor) repackFTSSegdirLevel(tableName string, level int) {
 func (e *DDLExecutor) deleteFTSBlocks(tableName string, startBlock, endBlock int) {
 	if startBlock <= 0 || endBlock < startBlock {
 		return
+	}
+	if os.Getenv("FRIGOLITE_FTS_DEBUG") != "" && startBlock <= 1036 && endBlock >= 1036 {
+		fmt.Fprintf(os.Stderr, "DBG del covers 1036: [%d..%d]\n", startBlock, endBlock)
 	}
 	_ = e.ctx.Exec(&sql.DeleteStmt{
 		Table: tableName + "_segments",
