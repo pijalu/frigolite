@@ -164,10 +164,14 @@ func (e *DDLExecutor) promoteFTSSegments(tableName string, ftsTable *fts.FTS3Tab
 // this the orphaned markers accumulate (fts4growth 1.5: the oracle shows the
 // marker only while the output is live).
 func (e *DDLExecutor) deleteFTSBlocksRangeWithMarker(tableName string, row ftsSegdirRow, leavesEnd int) {
+	// The chomp deletes only the segment's OWN leaf blocks [start_block,
+	// leaves_end_block] — matching C's fts3DeleteSegment which uses the
+	// segment's iStartBlock..iEndBlock range exclusively. Extending the
+	// deletion to the end_block marker id would sweep in blocks belonging
+	// to OTHER segments whose ranges numerically interleave with this one
+	// (the cascade's chomp ranges and the re-leveled rows' preserved
+	// start_blocks interleave after prepare_for_optimize).
 	end := leavesEnd
-	if m := segdirRowEndBlockID(row.endBlock); m > end {
-		end = m
-	}
 	start := segdirRowStart(row)
 	if start <= 0 {
 		// Root-only segment: no %_segments blocks of its own; still remove a
