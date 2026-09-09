@@ -684,3 +684,15 @@ corruption writes (set_int32 on r3_node) inside BEGIN and read
 rtreecheck('r3') inside the transaction — the pass/fail boundary is
 suspected to be uncommitted-shadow-write visibility ordering. Flagged
 for P6.RTREE with a determinism investigation requirement.
+
+### Correction (2026-09-09) — check-4.9 "newline-cut" was a log artifact
+
+Re-probing with %q formatting shows the INSERT path emits the FULL
+verbatim multiline CHECK text ("x+y==11\n        OR x*y==12\n ...") —
+there is no newline-cut in checkConstraintText/checkParenExpr. The
+earlier truncated-looking observations were grep/log lines cutting the
+multi-line error message. check-4.9 and 4.10 are both fixed by the T4.7
+copyViaBackup CHECK suppression; the check package's only remaining
+failures are the three myfunc fixture-seam assertions (TCL db-func
+registration, converter/NA class). CLOSED — no further work needed on
+check-4.9.
