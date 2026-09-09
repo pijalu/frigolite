@@ -5289,3 +5289,39 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   "green" worktree — pre-existing freelist/autovacuum-drain parity bugs
   (trunk leaf-count cap vs reserved bytes; incomplete drain), T4 batch
   scope, NOT introduced by T2/T3.
+- **fts4opt [SEG3] root chain (2026-09-09, 3333→2 assertions)**: the whole
+  UNIQUE-t2.rowid / [FLU1] / [SEG3] failure mass in fts4opt was downstream of
+  TWO btree bugs, not FTS-merge logic:
+  1. `insertInteriorPage`'s interior-full handler split the parent ONCE and
+     retried `applyChildSplits` on a still-nearly-full page → "interior page
+     full" propagated out of InsertCell. UPDATE = deleteRowCells + InsertCell,
+     so a swallowed UPDATE error left the row DELETED (silent data loss; the
+     chomp's `_ = e.ctx.Exec(UPDATE)` masked it). Fix: mirror balance_nonroot
+     — loop tail-splits until the half owning the split child absorbs the
+     separator chain, re-parsing the page each iteration (the caller's parsed
+     header goes stale after the first split rewrites pg.Data in place),
+     accumulate the dividers and return them LEFT-TO-RIGHT to the parent
+     (successive left-page splits nest: split#2's page sorts between left and
+     split#1's page). Guard splitInteriorPage against len(entries)==0.
+  2. `cascadeChildless` (delete-path rebalance) unlinked a childless RIGHTMOST
+     child by writing parent.rightmost=0 and stopping — leaving an interior
+     page with N cells but only N children (N cells require N+1 pointers).
+     The next cursor walk descends to page 0, errors, and the scan terminates
+     early → "missing" blocks that are really present (the SeekToRowID
+     "mis-routing" and scan-cycling symptoms had this shape). Fix per
+     balance_shallower: promote the LAST divider's left child to rightmost
+     and remove that cell (children==cells+1 preserved).
+  - Debugging that cracked it: (a) env-gated traces at every %_segments
+    mutation (delete ranges, rewrites, insert ids, segdir row writes) — the
+    key evidence was that block 271987 was never DELETED and every insert
+    succeeded, so it had to be UNREADABLE; (b) counting rows seen by the
+    failing scan (20M rows walked = cycling; 78K rows ending at maxSeen <
+    target = early termination); (c) a btree DebugDumpStructure walk that
+    printed `page=837 int count=46 rightmost=0`; (d) an env-gated
+    pager.WritePage checker (interior + count>0 + rightmost==0 →
+    debug.PrintStack) that named cascadeChildless as the writer.
+  - Beware instrumentation that accumulates GLOBALLY across calls (per-call
+    counters reset per lookup; global ones read as "quadratic" falsely).
+- **fts4opt acceptance state**: merge=5,2 cascade now converges (no [SEG3],
+  no UNIQUE/FLU1 cascades); remaining: 2 result mismatches (1.8/2.x level
+  counts — merge-count parity 9 vs 5 segments per level).

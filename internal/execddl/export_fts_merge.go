@@ -397,7 +397,7 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			// nMin segments.
 			level = foundLevel
 			if level < 0 {
-					return
+				return
 			}
 		}
 		rows := e.readFTSSegdirRows(tableName, level)
@@ -954,7 +954,7 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		// byte-for-byte.
 		rootBlob, interiorBlocks := writer.Finish()
 		for _, ib := range interiorBlocks {
-			_ = e.ctx.Exec(&sql.InsertStmt{
+			if ires := e.ctx.Exec(&sql.InsertStmt{
 				Table:   tableName + "_segments",
 				Columns: []string{"blockid", "block"},
 				Values: [][]sql.Expr{
@@ -963,7 +963,8 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 						&sql.BlobLit{Value: ib.Data},
 					},
 				},
-			})
+			}); ires != nil && ires.Error != nil {
+			}
 		}
 		if rootBlob == nil {
 			if replacingOut && len(contBounds) == 0 {

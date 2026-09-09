@@ -676,7 +676,25 @@ func (t *BTree) cascadeChildless(pnum uint32) error {
 				return err
 			}
 		} else {
-			binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], 0)
+			// pnum was the parent's RIGHTMOST child. A parent with n cells
+			// holds n+1 children; dropping the rightmost pointer alone would
+			// leave n cells with n children (an invalid node the cursor walk
+			// reads as "descend to page 0"). balance_shallower instead pulls
+			// the LAST divider up into the rightmost slot: the last cell's
+			// left child becomes the rightmost pointer and the cell count
+			// drops by one, keeping children == cells+1.
+			if parentPage.CellCount > 0 {
+				last := int(parentPage.CellCount) - 1
+				ptroff := cellPtrOffset(parentPage.PageType)
+				lastOff := int(binary.BigEndian.Uint16(parentPg.Data[pco+ptroff+last*2 : pco+ptroff+last*2+2]))
+				lastChild := binary.BigEndian.Uint32(parentPg.Data[lastOff : lastOff+4])
+				if err := t.removeInteriorCellRange(parentPg, parentPage, last, 1); err != nil {
+					return err
+				}
+				binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], lastChild)
+			} else {
+				binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], 0)
+			}
 		}
 		if err := t.pager.WritePage(parentPg); err != nil {
 			return err

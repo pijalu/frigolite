@@ -9,7 +9,6 @@
 package execddl
 
 import (
-	"os"
 	"encoding/binary"
 	"fmt"
 
@@ -168,9 +167,6 @@ segdirCheck:
 			if len(rec.Values) >= 5 {
 				if sb, ok := rec.Values[2].(int64); ok && sb > 0 {
 					blk, verr := e.readFTSBlock(tableName, int(sb))
-					if verr != nil && os.Getenv("FRIGOLITE_FTS_DEBUG") != "" {
-						fmt.Fprintf(os.Stderr, "DBG SEG3: table=%s level=%v idx=%v start=%v verr=%v\n", tableName, rec.Values[0], rec.Values[1], rec.Values[2], verr)
-					}
 					if verr != nil {
 						return &Result{Error: fmt.Errorf("database disk image is malformed [SEG3]")}
 					}
@@ -427,6 +423,7 @@ func (e *DDLExecutor) validateFTSMatchCorruption(where sql.Expr, tableName strin
 
 // readFTSBlock reads a %_segments block by ID, returning it or a corruption
 // error when the block is missing.
+
 func (e *DDLExecutor) readFTSBlock(tableName string, blockID int) ([]byte, *Result) {
 	seg := tableName + "_segments"
 	segEntry, _, err := e.ctx.FindTable(seg)

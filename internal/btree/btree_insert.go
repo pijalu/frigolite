@@ -435,37 +435,72 @@ func (t *BTree) insertInteriorPage(pg *pager.Page, page *storage.BTreePage, pare
 		if err != errInteriorFull {
 			return nil, err
 		}
-		// This interior page is full. Split it, then re-locate the original
-		// child in the new structure: the child may have moved to the new
-		// right half (entries[splitIdx+1..]) when its position in the original
-		// page was above splitIdx, or it may now be the rightmost pointer of
-		// the left half (entries[splitIdx].leftChild). The splitKey comparison
-		// alone is insufficient for index b-trees (findChildPageForInsert
-		// returns the rightmost unconditionally) and for table b-trees when
-		// the split boundary lands exactly on the child's first key.
-		newInteriorNum, splitKey, serr := t.splitInteriorPage(pg, page, parentPgno)
-		if serr != nil {
-			return nil, serr
+		// This interior page is full. SQLite's balance_nonroot keeps creating
+		// sibling pages until the overfull page has absorbed the pending
+		// divider cells (btree.c: the do-while over apCell redistributes cells
+		// across as many siblings as needed); a single tail split frees only
+		// one cell slot, which is not always enough for the exact room the
+		// separator chain requires (fts4opt churn: the retried apply hit
+		// precheck-noroom again and the insert failed outright). Mirror the
+		// loop: split the left page repeatedly, each split moving its last
+		// cell to a fresh sibling, until the half that owns the split child
+		// can take the chain. Successive left-page splits nest rightward
+		// (split #2's page sorts between the left page and split #1's page),
+		// so the dividers returned to the parent are in reverse accumulation
+		// order.
+		var outs []leafSplitResult
+		for tries := 0; tries < 4096; tries++ {
+			// Re-parse the left page: the previous iteration's split rewrote
+			// pg.Data in place, so the caller's parsed `page` header (cell
+			// count/content start) is stale.
+			coff := contentOffset(pg.PageNum)
+			page, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+			if perr != nil {
+				return nil, perr
+			}
+			newInteriorNum, splitKey, serr := t.splitInteriorPage(pg, page, parentPgno)
+			if serr != nil {
+				return nil, serr
+			}
+			outs = append(outs, leafSplitResult{pageNum: newInteriorNum, medianKey: splitKey})
+			// Locate the original child across the left page and every split
+			// sibling, left to right.
+			order := make([]uint32, 0, len(outs)+1)
+			order = append(order, pg.PageNum)
+			for i := len(outs) - 1; i >= 0; i-- {
+				order = append(order, outs[i].pageNum)
+			}
+			target, ferr := t.locateChildAmong(order, childPageNum)
+			if ferr != nil {
+				return nil, ferr
+			}
+			if target == 0 {
+				return nil, fmt.Errorf("btree: parent split lost child %d", childPageNum)
+			}
+			tp, rerr := t.pager.ReadPage(target)
+			if rerr != nil {
+				return nil, rerr
+			}
+			tpage, perr := storage.ParsePage(tp.Data, int(t.pageSize), contentOffset(tp.PageNum))
+			if perr != nil {
+				return nil, perr
+			}
+			if aerr := t.applyChildSplits(tp, tpage, childPageNum, childSplits); aerr == nil {
+				// The chain found a home; hand every divider up in
+				// left-to-right order.
+				rev := make([]leafSplitResult, len(outs))
+				for i := range outs {
+					rev[i] = outs[len(outs)-1-i]
+				}
+				return rev, nil
+			} else if aerr != errInteriorFull {
+				return nil, aerr
+			}
+			// Still full: balance further and try again. The apply is atomic
+			// (exact precheck before any mutation), so the retry sees a clean
+			// page.
 		}
-		target, ferr := t.findParentOfChild(pg.PageNum, newInteriorNum, childPageNum)
-		if ferr != nil {
-			return nil, ferr
-		}
-		if target == 0 {
-			return nil, fmt.Errorf("btree: parent split lost child %d", childPageNum)
-		}
-		tp, rerr := t.pager.ReadPage(target)
-		if rerr != nil {
-			return nil, rerr
-		}
-		tpage, perr := storage.ParsePage(tp.Data, int(t.pageSize), contentOffset(tp.PageNum))
-		if perr != nil {
-			return nil, perr
-		}
-		if aerr := t.applyChildSplits(tp, tpage, childPageNum, childSplits); aerr != nil {
-			return nil, aerr
-		}
-		return []leafSplitResult{{pageNum: newInteriorNum, medianKey: splitKey}}, nil
+		return nil, fmt.Errorf("btree: interior rebalance did not converge (page %d)", pg.PageNum)
 	}
 
 	return nil, nil
@@ -588,7 +623,7 @@ func (t *BTree) applyChildSplits(pg *pager.Page, page *storage.BTreePage, origCh
 		nCount := int(page.CellCount) + 1
 		ncPtrEnd := coff + ptroff + nCount*2 + 2
 		if ncStart < ncPtrEnd {
-			return errInteriorFull // unreachable: exact precheck above
+			return errInteriorFull
 		}
 		copy(pg.Data[ncStart:], newData)
 		// Advance the content pointer past the sibling cell: the next
@@ -1143,10 +1178,12 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 	// finds room in whichever half it sorts into. A midpoint split left
 	// interiors permanently half-full, doubling their count
 	// (sqllimits1-7.7.3: 11 interior pages vs the reference 7).
-	splitIdx := len(entries) - 1
-	if splitIdx < 0 {
-		splitIdx = 0
+	if len(entries) == 0 {
+		// Nothing left to move: the caller's balance loop must stop here
+		// rather than index past the end.
+		return 0, 0, fmt.Errorf("btree: interior page %d has no cells to split", pg.PageNum)
 	}
+	splitIdx := len(entries) - 1
 
 	// The key at splitIdx goes up to the parent (it's the separator between the two halves)
 	splitKey := entries[splitIdx].key
@@ -1257,11 +1294,11 @@ func (t *BTree) childInPage(pg *pager.Page, page *storage.BTreePage, child uint3
 	return page.RightmostPtr == child
 }
 
-// findParentOfChild scans both halves of a just-split parent and returns the
-// page number that contains the given child (either as a cell's leftChild or
-// the rightmost pointer). Returns 0 if neither half holds it.
-func (t *BTree) findParentOfChild(leftNum, rightNum uint32, child uint32) (uint32, error) {
-	for _, pn := range []uint32{leftNum, rightNum} {
+// locateChildAmong scans the given pages (in order) and returns the page
+// number that contains the given child (either as a cell's leftChild or the
+// rightmost pointer). Returns 0 if none of them holds it.
+func (t *BTree) locateChildAmong(pageNums []uint32, child uint32) (uint32, error) {
+	for _, pn := range pageNums {
 		pg, err := t.pager.ReadPage(pn)
 		if err != nil {
 			return 0, err

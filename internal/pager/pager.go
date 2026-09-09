@@ -39,12 +39,12 @@ type Pager struct {
 	// requestedReserve holds a SQLITE_FCNTL_RESERVE_BYTES request that has
 	// not been materialized in the file yet (applied by the next VACUUM).
 	requestedReserve uint32
-	file     *os.File
-	pages    map[uint32]*Page
-	dirty    map[uint32]bool
-	readOnly bool
-	numPages uint32
-	header   []byte
+	file             *os.File
+	pages            map[uint32]*Page
+	dirty            map[uint32]bool
+	readOnly         bool
+	numPages         uint32
+	header           []byte
 	// fileSize caches the database file's size in bytes so flushPage can
 	// decide whether a page write needs a Truncate without an Fstat syscall
 	// per page (the dominant cost of per-commit flushes: 8000 FTS inserts
