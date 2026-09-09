@@ -670,7 +670,7 @@ func (e *DDLExecutor) crisisMergeFTSLevel(tableName string, level int, ftsTable 
 	for _, row := range rows {
 		_, termDoclists, err := e.segdirRowStreamDoclists(tableName, row.root, row.leavesEndBlock)
 		if err != nil {
-			return &Result{Error: fmt.Errorf("database disk image is malformed")}
+			return &Result{Error: fmt.Errorf("database disk image is malformed [FLU1]")}
 		}
 		for term, dl := range termDoclists {
 			mergedDoclists[term] = append(mergedDoclists[term], dl)
