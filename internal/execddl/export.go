@@ -281,7 +281,7 @@ func (e *DDLExecutor) RunFTSIntegrityCheck(tableName string) *Result {
 		tree := e.ctx.TableBTreeForName(contentEntry.Name, contentEntry.RootPage, true)
 		cursor, cerr := tree.OpenCursor()
 		if cerr != nil {
-			return &Result{Error: fmt.Errorf("database disk image is malformed")}
+			return &Result{Error: fmt.Errorf("database disk image is malformed [EXP1]")}
 		}
 		colDefs := e.ctx.ParseColumnDefs(contentEntry.Name, contentEntry.SQL)
 		isContentExternal := ftsTable.ContentTable() != ""
@@ -455,15 +455,15 @@ func (e *DDLExecutor) freshFTSFromSegments(tableName string, orig *fts.FTS3Table
 func (e *DDLExecutor) freshFTSFromSegmentsForIndex(tableName string, orig *fts.FTS3Table, iIndex int) (*fts.FTS3Table, error) {
 	entry, _, err := e.ctx.FindTable(tableName)
 	if err != nil || entry == nil {
-		return nil, fmt.Errorf("database disk image is malformed")
+		return nil, fmt.Errorf("database disk image is malformed [EXP2]")
 	}
 	moduleName, args, perr := parseVTabSQL(entry.SQL)
 	if perr != nil {
-		return nil, fmt.Errorf("database disk image is malformed")
+		return nil, fmt.Errorf("database disk image is malformed [EXP3]")
 	}
 	fresh, cerr := fts.NewFTS3Table(tableName, moduleName, args)
 	if cerr != nil {
-		return nil, fmt.Errorf("database disk image is malformed")
+		return nil, fmt.Errorf("database disk image is malformed [EXP4]")
 	}
 	// Re-derive content=<table> columns by name (like the reopen path).
 	if ct := orig.ContentTable(); ct != "" && len(fresh.ColumnNames()) == 0 {

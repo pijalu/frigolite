@@ -93,7 +93,7 @@ func (t *FTS3Table) offsetsColumn(b *strings.Builder, docID int64, phrases []Mat
 				if lenient {
 					return nil
 				}
-				return fmt.Errorf("database disk image is malformed")
+				return fmt.Errorf("database disk image is malformed [AUX1]")
 			}
 		}
 	}

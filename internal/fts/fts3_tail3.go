@@ -711,7 +711,7 @@ func (t *FTS3Table) MatchQueryColumn(docID int64, query, columnName string, lang
 		// The query reads a term whose segment doclist is corrupt: SQLite
 		// fails the MATCH with "database disk image is malformed"
 		// (fts3corrupt4 11.1/19.1).
-		return false, fmt.Errorf("database disk image is malformed")
+		return false, fmt.Errorf("database disk image is malformed [T31]")
 	}
 	return node.MatchDoc(t.index, docID), nil
 }

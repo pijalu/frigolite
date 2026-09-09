@@ -132,7 +132,7 @@ segdirCheck:
 			if strings.Contains(rerr.Error(), "cursor at end") {
 				break
 			}
-			return &Result{Error: fmt.Errorf("database disk image is malformed")}
+			return &Result{Error: fmt.Errorf("database disk image is malformed [SEG1]")}
 		}
 		if cell == nil {
 			break
@@ -154,7 +154,7 @@ segdirCheck:
 		}
 		if len(root) > 0 {
 			if verr := fts.ValidateSegmentRoot(root); verr != nil {
-				return &Result{Error: fmt.Errorf("database disk image is malformed")}
+				return &Result{Error: fmt.Errorf("database disk image is malformed [SEG2]")}
 			}
 			// start_block > 0 means the segment spans %_segments blocks
 			// (fts3.c fts3SegReader: the reader starts at start_block). A
@@ -168,10 +168,10 @@ segdirCheck:
 				if sb, ok := rec.Values[2].(int64); ok && sb > 0 {
 					blk, verr := e.readFTSBlock(tableName, int(sb))
 					if verr != nil {
-						return &Result{Error: fmt.Errorf("database disk image is malformed")}
+						return &Result{Error: fmt.Errorf("database disk image is malformed [SEG3]")}
 					}
 					if blk == nil {
-						return &Result{Error: fmt.Errorf("database disk image is malformed")}
+						return &Result{Error: fmt.Errorf("database disk image is malformed [SEG4]")}
 					}
 				}
 			}
@@ -269,11 +269,11 @@ segdirCheck:
 						if id > leavesEnd {
 							continue
 						}
-						return &Result{Error: fmt.Errorf("database disk image is malformed")}
+						return &Result{Error: fmt.Errorf("database disk image is malformed [SEG5]")}
 					}
 					first, last := fts.LeafTermRange(blk)
 					if prevLast != "" && first != "" && first <= prevLast {
-						return &Result{Error: fmt.Errorf("database disk image is malformed")}
+						return &Result{Error: fmt.Errorf("database disk image is malformed [SEG6]")}
 					}
 					if last != "" {
 						prevLast = last
@@ -336,11 +336,11 @@ func (e *DDLExecutor) validateFTSShadowRoots(tableName string, checkContent bool
 							ps := int(e.ctx.Pager().PageSize())
 							for i := 0; i < ncell; i++ {
 								if coff+8+2*i+2 > len(pg.Data) {
-									return &Result{Error: fmt.Errorf("database disk image is malformed")}
+									return &Result{Error: fmt.Errorf("database disk image is malformed [SEG7]")}
 								}
 								cp := int(binary.BigEndian.Uint16(pg.Data[coff+8+2*i : coff+10+2*i]))
 								if cp < cc || cp >= ps {
-									return &Result{Error: fmt.Errorf("database disk image is malformed")}
+									return &Result{Error: fmt.Errorf("database disk image is malformed [SEG8]")}
 								}
 							}
 						}
@@ -354,7 +354,7 @@ func (e *DDLExecutor) validateFTSShadowRoots(tableName string, checkContent bool
 					first = false
 					continue
 				}
-				return &Result{Error: fmt.Errorf("database disk image is malformed")}
+				return &Result{Error: fmt.Errorf("database disk image is malformed [SEG9]")}
 			}
 			first = false
 			// OpenCursor descends to the leftmost leaf, parsing pages on the
@@ -416,7 +416,7 @@ func (e *DDLExecutor) validateFTSMatchCorruption(where sql.Expr, tableName strin
 		return false
 	}
 	if check(where) {
-		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+		return &Result{Error: fmt.Errorf("database disk image is malformed [SEG10]")}
 	}
 	return nil
 }
@@ -427,24 +427,24 @@ func (e *DDLExecutor) readFTSBlock(tableName string, blockID int) ([]byte, *Resu
 	seg := tableName + "_segments"
 	segEntry, _, err := e.ctx.FindTable(seg)
 	if err != nil || segEntry == nil {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed")}
+		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG11]")}
 	}
 	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
 	cursor, cerr := tree.OpenCursor()
 	if cerr != nil {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed")}
+		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG12]")}
 	}
 	found, serr := cursor.SeekToRowID(int64(blockID))
 	if serr != nil || !found {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed")}
+		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG13]")}
 	}
 	cell, rerr := cursor.ReadCell()
 	if rerr != nil || cell == nil {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed")}
+		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG14]")}
 	}
 	rec, derr := storage.DecodeRecord(cell.Payload)
 	if derr != nil || rec == nil || len(rec.Values) < 2 {
-		return nil, &Result{Error: fmt.Errorf("database disk image is malformed")}
+		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG15]")}
 	}
 	switch bv := rec.Values[1].(type) {
 	case []byte:

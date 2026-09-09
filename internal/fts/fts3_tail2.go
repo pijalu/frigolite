@@ -280,22 +280,22 @@ func (t *FTS3Table) IntegrityCheck(docs map[int64][]interface{}) error {
 	// Compare against the actual index.
 	// Compare against the actual index.
 	if len(expected) != len(t.index.index) {
-		return fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed [T21]")
 	}
 	for term, expKeys := range expected {
 		postings, ok := t.index.index[term]
 		if !ok {
 
-			return fmt.Errorf("database disk image is malformed")
+			return fmt.Errorf("database disk image is malformed [T22]")
 		}
 		if len(postings) != len(expKeys) {
 
-			return fmt.Errorf("database disk image is malformed")
+			return fmt.Errorf("database disk image is malformed [T23]")
 		}
 		for _, p := range postings {
 			key := fmt.Sprintf("%d:%d:%d", p.DocID, p.Column, p.Position)
 			if !expKeys[key] {
-				return fmt.Errorf("database disk image is malformed")
+				return fmt.Errorf("database disk image is malformed [T24]")
 			}
 		}
 	}
@@ -775,20 +775,20 @@ func (t *FTS3Table) IntegrityCheckIndex(docs map[int64][]interface{}, iIndex int
 // index band iIndex (negative = all bands).
 func (t *FTS3Table) compareExpectedBand(expected map[string]map[string]bool, _ int) error {
 	if len(expected) != len(t.index.index) {
-		return fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed [T25]")
 	}
 	for term, expKeys := range expected {
 		postings, ok := t.index.index[term]
 		if !ok {
-			return fmt.Errorf("database disk image is malformed")
+			return fmt.Errorf("database disk image is malformed [T26]")
 		}
 		if len(postings) != len(expKeys) {
-			return fmt.Errorf("database disk image is malformed")
+			return fmt.Errorf("database disk image is malformed [T27]")
 		}
 		for _, p := range postings {
 			key := fmt.Sprintf("%d:%d:%d", p.DocID, p.Column, p.Position)
 			if !expKeys[key] {
-				return fmt.Errorf("database disk image is malformed")
+				return fmt.Errorf("database disk image is malformed [T28]")
 			}
 		}
 	}
