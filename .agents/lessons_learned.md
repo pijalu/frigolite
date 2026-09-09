@@ -5355,3 +5355,16 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
      took 66 to the identical state — the incremental-merge engine is at
      PARITY. The convergence-rate difference seen earlier (66 vs 22) was the
      same page-size artifact.
+- **fts3defer 6.3 phantom docid 0 (repro'd, unstarted)**: 20000 'common'
+  rows + one row with "x0..x124 common rare" in all 20 columns (single
+  txn); MATCH '"common rare"' after CLOSE/REOPEN returns rows {0, 20001}
+  (fresh in-memory index returns just 20001 — correct). The persisted
+  index has TWO level-0 segments (level 0 hit the crisis threshold);
+  "rare"'s doclist decodes correctly per-term (doc 20001, 20 column
+  postings, varints verified), yet the reloaded index has a docid-0
+  posting for BOTH common and rare. Suspect: a term's doclist spanning /
+  repeating across leaf entries (the 20001-doc 'common' doclist sits in
+  an oversized 60071-byte leaf) plus a loader that mis-decodes docid
+  deltas at segment/leaf boundaries — decode deltas with per-term base
+  but the writer/loader disagree on the base at continuation entries.
+  Repro: /tmp/ftsreplay/defer (go run; ~10s).
