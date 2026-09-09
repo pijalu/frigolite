@@ -5340,10 +5340,18 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
      per-row COMMIT to reproduce flush-time automerges), dump
      `SELECT level, count(*) … GROUP BY level` per iteration, then mirror it
      with a /tmp go-mode-replace harness against frigolite.
-  3. NEXT-LEVEL GAP (scoped, unstarted): segment ENCODING DENSITY. Same data,
-     same row counts, same page_size 4096 (nodeSize = pageSize-35): oracle
-     level-1 segment = root-only, 2775-byte root; ours = 3 × ~4KB leaves.
-     Our segment leaves are ~4-5× less compact — suspect the flush writer's
-     term prefix-compression or doclist position encoding. Consequences:
-     bigger segments, slower merge convergence (fts4merge4 timeout risk),
-     larger DBs.
+  3. Segment ENCODING DENSITY: RESOLVED AS PAGE-SIZE ARTIFACT. Same data
+     produces byte-identical flush roots (104B for verse 1) and IDENTICAL
+     total merged content (1627B) on both sides. The apparent 5× divergence
+     came from comparing different DEFAULT PAGE SIZES: frigolite defaults to
+     1024 (internal/pager/pager.go DefaultPageSize — INTENTIONAL, matches the
+     SQLite test-build default the transcribed TCL suite used; real
+     release-build SQLite defaults to 4096). nodeSize = pageSize-35, so our
+     leaves split at ~989 vs the oracle's ~4061. When replaying the TCL suite
+     against real sqlite3 for oracle comparisons, SET PRAGMA page_size=1024
+     first or the structures diverge for page-size reasons, not bugs.
+     Fair replay (PRAGMA page_size=1024 on both sides): oracle merge=5,2
+     converges in 67 iterations to [33:1 1057:1 2081:1 3105:1]; frigolite
+     took 66 to the identical state — the incremental-merge engine is at
+     PARITY. The convergence-rate difference seen earlier (66 vs 22) was the
+     same page-size artifact.
