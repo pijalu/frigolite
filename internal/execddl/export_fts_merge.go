@@ -719,7 +719,7 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		// step for full segment-internals parity.
 		useMarker := true // markers now model SQLite unconditionally (oracle-verified at page_size 1024)
 		if useMarker {
-			if nb := e.nextFTSBlockID(tableName) - 1; nb > allocFloor {
+			if nb := e.ftsNextBlockID(tableName) - 1; nb > allocFloor {
 				allocFloor = nb
 			}
 		}
@@ -794,7 +794,7 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 				// The cache was invalidated by a shadow write: recompute the max
 				// (an uncached read returns 0 — writing block 0/1 would clobber
 				// live blocks, fts4merge 1.2's "malformed").
-				next = e.nextFTSBlockID(tableName)
+				next = e.ftsNextBlockID(tableName)
 			}
 			if !reuseLeaf && next <= allocFloor && !(replacingOut && markerID > 0) {
 				next = allocFloor + 1

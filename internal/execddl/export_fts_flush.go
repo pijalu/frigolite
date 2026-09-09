@@ -106,7 +106,7 @@ func (e *DDLExecutor) FlushFTSSegments() *Result {
 					var nbOK bool
 					nextBlock, nbOK = ftsTable.NextBlockID()
 					if !nbOK {
-						nextBlock = e.nextFTSBlockID(tableName)
+						nextBlock = e.ftsNextBlockID(tableName)
 					}
 				}
 				for _, blk := range dmBlocks {
@@ -194,7 +194,7 @@ func (e *DDLExecutor) FlushFTSSegments() *Result {
 					var blockCached bool
 					nextBlock, blockCached = ftsTable.NextBlockID()
 					if !blockCached {
-						nextBlock = e.nextFTSBlockID(tableName)
+						nextBlock = e.ftsNextBlockID(tableName)
 					}
 				}
 				for _, blk := range blocks {
@@ -246,7 +246,7 @@ func (e *DDLExecutor) FlushFTSSegments() *Result {
 						var nbOK bool
 						nextBlock, nbOK = ftsTable.NextBlockID()
 						if !nbOK {
-							nextBlock = e.nextFTSBlockID(tableName)
+							nextBlock = e.ftsNextBlockID(tableName)
 						}
 					}
 					for _, blk := range pBlocks {
@@ -713,7 +713,7 @@ func (e *DDLExecutor) crisisMergeFTSLevel(tableName string, level int, ftsTable 
 		var blockCached bool
 		nextBlock, blockCached = ftsTable.NextBlockID()
 		if !blockCached {
-			nextBlock = e.nextFTSBlockID(tableName)
+			nextBlock = e.ftsNextBlockID(tableName)
 		}
 	}
 	for _, blk := range blocks {
