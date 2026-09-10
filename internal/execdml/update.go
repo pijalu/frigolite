@@ -759,8 +759,24 @@ func (e *DMLExecutor) valuesConflict(a, b []interface{}, rowIDa, rowIDb int64, c
 // first conflicting column.
 func (e *DMLExecutor) uniqueConflictError(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, a, b []interface{}, aRowID, bRowID int64, uniqueCols []int, idxColsList []uniqueIndexDef) error {
 	for _, idx := range uniqueCols {
-		if idx < len(a) && idx < len(b) && a[idx] != nil && b[idx] != nil && util.CompareValues(a[idx], b[idx]) == 0 {
-			return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableName, colDefs[idx].Name)
+		if idx < len(a) && idx < len(b) && idx < len(colDefs) {
+			// Rowid-alias convention: the INTEGER PRIMARY KEY column reads
+			// back NULL from the stored record — substitute the owning
+			// row's rowid (uniqueColsMatch parity), else the PK-conflict
+			// message degrades to the column-less form ("t5" not "t5.a",
+			// conflict-12.3).
+			av, bv := a[idx], b[idx]
+			if isIPKRowidAliasCol(colDefs[idx]) {
+				if av == nil {
+					av = aRowID
+				}
+				if bv == nil {
+					bv = bRowID
+				}
+			}
+			if av != nil && bv != nil && util.CompareValues(av, bv) == 0 {
+				return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableName, colDefs[idx].Name)
+			}
 		}
 	}
 	for _, def := range idxColsList {

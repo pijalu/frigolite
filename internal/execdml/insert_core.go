@@ -179,17 +179,39 @@ func (e *DMLExecutor) uniqueReplaceableConflict(err error, tableEntry *schema.En
 	if err == nil || !strings.Contains(err.Error(), "UNIQUE constraint failed") {
 		return false
 	}
+	// The violated column: the error names it as the last dotted token
+	// ("UNIQUE constraint failed: t1.x" → x).
 	errStr := err.Error()
-	for _, cd := range colDefs {
-		// The violated column's OWN clause applies (conflict-9.x).
-		if cd.OnConflict == "REPLACE" && strings.HasSuffix(errStr, "."+cd.Name) {
-			return true
-		}
+	violated := ""
+	if dot := strings.LastIndex(errStr, "."); dot >= 0 {
+		violated = errStr[dot+1:]
 	}
-	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == "REPLACE" {
-			return true
+	if violated == "" {
+		return false
+	}
+	// Declaration order decides which constraint's clause applies: the
+	// violated column's own UNIQUE/PK constraint (declared at the column)
+	// precedes every table-level UNIQUE. conflict-15.20: x PRIMARY KEY
+	// (ABORT) declared before UNIQUE(x,x) ON CONFLICT REPLACE — the PK's
+	// ABORT wins, so the duplicate INSERT errors.
+	for i := range colDefs {
+		cd := &colDefs[i]
+		if !strings.EqualFold(cd.Name, violated) {
+			continue
 		}
+		if cd.Unique || cd.PrimaryKey {
+			// The column's own unique constraint is the first-declared
+			// constraint covering this column.
+			return cd.OnConflict == "REPLACE"
+		}
+		// The column has no own unique constraint; check table-level
+		// UNIQUE constraints containing it, in declaration order.
+		for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
+			if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == "REPLACE" {
+				return true
+			}
+		}
+		return false
 	}
 	return false
 }

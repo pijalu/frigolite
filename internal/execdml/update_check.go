@@ -18,6 +18,19 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+
+	// A change that re-keys its row (SET rowid=...) must not land on an
+	// existing rowid — SQLite raises "UNIQUE constraint failed:
+	// t5b.rowid" (conflict-12.5: UPDATE t5b SET rowid=rowid+1 moves rowid
+	// 1 onto 2). Checked even for tables with no UNIQUE constraints, so it
+	// sits BEFORE the no-constraints early return.
+	for i := range changes {
+		c := changes[i]
+		if c.newRowID != nil && *c.newRowID != c.rowID && e.rowIDExists(tableEntry.Name, tableEntry.RootPage, *c.newRowID) {
+			return &Result{Error: e.rowIDConflictError(tableEntry, colDefs)}
+		}
+	}
+
 	if len(uniqueCols) == 0 && len(idxColsList) == 0 && len(wrOrder) == 0 {
 		return &Result{}
 	}

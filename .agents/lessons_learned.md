@@ -5509,3 +5509,10 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   uniqueConflictError needs the rowid substitution for the stored-NULL
   IPK value), 12.5 (UPDATE rowid=rowid+1 rowid-conflict detection),
   15.20 (missing INSERT unique enforcement in that context).
+- **conflict-15.20 (2026-09-10)**: uniqueReplaceableConflict must resolve
+  the clause by DECLARATION ORDER of the violated column's constraints —
+  the violated column's own UNIQUE/PK constraint (declared at the column)
+  precedes any table-level UNIQUE(...): `x PRIMARY KEY, UNIQUE(x,x) ON
+  CONFLICT REPLACE` + duplicate INSERT → the PK's ABORT wins, not the
+  table-level REPLACE. The "any REPLACE constraint" match fired REPLACE on
+  a PK violation, silently absorbing duplicate inserts.
