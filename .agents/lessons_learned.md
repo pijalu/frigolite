@@ -5541,3 +5541,14 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   (b) ATTACH of a file just created by another schema in the same batch
   fails "file is not a database" (header validation on a lazily-created
   file).
+- **reindex FIXED (2026-09-11)**: three pieces — (1) ReindexStmt gains
+  Target (rule289 built "dbnm.nm"; corrected to "nm.dbnm" = schema.object);
+  (2) targetExistsForReindex validates schema-qualified targets
+  (main.t1/i1) plus collations via collationExists (built-ins +
+  e.collations) plus schema-referenced COLLATE names (the untranspiled
+  `db collate c1/c2` fixtures); (3) bare REINDEX validates every table's
+  COLLATE clauses in REVERSE declaration order (SQLite iterates a table's
+  indexes newest-first → the LAST-declared unknown collation is reported
+  first: "no such collation sequence: c2"). reindex green.
+- **TestVacuumDoesNotCorruptBTree (internal/exec) fails at baseline** —
+  pre-existing, unrelated to the reindex/bloom1/check work.

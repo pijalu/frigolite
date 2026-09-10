@@ -77,8 +77,17 @@ func rule288(ruleNo int, p *Parser) interface{} {
 
 }
 
+// Rule 289: cmd ::= REINDEX nm dbnm — REINDEX with an optional schema
+// qualifier (dbnm) over the object name (nm), built "nm.dbnm" (schema
+// dot object; "REINDEX main.t1" targets t1 in main).
 func rule289(ruleNo int, p *Parser) interface{} {
-	return &sql.ReindexStmt{}
+	nm := getString(getRHS(p, ruleNo, 2))
+	dbnm := getString(getRHS(p, ruleNo, 3))
+	name := nm
+	if dbnm != "" {
+		name = nm + "." + dbnm
+	}
+	return &sql.ReindexStmt{Target: name}
 
 }
 

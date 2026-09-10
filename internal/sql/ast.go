@@ -578,8 +578,12 @@ type AnalyzeStmt struct {
 
 func (s *AnalyzeStmt) stmt() {}
 
-// ReindexStmt represents a REINDEX statement.
-type ReindexStmt struct{}
+// ReindexStmt represents a REINDEX statement. Target carries the optional
+// argument: a collation name, a table/index name, or "schema.table"
+// (parse.y: cmd ::= REINDEX, cmd ::= REINDEX nm dbnm).
+type ReindexStmt struct {
+	Target string
+}
 
 func (s *ReindexStmt) stmt() {}
 

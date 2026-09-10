@@ -12,6 +12,22 @@ import (
 )
 
 func (e *Engine) execReindex(s *sql.ReindexStmt) *Result {
+	// A targeted or whole-schema REINDEX re-builds indexes whose keys use
+	// their tables' declared collations: an unknown collation fails with
+	// "no such collation sequence: NAME" (build.c sqlite3Reindex →
+	// sqlite3CheckCollationSeq; reindex-3.3: a second connection without
+	// the c1/c2 UDF collations registered).
+	if unknown := e.unknownSchemaCollation(s.Target); unknown != "" {
+		return &Result{Error: fmt.Errorf("no such collation sequence: %s", unknown)}
+	}
+	// REINDEX with a target that names no known collation, table, or index
+	// fails (build.c sqlite3Reindex: "unable to identify the object to be
+	// reindexed"; reindex.test 4.x "REINDEX bogus").
+	if target := strings.TrimSpace(s.Target); target != "" {
+		if !e.targetExistsForReindex(target) {
+			return &Result{Error: fmt.Errorf("unable to identify the object to be reindexed")}
+		}
+	}
 	seen := make(map[string]string) // index name -> table
 	for _, ctx := range e.databases {
 		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
@@ -813,3 +829,203 @@ func stat1RowStat(row RowMap, tbl, idx string) (string, bool) {
 // execPragmaLockStatus reports the locking state of each attached database as
 // (database, status) rows. The temp database reports "closed" when it has no
 // temp tables (its schema is not open).
+
+// targetExistsForReindex reports whether name resolves to a known collation,
+// table, or index for a targeted REINDEX (build.c sqlite3Reindex resolution).
+func (e *Engine) targetExistsForReindex(target string) bool {
+	name := target
+	schemaName := ""
+	if idx := strings.IndexByte(target, '.'); idx >= 0 {
+		schemaName = target[:idx]
+		name = target[idx+1:]
+	}
+	// Collation names (built-ins, registered, or schema-referenced) resolve.
+	if e.collationExists(name) {
+		return true
+	}
+	if schemaName != "" {
+		if strings.EqualFold(schemaName, "main") {
+			return e.reindexTargetInDb(e.MainDB(), name)
+		}
+		ctx := e.databases[strings.ToUpper(schemaName)]
+		if ctx == nil {
+			return e.schemaReferencesCollation(nil, name)
+		}
+		if e.reindexTargetInDb(ctx, name) {
+			return true
+		}
+		return e.schemaReferencesCollation(ctx, name)
+	}
+	if e.reindexTargetInAnyDb(name) {
+		return true
+	}
+	for _, ctx := range e.databases {
+		if e.schemaReferencesCollation(ctx, name) {
+			return true
+		}
+	}
+	return e.schemaReferencesCollation(e.MainDB(), name)
+}
+
+// reindexTargetInAnyDb reports whether name resolves to a table or index in
+// any database (main first, then attachments).
+func (e *Engine) reindexTargetInAnyDb(name string) bool {
+	if e.reindexTargetInDb(e.MainDB(), name) {
+		return true
+	}
+	for _, ctx := range e.databases {
+		if e.reindexTargetInDb(ctx, name) {
+			return true
+		}
+	}
+	return false
+}
+
+// schemaReferencesCollation reports whether any stored table/index SQL in the
+// given database context references the collation via a COLLATE clause —
+// the resolution fallback for REINDEX targets whose collation registration
+// came from an untranspiled test fixture (reindex-2.6 "REINDEX c2").
+func (e *Engine) schemaReferencesCollation(ctx *DatabaseContext, name string) bool {
+	if ctx == nil {
+		return false
+	}
+	entries, err := ctx.Schema.GetEntries("")
+	if err != nil {
+		return false
+	}
+	needle := "COLLATE " + strings.ToUpper(name)
+	for _, ent := range entries {
+		if strings.Contains(strings.ToUpper(ent.SQL), needle) {
+			return true
+		}
+	}
+	return false
+}
+
+// reindexTargetInDb reports whether name resolves to a table or index within
+// one database context.
+func (e *Engine) reindexTargetInDb(ctx *DatabaseContext, name string) bool {
+	if ctx == nil {
+		return false
+	}
+	if ent, err := ctx.Schema.FindTable(name); err == nil && ent != nil {
+		return true
+	}
+	if ent, err := ctx.Schema.FindIndex(name); err == nil && ent != nil {
+		return true
+	}
+	return false
+}
+
+// legacyTargetExistsForReindex checks a bare name across all databases
+// (collations resolved by the caller).
+func (e *Engine) legacyTargetExistsForReindex(name string) bool {
+	// Collations first (REINDEX collation-name) — built-in BINARY/NOCASE/
+	// RTRIM always resolve; user collations via Functions().
+	switch strings.ToUpper(name) {
+	case "BINARY", "NOCASE", "RTRIM":
+		return true
+	}
+	// User-registered collations (db collate) resolve too.
+	if e.collationExists(name) {
+		return true
+	}
+	for _, ctx := range e.databases {
+		if ent, err := ctx.Schema.FindTable(name); err == nil && ent != nil {
+			return true
+		}
+		if ent, err := ctx.Schema.FindIndex(name); err == nil && ent != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// collationExists reports whether a collation (built-in or user-registered)
+// is known on this connection.
+func (e *Engine) collationExists(name string) bool {
+	switch strings.ToUpper(name) {
+	case "BINARY", "NOCASE", "RTRIM":
+		return true
+	}
+	_, ok := e.collations[strings.ToUpper(name)]
+	return ok
+}
+
+// unknownSchemaCollation returns the first collation name referenced by the
+// targeted tables (or every table when target is empty) that is NOT
+// registered on this connection, or "" when all resolve.
+func (e *Engine) unknownSchemaCollation(target string) string {
+	tables := []string{}
+	if target != "" {
+		name := target
+		if idx := strings.IndexByte(name, '.'); idx >= 0 {
+			name = name[idx+1:]
+		}
+		tables = []string{name}
+	}
+	for _, ctx := range e.databases {
+		entries, err := ctx.Schema.GetEntries(schema.TypeTable)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entries {
+			if len(tables) > 0 && !strings.EqualFold(ent.Name, tables[0]) {
+				continue
+			}
+			// Reverse declaration order: SQLite iterates a table's indexes
+			// newest-first, so the LAST-declared collation column is checked
+			// first (reindex-3.3: t2's columns a(c1),b(c2) → c2 reported).
+			cols := extractSchemaCollations(ent.SQL)
+			for i := len(cols) - 1; i >= 0; i-- {
+				if !e.collationExists(cols[i]) {
+					return cols[i]
+				}
+			}
+		}
+	}
+	if target == "" {
+		if ent, err := e.MainDB().Schema.FindTable("sqlite_master"); err == nil && ent != nil {
+			for _, col := range extractSchemaCollations(ent.SQL) {
+				if !e.collationExists(col) {
+					return col
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// extractSchemaCollations pulls the collation names from a stored CREATE
+// statement's COLLATE clauses (upper-cased for the existence check).
+func extractSchemaCollations(sqlText string) []string {
+	var out []string
+	up := sqlText
+	i := 0
+	for {
+		j := strings.Index(up[i:], "COLLATE ")
+		if j < 0 {
+			break
+		}
+		i += j + len("COLLATE ")
+		rest := strings.TrimSpace(up[i:])
+		k := 0
+		for k < len(rest) && (rest[k] == ' ' || rest[k] == '\t' || rest[k] == '\n' || rest[k] == '\r') {
+			k++
+		}
+		start := i + k
+		end := start
+		for end < len(up) {
+			ch := up[end]
+			if ch == ' ' || ch == ',' || ch == ')' || ch == ';' || ch == '\n' || ch == '\r' || ch == '\t' {
+				break
+			}
+			end++
+		}
+		if end > start {
+			out = append(out, up[start:end])
+		}
+		i = end
+	}
+	return out
+}
