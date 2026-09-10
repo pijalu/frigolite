@@ -5454,3 +5454,18 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   string constants (helpers_template_part2.go + _tail.go) — append INSIDE
   the final backtick, never after it; (b) the template goes through
   fmt.Sprintf(helpersTemplate, pkg) — every literal % must be escaped %%.
+- **bloom1 TRUE keyword (2026-09-10)**: unquoted TRUE/FALSE in index
+  expressions failed "no such column: true". The LALR parser keeps them as
+  ColumnRef (required for the IS TRUE/FALSE predicate detection via
+  boolLitName, parser_rules3.go:400), and SELECT/WHERE paths already
+  handled them — only validateIndexColumnRefs (ddl_index.go) rejected them.
+  Fix: skip unquoted TRUE/FALSE refs there. ALL other contexts (SELECT,
+  WHERE, IS predicates) were already correct — always probe each context
+  before assuming a general gap.
+- **conflict-9 diagnosis (parked)**: column-level `UNIQUE ON CONFLICT
+  IGNORE/REPLACE/FAIL/ROLLBACK` — FAIL/ROLLBACK/IGNORE paths exist in
+  insert_conflict*.go/insert.go, but the multi-constraint INSERT/UPDATE
+  interplay (9.3: a-IGNORE + c-REPLACE in one row; 9.4: UPDATE with
+  a-IGNORE) still raises raw UNIQUE errors, and table-constraint error
+  messages drop the column qualifier (t5 vs t5.a at 888). Needs a
+  precedence pass: violated-constraint → its own resolution, per-constraint.

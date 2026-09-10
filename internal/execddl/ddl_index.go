@@ -730,6 +730,16 @@ func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef) error {
 		if !ok {
 			return
 		}
+		// Unquoted TRUE/FALSE keywords are boolean literals, not column
+		// references (SQLite 3.23+; a column named "true" must be quoted).
+		// The LALR parser keeps them as ColumnRefs so the IS TRUE/FALSE
+		// predicates stay recognizable — index expressions resolve them to
+		// 1/0 here.
+		if !ref.Quoted {
+			if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
+				return
+			}
+		}
 		for _, cd := range colDefs {
 			if strings.EqualFold(cd.Name, ref.Name) {
 				return
