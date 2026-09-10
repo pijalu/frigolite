@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "strings"
 "testing"
 )
@@ -297,9 +298,9 @@ func Test_loadext(t *testing.T) {
 			_ = res // suppress unused warning
 		}
 		got := tclListFlatten(res)
-		want := tclListFlatten("/" + "1"+" "+tclFormat(dlerror_nosymbol, testextension, "sqlite3_.*_init") + "/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "loadext-3.2")
+		wantPattern := "" + "1"+" "+tclFormat(dlerror_nosymbol, testextension, "sqlite3_.*_init") + ""
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "loadext-3.2")
 		}
 	}
 	{ // do_test "loadext-3.3"

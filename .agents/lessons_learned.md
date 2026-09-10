@@ -5407,3 +5407,24 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   - Debugging: env-gated debug.PrintStack in the vtab's Open() named the
     exact caller chain (vtab_eponymous.go materializeVtabModule) in one
     run — far faster than guessing among the three scan paths.
+- **tcl2go /pattern/ regexp comparisons (2026-09-10)**: three coordinated
+  fixes make /pattern/ expected values work in set-var do_test bodies:
+  1. `set rc [catch {sqlite3_intarray_create db ia1} ia1]` now assigns the
+     set target (rc = "0") — the special-case emitted only the resultVar
+     capture, leaving rc at its stale value.
+  2. emitSetVarResultCheck honors isTCLRegexPattern: /pattern/ (and
+     ~/pattern/) expectations emit regexp.MatchString instead of literal
+     equality (intarray-1.1b: handle "0 X5" vs /0 [0-9A-Z]+/).
+  3. regexPatternExpr handles CONCATENATED pattern expressions
+     ("/^" + strings.Trim(...) + "$/"): strip the /.../ delimiters from the
+     first/last quoted literals and keep the middle verbatim. Quoting the
+     whole text folded `strings.Trim` into a string literal — dead
+     `strings.` refs fooled detectImports into emitting an unused import
+     (trace3 build break) — hasPackageRef scans string-literal contents too.
+  intarray + tpch01 fail→pass; trace3 compiles again (still fail: its
+  remaining pattern matches are real engine gaps).
+- **filectrl-1.6 engine gap (queued)**: `file_control_tempfilename db` is
+  emitted as its own command TEXT (unknown harness proc → string). Needs
+  SQLITE_FCNTL_TEMPFILENAME support in the engine (SQLite generates temp
+  names with the etilqs_ prefix) + a registered harness proc. qrf02's
+  remaining failure similar to triage.

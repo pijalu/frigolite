@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "testing"
 )
 
@@ -75,25 +76,24 @@ func Test_tpch01(t *testing.T) {
 		_ = eqpres // suppress unused warning
 		_ = eqpres // TCL namespace variable (query)
 		got := tclListFlatten(eqpres)
-		want := tclListFlatten("/*SEARCH part USING INDEX bootleg_pti *SEARCH lineitem USING INDEX lpki2*/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tpch01-1.1")
+		if !globMatch(got, "*SEARCH part USING INDEX bootleg_pti *SEARCH lineitem USING INDEX lpki2*") {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]\n  body: do_test %s", got, "*SEARCH part USING INDEX bootleg_pti *SEARCH lineitem USING INDEX lpki2*", "tpch01-1.1")
 		}
 	}
 	{ // do_test "tpch01-1.1b"
 		_ = eqpres // TCL namespace variable (query)
 		got := tclListFlatten(eqpres)
-		want := tclListFlatten("/.* customer .* n1 .*/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tpch01-1.1b")
+		wantPattern := ".* customer .* n1 .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "tpch01-1.1b")
 		}
 	}
 	{ // do_test "tpch01-1.1c"
 		_ = eqpres // TCL namespace variable (query)
 		got := tclListFlatten(eqpres)
-		want := tclListFlatten("/.* supplier .* n2 .*/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tpch01-1.1c")
+		wantPattern := ".* supplier .* n2 .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "tpch01-1.1c")
 		}
 	}
 	{ // "tpch01-1.2"

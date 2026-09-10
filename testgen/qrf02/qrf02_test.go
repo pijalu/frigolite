@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "testing"
 )
 
@@ -75,18 +76,17 @@ func Test_qrf02(t *testing.T) {
 	_ = result // suppress unused warning
 	{ // do_test "1.10"
 		got := tclListFlatten(result)
-		want := tclListFlatten("/*addr  opcode         p1    p2    p3    p4             p5  comment      \n----  -------------  ----  ----  ----  -------------  --  -------------\n0     Init           */")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.10")
+		if !globMatch(got, "*addr  opcode         p1    p2    p3    p4             p5  comment      \n----  -------------  ----  ----  ----  -------------  --  -------------\n0     Init           *") {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]\n  body: do_test %s", got, "*addr  opcode         p1    p2    p3    p4             p5  comment      \n----  -------------  ----  ----  ----  -------------  --  -------------\n0     Init           *", "1.10")
 		}
 	}
 	result2 = tclRegsubAll("\\d+", result, "N")
 	_ = result2 // suppress unused warning
 	{ // do_test "1.11"
 		got := tclListFlatten(result2)
-		want := tclListFlatten("/.*\nN     Rewind .*\nN       Column .*/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.11")
+		wantPattern := ".* N Rewind .* N Column .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "1.11")
 		}
 	}
 	{ // do_test "1.20"

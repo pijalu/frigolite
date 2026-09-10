@@ -9,6 +9,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "strconv"
 "strings"
 "testing"
@@ -151,9 +152,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_error // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_error)
-		want := tclListFlatten("/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-3.2")
+		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.2")
 		}
 	}
 	{ // do_test "trace3-3.3"
@@ -165,9 +166,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-3.3")
+		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.3")
 		}
 	}
 	{ // do_test "trace3-3.4"
@@ -179,9 +180,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-3.4")
+		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.4")
 		}
 	}
 	{ // do_test "trace3-3.5"
@@ -193,9 +194,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-3.5")
+		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.5")
 		}
 	}
 	{ // do_test "trace3-4.1"
@@ -207,9 +208,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^\\{-?\\d+ -?\\d+\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-4.1")
+		wantPattern := "^\\{-?\\d+ -?\\d+\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-4.1")
 		}
 	}
 	{ // do_test "trace3-4.2"
@@ -221,9 +222,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^\\{-?\\d+ -?\\d+\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-4.2")
+		wantPattern := "^\\{-?\\d+ -?\\d+\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-4.2")
 		}
 	}
 	{ // do_test "trace3-4.3"
@@ -290,9 +291,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^" + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + "$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-5.1")
+		wantPattern := "^" + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + "$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-5.1")
 		}
 	}
 	{ // do_test "trace3-5.2"
@@ -304,9 +305,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^" + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + "$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-5.2")
+		wantPattern := "^" + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + "$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-5.2")
 		}
 	}
 	{ // do_test "trace3-6.1"
@@ -318,9 +319,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^" + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + " \\\\{-?\\d+ -?\\d+\\\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-6.1")
+		wantPattern := "^" + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + " \\\\{-?\\d+ -?\\d+\\\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-6.1")
 		}
 	}
 	{ // do_test "trace3-6.2"
@@ -332,9 +333,9 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^\\\\{-?\\d+ \\\\{SELECT a, b FROM t1 ORDER BY a;\\\\}\\\\} " + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + " \\\\{-?\\d+ -?\\d+\\\\}$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-6.2")
+		wantPattern := "^\\\\{-?\\d+ \\\\{SELECT a, b FROM t1 ORDER BY a;\\\\}\\\\} " + strings.Trim(tclStringRepeat("-?d+ ", "16"), " \t\n\r\v\f") + " \\\\{-?\\d+ -?\\d+\\\\}$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-6.2")
 		}
 	}
 	{ // "trace3-7.1" (prepare-step internals; SQL side effects only)
@@ -411,9 +412,9 @@ func Test_trace3(t *testing.T) {
 		db.Close()
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^-?\\d+$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-11.1")
+		wantPattern := "^-?\\d+$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-11.1")
 		}
 	}
 	db.Close()
@@ -429,9 +430,9 @@ func Test_trace3(t *testing.T) {
 		db.Close()
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist_record)
-		want := tclListFlatten("/^-?\\d+$/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-11.2")
+		wantPattern := "^-?\\d+$"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-11.2")
 		}
 	}
 	db.Close()

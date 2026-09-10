@@ -7,6 +7,7 @@ package filectrl
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "strconv"
 "testing"
 )
@@ -100,9 +101,9 @@ func Test_filectrl(t *testing.T) {
 		fn = "file_control_tempfilename db"
 		_ = fn // suppress unused warning
 		got := tclListFlatten(fn)
-		want := tclListFlatten("/etilqs_/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "filectrl-1.6")
+		wantPattern := "etilqs_"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "filectrl-1.6")
 		}
 	}
 	db.Close()

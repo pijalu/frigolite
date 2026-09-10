@@ -349,20 +349,20 @@ func doTestBodyReadsArrayCounter(bodyCmds [][]tcl.RawWord) bool {
 // original echo/unsupported paths did; the generic path did not).
 func (tp *transpiler) runDoTestBody(bodyCmds [][]tcl.RawWord) *preparedState {
 	bodyTP := &transpiler{
-		sb:            tp.sb,
-		indent:        tp.indent,
-		dbVar:         tp.dbVar,
-		t:             tp.t,
-		catchMode:     tp.catchMode,
-		varCount:      tp.varCount,
-		vars:          tp.vars,
-		arrayKeys:     tp.arrayKeys,
-		arrayMapVars:  tp.arrayMapVars,
-		forIncrs:      tp.forIncrs,
-		unsetVars:     tp.unsetVars,
-		dbVarFuncs:    tp.dbVarFuncs,
-		constFuncs:    tp.constFuncs, quotaCallbacks: tp.quotaCallbacks,
-		inlineProcs:   tp.inlineProcs, inlineProcParams: tp.inlineProcParams,
+		sb:           tp.sb,
+		indent:       tp.indent,
+		dbVar:        tp.dbVar,
+		t:            tp.t,
+		catchMode:    tp.catchMode,
+		varCount:     tp.varCount,
+		vars:         tp.vars,
+		arrayKeys:    tp.arrayKeys,
+		arrayMapVars: tp.arrayMapVars,
+		forIncrs:     tp.forIncrs,
+		unsetVars:    tp.unsetVars,
+		dbVarFuncs:   tp.dbVarFuncs,
+		constFuncs:   tp.constFuncs, quotaCallbacks: tp.quotaCallbacks,
+		inlineProcs: tp.inlineProcs, inlineProcParams: tp.inlineProcParams,
 		identityFuncs: tp.identityFuncs,
 		predFuncs:     tp.predFuncs,
 		queryFuncs:    tp.queryFuncs,
@@ -1153,6 +1153,39 @@ func (tp *transpiler) emitCatchsqlResultCheck(nameExpr, expectedExpr string) {
 // C-API tail pointer and the TCL braced expected may differ in leading/trailing
 // whitespace.
 func (tp *transpiler) emitSetVarResultCheck(nameExpr, expectedExpr, setVar string) {
+	// TCL do_test treats a /pattern/ (or ~/pattern/) expected value as a
+	// regexp (inverted) match, not literal equality — intarray-1.1b compares
+	// the registered intarray handle ("0 X5") against /0 [0-9A-Z]+/.
+	if isTCLRegexPattern(expectedExpr) {
+		tp.emitLine("got := tclListFlatten(%s)", setVar)
+		inner := regexPatternInner(expectedExpr)
+		negated := regexPatternNegated(expectedExpr)
+		if strings.HasPrefix(inner, "*") {
+			// TCL glob (string match): the inner pattern starts with *.
+			globExpr := fmt.Sprintf("%q", inner)
+			if negated {
+				tp.emitLine("if globMatch(got, %s) {", globExpr)
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match glob: [%%s]\\n  body: do_test %%s\", got, %s, %s)", globExpr, nameExpr)
+				tp.emitLine("}")
+			} else {
+				tp.emitLine("if !globMatch(got, %s) {", globExpr)
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want glob: [%%s]\\n  body: do_test %%s\", got, %s, %s)", globExpr, nameExpr)
+				tp.emitLine("}")
+			}
+			return
+		}
+		tp.emitLine("wantPattern := %s", regexPatternExpr(expectedExpr))
+		if negated {
+			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\\n  body: do_test %%s\", got, wantPattern, %s)", nameExpr)
+			tp.emitLine("}")
+		} else {
+			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\\n  body: do_test %%s\", got, wantPattern, %s)", nameExpr)
+			tp.emitLine("}")
+		}
+		return
+	}
 	if tp.prepareTailVars[setVar] {
 		tp.emitLine("got := tclListFlattenCollapse(%s)", setVar)
 		tp.emitLine("want := tclListFlattenCollapse(%s)", expectedExpr)

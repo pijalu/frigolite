@@ -241,23 +241,23 @@ func Test_whereJ(t *testing.T) {
 		res = _dbeval0
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
-		want := tclListFlatten("~/ANY/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.1")
+		wantPattern := "ANY"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]\n  body: do_test %s", got, wantPattern, "5.1")
 		}
 	}
 	{ // do_test "5.2"
 		got := tclListFlatten(res)
-		want := tclListFlatten("/USING INDEX t1abe/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.2")
+		wantPattern := "USING INDEX t1abe"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "5.2")
 		}
 	}
 	{ // do_test "5.3"
 		got := tclListFlatten(res)
-		want := tclListFlatten("/USING INDEX t1abf/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.3")
+		wantPattern := "USING INDEX t1abf"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "5.3")
 		}
 	}
 }

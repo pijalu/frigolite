@@ -4,8 +4,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -144,6 +144,12 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 					tp.emitLine("%s = _r", resultVar)
 				}
 				tp.emitLine("_r = \"0\"")
+				// The bracket result (the catch code) IS the set target's
+				// value: `set rc [catch {...} ia1]` assigns rc = "0". The
+				// missing assignment left rc holding its PREVIOUS value, so
+				// intarray-1.1b's lappend built a stale list ("0X5" instead
+				// of "0 X5") and the /0 [0-9A-Z]+/ comparison failed.
+				tp.assignSetValue(goName, "_r")
 				return true
 			}
 		}
@@ -969,7 +975,8 @@ func (tp *transpiler) readCountExpr(countText string) (string, bool) {
 	return countText, true
 }
 
-func (tp *transpiler) setExprValue(goName, cmdText string) bool {	exprStr := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), "expr"))
+func (tp *transpiler) setExprValue(goName, cmdText string) bool {
+	exprStr := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), "expr"))
 	if len(exprStr) >= 2 && exprStr[0] == '{' && exprStr[len(exprStr)-1] == '}' {
 		exprStr = exprStr[1 : len(exprStr)-1]
 	}

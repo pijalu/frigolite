@@ -401,6 +401,34 @@ func regexPatternNegated(goQuoted string) bool {
 // literal. The `~/.../` prefix means a regex; `/.../` is treated as a regex
 // too for EXPLAIN-plan comparisons.
 func regexPatternExpr(goQuoted string) string {
+	// A concatenated expected value ("/^" + strings.Trim(...) + "$/") —
+	// an interpolated TCL string rendered as Go concatenation — must stay
+	// an expression: strip the /.../ regex delimiters from the FIRST and
+	// LAST quoted literals and re-join verbatim. Quoting the whole text
+	// (the pre-fix behavior) folded the code into a string literal and
+	// left the package referencing strings only inside strings — a build
+	// break (trace3-5.x).
+	if strings.Contains(goQuoted, " + ") {
+		parts := strings.Split(goQuoted, " + ")
+		out := make([]string, len(parts))
+		for i, part := range parts {
+			part = strings.TrimSpace(part)
+			if len(part) >= 2 && part[0] == '"' && part[len(part)-1] == '"' {
+				if unq, err := strconv.Unquote(part); err == nil {
+					if i == 0 && strings.HasPrefix(unq, "/") {
+						unq = unq[1:]
+					}
+					if i == len(parts)-1 && strings.HasSuffix(unq, "/") {
+						unq = unq[:len(unq)-1]
+					}
+					out[i] = strconv.Quote(unq)
+					continue
+				}
+			}
+			out[i] = part
+		}
+		return strings.Join(out, " + ")
+	}
 	s := goQuoted
 	// expectedExpr is a Go string literal (e.g. "\"/.../\"" from
 	// goStringLiteral), so decode it with strconv.Unquote to get the real
@@ -440,7 +468,7 @@ func regexPatternExpr(goQuoted string) string {
 		s = s[1 : len(s)-1]
 	}
 	return fmt.Sprintf("%q", s)
-	}
+}
 
 // isSingleBraceGroup reports whether text consists of exactly one top-level
 // {...} group spanning the whole string. TCL renders a one-element list whose

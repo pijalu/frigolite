@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "strconv"
 "testing"
 )
@@ -124,11 +125,13 @@ func Test_intarray(t *testing.T) {
 		if _res.Error != nil { t.Errorf("intarray create: %v", _res.Error) }
 		ia1 = _r
 		_r = "0"
+		rc = _r
+		_ = rc // suppress unused warning
 		rc = tclListAppend(rc, ia1)
 		got := tclListFlatten(rc)
-		want := tclListFlatten("/0 [0-9A-Z]+/")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intarray-1.1b")
+		wantPattern := "0 [0-9A-Z]+"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "intarray-1.1b")
 		}
 	}
 	{ // do_test "intarray-1.2"
