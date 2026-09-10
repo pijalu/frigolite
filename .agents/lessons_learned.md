@@ -5481,3 +5481,17 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   preprocessInput → runLALRParse). cacheflush.test hits it because its
   batch has SAVEPOINT extracted to `/* __SAVEPOINT__ */;` right after
   INSERTs — the placeholder comment + SEMI after INSERT is the trigger.
+- **check-7.x CHECK-constraint function handling (2026-09-10)**: two gaps:
+  (1) CHECK expressions evaluated on a connection WITHOUT the referenced
+  UDF must report SQLite's code-time form "unknown function: NAME()"
+  (expr.c:5332 sqlite3ExprCodeTarget) — the resolve-time form
+  "no such function: NAME" is only for user-typed statements; rewrite in
+  checkColumnCheckExpr. (2) CREATE TABLE must validate that CHECK
+  expressions reference only registered functions — added
+  validateCheckFuncs via the new DDLContext.FunctionExists accessor
+  (mirrors SchemaFunctionSafe). ROOT CAUSE of the original failure was
+  the tcl2go procNameFromRest flag bug: `-deterministic` consumed the
+  proc NAME (flag-skipping assumed all -flags take values), degrading the
+  registration to a nil stub whose NULL result made every CHECK pass.
+  Boolean flags (-deterministic/-directonly/-innocuous) take no value;
+  only -argcount/-returntype do.
