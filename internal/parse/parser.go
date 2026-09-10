@@ -60,6 +60,12 @@ func preprocessInput(input string) (*parsePreprocess, error) {
 	var savepointStmts []sql.Stmt
 	var stmtKind []bool // true = savepoint placeholder, false = regular
 	input, savepointStmts, stmtKind = extractSavepointStatements(input)
+	// The extraction's placeholder comments ("/* __SAVEPOINT__ */;") form
+	// EMPTY statements the LALR tables mis-parse by duplicating the trailing
+	// statement (cacheflush.test: "near "B"" after INSERT; SAVEPOINT;
+	// UPDATE batches). Collapse them out — the interleave consumes
+	// savepointStmts by placeholder count, which the collapse preserves.
+	input = collapseEmptyStatements(input)
 
 	// The LALR tables (pre-generated from an older SQLite grammar) have a
 	// shift/reduce conflict after a CREATE TRIGGER whose WHEN clause ends a

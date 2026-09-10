@@ -114,8 +114,9 @@ func collapseEmptyStatements(input string) string {
 	for i < len(input) {
 		if input[i] == ';' && s.depth == 0 {
 			seg := input[start:i]
-			if strings.TrimSpace(seg) == "" {
-				// Empty statement: drop it and its semicolon.
+			if strings.TrimSpace(stripSQLComments(seg)) == "" {
+				// Empty statement (whitespace and/or comments only, e.g. a
+				// SAVEPOINT placeholder): drop it and its semicolon.
 				dropped = true
 			} else {
 				b.WriteString(seg)
@@ -129,7 +130,7 @@ func collapseEmptyStatements(input string) string {
 	}
 	if start < len(input) {
 		seg := input[start:]
-		if strings.TrimSpace(seg) == "" {
+		if strings.TrimSpace(stripSQLComments(seg)) == "" {
 			dropped = true
 		} else {
 			b.WriteString(seg)

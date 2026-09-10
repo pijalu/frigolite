@@ -5516,3 +5516,14 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   CONFLICT REPLACE` + duplicate INSERT → the PK's ABORT wins, not the
   table-level REPLACE. The "any REPLACE constraint" match fired REPLACE on
   a PK violation, silently absorbing duplicate inserts.
+- **cacheflush parser bug FIXED (2026-09-10)**: root cause — the SAVEPOINT
+  placeholder comments ("/* __SAVEPOINT__ */;") emitted by
+  extractSavepointStatements are EMPTY statements (comment + SEMI), and
+  they are created AFTER collapseEmptyStatements has already run — so the
+  LALR tables see `stmt; /*comment*/ ; stmt` and mis-parse by duplicating
+  the trailing statement ("near \"B\"" errors and lost rows). Fix: run
+  collapseEmptyStatements AGAIN after extractSavepointStatements, and
+  collapseEmptyStatements now strips comments (stripSQLComments) before
+  its segment-emptiness test (a comment-only segment IS empty). cacheflush
+  and subjournal green; savepoint2's sweep failure was parallel-load
+  timeout (33s solo).
