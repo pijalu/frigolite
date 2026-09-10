@@ -23,7 +23,17 @@ func (e *DDLExecutor) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	oldName := s.Table
 	newName := s.NewName
 	if isProtectedSystemTable(oldName) {
-		return &Result{Error: fmt.Errorf("table %s may not be altered", oldName)}
+		// The protection error reports the canonical (lowercase) system
+		// table name, not the user's spelling: alter.c echoes pTab->zName,
+		// so `ALTER TABLE SqLiTe_master RENAME TO master` says "table
+		// sqlite_master may not be altered" (alter.test).
+		return &Result{Error: fmt.Errorf("table %s may not be altered", strings.ToLower(oldName))}
+	}
+	// The NEW name is also checked against the sqlite_ prefix (alter.test:
+	// `ALTER TABLE t3 RENAME TO sqlite_t3` → "object name reserved for
+	// internal use: sqlite_t3").
+	if res := e.validateReservedName(newName); res != nil {
+		return res
 	}
 	entry, entryCtx, err := e.ctx.FindTable(oldName)
 	if err != nil {
