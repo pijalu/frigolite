@@ -122,6 +122,16 @@ func (e *DMLExecutor) checkColumnCheckExpr(tableEntry *schema.Entry, colDefs []s
 		return checkErr
 	})
 	if checkErr != nil {
+		// A function missing at CHECK-evaluation time is a schema-code
+		// failure, not a statement-resolution failure: SQLite's
+		// sqlite3ExprCodeTarget (expr.c:5332) reports
+		// "unknown function: NAME()" (check-7.5: a second connection
+		// without the UDF registered inserts into a table whose CHECK
+		// references it).
+		msg := checkErr.Error()
+		if name, found := strings.CutPrefix(msg, "no such function: "); found {
+			return fmt.Errorf("unknown function: %s()", name)
+		}
 		return checkErr
 	}
 	if checkVal != nil && !execexpr.ToBool(checkVal) {

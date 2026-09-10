@@ -477,7 +477,12 @@ func Test_check(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc myfunc predicate arg < 10 (registered via db func)
-	db.RegisterFunction("myfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	db.RegisterFunction("myfunc", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return nil, nil }
+		arg, _ := strconv.ParseFloat(tclStr(args[0]), 64)
+		if arg < 10 { return int64(1), nil }
+		return int64(0), nil
+	}, 0, -1)
 	{ // "7.1"
 		_res = db.Exec(" CREATE TABLE t6(a CHECK (myfunc(a))) ")
 		if _res.Error != nil {

@@ -70,7 +70,10 @@ func Test_trustschema1(t *testing.T) {
 			if len(args) < 1 || args[0] == nil { return nil, nil }
 			return args[0], nil
 		}, 0, -1, true, false)
-		db.RegisterFunction("f2", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		db.RegisterFunctionFlags("f2", func(args []interface{}) (interface{}, error) {
+			if len(args) < 1 || args[0] == nil { return nil, nil }
+			return args[0], nil
+		}, 0, -1, false, false)
 		db.RegisterFunctionFlags("f3", func(args []interface{}) (interface{}, error) {
 			if len(args) < 1 || args[0] == nil { return nil, nil }
 			return args[0], nil
@@ -334,7 +337,10 @@ func Test_trustschema1(t *testing.T) {
 		if len(args) < 1 || args[0] == nil { return nil, nil }
 		return args[0], nil
 	}, 0, -1, true, false)
-	db.RegisterFunction("f2", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	db.RegisterFunctionFlags("f2", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return nil, nil }
+		return args[0], nil
+	}, 0, -1, false, false)
 	db.RegisterFunctionFlags("f3", func(args []interface{}) (interface{}, error) {
 		if len(args) < 1 || args[0] == nil { return nil, nil }
 		return args[0], nil

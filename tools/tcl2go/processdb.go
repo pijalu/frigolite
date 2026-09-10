@@ -882,7 +882,11 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 
 // procNameFromRest finds the TCL proc name in `db func NAME [-deterministic]
 // PROC` — the first non-flag argument (a braced word like {joinx cross}
-// contributes its first token).
+// contributes its first token). Value-taking flags (-argcount N,
+// -returntype T) consume their value; boolean flags (-deterministic,
+// -directonly, -innocuous) do not — `-deterministic myfunc` previously
+// swallowed the proc name and the registration degraded to a nil stub
+// (check-7.x).
 func procNameFromRest(rest []tcl.RawWord) string {
 	skipNext := false
 	for _, a := range rest[1:] {
@@ -895,9 +899,16 @@ func procNameFromRest(rest []tcl.RawWord) string {
 			continue
 		}
 		if strings.HasPrefix(arg, "-") {
-			// Flags taking a separate value (-argcount 2) consume it.
-			if !strings.Contains(arg, "=") {
-				skipNext = true
+			flag := strings.ToLower(strings.TrimPrefix(arg, "-"))
+			switch flag {
+			case "deterministic", "directonly", "innocuous":
+				// Boolean flags: no value consumed.
+			default:
+				// Flags taking a separate value (-argcount 2, -returntype T)
+				// consume it; -flag=value forms carry it inline.
+				if !strings.Contains(arg, "=") {
+					skipNext = true
+				}
 			}
 			continue
 		}

@@ -718,6 +718,13 @@ func (e *Engine) SchemaFunctionSafe(name string) bool {
 	return e.funcs.SchemaSafe(name, e.settings.trustedSchema)
 }
 
+// FunctionExists reports whether a scalar/aggregate function of any arity is
+// registered (built-ins plus connection-defined functions).
+func (e *Engine) FunctionExists(name string) bool {
+	_, found := e.funcs.Find(name)
+	return found
+}
+
 // RegisterCollation registers a custom collation sequence for this engine
 // (sqlite3_create_collation). The function compares two strings and returns
 // -1/0/1. Collation names are case-insensitive; registering a name that is a

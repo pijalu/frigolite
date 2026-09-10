@@ -54,6 +54,7 @@ type DDLContext interface {
 	LengthLimit() int
 	TrustedSchema() bool
 	SchemaFunctionSafe(name string) bool
+	FunctionExists(name string) bool
 
 	// Secure-delete settings (mirrors src/pragma.c PragTyp_SECURE_DELETE +
 	// src/attach.c sqlite3BtreeSecureDelete inheritance from main).

@@ -348,14 +348,20 @@ func Test_fts3comp1(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		db.RegisterFunction("comp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		db.RegisterFunctionFlags("comp", func(args []interface{}) (interface{}, error) {
+			if len(args) < 1 || args[0] == nil { return nil, nil }
+			return args[0], nil
+		}, 0, -1, false, true)
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
-		db.RegisterFunction("uncomp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		db.RegisterFunctionFlags("uncomp", func(args []interface{}) (interface{}, error) {
+			if len(args) < 1 || args[0] == nil { return nil, nil }
+			return args[0], nil
+		}, 0, -1, false, true)
 		{ // "4.3"
 			_res = db.Exec("\n  SELECT * FROM v1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {

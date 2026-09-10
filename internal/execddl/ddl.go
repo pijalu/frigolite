@@ -183,6 +183,7 @@ func (e *DDLExecutor) runCreateTableValidations(ctx *DatabaseContext, s *sql.Cre
 		func() *Result { return e.validateForeignKeys(s) },
 		func() *Result { return e.validateDDLQuote(s) },
 		func() *Result { return e.validateCheckSubqueries(s) },
+		func() *Result { return e.validateCheckFuncs(s) },
 		func() *Result { return e.validateCheckExprColumns(s) },
 		func() *Result { return e.validateSchemaFunctionSafety(s) },
 	}
@@ -667,6 +668,50 @@ func (e *DDLExecutor) validateDDLQuote(s *sql.CreateTableStmt) *Result {
 				return &Result{Error: err}
 			}
 		}
+	}
+	return nil
+}
+
+// validateCheckFuncs rejects CHECK constraints that reference functions
+// unknown to the current connection (SQLite resolve.c lookupFunc at CREATE
+// time: check-7.6 `CREATE TABLE t7(a CHECK (myfunc(a)))` on a connection
+// without myfunc → "no such function: myfunc"). Column-level and
+// table-level CHECK alike.
+func (e *DDLExecutor) validateCheckFuncs(s *sql.CreateTableStmt) *Result {
+	missing := ""
+	checkExpr := func(expr sql.Expr) {
+		if missing != "" || expr == nil {
+			return
+		}
+		execquery.WalkExprFull(expr, func(n sql.Expr) {
+			if missing != "" {
+				return
+			}
+			if fc, ok := n.(*sql.FuncCall); ok {
+				if !e.ctx.FunctionExists(fc.Name) {
+					missing = fc.Name
+				}
+			}
+		})
+	}
+	for _, col := range s.Columns {
+		checkExpr(col.Check)
+		if missing != "" {
+			break
+		}
+	}
+	if missing == "" {
+		for _, tc := range s.Constraints {
+			if tc.Type == sql.ConstraintCheck && tc.Expr != nil {
+				checkExpr(tc.Expr)
+			}
+			if missing != "" {
+				break
+			}
+		}
+	}
+	if missing != "" {
+		return &Result{Error: fmt.Errorf("no such function: %s", missing)}
 	}
 	return nil
 }

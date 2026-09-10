@@ -5,6 +5,7 @@
 package analyzeF
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -155,7 +156,9 @@ func Test_analyzeF(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 			}
 			// proc definition (not transpiled)
-			db.RegisterFunction("error", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+			db.RegisterFunction("error", func(args []interface{}) (interface{}, error) {
+				return nil, fmt.Errorf("$err")
+			}, 0, -1)
 			{ // "4.1"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = error('error one') AND y = 4;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error one") {
