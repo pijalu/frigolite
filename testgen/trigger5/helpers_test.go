@@ -5684,3 +5684,18 @@ func tclRecoverCompareDBs(t interface {
 		tclRecoverCompareResult(t, db1, db2, "SELECT * FROM "+name)
 	}
 }
+
+// tclFileControlTempFileName mirrors TCL file_control_tempfilename (test1.c:
+// SQLITE_FCNTL_TEMPFILENAME): the unix VFS returns a unique, unused temp
+// filename — SQLite's configured temp directory plus "etilqs_" and 16 random
+// lowercase alphanumerics (os_unix.c unixTempFileNameExclusive).
+func tclFileControlTempFileName(db *frigolite.DB) string {
+	_ = db
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	for i := range b {
+		b[i] = chars[int(b[i])%len(chars)]
+	}
+	return filepath.Join(os.TempDir(), "etilqs_"+string(b))
+}

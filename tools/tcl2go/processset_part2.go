@@ -167,6 +167,14 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 		tp.recordPreparedStatement(goName, "["+cmdText+"]")
 		return true
 	}
+	// set VAR [file_control_tempfilename DB] — test1.c file_control_tempfilename:
+	// SQLITE_FCNTL_TEMPFILENAME returns a VFS temp filename (unix:
+	// <tempdir>/etilqs_<16 random alphanumerics>, os_unix.c
+	// unixTempFileNameExclusive; filectrl-1.6 asserts the etilqs_ prefix).
+	if cmdParts[0] == "file_control_tempfilename" {
+		tp.assignSetValue(goName, fmt.Sprintf("tclFileControlTempFileName(%s)", tp.dbVar))
+		return true
+	}
 	// set VAR [sqlite3_quota_* ARGS] — quota commands are value-producing
 	// (fopen handles, fread content, ftell positions, dump lists): run the
 	// same statement handler (which leaves its result in _r) and assign it.

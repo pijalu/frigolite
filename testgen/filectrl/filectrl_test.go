@@ -98,7 +98,7 @@ func Test_filectrl(t *testing.T) {
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()
-		fn = "file_control_tempfilename db"
+		fn = tclFileControlTempFileName(db)
 		_ = fn // suppress unused warning
 		got := tclListFlatten(fn)
 		wantPattern := "etilqs_"

@@ -1,4 +1,4 @@
-Frigolite testgen status  (generated 2026-09-10T17:57:03Z)
+Frigolite testgen status  (generated 2026-09-10T18:11:56Z)
 
 FAMILY              TOTAL   PASS   FAIL   SKIP     PCT
 ----------------------------------------------------------
@@ -13,7 +13,7 @@ FUNCTIONS              25     18      7      0   72.0%
 JOIN                   37     24      6      7   64.9%
 JSON                   12     10      1      1   83.3%
 ORDER                  26     20      5      1   76.9%
-OTHER                 507    315     79    113   62.1%
+OTHER                 507    316     78    113   62.3%
 PLANNER                38     18      3     17   47.4%
 RTREE                  27     13     14      0   48.1%
 SCHEMA                121     79     37      5   65.3%
@@ -21,7 +21,7 @@ SESSION                 2      2      0      0  100.0%
 VTAB                   49     36      6      7   73.5%
 WAL                    49      9      7     33   18.4%
 ----------------------------------------------------------
-TOTAL                1219    753    223    243   61.8%
+TOTAL                1219    754    222    243   61.9%
 
 PACKAGES
 PKG                FAMILY         STATE     DETAIL
@@ -30,7 +30,7 @@ aggerror           AGG            pass      1 files
 aggfault           AGG            pass      1 files
 aggnested          AGG            fail      1 files, 4 tests skipped — --- FAIL: Test_aggnested (0.02s)
     aggnested_test.go:74...
-aggorderby         AGG            fail      1 files, 6 tests skipped — --- FAIL: Test_aggorderby (1.90s)
+aggorderby         AGG            fail      1 files, 6 tests skipped — --- FAIL: Test_aggorderby (1.93s)
     aggorderby_test.go:...
 count              AGG            pass      1 files
 countofview        AGG            pass      1 files
@@ -93,7 +93,7 @@ lock               CONCURRENCY    fail      1 files — lock_test.go:460: result
 lock2              CONCURRENCY    pass      1 files
 lock3              CONCURRENCY    pass      1 files
 lock4              CONCURRENCY    skipped   1 files, 1 whole-file skip (two-process fixture emulation (test2-script.tcl subproces...)
-lock5              CONCURRENCY    fail      1 files — --- FAIL: Test_lock5 (0.25s)
+lock5              CONCURRENCY    fail      1 files — --- FAIL: Test_lock5 (0.26s)
     lock5_test.go:378: query...
 lock6              CONCURRENCY    pass      1 files
 lock7              CONCURRENCY    pass      1 files
@@ -129,7 +129,7 @@ unixexcl           CONCURRENCY    pass      1 files
 alias              CRUD           pass      1 files
 all                CRUD           pass      1 files
 default_pkg        CRUD           pass      1 files
-delete2            CRUD           fail      1 files — --- FAIL: Test_delete2 (0.01s)
+delete2            CRUD           fail      1 files — --- FAIL: Test_delete2 (0.00s)
     delete2_test.go:168: r...
 delete3            CRUD           pass      1 files
 delete4            CRUD           fail      1 files — 4;
@@ -151,7 +151,7 @@ intpkey            CRUD           pass      1 files, 2 tests skipped
 queryonly          CRUD           pass      1 files
 returning1         CRUD           pass      1 files
 returningfault     CRUD           pass      1 files
-rowid              CRUD           fail      1 files, 6 tests skipped — --- FAIL: Test_rowid (0.17s)
+rowid              CRUD           fail      1 files, 6 tests skipped — --- FAIL: Test_rowid (0.16s)
     rowid_test.go:211: resul...
 select1            CRUD           fail      1 files — test.go:2101: result mismatch
           got:  [{}]
@@ -159,7 +159,7 @@ select1            CRUD           fail      1 files — test.go:2101: result mis
 select2            CRUD           fail      1 files — 8: 6 7 8]
           body: do_test select2-1.1
     select2...
-select3            CRUD           fail      1 files — --- FAIL: Test_select3 (0.04s)
+select3            CRUD           fail      1 files — --- FAIL: Test_select3 (0.09s)
     select3_test.go:192: e...
 select4            CRUD           pass      1 files, 2 tests skipped
 select5            CRUD           fail      1 files — --- FAIL: Test_select5 (0.01s)
@@ -210,7 +210,7 @@ view               CRUD           fail      1 files, 2 tests skipped — --- FAI
     view_test.go:358: expecte...
 view2              CRUD           pass      1 files
 view3              CRUD           fail      1 files — VIEW v1024 AS SELECT * FROM v512 UNION SELECT * FROM v512...
-filter1            CTE-WINDOW     fail      1 files — --- FAIL: Test_filter1 (0.01s)
+filter1            CTE-WINDOW     fail      1 files — --- FAIL: Test_filter1 (0.03s)
     filter1_test.go:391: r...
 filter2            CTE-WINDOW     pass      1 files
 filterfault        CTE-WINDOW     pass      1 files
@@ -226,7 +226,7 @@ window9            CTE-WINDOW     pass      1 files
 windowA            CTE-WINDOW     pass      1 files
 windowB            CTE-WINDOW     fail      1 files — --- FAIL: Test_windowB (0.01s)
     windowB_test.go:170: e...
-windowC            CTE-WINDOW     fail      1 files — --- FAIL: Test_windowC (0.02s)
+windowC            CTE-WINDOW     fail      1 files — --- FAIL: Test_windowC (0.01s)
     windowC_test.go:151: r...
 windowD            CTE-WINDOW     pass      1 files
 windowE            CTE-WINDOW     fail      1 files — 4 0.0 487 0.0 488 0.0 489 0.0 490 0.0 491 0.0 494 0.0 495...
@@ -234,7 +234,7 @@ windowerr          CTE-WINDOW     pass      1 files
 windowfault        CTE-WINDOW     fail      1 files — --- FAIL: Test_windowfault (0.06s)
     windowfault_test.g...
 windowpushd        CTE-WINDOW     pass      1 files
-with1              CTE-WINDOW     fail      1 files, 9 tests skipped — --- FAIL: Test_with1 (3.65s)
+with1              CTE-WINDOW     fail      1 files, 9 tests skipped — --- FAIL: Test_with1 (3.63s)
     with1_test.go:395: expec...
 with2              CTE-WINDOW     fail      1 files, 6 tests skipped — ny) * rsy / (maxy-miny)
                 WHEN 0 >= maxy TH...
@@ -277,7 +277,7 @@ where6             EXPR           pass      1 files
 where7             EXPR           pass      1 files
 where8             EXPR           skipped   1 files, 1 whole-file skip (hash/btree DISTINCT ordering fuzz N-A (where8-4.x SELECT ...)
 where9             EXPR           skipped   1 files, 1 whole-file skip (deep-engine applicable gap DEFERRED (tracked for later ph...)
-whereA             EXPR           fail      1 files, 2 tests skipped — --- FAIL: Test_whereA (0.02s)
+whereA             EXPR           fail      1 files, 2 tests skipped — --- FAIL: Test_whereA (0.01s)
     whereA_test.go:204: res...
 whereB             EXPR           pass      1 files
 whereC             EXPR           pass      1 files
@@ -342,8 +342,8 @@ fts3corrupt6       FTS            fail      1 files, 1 tests skipped — nil>
 fts3corrupt7       FTS            pass      1 files
 fts3cov            FTS            pass      1 files
 fts3d              FTS            pass      1 files
-fts3defer          FTS            fail      1 files — e.go:750 +0x390
-github.com/pijalu/frigolite.(*DB).Query(0...
+fts3defer          FTS            fail      1 files — o:750 +0x390
+github.com/pijalu/frigolite.(*DB).Query(0x3b...
 fts3defer2         FTS            pass      1 files, 13 tests skipped
 fts3defer3         FTS            pass      1 files, 1 tests skipped
 fts3drop           FTS            pass      1 files
@@ -359,7 +359,7 @@ fts3fault          FTS            pass      1 files
 fts3fault2         FTS            skipped   1 files, 1 whole-file skip (VFS/fault-injection harness N-A)
 fts3fault3         FTS            skipped   1 files, 1 whole-file skip (VFS/fault-injection harness N-A)
 fts3first          FTS            pass      1 files
-fts3fuzz001        FTS            fail      1 files — IL: Test_fts3fuzz001 (0.02s)
+fts3fuzz001        FTS            fail      1 files — IL: Test_fts3fuzz001 (0.01s)
     fts3fuzz001_test.go:1315...
 fts3integrity      FTS            pass      1 files
 fts3join           FTS            fail      1 files — --- FAIL: Test_fts3join (0.01s)
@@ -383,7 +383,7 @@ fts3tok1           FTS            pass      1 files
 fts3tok_err        FTS            pass      1 files
 fts3varint         FTS            pass      1 files
 fts4aa             FTS            pass      1 files
-fts4check          FTS            fail      1 files — , 0x5b14d9270360, {0x104703420?, 0x4?}, {0x1047065ac?, 0x...
+fts4check          FTS            fail      1 files — , 0x592fab1ee360, {0x104633420?, 0x4?}, {0x1046365ac?, 0x...
 fts4content        FTS            fail      1 files, 7 tests skipped — ning "SQL logic error", got: 't1' is not a function
      ...
 fts4docid          FTS            pass      1 files
@@ -400,7 +400,7 @@ fts4merge          FTS            fail      1 files — esult mismatch
 fts4merge2         FTS            pass      1 files
 fts4merge3         FTS            pass      1 files
 fts4merge4         FTS            fail      1 files — x390
-github.com/pijalu/frigolite.(*DB).Exec(0x29b763f72b4...
+github.com/pijalu/frigolite.(*DB).Exec(0x734a72f9aae...
 fts4merge5         FTS            pass      1 files
 fts4min            FTS            pass      1 files
 fts4noti           FTS            pass      1 files
@@ -469,7 +469,7 @@ joinE              JOIN           pass      1 files
 joinF              JOIN           skipped   1 files, 1 whole-file skip (deep-engine applicable gap DEFERRED (tracked for later ph...)
 joinH              JOIN           skipped   1 files, 1 whole-file skip (deep-engine applicable gap DEFERRED (tracked for later ph...)
 joinI              JOIN           skipped   1 files, 1 whole-file skip (deep-engine applicable gap DEFERRED (tracked for later ph...)
-rowvalue           JOIN           fail      1 files — --- FAIL: Test_rowvalue (0.05s)
+rowvalue           JOIN           fail      1 files — --- FAIL: Test_rowvalue (0.04s)
     rowvalue_test.go:875:...
 rowvalue2          JOIN           pass      1 files
 rowvalue3          JOIN           fail      1 files — --- FAIL: Test_rowvalue3 (0.02s)
@@ -508,7 +508,7 @@ limit              ORDER          fail      1 files — ce(1)
     limit_test.go:545: expected error co...
 minmax             ORDER          fail      1 files — --- FAIL: Test_minmax (0.04s)
     minmax_test.go:101: res...
-orderby1           ORDER          fail      1 files, 21 tests skipped — --- FAIL: Test_orderby1 (0.44s)
+orderby1           ORDER          fail      1 files, 21 tests skipped — --- FAIL: Test_orderby1 (0.48s)
     orderby1_test.go:606:...
 orderby2           ORDER          pass      1 files, 3 tests skipped
 orderby3           ORDER          pass      1 files
@@ -581,7 +581,7 @@ chunksize          OTHER          fail      1 files — --- FAIL: Test_chunksize
     chunksize_test.go:11...
 cksumvfs           OTHER          pass      2 files
 close_pkg          OTHER          pass      1 files
-closure01          OTHER          fail      1 files, 3 tests skipped — --- FAIL: Test_closure01 (10.07s)
+closure01          OTHER          fail      1 files, 3 tests skipped — --- FAIL: Test_closure01 (10.02s)
     closure01_test.go:9...
 colname            OTHER          fail      1 files — --- FAIL: Test_colname (0.01s)
     colname_test.go:489: e...
@@ -608,7 +608,7 @@ corruptC           OTHER          fail      1 files — ib/dev/frigolite/interna
 github.com/p...
 corruptD           OTHER          pass      1 files
 corruptE           OTHER          pass      1 files
-corruptF           OTHER          fail      1 files — --- FAIL: Test_corruptF (0.37s)
+corruptF           OTHER          fail      1 files — --- FAIL: Test_corruptF (0.38s)
     corruptF_test.go:95: ...
 corruptG           OTHER          pass      1 files
 corruptH           OTHER          pass      1 files
@@ -691,8 +691,7 @@ extension01        OTHER          pass      1 files
 external_reader    OTHER          pass      1 files
 extraquick         OTHER          pass      1 files
 fallocate          OTHER          skipped   1 files, 1 whole-file skip (VFS/fault-injection harness N-A)
-filectrl           OTHER          fail      1 files — --- FAIL: Test_filectrl (0.00s)
-    filectrl_test.go:106:...
+filectrl           OTHER          pass      1 files
 filefmt            OTHER          pass      1 files
 fordelete          OTHER          pass      1 files
 format4            OTHER          skipped   1 files, 1 whole-file skip (legacy_file_format file-size harness N-A)
@@ -782,7 +781,7 @@ misc2              OTHER          pass      1 files
 misc3              OTHER          fail      1 files — --- FAIL: Test_misc3 (0.05s)
     misc3_test.go:321: resul...
 misc4              OTHER          fail      1 files, 8 tests skipped — regate functions are not allowed in the GROUP BY clause",...
-misc5              OTHER          fail      1 files — --- FAIL: Test_misc5 (0.16s)
+misc5              OTHER          fail      1 files — --- FAIL: Test_misc5 (0.13s)
     misc5_test.go:200: expec...
 misc6              OTHER          pass      1 files
 misc7              OTHER          fail      1 files, 19 tests skipped — s)
@@ -809,7 +808,7 @@ offset1            OTHER          skipped   1 files, 1 whole-file skip (deep-eng
 openv2             OTHER          pass      1 files
 oserror            OTHER          skipped   1 files, 1 whole-file skip (N/A: C VFS syscall injection via test_syscall + sqlite3_l...)
 ovfl               OTHER          pass      1 files
-p_8_3_names        OTHER          fail      1 files — --- FAIL: Test_t_8_3_names (0.73s)
+p_8_3_names        OTHER          fail      1 files — --- FAIL: Test_t_8_3_names (0.71s)
     8_3_names_test.go:...
 pager1             OTHER          pass      1 files
 pager2             OTHER          pass      1 files
@@ -827,7 +826,7 @@ pcache2            OTHER          fail      1 files — --- FAIL: Test_pcache2 (
     pcache2_test.go:80: re...
 permutations       OTHER          fail      1 files — # github.com/pijalu/frigolite/testgen/permutations [githu...
 pragma             OTHER          pass      1 files, 13 tests skipped
-pragma2            OTHER          fail      1 files — --- FAIL: Test_pragma2 (0.14s)
+pragma2            OTHER          fail      1 files — --- FAIL: Test_pragma2 (0.16s)
     pragma2_test.go:277: q...
 pragma3            OTHER          pass      1 files, 12 tests skipped
 pragma4            OTHER          pass      1 files, 1 tests skipped
@@ -1073,7 +1072,7 @@ tkt_bdc6bbbb38     OTHER          skipped   1 files, 1 whole-file skip (FTS4 vir
 tkt_c48d99d690     OTHER          pass      1 files
 tkt_c694113d5      OTHER          pass      1 files
 tkt_cbd054fa6b     OTHER          pass      1 files
-tkt_d11f09d36e     OTHER          fail      1 files — m/pijalu/frigolite.(*DB).Exec(0x21631d206300, {0x10109ab2...
+tkt_d11f09d36e     OTHER          fail      1 files — m/pijalu/frigolite.(*DB).Exec(0x43b75f196360, {0x100c8ab2...
 tkt_d635236375     OTHER          pass      1 files
 tkt_d82e3f3721     OTHER          pass      1 files, 3 tests skipped
 tkt_f3e5abed55     OTHER          skipped   1 files, 1 whole-file skip (testvfs custom VFS + multi-connection ATTACH N-A/DEFERRED)
@@ -1159,8 +1158,8 @@ rtree1             RTREE          fail      1 files — --- FAIL: Test_rtree1 (0
 rtree2             RTREE          fail      1 files — c/engine_core.go:750 +0x390
 github.com/pijalu/frigolite.(...
 rtree3             RTREE          pass      1 files
-rtree4             RTREE          fail      1 files — /exec/engine_core.go:750 +0x390
-github.com/pijalu/frigoli...
+rtree4             RTREE          fail      1 files — c/engine_core.go:750 +0x390
+github.com/pijalu/frigolite.(...
 rtree5             RTREE          pass      1 files
 rtree6             RTREE          pass      1 files
 rtree7             RTREE          fail      1 files — --- FAIL: Test_rtree7 (0.04s)
@@ -1192,8 +1191,8 @@ rtreedoc           RTREE          fail      1 files — NULL, minX+0.2, maxX+0.2
    ...
 rtreedoc2          RTREE          fail      1 files — --- FAIL: Test_rtreedoc2 (0.00s)
     rtreedoc2_test.go:13...
-rtreedoc3          RTREE          fail      1 files — core.go:750 +0x390
-github.com/pijalu/frigolite.(*DB).Exec...
+rtreedoc3          RTREE          fail      1 files — e.go:750 +0x390
+github.com/pijalu/frigolite.(*DB).Exec(0x...
 rtreefuzz001       RTREE          fail      1 files — 06: expected error containing "database disk image is mal...
 alter              SCHEMA         fail      1 files, 9 tests skipped — column: id
           sql: 
@@ -1208,7 +1207,7 @@ alterauth          SCHEMA         fail      1 files — .go:123: result mismatch
 alterauth2         SCHEMA         pass      1 files
 altercol           SCHEMA         fail      1 files, 2 tests skipped — --- FAIL: Test_altercol (0.04s)
     altercol_test.go:1116...
-altercons          SCHEMA         fail      1 files, 13 tests skipped — --- FAIL: Test_altercons (0.03s)
+altercons          SCHEMA         fail      1 files, 13 tests skipped — --- FAIL: Test_altercons (0.04s)
     altercons_test.go:19...
 altercons2         SCHEMA         pass      1 files, 12 tests skipped
 altercons3         SCHEMA         pass      1 files, 1 tests skipped
@@ -1226,7 +1225,7 @@ alterqf            SCHEMA         fail      1 files, 1 tests skipped — FROM t1
 altertab           SCHEMA         pass      1 files, 53 tests skipped
 altertab2          SCHEMA         fail      1 files, 3 tests skipped — ELECT col1 FROM "newname")
                 SELECT x FROM ...
-altertab3          SCHEMA         fail      1 files, 14 tests skipped — --- FAIL: Test_altertab3 (1.48s)
+altertab3          SCHEMA         fail      1 files, 14 tests skipped — --- FAIL: Test_altertab3 (1.47s)
     altertab3_test.go:77...
 altertrig          SCHEMA         pass      1 files
 attach             SCHEMA         fail      1 files — error: file is not a database
@@ -1273,7 +1272,7 @@ fkey2              SCHEMA         fail      1 files — short VALUES(1, 3, 2)
 fkey3              SCHEMA         pass      1 files
 fkey4              SCHEMA         pass      1 files
 fkey5              SCHEMA         pass      1 files, 13 tests skipped
-fkey6              SCHEMA         fail      1 files — --- FAIL: Test_fkey6 (0.01s)
+fkey6              SCHEMA         fail      1 files — --- FAIL: Test_fkey6 (0.02s)
     fkey6_test.go:370: query...
 fkey7              SCHEMA         pass      1 files
 fkey8              SCHEMA         pass      1 files
@@ -1291,7 +1290,7 @@ index7             SCHEMA         pass      1 files, 4 tests skipped
 index8             SCHEMA         pass      1 files, 1 tests skipped
 index9             SCHEMA         pass      1 files
 indexA             SCHEMA         pass      1 files, 4 tests skipped
-indexedby          SCHEMA         fail      1 files, 2 tests skipped — --- FAIL: Test_indexedby (0.01s)
+indexedby          SCHEMA         fail      1 files, 2 tests skipped — --- FAIL: Test_indexedby (0.02s)
     indexedby_test.go:14...
 indexexpr1         SCHEMA         fail      1 files, 40 tests skipped — --- FAIL: Test_indexexpr1 (0.05s)
     indexexpr1_test.go:...
@@ -1320,7 +1319,7 @@ schema5            SCHEMA         pass      1 files
 schema6            SCHEMA         pass      1 files
 schemafault        SCHEMA         pass      1 files
 temptrigger        SCHEMA         pass      1 files
-trans              SCHEMA         fail      1 files — --- FAIL: Test_trans (5.57s)
+trans              SCHEMA         fail      1 files — --- FAIL: Test_trans (5.40s)
     trans_test.go:520: expec...
 trans2             SCHEMA         fail      1 files — # github.com/pijalu/frigolite/testgen/trans2 [github.com/...
 trans3             SCHEMA         pass      1 files
@@ -1410,7 +1409,7 @@ vtab_shared        VTAB           fail      1 files, 26 tests skipped — b_shar
 vtabdistinct       VTAB           skipped   1 files, 1 whole-file skip (superseded by native Go port (frigolite_vtabdistinct_test...)
 vtabdrop           VTAB           pass      1 files, 6 tests skipped
 vtabrhs1           VTAB           skipped   1 files, 1 whole-file skip (superseded by native Go port (frigolite_vtabrhs1_test.go))
-zipfile            VTAB           fail      1 files — --- FAIL: Test_zipfile (0.07s)
+zipfile            VTAB           fail      1 files — --- FAIL: Test_zipfile (0.05s)
     zipfile_test.go:925: r...
 zipfile2           VTAB           pass      1 files
 zipfilefault       VTAB           pass      1 files
@@ -1420,7 +1419,7 @@ nockpt             WAL            pass      1 files
 rollback           WAL            pass      1 files
 rollback2          WAL            pass      1 files
 rollbackfault      WAL            skipped   1 files, 1 whole-file skip (VFS/fault-injection harness N-A)
-subjournal         WAL            fail      1 files — --- FAIL: Test_subjournal (0.05s)
+subjournal         WAL            fail      1 files — --- FAIL: Test_subjournal (0.02s)
     subjournal_test.go:...
 wal                WAL            skipped   1 files, 1 whole-file skip (N-A G7 (evidence internal/pager/walview_test.go + portpla...)
 wal2               WAL            skipped   1 files, 1 whole-file skip (N-A G7 (evidence internal/pager/walview_test.go + portpla...)
@@ -1447,7 +1446,7 @@ walfault2          WAL            skipped   1 files, 1 whole-file skip (WAL/jour
 walhook            WAL            skipped   1 files, 1 whole-file skip (WAL/journal mode not implemented N-A)
 walmode            WAL            skipped   1 files, 1 whole-file skip (WAL/journal mode not implemented N-A)
 walnoshm           WAL            skipped   1 files, 1 whole-file skip (WAL/journal mode not implemented N-A)
-waloverwrite       WAL            fail      1 files — --- FAIL: Test_waloverwrite (0.04s)
+waloverwrite       WAL            fail      1 files — --- FAIL: Test_waloverwrite (0.05s)
     waloverwrite_test...
 walpersist         WAL            fail      1 files — pplied
           sql:  INSERT INTO t1 VALUES(randomblob(5...

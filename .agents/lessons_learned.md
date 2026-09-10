@@ -5444,3 +5444,13 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
      Adding InList{Operand, List...} to both walkers lets
      whereSubqueryOuterAggRef see it; subqueryOuterAggRef's qualified-column
      check (t8.b vs inner tables {t7, ra0}) then raises the misuse error.
+- **filectrl-1.6 tempfilename (2026-09-10)**: the harness proc
+  file_control_tempfilename (test1.c: SQLITE_FCNTL_TEMPFILENAME) was emitted
+  as its own command TEXT (unknown set-bracket command → goStringLiteral
+  fallback). Fixed: processSetBracketValue routes it to a new
+  tclFileControlTempFileName helper (temp dir + "etilqs_" + 16 random
+  lowercase alnum — os_unix.c unixTempFileNameExclusive parity). GOTCHAS in
+  the tcl2go helpers template: (a) the template text lives in BACKTICK
+  string constants (helpers_template_part2.go + _tail.go) — append INSIDE
+  the final backtick, never after it; (b) the template goes through
+  fmt.Sprintf(helpersTemplate, pkg) — every literal % must be escaped %%.
