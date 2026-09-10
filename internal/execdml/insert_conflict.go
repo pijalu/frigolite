@@ -9,6 +9,8 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"os"
+	"runtime/debug"
 	"strings"
 )
 
@@ -231,6 +233,10 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 		if found && (!haveExclude || rowID != excludeRowID) {
 			if conflictIdx >= 0 && conflictIdx < len(colDefs) {
 				return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[conflictIdx].Name)
+			}
+			if os.Getenv("FRIGOLITE_C9_DEBUG") != "" {
+				fmt.Fprintf(os.Stderr, "DBG C9E bare raise at %s:234\n", tableEntry.Name)
+				debug.PrintStack()
 			}
 			return fmt.Errorf("UNIQUE constraint failed: %s", tableEntry.Name)
 		}
@@ -550,7 +556,10 @@ func (e *DMLExecutor) isIgnoreableConflict(err error, tableEntry *schema.Entry, 
 		return false
 	}
 	for _, cd := range colDefs {
-		if cd.OnConflict == "IGNORE" {
+		// The violated column's OWN clause applies (the error names the
+		// violated column as the last dotted token — conflict-9.5: a-IGNORE
+		// must not absorb a b-FAIL violation).
+		if cd.OnConflict == "IGNORE" && strings.HasSuffix(errStr, "."+cd.Name) {
 			return true
 		}
 	}

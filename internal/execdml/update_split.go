@@ -321,6 +321,13 @@ func (e *DMLExecutor) runPlainUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry
 	if strings.EqualFold(s.OnConflict, "FAIL") {
 		return e.runUpdateFail(s.Table, tableEntry, colDefs, changes)
 	}
+	// A table whose columns (or table-level constraints) carry their own ON
+	// CONFLICT clauses resolves each row's conflict under the VIOLATED
+	// constraint's clause — process row-by-row (conflict-9.3..9.25: a
+	// single UPDATE mixes IGNORE/FAIL/REPLACE/ABORT/ROLLBACK columns).
+	if hasColumnConflictClauses(colDefs, tableEntry, e) {
+		return e.runPlainUpdatePerRow(s, tableEntry, colDefs, changes)
+	}
 	// Plain UPDATE (default/ABORT/ROLLBACK): check UNIQUE/PK constraints on
 	// the new values (SQLite errors on conflicts; there is no REPLACE
 	// resolution). Nothing is written until every row passes, so a conflict

@@ -888,8 +888,11 @@ func isReplaceableConflict(err error, colDefs []sql.ColumnDef) bool {
 	if !strings.Contains(err.Error(), "UNIQUE constraint failed") {
 		return false
 	}
+	errStr := err.Error()
 	for _, cd := range colDefs {
-		if cd.OnConflict == "REPLACE" {
+		// The violated column's OWN clause applies (conflict-9.x: a-IGNORE
+		// must not absorb a c-REPLACE violation).
+		if cd.OnConflict == "REPLACE" && strings.HasSuffix(errStr, "."+cd.Name) {
 			return true
 		}
 	}

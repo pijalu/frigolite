@@ -5495,3 +5495,17 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   registration to a nil stub whose NULL result made every CHECK pass.
   Boolean flags (-deterministic/-directonly/-innocuous) take no value;
   only -argcount/-returntype do.
+- **conflict-9 partial fix (2026-09-10, 11→3 assertions)**: per-column
+  `UNIQUE ON CONFLICT` clauses are now honored in the UPDATE path — tables
+  with column-level clauses route through runPlainUpdatePerRow
+  (update_conflict_matrix.go): per-row conflict check → the VIOLATED
+  constraint's clause applies (IGNORE skips the row; REPLACE deletes
+  conflicting rows then applies; FAIL errors keeping prior rows;
+  ROLLBACK errors with SetRollbackTxOnError; ABORT restores the pager
+  snapshot = statement-atomic). Also the three "any-column" dispositions
+  (isIgnoreableConflict/isReplaceableConflict/uniqueReplaceableConflict)
+  now require the violated column to match the error's last dotted token.
+  Remaining 3: 12.3 (IPK-alias conflict message must be t5.a not t5 —
+  uniqueConflictError needs the rowid substitution for the stored-NULL
+  IPK value), 12.5 (UPDATE rowid=rowid+1 rowid-conflict detection),
+  15.20 (missing INSERT unique enforcement in that context).
