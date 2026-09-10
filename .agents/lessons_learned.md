@@ -5527,3 +5527,17 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   its segment-emptiness test (a comment-only segment IS empty). cacheflush
   and subjournal green; savepoint2's sweep failure was parallel-load
   timeout (33s solo).
+- **attach-5.x trigger cross-db refs FIXED (2026-09-10)**: three gaps in
+  the trigger-body schema validation — (1) checkTriggerSchemaRef exempted
+  TEMP references unconditionally; non-temp triggers must reject them
+  ("trigger r5 cannot reference objects in database temp"); (2)
+  validateTriggerInsertRef did not walk VALUES-tuple expressions for
+  subqueries; (3) validateTriggerDeleteRef did not walk the WHERE clause.
+  Added checkTriggerExprSchemaRefs (WalkExprFull → Subquery →
+  checkTriggerSelectSchemaRefs) for both.
+- **attach-9.2/10.x remaining (parked)**: (a) same FILE attached under two
+  schema names + writes to both in one txn must raise "database is
+  locked" — needs per-attached-file write tracking in the txn state;
+  (b) ATTACH of a file just created by another schema in the same batch
+  fails "file is not a database" (header validation on a lazily-created
+  file).

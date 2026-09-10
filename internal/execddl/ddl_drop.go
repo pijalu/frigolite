@@ -199,8 +199,16 @@ func (e *DDLExecutor) checkTriggerSchemaRef(trigName, table string, trigCtx *Dat
 		return nil
 	}
 	upper := strings.ToUpper(schemaName)
-	if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+	if upper == "MAIN" {
 		return nil
+	}
+	// TEMP/TEMPORARY references are rejected for non-temp triggers too
+	// (this validator only runs for them — the caller guards on
+	// !isTempTrigger): SQLite resolve.c rejects a main-database trigger
+	// referencing temp objects with "trigger %s cannot reference objects
+	// in database %s" (attach-5.4..5.9).
+	if upper == "TEMP" || upper == "TEMPORARY" {
+		return fmt.Errorf("trigger %s cannot reference objects in database temp", trigName)
 	}
 	if e.ctx.GetDB(schemaName) != nil {
 		return fmt.Errorf("trigger %s cannot reference objects in database %s", trigName, schemaName)

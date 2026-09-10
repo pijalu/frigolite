@@ -587,6 +587,15 @@ func (e *DDLExecutor) validateTriggerInsertRef(trigName string, s *sql.InsertStm
 	if s.Select != nil {
 		return e.checkTriggerSelectSchemaRefs(trigName, s.Select, trigCtx)
 	}
+	// VALUES tuples may contain subqueries referencing other databases
+	// (attach-5.8: INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5)).
+	for _, tuple := range s.Values {
+		for _, expr := range tuple {
+			if err := e.checkTriggerExprSchemaRefs(trigName, expr, trigCtx); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -615,7 +624,12 @@ func (e *DDLExecutor) validateTriggerDeleteRef(trigName string, s *sql.DeleteStm
 	if s.IndexedBy != "" {
 		return e.indexedByTriggerError(s.IndexedBy)
 	}
-	return e.checkTriggerSchemaRef(trigName, s.Table, trigCtx)
+	if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
+		return err
+	}
+	// The WHERE clause may hide subqueries referencing other databases
+	// (attach-5.9: DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6)).
+	return e.checkTriggerExprSchemaRefs(trigName, s.Where, trigCtx)
 }
 
 // indexedByTriggerError formats the SQLite error for an INDEXED BY / NOT
@@ -936,3 +950,22 @@ func (e *DDLExecutor) registerFTSVTab(moduleName, tableName string, args []strin
 // virtual table (fts3.c fts3CreateTables). The content table carries the
 // docid plus one column per user column; segments/segdir are the segment
 // b-trees. FTS4 additionally creates docsize and stat tables.
+
+// checkTriggerExprSchemaRefs walks one expression for subqueries referencing
+// other databases (the VALUES-tuple / WHERE-clause counterparts of
+// checkTriggerExprSubqueries).
+func (e *DDLExecutor) checkTriggerExprSchemaRefs(trigName string, expr sql.Expr, trigCtx *DatabaseContext) error {
+	if expr == nil {
+		return nil
+	}
+	var subErr error
+	execquery.WalkExprFull(expr, func(n sql.Expr) {
+		if subErr != nil {
+			return
+		}
+		if sub, ok := n.(*sql.Subquery); ok {
+			subErr = e.checkTriggerSelectSchemaRefs(trigName, sub.Select, trigCtx)
+		}
+	})
+	return subErr
+}
