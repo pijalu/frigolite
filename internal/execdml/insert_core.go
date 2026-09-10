@@ -35,6 +35,9 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 	// triggers in the same context (main vs temp shadowing).
 	prevDMLCtx := e.currentDMLCtx
 	e.currentDMLCtx = dbCtx
+	if res := e.CheckSameFileWriteConflictRes(dbCtx); res != nil {
+		return res
+	}
 	defer func() { e.currentDMLCtx = prevDMLCtx }()
 
 	// Protect system and pragma virtual tables from modification.

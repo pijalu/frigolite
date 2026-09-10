@@ -66,6 +66,32 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 	}
 
 	path, isMemory := resolveAttachPath(e, s)
+
+	// Same FILE under a second schema name (attach-9.1: one file as aux1
+	// and aux2): share the existing schema's pager and schema manager so
+	// both names see the same data. Writes to both names in one
+	// transaction raise "database is locked" via the same-file write
+	// tracker (CheckSameFileWriteConflict); the shared pager is closed
+	// only by the connection's Close.
+	if !isMemory {
+		if mainPath := e.ctx.MainDB().FilePath; mainPath == path {
+			ctx := &DatabaseContext{Name: s.Schema, Pager: e.ctx.MainDB().Pager,
+				Schema: e.ctx.MainDB().Schema, FilePath: path, SharedPager: true}
+			e.ctx.Databases()[schemaUpper] = ctx
+			e.ctx.AppendDBList(ctx)
+			return &Result{}
+		}
+		for _, other := range e.ctx.Databases() {
+			if other != nil && other.FilePath == path {
+				ctx := &DatabaseContext{Name: s.Schema, Pager: other.Pager,
+					Schema: other.Schema, FilePath: path, SharedPager: true}
+				e.ctx.Databases()[schemaUpper] = ctx
+				e.ctx.AppendDBList(ctx)
+				return &Result{}
+			}
+		}
+	}
+
 	pg, res := openAttachPager(path, isMemory)
 	if res != nil {
 		return res
@@ -243,9 +269,13 @@ func (e *DDLExecutor) execDetach(s *sql.AttachStmt) *Result {
 		return &Result{Error: fmt.Errorf("database %s is locked", schemaName)}
 	}
 
-	// Close the pager and remove from map
-	if err := ctx.Pager.Close(); err != nil {
-		return &Result{Error: fmt.Errorf("error closing database %s: %w", s.Schema, err)}
+	// A same-file alias shares its pager: never close it here — the file
+	// stays open for the other alias (and possibly main) and is closed by
+	// the connection's Close (attach-9.x db11/db12).
+	if !ctx.SharedPager {
+		if err := ctx.Pager.Close(); err != nil {
+			return &Result{Error: fmt.Errorf("error closing database %s: %w", s.Schema, err)}
+		}
 	}
 
 	delete(e.ctx.Databases(), schemaUpper)

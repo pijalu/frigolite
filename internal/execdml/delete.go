@@ -49,6 +49,9 @@ func (e *DMLExecutor) execDelete(s *sql.DeleteStmt) *Result {
 		return res
 	}
 	e.currentDMLCtx = dbCtx
+	if res := e.CheckSameFileWriteConflictRes(dbCtx); res != nil {
+		return res
+	}
 	defer func() { e.currentDMLCtx = prevDMLCtx }()
 
 	// Direct modification of sqlite_sequence changes AUTOINCREMENT sequences;

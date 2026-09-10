@@ -8,6 +8,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execquery"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -39,12 +40,18 @@ func (e *DDLExecutor) DetachAll() {
 // sees the committed schema/data.
 func (e *DDLExecutor) Close() error {
 	var firstErr error
+	closed := make(map[*pager.Pager]bool)
 	for name, ctx := range e.ctx.Databases() {
 		upper := strings.ToUpper(name)
 		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
 			continue
 		}
 		if ctx.Pager != nil {
+			// Same-file aliases share one pager: close it exactly once.
+			if closed[ctx.Pager] {
+				continue
+			}
+			closed[ctx.Pager] = true
 			if err := ctx.Pager.Close(); err != nil && firstErr == nil {
 				firstErr = err
 			}

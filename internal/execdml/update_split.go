@@ -46,6 +46,9 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 	// Track the modified table's database context for trigger scoping.
 	prevDMLCtx := e.currentDMLCtx
 	e.currentDMLCtx = dbCtx
+	if res := e.CheckSameFileWriteConflictRes(dbCtx); res != nil {
+		return res
+	}
 	defer func() { e.currentDMLCtx = prevDMLCtx }()
 
 	// Protect system and pragma virtual tables from modification.

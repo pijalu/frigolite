@@ -2,6 +2,7 @@
 package execdml
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execexpr"
@@ -49,6 +50,13 @@ type DMLExecutor struct {
 	// any database; non-temp triggers resolve body references only in their
 	// owning schema.
 	currentTriggerCtx *DatabaseContext
+
+	// txnWrittenFiles tracks the database FILES written during the current
+	// transaction (resolved path → schema name). A write to a file already
+	// written through a DIFFERENT attached schema raises "database is
+	// locked" — SQLite cannot hold two write locks on one file
+	// (attach-9.2: one file ATTACHed as aux1 and aux2).
+	txnWrittenFiles map[string]string
 
 	// lastFTSDocRowID is the last DOCUMENT rowid inserted into an FTS table
 	// by the insert-select path, kept separate from ctx.LastRowID because
@@ -121,6 +129,38 @@ func (e *DMLExecutor) SetCurrentDMLCtx(ctx *DatabaseContext) {
 // executing (nil outside trigger bodies).
 func (e *DMLExecutor) SetCurrentTriggerCtx(ctx *DatabaseContext) {
 	e.currentTriggerCtx = ctx
+}
+
+// CheckSameFileWriteConflict raises "database is locked" when the target
+// schema's file was already written through a DIFFERENT attached schema in
+// the same transaction, and records the write otherwise (attach-9.2).
+func (e *DMLExecutor) CheckSameFileWriteConflict(ctx *DatabaseContext) error {
+	if ctx == nil || ctx.IsMemory || ctx.FilePath == "" {
+		return nil
+	}
+	if e.txnWrittenFiles == nil {
+		e.txnWrittenFiles = make(map[string]string)
+	}
+	if owner, ok := e.txnWrittenFiles[ctx.FilePath]; ok && owner != ctx.Name {
+		return fmt.Errorf("database is locked")
+	}
+	e.txnWrittenFiles[ctx.FilePath] = ctx.Name
+	return nil
+}
+
+// CheckSameFileWriteConflictRes is CheckSameFileWriteConflict returning a
+// *Result for the statement executors.
+func (e *DMLExecutor) CheckSameFileWriteConflictRes(ctx *DatabaseContext) *Result {
+	if err := e.CheckSameFileWriteConflict(ctx); err != nil {
+		return &Result{Error: err}
+	}
+	return nil
+}
+
+// ClearTxnWrittenFiles resets the same-file write tracker at transaction
+// boundaries (COMMIT/ROLLBACK) and after each autocommit statement.
+func (e *DMLExecutor) ClearTxnWrittenFiles() {
+	e.txnWrittenFiles = nil
 }
 
 // CurrentTriggerCtx returns the owning database of the trigger currently

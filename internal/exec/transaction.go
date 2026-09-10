@@ -42,9 +42,11 @@ func (e *Engine) execCommit() *Result {
 	e.tx.inTransaction = false
 	e.settings.deferForeignKeys = false
 	e.constraints.ResetFKDirty()
+	e.dml.ClearTxnWrittenFiles()
 	e.tx.ddlBuffer = nil
 	e.tx.txSnapshots = nil
 	e.tx.txFTSnapshots = nil
+	e.dml.ClearTxnWrittenFiles()
 	// Flush pending FTS3 segments (SQLite's FTS3 flushes the pending-terms
 	// hash at COMMIT, writing one segment per transaction). Mark the flush so
 	// its internal shadow-table writes (and the auto-incr-merge they trigger)

@@ -121,6 +121,11 @@ type DatabaseContext struct {
 	FilePath string          // path to .db file
 	IsMemory bool            // in-memory database
 	IsTemp   bool            // temp database
+	// SharedPager is true when this attached schema shares its Pager and
+	// Schema with another schema attached to the same FILE (attach-9.1:
+	// one file under two names). The pager is closed only by the
+	// connection's Close (never by an individual DETACH).
+	SharedPager bool
 	// PendingPageSize holds a PRAGMA page_size value that could not be
 	// applied immediately (tables already exist) and is applied by the next
 	// VACUUM (pragma.c pNextPagesize; 0 = none pending).
