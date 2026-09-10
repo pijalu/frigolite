@@ -430,13 +430,36 @@ func (e *DDLExecutor) readFTSBlock(tableName string, blockID int) ([]byte, *Resu
 	if err != nil || segEntry == nil {
 		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG11]")}
 	}
-	// Scan-based lookup: SeekToRowID's binary-search descent mis-routes on
-	// merge-built %_segment trees whose interior separators were laid out by
-	// the cascade's chomp/renumber sequence (the scan path walks every row
-	// and matches — the same traversal the SQL engine's range scan uses,
-	// which is why the SQL query finds the block while the seek misses).
+	// Fast path: rowid seek (the btree's binary-search descent). A seek MISS
+	// is not authoritative — the descent was observed mis-routing while the
+	// %_segments btree carried balance-corrupted interior pages — so a miss
+	// falls through to the full scan below, which walks every row and is the
+	// correctness oracle.
 	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
 	cursor, cerr := tree.OpenCursor()
+	if cerr != nil {
+		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG12]")}
+	}
+	if found, serr := cursor.SeekToRowID(int64(blockID)); serr == nil && found {
+		payload, rid, rerr := cursor.ReadCellData()
+		if rerr == nil && int(rid) == blockID {
+			rec, derr := storage.DecodeRecord(payload)
+			if derr != nil || rec == nil || len(rec.Values) < 2 {
+				return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG15]")}
+			}
+			switch bv := rec.Values[1].(type) {
+			case []byte:
+				return bv, nil
+			case string:
+				return []byte(bv), nil
+			}
+			return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG16]")}
+		}
+	}
+	// Scan fallback: walk every %_segments row (the same traversal the SQL
+	// engine's range scan uses). O(rows) per lookup — the fast path above
+	// keeps merge workloads off this loop in the common case.
+	cursor, cerr = tree.OpenCursor()
 	if cerr != nil {
 		return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG12]")}
 	}

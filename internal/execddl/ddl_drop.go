@@ -698,11 +698,20 @@ func (e *DDLExecutor) rebuildFTSFromContent(tableName string, ftsTable *fts.FTS3
 				vals = append(vals, v)
 			}
 		} else {
+			// %_content's docid column is the table's INTEGER PRIMARY KEY:
+			// the rowid IS the docid and the alias record slot decodes as
+			// NULL (SQLite's rowid-alias storage convention; real SQLite
+			// writes %_content rows the same way). Take the docid from the
+			// cell's rowid — decoding it from rec.Values[0] fails the int64
+			// assertion and indexes every rebuilt document under docid 0
+			// (fts3defer 6.3: MATCH '"common rare"' after reopen returned a
+			// phantom rowid 0 carrying every term of every document).
+			docID = cell.RowID
 			for i, v := range rec.Values {
 				if i == 0 {
-					if iv, ok := v.(int64); ok {
-						docID = iv
-					}
+					// Slot 0 is the docid column itself (a stored value in
+					// engine-written rows, the NULL alias in SQLite-written
+					// ones) — never a user column value.
 					continue
 				}
 				if _, ok := e.ctx.FTSTables()[tableName]; !ok {

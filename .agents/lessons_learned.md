@@ -5368,3 +5368,25 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   deltas at segment/leaf boundaries — decode deltas with per-term base
   but the writer/loader disagree on the base at continuation entries.
   Repro: /tmp/ftsreplay/defer (go run; ~10s).
+- **fts3defer 6.3 phantom docid 0: FIXED (2026-09-10)**. Root cause was NOT
+  the segment loader (LoadSegmentTermEntries probes showed both persisted
+  segments decode cleanly) — it was `rebuildFTSFromContent` reading the
+  docid from `rec.Values[0]`. %_content's docid column is the table's
+  INTEGER PRIMARY KEY, so the alias slot decodes as NULL for every row;
+  the int64 assertion failed and EVERY rebuilt document was indexed under
+  docid 0. After close/reopen, MATCH results carried a phantom rowid 0
+  holding the union of all documents' tokens. Fix: docID = cell.RowID
+  (the rowid IS the docid under the alias convention; engine-written
+  content rows that store the docid explicitly in slot 0 are equally
+  served — slot 0 is skipped as a value column either way). fts3defer,
+  fts3drop, fts4noti green.
+- **readFTSBlock seek fast path restored**: the scan-every-row lookup (a
+  workaround for the balance-corrupted trees) made each %_segments block
+  read O(table). SeekToRowID is again the primary path with the full scan
+  as fallback on a seek miss (a seek miss is not authoritative). fts4opt
+  28s→17s; fts4merge4 now COMPLETES (496s, was a 600s timeout).
+- **Ledger drift-triage protocol that worked**: after reseeding, re-run the
+  ≥55s FAIL/timeout-suspect packages SOLO (the parallel sweep times slow
+  packages out under load), then amend the ledger entries (state +
+  evidence "serial re-run pass") — tools/status/ledger.go flags exactly
+  these for operator review.
