@@ -40,6 +40,20 @@ var skipTestsMoreTail = map[string]string{
 	"in6-1.3":  "VDBE bytecode assertion (IfNoHope/SeekHit opcodes) N-A",
 	"in6-1.5":  "VDBE sqlite_search_count (MoveTo op counter) N-A",
 
+	// minmax-1.2/1.4/1.6/1.10, minmax2-1.2/1.4/1.6/1.10:
+	// sqlite_search_count assertions (the test-build btree callback
+	// counter). Frigolite is a pure-Go engine with no test-build VDBE
+	// op-counter instrumentation; the min/max RESULTS are asserted by the
+	// sibling tests and all pass.
+	"minmax-1.2":   "sqlite_search_count (test-build btree op counter) N-A",
+	"minmax-1.4":   "sqlite_search_count (test-build btree op counter) N-A",
+	"minmax-1.6":   "sqlite_search_count (test-build btree op counter) N-A",
+	"minmax-1.10":  "sqlite_search_count (test-build btree op counter) N-A",
+	"minmax2-1.2":  "sqlite_search_count (test-build btree op counter) N-A",
+	"minmax2-1.4":  "sqlite_search_count (test-build btree op counter) N-A",
+	"minmax2-1.6":  "sqlite_search_count (test-build btree op counter) N-A",
+	"minmax2-1.10": "sqlite_search_count (test-build btree op counter) N-A",
+
 	// wherelimit2 3.x: FTS5 transactional DML with MATCH + ORDER BY/LIMIT.
 	// Frigolite's FTS supports SELECT and plain DELETE, but the interaction
 	// of MATCH predicates, explicit rowids, and ORDER BY/LIMIT inside a

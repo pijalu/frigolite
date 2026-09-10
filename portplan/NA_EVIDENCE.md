@@ -1537,3 +1537,13 @@ class as SQLite's other mutex.tst-style instrumentation tests.
 | package | class | evidence |
 |---------|-------|----------|
 | vacuummem | C-allocator memory instrumentation | The file asserts `sqlite3_memory_used`/`sqlite3_memory_highwater` watermarks across VACUUM cycles (tester `memory_used` proc; ENABLE_MEMORY_MANAGEMENT caveats in the header). Pure Go has a GC and no sqlite3_malloc accounting; same class as the malloc-family and memsubsys1/2 N-A entries. It only "passed" while VACUUM was a whole-block transpiler skip; once VACUUM executes (P8.VACUUM), the watermark assertions diverge. Native coverage of the behavioral (non-memory) VACUUM contract lives in the vacuum/vacuum2 packages and frigolite's backup conformance tests. |
+
+## minmax per-assertion N/A classifications
+
+- `minmax-1.2`, `minmax-1.4`, `minmax-1.6`, `minmax-1.10`, `minmax2-1.2`,
+  `minmax2-1.4`, `minmax2-1.6`, `minmax2-1.10`: sqlite_search_count
+  assertions — the test-build btree callback op counter (src/test1.c
+  search_count, incremented via the TCL fake btree layer). Frigolite is a
+  pure-Go engine with no test-build VDBE op-counter instrumentation; the
+  min/max RESULT assertions in the same files all pass. Same class as the
+  `in6-1.5` precedent.
