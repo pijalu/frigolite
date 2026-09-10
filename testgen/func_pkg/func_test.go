@@ -5,6 +5,7 @@
 package func_pkg
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -1501,7 +1502,29 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-23.1"
-			// sqlite3_create_aggregate db (unsupported command, not transpiled)
+			// sqlite3_create_aggregate db — register the x_count test aggregate
+				db.RegisterAggregate("x_count", func() frigolite.AggregateFunction {
+					state := struct{ n int }{}
+					return &frigolite.AggregateFuncs{
+						StepFn: func(args []interface{}) error {
+							if len(args) == 0 || args[0] != nil {
+								state.n++
+							}
+							if len(args) > 0 {
+								if v, ok := args[0].(int64); ok && (v == 40 || v == 41) {
+									return fmt.Errorf("value of %d handed to x_count", v)
+								}
+							}
+							return nil
+						},
+						FinalFn: func() (interface{}, error) {
+							if state.n == 42 {
+								return nil, fmt.Errorf("x_count totals to 42")
+							}
+							return state.n, nil
+						},
+					}
+				}, 0, 1)
 			r = db.Query("\n      SELECT legacy_count() FROM t6;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT legacy_count() FROM t6;\n    ")

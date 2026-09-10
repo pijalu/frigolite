@@ -1096,4 +1096,3 @@ func tclRegexpMatch(pattern, s string) string {
 }
 
 ` + helpersTemplatePart1Tail
-

@@ -5428,3 +5428,19 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   SQLITE_FCNTL_TEMPFILENAME support in the engine (SQLite generates temp
   names with the etilqs_ prefix) + a registered harness proc. qrf02's
   remaining failure similar to triage.
+- **Public aggregate UDFs + count-8.1 misuse detection (2026-09-10)**:
+  1. frigolite.go gained AggregateFunction/AggregateFuncs + DB.RegisterAggregate
+     (delegating to function.Registry.RegisterAggregate's Aggregator interface —
+     identical Step/Final method set, adapted via closure). The TCL fixture
+     `sqlite3_create_aggregate $DB` (test1.c t1CountStep/t1CountFinalize:
+     x_count counts non-null first args, errors on input 40/41 with "value of
+     N handed to x_count", errors on a final count of 42) now transpiles to a
+     db.RegisterAggregate block. REMEMBER: emitLine runs Sprintf on its
+     format string — literal % verbs in emitted code must be escaped %%.
+  2. count-8.1 "misuse of aggregate: count()": (a,b) IN (SELECT count(t8.b)
+     ... FROM t7) — the aggregate argument references the OUTER table. The
+     misuse walkers (aggValidateChildExprs / exprAggregateChildren) lacked the
+     *sql.InList case, so the Subquery inside IN(...) was never analyzed.
+     Adding InList{Operand, List...} to both walkers lets
+     whereSubqueryOuterAggRef see it; subqueryOuterAggRef's qualified-column
+     check (t8.b vs inner tables {t7, ra0}) then raises the misuse error.

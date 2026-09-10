@@ -225,3 +225,34 @@ func commandsToText(cmd []tcl.RawWord) string {
 	}
 	return strings.Join(parts, " ")
 }
+
+// processSqlite3CreateAggregate emits the registration of the x_count test
+// aggregate (src/test1.c t1CountStep/t1CountFinalize) for the TCL fixture
+// command `sqlite3_create_aggregate DB`: x_count counts non-null first
+// arguments; a step input of 40 or 41 raises "value of N handed to
+// x_count"; a final count of 42 raises "x_count totals to 42".
+func (tp *transpiler) processSqlite3CreateAggregate(args []tcl.RawWord) {
+	tp.emitLine("// sqlite3_create_aggregate %s — register the x_count test aggregate", args[0].Text)
+	tp.emitLine("\tdb.RegisterAggregate(\"x_count\", func() frigolite.AggregateFunction {")
+	tp.emitLine("\t\tstate := struct{ n int }{}")
+	tp.emitLine("\t\treturn &frigolite.AggregateFuncs{")
+	tp.emitLine("\t\t\tStepFn: func(args []interface{}) error {")
+	tp.emitLine("\t\t\t\tif len(args) == 0 || args[0] != nil {")
+	tp.emitLine("\t\t\t\t\tstate.n++")
+	tp.emitLine("\t\t\t\t}")
+	tp.emitLine("\t\t\t\tif len(args) > 0 {")
+	tp.emitLine("\t\t\t\t\tif v, ok := args[0].(int64); ok && (v == 40 || v == 41) {")
+	tp.emitLine("\t\t\t\t\t\treturn fmt.Errorf(\"value of %%d handed to x_count\", v)")
+	tp.emitLine("\t\t\t\t\t}")
+	tp.emitLine("\t\t\t\t}")
+	tp.emitLine("\t\t\t\treturn nil")
+	tp.emitLine("\t\t\t},")
+	tp.emitLine("\t\t\tFinalFn: func() (interface{}, error) {")
+	tp.emitLine("\t\t\t\tif state.n == 42 {")
+	tp.emitLine("\t\t\t\t\treturn nil, fmt.Errorf(\"x_count totals to 42\")")
+	tp.emitLine("\t\t\t\t}")
+	tp.emitLine("\t\t\t\treturn state.n, nil")
+	tp.emitLine("\t\t\t},")
+	tp.emitLine("\t\t}")
+	tp.emitLine("\t}, 0, 1)")
+}

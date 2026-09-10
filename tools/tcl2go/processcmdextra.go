@@ -39,7 +39,7 @@ func (tp *transpiler) runSubBody(args []tcl.RawWord, idx int) bool {
 		predFuncs:     tp.predFuncs,
 		queryFuncs:    tp.queryFuncs,
 		specialFuncs:  tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		autovacCallbacks: tp.autovacCallbacks,
+		autovacCallbacks:    tp.autovacCallbacks,
 		rangeListFuncs:      tp.rangeListFuncs,
 		collateDtorVars:     tp.collateDtorVars,
 		collateGoFuncs:      tp.collateGoFuncs,
@@ -160,7 +160,7 @@ func (tp *transpiler) processOptimizationControl(args []tcl.RawWord) {
 		tp.emitLine("// optimization_control %s %s (no PRAGMA equivalent; ignored)",
 			sanitizeTCLComment(opt), sanitizeTCLComment(onOff))
 	}
-	}
+}
 
 // processCapturePragma handles `capture_pragma DB TABNAME {SQL}` — runs the
 // pragma, builds a TEMP table from the result columns, and inserts the rows.

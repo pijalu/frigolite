@@ -621,7 +621,6 @@ func isIdentChar(c byte) bool {
 	return c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'
 }
 
-
 var reVACUUM = regexp.MustCompile(`(?i)\bVACUUM\b`)
 
 // stripSQLComments removes SQL line comments (`-- ...` to end of line) and

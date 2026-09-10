@@ -52,14 +52,14 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"catch":               (*transpiler).cmdExprCatch,
 		"list":                (*transpiler).cmdExprList,
 		"lindex":              (*transpiler).cmdExprLIndex,
-		"llength":            (*transpiler).cmdExprLLength,
+		"llength":             (*transpiler).cmdExprLLength,
 		"split":               (*transpiler).cmdExprSplit,
 		"lsearch":             (*transpiler).cmdExprLSearch,
 		"lrange":              (*transpiler).cmdExprLRange,
 		"lreplace":            (*transpiler).cmdExprLReplace,
 		"lsort":               (*transpiler).cmdExprLSort,
 		"file":                (*transpiler).cmdExprFile,
-		"glob":               (*transpiler).cmdExprGlob,
+		"glob":                (*transpiler).cmdExprGlob,
 		"pwd":                 (*transpiler).cmdExprPwd,
 		"sqlite3":             (*transpiler).cmdExprSqlite3,
 		"join":                (*transpiler).cmdExprJoin,
@@ -204,7 +204,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 				// (set by `array set`).
 				if idx := strings.Index(nm, "("); idx > 0 {
 					base := tclVarToGo(nm[:idx] + "Map")
-					key := nm[idx+1 : len(nm)-1] // strip "($key)" → "key"
+					key := nm[idx+1 : len(nm)-1]       // strip "($key)" → "key"
 					key = strings.TrimPrefix(key, "$") // strip leading "$" (TCL var sigil)
 					if isValidGoIdent(base[:len(base)-len("Map")]) {
 						// `key` is the variable name (e.g. "i") when it

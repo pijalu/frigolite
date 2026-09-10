@@ -5,6 +5,7 @@
 package windowE
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -124,7 +125,29 @@ func Test_windowE(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x);\n")
 		}
 	}
-	// sqlite3_create_aggregate db (unsupported command, not transpiled)
+	// sqlite3_create_aggregate db — register the x_count test aggregate
+		db.RegisterAggregate("x_count", func() frigolite.AggregateFunction {
+			state := struct{ n int }{}
+			return &frigolite.AggregateFuncs{
+				StepFn: func(args []interface{}) error {
+					if len(args) == 0 || args[0] != nil {
+						state.n++
+					}
+					if len(args) > 0 {
+						if v, ok := args[0].(int64); ok && (v == 40 || v == 41) {
+							return fmt.Errorf("value of %d handed to x_count", v)
+						}
+					}
+					return nil
+				},
+				FinalFn: func() (interface{}, error) {
+					if state.n == 42 {
+						return nil, fmt.Errorf("x_count totals to 42")
+					}
+					return state.n, nil
+				},
+			}
+		}, 0, 1)
 	{ // "2.1"
 		_res = db.Exec("\n  SELECT min(x) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x_count(x) OVER w1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "x_count() may not be used as a window function") {

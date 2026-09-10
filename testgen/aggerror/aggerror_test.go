@@ -5,6 +5,7 @@
 package aggerror
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strings"
@@ -63,7 +64,29 @@ func Test_aggerror(t *testing.T) {
 	{ // do_test "aggerror-1.1"
 		DB = "db"
 		_ = DB // suppress unused warning
-		// sqlite3_create_aggregate $DB (unsupported command, not transpiled)
+		// sqlite3_create_aggregate $DB — register the x_count test aggregate
+			db.RegisterAggregate("x_count", func() frigolite.AggregateFunction {
+				state := struct{ n int }{}
+				return &frigolite.AggregateFuncs{
+					StepFn: func(args []interface{}) error {
+						if len(args) == 0 || args[0] != nil {
+							state.n++
+						}
+						if len(args) > 0 {
+							if v, ok := args[0].(int64); ok && (v == 40 || v == 41) {
+								return fmt.Errorf("value of %d handed to x_count", v)
+							}
+						}
+						return nil
+					},
+					FinalFn: func() (interface{}, error) {
+						if state.n == 42 {
+							return nil, fmt.Errorf("x_count totals to 42")
+						}
+						return state.n, nil
+					},
+				}
+			}, 0, 1)
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;\n    INSERT INTO t1 SELECT a+8 FROM t1;\n    INSERT INTO t1 SELECT a+16 FROM t1;\n    INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n    SELECT x_count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;\n    INSERT INTO t1 SELECT a+8 FROM t1;\n    INSERT INTO t1 SELECT a+16 FROM t1;\n    INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n    SELECT x_count(*) FROM t1;\n  ")

@@ -296,13 +296,13 @@ func (tp *transpiler) processFileCmd(args []tcl.RawWord) {
 			attrName := strings.TrimPrefix(rest[1].Text, "-")
 			if attrName == "permissions" || attrName == "perm" {
 				if len(rest) == 2 {
-								// Getter: read the current perms as "0%04o" (4-digit octal,
-								// matching TCL's `file attributes PATH -permissions` output).
-								// Then apply the TCL regsub-equivalent (turn "00" into
-								// "0." in the first 2 chars) so the result is "/0.NNN/"
-								// for $permissions=00644, matching the test's expected
-								// perm string set via `set res "/[regsub {^00} $perms {0.}]/"`.
-								tp.emitLine("if st, _err := os.Stat(%s); _err == nil { _perm := fmt.Sprintf(\"0%%04o\", st.Mode().Perm()); _r = \"/\" + strings.Replace(_perm, \"00\", \"0.\", 1) + \"/\" } else { _r = \"\" }", pathExpr)
+					// Getter: read the current perms as "0%04o" (4-digit octal,
+					// matching TCL's `file attributes PATH -permissions` output).
+					// Then apply the TCL regsub-equivalent (turn "00" into
+					// "0." in the first 2 chars) so the result is "/0.NNN/"
+					// for $permissions=00644, matching the test's expected
+					// perm string set via `set res "/[regsub {^00} $perms {0.}]/"`.
+					tp.emitLine("if st, _err := os.Stat(%s); _err == nil { _perm := fmt.Sprintf(\"0%%04o\", st.Mode().Perm()); _r = \"/\" + strings.Replace(_perm, \"00\", \"0.\", 1) + \"/\" } else { _r = \"\" }", pathExpr)
 				} else {
 					// Setter: chmod to the requested mode (octal "00644" or
 					// TCL symbolic "r--r--r--"; readonly.test 1.1).

@@ -93,7 +93,7 @@ var unsupportedCapabilities = map[string]bool{
 	// `ifcapable lock_proxy_pragmas&&prefer_proxy_locking`, so marking it
 	// unsupported drops the whole body — exactly how a stock SQLite build (no
 	// SQLITE_ENABLE_LOCKING_STYLE proxy support) runs lock6 as a no-op.
-	"lock_proxy_pragmas":  true,
+	"lock_proxy_pragmas":   true,
 	"prefer_proxy_locking": true,
 }
 

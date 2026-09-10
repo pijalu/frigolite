@@ -80,6 +80,12 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 			tp.emitLine("if _res.Error != nil { t.Errorf(\"integrity check: %%v\", _res.Error) }")
 		},
 		"capture_pragma": (*transpiler).processCapturePragma,
+		// sqlite3_create_aggregate $DB — the TCL harness fixture registering
+		// the x_count test aggregate (src/test1.c t1CountStep/
+		// t1CountFinalize: counts non-null first args; a step input of 40 or
+		// 41 errors; a final count of 42 errors). aggerror.test / func.test
+		// / misuse.test use it.
+		"sqlite3_create_aggregate": (*transpiler).processSqlite3CreateAggregate,
 
 		// recover.test: .recover harness procs (in-process RecoverSQL port;
 		// ext/misc/recover.c sqlite3recover semantics, no CLI subprocess).

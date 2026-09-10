@@ -138,7 +138,8 @@ func indexMatchingBrace(s string) int {
 // stripOuterBraces removes one balanced outer brace layer from a TCL script
 // string (e.g. "{ a b }" → " a b "). Returns the input unchanged when the
 // braces are not balanced.
-func stripOuterBraces(s string) string {	t := strings.TrimSpace(s)
+func stripOuterBraces(s string) string {
+	t := strings.TrimSpace(s)
 	if !strings.HasPrefix(t, "{") || !strings.HasSuffix(t, "}") {
 		return s
 	}

@@ -538,37 +538,37 @@ func (tp *transpiler) processSeek(args []tcl.RawWord) {
 		return
 	}
 	if whence == "start" {
-			var off int64
-			startIsLiteral := false
-			if isGoIntLiteral(offset) {
-				off, _ = strconv.ParseInt(offset, 10, 64)
-				startIsLiteral = true
-			} else if a, b, ok := splitLiteralAdd(offset); ok {
-				off = a + b
-				startIsLiteral = true
-			} else {
-				// `seek $fd [expr X+Y]` where X+Y is not a literal-constant
-				// expression. Emit the offset as a Go expression so it is
-				// evaluated at runtime (corrupt2.test 5.1: `seek $fd
-				// [expr 1024 + $iCelloffset]`).
-				tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
-				return
-			}
-			fileChannelSeek[chName] = off
-			_ = startIsLiteral
+		var off int64
+		startIsLiteral := false
+		if isGoIntLiteral(offset) {
+			off, _ = strconv.ParseInt(offset, 10, 64)
+			startIsLiteral = true
+		} else if a, b, ok := splitLiteralAdd(offset); ok {
+			off = a + b
+			startIsLiteral = true
+		} else {
+			// `seek $fd [expr X+Y]` where X+Y is not a literal-constant
+			// expression. Emit the offset as a Go expression so it is
+			// evaluated at runtime (corrupt2.test 5.1: `seek $fd
+			// [expr 1024 + $iCelloffset]`).
+			tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
+			return
 		}
+		fileChannelSeek[chName] = off
+		_ = startIsLiteral
+	}
 	switch whence {
-			case "start":
-				tp.emitLine("fileChannelSeek[%q] = %d", chName, fileChannelSeek[chName])
-			case "current":
-				tp.emitLine("fileChannelSeek[%q] += int64(tclAtoi(%s))", chName, offset)
-			case "end":
-				tp.emitLine("fileChannelSeek[%q] = tclFileLen(%s) + int64(tclAtoi(%s))", chName, channelDestExpr(chName, activeFileChannels[chName]), offset)
-			default:
-				tp.emitLine("// seek %s (whence=%s unsupported, defaulting to start)", describeArgsShort(args), whence)
-				tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
-			}
-		}
+	case "start":
+		tp.emitLine("fileChannelSeek[%q] = %d", chName, fileChannelSeek[chName])
+	case "current":
+		tp.emitLine("fileChannelSeek[%q] += int64(tclAtoi(%s))", chName, offset)
+	case "end":
+		tp.emitLine("fileChannelSeek[%q] = tclFileLen(%s) + int64(tclAtoi(%s))", chName, channelDestExpr(chName, activeFileChannels[chName]), offset)
+	default:
+		tp.emitLine("// seek %s (whence=%s unsupported, defaulting to start)", describeArgsShort(args), whence)
+		tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
+	}
+}
 
 // blobArgExpr renders a blob handle argument ($B) as a Go expression naming
 // the *frigolite.Blob variable. It emits a runtime channel resolution when

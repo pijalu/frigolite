@@ -168,7 +168,7 @@ func (tp *transpiler) processWhile(args []tcl.RawWord) {
 			// can capture Exec errors into _catchErr — required for the
 			// `while 1 { db eval INSERT }` infinite-INSERT cap test
 			// (tkt2686) to break on "database or disk is full".
-			catchMode:   tp.catchMode,
+			catchMode:    tp.catchMode,
 			rollbackFlag: tp.rollbackFlag,
 			// A while loop has no increment clause: continue targets this
 			// loop, so the innermost entry is empty (plain Go continue).

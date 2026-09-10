@@ -281,21 +281,21 @@ func (e *SelectEngine) skipScanForColumnsWithStatName(idxName string, cols []str
 	// We try mode 2 first (more permissive), then mode 1.
 	nSkip := 0
 	if constrainedCols[strings.ToLower(cols[0])] {
-	// Mode 2: count constrained leading cols.
-			for nSkip < len(cols)-1 && constrainedCols[strings.ToLower(cols[nSkip])] {
-				nSkip++
+		// Mode 2: count constrained leading cols.
+		for nSkip < len(cols)-1 && constrainedCols[strings.ToLower(cols[nSkip])] {
+			nSkip++
+		}
+		// Need >=1 unconstrained col between leading constraint and the next
+		// constrained col. The "next constrained col" can be at position
+		// len(cols)-1 (the last col), which then becomes the skip-scan tail.
+		if nSkip < len(cols)-1 {
+			start := nSkip
+			for nSkip = start; nSkip < len(cols) && !constrainedCols[strings.ToLower(cols[nSkip])]; nSkip++ {
 			}
-			// Need >=1 unconstrained col between leading constraint and the next
-			// constrained col. The "next constrained col" can be at position
-			// len(cols)-1 (the last col), which then becomes the skip-scan tail.
-			if nSkip < len(cols)-1 {
-				start := nSkip
-				for nSkip = start; nSkip < len(cols) && !constrainedCols[strings.ToLower(cols[nSkip])]; nSkip++ {
-				}
-				if nSkip == start || nSkip >= len(cols) {
-					return nil
-				}
+			if nSkip == start || nSkip >= len(cols) {
+				return nil
 			}
+		}
 	} else {
 		// Mode 1: standard skip-scan.
 		for nSkip < len(cols)-1 && !constrainedCols[strings.ToLower(cols[nSkip])] {
@@ -357,7 +357,7 @@ func (e *SelectEngine) skipScanForColumnsWithStatName(idxName string, cols []str
 		leadingCols: cols[:nSkip],
 		allCols:     cols,
 	}
-	}
+}
 
 // formatSkipScanConditions builds the EQP "(ANY(c0) AND ... ANY(cN-1) AND
 // cN op ?)" condition string for a skip-scan plan. nSkip is the count of

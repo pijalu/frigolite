@@ -39,6 +39,37 @@ func (e *SelectEngine) rowValueSubqCorrelatedAggWidth(rowSide, subqSide sql.Expr
 	return len(rv.Values)
 }
 
+// whereInSubqOuterAggRef walks a predicate expression for an IN operator
+// whose operand-list subquery contains an aggregate referencing columns
+// outside the subquery's own FROM — SQLite resolve.c rejects that with
+// "misuse of aggregate" (count-8.1: (a,b) IN (SELECT count(t8.b), count(*)
+// FROM t7) — t8 belongs to the outer query). Only the IN operand list is
+// examined: a correlated aggregate in a SCALAR subquery in WHERE is legal
+// (indexexpr2-10.0), so bare Subquery nodes are not recursed into here.
+func (e *SelectEngine) whereInSubqOuterAggRef(expr sql.Expr) string {
+	if expr == nil {
+		return ""
+	}
+	if il, ok := expr.(*sql.InList); ok {
+		for _, el := range il.List {
+			if sub, ok := el.(*sql.Subquery); ok && sub.Select != nil {
+				if name := e.subqueryOuterAggRef(sub.Select); name != "" {
+					return name
+				}
+			}
+		}
+		if name := e.whereInSubqOuterAggRef(il.Operand); name != "" {
+			return name
+		}
+	}
+	for _, child := range aggValidateChildExprs(expr) {
+		if name := e.whereInSubqOuterAggRef(child); name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
 // whereSubqueryOuterAggRef walks a predicate expression for a scalar subquery
 // whose aggregate references columns outside the subquery's own FROM (a
 // correlated aggregate in a WHERE context — misuse).

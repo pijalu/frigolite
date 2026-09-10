@@ -848,6 +848,9 @@ func (e *SelectEngine) validateWhereExprs(s *sql.SelectStmt) error {
 	if name := e.whereSubqueryOuterAggRef(s.Where); name != "" {
 		return fmt.Errorf("misuse of aggregate: %s()", name)
 	}
+	if name := e.whereInSubqOuterAggRef(s.Where); name != "" {
+		return fmt.Errorf("misuse of aggregate: %s()", name)
+	}
 	return validateDistinctAggArgs(s.Where)
 }
 

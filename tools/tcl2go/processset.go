@@ -52,26 +52,26 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			return
 		}
 		// `set fd [open FILE MODE]` — track the channel's path so subsequent
-				// `puts $fd TEXT` writes to the right file (regardless of MODE: wb,
-				// r+, etc.; the corrupt*.test suites open test.db r+ and overwrite a
-				// byte at a known offset to simulate corruption). Without this,
-				// packages that run AFTER another test that opens test.tcl for write
-				// would inherit `activeFileChannels["fd"] = "test.tcl"` and write
-				// corruption bytes to the wrong file.
-				if path, mode, ok := parseOpenChannelWord(args[1].Text); ok {
-					if strings.HasPrefix(path, "$") {
-						activeFileChannels[goName] = tclVarToGo(strings.TrimPrefix(path, "$"))
-						activeFileChannelExprs[goName] = true
-						if strings.Contains(mode, "w") {
-							tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", activeFileChannels[goName])
-						}
-					} else {
-						activeFileChannels[goName] = path
-						if strings.Contains(mode, "w") {
-							tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", strconv.Quote(path))
-						}
-					}
+		// `puts $fd TEXT` writes to the right file (regardless of MODE: wb,
+		// r+, etc.; the corrupt*.test suites open test.db r+ and overwrite a
+		// byte at a known offset to simulate corruption). Without this,
+		// packages that run AFTER another test that opens test.tcl for write
+		// would inherit `activeFileChannels["fd"] = "test.tcl"` and write
+		// corruption bytes to the wrong file.
+		if path, mode, ok := parseOpenChannelWord(args[1].Text); ok {
+			if strings.HasPrefix(path, "$") {
+				activeFileChannels[goName] = tclVarToGo(strings.TrimPrefix(path, "$"))
+				activeFileChannelExprs[goName] = true
+				if strings.Contains(mode, "w") {
+					tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", activeFileChannels[goName])
 				}
+			} else {
+				activeFileChannels[goName] = path
+				if strings.Contains(mode, "w") {
+					tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", strconv.Quote(path))
+				}
+			}
+		}
 	}
 
 	// Skip set testdir [file dirname $argv0] etc - infrastructure

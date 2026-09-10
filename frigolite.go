@@ -23,6 +23,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/exec"
+	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/recover"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -540,6 +541,36 @@ func (db *DB) RegisterFunctionFlags(name string, fn func(args []interface{}) (in
 	if db != nil && db.engine != nil {
 		db.engine.RegisterFunctionFlags(name, fn, minArgs, maxArgs, innocuous, directOnly)
 	}
+}
+
+// AggregateFunction is a user-defined SQL aggregate: Step accumulates one
+// row's arguments, Final computes the aggregate result from the accumulated
+// state (SQLite's sqlite3_create_function with xStep/xFinal).
+type AggregateFunction interface {
+	Step(args []interface{}) error
+	Final() (interface{}, error)
+}
+
+// AggregateFuncs adapts plain step/final closures to AggregateFunction (a
+// convenience for RegisterAggregate call sites).
+type AggregateFuncs struct {
+	StepFn  func(args []interface{}) error
+	FinalFn func() (interface{}, error)
+}
+
+// Step implements AggregateFunction.
+func (a *AggregateFuncs) Step(args []interface{}) error { return a.StepFn(args) }
+
+// Final implements AggregateFunction.
+func (a *AggregateFuncs) Final() (interface{}, error) { return a.FinalFn() }
+
+// RegisterAggregate registers a user-defined aggregate function. newAgg
+// returns a fresh accumulator per query; Step sees each input row's arguments
+// and Final produces the result (mirrors RegisterFunction for scalars).
+func (db *DB) RegisterAggregate(name string, newAgg func() AggregateFunction, minArgs, maxArgs int) {
+	db.engine.Functions().RegisterAggregate(name, minArgs, maxArgs, func() function.Aggregator {
+		return newAgg()
+	})
 }
 
 // RegisterCollation registers a custom collation sequence for this database

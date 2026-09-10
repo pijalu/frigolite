@@ -121,8 +121,8 @@ var skipTestFiles = map[string]string{
 	"tkt2409": "cache-spill lock-failure simulation (read_lock_db harness) N-A",
 
 	// (tkt2686 un-skipped under P8.PRAGMA — see plan/goals/P8.PRAGMA.md. PRAGMA
-		// max_page_count enforcement was the tracked gap; tkt2686 fills the
-		// database until "database or disk is full".)
+	// max_page_count enforcement was the tracked gap; tkt2686 fills the
+	// database until "database or disk is full".)
 
 	// tkt2854: shared-cache multi-connection concurrency
 	// (sqlite3_enable_shared_cache 1, db/db2 share a cache, db3 private,
@@ -130,7 +130,6 @@ var skipTestFiles = map[string]string{
 	// shared-memory/locking implementation (same category as the shared
 	// package; see plans/DEFERRED.md).
 	"tkt2854": "shared-cache multi-connection concurrency not implemented DEFERRED",
-
 
 	// tkt3093: multi-connection locking with busy handlers (db2 on the same
 	// file, a busy callback commits db's transaction to clear a reserved
@@ -143,16 +142,15 @@ var skipTestFiles = map[string]string{
 	// stale schema). DEFERRED — needs multi-connection shared state.
 	"tkt3810": "multi-connection schema staleness not implemented DEFERRED",
 
-		// tkt3718: nested-statement-transaction rollback across UDF-initiated
-		// recursive SQL — tkt3718-4.3 fails because a UDF-driven INSERT inside
-		// the calling INSERT's row loop is a separate sqlite3_step, so its rows
-		// are not part of the parent's statement journal and don't roll back
-		// when the parent's UNIQUE conflict fires. Engine-visible contract is
-		// pinned by frigolite_misc_native_test.go::TestNativeMiscUDFF1F2 (the
-		// simpler f1/f2 case passes via the harness). N-A pending a recursive
-		// statement-journal implementation.
-		"tkt3718": "nested-statement-journal across UDF-driven recursive SQL not implemented (evidence frigolite_misc_native_test.go::TestNativeMiscUDFF1F2)",
-
+	// tkt3718: nested-statement-transaction rollback across UDF-initiated
+	// recursive SQL — tkt3718-4.3 fails because a UDF-driven INSERT inside
+	// the calling INSERT's row loop is a separate sqlite3_step, so its rows
+	// are not part of the parent's statement journal and don't roll back
+	// when the parent's UNIQUE conflict fires. Engine-visible contract is
+	// pinned by frigolite_misc_native_test.go::TestNativeMiscUDFF1F2 (the
+	// simpler f1/f2 case passes via the harness). N-A pending a recursive
+	// statement-journal implementation.
+	"tkt3718": "nested-statement-journal across UDF-driven recursive SQL not implemented (evidence frigolite_misc_native_test.go::TestNativeMiscUDFF1F2)",
 
 	// tkt3793: shared-cache multi-connection (sqlite3_enable_shared_cache 1,
 	// cache=shared/private connections, cross-connection busy handlers).
@@ -221,22 +219,22 @@ var skipTestFiles = map[string]string{
 	"malloc": "sqlite3_memdebug memory-accounting C API N-A",
 
 	// notify: sqlite3_unlock_notify() C API (guarded by ifcapable
-		// !unlock_notify||!shared_cache). N-A (unlock_notify C API).
+	// !unlock_notify||!shared_cache). N-A (unlock_notify C API).
 
-		// quota / quota2: file-size quota VFS family (sqlite3_quota_set,
-		// sqlite3_quota_file, callback hooks). The transpiler + helpers
-		// implement the sqlite3_quota_* TCL commands and the quotaStrglob
-		// pattern matcher (P8.PRAGMA t3, partial), but the engine has no
-		// per-write file-size enforcement layer (sqlite3_quota_set *test.db
-		// 4096 callback should reject writes past 4096 bytes — currently
-		// a no-op). Tests still exercise the transpiler shim and helpers
-		// (testgen/quota runs, ~25 sub-tests fail with "no such table"
-		// after pre-existing t1 state, plus ~10 with "database or disk
-		// is full" expected but not returned). The quota_glob package is
-		// fully un-skipped and passing (testgen/quota_glob). Full quota
-		// VFS shim (file-size tracking + callback hook + Write3
-		// interception) is a deferred engine feature; see
-		// plan/goals/P8.PRAGMA.md §next.
+	// quota / quota2: file-size quota VFS family (sqlite3_quota_set,
+	// sqlite3_quota_file, callback hooks). The transpiler + helpers
+	// implement the sqlite3_quota_* TCL commands and the quotaStrglob
+	// pattern matcher (P8.PRAGMA t3, partial), but the engine has no
+	// per-write file-size enforcement layer (sqlite3_quota_set *test.db
+	// 4096 callback should reject writes past 4096 bytes — currently
+	// a no-op). Tests still exercise the transpiler shim and helpers
+	// (testgen/quota runs, ~25 sub-tests fail with "no such table"
+	// after pre-existing t1 state, plus ~10 with "database or disk
+	// is full" expected but not returned). The quota_glob package is
+	// fully un-skipped and passing (testgen/quota_glob). Full quota
+	// VFS shim (file-size tracking + callback hook + Write3
+	// interception) is a deferred engine feature; see
+	// plan/goals/P8.PRAGMA.md §next.
 	// quota_glob: glob pattern matcher (quotaStrglob ported to Go) —
 	// fully passes (testgen/quota_glob).
 
@@ -275,7 +273,6 @@ var skipTestFiles = map[string]string{
 	"imposter1": "sqlite3_test_control(SQLITE_TESTCTRL_IMPOSTER) test-only C API not exposed N-A",
 
 	// (basexx1 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
-
 
 	// P7.LOCK-C re-skips (evidence-based). busy/busy2 exercise the SQLite
 	// busy-handler (sqlite3_busy_handler via `db busy <cb>`). Frigolite's
@@ -373,7 +370,6 @@ var skipTestFiles = map[string]string{
 	"bestindexF": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"bestindexG": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
-
 	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
 	// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.
 	// The TCL tests use a side-effecting `db func f` callback to observe
@@ -437,7 +433,7 @@ var skipTestFiles = map[string]string{
 	// no-op. NA_EVIDENCE vacuummem.
 	"vacuummem": "N/A: sqlite3_memory_used/highwater C-allocator watermark assertions (PORTPLAN section 1 malloc class; NA_EVIDENCE vacuummem)",
 	// enc4: passes natively.
-	"eval":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"eval": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// (extension01 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 	"fallocate": "VFS/fault-injection harness N-A",
 
@@ -488,9 +484,9 @@ var skipTestFiles = map[string]string{
 	// frigolite_journal_test.go.)
 
 	// (loadext/loadext2 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
-	"mallocI":    "VFS/fault-injection harness N-A",
-	"mallocK":    "VFS/fault-injection harness N-A",
-	"manydb":     "TCL `file channels`/`ulimit` file-descriptor leak harness introspection not implemented N-A (evidence frigolite_lockc_test.go)",
+	"mallocI": "VFS/fault-injection harness N-A",
+	"mallocK": "VFS/fault-injection harness N-A",
+	"manydb":  "TCL `file channels`/`ulimit` file-descriptor leak harness introspection not implemented N-A (evidence frigolite_lockc_test.go)",
 
 	// P7.WAL-E: mjournal re-skipped (test 4.x — master-journal pointer
 	// validation in hot-journal recovery is out of P7.WAL-E scope; see
@@ -525,9 +521,9 @@ var skipTestFiles = map[string]string{
 	"pagerfault2": "VFS/fault-injection harness N-A",
 	"pagerfault3": "VFS/fault-injection harness N-A",
 
-		// (pragma/pragma2-6 un-skipped under P8.PRAGMA — see
-			// plan/goals/P8.PRAGMA.md. Engine implements the PRAGMA edge cases
-			// surfacing in pragma*.test.)
+	// (pragma/pragma2-6 un-skipped under P8.PRAGMA — see
+	// plan/goals/P8.PRAGMA.md. Engine implements the PRAGMA edge cases
+	// surfacing in pragma*.test.)
 
 	// P7.PUSHDOWN: pushdown — see the cursorhint / cursorhint2 entries
 	// above for the VDBE codeCursorHint() / MySQL push-down N-A rationale
@@ -669,17 +665,17 @@ var skipTestFiles = map[string]string{
 	"atof1":   "TCL expr rand/pow/format %.32e random float stress harness N-A",
 	"atof2":   "TCL expr rand/pow/format %.32e random float stress harness N-A",
 
-	"malloc3":  "sqlite3_memdebug memory-accounting C API N-A",
-	"malloc4":  "sqlite3_memdebug memory-accounting C API N-A",
-	"malloc5":  "sqlite3_memdebug memory-accounting C API N-A",
-	"malloc6":  "sqlite3_memdebug memory-accounting C API N-A",
-	"malloc7":  "sqlite3_memdebug memory-accounting C API N-A",
-	"malloc8":  "sqlite3_memdebug memory-accounting C API N-A",
-	"malloc9":  "sqlite3_memdebug memory-accounting C API N-A",
+	"malloc3": "sqlite3_memdebug memory-accounting C API N-A",
+	"malloc4": "sqlite3_memdebug memory-accounting C API N-A",
+	"malloc5": "sqlite3_memdebug memory-accounting C API N-A",
+	"malloc6": "sqlite3_memdebug memory-accounting C API N-A",
+	"malloc7": "sqlite3_memdebug memory-accounting C API N-A",
+	"malloc8": "sqlite3_memdebug memory-accounting C API N-A",
+	"malloc9": "sqlite3_memdebug memory-accounting C API N-A",
 
 	// quota_glob un-skipped (passes); quota / quota2 re-skipped with
-		// N-A evidence (file-size enforcement layer not implemented; see
-		// plan/goals/P8.PRAGMA.md §next).
+	// N-A evidence (file-size enforcement layer not implemented; see
+	// plan/goals/P8.PRAGMA.md §next).
 	// skipscan1: TCL test skipscan1-8.1 (and 8.1eqp) exercises the OR-with-
 	// skip-scan query planner strategy: SELECT * FROM t1 WHERE (y = 'AB' AND
 	// x <= 4) OR (y = 'EF' AND x = 5) on t1 PRIMARY KEY(x, y) WITH stat
