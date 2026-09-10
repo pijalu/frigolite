@@ -103,10 +103,11 @@ func (c *fts4auxCursor) Column(idx int) (interface{}, error) {
 	case 0:
 		return row.Term, nil
 	case 1:
-		// fts3_aux.c emits col as the 0-based column INDEX (integer); the
-		// per-term aggregate row ("*") reports NULL.
+		// fts3_aux.c fts3auxColumn: per-column rows emit the 0-based column
+		// index as an integer (p->iCol-1); the per-term aggregate row emits
+		// the literal text "*" (sqlite3_result_text(pCtx, "*", -1, ...)).
 		if row.Column == "*" {
-			return nil, nil
+			return "*", nil
 		}
 		n, err := strconv.Atoi(row.Column)
 		if err != nil {

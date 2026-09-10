@@ -5390,3 +5390,20 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   packages out under load), then amend the ledger entries (state +
   evidence "serial re-run pass") — tools/status/ledger.go flags exactly
   these for operator review.
+- **fts4unicode double fix (2026-09-10)**:
+  1. fts4aux's `col` column for the per-term aggregate row is the LITERAL
+     TEXT `*` (fts3_aux.c fts3auxColumn case 1: `sqlite3_result_text(pCtx,
+     "*", ...)`) — per-column rows emit the 0-based column INDEX as an
+     integer. The engine returned NULL for the aggregate row.
+  2. `SELECT ... FROM <fts3tokenize table> WHERE input = '...'` failed
+     "SQL logic error" because the created-vtab materialization path
+     (execSelectFrom → MaterializeCreatedVTab → materializeVtabModule →
+     readVtabRowsWithRowids) never called SetInputConstraint — only the
+     ddl_core_tail virtualTableRows path did. fts3tokFilterMethod errors
+     with SQLITE_ERROR when the query reaches the vtab without an input
+     binding. Fix: materializeVtabModule now extracts the constraint from
+     opts.Where via execquery.VtabInputConstraint (newly exported) and
+     forwards it to any instance implementing SetInputConstraint.
+  - Debugging: env-gated debug.PrintStack in the vtab's Open() named the
+    exact caller chain (vtab_eponymous.go materializeVtabModule) in one
+    run — far faster than guessing among the three scan paths.

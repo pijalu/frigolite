@@ -279,6 +279,14 @@ func vtabUpperBound(where sql.Expr) (int64, bool) {
 // fts3tokBestIndexMethod). AND operands are searched so `input = 'a b c' AND
 // token = 'b'` still supplies the input (fts3tok1 1.10/1.12). Returns
 // (value, true) when found.
+// VtabInputConstraint extracts a first-column (`input`) literal-equality
+// constraint from a WHERE clause (fts3tokenize's `input = <string>`; see
+// vtabInputConstraint — exported for the exec layer's generic vtab
+// materialization paths that receive the WHERE via VtabScanOptions).
+func VtabInputConstraint(where sql.Expr) (string, bool) {
+	return vtabInputConstraint(where)
+}
+
 func vtabInputConstraint(where sql.Expr) (string, bool) {
 	if cmp, ok := where.(*sql.BinaryOp); ok && strings.EqualFold(cmp.Operator, "AND") {
 		if v, ok := vtabInputConstraint(cmp.Left); ok {

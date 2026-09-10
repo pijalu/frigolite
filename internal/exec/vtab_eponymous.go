@@ -188,6 +188,16 @@ func (e *Engine) materializeVtabModule(module vtab.Module, strArgs []string, val
 	if err := bindSchema(vt); err != nil {
 		return nil, nil, err
 	}
+	// fts3tokenize's `input = <string>` constraint arrives with the WHERE
+	// (fts3_tokenize_vtab.c xBestIndex sets idxNum=1 for it); forward it to
+	// the instance before its cursor opens — fts3tokFilterMethod errors with
+	// SQLITE_ERROR ("SQL logic error") when the query reaches the vtab
+	// without an input binding (fts3tok1 1.x, fts4unicode 11.1).
+	if ic, ok := vt.(interface{ SetInputConstraint(string) }); ok {
+		if in, has := execquery.VtabInputConstraint(opts.Where); has {
+			ic.SetInputConstraint(in)
+		}
+	}
 	// series.c narrows the generated range from equality/range constraints on
 	// the value column inside xFilter (iMin/iMax); without it a query like
 	// FROM generate_series(MinI64, MaxI64, 2) WHERE value BETWEEN 1 AND 5
