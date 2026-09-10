@@ -5469,3 +5469,15 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   a-IGNORE) still raises raw UNIQUE errors, and table-constraint error
   messages drop the column qualifier (t5 vs t5.a at 888). Needs a
   precedence pass: violated-constraint → its own resolution, per-constraint.
+- **cacheflush parser bug — minimal repro (parked)**: a COMMENT followed by a
+  bare SEMI after an INSERT statement breaks the LALR parse:
+  `INSERT ...; /* x */ ; UPDATE ...` → "near \"B\": syntax error" (the error
+  token is the following statement's string literal). Isolation matrix:
+  `;;` passes; `; /*x*/ stmt` passes; `; --x\n ; stmt` FAILS (line comments
+  too); UPDATE-first passes; needs BOTH INSERTs present in the batch. The
+  comment+SEMI becomes a no-op statement that the INSERT reduce state
+  mishandles — look at runLALRParse's tokenizer comment skipping and the
+  ecmd/SEMI reduce after INSERT vs UPDATE (internal/parse/parser.go
+  preprocessInput → runLALRParse). cacheflush.test hits it because its
+  batch has SAVEPOINT extracted to `/* __SAVEPOINT__ */;` right after
+  INSERTs — the placeholder comment + SEMI after INSERT is the trigger.
