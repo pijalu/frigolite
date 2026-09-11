@@ -146,7 +146,14 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 	// to page X / Page Y: never used). Mirrors btree.c::checkTree /
 	// checkTreePage. corrupt2-5.1 asserts the "Tree 2 page 2 cell 0:
 	// 2nd reference to page 10 / Page 4: never used" diagnostic format.
-	e.checkTreePage(emit)
+	// btree.c gates the page-usage audit behind !bPartial: a TABLE-SCOPED
+	// check (quick_check('t1')) skips it entirely — shared-root images from
+	// writable_schema experiments report orphan pages only on the full scan
+	// (strict2-1.2: scoped check is "ok", full check reports "Page 3/4:
+	// never used").
+	if arg == "" {
+		e.checkTreePage(emit)
+	}
 	if msg := e.checkFreelistCount(emit); msg != "" {
 		emit(msg)
 	}

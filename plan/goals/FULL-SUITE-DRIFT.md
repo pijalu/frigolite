@@ -1330,3 +1330,16 @@ Remaining residue (NOT this class, next session):
     CTE-aliased DELETE target with rank()OVER() in ORDER BY (5.6).
   - No regression: update/update2/without_rowid3/without_rowid4/delete4/
     trans failing sets identical to HEAD. Gates: build/vet/SOLID green.
+- **T19 tranche (2026-09-11): scoped quick_check skips page-usage audit —
+  strict2 green**
+  - ENGINE (internal/exec/pragma_quickcheck.go): the multi-line page audit
+    (Tree N page M cell K / Page N: never used) now runs only for FULL-scope
+    checks. btree.c gates the page-usage loop behind !bPartial — a
+    TABLE-SCOPED check (quick_check('t1')) skips it entirely. Oracle-verified
+    (3.51.0) on the writable_schema shared-root image: scoped = "ok", full
+    check reports "2nd reference to page 2" x2 + "Page 3/4: never used".
+  - strict2 GREEN. No regression: corrupt/corruptB failing sets identical to
+    HEAD (corrupt2/check/quick/intarray/pragma3 green).
+  - NOTE: the earlier "delete-path overflow leak" hypothesis (T-log T7.3
+    residue) is RESOLVED BY the T7.3 allocator fix — re-probe with/without
+    interleaved reads is clean in both variants; no separate defect.
