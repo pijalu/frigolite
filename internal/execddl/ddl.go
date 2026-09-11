@@ -193,6 +193,7 @@ func (e *DDLExecutor) runCreateTableValidations(ctx *DatabaseContext, s *sql.Cre
 		func() *Result { return e.validateCheckFuncs(s) },
 		func() *Result { return e.validateCheckExprColumns(s) },
 		func() *Result { return e.validateSchemaFunctionSafety(s) },
+		func() *Result { return e.validateTableCollations(s) },
 	}
 	for _, v := range validators {
 		if res := v(); res != nil {

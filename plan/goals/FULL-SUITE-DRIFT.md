@@ -1001,3 +1001,24 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
     (internal/btree/btree_insert.go) writing at offset 0 when cellcontent
     == pageSize. Next step: hexdump + instrument InsertCell for the
     named-column case, compare with the full-tuple case byte-for-byte.
+- **T11 tranche (2026-09-11): CREATE TABLE collation validation — collate7
+  green, collate3 1.2 fixed**
+  - ENGINE (internal/execddl/ddl.go): runCreateTableValidations gains
+    validateTableCollations — column-level COLLATE names and table-level
+    PRIMARY KEY/UNIQUE column collations must resolve against the
+    connection's collation registry at CREATE time (build.c
+    sqlite3AddCollateType; oracle "no such collation sequence: NAME"
+    verified on 3.51.0). Reuses the DDLContext.CheckCollationString seam
+    the CREATE INDEX validation (P2.INDEX) already uses.
+  - collate7 GREEN; collate3 1.2 green; collate3-1.1/1.1.2/1.3 (explicit
+    COLLATE in SELECT/CREATE INDEX) were already green.
+  - REMAINING (collate3-2.x class, open): after close+reopen WITHOUT
+    re-registering a schema-referenced collation, statements that RESOLVE
+    that collation (ORDER BY c1, WHERE c1=, explicit COLLATE) must fail
+    with "no such collation sequence: NAME" (SQLite errors at prepare via
+    sqlite3LocateCollSeq). The engine silently falls back to BINARY.
+    Fixes must NOT fire for statements that don't need the collation
+    (bare SELECT * FROM t must keep working — check the TCL for the exact
+    success expectations). Entry points: wrapValueForRowMap
+    (internal/execquery/helpers.go:121), sort-key collation resolution
+    (select_expr.go:351 mapCollations), comparison dispatch.
