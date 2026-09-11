@@ -851,7 +851,106 @@ func (e *SelectEngine) validateWhereExprs(s *sql.SelectStmt) error {
 	if name := e.whereInSubqOuterAggRef(s.Where); name != "" {
 		return fmt.Errorf("misuse of aggregate: %s()", name)
 	}
+	// A scalar aggregate used DIRECTLY in this level's WHERE is always a
+	// misuse (resolve.c: sqlite3ResolveExprNames clears NC_AllowAgg for the
+	// WHERE subtree — "misuse of aggregate: max()", tkt1514/tkt3508). The
+	// walk does not descend into subqueries: their WHERE clauses are
+	// validated against their own scope by the nested validateWhereExprs.
+	if name := whereDirectAggregate(s.Where, e.ctx.Functions()); name != "" {
+		return fmt.Errorf("misuse of aggregate: %s()", name)
+	}
+	// A WHERE reference to a SELECT alias whose expression IS an aggregate
+	// resolves to that aggregate and is the same misuse (resolve.c name
+	// resolution falls through to the output alias; tkt3508: "where c > 1"
+	// with count(x) AS c).
+	for _, col := range s.Columns {
+		if col.As == "" || col.Expr == nil {
+			continue
+		}
+		if agg := expressionAggregateName(col.Expr, e.ctx.Functions()); agg != "" {
+			if whereReferencesBareName(s.Where, col.As) {
+				return fmt.Errorf("misuse of aggregate: %s()", agg)
+			}
+		}
+	}
 	return validateDistinctAggArgs(s.Where)
+}
+
+// expressionAggregateName returns the lowercased name of the first scalar
+// aggregate directly contained in the expression (no subquery descent).
+func expressionAggregateName(expr sql.Expr, fns *function.Registry) string {
+	if expr == nil {
+		return ""
+	}
+	found := ""
+	WalkExprFull(expr, func(n sql.Expr) {
+		if found != "" {
+			return
+		}
+		if fn, ok := n.(*sql.FuncCall); ok {
+			if reg, found2 := fns.Find(fn.Name); found2 && reg.Type == function.TypeAggregate {
+				found = strings.ToLower(fn.Name)
+			}
+		}
+	})
+	return found
+}
+
+// whereReferencesBareName reports whether the WHERE tree contains a
+// table-unqualified ColumnRef with exactly the given name.
+func whereReferencesBareName(expr sql.Expr, name string) bool {
+	if expr == nil {
+		return false
+	}
+	found := false
+	WalkExprFull(expr, func(n sql.Expr) {
+		if ref, ok := n.(*sql.ColumnRef); ok && ref.Table == "" && strings.EqualFold(ref.Name, name) {
+			found = true
+		}
+	})
+	return found
+}
+
+// whereDirectAggregate returns the (lowercased) name of the first scalar
+// aggregate function found directly in the expression tree, ignoring any
+// nested inside Subquery / EXISTS nodes.
+func whereDirectAggregate(expr sql.Expr, fns *function.Registry) string {
+	if expr == nil {
+		return ""
+	}
+	found := ""
+	var stop bool
+	WalkExprFull(expr, func(n sql.Expr) {
+		if found != "" || stop {
+			return
+		}
+		switch n.(type) {
+		case *sql.Subquery, *sql.ExistsExpr:
+			stop = true
+			return
+		}
+		fn, ok := n.(*sql.FuncCall)
+		if !ok {
+			return
+		}
+		reg, found2 := fns.Find(fn.Name)
+		if !found2 || reg.Type != function.TypeAggregate {
+			return
+		}
+		// min/max are dual-natured (builtins.c: 2+ arguments select the
+		// scalar implementation): "WHERE max(a,b)!=1" is valid. And an
+		// invalid argument count is reported first, as an arity error, not
+		// a misuse (select1-3.9 count(f1,f2)).
+		name := strings.ToUpper(fn.Name)
+		if (name == "MAX" || name == "MIN") && len(fn.Args) > 1 {
+			return
+		}
+		if len(fn.Args) < reg.MinArgs || (reg.MaxArgs >= 0 && len(fn.Args) > reg.MaxArgs) {
+			return
+		}
+		found = strings.ToLower(fn.Name)
+	})
+	return found
 }
 
 // whereRowValueCorrelatedAggCollapse reports the row-value width N when the

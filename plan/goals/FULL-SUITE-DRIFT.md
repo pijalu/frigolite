@@ -1077,3 +1077,19 @@ e_reindex, index2, fkey1, rowid, bigrow, update2, vtab1, bind, ptrchng,
 bestindexA/D, csv01, func3, qrf01-03, tkt2565, trace, trace3, tkt3992,
 tkt_f777251dc7a, func_pkg(md5/UDF parts), pcache, shortread1, sort5,
 chunksize, altertab2 (harness flatten asymmetry).
+- **T13 tranche (2026-09-11): aggregate-in-WHERE misuse — tkt1514/tkt3508
+  green**
+  - ENGINE (internal/execquery/select_agg_validate.go validateWhereExprs):
+    two resolve.c-parity checks added. (1) whereDirectAggregate: a scalar
+    aggregate used directly in this level's WHERE errors "misuse of
+    aggregate: X()" (resolve.c clears NC_AllowAgg for the WHERE subtree);
+    the walk stops at Subquery/EXISTS nodes (nested WHEREs are validated
+    against their own scope), and respects the min/max dual-nature
+    (2+ args = scalar, builtin.c) plus arity ordering (count(f1,f2)
+    reports the arity error, not misuse — select1-3.9). (2) A WHERE
+    reference to a SELECT alias whose expression is an aggregate resolves
+    to that aggregate → same misuse (tkt3508 "where c > 1" with
+    count(x) AS c).
+  - Gates: build/vet/SOLID green; select1/where/randexpr1 failing-assertion
+    sets byte-identical to HEAD (diffed, no regression); tkt1514, tkt3508
+    serially green.
