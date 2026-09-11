@@ -1093,3 +1093,18 @@ chunksize, altertab2 (harness flatten asymmetry).
   - Gates: build/vet/SOLID green; select1/where/randexpr1 failing-assertion
     sets byte-identical to HEAD (diffed, no regression); tkt1514, tkt3508
     serially green.
+- **T14 tranche (2026-09-11): vtab DDL guards — vtab5 green**
+  - ENGINE (internal/execddl): CREATE TRIGGER on a virtual table now errors
+    "cannot create triggers on virtual tables" (build.c
+    sqlite3CodeRowTriggerDirectly) and only INSTEAD OF triggers are allowed
+    on views ("cannot create BEFORE trigger on view: vv"); CREATE INDEX on a
+    virtual table errors "virtual tables may not be indexed" (build.c
+    sqlite3CreateIndex) instead of scanning the shadow storage as a btree
+    ("database disk image is malformed"). Guards detect vtabs via
+    IsStoragelessVirtualTable || RootPage==0 (oracle-verified 3.51.0).
+  - No regression: vtabE/vtabH/vtabK/temptrigger/indexA/tabfunc01/e_walckpt
+    green; altertab/trigger1/index2 failures pre-existing (diagnosed in
+    T12 index: trigger DDL validation class + transpile mis-lex).
+  - g6 rtree diagnosis also complete (last group) — class map added to T12
+    index (rtree constraint-pushdown, aux columns, rowid resolution,
+    float32 rounding, 2nd-gen geometry API, geopoly decision needed).

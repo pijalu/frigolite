@@ -356,6 +356,18 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if isSystemTableName(tableName) {
 		return &Result{Error: fmt.Errorf("cannot create trigger on system table")}
 	}
+	// build.c sqlite3CodeRowTriggerDirectly / sqlite3TriggersExist: triggers
+	// cannot be created on virtual tables ("cannot create triggers on
+	// virtual tables", vtab5-1.2) and only INSTEAD OF is allowed on views
+	// ("cannot create BEFORE trigger on view: vv").
+	if te, _, terr := e.ctx.FindTable(tableName); terr == nil && te != nil {
+		if e.ctx.IsStoragelessVirtualTable(te) || te.RootPage == 0 {
+			return &Result{Error: fmt.Errorf("cannot create triggers on virtual tables")}
+		}
+		if te.Type == schema.TypeView && !strings.EqualFold(s.Time, "INSTEAD OF") {
+			return &Result{Error: fmt.Errorf("cannot create %s trigger on view: %s", strings.ToLower(s.Time), tableName)}
+		}
+	}
 
 	// Check for duplicate trigger name
 	if e.triggerExists(ctx, triggerName) {

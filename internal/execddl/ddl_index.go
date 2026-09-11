@@ -71,6 +71,12 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	if strings.HasPrefix(strings.ToLower(tableEntry.Name), "sqlite_") {
 		return &Result{Error: fmt.Errorf("table %s may not be indexed", tableEntry.Name)}
 	}
+	// build.c sqlite3CreateIndex: virtual tables have no btree to index —
+	// "virtual tables may not be indexed" (vtab5-1.5; CREATE INDEX on a
+	// vtab previously scanned the shadow storage as a btree).
+	if e.ctx.IsStoragelessVirtualTable(tableEntry) || tableEntry.RootPage == 0 {
+		return &Result{Error: fmt.Errorf("virtual tables may not be indexed")}
+	}
 
 	// Resolve the table's column definitions up front: DQS validation and
 	// collation checks both need them, and both must run before the index
