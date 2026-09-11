@@ -5617,3 +5617,18 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **JSON harness is NOT a deterministic gate** (re-confirmed): standard-suite
   subtest sets churn run-to-run by ~1500 entries; the testgen suite +
   `tools/status --check` are the only authoritative regression instruments.
+- **Parallel-agent hygiene**: with multiple agents editing one worktree,
+  NEVER use bare `git add -A` — enumerate specific paths (a sibling agent's
+  temporary debug files get swept into your commit). Prefer
+  `git add <explicit files>`.
+- **Aggregate-in-WHERE (T13)**: resolve.c clears NC_AllowAgg for the WHERE
+  subtree — any scalar aggregate directly in WHERE is "misuse of aggregate:
+  X()". Exceptions that must NOT fire: min/max with 2+ args (dual-natured
+  scalar, builtin.c), invalid arity (the arity error wins — select1-3.9),
+  aggregates inside nested subqueries (own scope), and WHERE references to
+  SELECT aliases whose expression is an aggregate (alias expansion → same
+  misuse, tkt3508).
+- **Diagnosis-class workflow that worked**: parallel read-only diagnosis
+  agents per family group → consolidated class index in the T-log → fix
+  tranches by class with dedicated fix agents for deep seams (WR, FTS
+  writer) while the main agent takes small-medium engine fixes.
