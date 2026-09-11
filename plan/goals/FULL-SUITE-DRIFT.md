@@ -1367,3 +1367,22 @@ Remaining residue (NOT this class, next session):
     wherelimit2 5.1-5.6 view-trigger/CTE shapes, update rowid-shift spurious
     UNIQUE (1039/1057 — pre-existing, NOT caused by this tranche; verified
     by full-set stash diff).
+- **T21 investigation (2026-09-11, open — misc1 schema root-cell placement)**
+  - Repro: `CREATE TABLE manycol(x0 text, ..., x99 text)` (100 cols; schema
+    record 938 bytes) succeeds, then ANY statement touching the schema fails
+    "database disk image is malformed" (misc1's ~39 assertions cascade).
+  - Ruled out: prepareCell's overflow math is correct (938 ≤ maxLocal 989 →
+    fully local is the SQLite-correct local/overflow decision; SQLite
+    reconciles it by SPLITTING the root so the cell lands on a child page).
+  - Working hypothesis: the page-1 (schema root) split path — leafHasRoom
+    says "no room", but the resulting on-disk page-1 cell sits at
+    contentStart=914 with the full 938-byte local payload (byte range
+    914..1852 crossing the 1024-page end) instead of the cell moving to a
+    freshly allocated child leaf. An earlier quick-dump's "payloadLen=5383"
+    reading is unreliable (T10's lesson: decode cells via the page header's
+    cell-pointer offsets and double-check varint boundaries before
+    theorizing).
+  - Next steps: byte-parity the page-1 layout against the 3.51.0 oracle for
+    this exact repro (oracle page 1 = header + interior root with one child
+    leaf holding the 938-byte cell), then fix the schema-root split path in
+    internal/btree (insertPage/insertLeafPage/relocateRootSplit family).
