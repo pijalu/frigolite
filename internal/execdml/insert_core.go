@@ -30,6 +30,14 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 		}
 		return e.execInsertView(s, viewEntry)
 	}
+	// build.c sqlite3AddColumnToList: every name in the INSERT column list
+	// must be a real table column ("table t has no column named z").
+	if len(s.Columns) > 0 {
+		colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+		if res := validateInsertColumnList(tableEntry.Name, s.Columns, colDefs); res != nil {
+			return res
+		}
+	}
 
 	// Publish the statement's ON CONFLICT policy for trigger-body steps
 	// without an explicit OR clause (SQLite trigger.c codeTriggerProgram:

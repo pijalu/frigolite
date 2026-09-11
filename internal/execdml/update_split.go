@@ -86,6 +86,23 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 	}
 
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	// Prepare-time name resolution (resolve.c parity): WHERE and SET value
+	// expressions must resolve every column and function. UPDATE...FROM is
+	// skipped — its WHERE references the joined tables' columns.
+	if s.From.Name == "" {
+		qualifiers := []string{s.Table}
+		if s.Alias != "" {
+			qualifiers = append(qualifiers, s.Alias)
+		}
+		exprs := make([]sql.Expr, 0, len(s.Assignments)+1)
+		for _, a := range s.Assignments {
+			exprs = append(exprs, a.Value)
+		}
+		exprs = append(exprs, s.Where)
+		if res := e.validateDMLExprs(qualifiers, colDefs, !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), exprs); res != nil {
+			return res
+		}
+	}
 
 	// Route FTS virtual table updates directly to the FTS table (SQLite's
 	// fts3UpdateMethod handles docid and content column updates).

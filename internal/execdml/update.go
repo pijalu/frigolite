@@ -21,6 +21,10 @@ import (
 
 type updateChange struct {
 	rowID     int64
+	// seq is the change's 0-based position in the scan order (collectUpdateChanges
+	// assigns it): a stable identity for LIMIT-window survivor sets, unlike
+	// rowID which is synthetic 0 for every WITHOUT ROWID row.
+	seq       int
 	newRowID  *int64 // non-nil when the UPDATE sets rowid/_rowid_/oid to a new value
 	values    []interface{}
 	oldValues []interface{}

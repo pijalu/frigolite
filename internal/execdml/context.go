@@ -83,6 +83,10 @@ type DMLContext interface {
 	TableConstraints(tableName, createSQL string) []sql.TableConstraint
 	TableColumnNames(tableName string) ([]string, error)
 	CheckCollationString(name string) error
+	// LookupFunction reports whether the named function is registered, and
+	// (for registered functions) whether it is a scalar aggregate. Used by
+	// DML prepare-time name resolution (resolve.c parity).
+	LookupFunction(name string) (isAggregate bool, exists bool)
 
 	// Expression evaluation (delegates to the execexpr Evaluator).
 	EvalExpr(expr sql.Expr, row Row) (interface{}, error)

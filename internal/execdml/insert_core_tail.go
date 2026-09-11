@@ -209,8 +209,9 @@ func (e *DMLExecutor) evalTuple(tableName string, tuple []sql.Expr, columns []st
 	if len(columns) > 0 {
 		// The VALUES list must supply exactly one value per named column.
 		if len(values) != len(columns) {
-			return nil, fmt.Errorf("table %s has %d values for %d columns",
-				tableName, len(values), len(columns))
+			// Oracle wording: the VALUES-tuple arity error does NOT carry the
+			// table name (insert-1.3c "4 values for 2 columns").
+			return nil, fmt.Errorf("%d values for %d columns", len(values), len(columns))
 		}
 		if colDefs == nil {
 			// No column definitions (e.g. view INSERT): return the values

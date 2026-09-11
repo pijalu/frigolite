@@ -228,6 +228,16 @@ func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *Dat
 		if res := e.validateDMLAliasQualifier(s.Table, s.Alias, []sql.Expr{s.Where}); res != nil {
 			return nil, nil, nil, nil, res, nil
 		}
+		// resolve.c parity: the WHERE must resolve every column and function
+		// against the target table at prepare time.
+		qualifiers := []string{s.Table}
+		if s.Alias != "" {
+			qualifiers = append(qualifiers, s.Alias)
+		}
+		colDefs := e.ctx.ParseColumnDefs(s.Table, tableEntry.SQL)
+		if res := e.validateDMLExprs(qualifiers, colDefs, !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), []sql.Expr{s.Where}); res != nil {
+			return nil, nil, nil, nil, res, nil
+		}
 	}
 	if err != nil {
 		// Not a table — route through INSTEAD OF DELETE triggers on a view.

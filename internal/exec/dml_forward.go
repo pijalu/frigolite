@@ -5,6 +5,8 @@ import (
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+
+	"github.com/pijalu/frigolite/internal/function"
 )
 
 // Shared regexes moved with the DML sub-package.
@@ -78,6 +80,16 @@ func (e *Engine) hasTriggersForTable(tableName string) bool {
 
 func (e *Engine) checkCollationString(name string) error {
 	return e.dml.CheckCollationString(name)
+}
+
+// LookupFunction implements execdml.DMLContext.LookupFunction: resolve the
+// function against the engine's registry (execexpr evaluator semantics).
+func (e *Engine) LookupFunction(name string) (bool, bool) {
+	fn, ok := e.Functions().Find(name)
+	if !ok {
+		return false, false
+	}
+	return fn.Type == function.TypeAggregate, true
 }
 
 func (e *Engine) validateLoadedTriggers() error {

@@ -1343,3 +1343,27 @@ Remaining residue (NOT this class, next session):
   - NOTE: the earlier "delete-path overflow leak" hypothesis (T-log T7.3
     residue) is RESOLVED BY the T7.3 allocator fix — re-probe with/without
     interleaved reads is clean in both variants; no separate defect.
+- **T20 tranche (2026-09-11): DML prepare-time name resolution — wherelimit
+  green; update/insert/insert3/delete_pkg 9 assertions fixed, 0 regressions**
+  - ENGINE (internal/execdml/dml_validate.go, new; context.go LookupFunction;
+    exec/dml_forward.go): INSERT/UPDATE/DELETE now resolve every column
+    reference and function name in WHERE/SET at prepare time (resolve.c
+    parity) — "no such column: z", "no such function: nosuchfunc",
+    "misuse of aggregate: max()". NEW./OLD. trigger pseudo-qualifiers are
+    always valid and skip the column lookup (trigger rows carry the view's
+    columns); subquery bodies are skipped (own scope); UPDATE...FROM skipped
+    (join columns).
+  - ENGINE (insert_core.go): named INSERT column lists validate against the
+    table — "table t has no column named z" (build.c
+    sqlite3AddColumnToList).
+  - ENGINE (insert_core_tail.go): the VALUES-tuple arity error for a NAMED
+    column list drops the table prefix — oracle "4 values for 2 columns"
+    (insert-1.3c/d green).
+  - wherelimit GREEN (7/7; T18's parse check + alias masking + this tranche).
+    4-package diff vs HEAD: 21→12 failing assertions, deletions only.
+  - Residues (documented classes): trigger-WHEN unknown-column validation at
+    CREATE (insert3-131/143, update-1071/1083), in-scan DELETE NULL
+    semantics (delete-9.x), trigger-body column refs (insert-419),
+    wherelimit2 5.1-5.6 view-trigger/CTE shapes, update rowid-shift spurious
+    UNIQUE (1039/1057 — pre-existing, NOT caused by this tranche; verified
+    by full-set stash diff).

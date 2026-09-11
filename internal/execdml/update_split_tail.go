@@ -192,6 +192,7 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 			return nil, err
 		}
 		if matched {
+			ch.seq = len(changes)
 			changes = append(changes, *ch)
 			rowMaps = append(rowMaps, matchRow)
 		}
@@ -233,18 +234,16 @@ func (e *DMLExecutor) applyUpdateOrderLimit(changes []updateChange, rowMaps []Ro
 	if len(sorted) == len(changes) {
 		return changes
 	}
-	// Identity is the oldValues SLICE HEADER (buildUpdateChange allocates one
-	// per matched row). Keying on rowID collapses every WITHOUT ROWID change
-	// to the same synthetic rowid 0, so LIMIT kept all rows (wherelimit2-2.x).
-	keep := make(map[*interface{}]bool, len(sorted))
+	// Survivors are identified by their scan-order seq (stable per change;
+	// rowID is synthetic 0 for every WITHOUT ROWID row, which made LIMIT
+	// keep all rows — wherelimit2-2.x).
+	keep := make(map[int]bool, len(sorted))
 	for _, c := range sorted {
-		if len(c.oldValues) > 0 {
-			keep[&c.oldValues[0]] = true
-		}
+		keep[c.seq] = true
 	}
 	var limited []updateChange
 	for _, c := range changes {
-		if len(c.oldValues) == 0 || keep[&c.oldValues[0]] {
+		if keep[c.seq] {
 			limited = append(limited, c)
 		}
 	}
