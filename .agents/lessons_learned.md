@@ -5656,3 +5656,21 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **Explicit-rowid segdir writes**: any INSERT with an explicit rowid is a btree put — a stale rowid cursor silently REPLACES the live row. The merge's cont-rewrite (fresh ftsSegdirNextRowID scan) must raise the call-local cursor (syncSegdirRowID).
 - **Transpiler $var gap**: `set L [expr ...]` followed by `$L` inside execsql braces is emitted as a literal `$L` string (fts4merge 5.9 "datatype mismatch" — unbound param). tcl2go must substitute set-computed vars inside do_test SQL bodies.
 - **Integrity-check 4-byte fragmentation noise**: frigolite's writer reserves a pageSize-4 cell tail and can leave a 4-byte gap that is neither freeblock nor frag-counted ("Fragmentation of 4 bytes reported as 0"); pre-existing on HEAD, separate btree defect (minimal repro: page 512 + INSERT OR REPLACE growing blob).
+- **UPDATE_DELETE_LIMIT (T18)**: the grammar only accepts ORDER BY WITH
+  LIMIT; the "ORDER BY without LIMIT on DELETE/UPDATE" prepare error is a
+  lexical pre-parse check (top-level ORDER BY, no top-level LIMIT, WITH
+  header stripped). UPDATE...LIMIT survivor selection must NOT key on rowID
+  (WR rows all carry synthetic rowid 0 → LIMIT updated everything); use the
+  per-row oldValues slice identity. With a target alias the original table
+  name is invalid as a WHERE/SET qualifier.
+- **group_concat separator (T17)**: func.c applies EACH row's own separator
+  when that row's value joins the accumulator — never store one separator
+  and re-apply it at Finalize (window frames with per-row separators break).
+- **Window column validation (T17)**: PARTITION BY bare columns validate
+  against the local row ONLY when no outer row scope exists
+  (e.outerRow/outerRows) — window ORDER BY and correlated-subquery
+  PARTITION BY legitimately reference outer columns.
+- **Verify dump methodology (T10 lesson)**: when comparing on-disk pages,
+  read page size from the header and cells via the header's cell-pointer
+  offset — a fixed-offset dump produced a false "raw record at offset 0"
+  corruption theory and sent the tranche after the wrong subsystem.
