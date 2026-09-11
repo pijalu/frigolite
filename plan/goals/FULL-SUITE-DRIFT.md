@@ -1108,3 +1108,19 @@ chunksize, altertab2 (harness flatten asymmetry).
   - g6 rtree diagnosis also complete (last group) — class map added to T12
     index (rtree constraint-pushdown, aux columns, rowid resolution,
     float32 rounding, 2nd-gen geometry API, geopoly decision needed).
+- **T15 tranche (2026-09-11): lazy-decode IPK substitution — tableopts,
+  whereA green**
+  - ENGINE (internal/execquery/select_scan_helpers.go
+    fillStructRowRemainingFromTypes): the two-phase lazy decode filled the
+    INTEGER PRIMARY KEY rowid-alias from the rowid in phase 1
+    (applyStructRowAffinity) but the phase-2 remaining-columns decode
+    re-read the stored NULL from the record and OVERWROTE it — any filtered
+    scan showing `SELECT *` (alias column in the remaining set) returned
+    NULL for the rowid alias. Phase 2 now re-applies the substitution after
+    decoding. The indexed-scan variant shares the seam.
+  - tableopts, whereA GREEN serially; regexp1 9→5, indexexpr1/altercons
+    improved (remainders are the DQS-fallback class per the T12 index).
+  - No regression: the failing-assertion sets of select1/select2/select3/
+    select5/where/where2/join/subquery/insert/update/null/distinct are
+    byte-identical before/after (49 bodies, diffed).
+  - Gates: build/vet/SOLID green; quality gate on the changed file clean.

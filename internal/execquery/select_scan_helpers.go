@@ -315,6 +315,17 @@ func (e *SelectEngine) fillStructRowRemainingFromTypes(sr *StructRow, payload []
 	// Same missing-column default handling as fillStructRowFromTypes: rows
 	// written before ALTER TABLE ADD COLUMN need the added column's DEFAULT.
 	e.applyColumnDefaults(sr.Values, colDefs, len(serialTypes))
+	// Re-apply the INTEGER PRIMARY KEY rowid-alias substitution AFTER the
+	// second decode: phase 1 (applyStructRowAffinity) fills the alias column
+	// with the rowid, but the remaining-columns decode here re-reads the
+	// stored NULL from the record and would overwrite it ("SELECT * WHERE
+	// c>1" showed NULL for the alias column — filtered-scan class,
+	// regexp1/indexexpr1/tableopts/whereA).
+	for i := range colDefs {
+		if isIPKRowidAliasCol(colDefs[i]) && sr.Values[i] == nil {
+			sr.Values[i] = wrapAffinityCollated(colDefs[i], sr.RowID)
+		}
+	}
 }
 
 // applyColumnDefaults fills in DEFAULT values for columns that are absent
