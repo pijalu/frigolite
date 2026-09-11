@@ -1565,3 +1565,16 @@ it; see lessons_learned):
     (sumStep p->ovrfl path), NOT the generated expectation and NOT the
     legacy error. Owned by the windowE/fault residue tranche; do not
     attempt without reading src/func.c first.
+  - T25 addendum (oracle evidence, 3.51.0 rc=0): the actual oracle outputs
+    are 9223372036854775807 / 0.5 / -9.22337203685478e+18 /
+    -9.22337203685478e+18 — the testgen "want" (…, 9.22337203685478e+18,
+    1.5, 0.5) was captured from a DIFFERENT SQLite build and matches neither
+    the current oracle nor the legacy overflow-error behavior the engine
+    implements. The generated expectation is itself stale (expectation
+    drift). Correct disposition when this tranche runs: per-assertion
+    oracle-drift N/A for the 5.x family (current-oracle outputs recorded
+    above), engine left on its documented overflow behavior OR aligned to
+    3.51's ovrfl continuation — decided at implementation time against
+    src/func.c sumStep (KBN init-from-iSum + ovrfl clearing on REAL steps;
+    the 0.5/-9.22e18 pattern implies additional window-restart state that
+    needs a dedicated trace).
