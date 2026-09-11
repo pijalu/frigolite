@@ -1547,3 +1547,22 @@ class as SQLite's other mutex.tst-style instrumentation tests.
   pure-Go engine with no test-build VDBE op-counter instrumentation; the
   min/max RESULT assertions in the same files all pass. Same class as the
   `in6-1.5` precedent.
+
+## thread003 / thread004 / thread005 / notify2 (2026-09-12, FULL-SUITE-DRIFT T24)
+
+| package | class | evidence |
+|---------|-------|----------|
+| thread003 | TCL thread harness + pcache bombardment | The file self-gates on `run_thread_tests` (TCL thread infrastructure) and spawns `thread_spawn` workers hammering the pcache module (sqlite3PCacheIsClean etc. — test-build cache instrumentation). No SQL-visible contract exists outside the C thread pool + pcache counters. |
+| thread004 | TCL thread harness | Same `thread_spawn`/`finished()` construct; asserts cache-negotiation internals across threads. |
+| thread005 | TCL thread harness | Same construct; shared-cache thread interleavings via the test build's shared-cache support (G7 class). |
+| notify2 | sqlite3_unlock_notify + sqlite3_blocking_step | The file self-gates on `unlock_notify && shared_cache` and tests `sqlite3_blocking_step()` — a test_thread.c demonstration API wrapping the unlock-notify callback chain. Not an SQLite API; requires the C thread pool + shared cache (G7 class). |
+
+**Disposition**: skiptestfiles thread003/004/005/notify2 N-A (TCL-thread +
+test-build APIs). The ENGINE-VISIBLE contract those files guard —
+multi-connection interleaved access stays correct (writers serialize with
+"database is locked", readers observe consistent snapshots, integrity holds
+after concurrency) — is pinned natively by
+`frigolite_thread_concurrency_native_test.go`
+(TestNativeThreadConcurrentWritersSerialize, TestNativeThreadReaderDuringWrites;
+`go test -race` clean), which is the Go-surface equivalent of running the
+workloads concurrently.
