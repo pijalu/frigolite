@@ -17,8 +17,6 @@ func Test_e_resolve(t *testing.T) {
 	_ = os.Remove("test.db")
 	_ = os.Remove("test.db2")
 	_ = os.Remove("test.db3")
-	_ = os.Remove("test.db")
-	_ = os.Remove("file.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)

@@ -15,7 +15,6 @@ import (
 
 func Test_csv01(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("csv01.csv")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -313,6 +312,7 @@ func Test_csv01(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	os.Remove("csv01.csv")
 	_ = os.WriteFile("csv01.csv", nil, 0644)
 	fd = "csv01.csv"
 	_ = fd // suppress unused warning

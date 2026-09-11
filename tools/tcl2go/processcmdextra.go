@@ -443,13 +443,15 @@ func (tp *transpiler) processDeleteFile(args []tcl.RawWord) {
 			tp.pendingFileReset = make(map[string]bool)
 		}
 		tp.pendingFileReset[a.Text] = true
-		// This body remove supersedes the preamble's hoisted pre-delete of
-		// the same path (pragma2: file-top `delete_file test.db` hoists a
-		// genPreDeleted entry; the mid-file 4.1 reset emits its own
-		// os.Remove; without clearing, the later 5.1 `forcedelete test.db`
-		// would be silently swallowed by the stale entry and the reopen
-		// would see the old database).
-		delete(genPreDeleted, a.Text)
+		// This body remove supersedes one hoisted pre-Open delete of the
+		// same path (pragma2: the file-top `delete_file test.db` hoists an
+		// entry; the mid-file 4.1 reset emits its own os.Remove; without
+		// decrementing, the later 5.1 `forcedelete test.db` would be
+		// silently swallowed by the stale entry and the reopen would see
+		// the old database).
+		if genPreDeleted[a.Text] > 0 {
+			genPreDeleted[a.Text]--
+		}
 	}
 }
 

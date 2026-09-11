@@ -71,10 +71,10 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 	// Emit them pre-Open and consume them (genPreDeleted) so the original
 	// site does not delete the freshly opened file a second time
 	// (corrupt.test 1.1 wrote into a file deleted behind the open handle).
-	genPreDeleted = map[string]bool{}
+	genPreDeleted = map[string]int{}
 	genPreDeletedList = sourceLeadingDeletes(src)
 	for _, p := range genPreDeletedList {
-		genPreDeleted[p] = true
+		genPreDeleted[p]++
 	}
 
 	// Parse TCL into commands
@@ -850,10 +850,14 @@ func knownGlobalVars() map[string]bool {
 // variable names that are targets of sqlite3 commands (these are *frigolite.DB,
 // not string, so must NOT be pre-declared as string).
 
-// genPreDeleted holds the paths of leading forcedelete/file-delete commands
-// already emitted before the preamble Open for the file being generated
+// genPreDeleted counts the hoisted pre-Open deletes per path (a file may
+// delete the same path several times in its leading region — delete4.test's
+// do_execsql_test-only body makes the whole file "head", so mid-file
+// forcedeletes land in the list too). Consumption by a body occurrence must
+// decrement the count, not flip a bool: with two hoisted entries only ONE
+// body occurrence is the duplicate, and later real deletes must still emit.
 // (single-threaded generation; reset per file in generateTestFile).
-var genPreDeleted map[string]bool
+var genPreDeleted map[string]int
 var genPreDeletedList []string
 
 // sourceLeadingDeletes scans the source region before the first do_test /
@@ -861,9 +865,20 @@ var genPreDeletedList []string
 // returns their literal path arguments.
 func sourceLeadingDeletes(src string) []string {
 	head := src
-	if i := strings.Index(src, "\ndo_test "); i >= 0 {
-		head = src[:i]
+	// The leading region ends at the FIRST test-block command of any flavor
+	// (do_test, do_execsql_test, do_catchsql_test, do_eqp_test, ...).
+	// Matching only "\ndo_test " left do_execsql_test-driven files
+	// (delete4.test) with their WHOLE body classified as head: every
+	// mid-file forcedelete was hoisted into the preamble and the body
+	// occurrences consumed/silenced, so close/forcedelete/reopen resets
+	// reused stale databases ("table t1 already exists").
+	headEnd := len(src)
+	for _, marker := range []string{"\ndo_test ", "\ndo_execsql_test ", "\ndo_catchsql_test ", "\ndo_eqp_test ", "\ndo_realnum_test ", "\ndo_nullid_test "} {
+		if i := strings.Index(src, marker); i >= 0 && i < headEnd {
+			headEnd = i
+		}
 	}
+	head = src[:headEnd]
 	var paths []string
 	for _, line := range strings.Split(head, "\n") {
 		t := strings.TrimSpace(line)

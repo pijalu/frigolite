@@ -1189,8 +1189,61 @@ func bodyEndsWithExecsqlSelect(body string) bool {
 	if len(cmds) != 1 || len(cmds[0]) < 2 || cmds[0][0].Text != "execsql" {
 		return false
 	}
-	sql := strings.ToUpper(strings.TrimSpace(cmds[0][1].Text))
-	return strings.HasPrefix(sql, "SELECT") || strings.HasPrefix(sql, "WITH") || strings.HasPrefix(sql, "VALUES")
+	return sqlBatchEndsWithRowStmt(cmds[0][1].Text)
+}
+
+// sqlBatchEndsWithRowStmt reports whether the last statement of a
+// multi-statement SQL batch produces rows (SELECT/WITH/VALUES). TCL
+// `catch {execsql {END TRANSACTION; SELECT ...}} msg` binds the batch's
+// row output to msg (tclsqlite.c appends every statement's rows to the
+// command result), so a batch that ENDS in a row-producing statement needs
+// the same msg wiring as a single SELECT (trans-4.9).
+func sqlBatchEndsWithRowStmt(sqlText string) bool {
+	last := ""
+	cur := strings.Builder{}
+	inS, inD := false, false // ' and " quotes
+	for i := 0; i < len(sqlText); i++ {
+		c := sqlText[i]
+		switch {
+		case inS:
+			cur.WriteByte(c)
+			if c == '\'' {
+				inS = false
+			}
+		case inD:
+			cur.WriteByte(c)
+			if c == '"' {
+				inD = false
+			}
+		case c == '\'':
+			inS = true
+			cur.WriteByte(c)
+		case c == '"':
+			inD = true
+			cur.WriteByte(c)
+		case c == '-':
+			// -- comment: skip to end of line
+			if i+1 < len(sqlText) && sqlText[i+1] == '-' {
+				for i < len(sqlText) && sqlText[i] != '\n' {
+					i++
+				}
+				continue
+			}
+			cur.WriteByte(c)
+		case c == ';':
+			if strings.TrimSpace(cur.String()) != "" {
+				last = cur.String()
+			}
+			cur.Reset()
+		default:
+			cur.WriteByte(c)
+		}
+	}
+	if strings.TrimSpace(cur.String()) != "" {
+		last = cur.String()
+	}
+	last = strings.ToUpper(strings.TrimSpace(last))
+	return strings.HasPrefix(last, "SELECT") || strings.HasPrefix(last, "WITH") || strings.HasPrefix(last, "VALUES")
 }
 
 // scope, assigning the TCL result code (1/0) to varName and the error message

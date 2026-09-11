@@ -207,6 +207,14 @@ func (e *Engine) runAutoVacuumCommitAll() error {
 // --- BEGIN TRANSACTION ---
 
 func (e *Engine) execBegin(stmt *sql.BeginStmt) *Result {
+	// build.c sqlite3BeginTransaction: a BEGIN while a transaction is
+	// active errors before any lock work ("cannot start a transaction
+	// within a transaction") — db->autoCommit==0 is checked first, so
+	// nested BEGIN IMMEDIATE/EXCLUSIVE report this, not a lock error
+	// (trans-4.x, avtrans, lock3-3.x).
+	if e.tx.inTransaction {
+		return &Result{Error: fmt.Errorf("cannot start a transaction within a transaction")}
+	}
 	// Lock acquisition happens BEFORE any transaction state changes
 	// (sqlite3BeginTransaction -> sqlite3BtreeBeginTrans -> pager lock
 	// request; SQLITE_BUSY aborts the BEGIN with no side effects).

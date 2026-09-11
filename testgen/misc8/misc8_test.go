@@ -15,8 +15,6 @@ import (
 
 func Test_misc8(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db")
-	_ = os.Remove("test2.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -160,6 +158,7 @@ func Test_misc8(t *testing.T) {
 		}
 	}
 	db.Close()
+	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

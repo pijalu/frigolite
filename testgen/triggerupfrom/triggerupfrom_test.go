@@ -14,8 +14,6 @@ import (
 
 func Test_triggerupfrom(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db2")
-	_ = os.Remove("test.db2")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -100,6 +98,7 @@ func Test_triggerupfrom(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	os.Remove("test.db2")
 	{ // "2.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t3(x, y);\n  INSERT INTO aux.t3 VALUES('x', 'y');\n")
 		if _res.Error != nil {

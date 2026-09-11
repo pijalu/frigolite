@@ -13,7 +13,6 @@ import (
 
 func Test_indexfault(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
-	_ = os.Remove("test.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -187,6 +186,7 @@ func Test_indexfault(t *testing.T) {
 		_r = ""
 		db.Close()
 	}
+	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -212,11 +212,9 @@ func Test_indexfault(t *testing.T) {
 	_ = nRead // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "4.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
-		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-		_ = err
-		db.ResetChangesCounters()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(x) ")

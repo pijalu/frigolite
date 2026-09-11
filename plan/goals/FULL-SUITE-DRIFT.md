@@ -917,3 +917,31 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
   - Regen delta: exactly 1 line (pragma2: os.Remove("test.db") before the
     5.1 reopen). Gates: build/vet/SOLID green; standard JSON suite
     unchanged (same 7 top-level failures as HEAD); pragma2 serial 0.43s.
+- **T8 tranche (2026-09-11): nested-BEGIN + transpiler file-reset sweep —
+  trans/avtrans/delete4/transitive1/triggerupfrom GREEN**
+  - ENGINE (internal/exec/transaction.go execBegin): BEGIN inside an active
+    transaction now errors "cannot start a transaction within a transaction"
+    BEFORE any lock work (build.c sqlite3BeginTransaction's
+    db->autoCommit==0 check; oracle-verified 3.51.0). Closes the g7
+    nested-BEGIN class (trans-4.6, avtrans, lock3-3.x). trans-4.9's residual
+    empty-msg was TRANSPILE: `catch {execsql {END; SELECT ...}}` binds the
+    batch's ROWS to msg (tclsqlite.c), but bodyEndsWithExecsqlSelect only
+    matched single statements — added sqlBatchEndsWithRowStmt (comment-aware
+    scan; the LAST statement of the batch decides).
+  - TRANSPILE (tools/tcl2go gen.go sourceLeadingDeletes): the leading-region
+    scan stopped only at "\\ndo_test ", so do_execsql_test-driven files
+    (delete4.test) had their WHOLE body classified as head — every mid-file
+    forcedelete was hoisted into the preamble and the body occurrences
+    silenced, so close/forcedelete/reopen resets reused stale databases
+    ("table t1 already exists"). The scan now stops at the first
+    do_execsql_test/do_catchsql_test/do_eqp_test/do_realnum_test/
+    do_nullid_test marker too. genPreDeleted became a COUNT map (a path may
+    legitimately be hoisted several times) consumed by processFileDelete and
+    processDeleteFile alike.
+  - Regen delta: 16 files. GREEN flips: trans, avtrans, delete4,
+    transitive1, triggerupfrom (+ lock3 re-confirmed). Still-failing among
+    the touched set (csv01, e_reindex, e_resolve, misc8, zipfile, lock,
+    savepoint) all pre-existing reds with diagnosed root causes (g1/g2/g4
+    reports). Gates: build/vet/SOLID green; staticcheck unchanged (10
+    pre-existing findings in internal/exec + tools/tcl2go); -race native
+    suite green.

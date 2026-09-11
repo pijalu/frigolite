@@ -19,10 +19,6 @@ func Test_zipfile(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
 	_ = os.Remove("test_unzip")
 	_ = os.Remove("test.zip")
-	_ = os.Remove("test.zip")
-	_ = os.Remove("dirname")
-	_ = os.Remove("dirname2")
-	_ = os.Remove("test.zip")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -521,6 +517,8 @@ func Test_zipfile(t *testing.T) {
 	// do_zip_tests 2.4a test.zip (unsupported command, not transpiled)
 	if tclBool(tclBool01(vtab.TclVarExists("UNZIP", ""))) {
 		{ // do_test "2.5.1"
+			os.Remove("dirname")
+			os.Remove("dirname2")
 			if tcl_platform_platform == "unix" {
 				vtab.TclVarSet("null", "", "/dev/null")
 				null = "/dev/null"
