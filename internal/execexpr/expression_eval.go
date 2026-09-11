@@ -119,42 +119,6 @@ func addValues(a, b interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("cannot add non-numeric values")
 }
 
-// hasRealNumericPrefix reports whether a TEXT/BLOB operand's leading numeric
-// prefix is a REAL (a '.' or exponent before any non-numeric junk): SQLite's
-// numericType classifies such operands MEM_Real, which promotes arithmetic to
-// the REAL path even when the other operand is an integer.
-func hasRealNumericPrefix(v interface{}) bool {
-	s, ok := v.(string)
-	if !ok {
-		if b, ok2 := v.([]byte); ok2 {
-			s = string(b)
-		} else {
-			return false
-		}
-	}
-	if _, isInt := ToIntNumeric(v); isInt {
-		return false
-	}
-	_, isReal := parseNumericPrefix(s)
-	return isReal
-}
-
-// arithIntOperand coerces one arithmetic operand to int64 the way
-// sqlite3VdbeIntValue does: numbers pass through, TEXT/BLOB contribute
-// their leading numeric prefix (or 0 when there is none).
-func arithIntOperand(v interface{}) int64 {
-	switch x := v.(type) {
-	case int64:
-		return x
-	case float64:
-		return int64(x)
-	}
-	if n, ok := ToIntNumeric(v); ok {
-		return n
-	}
-	return 0
-}
-
 func subValues(a, b interface{}) (interface{}, error) {
 	// Empty/whitespace/dot strings are integer 0 in SQLite arithmetic.
 	if IsZeroString(a) || IsZeroString(b) {
