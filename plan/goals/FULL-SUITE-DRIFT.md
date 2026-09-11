@@ -899,3 +899,21 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
     when no read interleaves). Not hit by the TCL shape (integrity_check
     runs between deletes); needs the same btree.c-parity treatment as the
     delete-path overflow free (findOverflowChain caller in the DELETE path).
+- **T7.4 CLOSED (2026-09-11): pragma2 GREEN — stale genPreDeleted transpiler bug**
+  - The 5.1 failure ("file is not a database" at the post-4.8 reopen) was
+    NOT pager state: the TCL resets with `db close; forcedelete test.db;
+    sqlite3 db test.db`, but the generated test never emitted the remove —
+    5.1 then reopened the OLD 1024-page database and the page_size=16384
+    setter (fresh-db-only) misfired into header validation.
+  - Root cause (tools/tcl2go): the preamble hoists leading file deletes into
+    the genPreDeleted registry; processFileDelete (forcedelete) consumes a
+    matching entry ONCE, but processDeleteFile (delete_file — which emits its
+    own os.Remove for every arg) never cleared the registry. pragma2's
+    file-top `delete_file test.db` therefore left a stale entry that
+    silently swallowed the mid-file 5.1 `forcedelete test.db`. Fix:
+    processDeleteFile deletes its args from genPreDeleted (the body remove
+    supersedes the hoisted one). Same class as the walpersist
+    "forcedelete -wal -shm dropped" gap noted in the g7 diagnosis.
+  - Regen delta: exactly 1 line (pragma2: os.Remove("test.db") before the
+    5.1 reopen). Gates: build/vet/SOLID green; standard JSON suite
+    unchanged (same 7 top-level failures as HEAD); pragma2 serial 0.43s.
