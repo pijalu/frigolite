@@ -233,13 +233,18 @@ func (e *DMLExecutor) applyUpdateOrderLimit(changes []updateChange, rowMaps []Ro
 	if len(sorted) == len(changes) {
 		return changes
 	}
-	keep := make(map[int64]bool, len(sorted))
+	// Identity is the oldValues SLICE HEADER (buildUpdateChange allocates one
+	// per matched row). Keying on rowID collapses every WITHOUT ROWID change
+	// to the same synthetic rowid 0, so LIMIT kept all rows (wherelimit2-2.x).
+	keep := make(map[*interface{}]bool, len(sorted))
 	for _, c := range sorted {
-		keep[c.rowID] = true
+		if len(c.oldValues) > 0 {
+			keep[&c.oldValues[0]] = true
+		}
 	}
 	var limited []updateChange
 	for _, c := range changes {
-		if keep[c.rowID] {
+		if len(c.oldValues) == 0 || keep[&c.oldValues[0]] {
 			limited = append(limited, c)
 		}
 	}

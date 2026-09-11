@@ -42,6 +42,16 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 		// Not a table — route through INSTEAD OF UPDATE triggers on a view.
 		return e.updateOnMissingTable(s, err)
 	}
+	// Alias masking: with "UPDATE t1 AS a", the original table name is not a
+	// valid qualifier in WHERE/SET (wherelimit-0.5.2).
+	exprs := make([]sql.Expr, 0, len(s.Assignments)+1)
+	for _, a := range s.Assignments {
+		exprs = append(exprs, a.Value)
+	}
+	exprs = append(exprs, s.Where)
+	if res := e.validateDMLAliasQualifier(s.Table, s.Alias, exprs); res != nil {
+		return res
+	}
 
 	// Publish the statement's ON CONFLICT policy for trigger-body steps
 	// without an explicit OR clause (SQLite trigger.c codeTriggerProgram).

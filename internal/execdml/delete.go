@@ -223,6 +223,12 @@ func (e *DMLExecutor) withoutRowidPKIdx(tableName, createSQL string, colDefs []s
 // route). It also returns the prior DMLCtx for trigger-scope restoration.
 func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *DatabaseContext, []sql.ColumnDef, *btree.BTree, *Result, *DatabaseContext) {
 	tableEntry, dbCtx, err := e.ctx.FindTable(s.Table)
+	// Alias masking for DELETE ("DELETE FROM t1 AS a WHERE t1.x=1").
+	if err == nil {
+		if res := e.validateDMLAliasQualifier(s.Table, s.Alias, []sql.Expr{s.Where}); res != nil {
+			return nil, nil, nil, nil, res, nil
+		}
+	}
 	if err != nil {
 		// Not a table — route through INSTEAD OF DELETE triggers on a view.
 		viewEntry, _, viewErr := e.ctx.FindView(s.Table)

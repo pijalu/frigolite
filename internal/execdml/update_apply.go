@@ -2,9 +2,11 @@
 package execdml
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -607,4 +609,36 @@ func (e *DMLExecutor) updateTouchesUniqueColumn(ch updateChange, colIndex map[st
 		}
 	}
 	return false
+}
+
+// validateDMLAliasQualifier enforces SQLite's alias masking (wherelimit-0.5.2):
+// when a DELETE/UPDATE target carries an alias ("UPDATE t1 AS a"), the
+// ORIGINAL table name is no longer a valid qualifier in WHERE/SET —
+// "UPDATE t1 AS a SET y=1 WHERE t1.x=1" errors "no such column: t1.x".
+func (e *DMLExecutor) validateDMLAliasQualifier(tableName, alias string, exprs []sql.Expr) *Result {
+	if alias == "" || strings.EqualFold(alias, tableName) {
+		return nil
+	}
+	for _, ex := range exprs {
+		if ex == nil {
+			continue
+		}
+		var bad string
+		execquery.WalkExprFull(ex, func(n sql.Expr) {
+			if bad != "" {
+				return
+			}
+			switch n.(type) {
+			case *sql.Subquery, *sql.ExistsExpr:
+				return // subqueries resolve against their own scope
+			}
+			if ref, ok := n.(*sql.ColumnRef); ok && strings.EqualFold(ref.Table, tableName) {
+				bad = ref.Table + "." + ref.Name
+			}
+		})
+		if bad != "" {
+			return &Result{Error: fmt.Errorf("no such column: %s", bad)}
+		}
+	}
+	return nil
 }

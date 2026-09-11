@@ -1309,3 +1309,24 @@ Remaining residue (NOT this class, next session):
   table, INSERT OR REPLACE of a growing blob ×16. Reproduces on HEAD
   (pre-fix) — pre-existing, writer/checker convention mismatch (writer
   reserves a pageSize-4 cell tail the checker counts as unaccounted).
+- **T18 tranche (2026-09-11): wherelimit GREEN, wherelimit2 5→3**
+  - ENGINE (internal/parse/update_delete_limit.go, new): the
+    SQLITE_ENABLE_UPDATE_DELETE_LIMIT prepare-time rule (delete.c:201 /
+    update.c:212) — a DELETE/UPDATE with a top-level ORDER BY and no
+    top-level LIMIT errors "ORDER BY without LIMIT on DELETE"/"on UPDATE".
+    Lexical scan (strings/comments/parens aware, WITH header stripped)
+    before the LALR parse, whose tables only accept ORDER BY with LIMIT.
+  - ENGINE (internal/execdml/update_split_tail.go applyUpdateOrderLimit):
+    LIMIT-window survivors were keyed by rowID — WITHOUT ROWID changes all
+    carry the synthetic rowid 0, so every change matched the keep-set and
+    LIMIT updated ALL rows (wherelimit2-2.x). Keyed by the oldValues slice
+    identity instead (unique per matched row).
+  - ENGINE (internal/execdml/update_apply.go validateDMLAliasQualifier,
+    wired into update_split.go + delete.go): with "UPDATE t1 AS a", the
+    original table name is not a valid WHERE/SET qualifier — "no such
+    column: t1.x" (wherelimit-0.5.2).
+  - wherelimit GREEN (7/7). wherelimit2 residue (3 assertions, exotic):
+    ORDER BY/LIMIT through INSTEAD OF view triggers (5.1-5.5) and a
+    CTE-aliased DELETE target with rank()OVER() in ORDER BY (5.6).
+  - No regression: update/update2/without_rowid3/without_rowid4/delete4/
+    trans failing sets identical to HEAD. Gates: build/vet/SOLID green.

@@ -165,6 +165,15 @@ func parseSQLMode(input string, schemaMode bool) ([]sql.Stmt, error) {
 	// AST's Returning/HasReturning fields (multi-expression RETURNING folds
 	// into a RowValue). No RD fallback is needed for RETURNING.
 	origLen := len(pre.input)
+	// UPDATE_DELETE_LIMIT prepare-time rule (delete.c:201 / update.c:212): a
+	// DELETE/UPDATE with a top-level ORDER BY but no LIMIT is a prepare-time
+	// error — "ORDER BY without LIMIT on DELETE"/"on UPDATE". The LALR
+	// grammar only accepts ORDER BY together with LIMIT, so without this
+	// check the statement would die as a generic 'near "ORDER": syntax
+	// error' (wherelimit-0.1/0.2/0.3).
+	if errMsg := updateDeleteLimitError(pre.input); errMsg != "" {
+		return nil, fmt.Errorf("%s", errMsg)
+	}
 	stmts, err := runLALRParse(ensureTrailingSemicolon(pre.input), schemaMode, pre.parenSpans, origLen)
 	if err != nil {
 		return stmts, err
