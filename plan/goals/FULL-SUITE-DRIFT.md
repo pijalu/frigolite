@@ -1124,3 +1124,20 @@ chunksize, altertab2 (harness flatten asymmetry).
     select5/where/where2/join/subquery/insert/update/null/distinct are
     byte-identical before/after (49 bodies, diffed).
   - Gates: build/vet/SOLID green; quality gate on the changed file clean.
+- **T16 tranche (2026-09-11): TEXT real-prefix arithmetic promotion —
+  tkt_a8a0d2996a green**
+  - ENGINE (internal/execexpr/expression_eval.go addValues): vdbe.c
+    numericType classifies a TEXT/BLOB operand whose leading numeric prefix
+    is a REAL ("4.5") as MEM_Real, which forces the REAL add path even when
+    the other operand is an integer. The engine's both-integers shortcut
+    never consulted the text prefix type, so '4.5'+0 was INTEGER 0. Added
+    hasRealNumericPrefix promotion (integer prefix and no-prefix operands
+    keep the int path — oracle-verified: typeof('100x'+1)=integer,
+    typeof(0+'abc')=integer, typeof(0+x'00')=integer, '4'+3 integer,
+    '100x'+'4.5y'=104.5 on 3.51.0; 0+matchinfo(...) stays INTEGER 0).
+  - tkt_a8a0d2996a GREEN. func4 unchanged (its affinity-saturation class is
+    separate). func3/nan/randexpr1/misc8 failing sets identical to HEAD.
+  - RESIDUE: subtract/multiply/divide paths may need the same real-prefix
+    promotion for non-ticket shapes ('2.5'*2); subValues has deliberate
+    int-prefix precision handling (tkt_a8a0d2996) — extend carefully with
+    oracle evidence.

@@ -97,6 +97,18 @@ func addValues(a, b interface{}) (interface{}, error) {
 	_, aReal := a.(float64)
 	_, bReal := b.(float64)
 	if !aReal && !bReal {
+		// vdbe.c numericType: a TEXT/BLOB operand whose numeric prefix is a
+		// REAL ("4.5") carries MEM_Real, forcing REAL arithmetic — '4.5'+0
+		// is 4.5 REAL, not INTEGER 0 (tkt_a8a0d2996a). An integer prefix
+		// ("100x") or no prefix keeps the int path (0+matchinfo(...) stays
+		// INTEGER 0, fts3corrupt6 1.1).
+		if hasRealNumericPrefix(a) || hasRealNumericPrefix(b) {
+			af, aok := toFloat(a)
+			bf, bok := toFloat(b)
+			if aok && bok {
+				return addFloatValues(af, bf, a, b)
+			}
+		}
 		return addInt64(arithIntOperand(a), arithIntOperand(b))
 	}
 	af, aok := toFloat(a)
@@ -105,6 +117,26 @@ func addValues(a, b interface{}) (interface{}, error) {
 		return addFloatValues(af, bf, a, b)
 	}
 	return nil, fmt.Errorf("cannot add non-numeric values")
+}
+
+// hasRealNumericPrefix reports whether a TEXT/BLOB operand's leading numeric
+// prefix is a REAL (a '.' or exponent before any non-numeric junk): SQLite's
+// numericType classifies such operands MEM_Real, which promotes arithmetic to
+// the REAL path even when the other operand is an integer.
+func hasRealNumericPrefix(v interface{}) bool {
+	s, ok := v.(string)
+	if !ok {
+		if b, ok2 := v.([]byte); ok2 {
+			s = string(b)
+		} else {
+			return false
+		}
+	}
+	if _, isInt := ToIntNumeric(v); isInt {
+		return false
+	}
+	_, isReal := parseNumericPrefix(s)
+	return isReal
 }
 
 // arithIntOperand coerces one arithmetic operand to int64 the way
