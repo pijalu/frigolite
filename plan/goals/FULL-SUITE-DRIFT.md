@@ -945,3 +945,37 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
     reports). Gates: build/vet/SOLID green; staticcheck unchanged (10
     pre-existing findings in internal/exec + tools/tcl2go); -race native
     suite green.
+- **T9 tranche (2026-09-11): parser xfullname rule-123 fix + DML alias
+  plumbing + WR upsert DO UPDATE write path — upsert2/upsert3 green**
+  - PARSER (internal/parse/parser_rules2.go rule123): the grammar's rule 123
+    is `xfullname ::= nm DOT nm AS nm` (sql_tables.go: lhs 265, nrhs 5) but
+    its handler was the joinop-flavored action reading RHS1 as a JOIN_KW —
+    every schema-qualified aliased DML target ("INSERT INTO main.t1 AS
+    t2(a,b)") produced a zero joinOp as the table name ("no such table:
+    { false false}"). Fixed to yield "schema.table". Diagnosed via
+    stack-trace + unhandled-rule tracing (the sibling fallback diagnostics
+    are removed).
+  - PARSER alias plumbing: the xfullname productions DROP the AS alias
+    (the value is a plain "schema.table" string), so InsertStmt/UpdateStmt/
+    DeleteStmt .Alias stayed empty and DO UPDATE alias references failed
+    ("no such column: t2.c" — upsert3 class). Added Parser.pendingDMLAlias
+    (set by rules 122/123, read-and-cleared by the DML statement rules
+    152/159/164/165), replacing the RawSQL re-scan workaround path
+    (fixupDMLTableAlias remains for re-parsed schema text).
+  - ENGINE WR (internal/execdml/insert.go writeUpdatedRow): the upsert
+    DO UPDATE write path was rowid-only — WITHOUT ROWID tables now route
+    through the PK-identity delete + PK-first CellIndexLeaf re-insert
+    (mirroring writeUpdateCell's WR branch). This was the source of the
+    "database disk image is malformed" corruption after DO UPDATE on a WR
+    table (upsert2-104 etc.).
+  - ENGINE upsert alias row keys: buildUpdatedRow/upsertWhereAllows expose
+    alias-qualified keys ("t2.c") alongside bare/excluded keys so SET and
+    WHERE expressions resolve the target alias.
+  - Status: upsert2, upsert3 GREEN (were corruption-failing);
+    without_rowid3 12→3 failing assertions (remainder: WR FK ON UPDATE
+    CASCADE + CHECK-on-cascade, next tranche); upsert1 2 fails (600/610 WR
+    INSERT column-list→PK-first storage mapping), upsert4 2 fails (WR DO
+    UPDATE unique-check shapes), upsert5 improved, conflict2/without_rowid4
+    unchanged (WR PK/UNIQUE enforcement on UPDATE — next tranche).
+    Oracle-verified against sqlite3 3.51.0 for the DO UPDATE WHERE/SET
+    alias shapes.

@@ -413,18 +413,27 @@ func rule121(ruleNo int, p *Parser) interface{} {
 
 }
 
-// Rule 122: fullname ::= nm AS nm — table alias. The value is the
-// TABLE NAME (the alias is consumed); the join-op productions are
+// Rule 122: xfullname ::= nm AS nm — table alias. The value is the
+// TABLE NAME (the alias is consumed into pendingDMLAlias so the DML
+// statement rule can set stmt.Alias); the join-op productions are
 // separate (rules 124+).
 func rule122(ruleNo int, p *Parser) interface{} {
+	p.pendingDMLAlias = getString(getRHS(p, ruleNo, 3))
 	return getString(getRHS(p, ruleNo, 1))
 
 }
 
-// Rule 123: joinop ::= JOIN_KW nm JOIN
+// Rule 123: xfullname ::= nm DOT nm AS nm
 func rule123(ruleNo int, p *Parser) interface{} {
-	return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
-
+	// Rule 123: xfullname ::= nm DOT nm AS nm — schema-qualified target with
+	// an alias ("INSERT INTO main.t1 AS t2(a,b)"). The alias is consumed
+	// (SQLite keeps it in SrcList->a[0].zAlias); the value is the
+	// "schema.table" name. (This was mis-handled as a joinop production,
+	// leaking a zero joinOp into the table-name slot — "%v" printed
+	// "{ false false}" and every schema-qualified aliased DML target failed
+	// with "no such table".)
+	p.pendingDMLAlias = getString(getRHS(p, ruleNo, 5))
+	return getString(getRHS(p, ruleNo, 1)) + "." + getString(getRHS(p, ruleNo, 3))
 }
 
 // Rule 124: joinop ::= COMMA|JOIN
@@ -632,6 +641,8 @@ func rule152(ruleNo int, p *Parser) interface{} {
 	tbl := getString(getRHS(p, ruleNo, 4))
 	wr := getWhereRet(getRHS(p, ruleNo, 6))
 	stmt := &sql.DeleteStmt{Table: tbl, CTEs: getCTEDefs(getRHS(p, ruleNo, 1))}
+	stmt.Alias = p.pendingDMLAlias
+	p.pendingDMLAlias = ""
 	if io := getString(getRHS(p, ruleNo, 5)); io != "" {
 		stmt.IndexedBy = io
 	}
@@ -696,6 +707,8 @@ func rule159(ruleNo int, p *Parser) interface{} {
 		Assignments: setlist,
 		CTEs:        getCTEDefs(getRHS(p, ruleNo, 1)),
 	}
+	stmt.Alias = p.pendingDMLAlias
+	p.pendingDMLAlias = ""
 	if io := getString(getRHS(p, ruleNo, 5)); io != "" {
 		stmt.IndexedBy = io
 	}
@@ -800,6 +813,8 @@ func rule164(ruleNo int, p *Parser) interface{} {
 		OrConflict: strings.ToUpper(cmd),
 		CTEs:       getCTEDefs(getRHS(p, ruleNo, 1)),
 	}
+	stmt.Alias = p.pendingDMLAlias
+	p.pendingDMLAlias = ""
 	// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause and/or
 	// a RETURNING projection.
 	if uv := getUpsertVal(getRHS(p, ruleNo, 7)); uv != nil {
@@ -827,6 +842,8 @@ func rule165(ruleNo int, p *Parser) interface{} {
 		OrFail:     strings.EqualFold(cmd, "FAIL"),
 		OrConflict: strings.ToUpper(cmd),
 	}
+	stmt.Alias = p.pendingDMLAlias
+	p.pendingDMLAlias = ""
 	// The returning nonterminal (RHS 8) is either nil (rule 166) or a
 	// []sql.SelectColumn from `RETURNING selcollist` (rule 167).
 	if cols, ok := getRHS(p, ruleNo, 8).([]sql.SelectColumn); ok && len(cols) > 0 {

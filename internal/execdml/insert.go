@@ -537,6 +537,9 @@ func (e *DMLExecutor) upsertWhereAllows(tableEntry *schema.Entry, colDefs []sql.
 	for _, col := range colDefs {
 		if idx, ok := colIndex[col.Name]; ok && idx < len(existingValues) {
 			row[col.Name] = existingValues[idx]
+			if dmlName != "" && !strings.EqualFold(dmlName, col.Name) {
+				row[dmlName+"."+col.Name] = existingValues[idx]
+			}
 		}
 		if !excludedShadowed {
 			if idx, ok := colIndex[col.Name]; ok && idx < len(values) {
@@ -554,21 +557,45 @@ func (e *DMLExecutor) upsertWhereAllows(tableEntry *schema.Entry, colDefs []sql.
 }
 
 // writeUpdatedRow deletes the old row, fires BEFORE UPDATE triggers, writes the
-// updated row, and fires AFTER UPDATE triggers.
+// updated row, and fires AFTER UPDATE triggers. WITHOUT ROWID tables route
+// through the PK-identity delete + PK-first index-btree re-insert (mirroring
+// writeUpdateCell's WR branch) — rowid-keyed delete/insert on a WR table
+// corrupts the btree (upsert1/2/4/5 DO UPDATE "database disk image is
+// malformed").
 func (e *DMLExecutor) writeUpdatedRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, updated []interface{}, existingRowID int64, existingValues []interface{}) *Result {
-	record, err := storage.EncodeRecord(updated)
-	if err != nil {
-		return &Result{Error: err}
-	}
-
-	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
-	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		return cell.RowID == existingRowID
-	})
-	if err != nil || deleted == 0 {
-		return &Result{Error: fmt.Errorf("upsert: row not found for update")}
-	}
+	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	dmlPg := e.dmlPager(tableEntry.Name)
+
+	var record []byte
+	var cell storage.CellType
+	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	if withoutRowid {
+		// PK-addressed delete: the WR row lives in the index btree keyed by
+		// its PK columns, not by any rowid.
+		if _, err := e.deleteRowsByIdentity(tableEntry, colDefs, nil, [][]interface{}{existingValues}, nil); err != nil {
+			return &Result{Error: err}
+		}
+		var err error
+		record, err = storage.EncodeRecord(ReorderToStorage(updated, WithoutRowidStorageOrder(tableEntry.SQL, colDefs)))
+		if err != nil {
+			return &Result{Error: err}
+		}
+		cell = storage.CellIndexLeaf
+		tree = e.wrTableBTree(dmlPg, tableEntry, colDefs)
+	} else {
+		var err error
+		record, err = storage.EncodeRecord(updated)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		cell = storage.CellTableLeaf
+		deleted, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+			return c.RowID == existingRowID
+		})
+		if err != nil || deleted == 0 {
+			return &Result{Error: fmt.Errorf("upsert: row not found for update")}
+		}
+	}
 	if tree.RootPage() != e.ctx.RootPagePg(dmlPg, tableEntry.Name, tableEntry.RootPage) {
 		e.ctx.UpdateRootPagePg(dmlPg, tableEntry.Name, tree.RootPage())
 	}
@@ -583,12 +610,12 @@ func (e *DMLExecutor) writeUpdatedRow(tableEntry *schema.Entry, colDefs []sql.Co
 		}
 	}
 
-	cell := &storage.Cell{
-		Type:    storage.CellTableLeaf,
+	newCell := &storage.Cell{
+		Type:    cell,
 		RowID:   existingRowID,
 		Payload: record,
 	}
-	if err := tree.InsertCell(cell); err != nil {
+	if err := tree.InsertCell(newCell); err != nil {
 		return &Result{Error: err}
 	}
 	// A split during InsertCell may have changed the tree root; persist it so
@@ -640,6 +667,12 @@ func (e *DMLExecutor) buildUpdatedRow(tableName string, colDefs []sql.ColumnDef,
 	for _, col := range colDefs {
 		if idx, ok := colIndex[col.Name]; ok && idx < len(existingValues) {
 			row[col.Name] = existingValues[idx]
+			// The target alias ("INSERT INTO t1 AS t2") qualifies SET/WHERE
+			// references to the current row ("t2.c") — expose those keys too
+			// (upsert3's "no such column: base.c" class).
+			if !strings.EqualFold(tableName, col.Name) {
+				row[tableName+"."+col.Name] = existingValues[idx]
+			}
 		}
 		// The excluded pseudo-table carries the row that would have been
 		// inserted (values).

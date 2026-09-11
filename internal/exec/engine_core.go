@@ -246,7 +246,6 @@ func (e *Engine) externalSchemaChanged(ctx *DatabaseContext) bool {
 // If the name has a schema prefix (e.g. "aux.t3"), it searches only that database.
 // If no schema prefix, it searches main first, then attached databases.
 func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error) {
-
 	// An attached database's file may have been modified by an external
 	// connection; the schema manager's checkExternalMod drops the pager cache
 	// and any tableCache entries become stale. Detect the change up front so

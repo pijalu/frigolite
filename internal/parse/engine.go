@@ -69,6 +69,13 @@ type Parser struct {
 	// e.g. a COLLATE clause or ASC/DESC on a FOREIGN KEY column (eidlist)
 	// is rejected in CREATE TABLE but accepted on schema reload.
 	SchemaMode bool
+	// pendingDMLAlias carries the alias from an xfullname reduction
+	// ("schema.t AS alias" / "t AS alias") to the INSERT/UPDATE/DELETE
+	// statement-building rule that reduces next. The xfullname value itself
+	// is a plain "schema.table" string, so the alias needs this side channel
+	// (the DML rules read-and-clear it; nothing between an xfullname reduce
+	// and the DML rule reduce re-enters these productions).
+	pendingDMLAlias string
 }
 
 // NewParser creates a new parser instance with the given tables.
