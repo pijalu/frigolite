@@ -692,7 +692,15 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 			return err
 		}
 	}
-	return e.checkOrderByNestedAgg(s)
+	if err := e.checkOrderByNestedAgg(s); err != nil {
+		return err
+	}
+	// Schema-declared collations resolve at prepare time: ORDER BY/GROUP BY
+	// sort keys, DISTINCT dedup, and compound set-op/ORDER BY column
+	// collations must be registered (build.c sqlite3LocateCollSeq; a
+	// close/reopen without re-registering a schema collation fails these
+	// with "no such collation sequence: NAME" — collate3-2.x).
+	return e.validateSchemaCollations(s)
 }
 
 // checkOrderByAggMisuse rejects aggregate functions in ORDER BY when the SELECT

@@ -5721,3 +5721,32 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **Session total T7-T22**: 29 testgen packages flipped fully green
   (wherelimit and insert3 added), update 10→4, plus byte-parity FTS writer
   conformance fixtures. Remaining classes indexed in FULL-SUITE-DRIFT T12.
+- **Schema-collation resolution after reopen (T23)**: SQLite resolves a
+  schema-declared collation (COLLATE on a column/index) at PREPARE time of
+  each statement that NEEDS it (sqlite3ExprCollSeq → sqlite3LocateCollSeq);
+  after close+reopen without re-registering, those statements fail "no such
+  collation sequence: NAME" — even on an EMPTY table (so the check must be
+  statement-level, never per-value). Statements that never resolve the
+  collation keep succeeding: bare SELECT *, UNION ALL (no dedup), bare
+  DELETE (truncate), UPDATE SET of non-indexed columns. The needed-collation
+  set is INDEX-driven for DML: INSERT/DELETE-with-WHERE maintain every index;
+  UPDATE maintains only indexes whose key columns (or expression/predicate
+  columns) are assigned; a column collation in NO index never errors (not
+  even for integrity_check). Oracle-verified against SQLite 3.53 via Python
+  sqlite3 (create_collation + reopen). Implemented statement-level:
+  execquery validateSchemaCollations (ORDER BY/GROUP BY term→select-list
+  alias/ordinal resolution, DISTINCT + dedup-setop + compound-ORDER-BY
+  result-column collations; compound ORDER BY lives on the TAIL member, not
+  the head), execdml validateIndexCollations (index key collations via
+  IndexKeyCollations over the stored CREATE INDEX SQL) +
+  validateDMLComparisonCollations (WHERE/SET comparison sides), exec
+  unknownIndexCollation for PRAGMA integrity_check.
+- **Never trust a shared-tree test run**: a concurrent agent's verification
+  runs in the same working directory contaminate testgen/JSON-harness
+  results (persisted ATTACH/test.db files, fixture dirs) — failures appear
+  and vanish between runs. Fair comparisons need isolated `git worktree`
+  checkouts per side AND identical run order (leftover files leak across
+  packages); untracked fixture dirs (testdata/backupconformance,
+  TestNative*FixtureReference inputs) make fresh worktrees fail tests that
+  pass in the main checkout — diff both sides instead of trusting absolute
+  pass/fail.

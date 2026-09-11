@@ -292,6 +292,7 @@ type indexDef struct {
 	Where    string // partial-index predicate ("" for full indexes)
 	RootPage uint32
 	Ctx      *DatabaseContext
+	SQL      string // stored CREATE INDEX statement (key collation resolution)
 }
 
 // maintainIndexesOnInsert writes the new row's entries into every index on

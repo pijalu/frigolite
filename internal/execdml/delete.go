@@ -251,6 +251,15 @@ func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *Dat
 		return nil, nil, nil, nil, &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}, nil
 	}
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	// A WHERE-clause DELETE is row-by-row and maintains every index on the
+	// table, so each index key's collation must resolve at prepare time
+	// (build.c sqlite3LocateCollSeq; collate3-3.4). A WHERE-less DELETE
+	// truncates the table b-tree and needs no collation (collate3-3.6).
+	if s.Where != nil {
+		if res := e.validateIndexCollations(tableEntry, colDefs, nil); res != nil {
+			return nil, nil, nil, nil, res, nil
+		}
+	}
 	if s.HasReturning {
 		if err := e.validateReturning(s.Returning, colDefs, tableEntry.Name); err != nil {
 			return nil, nil, nil, nil, &Result{Error: err}, nil

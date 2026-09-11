@@ -110,6 +110,34 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 		return e.ctx.ExecFTSUpdate(tableEntry.Name, ftsTable, colDefs, s)
 	}
 
+	// Index maintenance collations resolve at prepare time (build.c
+	// sqlite3LocateCollSeq). SQLite maintains an index only when the
+	// statement assigns one of its key columns (or a column its expression
+	// keys / partial predicate reference), so "SET c1 = ..." fails while
+	// "SET c2 = ..." succeeds after a reopen without the collation
+	// (collate3-3.2/3.3). Assigning the rowid rebuilds every index.
+	changed := make(map[string]bool, len(s.Assignments)+len(s.SetParenColumns))
+	rowidAssigned := false
+	for _, a := range s.Assignments {
+		lower := strings.ToLower(a.Column)
+		changed[lower] = true
+		if lower == "rowid" || lower == "_rowid_" || lower == "oid" {
+			rowidAssigned = true
+		}
+	}
+	for _, col := range s.SetParenColumns {
+		changed[strings.ToLower(col)] = true
+	}
+	if len(changed) > 0 {
+		var maintained map[string]bool
+		if !rowidAssigned {
+			maintained = changed
+		}
+		if res := e.validateIndexCollations(tableEntry, colDefs, maintained); res != nil {
+			return res
+		}
+	}
+
 	// Record which columns this UPDATE statement's SET clause assigns, so
 	// UPDATE OF <cols> triggers fire only when a listed column is in the set.
 	// Cleared on return (the engine is single-threaded per connection).

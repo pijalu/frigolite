@@ -84,6 +84,14 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
+	// The statement maintains every index on the target table, so each
+	// index key's collation must resolve at prepare time (build.c
+	// sqlite3LocateCollSeq; collate3-3.1: an INSERT fails after a
+	// close/reopen that did not re-register the indexed column's collation).
+	if res := e.validateIndexCollations(tableEntry, colDefs, nil); res != nil {
+		return res
+	}
+
 	// SQLite's autoIncrementEnd (insert.c) writes the AUTOINCREMENT sequence
 	// back to sqlite_sequence at statement end. This mirrors that: after a
 	// successful INSERT on an AUTOINCREMENT table (directly or via triggers),

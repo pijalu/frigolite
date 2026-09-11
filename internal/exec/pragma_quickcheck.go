@@ -3,6 +3,7 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -70,6 +71,52 @@ func (e *Engine) execPragmaForeignKeyList(tableName string) *Result {
 // verified by grouping the table rows by index key: a key repeated across
 // multiple rows (with no NULL in a nullable key column) is a violation,
 // reported once per duplicate row.
+// unknownIndexCollation returns the first unregistered collation among the
+// key collations of every schema index (optionally restricted to the indexes
+// of one table), or "" when all resolve. integrity_check opens every index
+// and resolves each key's collation at prepare time (pragma.c
+// integrityCheck → build.c sqlite3LocateCollSeq), so an index whose keys use
+// an unregistered collation fails the check outright.
+func (e *Engine) unknownIndexCollation(tableFilter string) string {
+	for _, ctx := range e.databases {
+		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entries {
+			if tableFilter != "" && !strings.EqualFold(ent.TblName, tableFilter) {
+				continue
+			}
+			if name := e.indexCollationError(ctx, ent); name != "" {
+				return name
+			}
+		}
+	}
+	return ""
+}
+
+// indexCollationError returns the first unregistered key collation of one
+// index entry, or "".
+func (e *Engine) indexCollationError(ctx *DatabaseContext, ent *schema.Entry) string {
+	colDefs := e.indexTableColumnDefs(ctx, ent.TblName)
+	for _, name := range execdml.IndexKeyCollations(ent.SQL, colDefs) {
+		if name != "" && !e.collationExists(name) {
+			return name
+		}
+	}
+	return ""
+}
+
+// indexTableColumnDefs parses the column defs of the table an index belongs
+// to (nil when the table cannot be resolved).
+func (e *Engine) indexTableColumnDefs(ctx *DatabaseContext, tblName string) []sql.ColumnDef {
+	tbl, err := ctx.Schema.FindTable(tblName)
+	if err != nil || tbl == nil {
+		return nil
+	}
+	return e.ParseColumnDefs(tbl.Name, tbl.SQL)
+}
+
 // quickCheckPreempt handles degenerate images before the structural walk:
 // a deserialized/corrupt image (bad magic) fails with SQLITE_NOTADB "file
 // is not a database" (memdb1.test 510); an empty image (0 pages after `db
@@ -101,6 +148,15 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 	colName := "integrity_check"
 	if early := e.quickCheckPreempt(colName); early != nil {
 		return early
+	}
+	// integrity_check opens every index and resolves each index key's
+	// collation at prepare time (pragma.c integrityCheck → build.c
+	// sqlite3LocateCollSeq): an index whose key collation is not registered
+	// fails the check with "no such collation sequence: NAME"
+	// (collate3-1.6.3/1.7.3/3.8). Tables whose declared collations appear in
+	// no index keep passing (verified against SQLite 3.53).
+	if unknown := e.unknownIndexCollation(arg); unknown != "" {
+		return &Result{Error: fmt.Errorf("no such collation sequence: %s", unknown)}
 	}
 	emit := func(msg string) {
 		if limit > 0 && len(rows) >= limit {

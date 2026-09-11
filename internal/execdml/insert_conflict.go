@@ -441,7 +441,7 @@ func (e *DMLExecutor) indexDefsIn(ctx *DatabaseContext, tableName string) []inde
 		if len(cols) == 0 {
 			continue
 		}
-		def := indexDef{Name: ent.Name, Cols: cols, RootPage: ent.RootPage, Ctx: ctx}
+		def := indexDef{Name: ent.Name, Cols: cols, RootPage: ent.RootPage, Ctx: ctx, SQL: ent.SQL}
 		if wm := indexWhereRe.FindStringSubmatch(ent.SQL); wm != nil {
 			def.Where = strings.TrimSpace(wm[1])
 		}

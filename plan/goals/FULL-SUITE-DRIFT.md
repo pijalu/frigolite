@@ -1459,3 +1459,92 @@ Remaining residue (NOT this class, next session):
   - Residual note: misc1-19.11/19.12 ("got [{}] want [0]") and the
     CREATE-table-already-exists cascade are separate pre-existing classes,
     untouched by this tranche.
+
+### T23 collate3-2.x (2026-09-11) — prepare-time schema-collation resolution
+
+Gap (from T11 remainder): after close+reopen WITHOUT re-registering a
+collation that a table's schema references
+(CREATE TABLE collate3t1(c1 COLLATE string_compare)), statements that
+RESOLVE the collation silently fell back to BINARY. SQLite errors at
+prepare via sqlite3LocateCollSeq (build.c/resolve.c); the error fires even
+on an empty table, so the fix must be statement-level, not per-value.
+
+SPEC (TCL corpus + SQLite 3.53 oracle via Python sqlite3 create_collation
+reopen repro, /tmp scratch): statements that must ERROR: ORDER BY <col /
+ordinal resolving to a collated column>, GROUP BY <col>, SELECT DISTINCT
+<col>, UNION/EXCEPT/INTERSECT (dedup) over the collated column, compound
+UNION ALL + ORDER BY 1 (term inherits the result column's collation),
+INSERT into a table with an index on the collated column, UPDATE SET of an
+indexed column, DELETE ... WHERE (row-by-row maintains all indexes),
+PRAGMA integrity_check (opens every index). Must SUCCEED: bare SELECT *,
+UNION ALL without ORDER BY, UPDATE SET c2 (index on c1 — only indexes
+whose key/expression/predicate columns are assigned are maintained),
+bare DELETE (truncate, no index maintenance), DML on tables where the
+collation appears in NO index, integrity_check on such tables.
+
+SEAMS (statement-level, narrowest correct):
+- internal/execquery/select_collate.go (new): validateSchemaCollations —
+  wired at the end of validateSelectExprs (runs per SELECT level at
+  prepare). Resolves ORDER BY/GROUP BY term collations (ordinal → result
+  column; bare name → select-list alias, resolve.c precedence; column refs
+  resolved against the FROM/join tables' declared collations with
+  sqlite3ExprCollSeq-style propagation: COLLATE > first collation-bearing
+  function arg/CASE branch/||), DISTINCT + deduplicating-setop
+  result-column collations, and compound ORDER BY terms (the parser
+  attaches the compound ORDER BY to the TAIL member — the head-level check
+  walks the chain). Names keep schema-declared case for the error text
+  (collateOperandName/lit values, not the uppercased selectOutputCollations
+  map). Explicit COLLATE (validateCollateClause via validateSelectRowValues)
+  and WHERE sides (checkWhereCollations) were already covered by earlier
+  tranches.
+- internal/execdml/dml_collate.go (new): validateIndexCollations —
+  statement-start check that every index the statement maintains resolves
+  its key collations (IndexKeyCollations: explicit COLLATE in the index SQL
+  wins, else the key column's declared collation, else expression
+  propagation; indexDef gains the stored SQL). Changed-column analysis for
+  UPDATE (rowid assignment maintains all). validateDMLComparisonCollations
+  (hooked into validateDMLExprs) resolves WHERE/SET comparison sides and
+  COLLATE names — oracle: `UPDATE t SET c2=1 WHERE c1='x'` errors even with
+  no index. Call sites: execInsert (nil = all indexes), execUpdate (changed
+  set), execDelete via deleteTableContext (only when s.Where != nil).
+- internal/exec/pragma_quickcheck.go: execQuickCheck fails with
+  "no such collation sequence: NAME" via unknownIndexCollation (all schema
+  indexes, optionally scoped to the pragma's table argument), reusing
+  execdml.IndexKeyCollations; pragma_analyze.go untouched net (HEAD line
+  count restored after the helper initially pushed it past the 1000-line
+  hard gate).
+
+VERIFY (assertion-level diffs vs a HEAD `git worktree` baseline — the
+shared tree was unusable for A/B: a concurrent agent's runs contaminate
+it; see lessons_learned):
+- `go test -tags testgen ./testgen/collate3/...`: 22→9 failing assertions.
+  All 13 engine-gap failures fixed (2.2, 2.7.1, 2.7.2, 2.8, 2.9, 2.10,
+  2.11, 2.17, 3.1, 3.2, 3.4, 3.8, 3.11). The 9 residues are tcl2go
+  artifacts, engine-unfixable without violating no-testgen-edits:
+  collate3-4.8.2/4.8.3/4.9 (transpiler closed the db WITHOUT the reopen —
+  `lindex [catch {sqlite3 db test.db}] 0` elided; execs on a closed
+  connection correctly error), collate3-5.2-5.8 (the `db collation_needed
+  cfact` lazy-registration callback dropped — "proc definition (not
+  transpiled)" — so 'unk' is never registered and cfact_cnt stays 0; 5.0
+  proves the same statement errors without the callback), 5.9 (cascade of
+  5.7). Per the Pure-Go supersession policy this package is now
+  engine-complete; a native port would need a RegisterCollationNeeded API
+  (queued, not T23 scope).
+- collate4: 1 residue, IDENTICAL set (known index-level-COLLATE UNIQUE
+  class). collate7, collate1/2/5/6/8/9/A/B, enc, enc2, enc3, enc4: green.
+- No-regression (failing-set diffs vs HEAD, all IDENTICAL): select1 35=35,
+  where 105=105, orderby1 1=1, indexA 0=0, reindex 9=9, altertab 4=4;
+  broad sweep with1/with2/distinct/distinct2/pragma/quickcheck/corrupt/
+  conflict/trigger1/view/e_select/vacuum identical; full JSON harness
+  (TestSQLiteSuite subtests) identical in isolated worktrees
+  (TestBackupConformance + TestNative*FixtureReference fail in fresh
+  worktrees on both sides — untracked fixture dirs — and pass in the main
+  checkout with the tranche applied).
+- Gates: go build ./..., go vet ./..., go test -run TestSOLID_ ./..., and
+  `go test -race -count=1 -run TestNative .` all pass (main checkout).
+  tools/quality_gate.sh on the changed files: section verdicts unchanged
+  vs HEAD (pre-existing repo-wide staticcheck/complexity residues);
+  pragma_analyze.go back to its exact HEAD line count; all new functions
+  under the gocognit 15 / gocyclo 12 thresholds (validateSchemaCollations
+  split into sort-key/result/compound-ORDER-BY validators;
+  validateDMLComparisonCollations split into walk/per-node/sides helpers).

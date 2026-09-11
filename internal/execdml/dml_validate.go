@@ -105,6 +105,14 @@ func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.Column
 			return &Result{Error: err}
 		}
 	}
+	// resolve.c also prepares each expression's collation: comparison
+	// operands resolve the compared columns' declared collations and COLLATE
+	// operators name registered sequences, else "no such collation
+	// sequence: NAME" fires at prepare time (collate3-2.3/3.12 analogs in
+	// DML WHERE clauses).
+	if err := e.validateDMLComparisonCollations(colDefs, exprs); err != nil {
+		return &Result{Error: err}
+	}
 	return nil
 }
 
