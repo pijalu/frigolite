@@ -728,3 +728,41 @@ list elements (same class as tclSplitList's handling) — queued.
 - LESSON: when a regen command exits non-zero, the on-disk generated tree
   is PARTIAL — never commit it as if complete; re-run to completion
   first.
+
+### T6 post-T4.11 tranches (2026-09-10/11 — T-log backfill for committed work)
+
+Committed after the T4.11 close without T-log entries; recorded here from
+commit subjects + the 2026-09-11T00:09:07Z sweep (769/207/243 of 1219,
+ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
+
+- **attach** (b5db6dd2c + parents): lock-registry ATTACH gate + eager
+  schema read + owning-db lock keys — attach suite PASS in the sweep;
+  attach-9.1 lazy-creation investigation recorded (5919cb025: needs
+  connection lock tracking). **attach2 still FAIL** ('database is locked'
+  cross-connection gate emits for the wrong attachment scenario — §T4
+  item 3 open).
+- **reindex** (ee71191e0): target capture + unknown-collation/object
+  validation — reindex PASS in the sweep.
+- **check/cacheflush/subjournal** (f43e74a56, e37f158d4, 394dbdab3):
+  CHECK-constraint function handling (unknown-function message +
+  CREATE-time validation), SAVEPOINT-placeholder collapse
+  (cacheflush/subjournal PASS), cacheflush minimal-repro isolation
+  matrix — check PASS in the sweep.
+- **conflict** (7c7b77a0c + reverts 590817319/3dbdab6b8): per-column ON
+  CONFLICT UPDATE dispositions + violated-column keying (11→3
+  assertions); full-matrix-atomic partial prototype REVERTED (regressed
+  ROLLBACK/ABORT subtests) — conflict PASS in the sweep.
+- **bloom1/minmax/minmax2** (5ee07df44, 97524bd7f, f10801263/a4639c23f):
+  unquoted TRUE/FALSE literals, sqlite_search_count N-A skips, minmax
+  N-A classification — all PASS in the sweep.
+- **P6.FTS-RESIDUE collateral**: intarray/tpch01 regexp-in-set-var
+  (b00b5b620), aggerror/count aggregate UDFs + IN-subquery misuse
+  (c4060c6e1), fts3tok1/fts4unicode (0e98e6395), fts3defer/fts3drop/
+  fts4noti docid-0 reopen rebuild (8025c85d5), fts4opt %_stat hint
+  rowid-alias (1bb32163a), filectrl tempfilename (baa20a9d9),
+  fts3comp1/trustschema1 (f09f9c8a8) — all PASS in the sweep.
+- **REGRESSION WATCH (open)**: `autovacuum` 2.4.5 FAIL and `pragma2`
+  page_size=16384+cache_spill FAIL in the fresh sweep against P8-closed
+  goals — triage tranches own them (see PORTPLAN §2 / §5a item 10).
+- **trigger2/without_rowid4 still FAIL**: db-eval multi-column
+  accumulation queued since T4 triage — next converter tranche.
