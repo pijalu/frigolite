@@ -352,6 +352,26 @@ func (tp *transpiler) processIfCondition(args []tcl.RawWord, idx *int, first boo
 		tp.indent--
 		return
 	}
+	// `[sqlite3 -has-codec]` probes the codec build flag, always false
+	// in this pure-Go port (autovacuum.test's ptrmap-page {207,412}
+	// branch). tclCondToGo renders the unknown command as false only
+	// when the whole condition fails resolution; short-circuit here so
+	// the if/else emits the correct (else) branch deterministically.
+	if strings.TrimSpace(cond) == "[sqlite3 -has-codec]" {
+		bodyCmds := tp.parseBracedBody(args, *idx)
+		*idx++
+		if first {
+			tp.emitLine("if false { // [sqlite3 -has-codec] always false (no codec build)")
+		} else {
+			tp.emitLine("} else if false { // [sqlite3 -has-codec] always false (no codec build)")
+		}
+		tp.indent++
+		if bodyCmds != nil {
+			tp.runIfBody(bodyCmds)
+		}
+		tp.indent--
+		return
+	}
 	goCond := tp.tclCondToGo(cond)
 	bodyCmds := tp.parseBracedBody(args, *idx)
 	// A non-braced body is a single TCL command (e.g. `if {$i == 8}

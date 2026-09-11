@@ -1891,7 +1891,7 @@ func Test_rtreedoc(t *testing.T) {
 														{ // do_test "3.1"
 															cell = tclLIndex(tclExecSQL(db, "SELECT rnode(data) FROM rt2_node WHERE nodeno=3"), "0")
 															_ = cell // suppress unused warning
-															_list46 := tclList([]string{tclLIndex(cell, "0"), tclLIndex(cell, "2"), tclLIndex(cell, "1"), tclLIndex(cell, "3"), tclLIndex(cell, "4"), "\\"})
+															_list46 := tclList([]string{tclLIndex(cell, "0"), tclLIndex(cell, "2"), tclLIndex(cell, "1"), tclLIndex(cell, "3"), tclLIndex(cell, "4")})
 															_ = _list46
 															_r = _list46
 															cell = _r

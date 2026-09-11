@@ -43,6 +43,19 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 		return e.updateOnMissingTable(s, err)
 	}
 
+	// Publish the statement's ON CONFLICT policy for trigger-body steps
+	// without an explicit OR clause (SQLite trigger.c codeTriggerProgram).
+	// Only the outermost DML statement sets it.
+	outerPrev := e.ctx.OuterOrConflict()
+	if e.ctx.TriggerDepth() == 0 && outerPrev == "" {
+		if s.OnConflict != "" {
+			e.ctx.SetOuterOrConflict(s.OnConflict)
+		} else {
+			e.ctx.SetOuterOrConflict("")
+		}
+		defer e.ctx.SetOuterOrConflict(outerPrev)
+	}
+
 	// Track the modified table's database context for trigger scoping.
 	prevDMLCtx := e.currentDMLCtx
 	e.currentDMLCtx = dbCtx

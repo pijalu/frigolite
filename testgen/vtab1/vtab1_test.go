@@ -679,7 +679,7 @@ func Test_vtab1(t *testing.T) {
 	vtab.TclVarSet("tn", "", "0")
 	tn = "0"
 	_ = tn // suppress unused warning
-	for _, stmt := range tclSplitList("\\\n  {INSERT INTO techo VALUES('abc', 'def', 'ghi')}                        \\\n  {INSERT INTO techo SELECT a||'.'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'x'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'y'||rowid, b, c FROM techo}              \\\n  {DELETE FROM techo WHERE (oid % 3) = 0}                                \\\n  {UPDATE techo set rowid = 100 WHERE rowid = 1}                         \\\n  {INSERT INTO techo(a, b) VALUES('hello', 'world')}                     \\\n  {DELETE FROM techo}                                                    \\\n") {
+	for _, stmt := range tclSplitList(" {INSERT INTO techo VALUES('abc', 'def', 'ghi')}                         {INSERT INTO techo SELECT a||'.'||rowid, b, c FROM techo}               {INSERT INTO techo SELECT a||'x'||rowid, b, c FROM techo}               {INSERT INTO techo SELECT a||'y'||rowid, b, c FROM techo}               {DELETE FROM techo WHERE (oid % 3) = 0}                                 {UPDATE techo set rowid = 100 WHERE rowid = 1}                          {INSERT INTO techo(a, b) VALUES('hello', 'world')}                      {DELETE FROM techo}                                                     ") {
 	_ = stmt // suppress unused warning
 		_res = db.Exec(stmt)
 		if _res.Error != nil {
@@ -1140,7 +1140,7 @@ func Test_vtab1(t *testing.T) {
 	vtab.TclVarSet("tn", "", "2")
 	tn = "2"
 	_ = tn // suppress unused warning
-	for _, method := range tclSplitList("\\\n    xBestIndex       \\\n    xOpen            \\\n    xFilter          \\\n    xNext            \\\n    xColumn          \\\n    xRowid           \\\n") {
+	for _, method := range tclSplitList(" xBestIndex        xOpen             xFilter           xNext             xColumn           xRowid            ") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
 			echo_module_failMap[method_t2] = "the " + method + " method has failed"
@@ -1155,7 +1155,7 @@ func Test_vtab1(t *testing.T) {
 			}
 		}
 	}
-	for _, method := range tclSplitList("\\\n  xUpdate            \\\n  xBegin             \\\n  xSync              \\\n") {
+	for _, method := range tclSplitList(" xUpdate             xBegin              xSync               ") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
 			echo_module_failMap[method_t2] = "the " + method + " method has failed"

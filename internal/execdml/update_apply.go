@@ -75,12 +75,21 @@ func (e *DMLExecutor) applyTriggeredUpdateRow(tree *btree.BTree, tableName strin
 	// Check UNIQUE/PK conflicts against the live table state. The row being
 	// updated is not a conflict; every other live row (including rows already
 	// written by earlier changes, which now hold their new values) is.
-	conflict, err := e.updateRowConflictsWithTable(tree, ch, colDefs, colIndex, uniqueCols, idxColsList)
+	// The error names the violated column from the CONFLICTING live row's
+	// values (trigger2-6.2b: "tbl.a"): the change's own old values differ
+	// on the SET column and would miss (dbgI probe).
+	var conflictVals []interface{}
+	conflict, err := e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, &conflictVals)
 	if err != nil {
 		return false, &Result{Error: err}
 	}
 	if conflict {
-		return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, nil, ch.values, 0, ch.rowID, uniqueCols, idxColsList)}
+		aVals := conflictVals
+		aRowID := ch.rowID
+		if aVals == nil {
+			aVals = ch.oldValues
+		}
+		return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, aVals, ch.values, aRowID, ch.rowID, uniqueCols, idxColsList)}
 	}
 	if res := e.enforceUpdateFKActions(tableEntry, colDefs, ch); res != nil {
 		return false, res
@@ -170,8 +179,16 @@ func (e *DMLExecutor) fireUpdateBeforeTriggers(tableName string, rootPage uint32
 // The row being updated is not a conflict.
 // updateRowConflictsWithTable scans the live table for rows whose values
 // conflict with a change's new values on a UNIQUE/PK column or UNIQUE index.
-// The row being updated is not a conflict.
-func (e *DMLExecutor) updateRowConflictsWithTable(tree *btree.BTree, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (bool, error) {
+// The row being updated is not a conflict. On conflict the conflicting
+// (live-table) row's values are returned so the caller can name the
+// violated column (trigger2-6.2b: "tbl.a", not bare "tbl") — the
+// change's own old values differ on the SET column and would miss.
+func (e *DMLExecutor) updateRowConflictsWithTable(tree *btree.BTree, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflict bool, _ error) {return e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, nil)}
+
+// updateRowConflictValues is updateRowConflictsWithTable with an optional
+// out-parameter receiving the conflicting live-table row's values (declared
+// order not guaranteed — raw record order; the caller re-keys by column).
+func (e *DMLExecutor) updateRowConflictValues(tree *btree.BTree, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, conflictVals *[]interface{}) (bool, error) {
 	// A conflict can only arise on a UNIQUE/PK column or UNIQUE index. When
 	// the UPDATE's SET clause assigns none of them, no other row can
 	// conflict with the new values (all other columns keep their old
@@ -196,8 +213,11 @@ func (e *DMLExecutor) updateRowConflictsWithTable(tree *btree.BTree, ch updateCh
 			}
 			continue
 		}
-		conflict, stop := e.cellConflicts(cell, ch, colDefs, colIndex, uniqueCols, idxColsList)
+		conflict, stop, vals := e.cellConflictValues(cell, ch, colDefs, colIndex, uniqueCols, idxColsList)
 		if stop || conflict {
+			if conflict && conflictVals != nil {
+				*conflictVals = vals
+			}
 			return conflict, nil
 		}
 		if cursorExhausted(cursor) {
@@ -210,14 +230,21 @@ func (e *DMLExecutor) updateRowConflictsWithTable(tree *btree.BTree, ch updateCh
 // change's new values; stop is true when the scan should end (the record
 // could not be decoded).
 func (e *DMLExecutor) cellConflicts(cell *storage.Cell, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflict, stop bool) {
+	conflict, stop, _ = e.cellConflictValues(cell, ch, colDefs, colIndex, uniqueCols, idxColsList)
+	return conflict, stop
+}
+
+// cellConflictValues is cellConflicts also returning the conflicting
+// cell's decoded record values (nil when no conflict).
+func (e *DMLExecutor) cellConflictValues(cell *storage.Cell, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflict, stop bool, vals []interface{}) {
 	rec, err := storage.DecodeRecord(cell.Payload)
 	if err != nil || rec == nil {
-		return false, true
+		return false, true, nil
 	}
 	if e.valuesConflict(rec.Values, ch.values, cell.RowID, ch.rowID, colDefs, colIndex, uniqueCols, idxColsList) {
-		return true, true
+		return true, true, rec.Values
 	}
-	return false, false
+	return false, false, nil
 }
 
 // cursorExhausted advances the cursor and reports whether the scan is done.

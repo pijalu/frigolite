@@ -63,7 +63,7 @@ func Test_pragma3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("") {
+	if false { // [sqlite3 -has-codec] always false (no codec build)
 		return
 	}
 	{ // "pragma3-100"

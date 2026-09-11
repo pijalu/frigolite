@@ -586,6 +586,12 @@ func (tp *transpiler) processList(args []tcl.RawWord) {
 	var items []string
 	colmetaFound := false
 	for _, a := range args {
+		// A trailing lone backslash is a line-continuation remnant, not a
+		// list element: `set v [list \ ... \ ]` ends with backslash-newline
+		// before `]`, which TCL folds away (trigger2 tbl_definitions).
+		if !a.Braced && !a.Quoted && strings.TrimSpace(a.Text) == "\\" {
+			continue
+		}
 		// `list [catch {BODY} VAR] ...` — execute the catch body (emitting
 		// its side effects, e.g. sqlite3_blob_write) and use the catch
 		// result var ("" / error message) in the list. This is the common

@@ -341,7 +341,7 @@ func Test_autovacuum(t *testing.T) {
 	_ = root_page_list // suppress unused warning
 	pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
 	_ = pending_byte_page // suppress unused warning
-	if tclBool("") {
+	if false { // [sqlite3 -has-codec] always false (no codec build)
 		unusable_pageMap["205"] = "1"
 		vtab.TclVarSet("unusable_page", "205", "1")
 		unusable_pageMap["408"] = "1"

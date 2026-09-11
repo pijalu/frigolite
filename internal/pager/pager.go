@@ -1265,16 +1265,16 @@ func (p *Pager) allocateExtendLocked() *Page {
 		p.dirty[ptr.PageNum] = true
 		p.numPages++
 	}
-	// P8.INCRVACUUM.phase9.q: in autovacuum mode, btree.c's
-	// allocateBTreePage skips the pending-byte page (PENDING_BYTE_PAGE)
-	// so a btree page never lands on the lock-byte slot. Materialize
-	// the pending-byte page as a free slot (zeroed, no btree header)
-	// and increment numPages again so the caller gets a real page
-	// past it. Without this, a CREATE TABLE whose next rootpage would
-	// otherwise be the pending-byte page silently lands on that slot
-	// and is later read as a sparse gap page, which reports
-	// "database disk image is malformed".
-	if p.autoVacuum && p.numPages == p.pendingBytePageFor() {
+	// PENDING_BYTE_PAGE (btreeInt.h:609) is never a *usable* page number:
+	// the lock byte lives there, so btree page numbers skip it. Only the
+	// DEFAULT pending-byte page (1GB offset, page 1048577 at 1K) is
+	// unreachable in practice; a test-harness override (pendingBytePageFor
+	// != default) moves the lock byte to a low page (e.g. 65), and the
+	// file layout then treats that page as an ordinary usable page —
+	// SQLite's own overflow chains and root lists use it (autovacuum-2.4.5
+	// expects rootpage 65). Do NOT materialize/skip here when an override
+	// is installed; only the unreachable default slot is skipped.
+	if p.autoVacuum && p.pendingBytePageFor() == pendingBytePage(p.pageSize) && p.numPages == p.pendingBytePageFor() {
 		pending := &Page{
 			Data:    make([]byte, p.pageSize),
 			PageNum: p.numPages,

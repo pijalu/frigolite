@@ -182,7 +182,7 @@ func Test_thread002(t *testing.T) {
 			if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 			_ = err
 			db.ResetChangesCounters()
-			_list2 := tclList([]string{tclExecSQL(db, "SELECT count(*) FROM t1"), tclExecSQL(db, "PRAGMA integrity_check"), "\\"})
+			_list2 := tclList([]string{tclExecSQL(db, "SELECT count(*) FROM t1"), tclExecSQL(db, "PRAGMA integrity_check")})
 			_ = _list2
 			_r = _list2
 			res = _r

@@ -119,8 +119,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.11.3"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -text relaxed -blob sql -border off                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -text relaxed -blob sql -border off                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -text relaxed -blob sql -border off  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -text relaxed -blob sql -border off  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("a │ b │ c ═════════════╪═════╪═══════ 1 │ 2.5 │ three x'424c4f42' │ │ Ἀμήν")
@@ -394,8 +394,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.33"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style table -border off                  -screenwidth 15                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style table -border off                  -screenwidth 15                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style table -border off  -screenwidth 15  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style table -border off  -screenwidth 15  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("a | b | c ----+---+----- 1|2.5|three BLOB| |Ἀμήν")
@@ -404,8 +404,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.34.0"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -border off                  -screenwidth 30                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style box -border off                  -screenwidth 30                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -border off  -screenwidth 30  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style box -border off  -screenwidth 30  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("a │ b │ c ══════╪═════╪═══════ 1 │ 2.5 │ three BLOB │ │ Ἀμήν")
@@ -414,8 +414,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.34.1"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -border off                  -screenwidth 30 -title always                  {SELECT * FROM t1 WHERE a=2}"))
-		result = "\n" + tclDbOne(db, "db format -style box -border off                  -screenwidth 30 -title always                  {SELECT * FROM t1 WHERE a=2}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -border off  -screenwidth 30 -title always  {SELECT * FROM t1 WHERE a=2}"))
+		result = "\n" + tclDbOne(db, "db format -style box -border off  -screenwidth 30 -title always  {SELECT * FROM t1 WHERE a=2}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("a │ b │ c ═══╧═══╧═══")
@@ -424,8 +424,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.35"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -border off                  -screenwidth 15                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style box -border off                  -screenwidth 15                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -border off  -screenwidth 15  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style box -border off  -screenwidth 15  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("a │ b │ c ════╪═══╪═════ 1│2.5│three BLOB│ │Ἀμήν")
@@ -570,8 +570,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.82"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename t1 -title auto       {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style insert -tablename t1 -title auto       {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename t1 -title auto  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style insert -tablename t1 -title auto  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("\nINSERT INTO t1(a,b,c) VALUES(1,2.5,'three');\nINSERT INTO t1(a,b,c) VALUES(x'424c4f42',NULL,'Ἀμήν');\n")
@@ -580,8 +580,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.83.0"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on  {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on  {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(1,2.5,'three');\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(x'424c4f42',NULL,'Ἀμήν');\n")
@@ -590,8 +590,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.83.1"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always  {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always  {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(1,2.5,'three');\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(x'424c4f42',NULL,'Ἀμήν');\n")
@@ -620,8 +620,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.86"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       -rowcount on {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       -rowcount on {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on  -rowcount on {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on  -rowcount on {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(1,2.5,'three');\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(x'424c4f42',NULL,'Ἀμήν');\n/* 2 rows inserted */\n")
@@ -690,8 +690,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.102"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -null (NULL) -columnsep { = }                  -text sql {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style line -null (NULL) -columnsep { = }                  -text sql {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -null (NULL) -columnsep { = }  -text sql {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style line -null (NULL) -columnsep { = }  -text sql {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("a = 1 b = 2.5 c = 'three' a = x'424c4f42' b = (NULL) c = 'Ἀμήν'")
@@ -740,8 +740,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.112"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -title on -text sql -null NULL                  -title plain {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style list -title on -text sql -null NULL                  -title plain {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -title on -text sql -null NULL  -title plain {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style list -title on -text sql -null NULL  -title plain {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("a|b|c 1|2.5|'three' x'424c4f42'|NULL|'Ἀμήν'")
@@ -880,8 +880,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.133"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style quote -rowcount off -title always                  {SELECT * FROM t1 WHERE a=2}"))
-		result = "\n" + tclDbOne(db, "db format -style quote -rowcount off -title always                  {SELECT * FROM t1 WHERE a=2}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style quote -rowcount off -title always  {SELECT * FROM t1 WHERE a=2}"))
+		result = "\n" + tclDbOne(db, "db format -style quote -rowcount off -title always  {SELECT * FROM t1 WHERE a=2}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("'a','b','c'")
@@ -896,8 +896,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap on                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap on                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap on  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap on  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬─────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪═════════════════════╡ │ 1 │ 2 │ The quick fox jumps │ │ │ │ over the lazy brown │ │ │ │ dog. │ ╰───────┴───────┴─────────────────────╯")
@@ -906,8 +906,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬─────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪═════════════════════╡ │ 1 │ 2 │ The quick fox jumps │ │ │ │ over the lazy brown │ │ │ │ dog. │ ╰───────┴───────┴─────────────────────╯")
@@ -916,8 +916,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪════════════════════╡ │ 1 │ 2 │ The quick fox │ │ │ │ jumps over the │ │ │ │ lazy brown dog. │ ╰───────┴───────┴────────────────────╯")
@@ -926,8 +926,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.4"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 -18} -wordwrap on                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 -5 -18} -wordwrap on                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 -18} -wordwrap on  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 -5 -18} -wordwrap on  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪════════════════════╡ │ 1 │ 2 │ The quick fox │ │ │ │ jumps over the │ │ │ │ lazy brown dog. │ ╰───────┴───────┴────────────────────╯")
@@ -936,8 +936,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.5"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 -5 19} -wordwrap off  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬─────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪═════════════════════╡ │ 1 │ 2 │ The quick fox jumps │ │ │ │ over the lazy brown │ │ │ │ dog. │ ╰───────┴───────┴─────────────────────╯")
@@ -946,8 +946,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.6"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap off                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap off                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap off  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap off  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪════════════════════╡ │ 1 │ 2 │ The quick fox jump │ │ │ │ s over the lazy br │ │ │ │ own dog. │ ╰───────┴───────┴────────────────────╯")
@@ -956,8 +956,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.7"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 5 18} -wordwrap yes                  -align {left center right} -titlealign right                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 5 18} -wordwrap yes                  -align {left center right} -titlealign right                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 5 18} -wordwrap yes  -align {left center right} -titlealign right  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 5 18} -wordwrap yes  -align {left center right} -titlealign right  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪════════════════════╡ │ 1 │ 2 │ The quick fox │ │ │ │ jumps over the │ │ │ │ lazy brown dog. │ ╰───────┴───────┴────────────────────╯")
@@ -966,8 +966,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.8"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 8 11} -wordwrap yes                  -align {auto auto center} -titlealign left                  -defaultalign right                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 8 11} -wordwrap yes                  -align {auto auto center} -titlealign left                  -defaultalign right                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 8 11} -wordwrap yes  -align {auto auto center} -titlealign left  -defaultalign right  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 8 11} -wordwrap yes  -align {auto auto center} -titlealign left  -defaultalign right  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬──────────┬─────────────╮ │ a │ b │ c │ ╞═══════╪══════════╪═════════════╡ │ 1 │ 2 │ The quick │ │ │ │ fox jumps │ │ │ │ over the │ │ │ │ lazy brown │ │ │ │ dog. │ ╰───────┴──────────┴─────────────╯")
@@ -1051,8 +1051,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.31"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 -5 18} -wordwrap on  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪════════════════════╡ │ 1 │ 2 │ Η γρήγορη αλεπού │ │ │ │ πηδάει πάνω από το │ │ │ │ τεμπέλικο καφέ │ │ │ │ σκυλί │ ╰───────┴───────┴────────────────────╯")
@@ -1061,8 +1061,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.32"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 5 18} -align {left center center} -wordwrap on                  {SELECT * FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -widths {5 5 18} -align {left center center} -wordwrap on                  {SELECT * FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -widths {5 5 18} -align {left center center} -wordwrap on  {SELECT * FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -widths {5 5 18} -align {left center center} -wordwrap on  {SELECT * FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬───────┬────────────────────╮ │ a │ b │ c │ ╞═══════╪═══════╪════════════════════╡ │ 1 │ 2 │ Η γρήγορη αλεπού │ │ │ │ πηδάει πάνω από το │ │ │ │ τεμπέλικο καφέ │ │ │ │ σκυλί │ ╰───────┴───────┴────────────────────╯")
@@ -1160,8 +1160,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "4.3"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -text plain -textjsonb on -wrap 11               {SELECT a AS json, b AS jsonb, c AS num FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -text plain -textjsonb on -wrap 11               {SELECT a AS json, b AS jsonb, c AS num FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -text plain -textjsonb on -wrap 11  {SELECT a AS json, b AS jsonb, c AS num FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -text plain -textjsonb on -wrap 11  {SELECT a AS json, b AS jsonb, c AS num FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭─────────────┬─────────────┬─────╮ │ json │ jsonb │ num │ ╞═════════════╪═════════════╪═════╡ │ \"a\":5,\"b\": │ {\"c\":1,\"d\": │  99 │\n│ 6}          │ 2 │ │ ╰─────────────┴─────────────┴─────╯")
@@ -1179,8 +1179,8 @@ func Test_qrf01(t *testing.T) {
 		vtab.TclVarSet("sql", "", "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,\n                        value FROM t1 ORDER BY mtime")
 		sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,\n                        value FROM t1 ORDER BY mtime"
 		_ = sql // suppress unused warning
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql                    -text sql -wordwrap off -linelimit 77                    -columnsep { = } $sql"))
-		result = "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql                    -text sql -wordwrap off -linelimit 77                    -columnsep { = } $sql")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql  -text sql -wordwrap off -linelimit 77  -columnsep { = } $sql"))
+		result = "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql  -text sql -wordwrap off -linelimit 77  -columnsep { = } $sql")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("name = 'sample-jsonb' mtime = 1333101221 time = '2012-03-30 09:53:41' value = x'cc7c57616c706861b535332e31313638383732334762657461 c73071726657696474685072696e7428702c20702d3e704f7574 2c202d702d3e752e734c696e652e6d78436f6c577468293b477a 657461cb2c23313500a331333333323036393733c71b66643866 6665303030313034613436343934363030303130313031' name = unistr('one\\u000atwo\\u000athree') mtime = 1333206973 time = '2012-03-31 15:16:13' value = name = 'entry-one' mtime = 1708791504 time = '2024-02-24 16:18:24' value = x'00000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 000000000000000000000000000000'")
@@ -1192,8 +1192,8 @@ func Test_qrf01(t *testing.T) {
 		vtab.TclVarSet("sql", "", "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,\n                        value FROM t1 ORDER BY mtime")
 		sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,\n                        value FROM t1 ORDER BY mtime"
 		_ = sql // suppress unused warning
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql                    -text plain -esc off -textjsonb yes -columnsep { = }                   -wordwrap yes -linelimit 3 $sql"))
-		result = "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql                    -text plain -esc off -textjsonb yes -columnsep { = }                   -wordwrap yes -linelimit 3 $sql")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql  -text plain -esc off -textjsonb yes -columnsep { = } -wordwrap yes -linelimit 3 $sql"))
+		result = "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql  -text plain -esc off -textjsonb yes -columnsep { = } -wordwrap yes -linelimit 3 $sql")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("name = sample-jsonb mtime = 1333101221 time = 2012-03-30 09:53:41 value = \"alpha\":53.11688723,\"beta\":\"qrfWidthPrint(p,\n        p->pOut, -p->u.sLine.mxColWth);\",\"zeta\":[15,null,\n        1333206973,\"fd8ffe000104a46494600010101\"] name = one two three mtime = 1333206973 time = 2012-03-31 15:16:13 value = name = entry-one mtime = 1708791504 time = 2024-02-24 16:18:24 value = x'00000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000000000 ...")
@@ -1201,12 +1201,12 @@ func Test_qrf01(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.2a")
 		}
 	}
-	vtab.TclVarSet("sqlnolabel", "", "SELECT name, mtime, datetime(mtime,'unixepoch'),                      value FROM t1 ORDER BY mtime")
-	sqlnolabel = "SELECT name, mtime, datetime(mtime,'unixepoch'),                      value FROM t1 ORDER BY mtime"
+	vtab.TclVarSet("sqlnolabel", "", "SELECT name, mtime, datetime(mtime,'unixepoch'), value FROM t1 ORDER BY mtime")
+	sqlnolabel = "SELECT name, mtime, datetime(mtime,'unixepoch'), value FROM t1 ORDER BY mtime"
 	_ = sqlnolabel // suppress unused warning
 	{ // do_test "5.2b"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql                    -text plain -esc off -textjsonb no -titlelimit 12                    -wordwrap yes -linelimit 3 $sqlnolabel"))
-		result = "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql                    -text plain -esc off -textjsonb no -titlelimit 12                    -wordwrap yes -linelimit 3 $sqlnolabel")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql  -text plain -esc off -textjsonb no -titlelimit 12  -wordwrap yes -linelimit 3 $sqlnolabel"))
+		result = "\n" + tclDbOne(db, "db format -style line -screenwidth 60 -blob sql  -text plain -esc off -textjsonb no -titlelimit 12  -wordwrap yes -linelimit 3 $sqlnolabel")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("name: sample-jsonb mtime: 1333101221 datetime(...: 2012-03-30 09:53:41 value: x'cc7c57616c706861b535332e31313638383732334762 657461c73071726657696474685072696e7428702c2070 2d3e704f75742c202d702d3e752e734c696e652e6d7843 ... name: one two three mtime: 1333206973 datetime(...: 2012-03-31 15:16:13 value: name: entry-one mtime: 1708791504 datetime(...: 2024-02-24 16:18:24 value: x'00000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000 0000000000000000000000000000000000000000000000 ...")
@@ -1214,12 +1214,12 @@ func Test_qrf01(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.2b")
 		}
 	}
-	vtab.TclVarSet("sql", "", "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,                      value FROM t1 ORDER BY mtime")
-	sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,                      value FROM t1 ORDER BY mtime"
+	vtab.TclVarSet("sql", "", "SELECT name, mtime, datetime(mtime,'unixepoch') AS time, value FROM t1 ORDER BY mtime")
+	sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time, value FROM t1 ORDER BY mtime"
 	_ = sql // suppress unused warning
 	{ // do_test "5.3a"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -widths {0 10 10 14}                 -align {left right right center}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql"))
-		result = "\n" + tclDbOne(db, "db format -style box -widths {0 10 10 14}                 -align {left right right center}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -widths {0 10 10 14} -align {left right right center}  -blob sql  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sql"))
+		result = "\n" + tclDbOne(db, "db format -style box -widths {0 10 10 14} -align {left right right center}  -blob sql  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sql")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭──────────────┬────────────┬────────────┬────────────────╮ │ name │ mtime │ time │ value │ ╞══════════════╪════════════╪════════════╪════════════════╡ │ sample-jsonb │ 1333101221 │ 2012-03-30 │ x'cc7c57616c70 │ │ │ │ 09:53:41 │ 6861b535332e31 │ │ │ │ │ ... │ ├──────────────┼────────────┼────────────┼────────────────┤ │ one │ 1333206973 │ 2012-03-31 │ │ │ two │ │ 15:16:13 │ │ │ ... │ │ │ │ ├──────────────┼────────────┼────────────┼────────────────┤ │ entry-one │ 1708791504 │ 2024-02-24 │ x'000000000000 │ │ │ │ 16:18:24 │ 00000000000000 │ │ │ │ │ ... │ ╰──────────────┴────────────┴────────────┴────────────────╯")
@@ -1228,8 +1228,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "5.3b"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -widths {0 10 0 14}                  -align {left right right center}                  -blob sql -titlelimit 12                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sqlnolabel"))
-		result = "\n" + tclDbOne(db, "db format -style box -widths {0 10 0 14}                  -align {left right right center}                  -blob sql -titlelimit 12                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sqlnolabel")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -widths {0 10 0 14}  -align {left right right center}  -blob sql -titlelimit 12  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sqlnolabel"))
+		result = "\n" + tclDbOne(db, "db format -style box -widths {0 10 0 14}  -align {left right right center}  -blob sql -titlelimit 12  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sqlnolabel")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭──────────────┬────────────┬─────────────────────┬────────────────╮ │ name │ mtime │ datetime(... │ value │ ╞══════════════╪════════════╪═════════════════════╪════════════════╡ │ sample-jsonb │ 1333101221 │ 2012-03-30 09:53:41 │ x'cc7c57616c70 │ │ │ │ │ 6861b535332e31 │ │ │ │ │ ... │ ├──────────────┼────────────┼─────────────────────┼────────────────┤ │ one │ 1333206973 │ 2012-03-31 15:16:13 │ │ │ two │ │ │ │ │ ... │ │ │ │ ├──────────────┼────────────┼─────────────────────┼────────────────┤ │ entry-one │ 1708791504 │ 2024-02-24 16:18:24 │ x'000000000000 │ │ │ │ │ 00000000000000 │ │ │ │ │ ... │ ╰──────────────┴────────────┴─────────────────────┴────────────────╯")
@@ -1238,8 +1238,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "5.3c"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style table -widths {0 10 10 14}                 -align {center right right right}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql"))
-		result = "\n" + tclDbOne(db, "db format -style table -widths {0 10 10 14}                 -align {center right right right}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style table -widths {0 10 10 14} -align {center right right right}  -blob sql  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sql"))
+		result = "\n" + tclDbOne(db, "db format -style table -widths {0 10 10 14} -align {center right right right}  -blob sql  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sql")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("+--------------+------------+------------+----------------+ | name | mtime | time | value | +--------------+------------+------------+----------------+ | sample-jsonb | 1333101221 | 2012-03-30 | x'cc7c57616c70 | | | | 09:53:41 | 6861b535332e31 | | | | | ... | +--------------+------------+------------+----------------+ | one | 1333206973 | 2012-03-31 | | | two | | 15:16:13 | | | ... | | | | +--------------+------------+------------+----------------+ | entry-one | 1708791504 | 2024-02-24 | x'000000000000 | | | | 16:18:24 | 00000000000000 | | | | | ... | +--------------+------------+------------+----------------+")
@@ -1248,8 +1248,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "5.3c"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -widths {0 10 10 14}                 -align {center right right right}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql"))
-		result = "\n" + tclDbOne(db, "db format -style column -widths {0 10 10 14}                 -align {center right right right}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -widths {0 10 10 14} -align {center right right right}  -blob sql  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sql"))
+		result = "\n" + tclDbOne(db, "db format -style column -widths {0 10 10 14} -align {center right right right}  -blob sql  -text plain -esc off -textjsonb no  -wordwrap yes -linelimit 2 $sql")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("name mtime time value ------------ ---------- ---------- -------------- sample-jsonb 1333101221 2012-03-30 x'cc7c57616c70 09:53:41 6861b535332e31 ... one 1333206973 2012-03-31 two 15:16:13 ... entry-one 1708791504 2024-02-24 x'000000000000 16:18:24 00000000000000 ...")
@@ -1262,8 +1262,8 @@ func Test_qrf01(t *testing.T) {
 		vtab.TclVarSet("sql", "", "SELECT char(0x61,0xa,0x62,0xa,0x63,0xa,0x64) a,\n           mtime b, mtime c, mtime d, mtime e FROM t1")
 		sql = "SELECT char(0x61,0xa,0x62,0xa,0x63,0xa,0x64) a,\n           mtime b, mtime c, mtime d, mtime e FROM t1"
 		_ = sql // suppress unused warning
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -widths {1 2 3 4 5}                -linelimit 3 -wordwrap off {SELECT *, 'x' AS x FROM t2}"))
-		result = "\n" + tclDbOne(db, "db format -style box -widths {1 2 3 4 5}                -linelimit 3 -wordwrap off {SELECT *, 'x' AS x FROM t2}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -widths {1 2 3 4 5} -linelimit 3 -wordwrap off {SELECT *, 'x' AS x FROM t2}"))
+		result = "\n" + tclDbOne(db, "db format -style box -widths {1 2 3 4 5} -linelimit 3 -wordwrap off {SELECT *, 'x' AS x FROM t2}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭────┬────┬─────┬──────┬───────┬───╮ │ a │ b │ c │ d │ e │ x │ ╞════╪════╪═════╪══════╪═══════╪═══╡ │ ab │ ab │ abc │ abcd │ abcde │ x │ │ cd │ cd │ def │ efgh │ fghij │ │ │ ef │ ef │ ghi │ ijkl │ klmno │ │ │ .. │ .. │ ... │ ... │ ... │ │ ╰────┴────┴─────┴──────┴───────┴───╯")
@@ -1278,8 +1278,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "6.1a"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -null NULL                  -text tcl -columnsep ,                  {SELECT * FROM t2}"))
-		result = "\n" + tclDbOne(db, "db format -style list -null NULL                  -text tcl -columnsep ,                  {SELECT * FROM t2}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -null NULL  -text tcl -columnsep ,  {SELECT * FROM t2}"))
+		result = "\n" + tclDbOne(db, "db format -style list -null NULL  -text tcl -columnsep ,  {SELECT * FROM t2}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("1,2.5,\"three\",\"4 (four)\",NULL")
@@ -1294,8 +1294,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "7.1"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 13                  {SELECT * FROM t7}"))
-		result = "\n" + tclDbOne(db, "db format -style list -charlimit 13                  {SELECT * FROM t7}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 13  {SELECT * FROM t7}"))
+		result = "\n" + tclDbOne(db, "db format -style list -charlimit 13  {SELECT * FROM t7}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("abcdefghijklm...|abcぁdefかghi...")
@@ -1304,8 +1304,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "7.2"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 14                  {SELECT * FROM t7}"))
-		result = "\n" + tclDbOne(db, "db format -style list -charlimit 14                  {SELECT * FROM t7}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 14  {SELECT * FROM t7}"))
+		result = "\n" + tclDbOne(db, "db format -style list -charlimit 14  {SELECT * FROM t7}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("abcdefghijklmn...|abcぁdefかghi...")
@@ -1314,8 +1314,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "7.3"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 15                  {SELECT * FROM t7}"))
-		result = "\n" + tclDbOne(db, "db format -style list -charlimit 15                  {SELECT * FROM t7}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 15  {SELECT * FROM t7}"))
+		result = "\n" + tclDbOne(db, "db format -style list -charlimit 15  {SELECT * FROM t7}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("abcdefghijklmno...|abcぁdefかghiの...")
@@ -1324,8 +1324,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "7.4"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 16                  {SELECT * FROM t7}"))
-		result = "\n" + tclDbOne(db, "db format -style list -charlimit 16                  {SELECT * FROM t7}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style list -charlimit 16  {SELECT * FROM t7}"))
+		result = "\n" + tclDbOne(db, "db format -style list -charlimit 16  {SELECT * FROM t7}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("abcdefghijklmnop|abcぁdefかghiのj...")
@@ -1384,8 +1384,8 @@ func Test_qrf01(t *testing.T) {
 	}
 	{ // do_test "10.1"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');\n  ")
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 41 -splitcolumn on                     {SELECT x FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 41 -splitcolumn on                     {SELECT x FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 41 -splitcolumn on  {SELECT x FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 41 -splitcolumn on  {SELECT x FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("alice octavian bob paula cinderella-cinderella quintus daniel rita emma sam fred tammy gertrude ulysses harold violet ingrid william jake xanthippe lisa yates mike zoe nina")
@@ -1394,8 +1394,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "10.2"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 42 -splitcolumn on                     {SELECT x FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 42 -splitcolumn on                     {SELECT x FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 42 -splitcolumn on  {SELECT x FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 42 -splitcolumn on  {SELECT x FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("alice jake tammy bob lisa ulysses cinderella-cinderella mike violet daniel nina william emma octavian xanthippe fred paula yates gertrude quintus zoe harold rita ingrid sam")
@@ -1404,8 +1404,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "10.3"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 51 -splitcolumn on                     {SELECT x FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 51 -splitcolumn on                     {SELECT x FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 51 -splitcolumn on  {SELECT x FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 51 -splitcolumn on  {SELECT x FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("alice harold paula william bob ingrid quintus xanthippe cinderella-cinderella jake rita yates daniel lisa sam zoe emma mike tammy fred nina ulysses gertrude octavian violet")
@@ -1414,8 +1414,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "10.4"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 61 -splitcolumn on                     {SELECT x FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 61 -splitcolumn on                     {SELECT x FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 61 -splitcolumn on  {SELECT x FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 61 -splitcolumn on  {SELECT x FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("alice fred lisa quintus violet bob gertrude mike rita william cinderella-cinderella harold nina sam xanthippe daniel ingrid octavian tammy yates emma jake paula ulysses zoe")
@@ -1424,8 +1424,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "10.5"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 74 -splitcolumn on                     {SELECT x FROM t1}"))
-		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 74 -splitcolumn on                     {SELECT x FROM t1}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 74 -splitcolumn on  {SELECT x FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 74 -splitcolumn on  {SELECT x FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("alice emma ingrid nina rita violet zoe bob fred jake octavian sam william cinderella-cinderella gertrude lisa paula tammy xanthippe daniel harold mike quintus ulysses yates")
@@ -1444,8 +1444,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "12.1"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -text html                   {SELECT 'abc','','xyz'}"))
-		result = "\n" + tclDbOne(db, "db format -style box -text html                   {SELECT 'abc','','xyz'}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -text html  {SELECT 'abc','','xyz'}"))
+		result = "\n" + tclDbOne(db, "db format -style box -text html  {SELECT 'abc','','xyz'}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭───────┬────┬───────╮ │ 'abc' │ '' │ 'xyz' │ ╞═══════╪════╪═══════╡ │ abc │ │ xyz │ ╰───────┴────┴───────╯")
@@ -1455,8 +1455,8 @@ func Test_qrf01(t *testing.T) {
 	}
 	{ // do_test "13.2"
 		_res = db.Exec("\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13(a,b) VALUES\n      (1,'NULL'),\n      (0,'-NULL-'),\n      (0,''),\n      (1,'''abcde'),\n      (1,'abcde'''),\n      (0,'abcde'),\n      (1,' abcde'),\n      (1,'abcde '),\n      (1,'+0'),\n      (1,'-0'),\n      (1,'012345'),\n      (0,'012xyz345'),\n      (1,'0123.45'),\n      (0,'12.34.56'),\n      (0,'12.3e'),\n      (1,'12.3e+123'),\n      (1,'12.3e-34'),\n      (1,'12.3E56'),\n      (1,'12E56'),\n      (0,'12.5E5.6'),\n      (0,'12.5e+'),\n      (0,'12.5e-'),\n      (1,'+Inf'),(1,'-Inf'),(1,'Inf');\n  ")
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -text relaxed -null NULL                  -align {center left}                  {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}"))
-		result = "\n" + tclDbOne(db, "db format -style box -text relaxed -null NULL                  -align {center left}                  {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -text relaxed -null NULL  -align {center left}  {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}"))
+		result = "\n" + tclDbOne(db, "db format -style box -text relaxed -null NULL  -align {center left}  {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("╭─────────┬─────────────╮ │ quoted? │ string │ ╞═════════╪═════════════╡ │ yes │ 'NULL' │ │ │ -NULL- │ │ │ │ │ yes │ '''abcde' │ │ yes │ 'abcde''' │ │ │ abcde │ │ yes │ ' abcde' │ │ yes │ 'abcde ' │ │ yes │ '+0' │ │ yes │ '-0' │ │ yes │ '012345' │ │ │ 012xyz345 │ │ yes │ '0123.45' │ │ │ 12.34.56 │ │ │ 12.3e │ │ yes │ '12.3e+123' │ │ yes │ '12.3e-34' │ │ yes │ '12.3E56' │ │ yes │ '12E56' │ │ │ 12.5E5.6 │ │ │ 12.5e+ │ │ │ 12.5e- │ │ yes │ '+Inf' │ │ yes │ '-Inf' │ │ yes │ 'Inf' │ ╰─────────┴─────────────╯")

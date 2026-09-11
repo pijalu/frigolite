@@ -48,6 +48,13 @@ type PreupdateEvent struct {
 type DMLContext interface {
 	// Statement execution (trigger bodies run Engine.Exec).
 	Exec(stmt sql.Stmt) *Result
+	// OuterOrConflict reports the ON CONFLICT policy of the outermost DML
+	// statement currently executing (SQLite's pParse->eOrconf inheritance:
+	// trigger-body steps without an explicit OR clause inherit the firing
+	// statement's policy; trigger.c codeTriggerProgram). Empty when no outer
+	// DML statement is active.
+	OuterOrConflict() string
+	SetOuterOrConflict(policy string)
 	// InFTSFlush reports whether the engine is inside the FTS segment flush
 	// (execFlushAutocommit / COMMIT). The flush's internal shadow-table writes
 	// are part of the enclosing statement's rollback scope, so per-write

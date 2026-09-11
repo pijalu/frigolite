@@ -163,6 +163,20 @@ func (e *DMLExecutor) ClearTxnWrittenFiles() {
 	e.txnWrittenFiles = nil
 }
 
+// TxnWrittenFiles returns the registry lock keys of the database FILES
+// written during the current transaction (one key per file). Used by the
+// COMMIT upgrade gate, which only upgrades files holding RESERVED.
+func (e *DMLExecutor) TxnWrittenFiles() []string {
+	if len(e.txnWrittenFiles) == 0 {
+		return nil
+	}
+	keys := make([]string, 0, len(e.txnWrittenFiles))
+	for path := range e.txnWrittenFiles {
+		keys = append(keys, path)
+	}
+	return keys
+}
+
 // CurrentTriggerCtx returns the owning database of the trigger currently
 // executing, or nil when no trigger body is running.
 func (e *DMLExecutor) CurrentTriggerCtx() *DatabaseContext {

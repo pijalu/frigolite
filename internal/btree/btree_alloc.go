@@ -66,9 +66,13 @@ func (t *BTree) allocRootpage() (*pager.Page, error) {
 // when a cell payload doesn't fit on the btree page. The first
 // overflow's parent is the btree page; subsequent overflows in the
 // same chain set their parent to the previous overflow (use
-// allocOverflowNext for that case).
+// allocOverflowNext for that case). In auto-vacuum mode the page must
+// not be a pointer-map page (fillInCell src/btree.c:7155-7175 skips
+// pointer-map candidates; the pending-byte page is NOT skipped there —
+// C's overflow chains may use it, and autovacuum-2.4.5's root list
+// treats it as an ordinary usable page).
 func (t *BTree) allocOverflow(parentPgno uint32) (*pager.Page, error) {
-	pg, err := t.allocPage()
+	pg, err := t.allocNonPtrmapPage()
 	if err != nil {
 		return nil, err
 	}
@@ -80,12 +84,41 @@ func (t *BTree) allocOverflow(parentPgno uint32) (*pager.Page, error) {
 	return pg, nil
 }
 
+// allocNonPtrmapPage allocates a page that is not a pointer-map page in
+// auto-vacuum mode (fillInCell src/btree.c:7155-7175 skips pointer-map
+// candidates via the pgnoOvfl++ guard; the pending-byte page is NOT
+// skipped there). Pointer-map pages popped from the freelist are set
+// aside and re-queued after (LIFO) so the freelist still contains the
+// slot for root-page allocation, which addresses it by number.
+// Outside auto-vacuum mode it is a plain allocPage.
+func (t *BTree) allocNonPtrmapPage() (*pager.Page, error) {
+	if !t.ptrmapEnabled() {
+		return t.allocPage()
+	}
+	var deferred []uint32
+	defer func() {
+		for i := len(deferred) - 1; i >= 0; i-- {
+			_ = t.freePageWithPtrmap(deferred[i])
+		}
+	}()
+	for {
+		pg, err := t.allocPage()
+		if err != nil {
+			return nil, err
+		}
+		if !storage.IsPtrmapPageNo(pg.PageNum, t.pageSize) {
+			return pg, nil
+		}
+		deferred = append(deferred, pg.PageNum)
+	}
+}
+
 // allocOverflowNext allocates a continuation overflow page whose ptrmap
 // entry is PtrmapOverflow2 with parent=prevPgno (the previous overflow
 // page in the chain). Mirrors btree.c fillInCell's second and later
 // ptrmapPutOvfl calls.
 func (t *BTree) allocOverflowNext(prevPgno uint32) (*pager.Page, error) {
-	pg, err := t.allocPage()
+	pg, err := t.allocNonPtrmapPage()
 	if err != nil {
 		return nil, err
 	}

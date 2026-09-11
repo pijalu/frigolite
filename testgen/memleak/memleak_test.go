@@ -95,7 +95,7 @@ func Test_memleak(t *testing.T) {
 	_ = EXCLUDE // suppress unused warning
 	EXCLUDE = tclListAppend(EXCLUDE, "btree2.test")
 	EXCLUDE = tclListAppend(EXCLUDE, "btree4.test")
-	if tclBool("") {
+	if false { // [sqlite3 -has-codec] always false (no codec build)
 	}
 	if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength(argv))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
 		vtab.TclVarSet("FILELIST", "", argv)

@@ -91,7 +91,7 @@ func Test_mallocAll(t *testing.T) {
 	vtab.TclVarSet("EXCLUDE", "", "\n  mallocAll.test\n")
 	EXCLUDE = "\n  mallocAll.test\n"
 	_ = EXCLUDE // suppress unused warning
-	if tclBool("") {
+	if false { // [sqlite3 -has-codec] always false (no codec build)
 	}
 	vtab.TclVarSet("INCLUDE", "", "\n")
 	INCLUDE = "\n"

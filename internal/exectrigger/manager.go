@@ -36,6 +36,11 @@ type Manager struct {
 	// validatedTriggers records triggers whose loaded-body schema refs were
 	// validated.
 	validatedTriggers map[string]bool
+	// outerOrConflict is the ON CONFLICT policy of the outermost DML
+	// statement currently executing (SQLite's pParse->eOrconf: trigger-body
+	// steps without an explicit OR clause inherit the firing statement's
+	// policy; trigger.c codeTriggerProgram). Empty when no outer DML runs.
+	outerOrConflict string
 }
 
 // New creates a TriggerManager with default state. The depth limit is left at
@@ -122,3 +127,11 @@ func (m *Manager) IsTriggerValidated(key string) bool {
 func (m *Manager) MarkTriggerValidated(key string) {
 	m.validatedTriggers[key] = true
 }
+
+// OuterOrConflict returns the ON CONFLICT policy of the outermost DML
+// statement currently executing ("" when none is active).
+func (m *Manager) OuterOrConflict() string { return m.outerOrConflict }
+
+// SetOuterOrConflict records the ON CONFLICT policy of the outermost DML
+// statement currently executing.
+func (m *Manager) SetOuterOrConflict(policy string) { m.outerOrConflict = policy }

@@ -125,7 +125,7 @@ func Test_indexfault(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE INDEX ... (unsupported command, not transpiled)
-	FAULTSIM_custom = "-injectinstall"+" "+"custom_injectinstall"+" "+"-injectstart"+" "+"custom_injectstart"+" "+"-injectstop"+" "+"custom_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}"+" "+"-injectuninstall"+" "+"custom_injectuninstall"+" "+"\\" // TCL namespace variable
+	FAULTSIM_custom = "-injectinstall"+" "+"custom_injectinstall"+" "+"-injectstart"+" "+"custom_injectstart"+" "+"-injectstop"+" "+"custom_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}"+" "+"-injectuninstall"+" "+"custom_injectuninstall" // TCL namespace variable
 	_ = FAULTSIM_custom // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -167,7 +167,7 @@ func Test_indexfault(t *testing.T) {
 	_ = custom_filter // suppress unused warning
 	// proc definition (not transpiled)
 	// do_faultsim_test 3.3 -faults custom -prep {\n  faultsim_restore_and_reopen\n  set ::nTmpOpen ...}... (unsupported command, not transpiled)
-	FAULTSIM_custom = "-injectinstall"+" "+"custom_injectinstall"+" "+"-injectstart"+" "+"custom_injectstart"+" "+"-injectstop"+" "+"custom_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}"+" "+"-injectuninstall"+" "+"custom_injectuninstall"+" "+"\\" // TCL namespace variable
+	FAULTSIM_custom = "-injectinstall"+" "+"custom_injectinstall"+" "+"-injectstart"+" "+"custom_injectstart"+" "+"-injectstop"+" "+"custom_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}"+" "+"-injectuninstall"+" "+"custom_injectuninstall" // TCL namespace variable
 	_ = FAULTSIM_custom // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -175,8 +175,8 @@ func Test_indexfault(t *testing.T) {
 	custom_ifail = "-1" // TCL namespace variable
 	_ = custom_ifail // suppress unused warning
 	vtab.TclVarSet("custom_nfail", "", "-1")
-	vtab.TclVarSet("install_custom_faultsim", "", "-1")
 	vtab.TclVarSet("custom_injectstop", "", "-1")
+	vtab.TclVarSet("install_custom_faultsim", "", "-1")
 	custom_nfail = "-1" // TCL namespace variable
 	_ = custom_nfail // suppress unused warning
 	// proc definition (not transpiled)

@@ -87,7 +87,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 	// the flag (vtab.TclVarExists / TclVarGet).
 	if goName == "quota_request_ok" && len(args) >= 2 {
 		valExpr := tp.goStringLiteral(args[1])
-		tp.emitLine(`vtab.TclVarSet("quota_request_ok", "", ` + valExpr + `)`)
+		tp.emitLine("%s", `vtab.TclVarSet("quota_request_ok", "", `+valExpr+`)`)
 	}
 }
 

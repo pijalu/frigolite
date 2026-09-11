@@ -124,8 +124,8 @@ func Test_windowfault(t *testing.T) {
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
-	vtab.TclVarSet("FAULTSIM", "tmpread", "-injectstart"+" "+"tmpread_injectstart"+" "+"-injectstop"+" "+"tmpread_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}"+" "+"\\")
-	_list0 := tclList([]string{"-injectstart", "tmpread_injectstart", "-injectstop", "tmpread_injectstop", "-injecterrlist", "{1 {disk I/O error}}", "\\"})
+	vtab.TclVarSet("FAULTSIM", "tmpread", "-injectstart"+" "+"tmpread_injectstart"+" "+"-injectstop"+" "+"tmpread_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}")
+	_list0 := tclList([]string{"-injectstart", "tmpread_injectstart", "-injectstop", "tmpread_injectstop", "-injecterrlist", "{1 {disk I/O error}}"})
 	_ = _list0
 	_r = _list0
 	FAULTSIM_tmpread = _r

@@ -927,6 +927,11 @@ func (tp *transpiler) cmdExprList(cmdName, cmdText string, args []string) string
 	}
 	for i := 1; i < len(raws[0]); i++ { // raws[0][0] is the "list" word
 		w := raws[0][i]
+		// A lone backslash is a line-continuation remnant (backslash-newline
+		// before `]`), not a list element — TCL folds it away.
+		if !w.Braced && !w.Quoted && strings.TrimSpace(w.Text) == "\\" {
+			continue
+		}
 		switch {
 		case strings.HasPrefix(w.Text, "{*}"):
 			// TCL `{*}` splice marker: value's elements join the list.
@@ -1159,6 +1164,12 @@ func (tp *transpiler) cmdExprFile(cmdName, cmdText string, args []string) string
 // side-effecting closure that reassigns the connection, returning an empty
 // string placeholder (the handle is not used in Go).
 func (tp *transpiler) cmdExprSqlite3(cmdName, cmdText string, args []string) string {
+	// `[sqlite3 -has-codec]` probes the codec build flag (always false in
+	// this pure-Go port; autovacuum.test picks ptrmap pages {207,412}
+	// on the false branch).
+	if len(args) == 1 && strings.HasPrefix(args[0], "-") {
+		return `""`
+	}
 	if len(args) < 2 {
 		return `""`
 	}

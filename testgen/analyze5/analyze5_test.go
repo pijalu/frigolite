@@ -190,7 +190,7 @@ func Test_analyze5(t *testing.T) {
 			{ // do_test "analyze5-1." + testid + "b"
 				w2 = strings.ReplaceAll(where, "y", "+y")
 				_ = w2 // suppress unused warning
-				_dbeval1 := tclExecSQL(db, "SELECT rowid FROM t1 NOT INDEXED WHERE " + w2 + "\\\n                     ORDER BY +rowid")
+				_dbeval1 := tclExecSQL(db, "SELECT rowid FROM t1 NOT INDEXED WHERE " + w2 + " ORDER BY +rowid")
 				a1 = _dbeval1
 				_ = a1 // suppress unused warning
 				_dbeval2 := tclExecSQL(db, "SELECT rowid FROM t1 WHERE " + where + " ORDER BY +rowid")
@@ -228,7 +228,7 @@ func Test_analyze5(t *testing.T) {
 				{ // do_test "analyze5-1." + testid + "b"
 					w2 = strings.ReplaceAll(where, "y", "+y")
 					_ = w2 // suppress unused warning
-					_dbeval4 := tclExecSQL(db, "SELECT rowid FROM t1 NOT INDEXED WHERE " + w2 + "\\\n                     ORDER BY +rowid")
+					_dbeval4 := tclExecSQL(db, "SELECT rowid FROM t1 NOT INDEXED WHERE " + w2 + " ORDER BY +rowid")
 					a1 = _dbeval4
 					_ = a1 // suppress unused warning
 					_dbeval5 := tclExecSQL(db, "SELECT rowid FROM t1 WHERE " + where + " ORDER BY +rowid")

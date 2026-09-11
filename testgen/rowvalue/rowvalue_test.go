@@ -227,8 +227,8 @@ func Test_rowvalue(t *testing.T) {
 			ge := _items1[_idx1+6]
 			_ = ge // suppress unused warning
 			_ = _idx1
-				// foreach {tn2 expr res} "\\\n    2." + tclListElem(tn) + ".lt \"" + v1 + " < " + v2 + "\" " + tclListElem(lt) + "   \\\n    2." + tclListElem(tn) + ".gt \"" + v1 + " > " + v2 + "\" " + tclListElem(gt) + "   \\\n    2." + tclListElem(tn) + ".le \"" + v1 + " <= " + v2 + "\" " + tclListElem(le) + "   \\\n    2." + tclListElem(tn) + ".ge \"" + v1 + " >= " + v2 + "\" " + tclListElem(ge) + "   \\\n  "
-				_items2 := tclSplitList("\\\n    2." + tclListElem(tn) + ".lt \"" + v1 + " < " + v2 + "\" " + tclListElem(lt) + "   \\\n    2." + tclListElem(tn) + ".gt \"" + v1 + " > " + v2 + "\" " + tclListElem(gt) + "   \\\n    2." + tclListElem(tn) + ".le \"" + v1 + " <= " + v2 + "\" " + tclListElem(le) + "   \\\n    2." + tclListElem(tn) + ".ge \"" + v1 + " >= " + v2 + "\" " + tclListElem(ge) + "   \\\n  ")
+				// foreach {tn2 expr res} " 2." + tclListElem(tn) + ".lt \"" + v1 + " < " + v2 + "\" " + tclListElem(lt) + "    2." + tclListElem(tn) + ".gt \"" + v1 + " > " + v2 + "\" " + tclListElem(gt) + "    2." + tclListElem(tn) + ".le \"" + v1 + " <= " + v2 + "\" " + tclListElem(le) + "    2." + tclListElem(tn) + ".ge \"" + v1 + " >= " + v2 + "\" " + tclListElem(ge) + "    "
+				_items2 := tclSplitList(" 2." + tclListElem(tn) + ".lt \"" + v1 + " < " + v2 + "\" " + tclListElem(lt) + "    2." + tclListElem(tn) + ".gt \"" + v1 + " > " + v2 + "\" " + tclListElem(gt) + "    2." + tclListElem(tn) + ".le \"" + v1 + " <= " + v2 + "\" " + tclListElem(le) + "    2." + tclListElem(tn) + ".ge \"" + v1 + " >= " + v2 + "\" " + tclListElem(ge) + "    ")
 				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 					tn2 := _items2[_idx2+0]
 					_ = tn2 // suppress unused warning

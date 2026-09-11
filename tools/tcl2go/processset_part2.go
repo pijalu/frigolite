@@ -890,6 +890,11 @@ func (tp *transpiler) setListValue(goName, cmdText string) bool {
 	listText = strings.ReplaceAll(listText, "\\\r\n", " ")
 	listText = strings.ReplaceAll(listText, "\\\n", " ")
 	listText = strings.TrimSpace(listText)
+	// A trailing lone backslash is a line-continuation remnant of `... \ ]`
+	// (the parser keeps it as a literal word); TCL folds it away, so drop it.
+	if strings.HasSuffix(strings.TrimSpace(listText), "\\") {
+		listText = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(listText), "\\"))
+	}
 	// A [list 1 {message}] form (catchsql-style error) is often stored
 	// for later do_catchsql_test $var comparisons; keep just the
 	// message text so strings.Contains against a real error matches.

@@ -317,6 +317,18 @@ func (e *Engine) SetTriggerTables(tables []string) {
 	e.triggers.SetTables(tables)
 }
 
+// OuterOrConflict reports the ON CONFLICT policy of the outermost DML
+// statement currently executing ("" when none is active).
+func (e *Engine) OuterOrConflict() string {
+	return e.triggers.OuterOrConflict()
+}
+
+// SetOuterOrConflict records the ON CONFLICT policy of the outermost DML
+// statement currently executing.
+func (e *Engine) SetOuterOrConflict(policy string) {
+	e.triggers.SetOuterOrConflict(policy)
+}
+
 // SetTriggerNewRow sets the new-row values for trigger program execution.
 func (e *Engine) SetTriggerNewRow(row Row) {
 	e.triggers.SetNewRow(row)

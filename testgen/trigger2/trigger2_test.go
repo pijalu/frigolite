@@ -115,7 +115,7 @@ func Test_trigger2(t *testing.T) {
 	vtab.TclVarSet("ii", "", "0")
 	ii = "0"
 	_ = ii // suppress unused warning
-	_list0 := tclList([]string{"CREATE TABLE tbl (a, b);", "CREATE TABLE tbl (a INTEGER PRIMARY KEY, b);", "CREATE TABLE tbl (a, b PRIMARY KEY);", "CREATE TABLE tbl (a, b); CREATE INDEX tbl_idx ON tbl(b);", "\\"})
+	_list0 := tclList([]string{"CREATE TABLE tbl (a, b);", "CREATE TABLE tbl (a INTEGER PRIMARY KEY, b);", "CREATE TABLE tbl (a, b PRIMARY KEY);", "CREATE TABLE tbl (a, b); CREATE INDEX tbl_idx ON tbl(b);"})
 	_ = _list0
 	_r = _list0
 	tbl_definitions = _r
@@ -338,8 +338,8 @@ func Test_trigger2(t *testing.T) {
 			vtab.TclVarSet("query", "", "SELECT * FROM tbl; SELECT * FROM log;")
 			query = "SELECT * FROM tbl; SELECT * FROM log;"
 			_ = query // suppress unused warning
-			vtab.TclVarSet("prep", "", prep + "; INSERT INTO log VALUES(1, 2, 3);\\\n             INSERT INTO log VALUES(10, 20, 30);")
-			prep = prep + "; INSERT INTO log VALUES(1, 2, 3);\\\n             INSERT INTO log VALUES(10, 20, 30);"
+			vtab.TclVarSet("prep", "", prep + "; INSERT INTO log VALUES(1, 2, 3); INSERT INTO log VALUES(10, 20, 30);")
+			prep = prep + "; INSERT INTO log VALUES(1, 2, 3); INSERT INTO log VALUES(10, 20, 30);"
 			_ = prep // suppress unused warning
 			before_data = tclExecSQL(db, prep + " " + tr_program_cooked + " " + statement + " " + query)
 			_ = before_data // suppress unused warning
@@ -347,9 +347,9 @@ func Test_trigger2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl; DELETE FROM log; " + prep)
 			}
-			_res = db.Exec("CREATE TRIGGER the_trigger BEFORE " + tclStringRange(statement, "0", "6") + "             ON tbl BEGIN " + tr_program_fixed + " END;")
+			_res = db.Exec("CREATE TRIGGER the_trigger BEFORE " + tclStringRange(statement, "0", "6") + " ON tbl BEGIN " + tr_program_fixed + " END;")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger BEFORE " + tclStringRange(statement, "0", "6") + "             ON tbl BEGIN " + tr_program_fixed + " END;")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger BEFORE " + tclStringRange(statement, "0", "6") + " ON tbl BEGIN " + tr_program_fixed + " END;")
 			}
 			{ // do_test "trigger2-2." + ii + "-before"
 				_r = tclExecSQL(db, statement + " " + query)
@@ -371,9 +371,9 @@ func Test_trigger2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl; DELETE FROM log; " + prep)
 			}
-			_res = db.Exec("CREATE TRIGGER the_trigger AFTER " + tclStringRange(statement, "0", "6") + "             ON tbl BEGIN " + tr_program_fixed + " END;")
+			_res = db.Exec("CREATE TRIGGER the_trigger AFTER " + tclStringRange(statement, "0", "6") + " ON tbl BEGIN " + tr_program_fixed + " END;")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger AFTER " + tclStringRange(statement, "0", "6") + "             ON tbl BEGIN " + tr_program_fixed + " END;")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger AFTER " + tclStringRange(statement, "0", "6") + " ON tbl BEGIN " + tr_program_fixed + " END;")
 			}
 			{ // do_test "trigger2-2." + ii + "-after"
 				_r = tclExecSQL(db, statement + " " + query)

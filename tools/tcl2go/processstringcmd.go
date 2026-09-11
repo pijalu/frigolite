@@ -192,7 +192,7 @@ func (tp *transpiler) processStringMap(args []tcl.RawWord) {
 		// Expand escaped braces for multi-char mappings if needed.
 		expr = fmt.Sprintf("strings.ReplaceAll(%s, %q, %q)", expr, from, to)
 	}
-	tp.emitLine(expr)
+	tp.emitLine("%s", expr)
 }
 
 // processConcat handles: concat args...

@@ -273,7 +273,7 @@ func Test_vtabH(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// register_fs_module db (unsupported command, not transpiled)
-			if tclBool(tcl_platform_platform + " != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
+			if tclBool(tcl_platform_platform + " != \"windows\" ||  " + "regexp -nocase -- {^[A-Z]:} $drive") {
 				{ // "3.0"
 					r = db.Query("\n    SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'\n  ")
 					if r.Error != nil {

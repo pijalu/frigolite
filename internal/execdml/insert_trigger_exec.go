@@ -305,12 +305,46 @@ func parseTriggerBody(t *schema.Entry) ([]sql.Stmt, bool) {
 // execTriggerBody runs a trigger's parsed statements, handling RAISE(IGNORE)
 // and table-not-found error qualification.
 
-// execTriggerBody runs a trigger's parsed statements, handling RAISE(IGNORE)
-// and table-not-found error qualification.
+// applyOuterOrConflict applies the firing statement's ON CONFLICT policy to
+// a trigger-body step that has no explicit OR clause (SQLite trigger.c
+// codeTriggerProgram: pParse->eOrconf = (orconf==OE_Default) ? step->orconf
+// : orconf). Only INSERT and UPDATE steps carry an OR policy; other
+// statements are untouched.
+func (e *DMLExecutor) applyOuterOrConflict(stmt sql.Stmt) {
+	outer := e.ctx.OuterOrConflict()
+	if outer == "" || strings.EqualFold(outer, "DEFAULT") {
+		return
+	}
+	switch s := stmt.(type) {
+	case *sql.InsertStmt:
+		// A step WITH an explicit OR clause keeps its own policy EXCEPT
+		// when the outer policy is stricter (ABORT/FAIL/ROLLBACK over a
+		// weaker step policy): e.g. trigger2-6.1b's INSERT OR IGNORE body
+		// step under an outer INSERT OR ABORT must raise the UNIQUE
+		// violation (verified against sqlite3: INSERT OR ABORT of a fresh
+		// key fires the body step and errors). IGNORE/REPLACE outers never
+		// override an explicit step policy.
+		if !s.IsReplace && (s.OrConflict == "" || (!strings.EqualFold(s.OrConflict, outer) && (strings.EqualFold(outer, "ABORT") || strings.EqualFold(outer, "FAIL") || strings.EqualFold(outer, "ROLLBACK")))) {
+			s.OrConflict = outer
+			s.OrIgnore = strings.EqualFold(outer, "IGNORE")
+			s.OrFail = strings.EqualFold(outer, "FAIL")
+		}
+	case *sql.UpdateStmt:
+		if s.OnConflict == "" || (!strings.EqualFold(s.OnConflict, outer) && (strings.EqualFold(outer, "ABORT") || strings.EqualFold(outer, "FAIL") || strings.EqualFold(outer, "ROLLBACK"))) {
+			s.OnConflict = outer
+		}
+	}
+}
+
 // execTriggerBody runs a trigger's parsed statements, handling RAISE(IGNORE)
 // and table-not-found error qualification.
 func (e *DMLExecutor) execTriggerBody(stmts []sql.Stmt, timing string) *Result {
 	for _, stmt := range stmts {
+		// SQLite trigger.c codeTriggerProgram: a trigger-body step without an
+		// explicit ON CONFLICT inherits the firing statement's policy
+		// (pParse->eOrconf). Apply it here so INSERT OR ABORT/FAIL/ROLLBACK
+		// propagates into the body (trigger2-6.1b).
+		e.applyOuterOrConflict(stmt)
 		res := e.ctx.Exec(stmt)
 		if res.Error == nil {
 			continue

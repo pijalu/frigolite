@@ -85,7 +85,7 @@ func Test_func4(t *testing.T) {
 	highPrecision_3 = func() string { _r := tclExecSQL(db, "SELECT toreal(9007199254740992 + 1);"); if _r == "" || _r == "{}" { return "1" }; return "0" }()
 	_ = highPrecision_3 // suppress unused warning
 	if tclBool("!" + highPrecision_1 + " || !" + highPrecision_2 + " || !" + highPrecision_3) {
-		_putsMsg := "NOTICE:        highPrecision: " + highPrecision_1 + " " + highPrecision_2 + " " + highPrecision_3
+		_putsMsg := "NOTICE: highPrecision: " + highPrecision_1 + " " + highPrecision_2 + " " + highPrecision_3
 		_ = _putsMsg
 	}
 	{ // "func4-1.1"

@@ -766,3 +766,100 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
   goals — triage tranches own them (see PORTPLAN §2 / §5a item 10).
 - **trigger2/without_rowid4 still FAIL**: db-eval multi-column
   accumulation queued since T4 triage — next converter tranche.
+
+### T7 baseline (2026-09-11T06:09:26Z) — serial live states, all 5 FAIL
+
+- **trigger2**: 5 failing assertions, all 6.1/6.2 OR-conflict shape
+  (clean tree: 6.1b/6.1d/6.2b/6.2d/6.2g all nil; with the partial T7.1
+  working-tree fix the INSERTs flip green and the UPDATEs report bare
+  "tbl" instead of "tbl.a"). The 6.1 gaps are engine (see T7.1 probe
+  notes below); the 6.2 gaps are the update conflict-error column-naming
+  gap (update.go uniqueConflictError column-less fallback). T7.1 owns.
+- **without_rowid4**: 2 result mismatches (lines 352/376) + 5 UNIQUE-nil
+  gaps (lines 494/524/550/562/586, same 6.x OR-conflict shape as
+  trigger2). T7.1 owns.
+- **attach2**: 4.4 expects "database is locked" got nil (db2 INSERT
+  while db holds SHARED read txn on same file — CrossConnLockError
+  WriteTxByOther misses read-txn SHARED); 4.11/4.12 COMMITs then fail
+  with spurious "database is locked" (cascade of the same gate
+  misfiring on the wrong scenario). T7.2 owns.
+- **T7.2 CLOSED (2026-09-11): attach2 GREEN — two lock-gate fixes**
+  - 4.4 (autocommit write vs other's read txn): CrossConnLockError now
+    refuses an AUTOCOMMIT write when another connection holds SHARED on
+    the file (internal/exec/locks.go). Writes inside an explicit txn
+    still take RESERVED and fail later at COMMIT (4.10), matching the
+    RESERVED/EXCLUSIVE split.
+  - 4.11/4.12 (COMMIT upgrades wrong files): commitLockError now gates
+    only DIRTY-pager files (HasDirtyPages), not every attached file —
+    db2's file2-only COMMIT no longer trips on db's released main
+    SHARED, and db's read-only COMMIT (no dirty pages) falls back to
+    all-keys (unchanged behavior).
+  - Verified: full 4.1→4.12 pure-Go sequence matches every TCL
+    expectation; lock/lock2/lock3/lock4/lock6/lock7 + attach stay green
+    (lock/lock5 failures pre-existing on clean tree, unchanged).
+- **autovacuum 2.4.5**: rootpage list has holes at 65, 207, 412
+  (got skips 65/207/412; want contiguous 65/207/412 present) — page
+  allocator wrongly treats pointer-map/pending-byte pages as unusable
+  for root pages. Known P8.INCRVACUUM residue. T7.3 owns.
+- **pragma2-5.1**: Query("PRAGMA page_size=16384; CREATE TABLE t1(x);
+  ...PRAGMA cache_spill") errors "file is not a database" in-suite
+  but PASSES as a standalone probe — state carried from the pragma2-4.x
+  prefix (big-table spill + COMMIT + DETACH leaves stale pager state;
+  page_size change on reopen then misvalidates). T7.4 owns.
+- **T7.1 CLOSED (2026-09-11): trigger2 GREEN; root cause was ENGINE, not db-eval**
+  - The queued db-eval multi-column accumulation theory was WRONG:
+    trigger2-1.x/2.x pass on the current tree (converter backslash-fold
+    + cell-iteration fixes from T4/T6 already landed; regen diff is only
+    whitespace/continuation folding).
+  - Real 6.1 root cause (oracle trigger.c:1135-1150 codeTriggerProgram):
+    the AFTER-trigger body step runs at depth 0 via Engine.Exec and
+    re-published OuterOrConflict, so the body's INSERT OR IGNORE
+    clobbered the outer INSERT OR ABORT/FAIL/ROLLBACK. Worse, the
+    clobbered IGNORE then swallowed the body step's own self-conflict
+    (outer row written BEFORE the AFTER trigger fires, so
+    (new.a,0,0) self-conflicts). Fix: OuterOrConflict plumbing
+    (exectrigger.Manager + DMLContext + Engine) with no-clobber publish
+    (insert_core.go/update_split.go: only publish when none active) +
+    applyOuterOrConflict override (ABORT/FAIL/ROLLBACK override an
+    explicit weaker step policy; IGNORE/REPLACE never do) + OrIgnore/
+    OrFail flag sync (else insertOneTuple's OrIgnore check swallows).
+  - Real 6.2 root cause: the 6.2b/d/g failure is the BODY step's conflict
+    (UPDATE OR IGNORE→ABORT tbl SET a=new.a=4, no WHERE: row2 6→4 dups
+    row1's 4), and updateRowConflictsWithTable returned only bool, so
+    the error fell back to bare "tbl". Fix: thread the conflicting
+    live-row values out (updateRowConflictValues/cellConflictValues) and
+    name the column from them (update_apply.go).
+  - Residual risk: applyOuterOrConflict mutates the parsed trigger-body
+    step in place; steps are re-parsed per fire (parseTriggerBody), so no
+    cross-fire contamination. The stricter-override rule (ABORT over an
+    explicit IGNORE) is verified against sqlite3 3.51.0 for the 6.x
+    shapes; exotic mixed OR-step programs could differ — no TCL
+    coverage beyond 6.x.
+  - without_rowid4: 2.x BEFORE-UPDATE trigger path loses the 500 row +
+    6.x WR OR-conflict gaps REMAIN (separate WR trigger-path gaps:
+    mergeTriggerModifiedRow/rowExists rowid-keyed on synthetic RowID 0;
+    parked, NOT regressed — clean-tree stash comparison shows identical
+    2.x/6.x failures before/after T7.1). Next tranche owns.
+- **T7.1 engine probes (oracle-matched, sqlite3 3.51.0)**:
+  - trigger.c codeTriggerProgram (trigger.c:1135-1150): step WITHOUT
+    explicit OR inherits firing stmt policy; step WITH explicit OR keeps
+    its own — verified: cross-table OR IGNORE step under OR ABORT outer
+    still skips (rc=0), firing only ABORTs when the step itself
+    conflicts under ABORT.
+  - trigger2-6.1 shape (AFTER INSERT ... INSERT OR IGNORE INTO same
+    tbl, fresh-key INSERT OR ABORT): sqlite ERRORS tbl.a — the outer
+    INSERT's row is written BEFORE the AFTER trigger fires, so the body
+    step's (new.a,0,0) self-conflicts with the just-written row; under
+    ABORT that conflict raises. Engine misses it because the body step
+    runs at depth 0 via Engine.Exec and re-publishes OuterOrConflict
+    (IGNORE clobbers ABORT); partial T7.1 fix in working tree
+    (OuterOrConflict plumbing + no-clobber publish + OrIgnore/OrFail
+    flag sync) flips INSERT OR FAIL/ROLLBACK green but ABORT still nil
+    — the ABORT body step's insertOneTuple OrIgnore check needs the
+    same flag-sync treatment. NOT committed; stash-verified pre-existing.
+  - trigger2-6.2 shape (AFTER UPDATE ... UPDATE OR IGNORE, UPDATE OR
+    ABORT dup): sqlite ERRORS tbl.a (verified incl. rowid parity
+    1|1|2|10 / 2|6|3|4). Engine reports bare "tbl" — the update
+    conflict path (update.go uniqueConflictError) falls to the
+    column-less message; needs violated-column keying like conflict
+    tranche 7c7b77a0c did for the other update path.

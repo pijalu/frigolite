@@ -42,10 +42,23 @@ func unescapeBareWordEscape(s string, i int, b *strings.Builder) int {
 		b.WriteByte(next)
 		return i + 2
 	case '\n':
-		return i + 2
+		// Line continuation folds to a single space (Tcl(n) backslash
+		// substitution). Consume following spaces/tabs; the space written
+		// here keeps `...;\<newline><spaces>INSERT...` statement-separated.
+		j := i + 2
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		b.WriteByte(' ')
+		return j
 	case '\r':
 		if i+2 < len(s) && s[i+2] == '\n' {
-			return i + 3
+			j := i + 3
+			for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+				j++
+			}
+			b.WriteByte(' ')
+			return j
 		}
 	}
 	j := i + 1 // escape character position
@@ -137,13 +150,23 @@ func tclUnescapeQuoted(s string) string {
 // backslash) in a double-quoted word, writing its expansion and returning the
 // index of the next unprocessed character.
 func tclUnescapeQuotedEscape(s string, i int, b *strings.Builder) int {
-	// TCL line continuation: backslash-newline (and backslash-CR-newline)
-	// is removed entirely.
+	// TCL line continuation: backslash-newline plus following whitespace folds
+	// to a single space (Tcl(n) backslash substitution), even in quotes.
 	if s[i+1] == '\n' {
-		return i + 2
+		j := i + 2
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		b.WriteByte(' ')
+		return j
 	}
 	if s[i+1] == '\r' && i+2 < len(s) && s[i+2] == '\n' {
-		return i + 3
+		j := i + 3
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		b.WriteByte(' ')
+		return j
 	}
 	j := i + 1 // escape character position
 	if nextJ, ok := writeOctEscape(s, j, b); ok {

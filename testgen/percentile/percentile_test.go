@@ -500,22 +500,22 @@ func Test_percentile(t *testing.T) {
 						_ = _idx4
 							if tclBool(oba) {
 							}
-							vtab.TclVarSet("sql", "", "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1           WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)")
-							sql = "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1           WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
+							vtab.TclVarSet("sql", "", "SELECT a, b, c, d,  group_concat(b,'.') OVER w1 AS 'elements',  " + expr + " OVER w1 AS 'median'  FROM t1  WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)")
+							sql = "SELECT a, b, c, d,  group_concat(b,'.') OVER w1 AS 'elements',  " + expr + " OVER w1 AS 'median'  FROM t1  WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".1" — skipped: window-function aggregate (OVER/WINDOW) not supported (SQL side effects only)
 								_res = db.Exec(sql)
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
-							vtab.TclVarSet("sql", "", "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1            WINDOW w1 AS (ORDER BY c, a                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)")
-							sql = "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1            WINDOW w1 AS (ORDER BY c, a                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
+							vtab.TclVarSet("sql", "", "SELECT a, b, c, d,  group_concat(b,'.') OVER w1 AS 'elements',  " + expr + " OVER w1 AS 'median'  FROM t1  WINDOW w1 AS (ORDER BY c, a  ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)")
+							sql = "SELECT a, b, c, d,  group_concat(b,'.') OVER w1 AS 'elements',  " + expr + " OVER w1 AS 'median'  FROM t1  WINDOW w1 AS (ORDER BY c, a  ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".2" — skipped: window-function aggregate (OVER/WINDOW) not supported (SQL side effects only)
 								_res = db.Exec(sql)
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
-							vtab.TclVarSet("sql", "", "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1            WINDOW w1 AS (ORDER BY c, a                ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)")
-							sql = "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1            WINDOW w1 AS (ORDER BY c, a                ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
+							vtab.TclVarSet("sql", "", "SELECT a, b, c, d,  group_concat(b,'.') OVER w1 AS 'elements',  " + expr + " OVER w1 AS 'median'  FROM t1  WINDOW w1 AS (ORDER BY c, a  ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)")
+							sql = "SELECT a, b, c, d,  group_concat(b,'.') OVER w1 AS 'elements',  " + expr + " OVER w1 AS 'median'  FROM t1  WINDOW w1 AS (ORDER BY c, a  ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".3" — skipped: window-function aggregate (OVER/WINDOW) not supported (SQL side effects only)
 								_res = db.Exec(sql)

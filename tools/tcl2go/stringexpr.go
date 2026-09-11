@@ -668,6 +668,22 @@ func (p *stringPartsParser) handleQuote() {
 // escapes, so preserve them verbatim.
 func (p *stringPartsParser) handleEscape() {
 	next := p.s[p.pos+1]
+	// TCL backslash-newline folds to a single space (Tcl(n) backslash
+	// substitution), consuming following spaces/tabs — even mid-string.
+	if next == '\n' || (next == '\r' && p.pos+2 < len(p.s) && p.s[p.pos+2] == '\n') {
+		p.pos += 2
+		if next == '\r' {
+			p.pos++
+		}
+		for p.pos < len(p.s) && (p.s[p.pos] == ' ' || p.s[p.pos] == '\t') {
+			p.pos++
+		}
+		if len(p.parts) == 0 || p.parts[len(p.parts)-1].variable != "" || p.parts[len(p.parts)-1].command != "" {
+			p.parts = append(p.parts, stringPart{})
+		}
+		p.parts[len(p.parts)-1].literal += " "
+		return
+	}
 	p.pos += 2
 	if len(p.parts) == 0 || p.parts[len(p.parts)-1].variable != "" || p.parts[len(p.parts)-1].command != "" {
 		p.parts = append(p.parts, stringPart{})

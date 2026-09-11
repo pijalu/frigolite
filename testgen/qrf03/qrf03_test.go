@@ -70,8 +70,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.10"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style box -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style box -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style box -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style box -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("╭───────┬───────┬───────┬───────┬──────┬───────┬───────┬───────╮ │ mid │ fid │ pmid │ pid │ fnid │ pfnid │ mperm │ isaux │ ╞═══════╪═══════╪═══════╪═══════╪══════╪═══════╪═══════╪═══════╡ │ 28775 │ 28774 │ 28773 │ 28706 │ 1 │ 0 │ 0 │ 0 │ │ 28773 │ 28706 │ 28770 │ 28685 │ 1 │ 0 │ 0 │ 0 │ │ 28770 │ 28736 │ 28769 │ 28695 │ 2 │ 0 │ 0 │ 0 │ │ 28770 │ 28697 │ 28769 │ 28698 │ 3 │ 0 │ 0 │ 0 │ │ 28767 │ 28768 │ 28759 │ 28746 │ 4 │ 0 │ 0 │ 0 │ ╰───────┴───────┴───────┴───────┴──────┴───────┴───────┴───────╯")
@@ -80,8 +80,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.11"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style box -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style box -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style box -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style box -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("╭─────┬─────┬─────┬─────┬────┬─────┬─────┬─────╮ │ mid │ fid │pmid │ pid │fnid│pfnid│mperm│isaux│ ╞═════╪═════╪═════╪═════╪════╪═════╪═════╪═════╡ │28775│28774│28773│28706│ 1│ 0│ 0│ 0│ │28773│28706│28770│28685│ 1│ 0│ 0│ 0│ │28770│28736│28769│28695│ 2│ 0│ 0│ 0│ │28770│28697│28769│28698│ 3│ 0│ 0│ 0│ │28767│28768│28759│28746│ 4│ 0│ 0│ 0│ ╰─────┴─────┴─────┴─────┴────┴─────┴─────┴─────╯")
@@ -90,8 +90,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.20"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style table -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style table -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style table -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style table -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("+-------+-------+-------+-------+------+-------+-------+-------+ | mid | fid | pmid | pid | fnid | pfnid | mperm | isaux | +-------+-------+-------+-------+------+-------+-------+-------+ | 28775 | 28774 | 28773 | 28706 | 1 | 0 | 0 | 0 | | 28773 | 28706 | 28770 | 28685 | 1 | 0 | 0 | 0 | | 28770 | 28736 | 28769 | 28695 | 2 | 0 | 0 | 0 | | 28770 | 28697 | 28769 | 28698 | 3 | 0 | 0 | 0 | | 28767 | 28768 | 28759 | 28746 | 4 | 0 | 0 | 0 | +-------+-------+-------+-------+------+-------+-------+-------+")
@@ -100,8 +100,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.21"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style table -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style table -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style table -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style table -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("+-----+-----+-----+-----+----+-----+-----+-----+ | mid | fid |pmid | pid |fnid|pfnid|mperm|isaux| +-----+-----+-----+-----+----+-----+-----+-----+ |28775|28774|28773|28706| 1| 0| 0| 0| |28773|28706|28770|28685| 1| 0| 0| 0| |28770|28736|28769|28695| 2| 0| 0| 0| |28770|28697|28769|28698| 3| 0| 0| 0| |28767|28768|28759|28746| 4| 0| 0| 0| +-----+-----+-----+-----+----+-----+-----+-----+")
@@ -110,8 +110,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.30"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style markdown -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style markdown -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style markdown -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style markdown -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("| mid | fid | pmid | pid | fnid | pfnid | mperm | isaux | |-------|-------|-------|-------|------|-------|-------|-------| | 28775 | 28774 | 28773 | 28706 | 1 | 0 | 0 | 0 | | 28773 | 28706 | 28770 | 28685 | 1 | 0 | 0 | 0 | | 28770 | 28736 | 28769 | 28695 | 2 | 0 | 0 | 0 | | 28770 | 28697 | 28769 | 28698 | 3 | 0 | 0 | 0 | | 28767 | 28768 | 28759 | 28746 | 4 | 0 | 0 | 0 |")
@@ -120,8 +120,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.31"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style markdown -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style markdown -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style markdown -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style markdown -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("| mid | fid |pmid | pid |fnid|pfnid|mperm|isaux| |-----|-----|-----|-----|----|-----|-----|-----| |28775|28774|28773|28706| 1| 0| 0| 0| |28773|28706|28770|28685| 1| 0| 0| 0| |28770|28736|28769|28695| 2| 0| 0| 0| |28770|28697|28769|28698| 3| 0| 0| 0| |28767|28768|28759|28746| 4| 0| 0| 0|")
@@ -130,8 +130,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.40"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style column -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style column -screenwidth 68               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style column -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style column -screenwidth 68  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("mid fid pmid pid fnid pfnid mperm isaux ----- ----- ----- ----- ---- ----- ----- ----- 28775 28774 28773 28706 1 0 0 0 28773 28706 28770 28685 1 0 0 0 28770 28736 28769 28695 2 0 0 0 28770 28697 28769 28698 3 0 0 0 28767 28768 28759 28746 4 0 0 0")
@@ -140,8 +140,8 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.41"
-		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style column -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}"))
-		x = "\n" + tclDbOne(db, "db format -style column -screenwidth 52               {SELECT * FROM mlink ORDER BY rowid}")
+		vtab.TclVarSet("x", "", "\n" + tclDbOne(db, "db format -style column -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}"))
+		x = "\n" + tclDbOne(db, "db format -style column -screenwidth 52  {SELECT * FROM mlink ORDER BY rowid}")
 		_ = x // suppress unused warning
 		got := tclListFlatten(x)
 		want := tclListFlatten("mid fid pmid pid fnid pfnid mperm isaux ----- ----- ----- ----- ---- ----- ----- ----- 28775 28774 28773 28706 1 0 0 0 28773 28706 28770 28685 1 0 0 0 28770 28736 28769 28695 2 0 0 0 28770 28697 28769 28698 3 0 0 0 28767 28768 28759 28746 4 0 0 0")

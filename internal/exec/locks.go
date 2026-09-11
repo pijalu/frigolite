@@ -342,6 +342,17 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 		if _, ok := lockreg.Global.ExclusiveLockedByOther(key, e.connID); ok {
 			return fmt.Errorf("database is locked")
 		}
+		// A read transaction holds SHARED on the file (pager.c holds the
+		// SHARED lock for the whole read txn): another connection's write
+		// must reserve (RESERVED→EXCLUSIVE upgrade blocked by the reader) —
+		// attach2-4.4: db2's autocommit INSERT fails while db holds
+		// BEGIN + SELECT on the same file. Autocommit writes go through
+		// the COMMIT upgrade path, so they are refused up front; writes
+		// inside an explicit transaction take RESERVED (allowed) and fail
+		// later at COMMIT (attach2-4.10) via commitLockError.
+		if write && !e.tx.inTransaction && lockreg.Global.SharedTxByOther(key, e.connID) {
+			return fmt.Errorf("database is locked")
+		}
 		// PENDING blocks only NEW SHARED acquisitions by other connections. A
 		// connection that already holds a transaction-level SHARED lock on the file
 		// keeps reading (src/os_unix.c unixLock: the PENDING check applies on the
@@ -417,8 +428,25 @@ func (e *Engine) setPendingAll() {
 // src/pager.c sqlite3PagerSharedLock EXCLUSIVE upgrade refusal. For the
 // unix-flock / unix-dotfile locking styles (which collapse every lock level
 // into a single EXCLUSIVE mutex) ANY other holder blocks the upgrade.
+// Only files this transaction DIRTIED participate: a writer upgrades the
+// files it holds RESERVED on, not every attached file (attach2-4.12: db2's
+// COMMIT upgrades file2 only; db's released main SHARED must not block it).
+// Dirty pages (not the DML write-tracker) decide: the tracker misses writes
+// that bypass the DML executor paths, while the pager records every write.
 func (e *Engine) commitLockError() error {
-	for _, k := range e.allLockKeys() {
+	keys := e.allLockKeys()
+	var dirty []string
+	for _, ctx := range e.dbList {
+		if ctx != nil && ctx.Pager != nil && ctx.Pager.HasDirtyPages() {
+			if k := lockKey(ctx, e.connID); k != "" {
+				dirty = append(dirty, k)
+			}
+		}
+	}
+	if len(dirty) > 0 {
+		keys = dirty
+	}
+	for _, k := range keys {
 		if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
 			if lockreg.Global.ConnLockedByOther(k, e.connID) {
 				return fmt.Errorf("database is locked")

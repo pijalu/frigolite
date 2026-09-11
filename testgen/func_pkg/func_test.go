@@ -1585,7 +1585,7 @@ func Test_func(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			midargs += ",'/" + i + "'"
 			midres += "/" + i
-			result = "md5      \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
+			result = "md5  \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
 			_ = result // suppress unused warning
 			vtab.TclVarSet("sql", "", "SELECT md5sum(t1" + midargs + ") FROM tbl1")
 			sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"

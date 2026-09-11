@@ -495,11 +495,23 @@ func tclUnescapeQuoted(s string) string {
 }
 
 func tclUnescapeQuotedEscape(s string, i int, b *strings.Builder) int {
+	// TCL backslash-newline folds to a single space (Tcl(n) backslash
+	// substitution), consuming following spaces/tabs.
 	if s[i+1] == '\n' {
-		return i + 2
+		j := i + 2
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		b.WriteByte(' ')
+		return j
 	}
 	if s[i+1] == '\r' && i+2 < len(s) && s[i+2] == '\n' {
-		return i + 3
+		j := i + 3
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		b.WriteByte(' ')
+		return j
 	}
 	j := i + 1
 	if nextJ, ok := writeOctEscape(s, j, b); ok {

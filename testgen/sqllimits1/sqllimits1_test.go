@@ -830,8 +830,8 @@ func Test_sqllimits1(t *testing.T) {
 		vtab.TclVarSet("sql", "", "SELECT 1 WHERE 1==1")
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
-		vtab.TclVarSet("tail", "", " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1")
-		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
+		vtab.TclVarSet("tail", "", " /* A comment to take up space in order to make the string longer without increasing the expression depth */ AND   1  ==  1")
+		tail = " /* A comment to take up space in order to make the string longer without increasing the expression depth */ AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N = strconv.Itoa((50000 / (len(tail)))+1)
 		_ = N // suppress unused warning
@@ -844,8 +844,8 @@ func Test_sqllimits1(t *testing.T) {
 		vtab.TclVarSet("sql", "", "SELECT 1 WHERE 1==1")
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
-		vtab.TclVarSet("tail", "", " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1")
-		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
+		vtab.TclVarSet("tail", "", " /* A comment to take up space in order to make the string longer without increasing the expression depth */ AND   1  ==  1")
+		tail = " /* A comment to take up space in order to make the string longer without increasing the expression depth */ AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N = strconv.Itoa((50000 / (len(tail)))+1)
 		_ = N // suppress unused warning
