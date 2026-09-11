@@ -1161,3 +1161,43 @@ chunksize, altertab2 (harness flatten asymmetry).
     windowE/windowfault unchanged (5 assertions, the RANGE-frame boundary
     class — next tranche). Gates: build/vet/SOLID green, -race native suite
     green, quality gate clean.
+
+- **T10 CLOSED (2026-09-11): WR named-column insert did NOT corrupt storage —
+  PRAGMA integrity_check misread PK-first records as declared-order**
+  - The T-log's page-dump evidence was an artifact: a proper dump (pageSize
+    from the file header, cell at the header cell-pointer offset) shows page 2
+    is a valid 0x0a index-leaf whose single cell is `03 03 09 00` — payload
+    len 3 + record [const-1, NULL] = PK-first [a=1, b=NULL]. sqlite3 3.51.0
+    on the identical statements writes the byte-identical cell
+    (`03 03 09 00`) and the identical full-tuple cell (`05 03 01 0f 03 78`).
+    Probed all four write paths — plain INSERT INTO t1(a), full tuple,
+    INSERT OR IGNORE ... ON CONFLICT(a) DO NOTHING, plain ON CONFLICT DO
+    NOTHING: every path writes identical, oracle-identical storage. The
+    write pipeline (mapNamedTupleValues → ReorderToStorage([1,0]) →
+    NullIPKAliasForWrite no-op for WR → EncodeRecord → CellIndexLeaf insert)
+    is correct; NullIPKAliasForWrite and the btree empty-page fast path were
+    exonerated.
+  - Root cause: internal/exec/quickCheckTable decoded the index-leaf record
+    and fed it straight to buildRowMapFromValues, mapping storage slot 0 to
+    DECLARED column 0. Stored [1, NULL] therefore read as b=1, a=NULL and
+    quickCheckNotNull emitted "NULL value in t1.a" for a healthy image. The
+    SELECT scan path already permutes at decode (execquery
+    RemapWRRecordToDeclared); the integrity scan now does the same for
+    WITHOUT ROWID tables (pragma_quickcheck.go, hasWithoutRowidKeyword →
+    e.selectEngine.RemapWRRecordToDeclared before the row-map build).
+  - Verification (isolated git worktree pinned at 895fa61a5, fix vs pristine):
+    - testgen/upsert1 2 → 0 failing assertions (upsert1-600/610 green);
+      all 12 target packages re-run (upsert1/4/5, without_rowid1-7,
+      conflict2/3): every other package's assertion count UNCHANGED (its
+      residue is the documented WR DO-UPDATE-unique / FK-CASCADE /
+      ALTER-REFERENCES tranches, not integrity_check).
+    - Root harness TestSQLiteSuite: green with the fix (failure set
+      identical to pristine). TestBackupConformance and
+      TestNative{BtreeDivider,WalCheckpointPassive}FixtureReference fail
+      IDENTICALLY with and without the fix — pre-existing mainline state
+      from concurrent tranches, not this change.
+    - go build ./... / go vet ./... / go test -run TestSOLID_ ./... green;
+      -race TestNative|TestWR unchanged; tools/quality_gate.sh on
+      pragma_quickcheck.go: findings byte-identical to HEAD's version
+      (pre-existing quickCheckTables/checkFreelistCount/execQuickCheck
+      complexity overages; no NEW violations).

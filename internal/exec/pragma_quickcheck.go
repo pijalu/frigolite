@@ -348,6 +348,17 @@ func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit 
 		if err != nil || rec == nil {
 			break
 		}
+		// WITHOUT ROWID rows live in an index btree whose records are stored
+		// PK-first (index_xinfo iField layout, see execdml/wr_order.go); the
+		// SELECT scan path permutes them back to declared order at decode time
+		// (execquery.RemapWRRecordToDeclared). The integrity scan must do the
+		// same or it misreads storage slot 0 as declared column 0 — e.g. for
+		// t1(b UNIQUE, a INT PRIMARY KEY) the on-disk record [1, NULL] (a=1,
+		// b=NULL) would be read as b=1, a=NULL and falsely report
+		// "NULL value in t1.a" (upsert1-600/610). Rowid tables need no remap.
+		if hasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
+			e.selectEngine.RemapWRRecordToDeclared(rec, te.SQL, colDefs)
+		}
 		row := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
 		if e.quickCheckRow(te, colDefs, uniqIdx, row, rec.Values, cell.RowID, seenKeys, emit) {
 			break
