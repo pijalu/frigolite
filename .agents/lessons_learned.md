@@ -5632,3 +5632,22 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   agents per family group → consolidated class index in the T-log → fix
   tranches by class with dedicated fix agents for deep seams (WR, FTS
   writer) while the main agent takes small-medium engine fixes.
+- **vtab DDL guards (T14)**: CREATE TRIGGER on a vtab → "cannot create
+  triggers on virtual tables"; only INSTEAD OF on views ("cannot create
+  BEFORE trigger on view: vv"); CREATE INDEX on a vtab → "virtual tables may
+  not be indexed". Detect vtabs via IsStoragelessVirtualTable ||
+  RootPage==0. Without the index guard, CREATE INDEX scans shadow storage
+  as a btree → spurious "malformed".
+- **Aggregate-in-WHERE (T13)**: resolve.c clears NC_AllowAgg for the WHERE
+  subtree — any scalar aggregate directly in WHERE is "misuse of aggregate:
+  X()". Exceptions that must NOT fire: min/max with 2+ args (dual-natured
+  scalar, builtin.c), invalid arity (the arity error wins — select1-3.9),
+  aggregates inside nested subqueries (own scope), and WHERE references to
+  SELECT aliases whose expression is an aggregate (alias expansion → same
+  misuse, tkt3508).
+- **Parallel-agent workflow (validated)**: read-only diagnosis agents per
+  family group write reports to /tmp; the main agent persists a durable
+  class index into the goal T-log; deep seams (WR writer, FTS crisis-merge)
+  get dedicated fix agents with explicit file territories; the main agent
+  takes tranches in disjoint packages (execddl, execquery). Git hygiene:
+  explicit-path `git add` only.
