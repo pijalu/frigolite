@@ -1022,3 +1022,58 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
     success expectations). Entry points: wrapValueForRowMap
     (internal/execquery/helpers.go:121), sort-key collation resolution
     (select_expr.go:351 mapCollations), comparison dispatch.
+### T12 diagnosis index (2026-09-11) — full-suite drift root-cause classes
+
+All eight family groups diagnosed by parallel agents (reports:
+/tmp/frigolite_diag/report_g{1,2,3,4,5,6,7,8}.md — ephemeral; this index is
+the durable extract). Package → class mapping per group report. ENGINE
+classes (fix tranches), highest impact first:
+
+1. Rowid-alias (IPK) reads NULL under WHERE-filtered/indexed scans, SELECT *
+   (g3 class 6: regexp1; g4: indexexpr1, tableopts, altercons; g1: whereA).
+   Top priority — likely one read-path seam.
+2. WR named-column insert corrupts table root (T10, fix in flight).
+3. WR PK/UNIQUE unenforced on UPDATE + WR FK ON UPDATE CASCADE
+   (conflict2, without_rowid3/4; g2).
+4. Scalar subquery with aggregate-expression term mis-evaluated / FILTER
+   bare-column mixups (randexpr1, filter1; g3 class 1).
+5. TEXT→REAL coercion integer-only ('4.5'+0 → 0) (tkt_a8a0d2996a; g3).
+6. misc1: ~950-byte schema record written as fully-local page-1 cell
+   (1024B page) → undecodable sqlite_master (g2).
+7. DML name/function resolution missing (SELECT validates, DML doesn't):
+   update, delete_pkg, insert, insert3, triggerB, misc4/5 (g2 class B).
+8. Missing prepare-time validations: function arity (limit, select1/5),
+   ORDER BY/GROUP BY ordinal range (select1/3, tkt2822), join ON/USING
+   guards (join ×8, tkt3935), aggregate-in-WHERE misuse (tkt1514/3508),
+   compound 500-term limit (select7), nested-aggregate semantics
+   (aggnested, aggorderby), resolver alias precedence (resolver01).
+9. Window-frame boundary computation (windowB/E/fault; g1 class 1).
+10. DELETE/UPDATE ORDER BY LIMIT grammar (wherelimit, wherelimit2).
+11. Conflict clauses: UNIQUE IGNORE (null), NOT NULL REPLACE+DEFAULT
+    (notnull), per-column ON CONFLICT on INSERT (conflict3).
+12. FK: parent/column validation + RESTRICT-before-trigger + CASCADE
+    re-CHECK regression (e_fkey, fkey2), authorizer firing (alterauth).
+13. Collation: prepare-time resolution after reopen (collate3-2.x — T11),
+    index-level COLLATE in UNIQUE (collate4).
+14. vtab: DDL guards (vtab5), created-vtab join column resolution (vtab6,
+    tkt3121), per-connection module registry (vtab_shared),
+    recursive-CTE inner-join rescan (closure01).
+15. Nested-txn visibility in Query context + write-during-read (misc8);
+    in-scan DELETE NULL semantics (delete2, delete_pkg).
+16. Storage/lexer: nan 4-byte cell over-reservation; lexer partial
+    exponents/unterminated comments (tokenize); func4 affinity saturate;
+    tkt_4a03edc4c8 REPLACE+FAIL ordering; tkt_fc62af4523 journal-mode
+    locking; tkt_2a5629202f qualified multi-key ORDER BY;
+    tkt_54844eea3f outer-ref in FROM-subquery; tkt_78e04e52ea quoted
+    empty name; view/indexed errors (view, view3, indexedby).
+17. Testing-pragma/test-control gaps (low prio): PRAGMA
+    optimization_control (tkt_80ba201079), TESTCTRL_LOCALTIME_FAULT
+    (tkt_bd484a090c), percentile/zipfile message parity.
+
+TRANSPILE/supersession candidates (Pure-Go supersession policy; ~20 pkgs):
+thread003-005, notify2, init, mutex1, pcache2, misuse, loadext,
+permutations, shell1, shell6, avfs, trans2, e_droptrigger, e_dropview,
+e_reindex, index2, fkey1, rowid, bigrow, update2, vtab1, bind, ptrchng,
+bestindexA/D, csv01, func3, qrf01-03, tkt2565, trace, trace3, tkt3992,
+tkt_f777251dc7a, func_pkg(md5/UDF parts), pcache, shortread1, sort5,
+chunksize, altertab2 (harness flatten asymmetry).
