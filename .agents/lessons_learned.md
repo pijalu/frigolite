@@ -5694,3 +5694,15 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   validation, in-scan DELETE, WR/FK/ALTER residues, fts grind, ~25
   transpiler N-A reclasses) and the queued goals (RTREE, FTS5, DBSTAT,
   DBDATA, WAL-G7, P9.PERF).
+- **Trigger WHEN resolution (T22)**: SQLite accepts CREATE TRIGGER with an
+  unknown WHEN column (rc=0) but the FIRING statement fails at prepare
+  ("no such column: NAME") — resolution happens when the trigger program is
+  compiled into the firing statement, not at CREATE. Evaluate WHEN with
+  subject-table column validation at fire time; NEW./OLD. qualifiers resolve
+  to the subject table's own columns.
+- **Truncated comparisons lie**: `| head -6` on a failing-assertion list hid
+  4 lines and fabricated both a "regression" (1039 present in HEAD too) and
+  a "fix". Full-set diffs (sort > file, diff files) only.
+- **Session total T7-T22**: 29 testgen packages flipped fully green
+  (wherelimit and insert3 added), update 10→4, plus byte-parity FTS writer
+  conformance fixtures. Remaining classes indexed in FULL-SUITE-DRIFT T12.
