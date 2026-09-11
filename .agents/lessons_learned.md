@@ -5575,3 +5575,45 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   doesn't reproduce in an isolated probe, suspect ACCUMULATED per-connection
   state (registered attachments, lock marks, cached schemas) from earlier
   statements in the same file, not the target statement itself.
+
+- **Pending-byte page is NEVER usable (T7.3, 2026-09-11)**: btree.c:6740 skips
+  PENDING_BYTE_PAGE on every end-of-file increment REGARDLESS of a
+  TESTCTRL_PENDING_BYTE override (the override moves WHERE the lock byte
+  lives, not WHETHER the page is usable). autovacuum-2.4.5's expected root
+  list EXCLUDES the overridden page 65 like the ptrmap pages. Pre-fix, the
+  engine allocated an index leaf AT page 65; the drain then followed the
+  stale ptrmap parent into the reserved page → "update parent 65: malformed".
+- **tcl2go info-exists dynamic key (T7.3)**: `info exists ARR($i)` vs
+  `ARR(i)` differ ONLY by the leading `$` — decide literal-vs-variable on the
+  RAW key BEFORE stripping the sigil (cmdexpr.go). Deciding after stripping
+  (Contains "$") inverted every dynamic lookup into a literal-key lookup.
+- **tcl2go genPreDeleted (T7.4/T8)**: file-delete hoisting must be count-based
+  and the leading-region scan must stop at EVERY do_*_test flavor
+  (do_execsql_test, do_catchsql_test, ...) — matching only "\ndo_test " made
+  do_execsql_test-driven files hoist their WHOLE body's deletes, silencing
+  mid-file forcedelete resets ("table t1 already exists" at close/reopen).
+- **Parser rule-number/table mismatch (T9)**: rule handlers and the LALR
+  tables can DIVERGE — rule 123 was `xfullname ::= nm DOT nm AS nm` (lhs 265,
+  nrhs 5 in sql_tables.go) but carried the joinop handler, leaking a zero
+  joinOp as a table name ("%v" → "{ false false}"). Diagnose with
+  RuleInfoLhs/RuleInfoNRhs (NRhs stored NEGATED) + temp unhandled-rule
+  tracing. The xfullname alias is dropped by the string form — carried via
+  Parser.pendingDMLAlias to the DML statement rules.
+- **WR DO UPDATE write path (T9)**: any upsert DO UPDATE write must mirror
+  writeUpdateCell's WITHOUT ROWID branch: PK-identity delete
+  (deleteRowsByIdentity) + ReorderToStorage + CellIndexLeaf into the WR
+  btree. Rowid-keyed delete/insert on a WR tree corrupts the btree.
+  DO UPDATE SET/WHERE need alias-qualified row-map keys ("t2.c").
+- **Collation DDL timing (T11)**: CREATE TABLE must resolve column COLLATE
+  names at CREATE time (build.c sqlite3AddCollateType) via
+  DDLContext.CheckCollationString. Still open: post-reopen statements
+  RESOLVING a schema collation that is no longer registered must fail at
+  prepare (sqlite3LocateCollSeq) — engine silently falls back to BINARY.
+- **WR named-column insert (T10, OPEN)**: named-column INSERT into a WITHOUT
+  ROWID table corrupts the table root (raw record bytes at page offset 0, no
+  0x0a header); full-tuple inserts are clean. mapNamedTupleValues and
+  WithoutRowidStorageOrder verified correct — suspect NullIPKAliasForWrite or
+  the empty-page insert fast path (btree_insert.go). See FULL-SUITE-DRIFT T10.
+- **JSON harness is NOT a deterministic gate** (re-confirmed): standard-suite
+  subtest sets churn run-to-run by ~1500 entries; the testgen suite +
+  `tools/status --check` are the only authoritative regression instruments.
