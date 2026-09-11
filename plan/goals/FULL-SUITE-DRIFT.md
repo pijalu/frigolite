@@ -1201,3 +1201,111 @@ chunksize, altertab2 (harness flatten asymmetry).
       pragma_quickcheck.go: findings byte-identical to HEAD's version
       (pre-existing quickCheckTables/checkFreelistCount/execQuickCheck
       complexity overages; no NEW violations).
+
+### T13 FTS flush/crisis-merge: false-positive corruption checks fixed (2026-09-11)
+
+Class (g5 report class 1): the FTS4 flush/crisis-merge segment accounting —
+diagnosed as "merged/written segment stores wrong content vs the oracle" —
+turned out to be THREE false-positive "database disk image is malformed"
+emitters aborting the write path mid-flight, NOT a writer content bug. With
+the emitters fixed, frigolite's flush and crisis-merge outputs are
+BYTE-IDENTICAL to /usr/bin/sqlite3 3.51.0 on the previously failing shapes.
+
+Byte evidence (probes under /tmp/probe_ftsres, oracle CLI as ground truth):
+
+- Scenario A (fts4merge minimal): page_size=512, 16 autocommit inserts of a
+  600-char single-token doc. Oracle: 16 root-only segments, end_block
+  "0 607", %_segments empty. Engine before: 0 segdir rows (flush dropped
+  every batch); after: 16 root-only 607B segments, root bytes and
+  %_segments byte-identical to the oracle (cmp clean).
+- Scenario C (fts4growth minimal): page_size=1024, 40 Genesis verses, one
+  INSERT..SELECT per autocommit. Oracle: 8 L0 roots + L1 idx0 (leaves 1-2,
+  4-byte root) + L1 idx1 (leaves 3-5, 9-byte root), 5 %_segments rows
+  totalling 3700 bytes. Engine before: "malformed" from insert 25
+  (docid 1001025 — the exact fts4growth test site), 8 L0 rows, one L1 row.
+  After: completes all 40 inserts; segdir geometry, all root blobs and all
+  %_segments blocks byte-identical to the oracle (cmp clean on
+  group_concat(quote(block)) and per-row quote(root)).
+
+Root causes and fixes:
+
+1. Pager committed a stale page-1 header when a mid-cycle allocation grew
+   the file (internal/pager/pager.go). Within one flushAllCtx cycle, page 1
+   could flush BEFORE a higher page; growHeaderSizeLocked then raised the
+   in-memory header and re-dirtied page 1, but the end-of-cycle dirty wipe
+   dropped the mark — the file ended with nPage 47 on disk while page 48
+   existed ("invalid page number 48" in integrity_check; page_size=512 FTS
+   builds). Fix: flushOrderLocked() writes all dirty pages ascending and
+   page 1 LAST (sqlite3PagerCommitPhaseOne stamps the change counter after
+   the page-list write). Deterministic order also de-flakes commit images.
+2. HeaderBeyondFile ran mid-write (internal/pager/external.go). lockBtree's
+   nPage>nPageFile check belongs to shared-lock time, when the connection
+   cannot have in-flight pages; frigolite consults it per statement and from
+   mid-flush schema lookups (schema.Manager.FindTable → ValidateHeader),
+   where our own overflow allocation (growHeaderSizeLocked) makes the
+   in-memory header lead the not-yet-extended file → false "malformed". This
+   is what silently swallowed the page_size=512 segdir row (Fix A's
+   companion; the error was eaten by writeFTSShadowRowRaw's `_ =`). Fix:
+   return false while the pager holds its own dirty pages.
+3. ValidateFreelistForGrowth treated an all-zero trunk first-8-bytes as
+   corruption (internal/exec/ddl_forward.go). A VALID empty trunk is
+   next=0/k=0 — exactly 8 zero bytes (freePage2's tail block on a fresh
+   freelist). After the first crisis-merge chomp the freelist drains back to
+   a single empty trunk, and then EVERY INSERT..SELECT failed at statement
+   start (insertSelectIntoFTS → ValidateFreelistForGrowth): fts4check's
+   4617-site loop and fts4growth's 2.2/4.x loops. Fix: apply C's only
+   structural bound (btree.c freePage2/allocateBtreePage: nLeaf >
+   usableSize/4-2 → corrupt); a zeroed trunk (k=0) is valid, as in C.
+
+Also re-landed the merge cont-rewrite rowid-cursor sync (lost with the prior
+session's reverted instrumentation; P6.FTS-RESIDUE "segdirNextRowID sync"
+item): syncSegdirRowID raises the explicit-rowid cursor after the
+cont-rewrite's fresh scan so a later fresh-branch write in the same MergeFTS
+call cannot reuse the rowid and silently REPLACE the live segment row
+(internal/execddl/export_fts_merge.go).
+
+UCL (portplan/UNIT_CONFORMANCE.md): two new committed scenarios +
+oracle fixtures (tools/orafixture):
+- fts-page512-oversized (page_size=512, 600-char single-token docs — pins
+  the oversized-term root-only flush, previously dropped entirely);
+- fts-genesis-rowload (page_size=1024, 40 Genesis verses via per-docid
+  INSERT..SELECT — pins the crisis-merge freelist drain end-to-end).
+Both PASS byte-for-byte (segdir geometry + root blobs + %_segments blocks)
+under TestWriterConformance, including under -race (no data race; the only
+-race failure is the pre-existing fts-x6-growth assertion below).
+
+Verification (go test -tags testgen, -count=1):
+- fts4check FAIL→PASS (216s → 158s, was 4617 failing sites at line 312).
+- fts3integrity, fts4merge2, fts4merge3, fts4merge5, fts4aa, fts4intck1,
+  fts4langid, fts3prefix, fts3aa/ab/ac/b, fts4noti, fts3drop: green.
+- fts4opt FAIL→PASS (merge=5,2 loop no longer trips the mid-cascade
+  validation; 24s).
+- No regressions: fts3defer, fts4opt, fts3drop, fts4noti failure sets
+  identical/empty before vs after; build/vet/SOLID green.
+
+Remaining residue (NOT this class, next session):
+
+- fts4growth 2.3-2.7/4.x-5.x (10 assertions) and fts4merge4 2.2.x and the
+  pre-existing UCL fts-x6-growth scenario: the flush-time AUTOMERGE grind
+  class — oracle does ONE level-grind per call with partial merges
+  (negative end_block sizes: "5588 -3950" → "-11766" → "-15541") and L2
+  reaches 6 segments where ours reaches 11; ours completes pairs instead of
+  truncating at the nRem cutoff. Quota accounting verified equal (372).
+  Entry: MergeFTS iteration loop + flush automerge gate
+  (internal/execddl/export_fts_merge.go, export_fts_flush.go).
+- fts4merge 5.9-5.11 (3 assertions; original 4.3.1 site FIXED): transpiler
+  gap — the TCL `set L [expr 16*16*7+16*3+12]` then `... LIMIT $L` inside
+  execsql braces is emitted as a literal `$L` string, so the engine sees an
+  unbound parameter ("datatype mismatch", which matches real SQLite for an
+  unbound param — the TCL layer must substitute). tcl2go substitution for
+  set-vars inside do_test SQL bodies; supersession/native-port candidate.
+  NOTE: the oracle CLI binary reserves 12 bytes per page (usableSize 500 at
+  page_size 512), so byte-parity comparisons must target BLOB CONTENT
+  (segdir roots / %_segments blocks), not page-layout offsets.
+- Pre-existing integrity_check noise, separate btree defect: an in-place
+  cell replacement can leave a 4-byte gap that is neither a freeblock nor
+  reflected in the page's fragmented-byte counter ("Fragmentation of 4
+  bytes reported as 0 on page N"). Minimal repro: page_size=512, plain
+  table, INSERT OR REPLACE of a growing blob ×16. Reproduces on HEAD
+  (pre-fix) — pre-existing, writer/checker convention mismatch (writer
+  reserves a pageSize-4 cell tail the checker counts as unaccounted).

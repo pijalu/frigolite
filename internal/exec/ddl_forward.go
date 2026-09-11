@@ -190,6 +190,16 @@ func (e *Engine) ReloadFTSIndex(tableName string) *Result {
 // whose trunk page is corrupt (a crash-written page) fails with "database
 // disk image is malformed" (fts3corrupt4 24.7: REBUILD allocates new
 // segments and hits the corrupt freelist; the oracle fails).
+//
+// The trunk validation mirrors btree.c allocateBtreePage/freePage2's only
+// structural bound: the trunk's leaf count (aData[4:8]) must not exceed
+// usableSize/4-2. An EMPTY trunk (next-trunk pointer 0, leaf count 0 — the
+// state a fresh freelist's single freed page starts in, freePage2's tail
+// block) legitimately holds all-zero first 8 bytes, so an all-zero probe
+// must NOT report corruption: after the first crisis-merge chomp drains the
+// freelist back to one empty trunk, every later INSERT..SELECT would
+// otherwise fail with "database disk image is malformed" (fts4growth 2.2
+// from insert 25, fts4check 3.2 — the oracle runs both to completion).
 func (e *Engine) ValidateFreelistForGrowth() error {
 	hdr := e.pager.Header()
 	if len(hdr) < 40 {
@@ -212,14 +222,10 @@ func (e *Engine) ValidateFreelistForGrowth() error {
 	if len(data) < 8 {
 		return fmt.Errorf("database disk image is malformed")
 	}
-	allZero := true
-	for _, b := range data[:8] {
-		if b != 0 {
-			allZero = false
-			break
-		}
-	}
-	if allZero {
+	// btree.c freePage2 (and the allocateBtreePage pop): nLeaf must stay
+	// within usableSize/4-2; anything above is a corrupt trunk.
+	nLeaf := binary.BigEndian.Uint32(data[4:8])
+	if nLeaf > uint32(e.pager.UsableSize())/4-2 {
 		return fmt.Errorf("database disk image is malformed")
 	}
 	return nil

@@ -17,6 +17,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -1881,6 +1882,29 @@ func (p *Pager) flushAll() error {
 	return p.flushAllCtx(false)
 }
 
+// flushOrderLocked returns the dirty pages in commit-write order: all pages
+// ascending, then page 1 LAST. sqlite3PagerCommitPhaseOne stamps page 1's
+// change counter / in-header page count after the page-list write: a page
+// allocated during this cycle extends the file mid-loop and
+// growHeaderSizeLocked raises the in-header size and re-dirties page 1.
+// Flushing page 1 first would write the pre-growth header (on-disk nPage 47
+// with page 48 present — integrity_check then reports "invalid page number"
+// on page_size=512 FTS4 builds) and the end-of-cycle dirty wipe would drop
+// the re-dirty mark. The caller holds p.mu.
+func (p *Pager) flushOrderLocked() []uint32 {
+	order := make([]uint32, 0, len(p.dirty))
+	for pageNum := range p.dirty {
+		if pageNum != 1 {
+			order = append(order, pageNum)
+		}
+	}
+	sort.Slice(order, func(i, j int) bool { return order[i] < order[j] })
+	if p.dirty[1] {
+		order = append(order, 1)
+	}
+	return order
+}
+
 // flushAllCtx is called under p.mu. The multiDB flag is true when this
 // flush is part of a COMMIT that includes one or more ATTACH'd databases
 // (the "super-journal" path in pager.c, which forces PERSIST-mode
@@ -1922,7 +1946,9 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 		if err := p.openRollbackJournalLocked(); err != nil {
 			return err
 		}
-		for pageNum := range p.dirty {
+		// Flush page 1 LAST (see flushOrderLocked for the sqlite3PagerCommit
+		// PhaseOne ordering rationale).
+		for _, pageNum := range p.flushOrderLocked() {
 			if err := p.flushPage(pageNum); err != nil {
 				// pager.c: a failed commit phase-one rolls the
 				// transaction back — journal playback restores the

@@ -97,8 +97,22 @@ func (p *Pager) CheckExternalFile() bool {
 // change counter matches the version-valid-for copy (offset 92); a trusted
 // count that exceeds the file's actual page count means the file was
 // truncated underneath the connection and is malformed.
+//
+// The check is suppressed while the pager holds its own unflushed writes:
+// C runs lockBtree once per transaction at shared-lock time, when the
+// connection cannot have in-flight pages, so the header it validates never
+// leads the file because of our own allocations. Frigolite consults the
+// check per statement AND from mid-statement schema lookups — between an
+// overflow-page allocation (growHeaderSizeLocked bumps the in-memory header
+// count) and the pager flush that extends the file, the comparison would
+// false-positive "malformed" on our own write (the FTS flush's nested
+// shadow-table statements after a large document insert: page_size=512
+// flushes silently lost their %_segdir row, fts4merge 4.x).
 func (p *Pager) HeaderBeyondFile() bool {
 	if p.file == nil {
+		return false
+	}
+	if p.HasDirtyPages() {
 		return false
 	}
 	h := p.currentHeader()

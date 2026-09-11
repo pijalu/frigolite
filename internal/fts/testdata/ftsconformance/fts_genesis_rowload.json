@@ -1,0 +1,52 @@
+{
+  "name": "fts-genesis-rowload",
+  "pragmas": {
+    "page_size": "1024"
+  },
+  "sqlFiles": [
+    "genesis_t1_40.sql"
+  ],
+  "sql": [
+    "CREATE VIRTUAL TABLE x2 USING fts4;",
+    "INSERT INTO x2(docid, content) SELECT 1001001, words FROM t1 WHERE docid=1001001;",
+    "INSERT INTO x2(docid, content) SELECT 1001002, words FROM t1 WHERE docid=1001002;",
+    "INSERT INTO x2(docid, content) SELECT 1001003, words FROM t1 WHERE docid=1001003;",
+    "INSERT INTO x2(docid, content) SELECT 1001004, words FROM t1 WHERE docid=1001004;",
+    "INSERT INTO x2(docid, content) SELECT 1001005, words FROM t1 WHERE docid=1001005;",
+    "INSERT INTO x2(docid, content) SELECT 1001006, words FROM t1 WHERE docid=1001006;",
+    "INSERT INTO x2(docid, content) SELECT 1001007, words FROM t1 WHERE docid=1001007;",
+    "INSERT INTO x2(docid, content) SELECT 1001008, words FROM t1 WHERE docid=1001008;",
+    "INSERT INTO x2(docid, content) SELECT 1001009, words FROM t1 WHERE docid=1001009;",
+    "INSERT INTO x2(docid, content) SELECT 1001010, words FROM t1 WHERE docid=1001010;",
+    "INSERT INTO x2(docid, content) SELECT 1001011, words FROM t1 WHERE docid=1001011;",
+    "INSERT INTO x2(docid, content) SELECT 1001012, words FROM t1 WHERE docid=1001012;",
+    "INSERT INTO x2(docid, content) SELECT 1001013, words FROM t1 WHERE docid=1001013;",
+    "INSERT INTO x2(docid, content) SELECT 1001014, words FROM t1 WHERE docid=1001014;",
+    "INSERT INTO x2(docid, content) SELECT 1001015, words FROM t1 WHERE docid=1001015;",
+    "INSERT INTO x2(docid, content) SELECT 1001016, words FROM t1 WHERE docid=1001016;",
+    "INSERT INTO x2(docid, content) SELECT 1001017, words FROM t1 WHERE docid=1001017;",
+    "INSERT INTO x2(docid, content) SELECT 1001018, words FROM t1 WHERE docid=1001018;",
+    "INSERT INTO x2(docid, content) SELECT 1001019, words FROM t1 WHERE docid=1001019;",
+    "INSERT INTO x2(docid, content) SELECT 1001020, words FROM t1 WHERE docid=1001020;",
+    "INSERT INTO x2(docid, content) SELECT 1001021, words FROM t1 WHERE docid=1001021;",
+    "INSERT INTO x2(docid, content) SELECT 1001022, words FROM t1 WHERE docid=1001022;",
+    "INSERT INTO x2(docid, content) SELECT 1001023, words FROM t1 WHERE docid=1001023;",
+    "INSERT INTO x2(docid, content) SELECT 1001024, words FROM t1 WHERE docid=1001024;",
+    "INSERT INTO x2(docid, content) SELECT 1001025, words FROM t1 WHERE docid=1001025;",
+    "INSERT INTO x2(docid, content) SELECT 1001026, words FROM t1 WHERE docid=1001026;",
+    "INSERT INTO x2(docid, content) SELECT 1001027, words FROM t1 WHERE docid=1001027;",
+    "INSERT INTO x2(docid, content) SELECT 1001028, words FROM t1 WHERE docid=1001028;",
+    "INSERT INTO x2(docid, content) SELECT 1001029, words FROM t1 WHERE docid=1001029;",
+    "INSERT INTO x2(docid, content) SELECT 1001030, words FROM t1 WHERE docid=1001030;",
+    "INSERT INTO x2(docid, content) SELECT 1001031, words FROM t1 WHERE docid=1001031;",
+    "INSERT INTO x2(docid, content) SELECT 1002001, words FROM t1 WHERE docid=1002001;",
+    "INSERT INTO x2(docid, content) SELECT 1002002, words FROM t1 WHERE docid=1002002;",
+    "INSERT INTO x2(docid, content) SELECT 1002003, words FROM t1 WHERE docid=1002003;",
+    "INSERT INTO x2(docid, content) SELECT 1002004, words FROM t1 WHERE docid=1002004;",
+    "INSERT INTO x2(docid, content) SELECT 1002005, words FROM t1 WHERE docid=1002005;",
+    "INSERT INTO x2(docid, content) SELECT 1002006, words FROM t1 WHERE docid=1002006;",
+    "INSERT INTO x2(docid, content) SELECT 1002007, words FROM t1 WHERE docid=1002007;",
+    "INSERT INTO x2(docid, content) SELECT 1002008, words FROM t1 WHERE docid=1002008;",
+    "INSERT INTO x2(docid, content) SELECT 1002009, words FROM t1 WHERE docid=1002009;"
+  ]
+}

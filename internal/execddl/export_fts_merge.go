@@ -298,6 +298,21 @@ func (e *DDLExecutor) ftsNodeSize(ftsTable *fts.FTS3Table) int {
 	return ps
 }
 
+// syncSegdirRowID raises the merge's explicit-rowid cursor above a row
+// allocated by a fresh scan. The cont-rewrite branch rewrites the output row
+// with EXPLICIT rowid outRowID; a later fresh-branch write in the SAME
+// MergeFTS call must not reuse the scanned rowid — an explicit-rowid INSERT
+// is a btree put, so a colliding rowid silently REPLACES the live segment
+// row. fts4merge4 2.2.x: the L2 output row destroyed the truncated L1 idx1
+// row, so the next merge loaded a full segment instead of the truncated
+// remainder and the appendability check rejected the grind continuation.
+func syncSegdirRowID(cursor, allocated int64) int64 {
+	if allocated >= cursor {
+		return allocated + 1
+	}
+	return cursor
+}
+
 // MergeFTS implements the FTS 'merge=N[,M]' special command (fts3_write.c
 // fts3DoIncrmerge / sqlite3Fts3Incrmerge): it incrementally merges segments at
 // the lowest level with at least nMin segments into one segment at the next
@@ -1018,6 +1033,10 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			// their ids; only the ROW identity is new.
 			e.deleteFTSSegdirIdx(tableName, nextLevel, outIdx)
 			outRowID = e.ftsSegdirNextRowID(tableName)
+			// Re-sync the explicit-rowid cursor after the cont-rewrite's
+			// fresh scan (see syncSegdirRowID — a stale cursor collides with
+			// the surviving row and REPLACES it).
+			segdirNextRowID = syncSegdirRowID(segdirNextRowID, outRowID)
 			if contBare {
 				// bNoLeafData: the loaded candidate carried no size suffix,
 				// so the rewritten row keeps a BARE integer end_block
