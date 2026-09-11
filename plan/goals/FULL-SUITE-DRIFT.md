@@ -979,3 +979,25 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
     unchanged (WR PK/UNIQUE enforcement on UPDATE — next tranche).
     Oracle-verified against sqlite3 3.51.0 for the DO UPDATE WHERE/SET
     alias shapes.
+- **T10 INVESTIGATION (2026-09-11, open — WR named-column insert corrupts
+  the table root page; upsert1-600/610 residue)**
+  - Repro: `CREATE TABLE t1(b UNIQUE, a INT PRIMARY KEY) WITHOUT ROWID;
+    INSERT INTO t1(a) VALUES('1'); PRAGMA integrity_check` → "NULL value in
+    t1.a". The FULL-tuple insert (`VALUES('x', 3)`) is CLEAN; only the
+    named-column-list path corrupts.
+  - On-disk evidence (raw page dump): the WR table root (page 2) starts with
+    a raw record image `03 03 09 00 00 00 00 00` where the 0x0a index-leaf
+    header should be; page 3 (sqlite_autoindex) is a properly initialized
+    empty 0x0a page. I.e. a cell/record was written at offset 0 of the
+    (empty) table root instead of at the cell-content offset with a proper
+    header.
+  - Path facts verified: mapNamedTupleValues produces the correct
+    declaration-order full row [NULL,'1']; writeTableRow reorders via
+    WithoutRowidStorageOrder — order computed correctly ([1,0] with
+    cd.PrimaryKey=true); reads (SELECT a,b) return the logically correct
+    row, so the read path compensates for the mis-written storage.
+  - Suspects: NullIPKAliasForWrite (does it mis-alias the PK slot for WR
+    tables?) or the empty-page fast path in the btree index-leaf insert
+    (internal/btree/btree_insert.go) writing at offset 0 when cellcontent
+    == pageSize. Next step: hexdump + instrument InsertCell for the
+    named-column case, compare with the full-tuple case byte-for-byte.
