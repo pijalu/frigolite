@@ -5674,3 +5674,23 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   read page size from the header and cells via the header's cell-pointer
   offset — a fixed-offset dump produced a false "raw record at offset 0"
   corruption theory and sent the tranche after the wrong subsystem.
+- **misc1 schema-root cell (T21, OPEN)**: a 938-byte sqlite_schema record on
+  a 1024-byte page-1 root is fully-local per SQLite's local/overflow formula
+  (≤ maxLocal 989) — SQLite reconciles by splitting the ROOT so the cell
+  lands on a fresh child leaf. Frigolite writes the cell in place past the
+  page end instead. Fix target: the schema-root split path
+  (insertPage/insertLeafPage/relocateRootSplit). Dumps MUST decode cells via
+  the page header's cell-pointer array (a raw-offset read produced a phantom
+  "payloadLen=5383").
+- **Session tranches T7-T20 net**: 27 testgen packages flipped green
+  (autovacuum, pragma2, trans, avtrans, delete4, transitive1, triggerupfrom,
+  upsert1, upsert2, upsert3, collate7, tkt1514, tkt3508, vtab5, tableopts,
+  whereA, tkt_a8a0d2996a, windowB, wherelimit, fts4check, fts4opt,
+  fts3integrity, fts4merge2, fts4merge3, fts4merge5 + partials), via
+  btree.c/vdbe.c/resolve.c/build.c parity fixes in allocator, parser,
+  arithmetic, integrity checks, DML validation, window/group_concat, and
+  pager flush ordering. Remaining classes are indexed in FULL-SUITE-DRIFT
+  T12 (misc1, collate3-2.x, windowE/fault RANGE frames, trigger-WHEN
+  validation, in-scan DELETE, WR/FK/ALTER residues, fts grind, ~25
+  transpiler N-A reclasses) and the queued goals (RTREE, FTS5, DBSTAT,
+  DBDATA, WAL-G7, P9.PERF).
