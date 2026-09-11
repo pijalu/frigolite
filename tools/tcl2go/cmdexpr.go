@@ -204,17 +204,19 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 				// (set by `array set`).
 				if idx := strings.Index(nm, "("); idx > 0 {
 					base := tclVarToGo(nm[:idx] + "Map")
-					key := nm[idx+1 : len(nm)-1]       // strip "($key)" → "key"
-					key = strings.TrimPrefix(key, "$") // strip leading "$" (TCL var sigil)
+					rawKey := nm[idx+1 : len(nm)-1] // e.g. "$i" (dynamic) or "5" (literal)
+					key := strings.TrimPrefix(rawKey, "$")
 					if isValidGoIdent(base[:len(base)-len("Map")]) {
-						// `key` is the variable name (e.g. "i") when it
-						// carries the $ sigil — the Go-side var of that name
-						// holds the runtime value; a literal key must be
-						// quoted.
-						if !strings.Contains(key, "$") {
-							return fmt.Sprintf("tclBool01(%s[%q] != \"\")", base, key)
+						// A leading $ sigil means the key is a variable
+						// reference — the Go-side var of that name holds the
+						// runtime value; anything else is a literal key and
+						// must be quoted. (Decide BEFORE stripping the sigil:
+						// `unusable_page($i)` and `unusable_page(i)` differ
+						// only in it.)
+						if strings.HasPrefix(rawKey, "$") {
+							return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, key)
 						}
-						return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, key)
+						return fmt.Sprintf("tclBool01(%s[%q] != \"\")", base, key)
 					}
 				}
 				if isValidGoIdent(tclVarToGo(nm)) {

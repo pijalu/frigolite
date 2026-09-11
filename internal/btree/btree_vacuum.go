@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -513,6 +514,9 @@ func (t *BTree) IncrVacuumStep(n int, bCommit bool, nFin uint32, iLastPg uint32)
 				isFree = true
 			}
 		}
+		if os.Getenv("FRIGOLITE_VACUUM_DEBUG") != "" {
+			fmt.Fprintf(os.Stderr, "VACDBG step n=%d bCommit=%v nFin=%d lastPg=%d isFree=%v\n", n, bCommit, nFin, lastPg, isFree)
+		}
 		if isFree {
 			// btree.c:4034-4049 — the tail page is on the freelist.
 			// bCommit==0: pop the page from the chain (BTALLOC_EXACT)
@@ -624,7 +628,10 @@ func (t *BTree) IncrVacuumStep(n int, bCommit bool, nFin uint32, iLastPg uint32)
 		// when the page was treated as an orphan (no parent found and
 		// the tree-walk fallback also failed) and the wasted `to`
 		// allocation must be put back on the freelist.
-		relocated, err := t.RelocatePage(freePg.PageNum, lastPg)
+		if os.Getenv("FRIGOLITE_VACUUM_DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "VACDBG step relocating lastPg=%d -> freePg=%d\n", lastPg, freePg.PageNum)
+	}
+	relocated, err := t.RelocatePage(freePg.PageNum, lastPg)
 		if errors.Is(err, errRelocateRoot) {
 			// btree.c:4030 reports CORRUPT on a genuine root tail. The
 			// vacuum must never relocate or truncate it. Return the

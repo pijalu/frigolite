@@ -863,3 +863,39 @@ ledger re-seeded 2026-09-11T00:26:44Z, `--check` PASS):
     conflict path (update.go uniqueConflictError) falls to the
     column-less message; needs violated-column keying like conflict
     tranche 7c7b77a0c did for the other update path.
+- **T7.3 CLOSED (2026-09-11): autovacuum GREEN — two root causes**
+  - (1) ENGINE (internal/pager/pager.go allocateExtendLocked): the extend
+    allocator treated an OVERRIDDEN pending-byte page as an ordinary usable
+    page ("SQLite's own overflow chains and root lists use it" — a misreading
+    of autovacuum-2.4.5, whose expected root list EXCLUDES the overridden
+    page 65 exactly like ptrmap pages 207/412). btree.c:6740 skips
+    PENDING_BYTE_PAGE on EVERY end-of-file increment, override or not
+    (TESTCTRL_PENDING_BYTE moves WHERE the lock byte lives, not WHETHER the
+    page is usable). Pre-fix, an index leaf was allocated AT page 65; the
+    drain later relocated its overflow children through the stale ptrmap
+    entry (Overflow1, parent=65) and failed "update parent 65: database
+    disk image is malformed" (1,075 cascading errors from autovacuum-1.1.15
+    on). Fix mirrors btree.c:6740-6766: unconditional pending-byte skip +
+    re-check after the ptrmap-page skip; the reserved page is materialized
+    zeroed so file_pages still counts it.
+  - (2) TRANSPILE (tools/tcl2go/cmdexpr.go info-exists dynamic-key handler):
+    the literal-vs-variable decision was made AFTER stripping the `$` sigil,
+    so `unusable_page($i)` emitted a LITERAL `"i"` key lookup — the 2.4.5
+    expected root list then included the unusable pages. Fix: decide on the
+    RAW key (HasPrefix "$") before stripping, matching stringexpr.go's
+    established pattern. Regen delta: 7 files (autovacuum + thread/notify/
+    indexfault fixtures that share the template).
+  - UCL: TestNativePendingBytePageNeverAllocated (frigolite_autovacuum_native_test.go)
+    pins the contract: page 65 stays zeroed, drains never consult it, roots
+    skip past it. Gates: build/vet/SOLID/race green; vacuum/autovacuum/
+    incrvacuum/backup/memdb1/reservebytes/without_rowid1 families green
+    serially; changed-file quality gate shows zero NEW violations (pager.go
+    2120 lines and cmdexpr.go 1421 lines over the hard gate pre-existing,
+    deferred per §5c).
+  - RESIDUE (new item, owned by the next tranches): the UCL sequence
+    WITHOUT the between-deletes integrity_check reads leaves one orphan
+    tail page per drain from ~delete 13 on ("Page N: never used",
+    freelist_count 0 — a live overflow-chain free lands one page short
+    when no read interleaves). Not hit by the TCL shape (integrity_check
+    runs between deletes); needs the same btree.c-parity treatment as the
+    delete-path overflow free (findOverflowChain caller in the DELETE path).

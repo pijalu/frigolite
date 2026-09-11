@@ -1251,6 +1251,24 @@ func (p *Pager) allocateExtendLocked() *Page {
 		return nil
 	}
 	p.numPages++
+	// btree.c:6740 — the PENDING_BYTE page is never a usable page number:
+	// after every end-of-file increment, allocations jump past it. This
+	// applies to a test-harness override too (sqlite3_test_control
+	// TESTCTRL_PENDING_BYTE changes WHERE the lock byte lives, not WHETHER
+	// the page is usable — autovacuum-2.4.5's expected root list excludes
+	// the overridden pending-byte page 65 exactly like the ptrmap pages
+	// 207/412). The page is materialized zeroed so the file size covers
+	// the hole (SQLite's file_pages counts it via file size).
+	pendingPage := p.pendingBytePageFor()
+	if p.numPages == pendingPage {
+		pending := &Page{
+			Data:    make([]byte, p.pageSize),
+			PageNum: p.numPages,
+		}
+		p.pages[pending.PageNum] = pending
+		p.dirty[pending.PageNum] = true
+		p.numPages++
+	}
 	// btree.c allocateBtreePage (auto-vacuum branch): when the next page is
 	// a pointer-map page, zero it out (no b-tree header — its content is a
 	// flat array of 5-byte entries maintained by ptrmapPut, unused until
@@ -1264,24 +1282,10 @@ func (p *Pager) allocateExtendLocked() *Page {
 		p.pages[ptr.PageNum] = ptr
 		p.dirty[ptr.PageNum] = true
 		p.numPages++
-	}
-	// PENDING_BYTE_PAGE (btreeInt.h:609) is never a *usable* page number:
-	// the lock byte lives there, so btree page numbers skip it. Only the
-	// DEFAULT pending-byte page (1GB offset, page 1048577 at 1K) is
-	// unreachable in practice; a test-harness override (pendingBytePageFor
-	// != default) moves the lock byte to a low page (e.g. 65), and the
-	// file layout then treats that page as an ordinary usable page —
-	// SQLite's own overflow chains and root lists use it (autovacuum-2.4.5
-	// expects rootpage 65). Do NOT materialize/skip here when an override
-	// is installed; only the unreachable default slot is skipped.
-	if p.autoVacuum && p.pendingBytePageFor() == pendingBytePage(p.pageSize) && p.numPages == p.pendingBytePageFor() {
-		pending := &Page{
-			Data:    make([]byte, p.pageSize),
-			PageNum: p.numPages,
+		// btree.c:6758 — re-check the pending byte after the ptrmap skip.
+		if p.numPages == pendingPage {
+			p.numPages++
 		}
-		p.pages[pending.PageNum] = pending
-		p.dirty[pending.PageNum] = true
-		p.numPages++
 	}
 	pg := &Page{
 		Data:    make([]byte, p.pageSize),

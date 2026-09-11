@@ -162,7 +162,7 @@ func Test_thread003(t *testing.T) {
 		}
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
-			if tclBool("!" + tclBool01(finishedMap["zFile"] != "")) {
+			if tclBool("!" + tclBool01(finishedMap[zFile] != "")) {
 			}
 		}
 		// expr 0 → "0"
@@ -181,7 +181,7 @@ func Test_thread003(t *testing.T) {
 		}
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
-			if tclBool("!" + tclBool01(finishedMap["zFile"] != "")) {
+			if tclBool("!" + tclBool01(finishedMap[zFile] != "")) {
 			}
 		}
 		// expr 0 → "0"
@@ -196,7 +196,7 @@ func Test_thread003(t *testing.T) {
 		// thread_spawn finished(2) [format {\n    set iEnd [expr {[clock_seconds] + %... (unsupported command, not transpiled)
 		for _, ii := range tclSplitList("1 2") {
 		_ = ii // suppress unused warning
-			if tclBool("!" + tclBool01(finishedMap["ii"] != "")) {
+			if tclBool("!" + tclBool01(finishedMap[ii] != "")) {
 			}
 		}
 		// expr 0 → "0"
