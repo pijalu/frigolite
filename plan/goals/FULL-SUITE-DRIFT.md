@@ -1386,3 +1386,20 @@ Remaining residue (NOT this class, next session):
     this exact repro (oracle page 1 = header + interior root with one child
     leaf holding the 938-byte cell), then fix the schema-root split path in
     internal/btree (insertPage/insertLeafPage/relocateRootSplit family).
+- **T22 tranche (2026-09-11): trigger WHEN column resolution at fire time —
+  insert3 green, update 10→4 failures**
+  - ENGINE (internal/execdml/insert_trigger_exec.go triggerWhenPasses): the
+    WHEN clause was evaluated with a nil row, so unknown columns silently
+    evaluated NULL and every row passed. resolve.c resolves the trigger
+    program against the subject table's columns when the firing statement is
+    prepared — the engine now validates WHEN column references (bare and
+    NEW./OLD.-qualified) against the subject table at fire time, erroring
+    "no such column: NAME" (insert3-131/143, update-1071/1083 green; oracle
+    verified: CREATE with WHEN nosuchcol is accepted, the firing INSERT
+    errors).
+  - insert3 GREEN (3→0). update 10→4 (all four remainders pre-existing:
+    sqlite_master guard wording 98, rowid-shift spurious UNIQUE 1039/1057,
+    869 — g2 documented classes).
+  - trigger1/4/7/e_fkey counts identical with/without the change (7/1/1/24,
+    all documented classes). Gates: build/vet/SOLID green; -race TestNative
+    green; trigger family + temptrigger/altertab/trigger2 green or unchanged.

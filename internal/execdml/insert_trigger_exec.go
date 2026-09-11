@@ -7,6 +7,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"strings"
+	"github.com/pijalu/frigolite/internal/execquery"
 )
 
 // triggerTableContext resolves the database context for a table's triggers:
@@ -259,6 +260,36 @@ func (e *DMLExecutor) triggerWhenPasses(t *schema.Entry) (bool, error) {
 	whenExpr := e.parseTriggerWhen(t.SQL)
 	if whenExpr == nil {
 		return true, nil
+	}
+	// resolve.c: the trigger program's WHEN is compiled against the subject
+	// table's columns when the firing statement is prepared — an unknown
+	// column errors "no such column: NAME" (insert3-131, update-9.14: the
+	// WHEN expression evaluates per firing row via the NEW./OLD. row).
+	if te, _, terr := e.ctx.FindTable(t.TblName); terr == nil && te != nil {
+		colDefs := e.ctx.ParseColumnDefs(te.Name, te.SQL)
+		lookup := make(map[string]bool, len(colDefs))
+		for _, cd := range colDefs {
+			lookup[strings.ToLower(cd.Name)] = true
+		}
+		var bad string
+		execquery.WalkExprFull(whenExpr, func(n sql.Expr) {
+			if bad != "" {
+				return
+			}
+			ref, ok := n.(*sql.ColumnRef)
+			if !ok {
+				return
+			}
+			if ref.Table != "" && !strings.EqualFold(ref.Table, "new") && !strings.EqualFold(ref.Table, "old") {
+				return // some other qualifier: its own resolution scope
+			}
+			if !lookup[strings.ToLower(ref.Name)] {
+				bad = ref.Name
+			}
+		})
+		if bad != "" {
+			return false, fmt.Errorf("no such column: %s", bad)
+		}
 	}
 	val, err := e.ctx.EvalExpr(whenExpr, nil)
 	if err != nil {
