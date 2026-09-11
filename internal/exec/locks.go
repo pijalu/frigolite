@@ -151,6 +151,68 @@ func (e *Engine) LockKeyForDB(name string) string {
 	return lockKey(ctx, e.connID)
 }
 
+// stmtLockKey returns the registry key of the database file a statement
+// actually touches. DML and SELECT resolve their target table through the
+// schema (sqlite3_prepare computes the OP_Transaction database from the
+// table's master entry, not from the textual qualifier): an unqualified
+// "UPDATE t2" where t2 lives in an attached database locks that database's
+// file (attach-3.13). When the table cannot be resolved (it does not exist —
+// execution will report that) the textual qualifier's key is used, matching
+// the previous behavior.
+func (e *Engine) stmtLockKey(stmt sql.Stmt, schemaName string, write bool) string {
+	var tableName string
+	switch s := stmt.(type) {
+	case *sql.InsertStmt:
+		tableName = s.Table
+	case *sql.UpdateStmt:
+		tableName = s.Table
+	case *sql.DeleteStmt:
+		tableName = s.Table
+	case *sql.SelectStmt:
+		if s.From.Name != "" {
+			tableName = s.From.Name
+		}
+	}
+	if tableName != "" {
+		if _, ctx, err := e.findTable(tableName); err == nil && ctx != nil {
+			return lockKey(ctx, e.connID)
+		}
+	}
+	return e.LockKeyForDB(schemaName)
+}
+
+// AttachFileLockError reports whether ATTACHing the file at path would be
+// blocked by another connection's lock (src/attach.c sqlite3BtreeOpen → the
+// new pager's first read takes a SHARED lock via sqlite3PagerSharedLock, which
+// os_unix.c unixLock refuses while another connection holds EXCLUSIVE or
+// PENDING; SHARED and RESERVED holders do not block a reader). In-memory
+// attachments are never file-locked.
+func (e *Engine) AttachFileLockError(path string) error {
+	if path == "" {
+		return nil
+	}
+	switch e.lockStyle {
+	case LockStyleNone:
+		return nil
+	case LockStyleExclusive, LockStyleDotfile:
+		// flock/dotfile collapse every level into one EXCLUSIVE mutex: any
+		// other holder blocks the attach.
+		if lockreg.Global.ConnLockedByOther(path, e.connID) {
+			return fmt.Errorf("database is locked")
+		}
+		return nil
+	default:
+		if _, ok := lockreg.Global.ExclusiveLockedByOther(path, e.connID); ok {
+			return fmt.Errorf("database is locked")
+		}
+		// PENDING denies NEW SHARED acquisitions (lock2-1.7 semantics).
+		if lockreg.Global.PendingByOther(path, e.connID) {
+			return fmt.Errorf("database is locked")
+		}
+		return nil
+	}
+}
+
 // ReadLockedByOther reports whether another connection has an active prepared
 // SELECT holding a read lock on the named database.
 func (e *Engine) ReadLockedByOther(name string) bool {
@@ -253,7 +315,7 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 	if schemaName == "" && !write {
 		return nil // statement class participates in no file lock
 	}
-	key := e.LockKeyForDB(schemaName)
+	key := e.stmtLockKey(stmt, schemaName, write)
 	if key == "" {
 		return nil
 	}

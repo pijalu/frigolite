@@ -67,6 +67,16 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 
 	path, isMemory := resolveAttachPath(e, s)
 
+	// Cross-connection file lock (attach-8.3): the new pager's first read
+	// takes a SHARED lock, refused while another connection holds EXCLUSIVE
+	// or PENDING on the file (os_unix.c unixLock). Checked before any
+	// registration so a failed ATTACH leaves no schema state behind.
+	if !isMemory {
+		if err := e.ctx.AttachFileLockError(path); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
 	// Same FILE under a second schema name (attach-9.1: one file as aux1
 	// and aux2): share the existing schema's pager and schema manager so
 	// both names see the same data. Writes to both names in one
@@ -101,6 +111,15 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 	if err := sch.Init(); err != nil {
 		pg.Close()
 		return &Result{Error: fmt.Errorf("cannot initialize schema for attached database: %w", err)}
+	}
+	// Read the schema eagerly (src/attach.c ATTACH runs sqlite3InitOne on the
+	// new database): a corrupt attached image must fail the ATTACH itself
+	// ("file is not a database", attach-8.1) and leave nothing registered.
+	// Deferred validation would register a dead attachment whose first later
+	// read fails mid-statement and poisons every following statement.
+	if _, err := sch.GetEntries(schema.TypeTable); err != nil {
+		pg.Close()
+		return &Result{Error: err}
 	}
 	// Record the file state at attach time so later external writes (from
 	// another connection) are detected and the schema re-read.

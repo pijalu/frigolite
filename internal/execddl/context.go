@@ -66,6 +66,12 @@ type DDLContext interface {
 	// schema's file (blocking DETACH of that database).
 	BackupLocked(name string) bool
 
+	// AttachFileLockError reports whether ATTACHing the given file path would
+	// be blocked by another connection's file lock (the ATTACH's pager SHARED
+	// lock acquisition fails against another connection's EXCLUSIVE/PENDING
+	// lock — os_unix.c unixLock). Nil when the attach may proceed.
+	AttachFileLockError(path string) error
+
 	// Schema lookup.
 	FindTable(name string) (*schema.Entry, *DatabaseContext, error)
 	FindView(name string) (*schema.Entry, *DatabaseContext, error)

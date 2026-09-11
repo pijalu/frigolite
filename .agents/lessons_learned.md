@@ -5552,3 +5552,26 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   first: "no such collation sequence: c2"). reindex green.
 - **TestVacuumDoesNotCorruptBTree (internal/exec) fails at baseline** —
   pre-existing, unrelated to the reindex/bloom1/check work.
+- **attach testgen GREEN (2026-09-11)**: three fixes composing the full
+  lock story — (1) **eager schema read at ATTACH** (execAttach:
+  `sch.GetEntries(TypeTable)` after Init, error closes the pager and
+  registers nothing): frigolite deferred header validation to the first
+  read, so ATTACH of a corrupt file SUCCEEDED and the dead attachment
+  poisoned every later statement with "file is not a database" (attach-8.1
+  → 9.x cascade; SQLite's sqlite3InitOne runs during attach). (2) **ATTACH
+  lock gate** — AttachFileLockError(path) on DDLContext, implemented over
+  internal/lockreg (EXCLUSIVE/PENDING by another conn deny the SHARED
+  acquisition; flock/dotfile deny on any holder; none skips), called right
+  after resolveAttachPath BEFORE registration (attach-8.3 "database is
+  locked"). (3) **schema-resolved lock keys** — CrossConnLockError resolves
+  DML/SELECT target tables via e.findTable to the OWNING database's lock
+  key (SQLite's OP_Transaction db comes from the table's master entry, not
+  the textual qualifier); unresolvable tables fall back to the textual key
+  (attach-3.13). Same-file dual-schema writes stay on shared-pager +
+  txnWrittenFiles (engine-visible contract identical to SQLite's two-pager
+  POSIX-lock design). Diagnostic trap: a probe with absolute Open paths +
+  relative ATTACH paths mismatches lockreg keys — keep paths identical.
+- **Probe-vs-suite divergence rule (reinforced)**: when a testgen failure
+  doesn't reproduce in an isolated probe, suspect ACCUMULATED per-connection
+  state (registered attachments, lock marks, cached schemas) from earlier
+  statements in the same file, not the target statement itself.
