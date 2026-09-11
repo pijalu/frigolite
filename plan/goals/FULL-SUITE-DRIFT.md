@@ -1548,3 +1548,20 @@ it; see lessons_learned):
   under the gocognit 15 / gocyclo 12 thresholds (validateSchemaCollations
   split into sort-key/result/compound-ORDER-BY validators;
   validateDMLComparisonCollations split into walk/per-node/sides helpers).
+- **T25 investigation (2026-09-11, open — windowE/windowfault sum-overflow
+  drift)**
+  - windowE 5.2: `SELECT id, sum(x) OVER (ORDER BY id ROWS BETWEEN CURRENT
+    ROW AND 2 FOLLOWING) FROM t` with x ∈ {-1, 9223372036854775807, 1, 0.5}.
+    The engine raises "integer overflow" (legacy sum semantics). The
+    GENERATED testgen expectation says overflow promotes the accumulator to
+    REAL (want: 9223372036854775807, 9.22337203685478e+18, 1.5, 0.5) — but
+    the CURRENT oracle (3.51.0) returns NEITHER: 9223372036854775807, 0.5,
+    -9.22337203685478e+18, -9.22337203685478e+18 (its overflow continuation
+    wraps and/or resets per func.c sumStep's ovrfl handling — reverse-
+    engineer from src/func.c sumStep/finalize before touching the engine).
+  - Disposition: per UCL U1 the current oracle is ground truth; the testgen
+    want is an oracle-drift artifact (captured from an older SQLite). The
+    engine fix must implement 3.51's exact overflow continuation
+    (sumStep p->ovrfl path), NOT the generated expectation and NOT the
+    legacy error. Owned by the windowE/fault residue tranche; do not
+    attempt without reading src/func.c first.
