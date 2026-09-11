@@ -1403,3 +1403,59 @@ Remaining residue (NOT this class, next session):
   - trigger1/4/7/e_fkey counts identical with/without the change (7/1/1/24,
     all documented classes). Gates: build/vet/SOLID green; -race TestNative
     green; trigger family + temptrigger/altertab/trigger2 green or unchanged.
+- **T21 CLOSED (2026-09-11): schema-root split for oversize local cells —
+  misc1 46→10 failures (deletions only, zero new)**
+  - ROOT CAUSE (revised vs the open-entry hypothesis — the oracle ran first
+    this time): `CREATE TABLE manycol(x0 text,…,x99 text)` produces a 938-byte
+    sqlite_schema record, fully local per the file-format formula (938 ≤
+    maxLocal 989 at page_size=1024), but page 1's content area is only ~914
+    bytes after the 100-byte file header. insertLeafPage's empty-leaf branch
+    then REDUCED the cell's LocalLen to minLocal and spilled the rest to
+    overflow — a cell whose local/overflow split CONTRADICTS the formula.
+    Frigolite's own formula-based reader (and the sqlite3 oracle) computes
+    local=938 for plen=938 and reads past the page end → "database disk image
+    is malformed" on every later schema touch (misc1's ~39 malformed
+    assertions were this one CREATE's cascade). SQLite NEVER shrinks local
+    below the formula: it reconciles via balance_deeper (src/btree.c:9010,
+    called from balance() for an overfull ROOT, src/btree.c:9115-9129).
+  - ORACLE LAYOUT (3.51.0, page_size=1024, same schema; cells decoded via
+    the page-header cell-pointer array): page1 type=5 interior nCell=0
+    contentStart=1012 rightMost=3; page2 manycol root (empty leaf); page3
+    leaf nCell=1 cell@71 plen=938 rowid=1 FULLY LOCAL end=1012. No overflow
+    page. Frigolite post-fix: page1 type=5 nCell=0 rightMost=3; page3 leaf
+    cell@79 plen=938 local=938 end=1020 — structurally identical (cell
+    offset differs by frigolite's 4-byte sibling-chain convention);
+    `sqlite3 t21.db "PRAGMA integrity_check"` = ok (pre-existing 4-byte
+    fragmentation-accounting nits only), data reads green via both engines.
+  - FIX (internal/btree): new btree_balance_deeper.go —
+    balanceDeeperRootLeaf allocates a fresh child leaf parented to the root
+    (ptrmap PTRMAP_BTREE parent=page1, btree.c:9028), moves the root's
+    cells via writeLeafHalf (rebuilds the b-tree header at the child's
+    content offset 0; reparentPageOverflowChains for moved chains), zeroes
+    the root's b-tree content (page-1 file header preserved) into an
+    interior page with rightmost=child, then inserts the pending cell into
+    the child via the normal insertPage machinery (applyChildSplits'
+    rightmost branch would wire any child-split dividers). Dispatch in
+    insertLeafPage: a cell whose local form cannot fit the page even when
+    EMPTY is only possible on a root — `parentPgno == 0 &&
+    !leafCellsFit([][]byte{cellData}, coff, pageSize)` routes to
+    balance_deeper; the empty non-root case is unreachable by geometry
+    (fresh leaf area pageSize-10 > max cell pageSize-20) and now errors.
+    The non-conformant reduce-LocalLen hack is deleted. prepareCell gained
+    an idempotency guard (the child-level insert re-prepares an
+    overflow-form cell without duplicating its chain).
+  - VERIFY (assertion-level diff vs the pre-fix stash baseline, cells read
+    via cell-pointer arrays per the T10 lesson):
+    `go test -tags testgen ./testgen/{misc1,misc3,misc4,misc5,misc8,corrupt,corrupt2,intarray,check}/`
+    → misc1 46→10 (36 deletions, 0 additions; remainder = documented
+    residue: no-such-table/collation text, CREATE..AS error-text cascade
+    643/649/655/667, 19.11/19.12), misc3/4/5/8 and corrupt 1966 failure
+    lines IDENTICAL pre/post (zero new), corrupt2/intarray/check ok.
+    No-regression: select1 35=35, insert 1=1, create 0=0, without_rowid1
+    0=0. `go test ./internal/btree/` ok; build/vet ok; TestSOLID_ ok;
+    `-race` TestNative ok; quality_gate on changed files: no NEW
+    violations (insertLeafPage gocognit 42→24, gocyclo 23→16, file
+    1440→1418 — improved; new functions under thresholds).
+  - Residual note: misc1-19.11/19.12 ("got [{}] want [0]") and the
+    CREATE-table-already-exists cascade are separate pre-existing classes,
+    untouched by this tranche.

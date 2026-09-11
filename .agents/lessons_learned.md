@@ -5674,14 +5674,29 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   read page size from the header and cells via the header's cell-pointer
   offset — a fixed-offset dump produced a false "raw record at offset 0"
   corruption theory and sent the tranche after the wrong subsystem.
-- **misc1 schema-root cell (T21, OPEN)**: a 938-byte sqlite_schema record on
-  a 1024-byte page-1 root is fully-local per SQLite's local/overflow formula
-  (≤ maxLocal 989) — SQLite reconciles by splitting the ROOT so the cell
-  lands on a fresh child leaf. Frigolite writes the cell in place past the
-  page end instead. Fix target: the schema-root split path
-  (insertPage/insertLeafPage/relocateRootSplit). Dumps MUST decode cells via
-  the page header's cell-pointer array (a raw-offset read produced a phantom
-  "payloadLen=5383").
+- **misc1 schema-root cell (T21, CLOSED)**: a 938-byte sqlite_schema record
+  on a 1024-byte page-1 root is fully-local per SQLite's local/overflow
+  formula (938 ≤ maxLocal 989) but exceeds page 1's ~914-byte content area.
+  SQLite reconciles via balance_deeper (btree.c:9010, from balance() for an
+  overfull ROOT): fresh child leaf gets the root's content, page 1 becomes
+  an interior page with rightmost=child, and the cell lands fully-local on
+  the child — the local size is NEVER shrunk below the formula. Frigolite's
+  old empty-leaf "reduce LocalLen to minLocal" hack wrote a cell whose
+  split contradicted the formula; the formula-based reader (and the sqlite3
+  oracle) then read past the page end → "database disk image is malformed".
+  Fixed: internal/btree/btree_balance_deeper.go + dispatch in insertLeafPage
+  (`parentPgno == 0 && !leafCellsFit(cellData alone)` → balance_deeper;
+  empty non-root oversize is unreachable by geometry). Corollaries:
+  (a) payloadLen is the FULL record (1037 for a 911-char SQL text), not the
+  SQL text alone — compute the formula on the encoded record; (b) the
+  formula-mandated local size is a file-format INVARIANT — never trade
+  local bytes for room; rebalance the page instead; (c) page 1's usable
+  area is 100 bytes smaller, so "fits maxLocal" ≠ "fits page 1" — the only
+  page where a legal cell can be too big for a fresh page. Dumps MUST
+  decode cells via the page header's cell-pointer array (a raw-offset read
+  produced a phantom "payloadLen=5383"), and overflow-form cells must be
+  decoded with local+4 for the overflow pointer before declaring "crosses
+  page end".
 - **Session tranches T7-T20 net**: 27 testgen packages flipped green
   (autovacuum, pragma2, trans, avtrans, delete4, transitive1, triggerupfrom,
   upsert1, upsert2, upsert3, collate7, tkt1514, tkt3508, vtab5, tableopts,

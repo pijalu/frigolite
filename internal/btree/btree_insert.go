@@ -187,6 +187,12 @@ func (t *BTree) insertPage(pageNum uint32, parentPgno uint32, newCell *storage.C
 // the full key for ordering comparisons. For cells that fit, it leaves the
 // cell unchanged.
 func (t *BTree) prepareCell(c *storage.Cell, ownerPgno uint32) error {
+	// Already prepared (balance_deeper re-enters the insert on the child
+	// page after the root-level call): keep the existing overflow chain
+	// instead of allocating a duplicate one.
+	if c.Overflow != 0 && c.LocalLen > 0 && c.PayloadLen == len(c.Payload) {
+		return nil
+	}
 	cellType := storage.CellTableLeaf
 	if !t.isTable {
 		cellType = storage.CellIndexLeaf
@@ -343,51 +349,23 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 		return nil, nil
 	}
 
-	// Leaf is full. If empty, the cell is too large for this page (e.g.
-	// corrupt.test corrupt-5.2: page_size=1024 + ~100 cincr columns on the
-	// sqlite_master root page 1 whose usable local area after the 100-byte
-	// database header is too small for the cell's full local form). Retry
-	// with a smaller local payload (force some bytes onto overflow pages) so
-	// the cell fits in the available local area. SQLite's btree.c
-	// btreeParseCellPtr + balance_nonroot route the cell through overflow
-	// slots when sz+2 > nFree; we approximate by reducing LocalLen to
-	// minLocal and spilling the remainder.
+	// Leaf is full. If the cell's local form cannot fit this page even when
+	// the page is EMPTY, no redistribution can ever place it here: the page
+	// is a ROOT whose usable area is smaller than the largest legal cell.
+	// The live case is page 1 (sqlite_schema's permanent root): its content
+	// area loses 100 bytes to the database file header, so a fully-local
+	// cell of up to maxLocal bytes satisfies the file-format formula yet
+	// exceeds page 1's area (corrupt-5.2/misc1 manycol: ~100 columns at
+	// page_size=1024). SQLite keeps the formula-mandated local size and
+	// reconciles through balance_deeper (src/btree.c:9010) — the root's
+	// content moves to a fresh child leaf and the root becomes interior.
+	if parentPgno == 0 && !leafCellsFit([][]byte{cellData}, coff, int(t.pageSize)) {
+		return t.balanceDeeperRootLeaf(pg, page, newCell, cellData, coff)
+	}
 	if page.CellCount == 0 {
-		if newCell.Overflow != 0 || len(newCell.Payload) <= storage.MinLocalPayload(int(t.usableSize), storage.CellTableLeaf) {
-			return nil, fmt.Errorf("btree: cell too large for page (size=%d, pageSize=%d)", len(cellData), t.pageSize)
-		}
-		// Re-prepare with reduced local payload.
-		cellType := storage.CellTableLeaf
-		if !t.isTable {
-			cellType = storage.CellIndexLeaf
-		}
-		reduced := *newCell
-		reduced.PayloadLen = len(reduced.Payload)
-		reduced.LocalLen = storage.MinLocalPayload(int(t.usableSize), cellType)
-		for {
-			probe := storage.EncodeCell(&reduced)
-			if leafHasRoom(pg, page, probe, coff, t.pageSize) {
-				break
-			}
-			if reduced.LocalLen <= 4 {
-				return nil, fmt.Errorf("btree: cell too large for page (size=%d, pageSize=%d)", len(cellData), t.pageSize)
-			}
-			reduced.LocalLen -= 4
-		}
-		first, err := t.writeOverflowPages(reduced.Payload[reduced.LocalLen:], pg.PageNum)
-		if err != nil {
-			return nil, err
-		}
-		newCell.Overflow = first
-		newCell.PayloadLen = reduced.PayloadLen
-		newCell.LocalLen = reduced.LocalLen
-		cellData = storage.EncodeCell(newCell)
-		if leafHasRoom(pg, page, cellData, coff, t.pageSize) {
-			if err := t.writeLeafCell(pg, page, newCell, cellData, coff); err != nil {
-				return nil, err
-			}
-			return nil, nil
-		}
+		// Unreachable by geometry: a fresh non-root leaf's content area
+		// (pageSize-8-2) exceeds the largest legal cell (pageSize-20).
+		// Kept as a guard against non-root oversize cells.
 		return nil, fmt.Errorf("btree: cell too large for page (size=%d, pageSize=%d)", len(cellData), t.pageSize)
 	}
 
