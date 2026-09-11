@@ -556,6 +556,25 @@ func mergeWindowDefs(base, derived sql.WindowDef) sql.WindowDef {
 // windowPartitions groups the row set by the window's PARTITION BY keys,
 // preserving input order within each partition.
 func (e *SelectEngine) windowPartitions(over *sql.WindowDef, rowMaps []RowMap) ([][]winRow, error) {
+	// resolve.c window resolution: PARTITION BY expressions of a window
+	// definition must resolve against the FROM rows — an unknown bare column
+	// errors "no such column: NAME" instead of silently evaluating to NULL
+	// (windowB-19.x: PARTITION BY fake_column). Validated against the first
+	// row (all rows share the same column space). Window ORDER BY terms are
+	// NOT validated here: they may be correlated references to an outer
+	// query's columns (window1-55.x: row_number() OVER (ORDER BY t1_id)
+	// inside an IN-subquery over t3), which do not exist in the local row.
+	// The same holds for PARTITION BY in a correlated subquery (window1-44.x:
+	// d IN (SELECT sum(c) OVER (PARTITION BY d ...) FROM t3) FROM (SELECT *
+	// FROM t2) — d resolves to the outer t2 column), so the validation only
+	// runs for statements evaluated without an outer row scope.
+	if len(rowMaps) > 0 && e.outerRow == nil && len(e.outerRows) == 0 {
+		for _, ex := range over.Partitions {
+			if err := validateWindowExprColumns(ex, rowMaps[0]); err != nil {
+				return nil, err
+			}
+		}
+	}
 	if len(over.Partitions) == 0 {
 		part := make([]winRow, len(rowMaps))
 		for i, row := range rowMaps {
@@ -828,3 +847,48 @@ func (e *SelectEngine) rowsBoundIndex(b sql.FrameBound, part []winRow, current i
 // frameOffset evaluates a PRECEDING/FOLLOWING bound's offset expression for
 // the current row and validates it is a non-negative integer. isStart selects
 // the "starting"/"ending" offset error message.
+
+// validateWindowExprColumns checks a window PARTITION BY / ORDER BY
+// expression's bare column references against the row's column space,
+// erroring "no such column: NAME" for the first unknown one. The walk does
+// not descend into subqueries (not permitted in window expressions anyway).
+func validateWindowExprColumns(expr sql.Expr, row RowMap) error {
+	if expr == nil {
+		return nil
+	}
+	var bad string
+	WalkExprFull(expr, func(n sql.Expr) {
+		if bad != "" {
+			return
+		}
+		switch n.(type) {
+		case *sql.Subquery, *sql.ExistsExpr:
+			return
+		}
+		ref, ok := n.(*sql.ColumnRef)
+		if !ok {
+			return
+		}
+		lower := strings.ToLower(ref.Name)
+		if lower == "rowid" || lower == "_rowid_" || lower == "oid" {
+			return
+		}
+		name := ref.Name
+		if ref.Table != "" {
+			// Qualified refs may be stored as "table.column" keys.
+			if _, exists := row.Get(ref.Table + "." + ref.Name); !exists {
+				if _, exists2 := row.Get(ref.Name); !exists2 {
+					bad = ref.Table + "." + ref.Name
+				}
+			}
+			return
+		}
+		if _, exists := row.Get(name); !exists {
+			bad = name
+		}
+	})
+	if bad != "" {
+		return fmt.Errorf("no such column: %s", bad)
+	}
+	return nil
+}

@@ -1141,3 +1141,23 @@ chunksize, altertab2 (harness flatten asymmetry).
     promotion for non-ticket shapes ('2.5'*2); subValues has deliberate
     int-prefix precision handling (tkt_a8a0d2996) — extend carefully with
     oracle evidence.
+- **T17 tranche (2026-09-11): window PARTITION BY column resolution +
+  per-row group_concat separator — windowB green**
+  - ENGINE (internal/function/function_aggregate.go groupConcatAgg): the
+    separator was a single field overwritten at every Step and applied at
+    Final — for window frames (or any group) whose separator argument varies
+    per row, EVERY junction got the LAST row's separator. func.c
+    groupConcatFinalize instead prefixes each element with ITS OWN row's
+    separator: seps are now stored per element. Oracle-verified on
+    windowB-20.x (group_concat('-', x) OVER (... ROWS 1 PRECEDING/1
+    FOLLOWING) → "-22-", "-22-333-", "-333-4444-", "-4444-").
+  - ENGINE (internal/execquery/window.go windowPartitions): PARTITION BY
+    expressions now validate bare column references against the FROM row
+    space and error "no such column: NAME" (windowB-19.x fake_column).
+    Skipped when an outer row scope exists (e.outerRow/outerRows): window
+    ORDER BY and PARTITION BY may be correlated outer references
+    (window1-55.x, window1-44.x) — those are not local errors.
+  - windowB GREEN; full window family window1-9/B/C/D/pushd green;
+    windowE/windowfault unchanged (5 assertions, the RANGE-frame boundary
+    class — next tranche). Gates: build/vet/SOLID green, -race native suite
+    green, quality gate clean.

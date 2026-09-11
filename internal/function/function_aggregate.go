@@ -211,19 +211,24 @@ func (m *maxAgg) Final() (interface{}, error) {
 
 type groupConcatAgg struct {
 	values []string
-	sep    string
+	// seps[i] is the separator that joins values[i-1] and values[i]: the
+	// separator argument evaluated on the row contributing values[i]. Window
+	// frames with a per-row separator (windowB-20.x: group_concat('-', x)
+	// OVER (... ROWS 1 PRECEDING)) use a DIFFERENT separator per junction —
+	// storing one separator applied the last row's value to every junction.
+	seps []string
 }
 
 func (g *groupConcatAgg) Step(args []interface{}) error {
 	if len(args) == 0 || args[0] == nil {
 		return nil
 	}
-	g.values = append(g.values, toString(args[0]))
+	sep := ","
 	if len(args) > 1 && args[1] != nil {
-		g.sep = toString(args[1])
-	} else {
-		g.sep = ","
+		sep = toString(args[1])
 	}
+	g.values = append(g.values, toString(args[0]))
+	g.seps = append(g.seps, sep)
 	return nil
 }
 
@@ -235,7 +240,15 @@ func (g *groupConcatAgg) Final() (interface{}, error) {
 	if len(g.values) == 0 {
 		return nil, nil
 	}
-	return strings.Join(g.values, g.sep), nil
+	// func.c groupConcatFinalize: each element after the first is prefixed
+	// with ITS OWN row's separator argument.
+	var b strings.Builder
+	b.WriteString(g.values[0])
+	for i := 1; i < len(g.values); i++ {
+		b.WriteString(g.seps[i])
+		b.WriteString(g.values[i])
+	}
+	return b.String(), nil
 }
 
 // md5sumAgg implements the test-harness MD5SUM aggregate: it concatenates the
