@@ -1557,12 +1557,13 @@ class as SQLite's other mutex.tst-style instrumentation tests.
 | thread005 | TCL thread harness | Same construct; shared-cache thread interleavings via the test build's shared-cache support (G7 class). |
 | notify2 | sqlite3_unlock_notify + sqlite3_blocking_step | The file self-gates on `unlock_notify && shared_cache` and tests `sqlite3_blocking_step()` — a test_thread.c demonstration API wrapping the unlock-notify callback chain. Not an SQLite API; requires the C thread pool + shared cache (G7 class). |
 
-**Disposition**: skiptestfiles thread003/004/005/notify2 N-A (TCL-thread +
-test-build APIs). The ENGINE-VISIBLE contract those files guard —
+**Disposition (updated 2026-09-12, T24)**: NO SKIP — all four packages are
+GREEN. The tcl2go emission-fidelity fixes (commit 3ffcb50b2: registration-
+guarded `info exists ARR(k)` map emission) made the generated tests compile
+and pass as generated. The ENGINE-VISIBLE contract those files guard —
 multi-connection interleaved access stays correct (writers serialize with
 "database is locked", readers observe consistent snapshots, integrity holds
-after concurrency) — is pinned natively by
+after concurrency) — remains pinned natively by
 `frigolite_thread_concurrency_native_test.go`
 (TestNativeThreadConcurrentWritersSerialize, TestNativeThreadReaderDuringWrites;
-`go test -race` clean), which is the Go-surface equivalent of running the
-workloads concurrently.
+`go test -race` clean) as belt-and-braces coverage.
