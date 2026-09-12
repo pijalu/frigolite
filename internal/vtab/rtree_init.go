@@ -15,50 +15,9 @@ import (
 // KEY (rowid); the remaining columns are coordinate pairs (min,max),
 // optionally followed by '+'-prefixed auxiliary columns.
 func (m *RtreeModule[T]) connect(args []string, isCreate bool) (VirtualTable, error) {
-	columns := append([]string(nil), args...)
-	for i := range columns {
-		columns[i] = strings.TrimSpace(columns[i])
-	}
-	// SQLite parses the module-argument list as SQL identifiers; a bare
-	// reserved keyword (rtree1-10.1: USING rtree(index, ...)) fails prepare
-	// with the parser's message. The checked name is the argument's first
-	// token (rtreeTokenLength), matching what declare_vtab would parse.
-	for _, c := range columns {
-		if tok := rtreeFirstToken(strings.TrimPrefix(c, "+")); rtreeReservedWord(tok) {
-			return nil, fmt.Errorf("near %q: syntax error", tok)
-		}
-	}
-	// Aux ('+') columns, rtree.c rtreeInit: the counting loop scans EVERY
-	// argument after the rowid column with no break. The FIRST '+' argument
-	// ends the coordinate block and every remaining argument must also be
-	// '+'-prefixed (a non-aux column after an auxiliary one is aErrMsg[4],
-	// "Auxiliary rtree columns must be last").
-	coordEnd := len(columns)
-	for i := 1; i < len(columns); i++ {
-		if strings.HasPrefix(columns[i], "+") {
-			coordEnd = i
-			break
-		}
-	}
-	nAux := 0
-	for i := coordEnd; i < len(columns); i++ {
-		if !strings.HasPrefix(columns[i], "+") {
-			return nil, fmt.Errorf("Auxiliary rtree columns must be last")
-		}
-		nAux++
-	}
-	nDim2 := coordEnd - 1 // coordinate columns after the rowid column
-	// Argument validation mirrors rtree.c rtreeInit and its exact messages:
-	// at least the id + one min/max pair; at most RTREE_MAX_DIMENSIONS pairs;
-	// an odd coordinate count leaves a dimension without a upper bound.
-	if coordEnd < 3 {
-		return nil, fmt.Errorf("Too few columns for an rtree table")
-	}
-	if nDim2 > RTREE_MAX_DIMENSIONS*2 {
-		return nil, fmt.Errorf("Too many columns for an rtree table")
-	}
-	if nDim2%2 != 0 {
-		return nil, fmt.Errorf("Wrong number of columns for an rtree table")
+	columns, toks, _, nAux, nDim2, err := parseRTreeArgs(args)
+	if err != nil {
+		return nil, err
 	}
 	v := &rtreeVTab[T]{
 		module:        m,
@@ -69,18 +28,9 @@ func (m *RtreeModule[T]) connect(args []string, isCreate bool) (VirtualTable, er
 		nBytesPerCell: 8 + nDim2*4,
 		coordKind:     m.coordKind,
 	}
-	// declare_vtab parity (rtreeTokenLength): a declared column's SQL name is
-	// the FIRST TOKEN of its module argument — "+c3 BLOB" declares "c3" (the
-	// " BLOB" suffix is type text, not part of the name, and auxiliary
-	// columns are declared without a type). Columns()/ColumnTypes() drive SQL
-	// name resolution, PRAGMA table_info, INSERT's named-column matching and
-	// the constraint-failure messages (rtree.c rtreeConstraintError reads the
-	// declared names via sqlite3_column_name). The raw list stays in
-	// v.columns for the nAux bookkeeping above.
-	v.declared = make([]string, len(columns))
-	for i, c := range columns {
-		v.declared[i] = rtreeFirstToken(strings.TrimPrefix(c, "+"))
-	}
+	// The raw list stays in v.columns for the nAux bookkeeping; the declared
+	// token view drives SQL name resolution (see parseRTreeArgs).
+	v.declared = toks
 	v.created = isCreate
 	if err := v.queryStat1(); err != nil {
 		return nil, err
@@ -88,14 +38,97 @@ func (m *RtreeModule[T]) connect(args []string, isCreate bool) (VirtualTable, er
 	return v, nil
 }
 
-// rtreeFirstToken extracts the first SQL token of one module argument,
-// mirroring rtree.c rtreeTokenLength (sqlite3GetToken): a quoted identifier
-// spans to its closing quote; an unquoted identifier is the run of identifier
-// characters (alnum, '_', '$', bytes >= 0x80). Leading whitespace and SQL
-// comments are skipped: SQLite's tokenizer drops comments before any token
+// parseRTreeArgs validates one rtree module-argument list and returns the
+// trimmed raw arguments, their declared first-token names, the auxiliary
+// markers, the auxiliary count and the coordinate count (rtree.c rtreeInit):
+//
+//   - at most RTREE_MAX_AUX_COLUMN total columns (rtreeInit's argc check);
+//   - a '+' prefix on the FIRST column is declared verbatim and rejected by
+//     declare_vtab's parser ("near \"+\": syntax error", rtreedoc 3.0);
+//   - bare reserved keywords fail prepare like the parser does (rtree1-10.1);
+//   - the FIRST '+' argument ends the coordinate block and every remaining
+//     argument must be '+'-prefixed too (aErrMsg[4], "Auxiliary rtree columns
+//     must be last");
+//   - at least the id + one min/max pair (nDim<1), at most
+//     RTREE_MAX_DIMENSIONS pairs, and an even coordinate count.
+//
+// Comments are honored (stripped before classification): C hands the module
+// tokenized arguments, so "-- aux\n +objname" IS an auxiliary column.
+func parseRTreeArgs(args []string) (columns, toks []string, isAux []bool, nAux, nDim2 int, err error) {
+	columns = make([]string, len(args))
+	for i, a := range args {
+		columns[i] = strings.TrimSpace(a)
+	}
+	if len(columns) > RTREE_MAX_AUX_COLUMN {
+		return nil, nil, nil, 0, 0, errCapitalized{"Too many columns for an rtree table"}
+	}
+	toks, isAux, err = classifyRTreeArgs(columns)
+	if err != nil {
+		return nil, nil, nil, 0, 0, err
+	}
+	if len(toks) > 0 && isAux[0] {
+		return nil, nil, nil, 0, 0, fmt.Errorf(`near "+": syntax error`)
+	}
+	coordEnd, nAux := rtreeAuxSplit(columns, isAux)
+	if nAux < 0 {
+		return nil, nil, nil, 0, 0, errCapitalized{"Auxiliary rtree columns must be last"}
+	}
+	nDim2 = coordEnd - 1 // coordinate columns after the rowid column
+	switch {
+	case nDim2 < 2:
+		return nil, nil, nil, 0, 0, errCapitalized{"Too few columns for an rtree table"}
+	case nDim2 > RTREE_MAX_DIMENSIONS*2:
+		return nil, nil, nil, 0, 0, errCapitalized{"Too many columns for an rtree table"}
+	case nDim2%2 != 0:
+		return nil, nil, nil, 0, 0, errCapitalized{"Wrong number of columns for an rtree table"}
+	}
+	return columns, toks, isAux, nAux, nDim2, nil
+}
+
+// classifyRTreeArgs computes each argument's declared first-token name and
+// '+' auxiliary marker. A bare reserved keyword fails prepare like the
+// parser does (rtree1-10.1: USING rtree(index, ...)).
+func classifyRTreeArgs(columns []string) (toks []string, isAux []bool, err error) {
+	toks = make([]string, len(columns))
+	isAux = make([]bool, len(columns))
+	for i, c := range columns {
+		s := rtreeStripComments(c)
+		isAux[i] = strings.HasPrefix(s, "+")
+		toks[i] = rtreeFirstToken(strings.TrimPrefix(s, "+"))
+		if rtreeReservedWord(toks[i]) {
+			return nil, nil, fmt.Errorf("near %q: syntax error", toks[i])
+		}
+	}
+	return toks, isAux, nil
+}
+
+// rtreeAuxSplit locates the FIRST '+' argument (the end of the coordinate
+// block, rtree.c rtreeInit) and counts the auxiliary columns after it. A
+// non-aux argument after that point is aErrMsg[4], "Auxiliary rtree columns
+// must be last".
+func rtreeAuxSplit(columns []string, isAux []bool) (coordEnd, nAux int) {
+	coordEnd = len(columns)
+	for i := 1; i < len(columns); i++ {
+		if isAux[i] {
+			coordEnd = i
+			break
+		}
+	}
+	for i := coordEnd; i < len(columns); i++ {
+		if !isAux[i] {
+			return coordEnd, -1 // caller renders "Auxiliary rtree columns must be last"
+		}
+		nAux++
+	}
+	return coordEnd, nAux
+}
+
+// rtreeStripComments skips leading whitespace and SQL comments ("--" to end
+// of line, "/* ... */"): SQLite's tokenizer drops comments before any token
 // reaches rtreeInit, so a declaration like "id, -- comment\n minX" declares
-// plain "minX".
-func rtreeFirstToken(arg string) string {
+// plain "minX" and a comment ahead of an argument must not hide its '+'
+// auxiliary marker.
+func rtreeStripComments(arg string) string {
 	s := strings.TrimSpace(arg)
 	for s != "" {
 		if strings.HasPrefix(s, "--") {
@@ -114,6 +147,16 @@ func rtreeFirstToken(arg string) string {
 		}
 		break
 	}
+	return s
+}
+
+// rtreeFirstToken extracts the first SQL token of one module argument,
+// mirroring rtree.c rtreeTokenLength (sqlite3GetToken): a quoted identifier
+// spans to its closing quote; an unquoted identifier is the run of identifier
+// characters (alnum, '_', '$', bytes >= 0x80). Leading whitespace and SQL
+// comments are skipped.
+func rtreeFirstToken(arg string) string {
+	s := rtreeStripComments(arg)
 	if s == "" {
 		return ""
 	}
@@ -129,6 +172,12 @@ func rtreeFirstToken(arg string) string {
 		}
 		return s
 	}
+	return rtreeIdentPrefix(s)
+}
+
+// rtreeIdentPrefix returns the run of identifier characters (alnum, '_', '$',
+// bytes >= 0x80) at the head of s — sqlite3GetToken's unquoted identifier.
+func rtreeIdentPrefix(s string) string {
 	n := 0
 	for n < len(s) {
 		c := s[n]
@@ -254,15 +303,35 @@ func (v *rtreeVTab[T]) BindSchema(dbName, tableName string) error {
 	} else {
 		v.computeNodeSize()
 	}
-	return createShadowDDL(v, v.created && !exists)
+	if err := createShadowDDL(v, v.created && !exists); err != nil {
+		return err
+	}
+	// rtreeSqlInit prepares its eight shadow statements with
+	// SQLITE_PREPARE_PERSISTENT|SQLITE_PREPARE_NO_VTAB (rtree.c:3424): on
+	// every connect, a trigger defined on a shadow table whose body
+	// references a virtual table fails the connect with the schema-fixed
+	// "no such table" text (rtreecirc-1.x). Keep PRAGMA stat1 probes and
+	// rtreecheck reads out of this contract (C prepares those plain).
+	return v.module.db.PrepareShadowStatements(v.dbName,
+		[]string{v.name + "_node", v.name + "_parent", v.name + "_rowid"})
 }
 
 // shadowNodeTableExists reports whether the <name>_node shadow table is
-// already in the schema (fresh-family discriminator; see BindSchema).
+// already in the schema (fresh-family discriminator; see BindSchema). The
+// probe targets the vtab's OWN schema so an attached-database rtree (aux.rt)
+// does not mistake main's sqlite_master for its family's home.
 func (v *rtreeVTab[T]) shadowNodeTableExists() bool {
+	db := v.dbName
+	if db == "" {
+		db = "main"
+	}
+	qual := ""
+	if !strings.EqualFold(db, "main") {
+		qual = dquoteIdent(db) + "."
+	}
 	rows, err := v.module.db.ExecSQL(
-		fmt.Sprintf("SELECT name FROM sqlite_master WHERE name='%s'",
-			strings.ReplaceAll(v.name+"_node", "'", "''")))
+		fmt.Sprintf("SELECT name FROM %ssqlite_master WHERE name='%s'",
+			qual, strings.ReplaceAll(v.name+"_node", "'", "''")))
 	return err == nil && len(rows) > 0
 }
 
@@ -334,17 +403,24 @@ func (v *rtreeVTab[T]) computeNodeSize() {
 // (rtree8-2.1.5).
 func createShadowDDL[T coordType](v *rtreeVTab[T], fresh bool) error {
 	q := func(s string) string { return strings.ReplaceAll(s, `"`, `""`) }
+	// Schema-qualify the family exactly like rtreeSqlInit's
+	// `CREATE TABLE "%w"."%w_rowid"`: an rtree created in an attached
+	// database (aux.rt) must materialize its shadows there, not in main.
+	qual := ""
+	if v.dbName != "" && !strings.EqualFold(v.dbName, "main") {
+		qual = dquoteIdent(v.dbName) + "."
+	}
 	create := "CREATE TABLE"
 	if !fresh {
 		create = "CREATE TABLE IF NOT EXISTS"
 	}
 	ddl := fmt.Sprintf(
-		create+` "%[1]s_rowid"(rowid INTEGER PRIMARY KEY,nodeno%[2]s);`+
-			create+` "%[1]s_node"(nodeno INTEGER PRIMARY KEY,data);`+
-			create+` "%[1]s_parent"(nodeno INTEGER PRIMARY KEY,parentnode);`,
+		create+` `+qual+`"%[1]s_rowid"(rowid INTEGER PRIMARY KEY,nodeno%[2]s);`+
+			create+` `+qual+`"%[1]s_node"(nodeno INTEGER PRIMARY KEY,data);`+
+			create+` `+qual+`"%[1]s_parent"(nodeno INTEGER PRIMARY KEY,parentnode);`,
 		q(v.name), v.auxColumnsSQL())
 	if fresh {
-		ddl += fmt.Sprintf(`INSERT OR IGNORE INTO "%s_node"(nodeno, data) VALUES(1, zeroblob(%d));`,
+		ddl += fmt.Sprintf(`INSERT OR IGNORE INTO `+qual+`"%s_node"(nodeno, data) VALUES(1, zeroblob(%d));`,
 			q(v.name), v.iNodeSize)
 	}
 	_, err := v.module.db.ExecSQL(ddl)

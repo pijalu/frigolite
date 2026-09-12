@@ -126,6 +126,12 @@ func exprHasColumnRef(expr sql.Expr) bool {
 // not be resolved further: SQLite binds MATCH constraints table-wide
 // (rtreeFilter keys off op==MATCH alone). Unknown right-hand functions /
 // evaluation failures abort the statement ("no such function" parity).
+//
+// When the right operand is a registered r-tree geometry/query function call,
+// the marker is rebuilt directly from the call (rtree.c deserializeGeometry
+// analogue): the SQL function itself returns NULL — sqlite3_result_pointer
+// reads as NULL in every ordinary context — so the pointer payload is only
+// recoverable through this name-keyed path.
 func (e *Engine) rtreePushMatchConjunct(sink vtab.ConstraintSink, cols map[string]int, bo *sql.BinaryOp) (bool, error) {
 	ms, ok := sink.(vtab.RtreeMatchSink)
 	if !ok {
@@ -138,12 +144,37 @@ func (e *Engine) rtreePushMatchConjunct(sink vtab.ConstraintSink, cols map[strin
 	if _, found := cols[strings.ToLower(cr.Name)]; !found {
 		return false, nil
 	}
+	if fc, isFunc := bo.Right.(*sql.FuncCall); isFunc {
+		if marker := e.buildRTreeGeometryMarker(fc); marker != nil {
+			ms.PushRTreeMatch(marker)
+			return true, nil
+		}
+	}
 	val, err := e.evalExpr(bo.Right, nil)
 	if err != nil {
 		return false, err
 	}
 	ms.PushRTreeMatch(util.UnwrapColumnValue(val))
 	return true, nil
+}
+
+// buildRTreeGeometryMarker evaluates a geometry-function call's arguments and
+// constructs its opaque marker, or nil when the callee is not a registered
+// r-tree geometry/query function.
+func (e *Engine) buildRTreeGeometryMarker(fc *sql.FuncCall) *vtab.RtreeGeometry {
+	if _, ok := vtab.RtreeGeometryForFunc(fc.Name, nil); !ok {
+		return nil
+	}
+	args := make([]interface{}, 0, len(fc.Args))
+	for _, a := range fc.Args {
+		v, err := e.evalExpr(a, nil)
+		if err != nil {
+			return nil
+		}
+		args = append(args, util.UnwrapColumnValue(v))
+	}
+	marker, _ := vtab.RtreeGeometryForFunc(fc.Name, args)
+	return marker
 }
 
 // rtreePushInConjunct pushes `id IN (<ints>)` membership restrictions.

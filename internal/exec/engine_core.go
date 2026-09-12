@@ -242,10 +242,40 @@ func (e *Engine) externalSchemaChanged(ctx *DatabaseContext) bool {
 	return true
 }
 
-// findTable searches for a table across all attached databases.
+// findTable searches for a table across all attached databases, enforcing
+// the SQLITE_PREPARE_NO_VTAB mode (see noVtabNoSuchTable).
 // If the name has a schema prefix (e.g. "aux.t3"), it searches only that database.
 // If no schema prefix, it searches main first, then attached databases.
 func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error) {
+	entry, ctx, err := e.findTableUncached(name)
+	if err == nil && entry != nil && e.noVtabDepth > 0 && isVtabSchemaEntry(entry) {
+		return nil, nil, e.noVtabNoSuchTable(name)
+	}
+	return entry, ctx, err
+}
+
+// isVtabSchemaEntry reports whether a schema entry creates a virtual table
+// (build.c IsVirtual).
+func isVtabSchemaEntry(entry *schema.Entry) bool {
+	return entry != nil && strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE")
+}
+
+// noVtabNoSuchTable renders the resolution failure for a virtual table hidden
+// by the NO_VTAB statement mode (build.c:454): trigger bodies are schema-
+// fixed (sqlite3FixSrcList), so an unqualified reference from inside a
+// trigger body reports the trigger's database ("no such table: main.rt").
+func (e *Engine) noVtabNoSuchTable(name string) error {
+	if schemaName, objName := parseSchemaName(name); schemaName != "" {
+		return fmt.Errorf("no such table: %s.%s", schemaName, objName)
+	}
+	if tc := e.dml.CurrentTriggerCtx(); tc != nil && tc != e.getDB("temp") && tc != e.getDB("TEMPORARY") {
+		return fmt.Errorf("no such table: %s.%s", strings.ToLower(tc.Name), name)
+	}
+	return fmt.Errorf("no such table: %s", name)
+}
+
+// findTableUncached is findTable without the NO_VTAB gate.
+func (e *Engine) findTableUncached(name string) (*schema.Entry, *DatabaseContext, error) {
 	// An attached database's file may have been modified by an external
 	// connection; the schema manager's checkExternalMod drops the pager cache
 	// and any tableCache entries become stale. Detect the change up front so

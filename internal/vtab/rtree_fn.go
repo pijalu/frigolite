@@ -23,22 +23,19 @@ func RegisterRTreeSQLFunctions(db Database) {
 	db.RegisterScalar("rtreedepth", 1, 1, rtreedepthFunc)
 	db.RegisterScalar("rtreecheck", 1, 2, func(args []interface{}) (interface{}, error) {
 		table := args[len(args)-1]
+		schema := "main"
 		if len(args) == 2 {
-			// rtreeCheckTable resolves its shadow tables against the schema
-			// named by the first argument; only 'main' exists in frigolite
-			// but the argument is still validated for type.
-			schema, ok := util.UnwrapColumnValue(args[0]).(string)
+			// rtree.c rtreecheck's two-argument form: the first argument
+			// names the schema whose shadow tables are probed (rtreedoc
+			// 8.1 checks an attached-database rtree). Any text schema is
+			// accepted like C does; an unknown one fails the probe below.
+			s, ok := util.UnwrapColumnValue(args[0]).(string)
 			if !ok {
 				return nil, fmt.Errorf("SQL logic error")
 			}
-			switch strings.ToLower(schema) {
-			case "main", "temp":
-				// supported qualifiers
-			default:
-				return nil, fmt.Errorf("unknown database %s", schema)
-			}
+			schema = s
 		}
-		return rtreecheckFunc(db, util.UnwrapColumnValue(table))
+		return rtreecheckFunc(db, schema, util.UnwrapColumnValue(table))
 	})
 }
 

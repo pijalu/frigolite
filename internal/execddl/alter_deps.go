@@ -22,6 +22,14 @@ func (e *DDLExecutor) checkTriggerTableRefs(entry *schema.Entry, oldName string)
 	return nil
 }
 
+// TriggerBodyTableRefs exposes the table references found in a trigger's
+// stored SQL (INSERT INTO / FROM / UPDATE / DELETE FROM / JOIN operands,
+// minus CTE names and NEW/OLD) for engine-side consumers such as the
+// NO_VTAB shadow-statement preparation check.
+func (e *DDLExecutor) TriggerBodyTableRefs(triggerSQL string) []string {
+	return findTableRefsInTrigger(triggerSQL)
+}
+
 // checkTriggerTableRef validates a single table reference found in a trigger
 // body, returning an error if the table does not exist anywhere.
 func (e *DDLExecutor) checkTriggerTableRef(entry *schema.Entry, ref, oldName string) error {

@@ -5899,3 +5899,62 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   against a FRESH worktree at HEAD before attributing it to your change
   (rtreedoc's regenerated file exposed 13+ pre-existing gaps that only RUN
   once earlier aborts are fixed — newly-reached ≠ regression).
+
+## P6.RTREE GEOMETRY fix tranche (T29, 2026-09-12)
+
+- **2nd-gen rtree MATCH markers model sqlite3_result_pointer as SQL NULL**:
+  the geometry/query SQL function returns nil (NULL to every ordinary
+  reader — rendering, typeof, CAST all C-parity for free) and the MATCH
+  pushdown rebuilds the marker BY FUNCTION NAME via
+  vtab.RtreeGeometryForFunc (rtree.c deserializeGeometry analogue). Do NOT
+  make the function return the *RtreeGeometry value: testgen renderers
+  (tclRenderCell default case) would print the Go struct where SQLite shows
+  NULL (rtreedoc2-1.2).
+- **Priority-queue search semantics (rtreeStepToLeaf)**: the queue is a
+  stable min-heap keyed (rScore asc, iLevel asc, insertion seq) — C's
+  strict-less heap + sPoint fast slot is observably FIFO for ties. Only ONE
+  cell per front node is expanded per iteration (push → re-read front), the
+  exhausted parent pops BEFORE the child is pushed (anQueue counters + tie
+  order), rows are iLevel==0 points. eScoreType 3 scores INTERIOR→leaf-node
+  cells (pInfo->iLevel==1, i.e. pSearch->iLevel==2), NOT entries; entries
+  score 0 and therefore pop before pending leaf nodes (rtreeE-1.4 pins
+  {200 100 0}). pInfo->iRowid is refreshed only when scanning leaf-node
+  cells (C staleness parity; unreachable in green tests).
+- **PQ path is ADDITIVE and gated** on match.QueryFn != nil; 1st-gen xGeom
+  and plain scans keep the proven DFS (identical row order when all scores
+  are equal, since (0,iLevel asc) = children-first). rtree9 stays green.
+- **NO_VTAB mode needs TWO halves**: (a) an execution flag
+  (Database.ExecSQLNoVtab → Engine.noVtabDepth; findTable hides vtab entries
+  with schema-fixed "no such table: <db>.<name>" inside trigger bodies) for
+  trigger bodies EXECUTED at runtime, and (b) a connect-time probe
+  (Database.PrepareShadowStatements, called from rtree BindSchema) that scans
+  shadow-table trigger bodies for vtab references — C fails at PREPARE of
+  rtreeSqlInit's 8 NO_VTAB statements, so a trigger on %_parent whose body
+  reads the vtab must break the INSERT even when no %_parent row is ever
+  written (rtreecirc tn=2; execution-time gating alone only covers tn=1/3).
+  Keep queryStat1/rtreecheck on the plain path (C prepares those plain).
+- **Module args are TOKENIZED before a C module sees them**: comments and
+  whitespace never reach rtreeInit — an argument "-- aux\n +objname TEXT"
+  IS an auxiliary column (rtreedoc 4.0 demo_index2). frigolite's raw-text
+  args need explicit comment stripping before '+' detection and
+  rtreeFirstToken. Also port: total-column cap 100 (RTREE_MAX_AUX_COLUMN,
+  rtreeInit's argc>MAX+3 check) and '+' on the FIRST column → declare_vtab
+  parse error `near "+": syntax error` (argv[3] is declared verbatim, no aux
+  handling — rtreedoc 3.0).
+- **rtreecheck's 2-arg form** (schema, name) qualifies EVERY probe with the
+  schema (including the loadDims sqlite_master read); rtreedoc 8.1 checks an
+  aux-schema rtree. Likewise createShadowDDL/shadowNodeTableExists must
+  schema-qualify or aux rtrees materialize their shadows in main.
+- **Quality gate hygiene**: route verbatim capitalized SQLite error texts
+  through errCapitalized (ST1005-clean); new functions must meet
+  gocognit≤15/gocyclo≤12 — split ports into parse/eval/emit helpers
+  (rtreeCircleQueryFunc → parse+corners+score, collectDataRowsPQ →
+  expandFront+leafRow+pushChild).
+- **Remaining rtreeE/rtreedoc* reds are transpiler-owned** (supersession
+  class): untranspiled rtree_util.tcl procs (column_size/column_count/
+  column_name_list), register_box_geom/register_box_query (TCL-script-wrapping
+  callbacks in test_rtreedoc.c — a fake registration could not reproduce
+  them), degenerated inner db-eval writes, and TCL list-element bracing in
+  flatten(). Native anchor: frigolite_rtree_query2_test.go (queue order,
+  forms, RtreeQueryInfo observability, NULL markers, column caps, NO_VTAB
+  trigger, aux schema).

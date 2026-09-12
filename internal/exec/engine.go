@@ -84,6 +84,14 @@ type Engine struct {
 	// Authorization
 	authorizer auth.Authorizer // authorization callback (nil = allow all)
 
+	// noVtabDepth counts active SQLITE_PREPARE_NO_VTAB statement scopes
+	// (vtab.Database.ExecSQLNoVtab, the rtree shadow-statement mode): while
+	// positive, virtual tables resolve as absent ("no such table:
+	// <schema>.<name>", build.c:454) for these statements and for trigger
+	// bodies they fire (trigger.c:1286 inherits the flags). Every increment
+	// is defer-restored, so the mode never leaks into user statements.
+	noVtabDepth int
+
 	// User-registered custom collation sequences (sqlite3_create_collation).
 	// Keys are upper-cased collation names; values compare two strings and
 	// return -1/0/1. Built-in BINARY/NOCASE/RTRIM are handled by util and are

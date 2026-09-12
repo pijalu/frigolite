@@ -170,7 +170,17 @@ func (v *rtreeVTab[T]) openCursor() (Cursor, error) {
 	if matchErr != nil {
 		return nil, matchErr
 	}
-	rows, err := v.collectDataRows(constraints, rowids, match)
+	// A 2nd-generation MATCH marker (RtreeQueryInfo callback) requires the
+	// rtree.c priority-queue search: the callback's rScore drives the row
+	// ORDER, not just membership (rtreeE-1.4). Everything else keeps the
+	// proven depth-first walk, whose order the green rtree suites pin.
+	var rows [][]interface{}
+	var err error
+	if match != nil && match.QueryFn != nil {
+		rows, err = v.collectDataRowsPQ(constraints, rowids, match)
+	} else {
+		rows, err = v.collectDataRows(constraints, rowids, match)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +209,8 @@ func (v *rtreeVTab[T]) attachAuxColumns(rows [][]interface{}) error {
 				cols = append(cols, fmt.Sprintf("a%d", a))
 			}
 			q := `SELECT ` + strings.Join(cols, ",") + ` FROM %s WHERE rowid=%d`
-			out, err := v.module.db.ExecSQL(fmt.Sprintf(q, v.shadow("rowid"), id))
+			// %_rowid aux read = C's zReadAuxSql (NO_VTAB-prepared).
+			out, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf(q, v.shadow("rowid"), id))
 			if err == nil && len(out) > 0 && len(out[0]) > 0 {
 				copy(attached, out[0][1:])
 			}

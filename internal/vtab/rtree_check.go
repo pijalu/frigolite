@@ -17,11 +17,22 @@ type errCapitalized struct{ msg string }
 
 func (e errCapitalized) Error() string { return e.msg }
 
+// qual renders the schema qualifier for the instance's shadow-table probes:
+// empty for main, `"schema".` otherwise (rtree.c qualifies every check query
+// with the database argument of rtreecheck's two-argument form).
+func (c *rtreeCheckInstance) qual() string {
+	if c.schema == "" || strings.EqualFold(c.schema, "main") {
+		return ""
+	}
+	return dquoteIdent(c.schema) + "."
+}
+
 // rtreeCheckInstance runs the sqlite3_rtreeintegritycheck checks over one
 // rtree-family virtual table's shadow tables. Message texts mirror
 // ext/rtree/rtree.c's check callback verbatim (asserted by rtreecheck.test).
 type rtreeCheckInstance struct {
 	db       Database
+	schema   string // owning schema name (rtreecheck's 2-arg form); "" = main
 	name     string
 	nDim     int
 	i32      bool
@@ -43,8 +54,8 @@ type rtreeCheckInstance struct {
 // not be produced ("Schema corrupt or not an rtree" for non-rtree names).
 func (c *rtreeCheckInstance) run() error {
 	rows, err := c.db.ExecSQL(fmt.Sprintf(
-		"SELECT sql FROM sqlite_master WHERE lower(name)=lower('%s') AND type='table'",
-		strings.ReplaceAll(c.name, "'", "''")))
+		"SELECT sql FROM %ssqlite_master WHERE lower(name)=lower('%s') AND type='table'",
+		c.qual(), strings.ReplaceAll(c.name, "'", "''")))
 	if err != nil || len(rows) == 0 {
 		return errSchemaCorrupt
 	}
@@ -76,8 +87,8 @@ func (c *rtreeCheckInstance) run() error {
 // loadDims derives nDim from the declared column list of the CREATE SQL.
 func (c *rtreeCheckInstance) loadDims() error {
 	dimRows, err := c.db.ExecSQL(fmt.Sprintf(
-		"SELECT sql FROM sqlite_master WHERE lower(name)=lower('%s')",
-		strings.ReplaceAll(c.name, "'", "''")))
+		"SELECT sql FROM %ssqlite_master WHERE lower(name)=lower('%s')",
+		c.qual(), strings.ReplaceAll(c.name, "'", "''")))
 	if err != nil || len(dimRows) == 0 {
 		return errSchemaCorrupt
 	}
@@ -140,7 +151,7 @@ func splitTopLevelCommas(s string) []string {
 // inferNodeSize derives the node blob size from the largest stored node.
 func (c *rtreeCheckInstance) inferNodeSize() int {
 	rows, err := c.db.ExecSQL(fmt.Sprintf(
-		"SELECT coalesce(max(length(data)),0) FROM \"%s_node\"", quoteIdent(c.name)))
+		"SELECT coalesce(max(length(data)),0) FROM %s\"%s_node\"", c.qual(), quoteIdent(c.name)))
 	if err != nil || len(rows) == 0 {
 		return 960
 	}
@@ -161,7 +172,7 @@ func quoteIdent(s string) string { return strings.ReplaceAll(s, `"`, `""`) }
 // check into an unbounded walk.
 func (c *rtreeCheckInstance) rootDepth() int {
 	rows, err := c.db.ExecSQL(fmt.Sprintf(
-		"SELECT data FROM \"%s_node\" WHERE nodeno=1", quoteIdent(c.name)))
+		"SELECT data FROM %s\"%s_node\" WHERE nodeno=1", c.qual(), quoteIdent(c.name)))
 	if err != nil || len(rows) == 0 {
 		return 0
 	}
@@ -175,7 +186,7 @@ func (c *rtreeCheckInstance) rootDepth() int {
 // nodeBlob fetches one node blob.
 func (c *rtreeCheckInstance) nodeBlob(nodeno int64) ([]byte, bool) {
 	rows, err := c.db.ExecSQL(fmt.Sprintf(
-		"SELECT data FROM \"%s_node\" WHERE nodeno=%d", quoteIdent(c.name), nodeno))
+		"SELECT data FROM %s\"%s_node\" WHERE nodeno=%d", c.qual(), quoteIdent(c.name), nodeno))
 	if err != nil || len(rows) == 0 {
 		return nil, false
 	}
@@ -288,7 +299,7 @@ func coordOutsideParent(child, parent []byte, i32 bool) bool {
 // entry-count discrepancy.
 func (c *rtreeCheckInstance) checkRowidTable() {
 	rows, err := c.db.ExecSQL(fmt.Sprintf(
-		"SELECT rowid, nodeno FROM \"%s_rowid\"", quoteIdent(c.name)))
+		"SELECT rowid, nodeno FROM %s\"%s_rowid\"", c.qual(), quoteIdent(c.name)))
 	if err != nil {
 		c.problemf("error reading \"%%_rowid\" table")
 		return
@@ -324,7 +335,7 @@ func (c *rtreeCheckInstance) checkRowidTable() {
 // walk discovered (ascending nodeno), then the entry-count discrepancy.
 func (c *rtreeCheckInstance) checkParentTable() {
 	rows, err := c.db.ExecSQL(fmt.Sprintf(
-		"SELECT nodeno, parentnode FROM \"%s_parent\"", quoteIdent(c.name)))
+		"SELECT nodeno, parentnode FROM %s\"%s_parent\"", c.qual(), quoteIdent(c.name)))
 	if err != nil {
 		c.problemf("error reading \"%%_parent\" table")
 		return
@@ -359,18 +370,22 @@ func (c *rtreeCheckInstance) checkParentTable() {
 
 // rtreecheckFunc performs the integrity checks over one virtual table and
 // returns the report string ("ok" when no problem was found).
-func rtreecheckFunc(db Database, arg interface{}) (interface{}, error) {
+func rtreecheckFunc(db Database, schema string, arg interface{}) (interface{}, error) {
 	name, ok := arg.(string)
 	if !ok {
 		return nil, fmt.Errorf("SQL logic error")
 	}
+	qual := ""
+	if schema != "" && !strings.EqualFold(schema, "main") {
+		qual = dquoteIdent(schema) + "."
+	}
 	rows, err := db.ExecSQL(fmt.Sprintf(
-		"SELECT name FROM sqlite_master WHERE lower(name)=lower('%s')",
-		strings.ReplaceAll(name, "'", "''")))
+		"SELECT name FROM %ssqlite_master WHERE lower(name)=lower('%s')",
+		qual, strings.ReplaceAll(name, "'", "''")))
 	if err != nil || len(rows) == 0 {
 		return nil, fmt.Errorf("SQL logic error")
 	}
-	c := &rtreeCheckInstance{db: db, name: name}
+	c := &rtreeCheckInstance{db: db, schema: schema, name: name}
 	if err := c.run(); err != nil {
 		return err.Error(), nil
 	}

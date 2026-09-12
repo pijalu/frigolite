@@ -690,7 +690,8 @@ func (v *rtreeVTab[T]) storeAuxColumns(rowid int64) error {
 	}
 	sql := fmt.Sprintf("UPDATE %s SET %s WHERE rowid=%d",
 		v.shadow("rowid"), strings.Join(sets, ","), rowid)
-	_, err := v.module.db.ExecSQL(sql)
+	// Aux write = C's pWriteAux (NO_VTAB-prepared in rtreeSqlInit).
+	_, err := v.module.db.ExecSQLNoVtab(sql)
 	return err
 }
 

@@ -96,7 +96,8 @@ func (v *rtreeVTab[T]) removeNode(node *rtreeNode[T], iHeight int) error {
 	}
 	v.nodeRelease(parent)
 
-	if _, err := v.module.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE nodeno=%d", v.shadow("node"), node.iNode)); err != nil {
+	// Node delete = C's pDeleteNode (NO_VTAB-prepared in rtreeSqlInit).
+	if _, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("DELETE FROM %s WHERE nodeno=%d", v.shadow("node"), node.iNode)); err != nil {
 		return err
 	}
 	if err := v.delParent(node.iNode); err != nil {

@@ -21,6 +21,12 @@ const RTREE_MAX_DEPTH = 40
 // RTREE_MAX_DIMENSIONS is the largest supported coordinate dimension count.
 const RTREE_MAX_DIMENSIONS = 5
 
+// RTREE_MAX_AUX_COLUMN is the largest TOTAL column count of an rtree table —
+// the integer primary key, all coordinate columns and all auxiliary columns
+// (rtree.c RTREE_MAX_AUX_COLUMN; the rtreeInit argc>MAX+3 module-argument
+// check rejects more with "Too many columns for an rtree table").
+const RTREE_MAX_AUX_COLUMN = 100
+
 // RtreeCell is one deserialized node cell: the rowid (for leaf entries) or child
 // node number (for internal entries) followed by its nDim2 bounding-box
 // coordinates (min0,max0,min1,max1,...).
@@ -221,6 +227,14 @@ func toCoord[T coordType](v interface{}, up bool) T {
 }
 
 // ---- shadow-table name + raw IO (mirrors rtreeSqlInit's 8 statements) ----
+//
+// Every statement here corresponds to one of rtreeSqlInit's eight
+// PERSISTENT|NO_VTAB-prepared shadow statements (or the aux read/write pair,
+// prepared with the same flags), so they all run through ExecSQLNoVtab: a
+// trigger defined on a shadow table whose body references a virtual table
+// must fail like the C prepare does (rtreecirc-1.x). Connect-time probes
+// (queryStat1, shadowNodeTableExists, computeNodeSize) stay on the plain
+// path, matching rtreeQueryStat1's plain sqlite3_prepare.
 
 // shadow returns the fully-qualified shadow-table name (e.g. "main"."r_node").
 // Embedded double quotes are doubled so identifiers like raisara "one"' stay
@@ -263,7 +277,7 @@ func rtreeAsInt64(v interface{}) int64 {
 
 // loadNodeBlob reads the on-disk node blob for nodeno.
 func (v *rtreeVTab[T]) loadNodeBlob(nodeno int64) ([]byte, error) {
-	rows, err := v.module.db.ExecSQL(fmt.Sprintf("SELECT data FROM %s WHERE nodeno=%d", v.shadow("node"), nodeno))
+	rows, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("SELECT data FROM %s WHERE nodeno=%d", v.shadow("node"), nodeno))
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +305,7 @@ func (v *rtreeVTab[T]) storeNodeBlob(nodeno int64, data []byte) (int64, error) {
 	}
 	hexStr := fmt.Sprintf("%x", data)
 	sql := fmt.Sprintf("INSERT OR REPLACE INTO %s(nodeno,data) VALUES(%d, X'%s')", v.shadow("node"), nodeno, hexStr)
-	if _, err := v.module.db.ExecSQL(sql); err != nil {
+	if _, err := v.module.db.ExecSQLNoVtab(sql); err != nil {
 		return 0, err
 	}
 	return nodeno, nil
@@ -299,7 +313,7 @@ func (v *rtreeVTab[T]) storeNodeBlob(nodeno int64, data []byte) (int64, error) {
 
 // maxNodeNumber returns the largest existing node number (0 when empty).
 func (v *rtreeVTab[T]) maxNodeNumber() (int64, error) {
-	rows, err := v.module.db.ExecSQL(fmt.Sprintf("SELECT coalesce(max(nodeno),0) FROM %s", v.shadow("node")))
+	rows, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("SELECT coalesce(max(nodeno),0) FROM %s", v.shadow("node")))
 	if err != nil {
 		return 0, err
 	}
@@ -323,13 +337,13 @@ func (v *rtreeVTab[T]) setRowidMapping(rowid, nodeno int64) error {
 		sql = fmt.Sprintf("INSERT OR REPLACE INTO %s(rowid,nodeno) VALUES(%d,%d)",
 			v.shadow("rowid"), rowid, nodeno)
 	}
-	_, err := v.module.db.ExecSQL(sql)
+	_, err := v.module.db.ExecSQLNoVtab(sql)
 	return err
 }
 
 // getRowidNode returns the node number storing rowid, and whether it exists.
 func (v *rtreeVTab[T]) getRowidNode(rowid int64) (int64, bool, error) {
-	rows, err := v.module.db.ExecSQL(fmt.Sprintf("SELECT nodeno FROM %s WHERE rowid=%d", v.shadow("rowid"), rowid))
+	rows, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("SELECT nodeno FROM %s WHERE rowid=%d", v.shadow("rowid"), rowid))
 	if err != nil {
 		return 0, false, err
 	}
@@ -341,20 +355,20 @@ func (v *rtreeVTab[T]) getRowidNode(rowid int64) (int64, bool, error) {
 
 // delRowidMapping deletes the %_rowid entry for rowid.
 func (v *rtreeVTab[T]) delRowidMapping(rowid int64) error {
-	_, err := v.module.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE rowid=%d", v.shadow("rowid"), rowid))
+	_, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("DELETE FROM %s WHERE rowid=%d", v.shadow("rowid"), rowid))
 	return err
 }
 
 // setParent records nodeno -> parentnode in %_parent.
 func (v *rtreeVTab[T]) setParent(nodeno, parent int64) error {
 	sql := fmt.Sprintf("INSERT OR REPLACE INTO %s(nodeno,parentnode) VALUES(%d,%d)", v.shadow("parent"), nodeno, parent)
-	_, err := v.module.db.ExecSQL(sql)
+	_, err := v.module.db.ExecSQLNoVtab(sql)
 	return err
 }
 
 // getParent returns the parent node of nodeno, and whether it exists.
 func (v *rtreeVTab[T]) getParent(nodeno int64) (int64, bool, error) {
-	rows, err := v.module.db.ExecSQL(fmt.Sprintf("SELECT parentnode FROM %s WHERE nodeno=%d", v.shadow("parent"), nodeno))
+	rows, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("SELECT parentnode FROM %s WHERE nodeno=%d", v.shadow("parent"), nodeno))
 	if err != nil {
 		return 0, false, err
 	}
@@ -366,13 +380,13 @@ func (v *rtreeVTab[T]) getParent(nodeno int64) (int64, bool, error) {
 
 // delParent removes the %_parent entry for nodeno.
 func (v *rtreeVTab[T]) delParent(nodeno int64) error {
-	_, err := v.module.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE nodeno=%d", v.shadow("parent"), nodeno))
+	_, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("DELETE FROM %s WHERE nodeno=%d", v.shadow("parent"), nodeno))
 	return err
 }
 
 // maxRowid returns the largest existing entry rowid in %_rowid (0 when empty).
 func (v *rtreeVTab[T]) maxRowid() (int64, error) {
-	rows, err := v.module.db.ExecSQL(fmt.Sprintf("SELECT coalesce(max(rowid),0) FROM %s", v.shadow("rowid")))
+	rows, err := v.module.db.ExecSQLNoVtab(fmt.Sprintf("SELECT coalesce(max(rowid),0) FROM %s", v.shadow("rowid")))
 	if err != nil {
 		return 0, err
 	}

@@ -16,6 +16,22 @@ type Database interface {
 	// encountered. Argument binding is performed by the caller (values are
 	// inlined into the SQL text), matching SQLite's sqlite3_exec/prepare style.
 	ExecSQL(sql string, args ...interface{}) ([][]interface{}, error)
+	// ExecSQLNoVtab runs one or more SQL statements under SQLite's
+	// SQLITE_PREPARE_NO_VTAB mode (rtree.c:3424 prepares the eight shadow
+	// statements with PERSISTENT|NO_VTAB): while a statement executes in this
+	// mode, virtual tables resolve as absent — "no such table: <schema>.<name>"
+	// — for the statement itself AND for any trigger body it fires
+	// (src/trigger.c:1286 inherits prepFlags into subprograms,
+	// src/build.c:454 hides virtual tables). Non-vtab statements behave
+	// exactly like ExecSQL.
+	ExecSQLNoVtab(sql string, args ...interface{}) ([][]interface{}, error)
+	// PrepareShadowStatements reproduces rtreeSqlInit's connect-time contract:
+	// preparing the shadow-table statements under NO_VTAB compiles every
+	// trigger defined on the named tables (src/trigger.c trigger subprograms),
+	// and a trigger body referencing a virtual table fails preparation with
+	// "no such table: <schema>.<name>". It returns nil when no such reference
+	// exists (or no triggers are defined).
+	PrepareShadowStatements(schemaName string, tables []string) error
 	// RegisterScalar registers a scalar SQL function.
 	RegisterScalar(name string, minArgs, maxArgs int, fn func(args []interface{}) (interface{}, error))
 	// RegisterAggregate registers an aggregate SQL function.
