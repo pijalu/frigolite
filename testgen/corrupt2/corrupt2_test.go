@@ -121,6 +121,8 @@ func Test_corrupt2(t *testing.T) {
 	_ = iCellOffset // pre-declared from TCL source
 	var iChild string
 	_ = iChild // pre-declared from TCL source
+	AMap := map[string]string{}
+	_ = AMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "corrupt2")

@@ -283,15 +283,15 @@ func Test_fts3sort(t *testing.T) {
 					}
 					if CONTROLMap[tn] != "" {
 						{ // do_test tn + ".9"
-							got := tclListFlatten(CONTROL_tn)
+							CONTROLMap[tn] = ""
+							got := tclListFlatten(CONTROLMap[tn])
 							want := tclListFlatten(tclSort("array get DATA"))
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, tn + ".9")
 							}
 						}
 					} else {
-						CONTROL_tn = tclSort("array get DATA")
-						_ = CONTROL_tn // suppress unused warning
+						CONTROLMap[tn] = tclSort("array get DATA")
 					}
 				}
 			}

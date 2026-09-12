@@ -5750,3 +5750,29 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   TestNative*FixtureReference inputs) make fresh worktrees fail tests that
   pass in the main checkout — diff both sides instead of trusting absolute
   pass/fail.
+- **tcl2go emission fidelity (T26)**: (a) A TCL word starting with `$` is ONE
+  variable reference ONLY if the name scan consumes it all (bare
+  [A-Za-z0-9_:]+ or arr(key) ending at `)`); `$i,` / `$srcdir/test_loadext.c`
+  are concatenations — routing them through tclVarToGo bakes trailing
+  literals into an identifier (`i_`, `srcdir_test_loadext_c`). (b) Braced
+  words are literals: check RawWord.Braced BEFORE the `$`-prefix branch or
+  `{$one}` becomes a variable read. (c) `array set NAME` / `incr arr($key)`
+  create the same Go-map obligation as `set arr($k)`; the pre-pass
+  (collectArrayMapVars) must see them or the XxxMap is used-but-undeclared.
+  TCL incr creates a missing element as 0 (emit the Atoi-failure→0 form).
+  (d) A proc parameter named `db`/`dbN`/`err` (e.g. `{{db db}}`) must not get
+  a `db = "default"` binding — it clobbers the reserved *frigolite.DB /
+  error vars. (e) tclExecSQL joins rows with "\n" BY DESIGN (multi-line
+  integrity_check wants + tclMemdbSignature depend on it) — do not "fix" it
+  to TCL's flat space-join suite-wide. (f) Process-global transpiler state
+  (activeFileChannels/Exprs, array-map registrations) leaks across the 1219
+  packages generated in one run — reset per file; a leaked
+  activeFileChannelExprs made a literal `open FOO w` channel emit its
+  destination unquoted. (g) Guarded fast paths must not change wrapped
+  semantics: tclCondToGo's `[info exists ARR($k)]` fast path DROPS a leading
+  `!` — negated forms must fall through to buildCondExpr (which resolves the
+  atom via cmdexpr and keeps the negation).
+- **tclsh + `package require sqlite3`** (homebrew tcl) is a fast TCL-semantics
+  oracle for harness questions (array incr scope, tclsqlite eval callbacks) —
+  used to confirm update2-5.2's `A(NotExists)` counts OP_NotExists=1 before
+  transpiling the accumulation.

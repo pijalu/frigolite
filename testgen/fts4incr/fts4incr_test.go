@@ -137,7 +137,7 @@ func Test_fts4incr(t *testing.T) {
 				_tMap[s] = tclLIndex("time [list execsql $q] 100", "0")
 			}
 			if false {
-				_putsMsg := "with optimization: " + t_0 + "    without: " + t_1
+				_putsMsg := "with optimization: " + _tMap["0"] + "    without: " + _tMap["1"]
 				_ = _putsMsg
 			}
 		}

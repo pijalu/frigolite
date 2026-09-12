@@ -94,7 +94,7 @@ func Test_index2(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			sql += i_
+			sql += i + ","
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

@@ -65,6 +65,8 @@ func Test_vacuum_into(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 	var flags string
 	_ = flags // pre-declared from TCL source
+	syncMap := map[string]string{}
+	_ = syncMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "vacuum-into-100"

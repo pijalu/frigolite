@@ -377,14 +377,9 @@ func (tp *transpiler) arrayLookupExpr(base, key string) string {
 		// never populated in the Go harness: every read yields "".
 		return `""`
 	}
-	if tp.arrayMapVars != nil && tp.arrayMapVars[base] {
+	if isArrayMapBacked(tp, base) {
 		mapVar := tclVarToGo(base) + "Map"
-		keyExpr := strings.TrimPrefix(key, "$")
-		if keyExpr == key {
-			// Literal key: $arr(3) → arrMap["3"]
-			return fmt.Sprintf("%s[%q]", mapVar, key)
-		}
-		return fmt.Sprintf("%s[%s]", mapVar, tclVarToGo(keyExpr))
+		return fmt.Sprintf("%s[%s]", mapVar, tp.mapKeyGoExpr(key))
 	}
 	// Literal array keys resolve directly; only dynamic `$key` selectors
 	// require a switch over tracked elements.

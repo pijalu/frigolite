@@ -408,14 +408,9 @@ func bodyEndsWithSetVar(tp *transpiler, bodyCmds [][]tcl.RawWord) (string, bool)
 		if idx := strings.Index(name, "("); idx > 0 && strings.HasSuffix(name, ")") {
 			base := strings.TrimPrefix(name[:idx], "::")
 			key := name[idx+1 : len(name)-1]
-			if key != "" && key != "*" && tp.arrayMapVars[base] {
+			if key != "" && key != "*" && isArrayMapBacked(tp, base) {
 				mapVar := tclVarToGo(base) + "Map"
-				keyExpr := strings.TrimPrefix(key, "$")
-				if keyExpr == key {
-					// Literal key: set ARR(3) → ARRMap["3"]
-					return fmt.Sprintf("%s[%q]", mapVar, key), true
-				}
-				return mapVar + "[" + tclVarToGo(keyExpr) + "]", true
+				return mapVar + "[" + tp.mapKeyGoExpr(key) + "]", true
 			}
 		}
 		goVar := tclVarToGo(strings.TrimPrefix(last[1].Text, "$"))

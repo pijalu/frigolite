@@ -575,7 +575,7 @@ func Test_savepoint(t *testing.T) {
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			fileChannelSeek["fd"] = int64(tclAtoi("0"))
+			// seek $fd 0
 			// read $fd
 			if _catchErr != nil {
 				rc = "1"
@@ -603,7 +603,7 @@ func Test_savepoint(t *testing.T) {
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			fileChannelSeek["fd"] = int64(tclAtoi("0"))
+			// seek $fd 0
 			// read $fd
 			if _catchErr != nil {
 				rc = "1"

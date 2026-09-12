@@ -122,10 +122,24 @@ func (tp *transpiler) dynamicArraySet(name string) (string, string, bool) {
 	if base == "" || !strings.HasPrefix(key, "$") {
 		return "", "", false
 	}
-	if tp.arrayMapVars != nil && tp.arrayMapVars[base] {
+	if isArrayMapBacked(tp, base) {
 		return base, strings.TrimPrefix(key, "$"), true
 	}
 	return "", "", false
+}
+
+// mapKeyGoExpr renders the Go index expression for a map-backed TCL array.
+// The key text may combine a variable reference with literal characters
+// (`$method,t2` — the TCL array key is the substituted concatenation), so a
+// dynamic key is re-parsed through the string-parts path emitting the runtime
+// concatenation (`method + ",t2"`). Folding the whole key through the name
+// sanitizer instead produced an undefined identifier (`method_t2`,
+// vtab1-16.x). A literal key renders as a quoted constant.
+func (tp *transpiler) mapKeyGoExpr(key string) string {
+	if !strings.HasPrefix(key, "$") {
+		return fmt.Sprintf("%q", key)
+	}
+	return tp.buildStringExpr(key)
 }
 
 // emitDynamicArraySet emits `arrMap[keyExpr] = value` for a dynamic-key array
@@ -133,7 +147,7 @@ func (tp *transpiler) dynamicArraySet(name string) (string, string, bool) {
 // the remaining set arguments rendered as a string expression.
 func (tp *transpiler) emitDynamicArraySet(base, keyVar string, args []tcl.RawWord) {
 	mapVar := tclVarToGo(base) + "Map"
-	keyExpr := tclVarToGo(keyVar)
+	keyExpr := tp.mapKeyGoExpr("$" + keyVar)
 	valExpr := `""`
 	if len(args) >= 2 {
 		valExpr = tp.goStringLiteral(args[1])
@@ -160,10 +174,20 @@ func (tp *transpiler) processSetPlain(args []tcl.RawWord) {
 			// Write form.
 			valExpr := tp.varValueExpr(args[1:])
 			tp.emitLine("vtab.TclVarSet(%q, %q, %s)", base, key, valExpr)
+			// Map-backed arrays keep the Go map in sync so the read form
+			// below (and incr) observe the write through the same store.
+			if isArrayMapBacked(tp, base) {
+				tp.emitLine("%sMap[%q] = %s", tclVarToGo(base), key, valExpr)
+			}
 		} else {
 			// Read form (`set arr(key)` with no value): fetch the element.
 			goRead := tclVarToGo(args[0].Text)
-			tp.emitLine("%s = vtab.TclVarGet(%q, %q)", goRead, base, key)
+			if isArrayMapBacked(tp, base) {
+				// Map-backed array: read the Go map the writes populate.
+				tp.emitLine("%s = %sMap[%q]", goRead, tclVarToGo(base), key)
+			} else {
+				tp.emitLine("%s = vtab.TclVarGet(%q, %q)", goRead, base, key)
+			}
 		}
 	} else if !isElem && len(args) >= 2 && isValidGoIdent(tclVarToGo(base)) {
 		// Scalars are registered too: tclvar exposes the whole interpreter
@@ -1111,6 +1135,24 @@ func splitArrayElement(ref string) (base, key string, ok bool) {
 // activeTclvarBases tracks array bases whose elements are registered in the
 // tclvar registry (package-level so nested body transpilers see it).
 var activeTclvarBases = map[string]bool{}
+
+// globalArrayMapVars is the per-file registration of dynamic-key arrays
+// (collectArrayMapVars plus emit-time `array set` discoveries). Many cloned
+// body transpilers do not carry the arrayMapVars map, so the array-lookup
+// guards consult this fallback (see isArrayMapBacked).
+var globalArrayMapVars = map[string]bool{}
+
+// isArrayMapBacked reports whether base is a registered dynamic-key array
+// whose Go map (XxxMap) the preamble declares. Falls back to the per-file
+// global registration when this transpiler (a body clone) carries no map.
+func isArrayMapBacked(tp *transpiler, base string) bool {
+	base = strings.TrimPrefix(base, "::")
+	if tp != nil && tp.arrayMapVars != nil &&
+		(tp.arrayMapVars[base] || tp.arrayMapVars["::"+base]) {
+		return true
+	}
+	return globalArrayMapVars[base] || globalArrayMapVars["::"+base]
+}
 
 // tclProcVarAliases maps proc names to the TCL global their body returns
 // (`proc p {} { return $::g }` → p→g). Registration sites for g also

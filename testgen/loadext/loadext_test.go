@@ -144,8 +144,8 @@ func Test_loadext(t *testing.T) {
 	if tclBool("!" + "file exists $testextension") {
 		srcdir = "file dir $testdir" + "/src"
 		_ = srcdir // suppress unused warning
-		vtab.TclVarSet("testextsrc", "", srcdir_test_loadext_c)
-		testextsrc = srcdir_test_loadext_c
+		vtab.TclVarSet("testextsrc", "", srcdir + "/test_loadext.c")
+		testextsrc = srcdir + "/test_loadext.c"
 		_ = testextsrc // suppress unused warning
 		cmdline = tclConcat("exec", "gcc", gcc_shared)
 		_ = cmdline // suppress unused warning

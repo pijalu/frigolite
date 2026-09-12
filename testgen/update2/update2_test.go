@@ -68,6 +68,8 @@ func Test_update2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 	var opcode string
 	_ = opcode // pre-declared from TCL source
+	AMap := map[string]string{}
+	_ = AMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "update2")
@@ -296,13 +298,11 @@ func Test_update2(t *testing.T) {
 							opcode = tclStr(_dbevalRows3.Rows[_ri][_ci])
 					}
 				}
-				var A_opcode = "0"
-				// incr A_opcode 1
+				// incr A($opcode) 1
 				{
-					_n, _err := strconv.Atoi(A_opcode)
-					if _err == nil {
-						A_opcode = strconv.Itoa(_n + 1)
-					}
+					_n, _err := strconv.Atoi(AMap[opcode])
+					if _err != nil { _n = 0 }
+					AMap[opcode] = strconv.Itoa(_n + 1)
 				}
 				if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt6 { _dbevalErr5 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -311,8 +311,8 @@ func Test_update2(t *testing.T) {
 			if _dbevalErr5 != nil {
 				t.Errorf("db eval callback error: %v", _dbevalErr5)
 			}
-			A_NotExists = vtab.TclVarGet("A", "NotExists")
-			got := tclListFlatten(A_NotExists)
+			A_NotExists = AMap["NotExists"]
+			got := tclListFlatten(AMap["NotExists"])
 			want := tclListFlatten("1")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.2")

@@ -153,7 +153,6 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.3"
-		db = "db"
 		res = ""
 		_ = res // suppress unused warning
 		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
@@ -186,7 +185,6 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.3"
-		db = "db"
 		res = ""
 		_ = res // suppress unused warning
 		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
@@ -219,7 +217,6 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3.3"
-		db = "db"
 		res = ""
 		_ = res // suppress unused warning
 		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
@@ -252,7 +249,6 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.4.3"
-		db = "db"
 		res = ""
 		_ = res // suppress unused warning
 		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
@@ -285,7 +281,6 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.5.3"
-		db = "db"
 		res = ""
 		_ = res // suppress unused warning
 		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)
@@ -318,7 +313,6 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.6.3"
-		db = "db"
 		res = ""
 		_ = res // suppress unused warning
 		// $db eval { PRAGMA database_list } {\n    set tbl "$name.sqlite_master"\n    if {$nam... (unsupported command, not transpiled)

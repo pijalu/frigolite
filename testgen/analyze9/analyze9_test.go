@@ -71,8 +71,6 @@ func Test_analyze9(t *testing.T) {
 	_ = A__ncopy // pre-declared from TCL source
 	var A__nval string
 	_ = A__nval // pre-declared from TCL source
-	var k string
-	_ = k // pre-declared from TCL source
 	var v string
 	_ = v // pre-declared from TCL source
 	var A_k string
@@ -151,6 +149,8 @@ func Test_analyze9(t *testing.T) {
 	_ = AMap // dynamic-key array from TCL source
 	expectMap := map[string]string{}
 	_ = expectMap // dynamic-key array from TCL source
+	kMap := map[string]string{}
+	_ = kMap // dynamic-key array from TCL source
 	possibleMap := map[string]string{}
 	_ = possibleMap // dynamic-key array from TCL source
 

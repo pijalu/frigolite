@@ -131,6 +131,10 @@ func Test_notify2(t *testing.T) {
 	_ = anAttempt_sqlite3_step // pre-declared from TCL source
 	SQLMap := map[string]string{}
 	_ = SQLMap // dynamic-key array from TCL source
+	anAttemptMap := map[string]string{}
+	_ = anAttemptMap // dynamic-key array from TCL source
+	anSuccessMap := map[string]string{}
+	_ = anSuccessMap // dynamic-key array from TCL source
 	anWriteMap := map[string]string{}
 	_ = anWriteMap // dynamic-key array from TCL source
 
@@ -200,21 +204,19 @@ func Test_notify2(t *testing.T) {
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nThread_n, _nThread_e := strconv.Atoi(nThread); if _nThread_e != nil { return false }; return ii_n < nThread_n }() {
 				{ // do_test "notify2-" + iTest + ".2." + ii
-					if tclBool("!" + tclBool01(finishedMap[ii] != "")) {
+					if tclBool("!" + tclBool01(vtab.TclVarExists("finished", ii))) {
 					}
-					// incr anSuccess_xStep tclLIndex(finished_ii, "0")
+					// incr anSuccess($xStep) tclLIndex(finished_ii, "0")
 					{
-						_n, _err := strconv.Atoi(anSuccess_xStep)
-						if _err == nil {
-							anSuccess_xStep = strconv.Itoa(_n + 1)
-						}
+						_n, _err := strconv.Atoi(anSuccessMap[xStep])
+						if _err != nil { _n = 0 }
+						anSuccessMap[xStep] = strconv.Itoa(_n + 1)
 					}
-					// incr anAttempt_xStep tclLIndex(finished_ii, "1")
+					// incr anAttempt($xStep) tclLIndex(finished_ii, "1")
 					{
-						_n, _err := strconv.Atoi(anAttempt_xStep)
-						if _err == nil {
-							anAttempt_xStep = strconv.Itoa(_n + 1)
-						}
+						_n, _err := strconv.Atoi(anAttemptMap[xStep])
+						if _err != nil { _n = 0 }
+						anAttemptMap[xStep] = strconv.Itoa(_n + 1)
 					}
 					// expr 0 → "0"
 				}

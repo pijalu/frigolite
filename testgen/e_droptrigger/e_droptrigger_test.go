@@ -341,7 +341,6 @@ func Test_e_droptrigger(t *testing.T) {
 					// proc definition (not transpiled)
 					db.RegisterFunction("r", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 					_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER " + event + " ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE " + event + " ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  " + event + " ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE " + event + " ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr3') ; END;\n  ")
-					db = "db"
 					res = ""
 					_ = res // suppress unused warning
 					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
@@ -363,7 +362,6 @@ func Test_e_droptrigger(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					db = "db"
 					res = ""
 					_ = res // suppress unused warning
 					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
@@ -385,7 +383,6 @@ func Test_e_droptrigger(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					db = "db"
 					res = ""
 					_ = res // suppress unused warning
 					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
@@ -407,7 +404,6 @@ func Test_e_droptrigger(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					db = "db"
 					res = ""
 					_ = res // suppress unused warning
 					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)

@@ -156,6 +156,12 @@ func Test_rtreedoc3(t *testing.T) {
 	_ = caption // pre-declared from TCL source
 	var i_ string
 	_ = i_ // pre-declared from TCL source
+	GMap := map[string]string{}
+	_ = GMap // dynamic-key array from TCL source
+	NMap := map[string]string{}
+	_ = NMap // dynamic-key array from TCL source
+	PMap := map[string]string{}
+	_ = PMap // dynamic-key array from TCL source
 
 	if tclBool("!" + tclBool01(vtab.TclVarExists("testdir", ""))) {
 		// set testdir: test directory (not used in Go test context)

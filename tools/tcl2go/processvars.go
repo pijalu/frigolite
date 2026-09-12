@@ -23,17 +23,29 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 	if word == "$::db1" || word == "$db1" {
 		return "db1Blob"
 	}
-	if strings.HasPrefix(word, "$") {
-		name := tclVarToGo(strings.TrimPrefix(word, "$"))
-		// A bare word may hold ADJACENT references ($boundsign$bound):
-		// TCL ends a variable name at the next '$', so the word is a
-		// concatenation, not a single (sanitizer-mangled) identifier —
-		// render it through the general string-parts path (tabfunc01 1380).
-		if isValidGoIdent(name) && !strings.Contains(strings.TrimPrefix(word, "$"), "$") {
-			return name
+	if !args[0].Braced && strings.HasPrefix(word, "$") {
+		trimmed := strings.TrimPrefix(word, "$")
+		// The word is a single variable reference only when the TCL
+		// variable-name scan consumes the whole text: bare names end at the
+		// first non-name character, array references at the closing ')'.
+		// Anything else is a concatenation — a trailing literal (`append sql
+		// $i,` — index2-1.2) folded through the name sanitizer produced an
+		// undefined identifier (`i_`).
+		if wholeTclVarRef(trimmed) {
+			name := tclVarToGo(trimmed)
+			// A bare word may hold ADJACENT references ($boundsign$bound):
+			// TCL ends a variable name at the next '$', so the word is a
+			// concatenation, not a single (sanitizer-mangled) identifier —
+			// render it through the general string-parts path (tabfunc01 1380).
+			if isValidGoIdent(name) && !strings.Contains(trimmed, "$") {
+				return name
+			}
 		}
 		if strings.Contains(word, "$") {
-			return tp.buildStringExpr(word)
+			// Apply TCL bare-word escape processing before parsing ($s\n in
+			// trans2-2.3's `append modsql $s\n` appends a newline character,
+			// not a backslash-n pair).
+			return tp.buildStringExpr(unescapeBareWord(word))
 		}
 	}
 	// A bracket command ([db one {...}], [string map ...], ...) evaluates at
@@ -88,6 +100,25 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 		}
 	}
 	return tp.goStringLiteral(args[0])
+}
+
+// wholeTclVarRef reports whether s (a TCL word with the leading '$' already
+// stripped) is exactly ONE variable reference: a bare name ([A-Za-z0-9_:]+) or
+// an array element arr(key) ending at ')'. Anything else — a trailing literal
+// (`$i,`), embedded text (`a$b`), or a ${braced} name — is not a single plain
+// reference and must be rendered through the string-parts path instead of the
+// name sanitizer.
+func wholeTclVarRef(s string) bool {
+	i := 0
+	for i < len(s) && isVarChar(s[i]) {
+		i++
+	}
+	if i == len(s) {
+		return s != ""
+	}
+	// Array element form: name(key) with a single balanced, paren-free key.
+	return s[i] == '(' && strings.HasSuffix(s, ")") &&
+		!strings.ContainsAny(s[i+1:len(s)-1], "()")
 }
 
 // between `regsub ` and the matching `]`). journal3.test 1.2.x.1 uses
@@ -210,11 +241,78 @@ func (tp *transpiler) processIncr(args []tcl.RawWord) {
 	if len(args) < 1 {
 		return
 	}
+	// Map-backed array increment `incr arr(key) [N]`: TCL creates the element
+	// on first use, so emit a Go map update rather than a mangled per-key
+	// variable (update2-5.2's `incr A($opcode)` accumulates one EXPLAIN
+	// opcode counter per row, then reads `set A(NotExists)` back).
+	if base, key, ok := tp.mapBackedIncrTarget(args[0].Text); ok {
+		tp.emitIncrMapElement(base, key, args)
+		return
+	}
 	goName := tclVarToGo(args[0].Text)
 	if !isValidGoIdent(goName) {
 		tp.emitLine("// incr %s (invalid identifier, skipped)", args[0].Text)
 		return
 	}
+	amount := tp.incrAmount(args)
+	amountInt := tp.incrAmountToInt(amount)
+
+	// Ensure variable is declared if not already
+	if !tp.isVarDeclared(goName) {
+		tp.emitLine("var %s = \"0\"", goName)
+		tp.vars = append(tp.vars, goName)
+	}
+	tp.emitLine("// incr %s %s", goName, amount)
+	tp.emitLine("{")
+	tp.indent++
+	tp.emitLine("_n, _err := strconv.Atoi(%s)", goName)
+	tp.emitLine("if _err == nil {")
+	tp.emitLine("\t%s = strconv.Itoa(_n + %s)", goName, amountInt)
+	tp.emitLine("}")
+	tp.indent--
+	tp.emitLine("}")
+}
+
+// mapBackedIncrTarget reports whether name is `arr(key)` where arr is a
+// registered map-backed array (collectArrayMapVars). Returns the base array
+// name and the raw key text so the increment can target the Go map.
+func (tp *transpiler) mapBackedIncrTarget(name string) (string, string, bool) {
+	idx := strings.Index(name, "(")
+	if idx <= 0 || !strings.HasSuffix(name, ")") {
+		return "", "", false
+	}
+	base := strings.TrimPrefix(name[:idx], "::")
+	key := name[idx+1 : len(name)-1]
+	if base == "" || key == "" || key == "*" {
+		return "", "", false
+	}
+	if !isArrayMapBacked(tp, base) {
+		return "", "", false
+	}
+	return base, key, true
+}
+
+// emitIncrMapElement emits the TCL `incr arr(key) [N]` update against the
+// array's Go map. TCL creates a missing element and treats it as 0, so a
+// failed Atoi (empty/non-integer element) starts from zero.
+func (tp *transpiler) emitIncrMapElement(base, key string, args []tcl.RawWord) {
+	mapVar := tclVarToGo(base) + "Map"
+	keyExpr := tp.mapKeyGoExpr(key)
+	amount := tp.incrAmount(args)
+	amountInt := tp.incrAmountToInt(amount)
+	tp.emitLine("// incr %s(%s) %s", base, key, amount)
+	tp.emitLine("{")
+	tp.indent++
+	tp.emitLine("_n, _err := strconv.Atoi(%s[%s])", mapVar, keyExpr)
+	tp.emitLine("if _err != nil { _n = 0 }")
+	tp.emitLine("%s[%s] = strconv.Itoa(_n + %s)", mapVar, keyExpr, amountInt)
+	tp.indent--
+	tp.emitLine("}")
+}
+
+// incrAmount renders the TCL amount argument of `incr VAR [AMOUNT]` as a Go
+// string expression (default "1").
+func (tp *transpiler) incrAmount(args []tcl.RawWord) string {
 	amount := "1"
 	if len(args) >= 2 {
 		// incr VAR [sqlite3_is_interrupted $DB] — increment by the
@@ -265,6 +363,12 @@ func (tp *transpiler) processIncr(args []tcl.RawWord) {
 
 	// If amount is not a pure integer, wrap it in a strconv.Atoi conversion
 	// to avoid type mismatches (int + string).
+	return amount
+}
+
+// incrAmountToInt converts a rendered incr amount to a Go int expression
+// (pure integers pass through; variables get a runtime Atoi wrapper).
+func (tp *transpiler) incrAmountToInt(amount string) string {
 	amountInt := amount
 	if _, atoiErr := strconv.Atoi(amount); atoiErr != nil {
 		// amount is a variable or expression — convert at runtime.
@@ -278,21 +382,7 @@ func (tp *transpiler) processIncr(args []tcl.RawWord) {
 			amountInt = "func() int { _v, _ := strconv.Atoi(" + amount + "); return _v }()"
 		}
 	}
-
-	// Ensure variable is declared if not already
-	if !tp.isVarDeclared(goName) {
-		tp.emitLine("var %s = \"0\"", goName)
-		tp.vars = append(tp.vars, goName)
-	}
-	tp.emitLine("// incr %s %s", goName, amount)
-	tp.emitLine("{")
-	tp.indent++
-	tp.emitLine("_n, _err := strconv.Atoi(%s)", goName)
-	tp.emitLine("if _err == nil {")
-	tp.emitLine("\t%s = strconv.Itoa(_n + %s)", goName, amountInt)
-	tp.emitLine("}")
-	tp.indent--
-	tp.emitLine("}")
+	return amountInt
 }
 
 // emitIncrCounter emits a Go block that increments a TCL-counter string var

@@ -282,8 +282,7 @@ func Test_avfs(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nrint_n, _nrint_e := strconv.Atoi(nrint); if _nrint_e != nil { return false }; return i_n < nrint_n }() {
-		randints_i = "rint [::tcl::mathfunc::rand]" // TCL namespace variable
-		_ = randints_i // suppress unused warning
+		randintsMap[i] = "rint [::tcl::mathfunc::rand]"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -302,8 +301,8 @@ func Test_avfs(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nrint_n, _nrint_e := strconv.Atoi(nrint); if _nrint_e != nil { return false }; return i_n < nrint_n }() {
-			vtab.TclVarSet("r", "", randints_i)
-			_r = randints_i
+			vtab.TclVarSet("r", "", randintsMap[i])
+			_r = randintsMap[i]
 			_ = _r // suppress unused warning
 			vtab.TclVarSet("s", "", randints__incr_i_)
 			s = randints__incr_i_

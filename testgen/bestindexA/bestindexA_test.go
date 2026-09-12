@@ -85,6 +85,8 @@ func Test_bestindexA(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
+	CMap := map[string]string{}
+	_ = CMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "bestindexA")

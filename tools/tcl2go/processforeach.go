@@ -430,7 +430,7 @@ func (tp *transpiler) emitArrayGetForeach(args []tcl.RawWord, varNames []string,
 		return false
 	}
 	base := strings.TrimPrefix(fields[2], "::")
-	if !tp.arrayMapVars[base] && !tp.arrayMapVars["::"+base] {
+	if !isArrayMapBacked(tp, base) {
 		return false
 	}
 	mapVar := tclVarToGo(base) + "Map"

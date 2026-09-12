@@ -1143,7 +1143,7 @@ func Test_vtab1(t *testing.T) {
 	for _, method := range tclSplitList(" xBestIndex        xOpen             xFilter           xNext             xColumn           xRowid            ") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
-			echo_module_failMap[method_t2] = "the " + method + " method has failed"
+			echo_module_failMap[method + ",t2"] = "the " + method + " method has failed"
 			_res = db.Exec(" SELECT rowid, * FROM echo_t2 WHERE a >= 1 ")
 			_ = _res // catchsql
 		}
@@ -1158,7 +1158,7 @@ func Test_vtab1(t *testing.T) {
 	for _, method := range tclSplitList(" xUpdate             xBegin              xSync               ") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
-			echo_module_failMap[method_t2] = "the " + method + " method has failed"
+			echo_module_failMap[method + ",t2"] = "the " + method + " method has failed"
 			_res = db.Exec(" INSERT INTO echo_t2 VALUES(7, 8, 9) ")
 			_ = _res // catchsql
 		}
@@ -1172,6 +1172,7 @@ func Test_vtab1(t *testing.T) {
 	}
 	{ // do_test "vtab1-16." + tn
 		vtab.TclVarSet("echo_module_fail", "xRename,t2", "the xRename method has failed")
+		echo_module_failMap["xRename,t2"] = "the xRename method has failed"
 		echo_module_fail_xRename_t2 = "the xRename method has failed"
 		_ = echo_module_fail_xRename_t2 // suppress unused warning
 		_res = db.Exec(" ALTER TABLE echo_t2 RENAME TO another_name ")

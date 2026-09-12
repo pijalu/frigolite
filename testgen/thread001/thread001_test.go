@@ -173,8 +173,8 @@ func Test_thread001(t *testing.T) {
 				if tclBool("!" + tclBool01(finishedMap[i] != "")) {
 				}
 				{ // do_test "thread001." + tn + ".4." + i
-					_ = finished_i // TCL namespace variable (query)
-					got := tclListFlatten(finished_i)
+					finishedMap[i] = ""
+					got := tclListFlatten(finishedMap[i])
 					want := tclListFlatten("OK")
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "thread001." + tn + ".4." + i)

@@ -114,7 +114,7 @@ func Test_shell6(t *testing.T) {
 				line = strings.Trim(line, " \t\n\r\v\f")
 				_ = line // suppress unused warning
 				if line != "" {
-					expected += line_n
+					expected += line + "\n"
 				}
 			}
 			{ // "1." + tn + ".1" (CLI shell subprocess harness, not transpiled)

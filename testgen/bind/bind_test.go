@@ -274,14 +274,14 @@ func Test_bind(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-2.1")
 		}
 	}
-	vtab.TclVarSet("v1", "", one)
-	v1 = one
+	vtab.TclVarSet("v1", "", "$one")
+	v1 = "$one"
 	_ = v1 // suppress unused warning
-	vtab.TclVarSet("v2", "", two)
-	v2 = two
+	vtab.TclVarSet("v2", "", "$::two")
+	v2 = "$::two"
 	_ = v2 // suppress unused warning
-	vtab.TclVarSet("v3", "", x__z_)
-	v3 = x__z_
+	vtab.TclVarSet("v3", "", "$x(-z-)")
+	v3 = "$x(-z-)"
 	_ = v3 // suppress unused warning
 	{ // do_test "bind-2.1.1"
 		_r = strconv.Itoa(tclParamCountOf("VM"))
@@ -755,11 +755,11 @@ func Test_bind(t *testing.T) {
 		_ = VM // prepared statement handle
 		_r = strconv.Itoa(tclParamCountOf("VM"))
 	}
-	vtab.TclVarSet("v1", "", abc)
-	v1 = abc
+	vtab.TclVarSet("v1", "", "$abc")
+	v1 = "$abc"
 	_ = v1 // suppress unused warning
-	vtab.TclVarSet("v2", "", ab)
-	v2 = ab
+	vtab.TclVarSet("v2", "", "$ab")
+	v2 = "$ab"
 	_ = v2 // suppress unused warning
 	{ // do_test "bind-10.2"
 		_r = strconv.Itoa(tclParamIndexOf("VM", ":abc"))

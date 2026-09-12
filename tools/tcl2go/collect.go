@@ -80,12 +80,17 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 }
 
 // collectArrayMapVars recursively walks TCL commands and collects array names
-// that are assigned with a DYNAMIC key (`set arr($keyvar) V` where $keyvar is a
-// runtime variable). Such arrays must be transpiled to Go maps (a literal-key
-// `set arr(K) V` can use the arr_K variable form). Returns the base array
-// names.
+// that are assigned with a DYNAMIC key (`set arr($keyvar) V` / `incr
+// arr($keyvar)`) or populated wholesale (`array set NAME {...}`). Such arrays
+// must be transpiled to Go maps (a literal-key `set arr(K) V` can use the
+// arr_K variable form). Returns the base array names.
 func collectArrayMapVars(cmds [][]tcl.RawWord) map[string]bool {
 	result := make(map[string]bool)
+	registerArray := func(name string) {
+		if !strings.Contains(name, "::") && isValidGoIdent(tclVarToGo(name)) {
+			result[name] = true
+		}
+	}
 	var walk func([][]tcl.RawWord)
 	walk = func(cc [][]tcl.RawWord) {
 		for _, cmd := range cc {
@@ -100,6 +105,22 @@ func collectArrayMapVars(cmds [][]tcl.RawWord) map[string]bool {
 						result[name[:idx]] = true
 					}
 				}
+			}
+			// `incr arr($key)` targets a dynamic element the same way a set
+			// does (update2-5.2 accumulates EXPLAIN opcodes into A).
+			if cmd[0].Text == "incr" && len(cmd) >= 2 {
+				name := cmd[1].Text
+				if idx := strings.Index(name, "("); idx > 0 && strings.HasSuffix(name, ")") {
+					key := name[idx+1 : len(name)-1]
+					if strings.HasPrefix(key, "$") {
+						result[name[:idx]] = true
+					}
+				}
+			}
+			// `array set NAME {...}` populates NAME element-wise; the emitter
+			// writes NAMEMap[k] = v per pair, so the map must be declared.
+			if cmd[0].Text == "array" && len(cmd) >= 3 && cmd[1].Text == "set" {
+				registerArray(cmd[2].Text)
 			}
 			for i := 1; i < len(cmd); i++ {
 				if cmd[i].Braced && len(cmd[i].Text) > 2 {

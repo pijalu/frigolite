@@ -86,6 +86,8 @@ func Test_e_reindex(t *testing.T) {
 	_ = a // pre-declared from TCL source
 	var b string
 	_ = b // pre-declared from TCL source
+	VMap := map[string]string{}
+	_ = VMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)

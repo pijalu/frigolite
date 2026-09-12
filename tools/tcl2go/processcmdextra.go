@@ -611,6 +611,7 @@ func (tp *transpiler) processArray(args []tcl.RawWord) {
 			tp.arrayMapVars = make(map[string]bool)
 		}
 		tp.arrayMapVars[name] = true
+		globalArrayMapVars[name] = true
 		// The list arg may be a braced body (e.g. `{207 1 412 1}`)
 		// or a non-braced single token (e.g. `$var`). Only the
 		// braced-literal form is transpilable; runtime values need
@@ -1403,6 +1404,15 @@ func inlineProcDefaultAssign(paramsInner string) string {
 		return ""
 	}
 	name := tclVarToGo(fields[0])
+	// A parameter named like a reserved preamble variable must not be bound to
+	// its string default: `db = "db"` clobbers the *frigolite.DB connection
+	// handle and breaks the build (e_dropview/e_droptrigger's
+	// `proc list_all_views {{db db}}`); `err = ...` clobbers the error var.
+	// The inlined body's $db references resolve to the connection variable
+	// regardless.
+	if name == "db" || isPreDeclaredDB(name) || name == "err" {
+		return ""
+	}
 	def := strings.TrimSpace(fields[1])
 	def = strings.TrimSuffix(strings.TrimPrefix(def, "{"), "}")
 	def = strings.Trim(def, "'\"")

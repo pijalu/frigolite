@@ -270,8 +270,8 @@ func Test_trans2(t *testing.T) {
 				vtab.TclVarSet("s", "", "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');")
 				s = "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');"
 				_ = s // suppress unused warning
-				modsql += s_n
-				inssql += s_n
+				modsql += s + "\n"
+				inssql += s + "\n"
 				_res = db.Exec(s)
 			}
 			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
@@ -308,7 +308,7 @@ func Test_trans2(t *testing.T) {
 			vtab.TclVarSet("s", "", "DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ");")
 			s = "DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ");"
 			_ = s // suppress unused warning
-			modsql += s_n
+			modsql += s + "\n"
 			_res = db.Exec(s)
 			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")

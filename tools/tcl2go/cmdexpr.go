@@ -203,7 +203,8 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 				// when the array is registered in arrayMapVars
 				// (set by `array set`).
 				if idx := strings.Index(nm, "("); idx > 0 {
-					base := tclVarToGo(nm[:idx] + "Map")
+					rawBase := nm[:idx]
+					base := tclVarToGo(rawBase + "Map")
 					rawKey := nm[idx+1 : len(nm)-1] // e.g. "$i" (dynamic) or "5" (literal)
 					key := strings.TrimPrefix(rawKey, "$")
 					if isValidGoIdent(base[:len(base)-len("Map")]) {
@@ -213,10 +214,25 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 						// must be quoted. (Decide BEFORE stripping the sigil:
 						// `unusable_page($i)` and `unusable_page(i)` differ
 						// only in it.)
-						if strings.HasPrefix(rawKey, "$") {
-							return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, key)
+						// Only a REGISTERED dynamic array (its XxxMap is
+						// declared in the preamble) may use the map form;
+						// anything else (thread003's thread_spawn-populated
+						// finished(), permutations' ::env) would reference an
+						// undeclared map — fall back to the tclvar registry,
+						// which stays compilable and answers "no" for arrays
+						// the harness never populated.
+						if isArrayMapBacked(tp, rawBase) {
+							if strings.HasPrefix(rawKey, "$") {
+								return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, key)
+							}
+							return fmt.Sprintf("tclBool01(%s[%q] != \"\")", base, key)
 						}
-						return fmt.Sprintf("tclBool01(%s[%q] != \"\")", base, key)
+						if strings.HasPrefix(rawKey, "$") {
+							// Route the key variable through the sanitizer (a TCL
+							// var named `t` maps to Go `_t`, never *testing.T).
+							return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, %s))", rawBase, tclVarToGo(key))
+						}
+						return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, %q))", rawBase, key)
 					}
 				}
 				if isValidGoIdent(tclVarToGo(nm)) {
@@ -228,9 +244,15 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 				name := args[1]
 				key := strings.TrimPrefix(args[2], "$")
 				if idx := strings.Index(name, "("); idx > 0 {
-					base := tclVarToGo(name[:idx] + "Map")
+					rawBase := strings.TrimSuffix(name[:idx], "(")
+					base := tclVarToGo(rawBase + "Map")
 					kv := tclVarToGo(key)
-					return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, kv)
+					if isArrayMapBacked(tp, rawBase) {
+						return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, kv)
+					}
+					// Unregistered array: the tclvar registry keeps the check
+					// compilable (the harness never populates such arrays).
+					return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, %s))", rawBase, kv)
 				}
 			}
 			return fmt.Sprintf("%q", cmdText)

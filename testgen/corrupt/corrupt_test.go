@@ -97,6 +97,8 @@ func Test_corrupt(t *testing.T) {
 	_ = Id_ // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
+	statsMap := map[string]string{}
+	_ = statsMap // dynamic-key array from TCL source
 
 	{
 		var _catchErr error
@@ -230,8 +232,8 @@ func Test_corrupt(t *testing.T) {
 			// db_enter db (unsupported command, not transpiled)
 			// array set stats (dynamic list, not transpiled)
 			// db_leave db (unsupported command, not transpiled)
-			stats_ref = vtab.TclVarGet("stats", "ref")
-			got := tclListFlatten(stats_ref)
+			stats_ref = statsMap["ref"]
+			got := tclListFlatten(statsMap["ref"])
 			want := tclListFlatten("0")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".8")

@@ -86,8 +86,7 @@ func Test_securedel2(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-		aBlob_i = tclStringRange(tclDbOne(db, "SELECT quote(randomblob(8))"), "2", "end-1")
-		_ = aBlob_i // suppress unused warning
+		aBlobMap[i] = tclStringRange(tclDbOne(db, "SELECT quote(randomblob(8))"), "2", "end-1")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -115,11 +114,11 @@ func Test_securedel2(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-			vtab.TclVarSet("x", "", "X'" + tclStringRepeat(aBlob_i, "1") + "'")
-			x = "X'" + tclStringRepeat(aBlob_i, "1") + "'"
+			vtab.TclVarSet("x", "", "X'" + tclStringRepeat(aBlobMap[i], "1") + "'")
+			x = "X'" + tclStringRepeat(aBlobMap[i], "1") + "'"
 			_ = x // suppress unused warning
-			vtab.TclVarSet("y", "", "X'" + tclStringRepeat(aBlob_i, "500") + "'")
-			y = "X'" + tclStringRepeat(aBlob_i, "500") + "'"
+			vtab.TclVarSet("y", "", "X'" + tclStringRepeat(aBlobMap[i], "500") + "'")
+			y = "X'" + tclStringRepeat(aBlobMap[i], "500") + "'"
 			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + x + ", " + y + ")")
 			if _res.Error != nil {

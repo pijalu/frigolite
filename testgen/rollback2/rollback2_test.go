@@ -91,6 +91,8 @@ func Test_rollback2(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 	AMap := map[string]string{}
 	_ = AMap // dynamic-key array from TCL source
+	OMap := map[string]string{}
+	_ = OMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "rollback2")

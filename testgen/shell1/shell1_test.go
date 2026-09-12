@@ -120,7 +120,7 @@ func Test_shell1(t *testing.T) {
 	_ = os.WriteFile("FOO", nil, 0644)
 	out = "FOO"
 	_ = out // suppress unused warning
-	tclChannelAppendAt(FOO, ""+"\n", fileChannelSeek["out"])
+	tclChannelAppendAt("FOO", ""+"\n", fileChannelSeek["out"])
 	// close $out
 	{ // "shell1-1.3.1" (CLI shell subprocess harness, not transpiled)
 		// catchcmd -init FOO test.db 

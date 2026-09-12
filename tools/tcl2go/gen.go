@@ -211,6 +211,18 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 	// body transpilers see them); reset before transpiling this file.
 	globalUserProcs = map[string]bool{}
 	globalProcBodies = map[string]string{}
+	// File-channel tracking, tclvar base marks, and proc var aliases are
+	// likewise per-file: without a reset a channel flag leaked from an
+	// earlier package makes a later literal `open FOO w` channel emit its
+	// destination UNQUOTED (shell1's `tclChannelAppendAt(FOO, ...)` — an
+	// undefined Go identifier).
+	activeFileChannels = map[string]string{}
+	activeFileChannelExprs = map[string]bool{}
+	activeTclvarBases = map[string]bool{}
+	tclProcVarAliases = map[string]string{}
+	// The pre-pass dynamic-array registration collected at the top of this
+	// function; per-file like the rest of the state above.
+	globalArrayMapVars = arrayMapVars
 	tp := &transpiler{
 		sb:               &body,
 		indent:           1,

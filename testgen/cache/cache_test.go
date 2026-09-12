@@ -69,6 +69,8 @@ func Test_cache(t *testing.T) {
 	_ = stats_page // pre-declared from TCL source
 	var cmdlinearg_soft_heap_limit string
 	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+	statsMap := map[string]string{}
+	_ = statsMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)

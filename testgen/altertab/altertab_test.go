@@ -71,6 +71,8 @@ func Test_altertab(t *testing.T) {
 	_ = vtab_connect_sql // pre-declared from TCL source
 	var C_usable string
 	_ = C_usable // pre-declared from TCL source
+	CMap := map[string]string{}
+	_ = CMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "altertab")

@@ -618,9 +618,14 @@ func (tp *transpiler) tclCondToGo(cond string) string {
 	// preamble); otherwise fall through so the generic string-expression
 	// fallback renders the condition (thread004 2.1's unregistered
 	// finished($t) must not emit an undeclared map reference).
-	if m := reInfoExistsDyn.FindStringSubmatch(cond); m != nil {
+	// NEGATED conditions (![info exists ...]) must fall through to
+	// buildCondExpr, which resolves the atom via the info handler and keeps
+	// the negation (tclBool("!" + ...)) — returning the bare membership test
+	// here would silently invert the branch (autovacuum-2.4.5's
+	// root_page_list).
+	if m := reInfoExistsDyn.FindStringSubmatch(cond); m != nil && !strings.HasPrefix(cond, "!") {
 		base := strings.TrimPrefix(m[1], "::")
-		if tp.arrayMapVars[base] || tp.arrayMapVars["::"+base] {
+		if isArrayMapBacked(tp, base) {
 			mapVar := tclVarToGo(base) + "Map"
 			keyExpr := tclVarToGo(strings.TrimPrefix(m[2], "$"))
 			return fmt.Sprintf("%s[%s] != \"\"", mapVar, keyExpr)

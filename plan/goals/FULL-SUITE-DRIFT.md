@@ -1578,3 +1578,115 @@ it; see lessons_learned):
     src/func.c sumStep (KBN init-from-iSum + ovrfl clearing on REAL steps;
     the 0.5/-9.22e18 pattern implies additional window-restart state that
     needs a dedicated trace).
+
+### T26 tcl2go emission fidelity (2026-09-11) — 6 diagnosed transpiler defects + class fixes
+
+Scope: fix the GENERATOR (tools/tcl2go/), regenerate testgen (1219 files), no
+testgen hand-edits. Engine untouched (internal/execquery + internal/exec are
+another agent's territory).
+
+Per-bug evidence (emission verified against /Users/muaddib/dev/sqlite/test
+sources before/after):
+1. vtab1 BUILD: `set echo_module_fail($method,t2)` folded the whole key through
+   the name sanitizer → `echo_module_failMap[method_t2]` (undefined ident).
+   emitDynamicArraySet now re-parses the key via the string-parts path
+   (mapKeyGoExpr) → `echo_module_failMap[method + ",t2"]`; literal-key sets on
+   map-backed arrays also sync the map (`echo_module_failMap["xRename,t2"] = …`).
+2. index2 BUILD: `append sql $i,` → `sql += i_` — varValueExpr accepted any
+   `$…` word whose SANITIZED form was a valid ident. New wholeTclVarRef gate:
+   the word must be exactly one var reference (bare name or arr(key)); trailing
+   literals render through buildStringExpr → `sql += i + ","`. Same gate fixed
+   loadext (`set testextsrc $srcdir/test_loadext.c` was the undefined
+   `srcdir_test_loadext_c`, now `srcdir + "/test_loadext.c"`), and the value
+   path now unescapes bare words so trans2/permutations/shell6
+   `append X $s\n` emit `+ "\n"` (real newline) instead of the undefined `s_n`
+   — trans2 was a HEAD build failure, now compiles and runs.
+3. e_reindex BUILD: `array set V {…}` emitted `VMap[k]=v` pairs without
+   declaring VMap. collectArrayMapVars now registers `array set NAME`, plus
+   `incr arr($key)` (update2). processIncr gained a map-backed path
+   (TCL incr creates the element; Atoi failure starts from 0), verified against
+   real tclsh+sqlite3: update2-5.2 counts OP_NotExists in
+   `incr A($opcode)` accumulation → `set A(NotExists)` == 1.
+   Literal-key reads on map-backed arrays now read the map the writes populate
+   (`A_NotExists = AMap["NotExists"]`).
+4. e_droptrigger/e_dropview BUILD: `proc list_all_views {{db db}}` —
+   inlineProcDefaultAssign bound the string default to the reserved Go
+   connection var → `db = "db"` (4+6 sites). Reserved-name guard added
+   (db, db1-db9, err): assignment skipped, $db still resolves to the
+   connection var. Both packages green.
+5. bind: `set v1 {$one}` — varValueExpr missed the Braced flag, treating the
+   braced literal as a variable ref → `v1 = one`. Braced words are literals →
+   `v1 = "$one"` (engine tclParamNameOf already returned "$one"; oracle-
+   confirmed). 2.1.2/2.1.3/2.1.4, 10.6, 10.7 now pass. Residual bind-10.8.1
+   (bind-after-step must error) is the documented harness step-emulation gap
+   (report_g8): the generated catch wrapper only sees Go errors, not bind
+   result codes — unchanged, not an emission defect.
+6. rowid 1.8/1.9/1.10 SKIPPED per triage: tclExecSQL joins rows with "\n"
+   (deliberate, documented in helpers_template_part2.go + relied on by
+   tclMemdbSignature and multi-line integrity_check wants); tclList joins with
+   " " (correct TCL flat-list form). Both sides defensible → ambiguous, left
+   as-is.
+
+Unlocked-class fixes (same emission class, pre-existing HEAD build failures):
+- cmdexpr info-exists handlers emitted `XxxMap[...]` UNCONDITIONALLY →
+  undefined maps in permutations (env), notify2/thread003/4/5 (finished).
+  Now guarded by isArrayMapBacked with a vtab.TclVarExists registry fallback;
+  dynamic keys go through tclVarToGo (thread004's `$t` → `_t`, not
+  *testing.T).
+- Per-file reset for activeFileChannels/activeFileChannelExprs (plus inert
+  activeTclvarBases/tclProcVarAliases) in generateTestFile: a channel flag
+  leaked across packages made shell1's literal `open FOO w` channel emit its
+  destination unquoted (`tclChannelAppendAt(FOO, …)`).
+- Nil-map clones: many body transpilers don't carry arrayMapVars; guards now
+  consult per-file globalArrayMapVars (isArrayMapBacked). tclCondToGo's
+  info-exists fast path skips NEGATED conditions so buildCondExpr keeps the
+  `!` (autovacuum-2.4.5 root_page_list inversion caught by the sweep re-run).
+
+Regen delta (34 testgen files changed vs a4e164e73): build-flips green —
+index2, e_reindex, e_droptrigger, e_dropview, trans2, notify2, thread001/2/3/4/5,
+permutations, shell1, loadext, altertab, analyze9 (build), bestindexA, cache,
+corrupt, corrupt2, corruptC, rtreedoc3, rollback2, savepoint, vacuum_into,
+autovacuum (identical output after negation fix). Assertion-state flips:
+vtab1 16.x series now compiles + passes (package still FAIL: 2 engine asserts —
+echo-module failure injection `echo-vtab-error` unsupported, vtab1-15.4 rowid
+"datatype mismatch"); update2 5.2 emission now faithful (package still FAIL:
+engine EXPLAIN lists only Init/Return opcodes — no OP_NotExists to count,
+internal/execquery/explain.go, out of territory); bind 6→1 failures (residual
+10.8.1 harness emulation, above); trans2 unlocked, 4 engine hash mismatches
+(statement-journal/md5sum area); corrupt 1966 mismatches — IDENTICAL count to
+HEAD (pre-existing engine); vtab3 unchanged (2, fixture authorizer + engine
+per report_g8).
+
+Sweep (64 packages, serial -count=1, this tree): PASS 41 / FAIL 23.
+Every FAIL was cross-checked against ISOLATED HEAD a4e164e73 (git worktree;
+shared-tree runs are untrustworthy — see lessons_learned):
+- identical failure counts at HEAD (pre-existing engine drift, zero
+  regression): select1 36=36, where 6=6, insert 2=2, update 7=7,
+  delete_pkg 4=4, trigger1 8=8, misc1 10=10, misc3 2=2, like 23=23,
+  e_fkey 25=25, altertab 3=3, bestindexA 1=1, corrupt 1966=1966,
+  corruptC 1=1, rtreedoc3 1=1, savepoint 26=26, orderby1 2=2, vtab3 2=2.
+  NOTE: select1/where/insert &c. are called "previously-green" in the tasking
+  but are red at HEAD itself — engine drift landed between the morning
+  diagnosis reports and a4e164e73 (T8/T24/T25 window), NOT from this T26.
+- target packages (were build-fails or carry documented residuals):
+  vtab1 (2 engine: echo failure-injection, rowid datatype), bind (1 residual
+  10.8.1 harness emulation), rowid (3 join convention, skipped per triage),
+  update2 (1 engine EXPLAIN opcode listing), trans2 (4 engine hashes; build
+  failure at HEAD).
+PASS 41 includes the build-flips: index2, e_reindex, e_droptrigger,
+e_dropview, notify2, thread001, thread002, thread003, thread004, thread005,
+permutations, shell1, loadext, cache, incrvacuum, autovacuum, vacuum,
+rollback2, vacuum_into, wherelimit, temptrigger, rollback. 11 packages
+flipped build-fail→run: 9 green (index2, e_reindex, e_droptrigger,
+e_dropview, notify2, thread003, thread004, thread005, permutations, shell1,
+trans2-unlocked — 10 counting shell1) and 2 running with pre-existing engine
+gaps instead of not compiling (vtab1, update2; trans2 likewise runs with 4
+engine hash mismatches).
+
+Gates: go build ./... rc=0; go vet ./... clean; go vet -tags testgen ./testgen/...
+clean except pre-existing `unreachable code` notices + misc7 self-assignment
+(both at HEAD); SOLID ok; go test ./tools/tcl2go ok; go test -race -run
+TestNative . ok (45s); quality_gate tcl2go: 11 hard file-size failures BEFORE
+and AFTER (no new violations; all pre-existing over-1000-line files).
+tools/check ledger tests (TestParseSkipMaps_Stable, TestLoadLedgerRoundTrip,
+TestLedgerJSONValid) fail at HEAD identically — unrelated.
