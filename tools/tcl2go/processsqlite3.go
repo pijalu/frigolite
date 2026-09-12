@@ -581,6 +581,12 @@ func (tp *transpiler) processStep(args []tcl.RawWord) {
 		if isValidGoIdent(gv) {
 			sqlExpr = gv
 		}
+	} else if !ps.braced[stmtVar] && hasVarRef(rendered) {
+		// A quoted (non-braced) prepare word had its $var references
+		// interpolated by TCL at prepare time; the step must run the same
+		// interpolated text, not a literal "$row" parameter bound to
+		// nothing (rtree8-1.3.2).
+		sqlExpr = tp.buildStringExpr(rendered)
 	}
 	// A prepared ATTACH whose database name is a `file:` URI (e_uri.test)
 	// probes C-API URI filename handling; detach first so re-running the

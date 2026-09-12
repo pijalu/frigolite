@@ -511,16 +511,21 @@ func (tp *transpiler) recordPreparedStatement(goName, bracketText string) {
 	if innerCmds := tclparser.ParseCommands(strings.TrimSuffix(strings.TrimPrefix(bracketText, "["), "]")); len(innerCmds) > 0 && len(innerCmds[0]) > 2 {
 		braced = innerCmds[0][2].Braced
 	}
+	ps.braced[goName] = braced
 	if !stmtVMEnabled() {
 		// Legacy emulation: only queries run at prepare time (so compile
 		// errors reach the connection); INSERT/DDL prepares stay inert.
+		// The SQL expression honors the TCL substitution rules via
+		// prepareSQLExpr, so a quoted "SELECT ... WHERE id = $row" prepare
+		// interpolates the variable's runtime value (rtree8-1.3.2) instead
+		// of handing the engine a bound-to-nothing $row parameter.
 		tp.emitLine("// prepared %s: %s (bind/step emulation)", goName, sanitizeCommentLine(sqlText))
 		if isQueryStmt(lastStatementSQL(sqlText)) {
-			tp.emitLine("tclPrepareStep(%s, %q, %q)", conn, sqlText, goName)
+			tp.emitLine("tclPrepareStep(%s, %s, %q)", conn, tp.prepareSQLExpr(sqlText, braced), goName)
 		} else if strings.HasPrefix(sqlText, "$") {
 			tp.emitLine("tclPrepareStep(%s, %s, %q)", conn, tclVarToGo(strings.TrimPrefix(sqlText, "$")), goName)
 		}
-		tp.emitPrepareTail(parts, sqlText)
+		tp.emitPrepareTail(parts, sqlText, braced)
 		tp.declareStmtHandle(goName)
 		return
 	}
@@ -542,7 +547,7 @@ func (tp *transpiler) recordPreparedStatement(goName, bracketText string) {
 	// capi2-2.x asserts `set SQL` after a multi-statement prepare returns
 	// the tail; assign it (statistically for a literal SQL, at runtime
 	// for a $var SQL).
-	tp.emitPrepareTail(parts, sqlText)
+	tp.emitPrepareTail(parts, sqlText, braced)
 	tp.declareStmtHandle(goName)
 }
 
@@ -586,8 +591,11 @@ func (tp *transpiler) emitPrepareQueryCheck(sqlText string) {
 }
 
 // emitPrepareTail emits the assignment of sqlite3_prepare's TAIL argument
-// (the variable that receives the SQL text after the first statement).
-func (tp *transpiler) emitPrepareTail(parts []string, sqlText string) {
+// (the variable that receives the SQL text after the first statement). braced
+// reports whether the prepare's SQL word was TCL brace-quoted; a quoted word
+// with $var references interpolates them, so the tail derives from the
+// interpolated text.
+func (tp *transpiler) emitPrepareTail(parts []string, sqlText string, braced bool) {
 	if len(parts) < 5 {
 		return
 	}
@@ -606,6 +614,8 @@ func (tp *transpiler) emitPrepareTail(parts []string, sqlText string) {
 	if strings.HasPrefix(strings.TrimSpace(sqlText), "$") {
 		sqlGo := tclVarToGo(strings.TrimPrefix(strings.TrimSpace(sqlText), "$"))
 		tp.emitLine("%s = tclSqlTail(%s)", goTail, sqlGo)
+	} else if !braced && hasVarRef(sqlText) {
+		tp.emitLine("%s = tclSqlTail(%s)", goTail, tp.prepareSQLExpr(sqlText, braced))
 	} else {
 		tp.emitLine("%s = tclSqlTail(%q)", goTail, sqlText)
 	}

@@ -132,6 +132,12 @@ type preparedState struct {
 	stmts map[string]string         // TCL stmt var -> prepared SQL text
 	binds map[string]map[int]string // stmt var -> bind index -> SQL literal
 	conns map[string]string         // stmt var -> Go connection handle
+	// braced records whether the prepare's SQL word was TCL brace-quoted
+	// ({SELECT $x} passes $x to the engine verbatim as a named parameter)
+	// or quoted/bare ("SELECT $x" has $x interpolated by TCL before the
+	// engine sees it). Consulted by the legacy step emulation so a quoted
+	// prepare re-interpolates at emission time (rtree8-1.3.2).
+	braced map[string]bool
 }
 
 // varsetInfo describes a foreach loop variable whose elements are TCL "varset"
@@ -212,9 +218,10 @@ func stmtVMEnabled() bool { return stmtVMTestFiles[genCurrentTestFile] }
 func (tp *transpiler) preparedStateRef() *preparedState {
 	if activePreparedState == nil {
 		activePreparedState = &preparedState{
-			stmts: make(map[string]string),
-			binds: make(map[string]map[int]string),
-			conns: make(map[string]string),
+			stmts:  make(map[string]string),
+			binds:  make(map[string]map[int]string),
+			conns:  make(map[string]string),
+			braced: make(map[string]bool),
 		}
 	}
 	return activePreparedState

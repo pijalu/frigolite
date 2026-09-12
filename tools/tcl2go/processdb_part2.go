@@ -507,6 +507,14 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 	tp.emitLine("var %s bool", rbFlag)
 	tp.emitLine("var %s error", iterErr)
 	tp.emitLine("var %s bool", intFlag)
+	// TCL aborts the statement (and the enclosing script, unless caught)
+	// when the query itself fails — e.g. "no such function: qbox" in an
+	// rtreedoc3-style MATCH body. Propagate the error into the iteration
+	// error so the loop is skipped and the existing tail (catch mode →
+	// _catchErr, plain mode → test error) reports it, mirroring the
+	// non-callback db eval paths. The loop condition
+	// (`&& iterErr == nil`) keeps Begin/EndActiveStatement balanced.
+	tp.emitLine("if %s.Error != nil { %s = %s.Error }", rowsVar, iterErr, rowsVar)
 	// Upstream, the scanned SELECT is a RUN-state VM for the whole callback
 	// loop (db->nVdbeRead), so DDL inside the body hits the OP_Destroy
 	// interlock ("database table is locked" — vtabdrop 1.1).

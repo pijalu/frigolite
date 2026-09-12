@@ -138,9 +138,71 @@ func tclBool(s string) bool {
 }
 
 // tclStr converts any value to a string (for error/interface types in concatenation).
+// Floats render TCL-style (tclDouble): a TCL double always shows its decimal
+// point, so [expr 1.0] and an rtree REAL column value render "1.0", not "1".
 func tclStr(v interface{}) string {
 	if v == nil { return "" }
+	switch x := v.(type) {
+	case float64:
+		return tclDouble(x)
+	case float32:
+		return tclDouble(float64(x))
+	}
 	return fmt.Sprintf("%%v", v)
+}
+
+// tclDouble renders a float64 the way TCL renders a double
+// (tclObj.c UpdateStringOfDouble): the shortest digit string that
+// round-trips to the same double, displayed in fixed notation when the
+// decimal exponent is within -4..16 and in exponential notation outside it.
+// Integral fixed values always keep the ".0" suffix ("1.0", "1000000.0"),
+// exponential values use a signed unpadded exponent ("5e+17", "1.5e-5"),
+// and the special doubles spell "Inf"/"-Inf"/"NaN".
+func tclDouble(f float64) string {
+	if math.IsInf(f, 1) { return "Inf" }
+	if math.IsInf(f, -1) { return "-Inf" }
+	if math.IsNaN(f) { return "NaN" }
+	s := strconv.FormatFloat(f, 'e', -1, 64)
+	neg := s[0] == '-'
+	if neg { s = s[1:] }
+	ei := strings.IndexByte(s, 'e')
+	exp, _ := strconv.Atoi(s[ei+1:])
+	digits := strings.TrimRight(strings.Replace(s[:ei], ".", "", 1), "0")
+	if digits == "" { digits = "0" }
+	var b strings.Builder
+	if neg { b.WriteByte('-') }
+	if exp >= -4 && exp <= 16 {
+		if exp < 0 {
+			b.WriteString("0.")
+			b.WriteString(strings.Repeat("0", -exp-1))
+			b.WriteString(digits)
+			return b.String()
+		}
+		if len(digits) > exp+1 {
+			b.WriteString(digits[:exp+1])
+			b.WriteByte('.')
+			b.WriteString(digits[exp+1:])
+			return b.String()
+		}
+		b.WriteString(digits)
+		b.WriteString(strings.Repeat("0", exp+1-len(digits)))
+		b.WriteString(".0")
+		return b.String()
+	}
+	b.WriteByte(digits[0])
+	if len(digits) > 1 {
+		b.WriteByte('.')
+		b.WriteString(digits[1:])
+	}
+	b.WriteByte('e')
+	if exp < 0 {
+		b.WriteByte('-')
+		exp = -exp
+	} else {
+		b.WriteByte('+')
+	}
+	b.WriteString(strconv.Itoa(exp))
+	return b.String()
 }
 
 // tclInt converts a string value to an int (TCL integer coercion, 0 on

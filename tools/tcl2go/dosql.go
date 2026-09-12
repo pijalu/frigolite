@@ -807,20 +807,23 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 		expectSuccess = false
 		errMsgDynamic = tp.buildStringExpr(msg)
 	}
-	// TCL catchsql regex form "/1 {near .* syntax error}/" (with2 6.7-6.9) or
-	// "/1.*too big.*/" (basexx1 118-119): the message is a regex the error
-	// must match. Detect the leading "/1" (space optional) and trailing "/"
-	// and emit a regexp.MatchString comparison.
+	// TCL catchsql regex form "/1 {near .* syntax error}/" (with2 6.7-6.9),
+	// "/1.*too big.*/" (basexx1 118-119), "/1 .*corrupt.*/"
+	// (rtreefuzz001-210/310): do_test/do_catchsql_test apply the regex to
+	// the STRING of the whole catchsql RESULT — "0 <result>" on success,
+	// "1 {<error>}" on failure — not to the error alone. A statement that
+	// behaves exactly like SQLite (rtreecheck succeeding with a report that
+	// mentions "corrupt") satisfies "/1 .*corrupt.*/" through the success
+	// rendering, so the match must not presuppose an error. Detect the
+	// leading "/1" (space optional) and trailing "/" and emit a regexp
+	// match over the rendered catchsql result string.
 	if strings.HasPrefix(raw, "/1") && strings.HasSuffix(raw, "/") {
 		pattern := strings.TrimSpace(strings.TrimSuffix(raw, "/"))
-		pattern = strings.TrimSpace(strings.TrimPrefix(pattern, "/1"))
-		// The pattern is TCL brace-quoted (e.g. "/1 {near .* syntax error}/");
-		// strip the surrounding { } so the emitted Go regex is valid.
-		pattern = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(pattern, "{"), "}"))
+		pattern = strings.TrimSpace(strings.TrimPrefix(pattern, "/"))
 		pattern = strings.ReplaceAll(pattern, `\y`, `\b`)
 		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
-		tp.emitLine("if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(%q, _res.Error.Error()); return m }() {", pattern)
-		tp.emitLine("\tt.Errorf(\"expected error matching %s, got: %%v\\n  sql: %%s\", %q, resErrString(_res), %s)", `%q`, pattern, sqlExpr)
+		tp.emitLine("if matched, _ := regexp.MatchString(%q, tclCatchsqlString(_res)); !matched {", pattern)
+		tp.emitLine("\tt.Errorf(\"catchsql result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\\n  sql: %%s\", tclCatchsqlString(_res), %q, %s)", pattern, sqlExpr)
 		tp.emitLine("}")
 		return
 	}
