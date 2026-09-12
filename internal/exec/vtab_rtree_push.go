@@ -51,6 +51,15 @@ func (e *Engine) rtreePushConjunct(sink vtab.ConstraintSink, cols map[string]int
 	op := strings.ToUpper(bo.Operator)
 	if cr, isRef := bo.Left.(*sql.ColumnRef); isRef {
 		if col, found := cols[strings.ToLower(cr.Name)]; found {
+			// Only a column-free value operand may be pushed and consumed:
+			// a column reference (join/CTE/outer column — `rt0.b = v0.x`,
+			// `id = r.x`) evaluates per joined row, so binding it here with
+			// no current row would push col=NULL and drop the conjunct from
+			// the residual WHERE (where.c marks such terms usable=false and
+			// the core keeps them).
+			if exprHasColumnRef(bo.Right) {
+				return false, nil
+			}
 			if val, err := e.evalExpr(bo.Right, nil); err == nil {
 				sink.PushRTreeConstraint(col, op, util.UnwrapColumnValue(val))
 				return true, nil
@@ -61,6 +70,9 @@ func (e *Engine) rtreePushConjunct(sink vtab.ConstraintSink, cols map[string]int
 	// Constant on the left: mirror the operator.
 	if cr, isRef := bo.Right.(*sql.ColumnRef); isRef {
 		if col, found := cols[strings.ToLower(cr.Name)]; found {
+			if exprHasColumnRef(bo.Left) {
+				return false, nil
+			}
 			flipped := map[string]string{"<": ">", ">": "<", "<=": ">=", ">=": "<="}[op]
 			if flipped == "" {
 				flipped = op
@@ -72,6 +84,41 @@ func (e *Engine) rtreePushConjunct(sink vtab.ConstraintSink, cols map[string]int
 		}
 	}
 	return false, nil
+}
+
+// exprHasColumnRef reports whether the expression tree contains any column
+// reference (qualifier-qualified or bare).
+func exprHasColumnRef(expr sql.Expr) bool {
+	switch t := expr.(type) {
+	case *sql.ColumnRef:
+		return true
+	case *sql.BinaryOp:
+		return exprHasColumnRef(t.Left) || exprHasColumnRef(t.Right)
+	case *sql.UnaryOp:
+		return exprHasColumnRef(t.Operand)
+	case *sql.FuncCall:
+		for _, a := range t.Args {
+			if exprHasColumnRef(a) {
+				return true
+			}
+		}
+		return false
+	case *sql.Between:
+		return exprHasColumnRef(t.Operand) || exprHasColumnRef(t.Low) || exprHasColumnRef(t.High)
+	case *sql.InList:
+		if exprHasColumnRef(t.Operand) {
+			return true
+		}
+		for _, item := range t.List {
+			if exprHasColumnRef(item) {
+				return true
+			}
+		}
+		return false
+	case *sql.ParenExpr:
+		return exprHasColumnRef(t.Expr)
+	}
+	return false
 }
 
 // rtreePushMatchConjunct binds `col MATCH <expr>` onto a RtreeMatchSink,

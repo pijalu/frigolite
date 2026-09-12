@@ -170,8 +170,12 @@ func addMaterializedRowID(rowMap RowMap, alias string, i int, rowids []int64) {
 	} else {
 		rid = int64(i + 1)
 	}
-	rowMap["rowid"] = rid
+	// Wrap like a declared column (materializedValue): the INTEGER affinity
+	// drives WHERE comparisons — `rowid = '5'` must coerce the TEXT literal
+	// (build.c applies the column's affinity; a bare int64 compared without
+	// affinity stays TEXT>INTEGER and never matches).
+	rowMap["rowid"] = &util.ColumnValue{Value: rid, Affinity: 'I'}
 	if alias != "" {
-		rowMap[alias+".rowid"] = rid
+		rowMap[alias+".rowid"] = rowMap["rowid"]
 	}
 }

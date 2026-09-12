@@ -111,8 +111,14 @@ func execRTree(t *testing.T, db *DB, sql string) {
 }
 
 // A query over a tree whose root blob was truncated below the header must
-// fail cleanly — never panic — with the connect-time getNodeSize corruption
-// message (the SELECT-side materialization goes through xConnect).
+// fail cleanly — never panic — with C's connect-time getNodeSize message.
+// Oracle (/usr/bin/sqlite3 3.51.0): a REOPENED connection errors at prepare
+// with `undersize RTree blobs in "rt_node"` (rtreeA-7.110), while a
+// same-session query against a LIVE vtab instance reaches the node-read
+// path and reports "database disk image is malformed" (SQLITE_CORRUPT_VTAB's
+// generic text). Frigolite re-runs xConnect per statement (no persistent
+// connected instance), so the undersize prepare-time observable is the one
+// this engine reaches — matching rtreeA-7.110's own expectation.
 func TestNativeRtreeShortBlobQueryCleanError(t *testing.T) {
 	db := openRtreeDB(t)
 	defer db.Close()
@@ -125,7 +131,7 @@ func TestNativeRtreeShortBlobQueryCleanError(t *testing.T) {
 	if res.Error == nil {
 		t.Fatal("short root blob: query must error, got rows")
 	}
-	want := "database disk image is malformed"
+	want := "undersize RTree blobs in \"rt_node\""
 	if !strings.Contains(res.Error.Error(), want) {
 		t.Fatalf("want %q, got: %v", want, res.Error)
 	}
