@@ -1701,3 +1701,17 @@ TestLedgerJSONValid) fail at HEAD identically — unrelated.
     src/window.c windowAggStep/windowAggFinal for END-anchored ROWS frames
     plus src/func.c sumStep/sumInverse/sumFinalize (KBN fields) against
     these probes before coding.
+- **T28 misc1 residue triage (2026-09-12)**: the 10 remaining misc1
+  assertions decompose into: (a) parser bug — `x TEXT COLLATE numeric`
+  (COLLATE after a type) leaves cd.Collate unset (likely absorbed into the
+  type string), so T11's CREATE-time collation validation misses it; the
+  later scan's schema re-parse then errors "no such collation sequence:
+  text" mid-test (misc1-580/585/591 cascade; collate7 only covered the
+  no-type form). Fix: parse COLLATE in the column-def tail after
+  typename(s) (parse.y ccons ::= COLLATE nm), populate cd.Collate; T11's
+  validator then fires. (b) "no tables specified" vs "no such table: t1"
+  (misc1-369 — zero-qualifier DELETE/UPDATE wording). (c) t9/t10
+  create-guard ORDER: ALTER/CREATE error precedence ("no such column:
+  t9.c1" must precede "table t10 already exists") (misc1-643/649/655/667).
+  (d) two result mismatches (753/761 — group-by numeric-collation sort
+  order, cascade of (a)). Owner: the next misc1 tranche; (a) first.
