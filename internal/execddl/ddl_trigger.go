@@ -784,15 +784,11 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 	if err != nil {
 		return &Result{Error: err}
 	}
-	// Bind the resolved schema/table name so the module can create its shadow
-	// tables (rtree/dbdata/dbstat name backing tables after the vtab name).
-	// A binding failure (shadow-name collision) aborts the CREATE.
-	if sb, ok := vt.(vtab.SchemaBoundVTab); ok {
-		if err := sb.BindSchema(ctx0.Name, tableName0); err != nil {
-			return &Result{Error: err}
-		}
-	}
-
+	// The schema entry is written BEFORE the module binds its schema: SQLite
+	// inserts the sqlite_schema row at prepare/codegen time and OP_VCreate
+	// only then invokes xCreate, so the vtab row precedes every shadow-table
+	// row in sqlite_master (oracle: CREATE VIRTUAL TABLE rt USING rtree(...) →
+	// rowids rt=1, rt_rowid=2, rt_node=3, rt_parent=4).
 	ctx, tableName := resolveVTabContext(e, s.Name)
 	entry := &schema.Entry{
 		Type:     schema.TypeTable,
@@ -804,6 +800,18 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 	if err := ctx.Schema.AddEntry(entry); err != nil {
 		e.disconnectVtabOnCreateFailure(vt)
 		return &Result{Error: err}
+	}
+	// Bind the resolved schema/table name so the module can create its shadow
+	// tables (rtree/dbdata/dbstat name backing tables after the vtab name).
+	// A binding failure (shadow-name collision) aborts the CREATE — the
+	// schema entry is rolled back like a failed statement (the master row
+	// C wrote before xCreate fails is removed by the statement abort).
+	if sb, ok := vt.(vtab.SchemaBoundVTab); ok {
+		if err := sb.BindSchema(ctx0.Name, tableName0); err != nil {
+			ctx.Schema.RemoveEntry(entry.Name)
+			e.disconnectVtabOnCreateFailure(vt)
+			return &Result{Error: err}
+		}
 	}
 	e.cachePersistentVtabInstance(tableName, vt)
 

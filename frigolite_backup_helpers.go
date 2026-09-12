@@ -185,3 +185,23 @@ func sqlLiteral(v interface{}) string {
 		return "'" + strings.ReplaceAll(fmt.Sprint(v), "'", "''") + "'"
 	}
 }
+
+// qualifyCreateVirtualTableSQL rewrites the table name of a stored
+// CREATE VIRTUAL TABLE DDL ("CREATE VIRTUAL TABLE rt(...)" →
+// "CREATE VIRTUAL TABLE \"aux\".rt(...)") for attached/temp destinations,
+// the vtab analogue of qualifyCreateTableSQL (whose CREATE TABLE prefixes do
+// not match the VIRTUAL form).
+func qualifyCreateVirtualTableSQL(sql, qual string) string {
+	const prefix = "CREATE VIRTUAL TABLE"
+	trimmed := strings.TrimSpace(sql)
+	if !strings.HasPrefix(strings.ToUpper(trimmed), prefix) {
+		return sql
+	}
+	rest := trimmed[len(prefix):]
+	lead := rest[:len(rest)-len(strings.TrimLeft(rest, " \t\n"))]
+	name, after := splitTableName(strings.TrimLeft(rest, " \t\n"))
+	if name == "" {
+		return sql
+	}
+	return prefix + lead + quoteIdent(qual) + "." + name + after
+}

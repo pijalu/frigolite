@@ -7,6 +7,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/lockreg"
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/sql"
 )
 
 // Backup represents an in-progress online backup of one database schema to
@@ -580,45 +581,86 @@ func statColumns(createSQL string) string {
 // copyTable recreates one table in the destination and copies its rows.
 func (b *Backup) copyTable(e *schema.Entry) error {
 	qual := schemaQualifier(b.dstSchema)
-	// CREATE TABLE cannot be schema-qualified in the stored DDL for the main
-	// schema; for attached/temp destinations, qualify the name.
-	sql := e.SQL
-	if qual != "" {
-		sql = qualifyCreateTableSQL(sql, qual)
+	// Virtual-table schema entries (RootPage 0) carry no storage: a page-level
+	// backup copies only the module's SHADOW tables, and the vtab's own rows
+	// are whatever the module instance reads back from them. Create the vtab
+	// in the destination (xCreate materializes fresh shadow tables there) and
+	// copy no rows — the shadow entries later in sqlite_master order are real
+	// tables and take the shadow path below.
+	if isVirtualTableEntry(e) {
+		sql := e.SQL
+		if qual != "" {
+			sql = qualifyCreateVirtualTableSQL(sql, qual)
+		}
+		if r := b.dst.Exec(sql); r.Error != nil {
+			return r.Error
+		}
+		return nil
 	}
-	if r := b.dst.Exec(sql); r.Error != nil {
-		return r.Error
+	// Vtab shadow tables already exist in the destination (xCreate made them
+	// when the CREATE VIRTUAL TABLE entry was copied moments ago): replace
+	// rows instead of re-creating — a second CREATE would fail with
+	// "table already exists".
+	shadow := b.destTableExists(e.Name)
+	if !shadow {
+		sql := e.SQL
+		if qual != "" {
+			sql = qualifyCreateTableSQL(sql, qual)
+		}
+		if r := b.dst.Exec(sql); r.Error != nil {
+			return r.Error
+		}
+	} else {
+		if r := b.dst.Exec("DELETE FROM " + qualifiedTableRef(qual, e.Name)); r.Error != nil {
+			return r.Error
+		}
 	}
 	// Read rows from the source and insert into the destination. WITHOUT
-	// ROWID tables have no rowid column; detect from the DDL. For rowid
-	// tables the SELECT includes the rowid first so the INSERT preserves
-	// exact rowids (a page-level backup does). The qualified table reference
-	// uses the bare name (schema.tablename); the engine's INSERT rejects a
-	// quoted table after a schema prefix ("temp.\"t1\"").
+	// ROWID tables have no rowid column; detect from the DDL. Tables whose
+	// rowid is aliased by an INTEGER PRIMARY KEY column keep the rowid via
+	// that column (SELECT * alone preserves it — and the shadow tables of
+	// rtree-style modules name their IPK literally "rowid", where the old
+	// "SELECT rowid, *" + name filter produced an arity mismatch). For plain
+	// rowid tables the SELECT probes the rowid under a non-shadowed alias
+	// name so the INSERT preserves exact rowids (a page-level backup does).
+	// The qualified table reference uses the bare name (schema.tablename);
+	// the engine's INSERT rejects a quoted table after a schema prefix
+	// ("temp.\"t1\"").
 	withoutRowid := strings.Contains(strings.ToUpper(e.SQL), "WITHOUT ROWID")
+	defs := b.src.engine.ParseColumnDefs(e.Name, e.SQL)
+	alias := ipkRowidAliasColumnName(defs)
 	srcQual := schemaQualifier(b.srcSchema)
 	tableRef := qualifiedTableRef(srcQual, e.Name)
 	var srcQuery string
-	var colNames []string
-	if withoutRowid {
+	if withoutRowid || alias != "" {
 		srcQuery = "SELECT * FROM " + tableRef
 	} else {
-		srcQuery = "SELECT rowid, * FROM " + tableRef
+		srcQuery = "SELECT " + quoteIdent(rowidProbeName(defs)) + ", * FROM " + tableRef
 	}
 	r := b.src.Query(srcQuery)
 	if r.Error != nil {
 		return r.Error
 	}
-	// Column list for the INSERT: for rowid tables the first SELECT column is
-	// rowid (insert as "rowid"); the rest are the table's columns.
-	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
-	if !withoutRowid {
+	// Column list for the INSERT: for the rowid-probe form the first SELECT
+	// column is the rowid probe (insert as "rowid"); the rest are the table's
+	// columns. For SELECT * forms the columns arrive in declared order.
+	var colNames []string
+	if !withoutRowid && alias == "" {
 		colNames = append(colNames, "rowid")
-	}
-	for _, c := range r.Columns {
-		if withoutRowid || c != "rowid" {
+		for i, c := range r.Columns {
+			if i == 0 {
+				continue // the probe itself
+			}
+			if c == "rowid" {
+				// A plain-rowid table may still DECLARE a column named
+				// "rowid"; `SELECT probe, *` then yields the same name
+				// twice and only the probe maps to the implicit rowid.
+				continue
+			}
 			colNames = append(colNames, c)
 		}
+	} else {
+		colNames = append(colNames, r.Columns...)
 	}
 	colList := ""
 	if len(colNames) > 0 {
@@ -629,16 +671,67 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 		colList = "(" + strings.Join(q, ", ") + ")"
 	}
 	for _, row := range r.Rows {
+		if len(row) != len(colNames) {
+			return fmt.Errorf("backup: column mismatch for %s (%d values, %d columns)", e.Name, len(row), len(colNames))
+		}
 		var vals []string
 		for _, v := range row {
 			vals = append(vals, sqlLiteral(v))
 		}
-		ins := "INSERT INTO " + destTable + colList + " VALUES(" + strings.Join(vals, ", ") + ")"
+		ins := "INSERT INTO " + qualifiedTableRef(qual, e.Name) + colList + " VALUES(" + strings.Join(vals, ", ") + ")"
 		if ir := b.dst.Exec(ins); ir.Error != nil {
 			return ir.Error
 		}
 	}
 	return nil
+}
+
+// isVirtualTableEntry reports whether e is a CREATE VIRTUAL TABLE schema
+// entry (RootPage 0, no storage of its own).
+func isVirtualTableEntry(e *schema.Entry) bool {
+	return e.RootPage == 0 && strings.HasPrefix(strings.ToUpper(strings.TrimSpace(e.SQL)), "CREATE VIRTUAL TABLE")
+}
+
+// destTableExists reports whether the destination schema already holds a
+// table with the given name (vtab shadows materialize at xCreate time).
+func (b *Backup) destTableExists(name string) bool {
+	dstCtx := b.dst.engine.GetDB(b.dstSchema)
+	if dstCtx == nil {
+		return false
+	}
+	for _, de := range dstEntriesOfType(dstCtx.Schema, schema.TypeTable) {
+		if strings.EqualFold(de.Name, name) {
+			return true
+		}
+	}
+	return false
+}
+
+// ipkRowidAliasColumnName returns the name of the column that aliases the
+// rowid (INTEGER PRIMARY KEY, not DESC), or "" (build.c sqlite3AddPrimaryKey
+// rule — the same shape as execdml's isIPKRowidAliasCol).
+func ipkRowidAliasColumnName(defs []sql.ColumnDef) string {
+	for _, cd := range defs {
+		if cd.PrimaryKey && !cd.PKDesc && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+			return cd.Name
+		}
+	}
+	return ""
+}
+
+// rowidProbeName picks a rowid alias name NOT shadowed by a declared column
+// so "SELECT <probe>, *" always reads the implicit rowid.
+func rowidProbeName(defs []sql.ColumnDef) string {
+	declared := make(map[string]bool, len(defs))
+	for _, cd := range defs {
+		declared[strings.ToLower(cd.Name)] = true
+	}
+	for _, probe := range []string{"_rowid_", "oid", "rowid"} {
+		if !declared[probe] {
+			return probe
+		}
+	}
+	return "rowid"
 }
 
 func (b *Backup) sourceEmpty() bool {
