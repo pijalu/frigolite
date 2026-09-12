@@ -1690,3 +1690,14 @@ TestNative . ok (45s); quality_gate tcl2go: 11 hard file-size failures BEFORE
 and AFTER (no new violations; all pre-existing over-1000-line files).
 tools/check ledger tests (TestParseSkipMaps_Stable, TestLoadLedgerRoundTrip,
 TestLedgerJSONValid) fail at HEAD identically — unrelated.
+  - T25 addendum 2 (empirical decode, same 3.51.0): with the SAME fixture,
+    frame `CURRENT ROW AND 1 FOLLOWING` (no REAL in row2's frame) ERRORS
+    "integer overflow" at row2 (classic path ✓), while `CURRENT ROW AND 2
+    FOLLOWING` (REAL 0.5 enters row2's frame) returns [max, 0.5,
+    -9.22e18, -9.22e18] — the 0.5 and the carried wrapped accumulator imply
+    the end-anchored frame RESTARTS the aggregate with a partial re-step
+    whose exact ordering lives in src/window.c (vl.RowIndexType/END-anchored
+    "windowAggStep" sequence). The implementer must trace
+    src/window.c windowAggStep/windowAggFinal for END-anchored ROWS frames
+    plus src/func.c sumStep/sumInverse/sumFinalize (KBN fields) against
+    these probes before coding.
