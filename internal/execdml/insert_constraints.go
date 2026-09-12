@@ -361,13 +361,14 @@ type conflictRow struct {
 
 func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64) ([]conflictRow, bool) {
 	seen := make(map[string]bool)
+	keyer := newConflictKeyer(tableEntry, colDefs)
 	var conflicts []conflictRow
 	for {
-		foundID, foundVals, found := e.findNextReplaceConflict(pg, tableEntry, colDefs, colIndex, values, replaceRowID, seen)
+		foundID, foundVals, found := e.findNextReplaceConflict(pg, tableEntry, colDefs, colIndex, values, replaceRowID, seen, keyer)
 		if !found {
 			break
 		}
-		seen[conflictSeenKey(tableEntry, colDefs, foundID, foundVals)] = true
+		seen[keyer.key(foundID, foundVals)] = true
 		conflicts = append(conflicts, conflictRow{rowID: foundID, values: foundVals})
 	}
 	return conflicts, len(conflicts) > 0
@@ -378,7 +379,7 @@ func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schem
 // UNIQUE columns are checked PER-COLUMN: INSERT OR REPLACE INTO t(a UNIQUE,
 // b UNIQUE) VALUES('one','two') must delete BOTH the row with a='one' and the
 // row with b='two' (each unique column independently).
-func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64, seen map[string]bool) (int64, []interface{}, bool) {
+func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64, seen map[string]bool, keyer conflictKeyer) (int64, []interface{}, bool) {
 	// An explicit rowid (rowid/oid/_rowid_ in the INSERT list) conflicts
 	// with the existing row at that rowid (SQLite OP_Delete on the rowid).
 	if rid, rv, ok := e.replaceConflictAtRowID(pg, tableEntry, replaceRowID, seen); ok {
@@ -389,7 +390,7 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 	// deleted before a composite-PK conflict; hook2.test 2.1.5 expects the
 	// index-conflict row's DELETE preupdate before the PK-conflict row's).
 	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
-		if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok && !seen[conflictSeenKey(tableEntry, colDefs, rid, rv)] {
+		if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok && !seen[keyer.key(rid, rv)] {
 			return rid, rv, true
 		}
 	}
@@ -398,6 +399,16 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 	// pager (dmlTableBTree); the explicit-pager variant below reuses the
 	// same scan tree so an ATTACHed table (currentDMLCtx pager) is scanned.
 	uniqueCols := collectUniqueColsWithPK(colDefs, colIndex, values)
+	if !keyer.wr {
+		// The rowid probe above already answers the IPK-alias column for a
+		// rowid table: rec.Values[ipk] == values[ipk] ⟺ the row's rowid ==
+		// replaceRowID (the alias column IS the rowid, and replaceRowID was
+		// derived from the same INSERT value — pkRowIDOrZero /
+		// replaceRowIDAndDelete). Keeping the column would full-scan the
+		// table once per inserted row: quadratic INSERT..SELECT into
+		// rowid-keyed shadow tables (rtree %_rowid/%_node).
+		uniqueCols = dropIPKProbeCoveredCol(uniqueCols, colDefs, values, replaceRowID)
+	}
 	if len(uniqueCols) > 0 {
 		tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
 		cursor, err := tree.OpenCursor()
@@ -413,10 +424,14 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 					break
 				}
 				// WITHOUT ROWID cells are PK-first storage order; the scan
-				// compares declared positions, so remap first.
-				e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+				// compares declared positions, so remap first. Rowid tables
+				// skip the call: the remap is a no-op whose DDL sniff would
+				// otherwise re-parse the CREATE per cell.
+				if keyer.wr {
+					e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+				}
 				for _, idx := range uniqueCols {
-					if foundCols[idx] || seen[conflictSeenKey(tableEntry, colDefs, cell.RowID, rec.Values)] {
+					if foundCols[idx] || seen[keyer.key(cell.RowID, rec.Values)] {
 						continue
 					}
 					if idx >= len(rec.Values) || idx >= len(values) {
@@ -442,7 +457,7 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 	// REPLACE must delete it; per-column scans miss composite keys).
 	for _, group := range e.compositeUniqueGroups(tableEntry.Name, tableEntry.SQL, colDefs) {
 		if cell, rec, err := e.scanTableForMatch(tableEntry, func(rec *storage.Record, cell *storage.Cell) bool {
-			return !seen[conflictSeenKey(tableEntry, colDefs, cell.RowID, rec.Values)] && e.allMatch(colDefs, rec.Values, group, values)
+			return !seen[keyer.key(cell.RowID, rec.Values)] && e.allMatch(colDefs, rec.Values, group, values)
 		}); err == nil && cell != nil {
 			return cell.RowID, rec.Values, true
 		}
@@ -450,22 +465,46 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 	return 0, nil, false
 }
 
+// conflictKeyer precomputes a REPLACE pass's WITHOUT-ROWID classification
+// and PK index projection once, so the per-cell seen-key cost is O(pk)
+// instead of a DDL re-parse per scanned cell (quadratic for INSERT..SELECT
+// into rowid shadows — rtree's %_rowid/%_node tables).
+type conflictKeyer struct {
+	wr bool
+	pk []int
+}
+
+func newConflictKeyer(tableEntry *schema.Entry, colDefs []sql.ColumnDef) conflictKeyer {
+	wr := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	var pk []int
+	if wr {
+		pk = WRPKIndices(tableEntry.SQL, colDefs)
+	}
+	return conflictKeyer{wr: wr, pk: pk}
+}
+
+// key is conflictSeenKey with the DDL classification precomputed.
+func (k conflictKeyer) key(rowID int64, vals []interface{}) string {
+	if !k.wr {
+		return fmt.Sprintf("r%d", rowID)
+	}
+	var b strings.Builder
+	for _, ci := range k.pk {
+		var v interface{}
+		if ci < len(vals) {
+			v = vals[ci]
+		}
+		fmt.Fprintf(&b, "%v\x00", v)
+	}
+	return b.String()
+}
+
 // conflictSeenKey identifies a conflict row across the REPLACE find passes:
 // the rowid for ordinary tables; the declared PK values for WITHOUT ROWID
-// tables, whose cells all share the synthetic RowID 0.
+// tables, whose cells all share the synthetic RowID 0. Cold-path wrapper —
+// per-cell callers must hoist newConflictKeyer instead.
 func conflictSeenKey(tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowID int64, vals []interface{}) string {
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
-		var b strings.Builder
-		for _, ci := range WRPKIndices(tableEntry.SQL, colDefs) {
-			var v interface{}
-			if ci < len(vals) {
-				v = vals[ci]
-			}
-			fmt.Fprintf(&b, "%v\x00", v)
-		}
-		return b.String()
-	}
-	return fmt.Sprintf("r%d", rowID)
+	return newConflictKeyer(tableEntry, colDefs).key(rowID, vals)
 }
 
 // replaceConflictAtRowID returns the row at replaceRowID when it is a not-yet-
@@ -850,3 +889,38 @@ func (e *DMLExecutor) conflictTargetMatchesUnique(tableEntry *schema.Entry, oc *
 
 // singleColumnPKMatch reports whether a single-column target matches a
 // column-level PRIMARY KEY or UNIQUE constraint.
+
+// dropIPKProbeCoveredCol removes the INTEGER PRIMARY KEY (rowid-alias) column
+// from the scan list when the INSERT supplies it explicitly with exactly the
+// value the rowid probe already seeked (see findNextReplaceConflict).
+func dropIPKProbeCoveredCol(uniqueCols []int, colDefs []sql.ColumnDef, values []interface{}, replaceRowID int64) []int {
+	ipk := -1
+	for i, cd := range colDefs {
+		if isIPKRowidAliasCol(cd) {
+			ipk = i
+			break
+		}
+	}
+	if ipk < 0 || ipk >= len(values) || values[ipk] == nil || !contains(uniqueCols, ipk) {
+		return uniqueCols
+	}
+	var v int64
+	switch n := values[ipk].(type) {
+	case int64:
+		v = n
+	case int:
+		v = int64(n)
+	default:
+		return uniqueCols // non-integer spelling: keep the conservative scan
+	}
+	if v != replaceRowID {
+		return uniqueCols
+	}
+	out := make([]int, 0, len(uniqueCols))
+	for _, i := range uniqueCols {
+		if i != ipk {
+			out = append(out, i)
+		}
+	}
+	return out
+}
