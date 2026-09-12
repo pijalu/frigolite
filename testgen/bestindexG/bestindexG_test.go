@@ -9,4 +9,4 @@ import (
 )
 
 func Test_bestindexG(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)

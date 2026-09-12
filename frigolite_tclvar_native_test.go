@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/pijalu/frigolite"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // TestNativeTclvarDML is the native regression anchor for the tclvar virtual
@@ -14,6 +15,10 @@ import (
 // introspection loops (which the transpiler cannot express — see
 // lessons_learned "tclvar module" notes).
 func TestNativeTclvarDML(t *testing.T) {
+	// The module's variable registry is process-global; the JSON harness
+	// (vtabJ.json) populates it through plain INSERTs and runs before this
+	// test in the root suite, so start from a clean interpreter state.
+	vtab.TclVarReset()
 	db, err := frigolite.Open(":memory:")
 	if err != nil {
 		t.Fatal(err)

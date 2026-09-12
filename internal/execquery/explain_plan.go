@@ -13,10 +13,17 @@ import (
 
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // planSingleTable computes the plan node for a query over a single table.
 func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
+	// Created virtual tables plan through xBestIndex (wherecode.c:205-208
+	// "VIRTUAL TABLE INDEX" rendering) before any b-tree index logic; a vtab
+	// has no indexes of its own.
+	if plan := e.vtabExplainPlan(t, s); plan != "" {
+		return plan
+	}
 	tableName := t.display
 
 	// Get actual row count from table
@@ -64,6 +71,58 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
 	}
 
 	return fmt.Sprintf("SCAN %s", tableName)
+}
+
+// vtabExplainPlan renders the "SCAN <name> VIRTUAL TABLE INDEX <idxNum>:<idxStr>"
+// node for a created virtual table (wherecode.c:205-208), running the
+// prepare-time xBestIndex plan call (BestIndexPlan) on a representative
+// instance resolved by the engine. It returns "" when the FROM term is not a
+// created vtab (the caller falls through to the regular table planning).
+// EQP planning never fails the statement: a rejected plan
+// (vtab.ErrVtabConstraint), any BestIndexPlan error, or a re-entrant call
+// renders the plain "SCAN <name>" fallback instead. BestIndexPlan is a
+// prepare-time contract and must not execute SQL; the explainVtabBusy guard
+// degrades any nested EQP request to the fallback should a module misbehave.
+func (e *SelectEngine) vtabExplainPlan(t queryTable, s *sql.SelectStmt) string {
+	if e.explainVtabBusy {
+		return ""
+	}
+	vt, columns, ok := e.ctx.VtabPlanInstance(t.real)
+	if !ok {
+		return ""
+	}
+	opts := e.vtabScanOptions(s)
+	// Qualifiers in the statement use the FROM alias when one was written
+	// (SQLite rejects the table name once aliased), else the table name.
+	qualifier := t.real
+	if s.From.As != "" {
+		qualifier = s.From.As
+	}
+	var overloader vtab.FunctionOverloader
+	if fo, can := vt.(vtab.FunctionOverloader); can {
+		overloader = fo
+	}
+	ii, _, _ := BuildVtabIndexInfoWithInstance(&opts, qualifier, columns, overloader)
+	e.explainVtabBusy = true
+	err := vtabBestIndexPlan(ii, vt)
+	e.explainVtabBusy = false
+	if err != nil {
+		return fmt.Sprintf("SCAN %s", t.display)
+	}
+	if ii.IdxFlags&vtab.IndexScanHex != 0 {
+		return fmt.Sprintf("SCAN %s VIRTUAL TABLE INDEX 0x%x:%s", t.display, ii.IdxNum, ii.IdxStr)
+	}
+	return fmt.Sprintf("SCAN %s VIRTUAL TABLE INDEX %d:%s", t.display, ii.IdxNum, ii.IdxStr)
+}
+
+// vtabBestIndexPlan calls the module's BestIndexPlan when the instance
+// implements vtab.PlanBestIndexer; instances without it keep the legacy
+// full-materialization plan (default IdxNum/IdxStr).
+func vtabBestIndexPlan(ii *vtab.IndexInfo, vt vtab.VirtualTable) error {
+	if pbi, can := vt.(vtab.PlanBestIndexer); can {
+		return pbi.BestIndexPlan(ii)
+	}
+	return nil
 }
 
 // indexScanPlan renders a "SCAN <table> USING [COVERING] INDEX <idx>" node

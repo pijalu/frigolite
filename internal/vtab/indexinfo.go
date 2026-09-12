@@ -31,10 +31,12 @@ const (
 	// code: a module's xFindFunction returning a value >= this code makes
 	// f(vtab_column, expr) an auxiliary vtab constraint (whereexpr.c
 	// isAuxiliaryVtabOperator). LIMIT/OFFSET follow (whereexpr.c
-	// sqlite3WhereAddLimit).
+	// sqlite3WhereAddLimit); isLimitTerm's
+	// eMatchOp>=LIMIT && eMatchOp<=OFFSET range check requires exactly
+	// these values (sqlite.h.in:7813-7814).
 	IndexConstraintFunction IndexConstraintOp = 150
-	IndexConstraintLimit    IndexConstraintOp = 151
-	IndexConstraintOffset   IndexConstraintOp = 152
+	IndexConstraintLimit    IndexConstraintOp = 73
+	IndexConstraintOffset   IndexConstraintOp = 74
 )
 
 // SQLITE_INDEX_SCAN_* idxFlags bits (sqlite3.h).

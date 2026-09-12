@@ -329,6 +329,16 @@ func readVtabRowsWithRowids(vt vtab.VirtualTable, maxRows int64) ([][]interface{
 	if err != nil {
 		return nil, nil, err
 	}
+	return readCursorRowsWithRowids(cur, maxRows)
+}
+
+// readCursorRowsWithRowids drains an ALREADY-OPENED cursor (and closes it),
+// collecting every row plus native rowids when the cursor exposes them (vtab
+// xRowid parity). It is the cursor-side half of readVtabRowsWithRowids, split
+// so the xBestIndex/xFilter glue (vtab_bestindex.go) can run FilterPlan on a
+// cursor before its rows are read. maxRows caps the row count (LIMIT pushdown
+// parity); negative means unlimited.
+func readCursorRowsWithRowids(cur vtab.Cursor, maxRows int64) ([][]interface{}, []int64, error) {
 	defer cur.Close()
 	ridCur, hasRowids := cur.(vtab.RowidCursor)
 	var rows [][]interface{}

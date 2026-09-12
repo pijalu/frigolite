@@ -230,9 +230,24 @@ func (e *SelectEngine) withVtabResidualWhere(s *sql.SelectStmt, opts *VtabScanOp
 // vtabScanOptions builds the materialization options for a FROM-clause
 // virtual-table reference: WHERE pushdown plus the LIMIT/OFFSET row cap
 // (series.c consumes LIMIT via xBestIndex; an eager materializer must stop
-// generating once the cap is reached).
+// generating once the cap is reached). The planning fields (OrderBy..)
+// populate unconditionally so prepare-time xBestIndex planning
+// (BuildVtabIndexInfo — where.c allocateIndexInfo parity) sees the whole
+// statement.
 func (e *SelectEngine) vtabScanOptions(s *sql.SelectStmt) VtabScanOptions {
-	opts := VtabScanOptions{Where: s.Where, MaxRows: -1}
+	opts := VtabScanOptions{
+		Where:          s.Where,
+		MaxRows:        -1,
+		OrderBy:        s.OrderBy,
+		GroupBy:        s.GroupBy,
+		Having:         s.Having,
+		Distinct:       s.Distinct,
+		HasAggregate:   e.hasAggregate(s),
+		Limit:          s.Limit,
+		Offset:         s.Offset,
+		RefColumnNames: collectVtabRefCols(s),
+		RefAllColumns:  selectStarCoversVtab(s),
+	}
 	// The row cap is only safe for unbounded generator modules (series,
 	// wholenumber) whose ValueRangeNarrower bounds the scan; for every other
 	// virtual table the LIMIT must apply AFTER residual WHERE filtering and
@@ -259,6 +274,68 @@ func (e *SelectEngine) vtabScanOptions(s *sql.SelectStmt) VtabScanOptions {
 		opts.MaxRows += off
 	}
 	return opts
+}
+
+// collectVtabRefCols lists every column name the statement references for
+// its single FROM term: refs whose Table qualifier is empty or names the
+// FROM table/alias (case-insensitive). Names are collected from the select
+// list, WHERE, ORDER BY, GROUP BY, and HAVING so the planner can intersect
+// them with the vtab's declared columns to build colUsed; unresolved names
+// are included (they simply never intersect).
+func collectVtabRefCols(s *sql.SelectStmt) []string {
+	var names []string
+	seen := make(map[string]bool)
+	add := func(expr sql.Expr) {
+		if expr == nil {
+			return
+		}
+		WalkExprFull(expr, func(e2 sql.Expr) {
+			cr, ok := e2.(*sql.ColumnRef)
+			if !ok || !vtabRefQualifierMatches(cr, s) || cr.Name == "*" {
+				return
+			}
+			key := strings.ToLower(cr.Name)
+			if seen[key] {
+				return
+			}
+			seen[key] = true
+			names = append(names, cr.Name)
+		})
+	}
+	for _, col := range s.Columns {
+		add(col.Expr)
+	}
+	add(s.Where)
+	for _, ob := range s.OrderBy {
+		add(ob.Expr)
+	}
+	for _, gb := range s.GroupBy {
+		add(gb)
+	}
+	add(s.Having)
+	return names
+}
+
+// vtabRefQualifierMatches reports whether a column reference's Table
+// qualifier names the statement's FROM term (or is unqualified).
+func vtabRefQualifierMatches(cr *sql.ColumnRef, s *sql.SelectStmt) bool {
+	if cr.Table == "" {
+		return true
+	}
+	return strings.EqualFold(cr.Table, s.From.Name) || strings.EqualFold(cr.Table, s.From.As)
+}
+
+// selectStarCoversVtab reports whether the select list projects a wildcard
+// for the FROM term: a bare `*` or a `t.*` whose qualifier matches the FROM
+// table/alias (both parse to ColumnRef{Name:"*"} — parse rules 103/104).
+func selectStarCoversVtab(s *sql.SelectStmt) bool {
+	for _, col := range s.Columns {
+		cr, ok := col.Expr.(*sql.ColumnRef)
+		if ok && cr.Name == "*" && vtabRefQualifierMatches(cr, s) {
+			return true
+		}
+	}
+	return false
 }
 
 // constIntExpr evaluates expr as a constant integer; ok is false for nil or

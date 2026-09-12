@@ -1567,3 +1567,65 @@ after concurrency) — remains pinned natively by
 `frigolite_thread_concurrency_native_test.go`
 (TestNativeThreadConcurrentWritersSerialize, TestNativeThreadReaderDuringWrites;
 `go test -race` clean) as belt-and-braces coverage.
+
+## P7.PLANNER.bestindex — package classification (2026-09-12, T27)
+
+**Scope.** The 17 `bestindex*`/`autoanalyze1` packages left DEFERRED by
+`P7.PLANNER` (2026-09-02) plus the two never-skipped failures
+`bestindexA`/`bestindexD`. The bestindex families drive a fixture virtual
+table whose `xConnect`/`xBestIndex`/`xFilter` callbacks are TCL procs
+registered by `register_tcl_module db` (tclsqlite.c) and interrogated through
+`$hdl constraints`/`orderby`/`mask`/`distinct` subcommands; tcl2go emits no
+assertions for that infrastructure (generated tests carry
+`// register_tcl_module db (unsupported command, not transpiled)` and,
+for bestindexA/D, previously FAILED at `CREATE VIRTUAL TABLE t1 USING
+tcl(vtab_command)` with `declare_vtab: syntax error` because `vtab_command`
+is a TCL proc the transpiler cannot run, leaving the `tcl` module an empty
+schema).
+
+**Engine contract implemented (supplement, not replacement).** The contract
+those TCL callbacks observe is now implemented end to end:
+
+- `internal/vtab/indexinfo.go` — port of `sqlite3_index_info`
+  (sqlite3.h:7770-7815): `IndexConstraint`{Column,Op,Usable,IsIn,TermOffset},
+  `IndexOrderBy`, `ConstraintUsage`{ArgvIndex,Omit}, idxNum/idxStr/
+  orderByConsumed/estimatedCost (default SQLITE_BIG_DBL/2, where.c:4300)/
+  estimatedRows (default 25)/idxFlags/colUsed, op codes EQ=2…IS=72,
+  FUNCTION=150, **LIMIT=73/OFFSET=74** (sqlite.h.in:7813-7814 — an earlier
+  draft's 151/152 was wrong; isLimitTerm's range check pins the real values),
+  `ErrVtabConstraint`, and the optional interfaces `PlanBestIndexer`
+  (xBestIndex), `PlanFilterer` (xFilter on the Cursor), `FunctionOverloader`
+  (xFindFunction).
+- `internal/execquery/vtab_bestindex.go` + `vtab_bestindex_expr.go` —
+  planner side: allocateIndexInfo port (conjunct enumeration, IN→EQ+IsIn,
+  BETWEEN→Ge+Le, IS/IS NOT/ISNULL/ISNOTNULL, commuted range operands,
+  MATCH/LIKE/GLOB/REGEXP infix + function forms, xFindFunction overloads,
+  NE/ISNOT), ORDER BY eligibility (constant-skip, COLLATE-must-match-BINARY,
+  BIGNULL cancel), sqlite3_vtab_distinct hints (Distinct→2, GROUP BY→1),
+  sqlite3WhereAddLimit port (conditions 1/2/4/5; OFFSET before LIMIT),
+  colUsed fill (rowid/`*` → all bits).
+- `internal/exec/vtab_bestindex.go` — runtime xFilter glue:
+  `BestIndexPlan` invocation, SQLITE_CONSTRAINT → plan rejected → plain
+  materialization + full WHERE re-check (where.c:4310-4319), contiguous
+  argvIndex validation ("xBestIndex malfunction", where.c:4366), argv value
+  binding via `VtabConjunctValue`, omit-only residual drop (argv-bound
+  non-omit terms stay under core re-check — the omit/use/use2 semantics of
+  bestindex2), IN → one xFilter per element with concatenated streams.
+- EQP: `SCAN <name> VIRTUAL TABLE INDEX <idxNum>:<idxStr>` (hex variant for
+  SQLITE_INDEX_SCAN_HEX) rendered at explain time via
+  `SelectContext.VtabPlanInstance` (wherecode.c:205-208).
+- Public API: `DB.RegisterVtabModule` (sqlite3_create_module parity).
+
+**Native pin.** `frigolite_bestindex_test.go` (8 tests) ports the essential
+assertions: bestindex1 usable/idxNum/idxStr/EQP round-trip + IN-EQP;
+bestindex2 omit/use/use2 row semantics; bestindexA enumeration (plain-column
+only, `5<a` commutation, `(c+1)=?` excluded, IN flag); bestindexA/D
+LIMIT/OFFSET aux constraints; bestindex9 orderBy/distinct; bestindexD colUsed
+mask; plan rejection + malfunction error; IN stream order. Validated against
+the /usr/bin/sqlite3 3.51.0 EQP strings for the bestindex1 do_eqp_test
+shapes.
+
+| package | class | disposition |
+|---------|-------|-------------|
+| bestindex1-9, bestindexA-G | register_tcl_module fixture-module harness (untranspilable) | N-A — engine contract implemented + pinned natively (evidence `frigolite_bestindex_test.go`); generated stubs green post-regen |
+| autoanalyze1 | debug-build-only (`ifcapable {!debug \|\| !analyze \|\| !vtab}`, "PRAGMA stats" does not exist in release builds) | N-A — the release oracle (`/usr/bin/sqlite3`, DEBUG off) finish_tests the file immediately; no engine-visible contract |

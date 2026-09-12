@@ -354,6 +354,12 @@ func (e *Engine) materializeVtabModule(module vtab.Module, strArgs []string, val
 			}
 		}
 	}
+	// Modules implementing PlanBestIndexer drive the full xBestIndex/xFilter
+	// runtime contract (sqlite3_module parity, vtab_bestindex.go); legacy
+	// modules keep the hidden-combination path below (Open/Closed).
+	if pbi, ok := vt.(vtab.PlanBestIndexer); ok {
+		return e.readVtabWithBestIndexPlan(vt, pbi, opts)
+	}
 	combos := e.extractHiddenConstraintCombos(vt, opts.Where)
 	if len(combos) == 0 {
 		// No pushable constraints: validate the plain instance (series.c

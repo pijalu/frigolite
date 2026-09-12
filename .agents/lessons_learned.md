@@ -5776,3 +5776,43 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   oracle for harness questions (array incr scope, tclsqlite eval callbacks) —
   used to confirm update2-5.2's `A(NotExists)` counts OP_NotExists=1 before
   transpiling the accumulation.
+- **xbestindex LIMIT/OFFSET op codes are 73/74, not 151/152 (T27)**: an
+  LLM-authored port of sqlite3_index_info "remembered" LIMIT=151/OFFSET=152;
+  ground truth (sqlite.h.in:7813-7814) is LIMIT=73/OFFSET=74 (FUNCTION=150).
+  where.c isLimitTerm's range check `eMatchOp>=LIMIT && eMatchOp<=OFFSET`
+  only works with the real values. Always grep sqlite.h.in for
+  SQLITE_INDEX_CONSTRAINT_* instead of trusting memory.
+- **vtab xBestIndex omit semantics (T27)**: a constraint with argvIndex>0 is
+  passed to xFilter as argv AND is still re-checked by the core unless its
+  aConstraintUsage[].omit is set — residual-WHERE computation must drop ONLY
+  omit-marked conjuncts (generate_series' SQLITE_SERIES_CONSTRAINT_VERIFY
+  and bestindex2's omit/use/use2 modes pin this). IN constraints map to EQ
+  (IsIn flag) and run one xFilter per list element with concatenated
+  streams; a gap in the 1..N argvIndex sequence is a
+  "<vtab>.xBestIndex malfunction" statement error (where.c:4366); xBestIndex
+  SQLITE_CONSTRAINT rejects the plan silently — the statement proceeds with
+  plain materialization + full WHERE re-check.
+- **Parallel-agent T27 workflow (validated, 2 agents)**: pin the shared
+  contract FIRST by writing the foundational types file yourself
+  (internal/vtab/indexinfo.go) and committing it, then dispatch agents with
+  disjoint file territories (execquery planner side vs exec runtime side)
+  and an EXACT pinned signature block in both prompts; forbid test runs in
+  agents (concurrent testgen/root runs contaminate shared fixture state —
+  build+vet only) and integrate + run all gates in the main agent. Agent
+  B caught a real spec error (LIMIT/OFFSET codes) against sqlite.h.in —
+  cross-checking agents against ground truth works.
+- **Pre-existing root-suite defects fixed in passing (T27 gating)**:
+  (a) TestNativeTclvarDML failed in the full root suite because the JSON
+  harness's vtabJ.json INSERTs leak into the process-global tclvar
+  registry — the native test now calls vtab.TclVarReset() first; A/B
+  confirmed pre-existing via a FRESH worktree at the same commit (never
+  attribute a full-suite failure to your change without the fresh-worktree
+  A/B). (b) The testdata/walconformance binary fixtures are gitignored and
+  were missing — regenerate with `go run ./tools/orafixture/
+  testdata/walconformance/` (5 fixtures, oracle CLI required).
+- **tools/status ledger tests fail at HEAD (pre-existing)**:
+  TestParseSkipMaps/_Stable, TestLoadLedgerRoundTrip, TestLedgerJSONValid
+  all fail identically at 1eed29276 (floor 285 vs 245 entries; stale
+  timeout-suspects) — FULL-SUITE-DRIFT instrumentation backlog, and
+  `go run ./tools/status` OVERWRITES the tracked last_run.json (9680-line
+  diff) — `git checkout -- tools/status/last_run.json` after ad-hoc runs.

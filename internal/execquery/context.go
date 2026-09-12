@@ -18,6 +18,9 @@ import (
 // and a row cap derived from the query's LIMIT/OFFSET (series.c LIMIT
 // pushdown parity — an omitted STOP defaults to 4294967295, so generation
 // must stop once the LIMIT is satisfied).
+//
+// The planning fields (OrderBy..RefAllColumns) feed prepare-time xBestIndex
+// planning via BuildVtabIndexInfo (where.c allocateIndexInfo parity).
 type VtabScanOptions struct {
 	Where   sql.Expr
 	MaxRows int64 // -1 = unlimited
@@ -25,6 +28,37 @@ type VtabScanOptions struct {
 	// WHERE clause that remains after constraints the virtual table consumed
 	// are omitted (series.c argvConsumed/omit parity).
 	Residual *sql.Expr
+
+	// OrderBy is the query's ORDER BY terms; GroupBy the GROUP BY
+	// expressions; Having the HAVING expression; Distinct the DISTINCT flag;
+	// HasAggregate is true when any aggregate function appears in the select
+	// list or HAVING (where.c allocateIndexInfo reads all of these to build
+	// sqlite3_index_info's aOrderBy + the sqlite3_vtab_distinct hint).
+	OrderBy      []sql.OrderByTerm
+	GroupBy      []sql.Expr
+	Having       sql.Expr
+	Distinct     bool
+	HasAggregate bool
+	// Limit/Offset are the LIMIT/OFFSET expressions (nil = absent), offered
+	// to xBestIndex as auxiliary constraints by sqlite3WhereAddLimit
+	// (whereexpr.c:1652).
+	Limit  sql.Expr
+	Offset sql.Expr
+	// ColUsed is a direct bitmask of vtab columns referenced by the
+	// statement (bit i = column i of the vtab's declared order, bit 62 =
+	// column >=62 or rowid; sqlite3 colUsed semantics). Zero means
+	// "not computed" — BuildVtabIndexInfo then derives the mask from
+	// RefColumnNames/RefAllColumns.
+	ColUsed uint64
+	// RefColumnNames lists every column name referenced by the statement for
+	// this vtab (unqualified names collected from select list/WHERE/ORDER BY/
+	// GROUP BY/HAVING; unresolved names included — the planner intersects
+	// them with the declared columns to build colUsed).
+	RefColumnNames []string
+	// RefAllColumns is true when the statement projects a wildcard for the
+	// vtab (SELECT * / SELECT t.*), meaning every declared column is used
+	// (sqlite3 colUsed: * expansion marks all bits).
+	RefAllColumns bool
 }
 
 // SelectContext is the capability interface SELECT execution needs from the
@@ -104,6 +138,11 @@ type SelectContext interface {
 	// rows for SELECT (RootPage 0 + stored SQL naming a registered module,
 	// e.g. csv). ok is false when the name is not such a table.
 	MaterializeCreatedVTab(name string, opts VtabScanOptions) (colDefs []sql.ColumnDef, rows [][]interface{}, rowids []int64, err error, ok bool)
+	// VtabPlanInstance resolves a created virtual table (CREATE VIRTUAL TABLE
+	// schema entry, RootPage 0) to a representative instance plus its declared
+	// column names, for prepare-time xBestIndex calls (EQP parity,
+	// wherecode.c). ok is false when name is not a created vtab.
+	VtabPlanInstance(name string) (vt vtab.VirtualTable, columns []string, ok bool)
 	// WithoutRowidVTab reports whether the named created virtual table's
 	// stored schema declares WITHOUT ROWID (rowid references are errors).
 	WithoutRowidVTab(name string) bool
@@ -218,6 +257,11 @@ type SelectEngine struct {
 	nestDepth int
 	// usingAutoIndex tracks whether an ephemeral index is being used (for EQP).
 	usingAutoIndex bool
+	// explainVtabBusy guards vtabExplainPlan against re-entry while a
+	// module's BestIndexPlan runs (xBestIndex is a prepare-time contract and
+	// must not execute SQL); a nested EQP request during the plan call
+	// degrades to the plain SCAN fallback instead of recursing.
+	explainVtabBusy bool
 	// subqSeq is a monotonic counter for synthetic derived-table names (_subqN).
 	subqSeq int
 }

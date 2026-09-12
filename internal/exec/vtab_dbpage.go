@@ -247,6 +247,50 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 // debugClosure toggles verbose tracing of created-vtab materialization.
 var debugClosure = os.Getenv("CL_DBG") != ""
 
+// VtabPlanInstance resolves a created virtual table (CREATE VIRTUAL TABLE
+// schema entry, RootPage 0) to a representative instance plus its declared
+// column names, for prepare-time xBestIndex calls (EQP parity, wherecode.c).
+// ok is false when name is not such a vtab, when the instance lacks declared
+// columns, or when planning cannot proceed without the runtime materializer's
+// diagnostics/errors: a missing module ("no such module" is a runtime error,
+// not a plan) falls back to a plain SCAN here, as do unionvtab/swarmvtab —
+// instantiating one outside materialization would re-open swarm source 0 (see
+// WithoutRowidVTab for the side-effect rationale).
+func (e *Engine) VtabPlanInstance(name string) (vtab.VirtualTable, []string, bool) {
+	entry, ctx, err := e.findTable(name)
+	if err != nil || entry == nil || entry.RootPage != 0 {
+		return nil, nil, false
+	}
+	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
+		return nil, nil, false // FTS keeps its dedicated scan path
+	}
+	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
+	if !isVtab {
+		return nil, nil, false
+	}
+	module, found := e.vtabs.Find(modName)
+	if !found || isUnionVtabModule(module) {
+		return nil, nil, false
+	}
+	vt, cerr := createVtabModule(module, modArgs, nil)
+	if cerr != nil {
+		return nil, nil, false
+	}
+	// Schema-bound modules (rtree) name shadow tables after the vtab; the
+	// binding is idempotent (already done at CREATE time) and a failure only
+	// downgrades planning — materialization re-surfaces the real error.
+	if sb, ok := vt.(vtab.SchemaBoundVTab); ok {
+		if berr := sb.BindSchema(ctx.Name, entry.Name); berr != nil {
+			return nil, nil, false
+		}
+	}
+	ci, ok := vt.(vtab.ColumnInfo)
+	if !ok {
+		return nil, nil, false
+	}
+	return vt, ci.Columns(), true
+}
+
 // vtabModuleFromSQL extracts the module name and arguments from a stored
 // "CREATE VIRTUAL TABLE ... USING module(args)" statement.
 func vtabModuleFromSQL(sqlStr string) (module string, args []string, ok bool) {

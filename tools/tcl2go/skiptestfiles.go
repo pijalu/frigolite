@@ -348,27 +348,50 @@ var skipTestFiles = map[string]string{
 	"ioerr5": "VFS I/O error simulation N-A",
 	"ioerr6": "VFS I/O error simulation N-A",
 
-	"autoanalyze1":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	// P7.PLANNER.bestindex (T27): autoanalyze1 is debug-build-only — the
+	// whole file sits behind `ifcapable {!debug || !analyze || !vtab}` and
+	// drives the debug-only "PRAGMA stats" output; the release oracle
+	// (/usr/bin/sqlite3, DEBUG off) finish_tests immediately, so there is no
+	// engine-visible contract to port. N-A (evidence portplan/NA_EVIDENCE.md
+	// §P7.PLANNER.bestindex).
+	"autoanalyze1": "N-A debug-build-only (PRAGMA stats; oracle skips; evidence frigolite_bestindex_test.go context)",
 	"backup_ioerr":  "VFS/fault-injection harness N-A",
 	"backup_malloc": "VFS/fault-injection harness N-A",
 
-	// backup / backup2 / backup4 / backup5 retain whole-file skips: generated
-	// suites exercise restore/source-busy, page-size reflection, and deep lock
-	// semantics beyond the current pure-Go Backup API coverage.
-	"bestindex1": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex3": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex4": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex5": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex6": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex7": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex8": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindex9": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindexB": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindexC": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindexE": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindexF": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"bestindexG": "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	// P7.PLANNER.bestindex (T27): the bestindex* families drive a fixture
+	// vtab module whose xConnect/xBestIndex/xFilter callbacks are TCL procs
+	// registered by `register_tcl_module db` (tclsqlite.c) and reported
+	// through `$hdl constraints`/`orderby`/`mask`/`distinct` subcommands —
+	// the transpiler emits no assertions for them (the generated tests
+	// contain `// register_tcl_module db (unsupported command, not
+	// transpiled)` comments and, for bestindexA/D, fail on the `tcl` module's
+	// empty `vtab_command` schema). The ENGINE side of the contract they
+	// exercise is implemented and pinned natively: vtab.IndexInfo
+	// (internal/vtab/indexinfo.go), the planner side (allocateIndexInfo /
+	// isAuxiliaryVtabOperator / sqlite3WhereAddLimit ports in
+	// internal/execquery/vtab_bestindex.go), the xFilter runtime glue
+	// (internal/exec/vtab_bestindex.go: argv binding, contiguous-argvIndex
+	// "xBestIndex malfunction" validation, omit-residual, IN stream
+	// expansion) and the EQP "SCAN <name> VIRTUAL TABLE INDEX <n>:<s>"
+	// rendering. Essential assertions ported from bestindex{1,2,4,5,9,A,D}
+	// live in frigolite_bestindex_test.go (8 native tests). N-A
+	// (untranspilable harness; engine contract implemented + pinned).
+	"bestindex1": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex2": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex3": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex4": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex5": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex6": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex7": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex8": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindex9": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindexA": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindexB": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindexC": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindexD": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindexE": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindexF": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+	"bestindexG": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
 
 	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
 	// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.
