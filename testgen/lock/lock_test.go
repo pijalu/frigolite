@@ -810,9 +810,7 @@ func Test_lock(t *testing.T) {
 		TAIL = tclSqlTail("SELECT * FROM sqlite_master")
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 		_res = db.Exec(" DELETE FROM t4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t4 ")
@@ -861,9 +859,7 @@ func Test_lock(t *testing.T) {
 		TAIL = tclSqlTail("SELECT * FROM sqlite_master")
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // do_test "lock-7.2"
 		r = db.Query(" PRAGMA lock_status ")

@@ -461,9 +461,7 @@ func Test_trace3(t *testing.T) {
 		// sqlite3_expanded_sql $STMT (unsupported command, not transpiled)
 	}
 	{ // "12.1.2" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("SELECT 'A' || 'A' || 'A' || 'B' || 'C' || 'D' || 'A' || 'A' || 'A'")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT 'A' || 'A' || 'A' || 'B' || 'C' || 'D' || 'A' || 'A' || 'A'")
 		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
 	{ // "12.1.3" (prepare-step internals; SQL side effects only)
@@ -515,6 +513,7 @@ func Test_trace3(t *testing.T) {
 		var _dbevalRb12 bool
 		var _dbevalErr13 error
 		var _dbevalInt14 bool
+		if _dbevalRows11.Error != nil { _dbevalErr13 = _dbevalRows11.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {

@@ -213,8 +213,8 @@ func Test_zipfile2(t *testing.T) {
 		_ = blob // suppress unused warning
 		{ // "3.3." + i
 			_res = db.Exec("\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
-			if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*", _res.Error.Error()); return m }() {
-				t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*", resErrString(_res), "\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
+			if matched, _ := regexp.MatchString("1 .*", tclCatchsqlString(_res)); !matched {
+				t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 .*", "\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 			}
 		}
 		// incr i 1

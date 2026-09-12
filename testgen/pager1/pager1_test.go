@@ -2561,6 +2561,7 @@ func Test_pager1(t *testing.T) {
 								var _dbevalRb15 bool
 								var _dbevalErr16 error
 								var _dbevalInt17 bool
+								if _dbevalRows14.Error != nil { _dbevalErr16 = _dbevalRows14.Error }
 								db.BeginActiveStatement()
 								for _ri := 0; _ri < len(_dbevalRows14.Rows) && _dbevalErr16 == nil; _ri++ {
 									for _ci := 0; _ci < len(_dbevalRows14.Columns); _ci++ {
@@ -3089,9 +3090,7 @@ func Test_pager1(t *testing.T) {
 											// prepared stmt: SELECT * FROM t1 ORDER BY rowid (bind/step emulation)
 											tclPrepareStep(db, "SELECT * FROM t1 ORDER BY rowid", "stmt")
 											_ = stmt // prepared statement handle
-											_res = db.Exec("SELECT * FROM t1 ORDER BY rowid")
-											if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-											_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+											tclStepEmulated(db, "stmt", "SELECT * FROM t1 ORDER BY rowid")
 											// sqlite3_column_text $::stmt 0 (unsupported command, not transpiled)
 										}
 										{ // "39.2" (prepare-step internals; SQL side effects only)
@@ -3099,9 +3098,7 @@ func Test_pager1(t *testing.T) {
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x) ")
 											}
-											_res = db.Exec("SELECT * FROM t1 ORDER BY rowid")
-											if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-											_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+											tclStepEmulated(db, "stmt", "SELECT * FROM t1 ORDER BY rowid")
 											// sqlite3_column_text $::stmt 0 (unsupported command, not transpiled)
 										}
 										{ // "39.3" (prepare-step internals; SQL side effects only)

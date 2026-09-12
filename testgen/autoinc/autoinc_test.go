@@ -519,9 +519,7 @@ func Test_autoinc(t *testing.T) {
 		TAIL = tclSqlTail("CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )")
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )")
 		tclFinalizePrepared("STMT")
 		// sqlite3_finalize $STMT
 		r = db.Query("\n    INSERT INTO t1 VALUES(NULL);\n    SELECT * FROM t1;\n  ")

@@ -185,9 +185,7 @@ func Test_badutf2(t *testing.T) {
 					tclResetPrepared("S")
 					// sqlite3_reset $S
 					// sqlite3_bind_text $S 1 $xstr → '$xstr'
-					_res = db.Exec("SELECT '$xstr'")
-					if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-					_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+					tclStepEmulated(db, "S", "SELECT '" + xstr + "'")
 					// utf8_to_ustr2 [ sqlite3_column_text $S 0 ] (unsupported command, not transpiled)
 				}
 			}

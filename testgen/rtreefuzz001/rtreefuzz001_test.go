@@ -2443,8 +2443,8 @@ func Test_rtreefuzz001(t *testing.T) {
 	}
 	{ // do_test "rtreefuzz001-210"
 		_res = db.Exec("\n    SELECT rtreecheck('t1');\n  ")
-		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*corrupt.*", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*corrupt.*", resErrString(_res), "\n    SELECT rtreecheck('t1');\n  ")
+		if matched, _ := regexp.MatchString("1 .*corrupt.*", tclCatchsqlString(_res)); !matched {
+			t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 .*corrupt.*", "\n    SELECT rtreecheck('t1');\n  ")
 		}
 	}
 	{ // do_test "rtreefuzz001-300"
@@ -3283,8 +3283,8 @@ func Test_rtreefuzz001(t *testing.T) {
 	}
 	{ // do_test "rtreefuzz001-310"
 		_res = db.Exec("\n    SELECT rtreecheck('t1');\n  ")
-		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*corrupt.*", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*corrupt.*", resErrString(_res), "\n    SELECT rtreecheck('t1');\n  ")
+		if matched, _ := regexp.MatchString("1 .*corrupt.*", tclCatchsqlString(_res)); !matched {
+			t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 .*corrupt.*", "\n    SELECT rtreecheck('t1');\n  ")
 		}
 	}
 	{ // do_test "rtreefuzz001-400"

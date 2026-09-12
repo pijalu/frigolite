@@ -354,7 +354,7 @@ var skipTestFiles = map[string]string{
 	// (/usr/bin/sqlite3, DEBUG off) finish_tests immediately, so there is no
 	// engine-visible contract to port. N-A (evidence portplan/NA_EVIDENCE.md
 	// §P7.PLANNER.bestindex).
-	"autoanalyze1": "N-A debug-build-only (PRAGMA stats; oracle skips; evidence frigolite_bestindex_test.go context)",
+	"autoanalyze1":  "N-A debug-build-only (PRAGMA stats; oracle skips; evidence frigolite_bestindex_test.go context)",
 	"backup_ioerr":  "VFS/fault-injection harness N-A",
 	"backup_malloc": "VFS/fault-injection harness N-A",
 
@@ -392,6 +392,13 @@ var skipTestFiles = map[string]string{
 	"bestindexE": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
 	"bestindexF": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
 	"bestindexG": "N-A register_tcl_module harness (evidence frigolite_bestindex_test.go)",
+
+	// P6.RTREE (T29, 2026-09-12): partial supersessions — the packages are
+	// green EXCEPT assertions whose TCL bodies depend on untranspilable
+	// harness procs; the engine-visible contracts are pinned natively.
+	"rtreeJ": "N-A db-eval callback procs (restore_t1) N-A (evidence frigolite_rtreeA_J_8_native_test.go: shadow backup/restore consistency; rowid DML contract green in-package)",
+	"rtreeA": "N-A set_tree_depth binary blob surgery N-A (evidence frigolite_rtreeA_J_8_native_test.go + TestNativeRtreeCheckDepthOutOfRange/EntryCountAudit/ParentCountAudit: depth guard + %_rowid/%_parent count audits)",
+	"rtree8": "N-A SQLITE_LOCKED_VTAB cursor-write lock unobservable through the materializing harness (evidence frigolite_rtreeA_J_8_native_test.go TestNativeRtreeInterleavedReadWrite: the 1.1.2b sorter contrast contract; all other rtree8 assertions green)",
 
 	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
 	// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.

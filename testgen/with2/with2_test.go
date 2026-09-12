@@ -439,20 +439,20 @@ func Test_with2(t *testing.T) {
 	}
 	{ // "6.7"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
-		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("near .* syntax error", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", resErrString(_res), " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
+		if matched, _ := regexp.MatchString("1 {near .* syntax error}", tclCatchsqlString(_res)); !matched {
+			t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 {near .* syntax error}", " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
 		}
 	}
 	{ // "6.8"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
-		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("near .* syntax error", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", resErrString(_res), " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
+		if matched, _ := regexp.MatchString("1 {near .* syntax error}", tclCatchsqlString(_res)); !matched {
+			t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 {near .* syntax error}", " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
 		}
 	}
 	{ // "6.9"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
-		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("near .* syntax error", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "near .* syntax error", resErrString(_res), " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
+		if matched, _ := regexp.MatchString("1 {near .* syntax error}", tclCatchsqlString(_res)); !matched {
+			t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 {near .* syntax error}", " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
 		}
 	}
 	{ // "6.10"

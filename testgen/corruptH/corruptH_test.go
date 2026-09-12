@@ -96,6 +96,7 @@ func Test_corruptH(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		var _dbevalInt3 bool
+		if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
@@ -129,6 +130,7 @@ func Test_corruptH(t *testing.T) {
 			var _dbevalRb5 bool
 			var _dbevalErr6 error
 			var _dbevalInt7 bool
+			if _dbevalRows4.Error != nil { _dbevalErr6 = _dbevalRows4.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {
@@ -169,6 +171,7 @@ func Test_corruptH(t *testing.T) {
 		var _dbevalRb6 bool
 		var _dbevalErr7 error
 		var _dbevalInt8 bool
+		if _dbevalRows5.Error != nil { _dbevalErr7 = _dbevalRows5.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows5.Rows) && _dbevalErr7 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows5.Columns); _ci++ {
@@ -211,6 +214,7 @@ func Test_corruptH(t *testing.T) {
 			var _dbevalRb10 bool
 			var _dbevalErr11 error
 			var _dbevalInt12 bool
+			if _dbevalRows9.Error != nil { _dbevalErr11 = _dbevalRows9.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows9.Columns); _ci++ {
@@ -257,6 +261,7 @@ func Test_corruptH(t *testing.T) {
 		var _dbevalRb11 bool
 		var _dbevalErr12 error
 		var _dbevalInt13 bool
+		if _dbevalRows10.Error != nil { _dbevalErr12 = _dbevalRows10.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows10.Rows) && _dbevalErr12 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows10.Columns); _ci++ {
@@ -289,6 +294,7 @@ func Test_corruptH(t *testing.T) {
 			var _dbevalRb15 bool
 			var _dbevalErr16 error
 			var _dbevalInt17 bool
+			if _dbevalRows14.Error != nil { _dbevalErr16 = _dbevalRows14.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows14.Rows) && _dbevalErr16 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows14.Columns); _ci++ {

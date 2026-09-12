@@ -194,6 +194,7 @@ func Test_misc2(t *testing.T) {
 			var _dbevalRb1 bool
 			var _dbevalErr2 error
 			var _dbevalInt3 bool
+			if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
@@ -237,6 +238,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb5 bool
 		var _dbevalErr6 error
 		var _dbevalInt7 bool
+		if _dbevalRows4.Error != nil { _dbevalErr6 = _dbevalRows4.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {
@@ -271,6 +273,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb9 bool
 		var _dbevalErr10 error
 		var _dbevalInt11 bool
+		if _dbevalRows8.Error != nil { _dbevalErr10 = _dbevalRows8.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows8.Rows) && _dbevalErr10 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows8.Columns); _ci++ {
@@ -305,6 +308,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb13 bool
 		var _dbevalErr14 error
 		var _dbevalInt15 bool
+		if _dbevalRows12.Error != nil { _dbevalErr14 = _dbevalRows12.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
@@ -337,6 +341,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb17 bool
 		var _dbevalErr18 error
 		var _dbevalInt19 bool
+		if _dbevalRows16.Error != nil { _dbevalErr18 = _dbevalRows16.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows16.Rows) && _dbevalErr18 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows16.Columns); _ci++ {
@@ -371,6 +376,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb21 bool
 		var _dbevalErr22 error
 		var _dbevalInt23 bool
+		if _dbevalRows20.Error != nil { _dbevalErr22 = _dbevalRows20.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows20.Rows) && _dbevalErr22 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows20.Columns); _ci++ {
@@ -414,6 +420,7 @@ func Test_misc2(t *testing.T) {
 			var _dbevalRb25 bool
 			var _dbevalErr26 error
 			var _dbevalInt27 bool
+			if _dbevalRows24.Error != nil { _dbevalErr26 = _dbevalRows24.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows24.Rows) && _dbevalErr26 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows24.Columns); _ci++ {
@@ -457,6 +464,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb29 bool
 		var _dbevalErr30 error
 		var _dbevalInt31 bool
+		if _dbevalRows28.Error != nil { _dbevalErr30 = _dbevalRows28.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows28.Rows) && _dbevalErr30 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows28.Columns); _ci++ {
@@ -491,6 +499,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb33 bool
 		var _dbevalErr34 error
 		var _dbevalInt35 bool
+		if _dbevalRows32.Error != nil { _dbevalErr34 = _dbevalRows32.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows32.Rows) && _dbevalErr34 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows32.Columns); _ci++ {
@@ -525,6 +534,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb37 bool
 		var _dbevalErr38 error
 		var _dbevalInt39 bool
+		if _dbevalRows36.Error != nil { _dbevalErr38 = _dbevalRows36.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows36.Rows) && _dbevalErr38 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows36.Columns); _ci++ {
@@ -557,6 +567,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb41 bool
 		var _dbevalErr42 error
 		var _dbevalInt43 bool
+		if _dbevalRows40.Error != nil { _dbevalErr42 = _dbevalRows40.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows40.Rows) && _dbevalErr42 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows40.Columns); _ci++ {
@@ -591,6 +602,7 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb45 bool
 		var _dbevalErr46 error
 		var _dbevalInt47 bool
+		if _dbevalRows44.Error != nil { _dbevalErr46 = _dbevalRows44.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows44.Rows) && _dbevalErr46 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows44.Columns); _ci++ {

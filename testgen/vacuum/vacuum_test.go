@@ -264,9 +264,7 @@ func Test_vacuum(t *testing.T) {
 		TAIL = tclSqlTail("VACUUM")
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
-		_res = db.Exec("VACUUM")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "VM", "VACUUM")
 	}
 	{ // "vacuum-4.2" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("VM")

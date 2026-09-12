@@ -426,9 +426,7 @@ func Test_zeroblob(t *testing.T) {
 		sqlite3_max_blobsize = "0" // linked sqlite3_max_blobsize
 		storage.SetMaxBlobsize(0)
 		// sqlite3_bind_zeroblob $::STMT 1 450000 (unsupported command, not transpiled)
-		_res = db.Exec("SELECT length(?)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT length(?)")
 	}
 	{ // do_test "zeroblob-7.2"
 		// sqlite3_column_int $::STMT 0 (unsupported command, not transpiled)
@@ -615,9 +613,7 @@ func Test_zeroblob(t *testing.T) {
 		_r = _list0
 	}
 	{ // "12.5" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("SELECT length(?)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "stmt", "SELECT length(?)")
 		ret = tclColumnTextOf("stmt", 0)
 		_ = ret // suppress unused warning
 		tclResetPrepared("stmt")

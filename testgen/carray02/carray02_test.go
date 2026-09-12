@@ -221,9 +221,7 @@ func Test_carray02(t *testing.T) {
 					_ = T // suppress unused warning
 					_ = STMT // prepared statement handle
 					// sqlite3_carray_bind $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
-					_res = db.Exec("SELECT * FROM carray(?, 5, 'apples')")
-					if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-					_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+					tclStepEmulated(db, "STMT", "SELECT * FROM carray(?, 5, 'apples')")
 					_list5 := tclList([]string{tclFinalizePreparedCode(db, "STMT"), db.LastErr()})
 					_ = _list5
 					_r = _list5

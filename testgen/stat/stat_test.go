@@ -425,8 +425,8 @@ func Test_stat(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
-		if _res.Error == nil || !func() bool { m, _ := regexp.MatchString("(no such table: nosuchdb.dbstat|table dbstat may not be dropped)", _res.Error.Error()); return m }() {
-			t.Errorf("expected error matching %q, got: %v\n  sql: %s", "(no such table: nosuchdb.dbstat|table dbstat may not be dropped)", resErrString(_res), "\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
+		if matched, _ := regexp.MatchString("1 {(no such table: nosuchdb.dbstat|table dbstat may not be dropped)}", tclCatchsqlString(_res)); !matched {
+			t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 {(no such table: nosuchdb.dbstat|table dbstat may not be dropped)}", "\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
 		}
 	}
 }

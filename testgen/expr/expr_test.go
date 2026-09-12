@@ -995,9 +995,7 @@ func Test_expr(t *testing.T) {
 				_ = TAIL // suppress unused warning
 				_ = STMT // prepared statement handle
 				// sqlite3_bind_double $STMT 1 $val → $val
-				_res = db.Exec("INSERT INTO t1 VALUES($val)")
-				if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-				_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+				tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(" + val + ")")
 				tclResetPrepared("STMT")
 				// sqlite3_reset $STMT
 				tclFinalizePrepared("STMT")

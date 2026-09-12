@@ -254,6 +254,7 @@ func Test_incrvacuum(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		var _dbevalInt3 bool
+		if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
@@ -427,6 +428,7 @@ func Test_incrvacuum(t *testing.T) {
 			var _dbevalRb7 bool
 			var _dbevalErr8 error
 			var _dbevalInt9 bool
+			if _dbevalRows6.Error != nil { _dbevalErr8 = _dbevalRows6.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
@@ -488,6 +490,7 @@ func Test_incrvacuum(t *testing.T) {
 			var _dbevalRb12 bool
 			var _dbevalErr13 error
 			var _dbevalInt14 bool
+			if _dbevalRows11.Error != nil { _dbevalErr13 = _dbevalRows11.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
@@ -850,6 +853,7 @@ func Test_incrvacuum(t *testing.T) {
 		var _dbevalRb18 bool
 		var _dbevalErr19 error
 		var _dbevalInt20 bool
+		if _dbevalRows17.Error != nil { _dbevalErr19 = _dbevalRows17.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows17.Rows) && _dbevalErr19 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows17.Columns); _ci++ {

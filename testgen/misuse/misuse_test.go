@@ -144,6 +144,7 @@ func Test_misuse(t *testing.T) {
 			var _dbevalRb1 bool
 			var _dbevalErr2 error
 			var _dbevalInt3 bool
+			if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
@@ -206,6 +207,7 @@ func Test_misuse(t *testing.T) {
 			var _dbevalRb5 bool
 			var _dbevalErr6 error
 			var _dbevalInt7 bool
+			if _dbevalRows4.Error != nil { _dbevalErr6 = _dbevalRows4.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {
@@ -268,6 +270,7 @@ func Test_misuse(t *testing.T) {
 			var _dbevalRb9 bool
 			var _dbevalErr10 error
 			var _dbevalInt11 bool
+			if _dbevalRows8.Error != nil { _dbevalErr10 = _dbevalRows8.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows8.Rows) && _dbevalErr10 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows8.Columns); _ci++ {

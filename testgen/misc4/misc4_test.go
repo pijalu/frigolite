@@ -97,9 +97,7 @@ func Test_misc4(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // "misc4-2.2" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("CREATE TABLE t3(x);")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "stmt", "CREATE TABLE t3(x);")
 	}
 	{ // "misc4-2.3" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("stmt")

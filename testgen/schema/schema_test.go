@@ -82,9 +82,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-1.2" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -100,9 +98,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n  ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-1.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -118,9 +114,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW v1 AS SELECT * FROM sqlite_master;\n    ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-2.2" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -136,9 +130,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW v1;\n    ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-2.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -158,9 +150,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-3.2" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -176,9 +166,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER abc_trig;\n    ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-3.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -196,9 +184,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX abc_index ON abc(a);\n  ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-4.2" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -214,9 +200,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX abc_index;\n  ")
 		}
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-4.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -235,9 +219,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n    ")
 		}
-		_res = db.Exec(sql)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", sql)
 	}
 	{ // do_test "schema-5.2"
 		tclResetPrepared("STMT")
@@ -248,9 +230,7 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DETACH aux;\n    ")
 		}
-		_res = db.Exec(sql)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", sql)
 	}
 	{ // "schema-5.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -266,9 +246,7 @@ func Test_schema(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
 		db.RegisterFunction("hello_function", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-		_res = db.Exec(sql)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", sql)
 	}
 	{ // do_test "schema-6.2"
 		tclResetPrepared("STMT")
@@ -276,9 +254,7 @@ func Test_schema(t *testing.T) {
 	}
 	{ // "schema-6.3" (prepare-step internals; SQL side effects only)
 		// sqlite_delete_function $::DB hello_function (unsupported command, not transpiled)
-		_res = db.Exec(sql)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", sql)
 	}
 	{ // "schema-6.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -291,9 +267,7 @@ func Test_schema(t *testing.T) {
 		TAIL = tclSqlTail("SELECT * FROM sqlite_master")
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-8.2" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -305,9 +279,7 @@ func Test_schema(t *testing.T) {
 		TAIL = tclSqlTail("SELECT * FROM sqlite_master")
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-8.12" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -358,9 +330,7 @@ func Test_schema(t *testing.T) {
 		TAIL = tclSqlTail(sql)
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec(sql)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", sql)
 	}
 	{ // do_test "schema-10.2"
 		_res = db.Exec("\n    CREATE TABLE t2(a, b, c);\n  ")
@@ -394,9 +364,7 @@ func Test_schema(t *testing.T) {
 		TAIL = tclSqlTail(sql)
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec(sql)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", sql)
 	}
 	{ // do_test "schema-11.2"
 		// sqlite_delete_function $::DB tstfunc (unsupported command, not transpiled)
@@ -433,9 +401,7 @@ func Test_schema(t *testing.T) {
 		TAIL = tclSqlTail(sql)
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec(sql)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", sql)
 	}
 	{ // do_test "schema-11.6"
 		db.UnregisterCollation("tstcollate")
@@ -486,14 +452,10 @@ func Test_schema(t *testing.T) {
 		db.RegisterFunction("hello", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		db.RegisterFunction("hello", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// proc definition (not transpiled)
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-13.2" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT * FROM sqlite_master")
 	}
 	{ // "schema-13.3" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("S")

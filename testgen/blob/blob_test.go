@@ -256,9 +256,7 @@ func Test_blob(t *testing.T) {
 		_ = DUMMY // suppress unused warning
 		_ = STMT // prepared statement handle
 		// sqlite3_bind_blob $STMT 1 \x12\x34\x56 → X'123456'
-		_res = db2.Exec("DELETE FROM t1 WHERE a = X'123456'")
-		if _res.Error != nil { db2.SetLastErr(_res.Error.Error(), db2.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db2, "STMT", "DELETE FROM t1 WHERE a = X'123456'")
 	}
 	{ // "blob-3.1" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")

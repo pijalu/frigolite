@@ -113,9 +113,7 @@ func Test_rollback(t *testing.T) {
 		TAIL = tclSqlTail("SELECT a FROM t1")
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT a FROM t1")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT a FROM t1")
 	}
 	{ // do_test "rollback-1.4"
 		_res = db.Exec("\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
@@ -124,23 +122,17 @@ func Test_rollback(t *testing.T) {
 		}
 	}
 	{ // "rollback-1.5" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("SELECT a FROM t1")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT a FROM t1")
 	}
 	{ // do_test "rollback-1.6"
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 	}
 	{ // "rollback-1.7" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("SELECT a FROM t1")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT a FROM t1")
 	}
 	{ // "rollback-1.8" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("SELECT a FROM t1")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT a FROM t1")
 	}
 	{ // "rollback-1.9" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")

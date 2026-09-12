@@ -74,9 +74,7 @@ func Test_nan(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
 		// sqlite3_bind_double $STMT 1 NaN → NULL
-		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
@@ -84,45 +82,35 @@ func Test_nan(t *testing.T) {
 	if tcl_platform_platform != "symbian" {
 		{ // "nan-1.1.2" (do_realnum_test; SQL side effects only)
 			// sqlite3_bind_double $STMT 1 +Inf → 1e400
-			_res = db.Exec("INSERT INTO t1 VALUES(1e400)")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(1e400)")
 			tclResetPrepared("STMT")
 			// sqlite3_reset $STMT
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}
 		{ // "nan-1.1.3" (do_realnum_test; SQL side effects only)
 			// sqlite3_bind_double $STMT 1 -Inf → -1e400
-			_res = db.Exec("INSERT INTO t1 VALUES(-1e400)")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(-1e400)")
 			tclResetPrepared("STMT")
 			// sqlite3_reset $STMT
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}
 		{ // "nan-1.1.4" (do_realnum_test; SQL side effects only)
 			// sqlite3_bind_double $STMT 1 -NaN → NULL
-			_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 			tclResetPrepared("STMT")
 			// sqlite3_reset $STMT
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}
 		{ // "nan-1.1.5" (do_realnum_test; SQL side effects only)
 			// sqlite3_bind_double $STMT 1 NaN0 → NULL
-			_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 			tclResetPrepared("STMT")
 			// sqlite3_reset $STMT
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}
 		{ // "nan-1.1.6" (do_realnum_test; SQL side effects only)
 			// sqlite3_bind_double $STMT 1 -NaN0 → NULL
-			_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 			tclResetPrepared("STMT")
 			// sqlite3_reset $STMT
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
@@ -143,54 +131,42 @@ func Test_nan(t *testing.T) {
 	{ // "nan-1.2.1" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("\n    DELETE FROM T1;\n  ")
 		// sqlite3_bind_double $STMT 1 NaN → NULL
-		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 	}
 	{ // "nan-1.2.2" (prepare-step internals; SQL side effects only)
 		// sqlite3_bind_double $STMT 1 +Inf → 1e400
-		_res = db.Exec("INSERT INTO t1 VALUES(1e400)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(1e400)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 	}
 	{ // "nan-1.2.3" (prepare-step internals; SQL side effects only)
 		// sqlite3_bind_double $STMT 1 -Inf → -1e400
-		_res = db.Exec("INSERT INTO t1 VALUES(-1e400)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(-1e400)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 	}
 	{ // "nan-1.2.4" (prepare-step internals; SQL side effects only)
 		// sqlite3_bind_double $STMT 1 -NaN → NULL
-		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 	}
 	{ // "nan-1.2.5" (prepare-step internals; SQL side effects only)
 		// sqlite3_bind_double $STMT 1 NaN0 → NULL
-		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 	}
 	{ // "nan-1.2.6" (prepare-step internals; SQL side effects only)
 		// sqlite3_bind_double $STMT 1 -NaN0 → NULL
-		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
@@ -210,9 +186,7 @@ func Test_nan(t *testing.T) {
 	{ // "nan-2.1" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("\n    DELETE FROM T1;\n  ")
 		// sqlite3_bind_double $STMT 1 NaN → NULL
-		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(NULL)")
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")

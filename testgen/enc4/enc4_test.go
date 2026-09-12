@@ -127,7 +127,7 @@ func Test_enc4(t *testing.T) {
 		_ = init // suppress unused warning
 			{ // "enc4-" + i + "." + j + ".2" (prepare-step internals; SQL side effects only)
 				// prepared S: SELECT $init+? (bind/step emulation)
-				tclPrepareStep(db, "SELECT $init+?", "S")
+				tclPrepareStep(db, "SELECT " + init + "+?", "S")
 				_ = S // prepared statement handle
 				// sqlite3_expired $S (unsupported command, not transpiled)
 			}
@@ -146,18 +146,14 @@ func Test_enc4(t *testing.T) {
 						tclResetPrepared("S")
 						// sqlite3_reset $S
 						// sqlite3_bind_text $S 1 $val → '$val'
-						_res = db.Exec("SELECT $init+'$val'")
-						if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-						_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+						tclStepEmulated(db, "S", "SELECT " + init + "+'" + val + "'")
 						// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 					}
 					{ // "enc4-" + i + "." + j + "." + k + ".4." + x (do_realnum_test; SQL side effects only)
 						tclResetPrepared("S")
 						// sqlite3_reset $S
 						// sqlite3_bind_text16 $S 1 [encoding convertto unicode $val] → '[encoding convertto unicode $val]'
-						_res = db.Exec("SELECT $init+'[encoding convertto unicode $val]'")
-						if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-						_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+						tclStepEmulated(db, "S", "SELECT " + init + "+'" + "encoding convertto unicode $val" + "'")
 						// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 					}
 					// incr x 1
@@ -217,9 +213,7 @@ func Test_enc4(t *testing.T) {
 		// prepared S: SELECT 1+1. (bind/step emulation)
 		tclPrepareStep(db, "SELECT 1+1.", "S")
 		_ = S // prepared statement handle
-		_res = db.Exec("SELECT 1+1.")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT 1+1.")
 		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
 	{ // "enc4-4.2.2" (prepare-step internals; SQL side effects only)
@@ -231,9 +225,7 @@ func Test_enc4(t *testing.T) {
 		tclPrepareStep(db, "SELECT 1+?", "S")
 		_ = S // prepared statement handle
 		// sqlite3_bind_text $S 1 1. → '1.'
-		_res = db.Exec("SELECT 1+'1.'")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT 1+'1.'")
 		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
 	{ // "enc4-4.3.2" (prepare-step internals; SQL side effects only)
@@ -245,9 +237,7 @@ func Test_enc4(t *testing.T) {
 		tclPrepareStep(db, "SELECT 1+?", "S")
 		_ = S // prepared statement handle
 		// sqlite3_bind_text $S 1 1.0 → '1.0'
-		_res = db.Exec("SELECT 1+'1.0'")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT 1+'1.0'")
 		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
 	{ // "enc4-4.4.2" (prepare-step internals; SQL side effects only)

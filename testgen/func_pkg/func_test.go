@@ -1087,9 +1087,7 @@ func Test_func(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
 		// sqlite3_bind_blob $STMT 1 abc → X'616263'
-		_res = db.Exec("INSERT INTO tbl2 VALUES(X'616263', X'616263')")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO tbl2 VALUES(X'616263', X'616263')")
 		tclFinalizePrepared("STMT")
 		// sqlite3_finalize $STMT
 		r = db.Query("\n    SELECT quote(a), quote(b) FROM tbl2;\n  ")

@@ -2942,8 +2942,8 @@ func Test_window1(t *testing.T) {
 								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								{ // "71.0"
 									_res = db.Exec("\n  CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;\n")
-									if _res.Error == nil || !func() bool { m, _ := regexp.MatchString(".*", _res.Error.Error()); return m }() {
-										t.Errorf("expected error matching %q, got: %v\n  sql: %s", ".*", resErrString(_res), "\n  CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;\n")
+									if matched, _ := regexp.MatchString("1 {.*}", tclCatchsqlString(_res)); !matched {
+										t.Errorf("catchsql result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", tclCatchsqlString(_res), "1 {.*}", "\n  CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;\n")
 									}
 								}
 								{ // "72.1"

@@ -80,9 +80,7 @@ func Test_tkt_26ff0c2d1e(t *testing.T) {
 	{ // "bug-20100512-3" (prepare-step internals; SQL side effects only)
 		// sqlite3_bind_int $STMT 1 123 → 123
 		// sqlite3_bind_int $STMT 2 456 → 456
-		_res = db.Exec(SQL)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", SQL)
 		// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 	}
 	tclFinalizePrepared("STMT")

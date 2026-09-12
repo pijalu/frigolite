@@ -1029,6 +1029,7 @@ func Test_rtreedoc(t *testing.T) {
 												var _dbevalRb16 bool
 												var _dbevalErr17 error
 												var _dbevalInt18 bool
+												if _dbevalRows15.Error != nil { _dbevalErr17 = _dbevalRows15.Error }
 												db.BeginActiveStatement()
 												for _ri := 0; _ri < len(_dbevalRows15.Rows) && _dbevalErr17 == nil; _ri++ {
 													for _ci := 0; _ci < len(_dbevalRows15.Columns); _ci++ {
@@ -1085,6 +1086,7 @@ func Test_rtreedoc(t *testing.T) {
 												var _dbevalRb21 bool
 												var _dbevalErr22 error
 												var _dbevalInt23 bool
+												if _dbevalRows20.Error != nil { _dbevalErr22 = _dbevalRows20.Error }
 												db.BeginActiveStatement()
 												for _ri := 0; _ri < len(_dbevalRows20.Rows) && _dbevalErr22 == nil; _ri++ {
 													for _ci := 0; _ci < len(_dbevalRows20.Columns); _ci++ {
@@ -1134,6 +1136,7 @@ func Test_rtreedoc(t *testing.T) {
 												var _dbevalRb26 bool
 												var _dbevalErr27 error
 												var _dbevalInt28 bool
+												if _dbevalRows25.Error != nil { _dbevalErr27 = _dbevalRows25.Error }
 												db.BeginActiveStatement()
 												for _ri := 0; _ri < len(_dbevalRows25.Rows) && _dbevalErr27 == nil; _ri++ {
 													for _ci := 0; _ci < len(_dbevalRows25.Columns); _ci++ {
@@ -1178,6 +1181,7 @@ func Test_rtreedoc(t *testing.T) {
 												var _dbevalRb30 bool
 												var _dbevalErr31 error
 												var _dbevalInt32 bool
+												if _dbevalRows29.Error != nil { _dbevalErr31 = _dbevalRows29.Error }
 												db.BeginActiveStatement()
 												for _ri := 0; _ri < len(_dbevalRows29.Rows) && _dbevalErr31 == nil; _ri++ {
 													for _ci := 0; _ci < len(_dbevalRows29.Columns); _ci++ {
@@ -1215,6 +1219,7 @@ func Test_rtreedoc(t *testing.T) {
 												var _dbevalRb35 bool
 												var _dbevalErr36 error
 												var _dbevalInt37 bool
+												if _dbevalRows34.Error != nil { _dbevalErr36 = _dbevalRows34.Error }
 												db.BeginActiveStatement()
 												for _ri := 0; _ri < len(_dbevalRows34.Rows) && _dbevalErr36 == nil; _ri++ {
 													for _ci := 0; _ci < len(_dbevalRows34.Columns); _ci++ {

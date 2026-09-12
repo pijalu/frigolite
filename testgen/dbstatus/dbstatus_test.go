@@ -426,15 +426,9 @@ func Test_dbstatus(t *testing.T) {
 				// prepared stmt: SELECT * FROM t1 (bind/step emulation)
 				tclPrepareStep(db, "SELECT * FROM t1", "stmt")
 				_ = stmt // prepared statement handle
-				_res = db.Exec("SELECT * FROM t1")
-				if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-				_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
-				_res = db.Exec("SELECT * FROM t1")
-				if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-				_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
-				_res = db.Exec("SELECT * FROM t1")
-				if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-				_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+				tclStepEmulated(db, "stmt", "SELECT * FROM t1")
+				tclStepEmulated(db, "stmt", "SELECT * FROM t1")
+				tclStepEmulated(db, "stmt", "SELECT * FROM t1")
 				tclResetPrepared("stmt")
 				// sqlite3_reset $stmt
 			}

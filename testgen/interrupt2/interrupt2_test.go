@@ -184,6 +184,7 @@ func Test_interrupt2(t *testing.T) {
 			var _dbevalRb2 bool
 			var _dbevalErr3 error
 			var _dbevalInt4 bool
+			if _dbevalRows1.Error != nil { _dbevalErr3 = _dbevalRows1.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {

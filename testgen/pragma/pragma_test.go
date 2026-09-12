@@ -690,6 +690,7 @@ func Test_pragma(t *testing.T) {
 		var _dbevalRb3 bool
 		var _dbevalErr4 error
 		var _dbevalInt5 bool
+		if _dbevalRows2.Error != nil { _dbevalErr4 = _dbevalRows2.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
@@ -1097,9 +1098,7 @@ func Test_pragma(t *testing.T) {
 		DUMMY = tclSqlTail("SELECT * FROM t4")
 		_ = DUMMY // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM t4")
 	}
 	{ // "pragma-8.1.10" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -1139,9 +1138,7 @@ func Test_pragma(t *testing.T) {
 		DUMMY = tclSqlTail("SELECT * FROM aux.t1")
 		_ = DUMMY // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT * FROM aux.t1")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM aux.t1")
 	}
 	{ // "pragma-8.1.17" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -1430,6 +1427,7 @@ func Test_pragma(t *testing.T) {
 			var _dbevalRb13 bool
 			var _dbevalErr14 error
 			var _dbevalInt15 bool
+			if _dbevalRows12.Error != nil { _dbevalErr14 = _dbevalRows12.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {

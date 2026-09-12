@@ -764,6 +764,7 @@ func Test_zipfile(t *testing.T) {
 					var _dbevalRb3 bool
 					var _dbevalErr4 error
 					var _dbevalInt5 bool
+					if _dbevalRows2.Error != nil { _dbevalErr4 = _dbevalRows2.Error }
 					db.BeginActiveStatement()
 					for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
 						for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
@@ -807,6 +808,7 @@ func Test_zipfile(t *testing.T) {
 				var _dbevalRb4 bool
 				var _dbevalErr5 error
 				var _dbevalInt6 bool
+				if _dbevalRows3.Error != nil { _dbevalErr5 = _dbevalRows3.Error }
 				db.BeginActiveStatement()
 				for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
 					for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
@@ -837,6 +839,7 @@ func Test_zipfile(t *testing.T) {
 				var _dbevalRb8 bool
 				var _dbevalErr9 error
 				var _dbevalInt10 bool
+				if _dbevalRows7.Error != nil { _dbevalErr9 = _dbevalRows7.Error }
 				db.BeginActiveStatement()
 				for _ri := 0; _ri < len(_dbevalRows7.Rows) && _dbevalErr9 == nil; _ri++ {
 					for _ci := 0; _ci < len(_dbevalRows7.Columns); _ci++ {

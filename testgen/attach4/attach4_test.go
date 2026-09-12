@@ -140,6 +140,7 @@ func Test_attach4(t *testing.T) {
 				var _dbevalRb3 bool
 				var _dbevalErr4 error
 				var _dbevalInt5 bool
+				if _dbevalRows2.Error != nil { _dbevalErr4 = _dbevalRows2.Error }
 				db.BeginActiveStatement()
 				for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
 					for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {

@@ -100,9 +100,7 @@ func Test_createtab(t *testing.T) {
 			TAIL = tclSqlTail("SELECT x FROM t1")
 			_ = TAIL // suppress unused warning
 			_ = STMT // prepared statement handle
-			_res = db.Exec("SELECT x FROM t1")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "SELECT x FROM t1")
 		}
 		{ // do_test "createtab-" + av + ".4"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -117,9 +115,7 @@ func Test_createtab(t *testing.T) {
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // "createtab-" + av + ".7" (prepare-step internals; SQL side effects only)
-			_res = db.Exec("SELECT x FROM t1")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "SELECT x FROM t1")
 		}
 		{ // do_test "createtab-" + av + ".8"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -134,9 +130,7 @@ func Test_createtab(t *testing.T) {
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // "createtab-" + av + ".13" (prepare-step internals; SQL side effects only)
-			_res = db.Exec("SELECT x FROM t1")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "SELECT x FROM t1")
 		}
 		{ // do_test "createtab-" + av + ".14"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -151,17 +145,13 @@ func Test_createtab(t *testing.T) {
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // "createtab-" + av + ".23" (prepare-step internals; SQL side effects only)
-			_res = db.Exec("SELECT x FROM t1")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "SELECT x FROM t1")
 		}
 		{ // do_test "createtab-" + av + ".24"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // "createtab-" + av + ".30" (prepare-step internals; SQL side effects only)
-			_res = db.Exec("SELECT x FROM t1")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "STMT", "SELECT x FROM t1")
 		}
 		{ // "createtab-" + av + ".31" (prepare-step internals; SQL side effects only)
 			tclFinalizePrepared("STMT")

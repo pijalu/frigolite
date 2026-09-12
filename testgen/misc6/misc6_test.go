@@ -84,9 +84,7 @@ func Test_misc6(t *testing.T) {
 		sqlite_static_bind_nbyte = "5"
 		_ = sqlite_static_bind_nbyte // suppress unused warning
 		// sqlite3_bind_text $STMT 1  → ''
-		_res = db.Exec("SELECT hex8('')")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT hex8('')")
 	}
 	{ // do_test "misc6-1.2"
 		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)

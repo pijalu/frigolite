@@ -290,6 +290,7 @@ func Test_update2(t *testing.T) {
 			var _dbevalRb4 bool
 			var _dbevalErr5 error
 			var _dbevalInt6 bool
+			if _dbevalRows3.Error != nil { _dbevalErr5 = _dbevalRows3.Error }
 			db.BeginActiveStatement()
 			for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {

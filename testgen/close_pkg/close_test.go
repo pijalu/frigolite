@@ -229,9 +229,7 @@ func Test_close(t *testing.T) {
 		// prepared STMT: SELECT * FROM t1 (bind/step emulation)
 		tclPrepareStep(DB, "SELECT * FROM t1", "STMT")
 		_ = STMT // prepared statement handle
-		_res = DB.Exec("SELECT * FROM t1")
-		if _res.Error != nil { DB.SetLastErr(_res.Error.Error(), DB.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(DB, "STMT", "SELECT * FROM t1")
 		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
@@ -248,9 +246,7 @@ func Test_close(t *testing.T) {
 		// prepared STMT: SELECT * FROM t1 (bind/step emulation)
 		tclPrepareStep(DB, "SELECT * FROM t1", "STMT")
 		_ = STMT // prepared statement handle
-		_res = DB.Exec("SELECT * FROM t1")
-		if _res.Error != nil { DB.SetLastErr(_res.Error.Error(), DB.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(DB, "STMT", "SELECT * FROM t1")
 		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.2"

@@ -82,9 +82,7 @@ func Test_fkey4(t *testing.T) {
 		TAIL = tclSqlTail(SQL)
 		_ = TAIL // suppress unused warning
 		_ = STMT1 // prepared statement handle
-		_res = db.Exec(SQL)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT1", SQL)
 	}
 	// verify_ex_errcode fkey4-1.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 	{ // "fkey4-1.3" (prepare-step internals; SQL side effects only)
@@ -93,9 +91,7 @@ func Test_fkey4(t *testing.T) {
 		TAIL = tclSqlTail(SQL)
 		_ = TAIL // suppress unused warning
 		_ = STMT2 // prepared statement handle
-		_res = db.Exec(SQL)
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT2", SQL)
 	}
 	// verify_ex_errcode fkey4-1.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 	{ // do_test "fkey4-1.4"

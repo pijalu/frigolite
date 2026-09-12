@@ -2295,15 +2295,11 @@ func Test_fkey2(t *testing.T) {
 							{ // "fkey2-17.1.2" (prepare-step internals; SQL side effects only)
 								// prepared STMT: INSERT INTO two VALUES(4, 5, 6) (bind/step emulation)
 								_ = STMT // prepared statement handle
-								_res = db.Exec("INSERT INTO two VALUES(4, 5, 6)")
-								if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-								_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+								tclStepEmulated(db, "STMT", "INSERT INTO two VALUES(4, 5, 6)")
 							}
 							// verify_ex_errcode fkey2-17.1.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // "fkey2-17.1.3" (prepare-step internals; SQL side effects only)
-								_res = db.Exec("INSERT INTO two VALUES(4, 5, 6)")
-								if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-								_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+								tclStepEmulated(db, "STMT", "INSERT INTO two VALUES(4, 5, 6)")
 							}
 							// verify_ex_errcode fkey2-17.1.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // "fkey2-17.1.4" (prepare-step internals; SQL side effects only)
@@ -2350,17 +2346,13 @@ func Test_fkey2(t *testing.T) {
 							{ // "fkey2-17.1.11" (prepare-step internals; SQL side effects only)
 								// prepared STMT: INSERT INTO three VALUES(7, 8, 9) (bind/step emulation)
 								_ = STMT // prepared statement handle
-								_res = db.Exec("INSERT INTO three VALUES(7, 8, 9)")
-								if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-								_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+								tclStepEmulated(db, "STMT", "INSERT INTO three VALUES(7, 8, 9)")
 							}
 							{ // do_test "fkey2-17.1.12"
 								// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 							}
 							{ // "fkey2-17.1.13" (prepare-step internals; SQL side effects only)
-								_res = db.Exec("INSERT INTO three VALUES(7, 8, 9)")
-								if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-								_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+								tclStepEmulated(db, "STMT", "INSERT INTO three VALUES(7, 8, 9)")
 							}
 							// verify_ex_errcode fkey2-17.1.13b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // "fkey2-17.1.14" (prepare-step internals; SQL side effects only)
@@ -2573,9 +2565,7 @@ func Test_fkey2(t *testing.T) {
 								// prepared S: DELETE FROM main WHERE id = ? (bind/step emulation)
 								_ = S // prepared statement handle
 								// sqlite3_bind_int $S 1 2 → 2
-								_res = db.Exec("DELETE FROM main WHERE id = 2")
-								if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-								_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+								tclStepEmulated(db, "S", "DELETE FROM main WHERE id = 2")
 							}
 							// verify_ex_errcode fkey2-19.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "fkey2-19.3"
@@ -2585,9 +2575,7 @@ func Test_fkey2(t *testing.T) {
 							// verify_ex_errcode fkey2-19.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // "fkey2-19.4" (prepare-step internals; SQL side effects only)
 								// sqlite3_bind_int $S 1 1 → 1
-								_res = db.Exec("DELETE FROM main WHERE id = 1")
-								if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-								_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+								tclStepEmulated(db, "S", "DELETE FROM main WHERE id = 1")
 							}
 							{ // "fkey2-19.4" (prepare-step internals; SQL side effects only)
 								tclFinalizePrepared("S")

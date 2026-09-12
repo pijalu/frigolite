@@ -601,9 +601,7 @@ func (tp *transpiler) processStep(args []tcl.RawWord) {
 	if c := ps.conns[stmtVar]; c != "" {
 		conn = c
 	}
-	tp.emitLine("_res = %s.Exec(%s)", conn, sqlExpr)
-	tp.emitLine("if _res.Error != nil { %s.SetLastErr(_res.Error.Error(), %s.ErrorCodeFor(_res.Error)) }", conn, conn)
-	tp.emitLine("_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only")
+	tp.emitLine("tclStepEmulated(%s, %q, %s)", conn, stmtVar, sqlExpr)
 }
 
 // processReset resets the prepared statement (sqlite3_reset), emitting the

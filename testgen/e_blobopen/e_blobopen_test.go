@@ -800,9 +800,7 @@ func Test_e_blobopen(t *testing.T) {
 			// prepared stmt: INSERT INTO c2 VALUES(11, ?) (bind/step emulation)
 			_ = stmt // prepared statement handle
 			// sqlite3_bind_zeroblob $stmt 1 45 (unsupported command, not transpiled)
-			_res = db.Exec("INSERT INTO c2 VALUES(11, ?)")
-			if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-			_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+			tclStepEmulated(db, "stmt", "INSERT INTO c2 VALUES(11, ?)")
 			tclFinalizePrepared("stmt")
 			// sqlite3_finalize $stmt
 		}

@@ -166,9 +166,7 @@ func Test_trace(t *testing.T) {
 		vtab.TclVarSet("TRACE_OUT", "", "")
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		_res = db.Exec("INSERT INTO t1 VALUES(2,3)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(2,3)")
 	}
 	{ // do_test "trace-2.2"
 		vtab.TclVarSet("TRACE_OUT", "", "")
@@ -183,9 +181,7 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // "trace-2.3" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("INSERT INTO t1 VALUES(2,3)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t1 VALUES(2,3)")
 	}
 	{ // do_test "trace-2.4"
 		vtab.TclVarSet("TRACE_OUT", "", "")
@@ -278,9 +274,7 @@ func Test_trace(t *testing.T) {
 		vtab.TclVarSet("TRACE_OUT", "", "")
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		_res = db.Exec("INSERT INTO t2 VALUES(2,3)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t2 VALUES(2,3)")
 	}
 	{ // do_test "trace-4.2"
 		vtab.TclVarSet("TRACE_OUT", "", "")
@@ -295,9 +289,7 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // "trace-4.3" (prepare-step internals; SQL side effects only)
-		_res = db.Exec("INSERT INTO t2 VALUES(2,3)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "INSERT INTO t2 VALUES(2,3)")
 	}
 	{ // do_test "trace-4.4"
 		vtab.TclVarSet("TRACE_OUT", "", "")
@@ -330,6 +322,7 @@ func Test_trace(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		var _dbevalInt3 bool
+		if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
@@ -374,6 +367,7 @@ func Test_trace(t *testing.T) {
 		var _dbevalRb5 bool
 		var _dbevalErr6 error
 		var _dbevalInt7 bool
+		if _dbevalRows4.Error != nil { _dbevalErr6 = _dbevalRows4.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {

@@ -85,9 +85,7 @@ func Test_backup5(t *testing.T) {
 		// prepared stmt: SELECT * FROM t2 (bind/step emulation)
 		tclPrepareStep(db2, "SELECT * FROM t2", "stmt")
 		_ = stmt // prepared statement handle
-		_res = db2.Exec("SELECT * FROM t2")
-		if _res.Error != nil { db2.SetLastErr(_res.Error.Error(), db2.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db2, "stmt", "SELECT * FROM t2")
 	}
 	{ // do_test "1.3"
 		_rc := "0"

@@ -565,9 +565,7 @@ func Test_cast(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
 		// sqlite3_bind_blob $_static (unknown prepared statement)
-		_res = db.Exec("SELECT CAST(? AS real)")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT CAST(? AS real)")
 	}
 	{ // do_test "cast-3.32.2"
 		// sqlite3_column_int $::STMT 0 (unsupported command, not transpiled)

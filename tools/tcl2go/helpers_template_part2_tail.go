@@ -435,7 +435,34 @@ func tclPrepareStep(db *frigolite.DB, sqlText, name string) {
 	stmt, err := db.Prepare(sqlText)
 	if err != nil { return }
 	tclPrepared[name] = stmt
-	_, _ = stmt.Step()
+	// The implicit first step materializes the rows (tclStepStmt's Exec
+	// model) and leaves row 0 current, so sqlite3_column_text reads after
+	// prepare+step see the first row (rtree8-1.3.2: lappend
+	// [sqlite3_column_text $stmt 0]).
+	r := stmt.Exec()
+	tclLastStep[name] = &tclStepState{r: r, row: 0}
+	if r.Error != nil && db != nil {
+		db.SetLastErr(r.Error.Error(), db.ErrorCodeFor(r.Error))
+	}
+}
+
+// tclStepEmulated runs one legacy-emulation step of the named statement and
+// leaves the step state current for sqlite3_column_* reads (queries read
+// rows; writes report only the error state — vdbeapi.c sqlite3_step).
+func tclStepEmulated(db *frigolite.DB, name, sqlText string) {
+	if db == nil {
+		return
+	}
+	var r *frigolite.Result
+	if tclIsQuerySQL(sqlText) {
+		r = db.Query(sqlText)
+	} else {
+		r = db.Exec(sqlText)
+	}
+	tclLastStep[name] = &tclStepState{r: r, row: 0}
+	if r.Error != nil {
+		db.SetLastErr(r.Error.Error(), db.ErrorCodeFor(r.Error))
+	}
 }
 
 func tclErrMsg(db *frigolite.DB) string {

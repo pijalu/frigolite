@@ -98,9 +98,7 @@ func Test_incrcorrupt(t *testing.T) {
 		// prepared stmt: PRAGMA incremental_vacuum (bind/step emulation)
 		tclPrepareStep(db, "PRAGMA incremental_vacuum", "stmt")
 		_ = stmt // prepared statement handle
-		_res = db.Exec("PRAGMA incremental_vacuum")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "stmt", "PRAGMA incremental_vacuum")
 	}
 	{ // do_test "1.4"
 		_r = db.LastErrCode()
@@ -134,9 +132,7 @@ func Test_incrcorrupt(t *testing.T) {
 		// prepared stmt: PRAGMA incremental_vacuum (bind/step emulation)
 		tclPrepareStep(db, "PRAGMA incremental_vacuum", "stmt")
 		_ = stmt // prepared statement handle
-		_res = db.Exec("PRAGMA incremental_vacuum")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "stmt", "PRAGMA incremental_vacuum")
 	}
 	{ // do_test "1.10"
 		_r = db.LastErrCode()
@@ -220,9 +216,7 @@ func Test_incrcorrupt(t *testing.T) {
 		// prepared stmt: PRAGMA auto_vacuum = INCREMENTAL (bind/step emulation)
 		tclPrepareStep(db, "PRAGMA auto_vacuum = INCREMENTAL", "stmt")
 		_ = stmt // prepared statement handle
-		_res = db.Exec("PRAGMA auto_vacuum = INCREMENTAL")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "stmt", "PRAGMA auto_vacuum = INCREMENTAL")
 	}
 	{ // do_test "2.4"
 		_r = db.LastErrCode()
@@ -256,9 +250,7 @@ func Test_incrcorrupt(t *testing.T) {
 		// prepared stmt: PRAGMA auto_vacuum = INCREMENTAL (bind/step emulation)
 		tclPrepareStep(db, "PRAGMA auto_vacuum = INCREMENTAL", "stmt")
 		_ = stmt // prepared statement handle
-		_res = db.Exec("PRAGMA auto_vacuum = INCREMENTAL")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "stmt", "PRAGMA auto_vacuum = INCREMENTAL")
 	}
 	{ // do_test "2.10"
 		_r = db.LastErrCode()

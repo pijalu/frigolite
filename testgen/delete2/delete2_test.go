@@ -94,9 +94,7 @@ func Test_delete2(t *testing.T) {
 		TAIL = tclSqlTail("SELECT * FROM q")
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
-		_res = db.Exec("SELECT * FROM q")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "STMT", "SELECT * FROM q")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -141,6 +139,7 @@ func Test_delete2(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		var _dbevalInt3 bool
+		if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
 		db.BeginActiveStatement()
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {

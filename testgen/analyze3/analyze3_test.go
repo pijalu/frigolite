@@ -684,9 +684,7 @@ func Test_analyze3(t *testing.T) {
 		// prepared S: SELECT * FROM t1 WHERE a=? AND b>? (bind/step emulation)
 		tclPrepareStep(db, "SELECT * FROM t1 WHERE a=? AND b>?", "S")
 		_ = S // prepared statement handle
-		_res = db.Exec("SELECT * FROM t1 WHERE a=? AND b>?")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT * FROM t1 WHERE a=? AND b>?")
 	}
 	{ // "analyze3-4.1.2" (prepare-step internals; SQL side effects only)
 		tclResetPrepared("S")
@@ -696,9 +694,7 @@ func Test_analyze3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 		}
-		_res = db.Exec("SELECT * FROM t1 WHERE a= AND b>")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT * FROM t1 WHERE a= AND b>")
 	}
 	{ // "analyze3-4.1.3" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("S")
@@ -736,18 +732,14 @@ func Test_analyze3(t *testing.T) {
 		// prepared S: SELECT * FROM t1 WHERE a=? AND b>? (bind/step emulation)
 		tclPrepareStep(db, "SELECT * FROM t1 WHERE a=? AND b>?", "S")
 		_ = S // prepared statement handle
-		_res = db.Exec("SELECT * FROM t1 WHERE a=? AND b>?")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT * FROM t1 WHERE a=? AND b>?")
 	}
 	// proc definition (not transpiled)
 	{ // "analyze3-4.2.2" (prepare-step internals; SQL side effects only)
 		tclResetPrepared("S")
 		// sqlite3_reset $S
 		// sqlite3_bind_text $S 2 abc → 'abc'
-		_res = db.Exec("SELECT * FROM t1 WHERE a= AND b>")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT * FROM t1 WHERE a= AND b>")
 	}
 	{ // "analyze3-4.2.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("S")
@@ -761,9 +753,7 @@ func Test_analyze3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(d, e, f) ")
 		}
-		_res = db.Exec("SELECT * FROM t1 WHERE a=? AND b>?")
-		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
-		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+		tclStepEmulated(db, "S", "SELECT * FROM t1 WHERE a=? AND b>?")
 	}
 	{ // "analyze3-4.3.2" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("S")

@@ -692,7 +692,7 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-9.3.1"
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t2(a,b) VALUES(?1,?" + iMaxVar + ")", -1)
 		// prepared VM: INSERT INTO t2(a,b) VALUES(?1,?$iMaxVar) (bind/step emulation)
-		TAIL = tclSqlTail("INSERT INTO t2(a,b) VALUES(?1,?$iMaxVar)")
+		TAIL = tclSqlTail("INSERT INTO t2(a,b) VALUES(?1,?" + iMaxVar + ")")
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		_r = strconv.Itoa(tclParamCountOf("VM"))
@@ -709,7 +709,7 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-9.3.2"
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t2(a,b) VALUES(?2,?" + tclExprWith("$iMaxVar - 1", map[string]string{"iMaxVar": iMaxVar}) + ")", -1)
 		// prepared VM: INSERT INTO t2(a,b) VALUES(?2,?[expr $iMaxVar - 1]) (bind/step emulation)
-		TAIL = tclSqlTail("INSERT INTO t2(a,b) VALUES(?2,?[expr $iMaxVar - 1])")
+		TAIL = tclSqlTail("INSERT INTO t2(a,b) VALUES(?2,?" + tclExprWith("$iMaxVar - 1", map[string]string{"iMaxVar": iMaxVar}) + ")")
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		_r = strconv.Itoa(tclParamCountOf("VM"))
@@ -723,7 +723,7 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-9.4"
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t2(a,b,c,d) VALUES(?1,?" + tclExprWith("$iMaxVar - 2", map[string]string{"iMaxVar": iMaxVar}) + ",?,?)", -1)
 		// prepared VM: INSERT INTO t2(a,b,c,d) VALUES(?1,?[expr $iMaxVar - 2],?,?) (bind/step emulation)
-		TAIL = tclSqlTail("INSERT INTO t2(a,b,c,d) VALUES(?1,?[expr $iMaxVar - 2],?,?)")
+		TAIL = tclSqlTail("INSERT INTO t2(a,b,c,d) VALUES(?1,?" + tclExprWith("$iMaxVar - 2", map[string]string{"iMaxVar": iMaxVar}) + ",?,?)")
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		_r = strconv.Itoa(tclParamCountOf("VM"))
