@@ -396,9 +396,12 @@ var skipTestFiles = map[string]string{
 	// P6.RTREE (T29, 2026-09-12): partial supersessions — the packages are
 	// green EXCEPT assertions whose TCL bodies depend on untranspilable
 	// harness procs; the engine-visible contracts are pinned natively.
-	"rtreeJ": "N-A db-eval callback procs (restore_t1) N-A (evidence frigolite_rtreeA_J_8_native_test.go: shadow backup/restore consistency; rowid DML contract green in-package)",
-	"rtreeA": "N-A set_tree_depth binary blob surgery N-A (evidence frigolite_rtreeA_J_8_native_test.go + TestNativeRtreeCheckDepthOutOfRange/EntryCountAudit/ParentCountAudit: depth guard + %_rowid/%_parent count audits)",
-	"rtree8": "N-A SQLITE_LOCKED_VTAB cursor-write lock unobservable through the materializing harness (evidence frigolite_rtreeA_J_8_native_test.go TestNativeRtreeInterleavedReadWrite: the 1.1.2b sorter contrast contract; all other rtree8 assertions green)",
+	"rtreeJ":    "N-A db-eval callback procs (restore_t1) N-A (evidence frigolite_rtreeA_J_8_native_test.go: shadow backup/restore consistency; rowid DML contract green in-package)",
+	"rtreeA":    "N-A set_tree_depth binary blob surgery N-A (evidence frigolite_rtreeA_J_8_native_test.go + TestNativeRtreeCheckDepthOutOfRange/EntryCountAudit/ParentCountAudit: depth guard + %_rowid/%_parent count audits)",
+	"rtree8":    "N-A SQLITE_LOCKED_VTAB cursor-write lock unobservable through the materializing harness (evidence frigolite_rtreeA_J_8_native_test.go TestNativeRtreeInterleavedReadWrite: the 1.1.2b sorter contrast contract; all other rtree8 assertions green)",
+	"rtreedoc":  "N-A rtree_util.tcl procs (column_size/count/name_list) + degenerated inner db-eval writes + TCL list bracing (evidence frigolite_rtree_query2_test.go: 2nd-gen geometry contracts, aux-schema rtreecheck; remaining rtreedoc assertions green in-package)",
+	"rtreedoc2": "N-A register_box_geom wraps a TCL-script callback (invokeTclGeomCb) — untranspilable (evidence frigolite_rtree_query2_test.go: qcircle/Qcircle contracts green in-package)",
+	"rtreedoc3": "N-A register_box_query untranspiled — the generated input never registers qbox (C fails identically on that input); RtreeQueryInfo observability anchored by frigolite_rtree_query2_test.go TestNativeRtreeQuery2InfoState",
 
 	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
 	// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.

@@ -5958,3 +5958,54 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   flatten(). Native anchor: frigolite_rtree_query2_test.go (queue order,
   forms, RtreeQueryInfo observability, NULL markers, column caps, NO_VTAB
   trigger, aux schema).
+- **P6.RTREE T29 session (26/27 green)**: the winning decomposition —
+  (1) fresh baseline + class index BEFORE any edit; (2) three parallel
+  read-only diagnosis agents over disjoint failure classes (semantics /
+  corruption / geometry) writing /tmp reports; (3) parallel fix tranches with
+  disjoint file territories, same-package tranches SERIALIZED (F1 core → F2
+  geometry); (4) main agent takes cross-cutting seams (backup/VACUUM,
+  CREATE-VTAB ordering, perf) in the gaps. Pure-Go supersession resolved
+  every untranspilable-harness assertion (set_tree_depth, restore_t1,
+  register_box_geom/query, LOCKED_VTAB cursor lifetime) with native anchors.
+- **CREATE VIRTUAL TABLE master order**: C writes the sqlite_schema row at
+  prepare/codegen time and OP_VCreate runs xCreate at runtime → the vtab row
+  PRECEDES its shadow rows (oracle: rt=1, rt_rowid=2, rt_node=3, rt_parent=4;
+  shadow DDL order _rowid,_node,_parent per rtree.c:3433). Frigolite created
+  shadows first — any test comparing sqlite_master order catches this.
+- **rtree shadow-copy in a logical backup/VACUUM**: vtab entries are
+  RootPage-0 create-only (page-level copies no vtab rows); shadows take
+  DELETE+INSERT against the xCreate-seeded tables; IPK-alias-aware rowid
+  mapping is mandatory (rtree shadows name the IPK literally "rowid" —
+  `SELECT rowid, *` + a name filter double-counts the column).
+- **undersize vs malformed is an INSTANCE-LIFETIME distinction (oracle)**:
+  zero-length root blob → REOPENED connection errors at prepare "undersize
+  RTree blobs in %q_node" (getNodeSize, rtree.c:3586); a same-session query
+  against the LIVE vtab instance reaches the node-read path → generic
+  "database disk image is malformed". Frigolite re-runs xConnect per
+  statement, so the undersize observable is the reachable one. A/B against
+  the oracle BEFORE writing native expectations for corruption messages.
+- **vtab rowid affinity**: the materialized-rowmap rowid must carry INTEGER
+  affinity like declared columns or `rowid='5'` never matches (TEXT vs
+  INTEGER compare). Plain btree tables coerce; vtab scans were the gap.
+- **rtree 2nd-gen geometry callbacks**: marker functions (Qcircle/qbox/
+  breadthfirstsearch) register a query callback as a side effect and return
+  an opaque marker rendered as NULL; MATCH binds by marker identity; the
+  priority-queue search (rScore/iLevel/FIFO ties) is only order-observable
+  through 2nd-gen constraints (rtreeE-1.4 pins {200 100 0} UNSORTED — the
+  1st-gen DFS order differs). Keep the queue ADDITIVE: plain-constraint
+  queries stay on the proven DFS path.
+- **rtreecirc's real guard is PREPARE-scoped**: C's rtreeSqlInit prepares
+  shadow statements with SQLITE_PREPARE_NO_VTAB so trigger bodies compiled
+  within them cannot resolve vtabs ("no such table: main.rt") — execution-
+  time gating alone is insufficient because some paths (tn=2's %_parent
+  probe) never execute a vtab-writing statement; the connect-time probe is
+  also required.
+- **REPLACE conflict detection was quadratic per-cell**: conflictSeenKey
+  re-sniffed table DDL (ToUpper+scan) per scanned cell; hoisting the
+  WITHOUT-ROWID classification per pass + excluding the IPK-probe-covered
+  column gave 6x on bulk rtree loads. The residue is per-statement commit
+  I/O (syscalls ~90% of samples) — profile BEFORE assuming algorithmic.
+- **rtreedoc "wrong arity" was transpiler-degenerated, not engine**: oracle
+  shows rtree(id,x1,x2) IS valid (1-dim); the expected-error assertions were
+  procs the transpiler never ran. Verify the TCL premise against the oracle
+  before writing an engine fix.
