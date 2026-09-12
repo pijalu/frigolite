@@ -42,15 +42,17 @@ type rtreeNode[T coordType] struct {
 	parent *rtreeNode[T] // best-known parent; %_parent table is authoritative
 }
 
-// nCell reads NCELL from data[2..3] (big-endian int16, matching SQLite's
-// on-disk node layout).
-func (n *rtreeNode[T]) nCell() int { return int(int16(binary.BigEndian.Uint16(n.data[2:4]))) }
+// nCell reads NCELL from data[2..3] (big-endian, unsigned — C's readInt16 is
+// `(p[0]<<8) + p[1]`, a 0..65535 value, never negative).
+func (n *rtreeNode[T]) nCell() int { return int(binary.BigEndian.Uint16(n.data[2:4])) }
 
 // setNCell writes NCELL.
 func (n *rtreeNode[T]) setNCell(c int) { binary.BigEndian.PutUint16(n.data[2:4], uint16(c)) }
 
-// depth reads the node depth stored in data[0..1] (root only).
-func (n *rtreeNode[T]) depth() int { return int(int16(binary.BigEndian.Uint16(n.data[0:2]))) }
+// depth reads the node depth stored in data[0..1] (root only, unsigned like
+// readInt16; rtree.c treats iDepth > RTREE_MAX_DEPTH as corruption, which only
+// works with an unsigned decode — 65535 must not read as -1).
+func (n *rtreeNode[T]) depth() int { return int(binary.BigEndian.Uint16(n.data[0:2])) }
 
 // setDepth writes the node depth.
 func (n *rtreeNode[T]) setDepth(d int) { binary.BigEndian.PutUint16(n.data[0:2], uint16(d)) }
@@ -142,24 +144,68 @@ func rtreeNumericPrefix(s string) float64 {
 	return v
 }
 
+// Rounding constants for the double→float32 coordinate store (rtree.c
+// RNDTOWARDS / RNDAWAY): after the naive cast these nudge the double by one
+// float32 ulp so the re-cast lands toward/away from zero.
+const (
+	rtreeRndTowards = 1.0 - 1.0/8388608.0 // round towards zero
+	rtreeRndAway    = 1.0 + 1.0/8388608.0 // round away from zero
+)
+
+// rtreeValueDown converts d to the float32 grid rounding toward negative
+// infinity (rtree.c rtreeValueDown), so a stored min bound never exceeds the
+// requested box.
+func rtreeValueDown(d float64) float32 {
+	f := float32(d)
+	if float64(f) > d {
+		if d < 0 {
+			f = float32(d * rtreeRndAway)
+		} else {
+			f = float32(d * rtreeRndTowards)
+		}
+	}
+	return f
+}
+
+// rtreeValueUp converts d to the float32 grid rounding toward positive
+// infinity (rtree.c rtreeValueUp), so a stored max bound never undershoots
+// the requested box.
+func rtreeValueUp(d float64) float32 {
+	f := float32(d)
+	if float64(f) < d {
+		if d < 0 {
+			f = float32(d * rtreeRndTowards)
+		} else {
+			f = float32(d * rtreeRndAway)
+		}
+	}
+	return f
+}
+
 // toCoord narrows an arbitrary SQL value to coordinate scalar T. Integer and
 // real literals both fold into the stored float32/int32 type; TEXT values use
-// SQLite's numeric-prefix coercion ("52xyz" → 52, "one" → 0).
-func toCoord[T coordType](v interface{}) T {
+// SQLite's numeric-prefix coercion ("52xyz" → 52, "one" → 0). Float32
+// coordinates use rtree.c's DIRECTIONAL rounding (rtreeValueDown for a min
+// bound, rtreeValueUp for a max bound — rtree.c:3033) so the stored box
+// always contains the requested box; int32 keeps sqlite3_value_int
+// truncation.
+func toCoord[T coordType](v interface{}, up bool) T {
 	var z T
 	switch any(z).(type) {
 	case float32:
+		var d float64
 		switch x := v.(type) {
 		case float64:
-			return T(float32(x))
+			d = x
 		case int64:
-			return T(float32(x))
+			d = float64(x)
 		case string:
-			return T(float32(rtreeNumericPrefix(x)))
-		case nil:
-			return T(float32(0))
+			d = rtreeNumericPrefix(x)
 		}
-		return T(float32(0))
+		if up {
+			return T(rtreeValueUp(d))
+		}
+		return T(rtreeValueDown(d))
 	case int32:
 		switch x := v.(type) {
 		case int64:
@@ -168,8 +214,6 @@ func toCoord[T coordType](v interface{}) T {
 			return T(int32(x))
 		case string:
 			return T(int32(rtreeNumericPrefix(x)))
-		case nil:
-			return T(int32(0))
 		}
 		return T(int32(0))
 	}
@@ -265,9 +309,20 @@ func (v *rtreeVTab[T]) maxNodeNumber() (int64, error) {
 	return rtreeAsInt64(rows[0][0]), nil
 }
 
-// setRowidMapping records rowid -> nodeno (leaf entries) in %_rowid.
+// setRowidMapping records rowid -> nodeno (leaf entries) in %_rowid. With
+// auxiliary columns declared, rtreeSqlInit swaps REPLACE for an UPSERT — "an
+// UPSERT is very slightly slower than REPLACE, but it is needed if there are
+// auxiliary columns" — so re-mapping a split-moved entry keeps its aN values.
 func (v *rtreeVTab[T]) setRowidMapping(rowid, nodeno int64) error {
-	sql := fmt.Sprintf("INSERT OR REPLACE INTO %s(rowid,nodeno) VALUES(%d,%d)", v.shadow("rowid"), rowid, nodeno)
+	var sql string
+	if v.nAux > 0 {
+		sql = fmt.Sprintf("INSERT INTO %s(rowid,nodeno) VALUES(%d,%d)"+
+			" ON CONFLICT(rowid) DO UPDATE SET nodeno=excluded.nodeno",
+			v.shadow("rowid"), rowid, nodeno)
+	} else {
+		sql = fmt.Sprintf("INSERT OR REPLACE INTO %s(rowid,nodeno) VALUES(%d,%d)",
+			v.shadow("rowid"), rowid, nodeno)
+	}
 	_, err := v.module.db.ExecSQL(sql)
 	return err
 }
@@ -354,6 +409,18 @@ func (v *rtreeVTab[T]) nodeAcquire(iNode int64) (*rtreeNode[T], error) {
 		return nil, errCapitalized{"database disk image is malformed"}
 	}
 	n := &rtreeNode[T]{iNode: iNode, nRef: 1, data: append([]byte(nil), blob...)}
+	// Hostile on-disk shape checks (rtree.c nodeAcquire 785-820): a root
+	// depth above RTREE_MAX_DEPTH and an NCELL beyond the node's cell
+	// capacity are corruption — with the old signed int16 decode a hostile
+	// NCELL (0xFFFF) read as -1 and later cell reads panicked on slice
+	// bounds (rtreefuzz001 mutated-blob class); both must yield SQLite's
+	// generic malformed-image error instead.
+	if iNode == 1 && n.depth() > RTREE_MAX_DEPTH {
+		return nil, errCapitalized{"database disk image is malformed"}
+	}
+	if n.nCell() > v.maxCells() {
+		return nil, errCapitalized{"database disk image is malformed"}
+	}
 	v.cache[iNode] = n
 	if iNode == 1 {
 		v.iDepth = n.depth()

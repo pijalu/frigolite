@@ -5816,3 +5816,86 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   timeout-suspects) — FULL-SUITE-DRIFT instrumentation backlog, and
   `go run ./tools/status` OVERWRITES the tracked last_run.json (9680-line
   diff) — `git checkout -- tools/status/last_run.json` after ad-hoc runs.
+
+## P6.RTREE core fix tranche (T29, 2026-09-12)
+
+- **rtree aux columns — rtreeTokenLength parity**: nAux = count of ALL trailing
+  `+` args (rtree.c:3685 loop has NO break); a declared column's SQL name is
+  the FIRST TOKEN of its argument only (`+c3 BLOB` declares `c3`), and leading
+  SQL comments in a RawSQL-resplit argument must be skipped before taking the
+  token (SQLite's tokenizer drops comments; `id, -- c\n minX` declares `minX`).
+  rtreeConstraintError renders DECLARED names (sqlite3_column_name), never raw
+  argument text. Implementations: `rtreeFirstToken` + rewritten `connect` in
+  internal/vtab/rtree_init.go.
+- **Fresh-family discriminator for rtree binds**: the vtab's sqlite_schema row
+  is written BEFORE xCreate (execCreateVirtualTable AddEntry → BindSchema), so
+  "vtab entry exists" can NEVER mean "re-bind"; use the %_node TABLE's
+  existence: absent → plain CREATE TABLE DDL (hostile shadow-name collisions
+  like rtree-1.6.1's `CREATE TABLE t1_rowid(a)` then fail and the vtab entry
+  rolls back — IF NOT EXISTS silently tolerated them) + root zeroblob seed;
+  present → IF NOT EXISTS, NO seed (rtree8-2.1.5 anti-resurrection) and node
+  size INFERRED from the root blob (never recomputed from the current page
+  size — a page_size change + VACUUM desynced the write path's
+  created=true bind and every write failed malformed; rtree7-1.x residue bug).
+- **Shadow DDL order is observable**: rtreeSqlInit creates %_rowid, %_node,
+  %_parent with NO space after commas in the SQL text; oracle sqlite_master
+  rowids rt=1, rt_rowid=2, rt_node=3, rt_parent=4. rtreedoc-2.1 greps the
+  exact `CREATE TABLE "%w_rowid"(rowid INTEGER PRIMARY KEY,nodeno)` text.
+- **Declared vtab types are "INT", not "INTEGER"** (rtreeInit azFormat): value.Affinity
+  prefix rules make INT ≡ INTEGER affinity, so affinity-driven tests are unaffected
+  while PRAGMA table_info / column decl outputs match byte-for-byte.
+- **Undersize vs malformed on short root blobs**: frigolite re-binds per
+  statement (no per-connection vtab instance), so connect-time getNodeSize and
+  cursor-time nodeAcquire collapse onto one path. Split by blob length:
+  len==0 → `undersize RTree blobs in "<name>_node"` (rtreeA-7.110, x'');
+  0<len<448 → tolerant bind so nodeAcquire's blob-size mismatch reports the
+  generic malformed (rtreedoc-2.4 'hello world' flow). Missing root row stays
+  tolerant (rtree8-2.x). Message quoting: `fmt.Sprintf("... in %q", name+"_node")`
+  — `%q_node` puts `_node` OUTSIDE the quotes.
+- **Aux columns and %_rowid REPLACE**: `INSERT OR REPLACE INTO %_rowid` wipes
+  aN columns on every split re-map. rtreeSqlInit itself swaps in an UPSERT
+  when nAux>0 ("very slightly slower... needed if there are auxiliary
+  columns"): `INSERT ... ON CONFLICT(rowid) DO UPDATE SET nodeno=excluded.nodeno`.
+  The aux write (pWriteAux UPDATE) steps in rtreeUpdate AFTER rtreeInsertCell —
+  split or not — so it must NOT live inside rtreeInsertCell's non-split branch.
+- **Aux-column WHERE constraints**: the core pushes conjuncts on ANY declared
+  column and omits them from the residual WHERE; aux columns have no
+  coordinates, so the rtree scan must re-check them itself
+  (filterAuxConstraints: compare the attached %_rowid value, no affinity —
+  aux columns are declared typeless; NULL never satisfies). `WHERE rowid='5'`
+  (string coercion against the vtab rowid in residual WHERE) is still an
+  execquery-side gap.
+- **rtree node header decode is UNSIGNED** (readInt16 = `(p[0]<<8)+p[1]`):
+  signed int16 decode made hostile NCELL=0xFFFF read as -1 and PANIC'd
+  SELECT (rtreefuzz001 class). nodeAcquire checks: root depth ≤ 40
+  (RTREE_MAX_DEPTH), NCELL ≤ (iNodeSize-4)/nBytesPerCell, blob size ==
+  iNodeSize → all malformed.
+- **Delete-path corruption parity**: deleteCell runs fixLeafParent first — a
+  non-root node's %_parent row is mandatory (missing → malformed,
+  rtree8-2.2.2); nodeRowidIndex/nodeParentIndex misses and removeNode-without-
+  parent normalize to `database disk image is malformed` (no internal "rtree:"
+  texts leak). Root (iNode==1) legitimately has no %_parent row.
+- **rtree cursor rowid**: cursors exposing a native rowid MUST implement
+  vtab.RowidCursor.Rowid() or execdml's DELETE/UPDATE row maps see rowid=NULL
+  and silently match nothing (rtreeJ-1.9). Note execVTabUpdate consults
+  ridCur only when the vtab implements RowidConflictWriter — UPDATE-by-rowid
+  on rtree needs that interface (or an execdml change), DELETE works via
+  RowidCursor alone.
+- **sqlite3_value_int64 semantics for rtree rowids** (TEXT and BLOB alike):
+  sqlite3Atoi64 — leading space, sign, leading zeros, digits to first
+  non-digit, saturating (X'313233'='123' → 123, '1e3' → 1, '4xxx' → 4).
+  NOT float parsing (rtreeNumericPrefix) — that is only correct for
+  sqlite3_value_double domains (coordinates, constraint values).
+- **float32 coordinates round DIRECTIONALLY** (rtree.c rtreeValueDown/Up with
+  RNDTOWARDS/RNDAWAY = 1∓1/8388608): min (even) coords round down, max (odd)
+  round up, and the min>max constraint is checked AFTER rounding so it sees
+  the stored values (rtreedoc-7.2: ±1e12/1e13 land on 1000000126976-class ulps).
+- **rtree bulk-INSERT perf (unfixed, execdml-owned)**: 10k-row INSERT..SELECT
+  with 1 aux ≈ 90s (42s in the aux UPDATE machinery + ~42s in the mapping
+  INSERT/UPSERT machinery + splits) — generic execdml per-cell work
+  (conflictSeenKey regexp parses of CREATE SQL), documented in the geometry
+  diagnosis §5; needs execdml hoisting/caching, not vtab changes.
+- **testgen is a moving target under parallel agents**: baseline a failure
+  against a FRESH worktree at HEAD before attributing it to your change
+  (rtreedoc's regenerated file exposed 13+ pre-existing gaps that only RUN
+  once earlier aborts are fixed — newly-reached ≠ regression).

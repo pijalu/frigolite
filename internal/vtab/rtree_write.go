@@ -5,6 +5,8 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 // RTREE_MINCELLS returns the minimum cell count for a non-root node, following
@@ -173,6 +175,8 @@ func (v *rtreeVTab[T]) ChooseLeaf(cell *RtreeCell[T], iHeight int) (*rtreeNode[T
 }
 
 // nodeParentIndex returns the index of the cell in parent whose rowid is iNode.
+// rtree.c's nodeParentIndex routes through nodeRowidIndex (rtree.c:2336), so a
+// miss is SQLITE_CORRUPT_VTAB — normalize to the generic malformed text.
 func (v *rtreeVTab[T]) nodeParentIndex(parent *rtreeNode[T], iNode int64) (int, error) {
 	nCell := parent.nCell()
 	for ii := 0; ii < nCell; ii++ {
@@ -180,7 +184,7 @@ func (v *rtreeVTab[T]) nodeParentIndex(parent *rtreeNode[T], iNode int64) (int, 
 			return ii, nil
 		}
 	}
-	return -1, fmt.Errorf("rtree: parent index not found")
+	return -1, errCapitalized{"database disk image is malformed"}
 }
 
 // AdjustTree propagates cell's bounding box up the ancestor chain.
@@ -429,7 +433,9 @@ func (v *rtreeVTab[T]) updateMapping(iRowid int64, node *rtreeNode[T], iHeight i
 
 // rtreeInsertCell inserts cell into node (a subtree iHeight high). If node is
 // full it triggers a SplitNode; otherwise it adjusts ancestry and writes the
-// rowid/parent mapping for the inserted cell.
+// rowid/parent mapping for the inserted cell. Auxiliary-column persistence is
+// the caller's job: rtree.c steps pWriteAux in rtreeUpdate AFTER
+// rtreeInsertCell returns, split or not.
 func (v *rtreeVTab[T]) rtreeInsertCell(node *rtreeNode[T], cell *RtreeCell[T], iHeight int) error {
 	if node.nCell() >= v.maxCells() {
 		return v.SplitNode(node, cell, iHeight)
@@ -439,174 +445,57 @@ func (v *rtreeVTab[T]) rtreeInsertCell(node *rtreeNode[T], cell *RtreeCell[T], i
 		return err
 	}
 	if iHeight == 0 {
-		if err := v.setRowidMapping(cell.iRowid, node.iNode); err != nil {
-			return err
-		}
-		return v.storeAuxColumns(cell.iRowid)
+		return v.setRowidMapping(cell.iRowid, node.iNode)
 	}
 	return v.setParent(cell.iRowid, node.iNode)
 }
 
-// ---- deletion ----
-
-func (v *rtreeVTab[T]) nodeRowidIndex(node *rtreeNode[T], iRowid int64) (int, error) {
-	nCell := node.nCell()
-	for ii := 0; ii < nCell; ii++ {
-		if v.nodeGetRowid(node, ii) == iRowid {
-			return ii, nil
-		}
-	}
-	return -1, fmt.Errorf("rtree: rowid not found in node")
-}
-
-// findLeafNode returns the leaf node currently holding iRowid's entry.
-func (v *rtreeVTab[T]) findLeafNode(iRowid int64) (*rtreeNode[T], error) {
-	nodeNo, ok, err := v.getRowidNode(iRowid)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("rtree: rowid %d not found", iRowid)
-	}
-	return v.nodeAcquire(nodeNo)
-}
-
-// deleteCell removes cell iCell from node and fixes the tree (remove underfull
-// nodes, else tighten the parent bounding box).
-func (v *rtreeVTab[T]) deleteCell(node *rtreeNode[T], iCell, iHeight int) error {
-	v.nodeDeleteCell(node, iCell)
-	par, ok, err := v.getParent(node.iNode)
-	if err != nil || !ok {
-		return err
-	}
-	parent, err := v.nodeAcquire(par)
-	if err != nil {
-		return err
-	}
-	defer v.nodeRelease(parent)
-	if node.nCell() < v.minCells() {
-		return v.removeNode(node, iHeight)
-	}
-	return v.fixBoundingBox(node)
-}
-
-// removeNode pulls node out of the tree (deleting its parent cell, cascading if
-// the parent also becomes underfull) and schedules its content for reinsertion.
-func (v *rtreeVTab[T]) removeNode(node *rtreeNode[T], iHeight int) error {
-	par, ok, err := v.getParent(node.iNode)
-	if err != nil || !ok {
-		return fmt.Errorf("rtree: cannot remove root node")
-	}
-	parent, err := v.nodeAcquire(par)
-	if err != nil {
-		return err
-	}
-	iCell, err := v.nodeParentIndex(parent, node.iNode)
-	if err != nil {
-		v.nodeRelease(parent)
-		return err
-	}
-	if err := v.deleteCell(parent, iCell, iHeight+1); err != nil {
-		v.nodeRelease(parent)
-		return err
-	}
-	v.nodeRelease(parent)
-
-	if _, err := v.module.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE nodeno=%d", v.shadow("node"), node.iNode)); err != nil {
-		return err
-	}
-	if err := v.delParent(node.iNode); err != nil {
-		return err
-	}
-	// Repurpose iNode to carry the subtree height for reinsertion; mark dead so
-	// nodeFlush never persists this in-memory copy.
-	node.dead = true
-	node.iNode = int64(iHeight)
-	node.parent = v.deleted
-	v.deleted = node
-	return nil
-}
-
-// reinsertNodeContent re-inserts every cell of a removed node into the tree.
-func (v *rtreeVTab[T]) reinsertNodeContent(node *rtreeNode[T]) error {
-	nCell := node.nCell()
-	height := int(node.iNode)
-	for i := 0; i < nCell; i++ {
-		cell := v.nodeGetCell(node, i)
-		pInsert, err := v.ChooseLeaf(&cell, height)
-		if err != nil {
-			return err
-		}
-		if err := v.rtreeInsertCell(pInsert, &cell, height); err != nil {
-			v.nodeRelease(pInsert)
-			return err
-		}
-		v.nodeRelease(pInsert)
-	}
-	return nil
-}
-
-// rtreeDeleteRowid removes the entry iDelete from the r-tree and rebalances the
-// tree (mirrors rtree.c rtreeDeleteRowid).
-func (v *rtreeVTab[T]) rtreeDeleteRowid(iDelete int64) error {
-	root, err := v.rootAcquire()
-	if err != nil {
-		return err
-	}
-	defer v.nodeRelease(root)
-
-	leaf, err := v.findLeafNode(iDelete)
-	if err != nil {
-		return err
-	}
-	iCell, err := v.nodeRowidIndex(leaf, iDelete)
-	if err != nil {
-		v.nodeRelease(leaf)
-		return err
-	}
-	if err := v.deleteCell(leaf, iCell, 0); err != nil {
-		v.nodeRelease(leaf)
-		return err
-	}
-	v.nodeRelease(leaf)
-
-	if err := v.delRowidMapping(iDelete); err != nil {
-		return err
-	}
-
-	// Shrink the tree height when the root has a single child.
-	if v.iDepth > 0 && root.nCell() == 1 {
-		childNo := v.nodeGetRowid(root, 0)
-		child, err := v.nodeAcquire(childNo)
-		if err != nil {
-			return err
-		}
-		if err := v.removeNode(child, v.iDepth-1); err != nil {
-			v.nodeRelease(child)
-			return err
-		}
-		v.nodeRelease(child)
-		v.iDepth--
-		root.setDepth(v.iDepth)
-		root.dirty = true
-	}
-
-	for p := v.deleted; p != nil; {
-		next := p.parent
-		if err := v.reinsertNodeContent(p); err != nil {
-			return err
-		}
-		p = next
-	}
-	v.deleted = nil
-	return nil
-}
+// ---- deletion (rtree_delete.go) ----
 
 // ---- RowUpdater (xUpdate) ----
 
+// rtreeAtoi64 parses a leading decimal integer with sqlite3Atoi64 semantics
+// (util.c), which is what sqlite3_value_int64 applies to TEXT and BLOB
+// operands: leading whitespace skipped, optional sign, leading zeros skipped,
+// digits accumulated up to the first non-digit, saturation at the int64
+// bounds, no digits → 0 ('123' → 123, '12x' → 12, '1e3' → 1, 'six' → 0).
+func rtreeAtoi64(s string) int64 {
+	i := 0
+	for i < len(s) && (s[i] == ' ' || s[i] == '\t' || s[i] == '\n' || s[i] == '\r' || s[i] == '\v' || s[i] == '\f') {
+		i++
+	}
+	neg := false
+	if i < len(s) && (s[i] == '-' || s[i] == '+') {
+		neg = s[i] == '-'
+		i++
+	}
+	for i < len(s) && s[i] == '0' {
+		i++
+	}
+	var u uint64
+	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+		u = u*10 + uint64(s[i]-'0')
+		i++
+	}
+	const largest = uint64(1)<<63 - 1
+	switch {
+	case u > largest:
+		if neg {
+			return math.MinInt64
+		}
+		return math.MaxInt64
+	case neg:
+		return -int64(u)
+	default:
+		return int64(u)
+	}
+}
+
 // rtreeRowidFromValues extracts the rowid column value (column 0) as int64,
-// applying SQLite's coercion: REAL truncates toward zero, TEXT contributes its
-// numeric prefix ('4xxx' → 4, 'six' → 0 → auto-assign), NULL/other → 0.
+// applying sqlite3_value_int64 semantics (rtree.c rtreeUpdate reads argv[2]
+// with sqlite3_value_int64 regardless of storage class): REAL truncates toward
+// zero, TEXT and BLOB contribute their decimal-digit prefix via rtreeAtoi64
+// (X'313233' = '123' → 123, rtreedoc-4.5.2), NULL/other → 0.
 //
 // The zero result doubles as the auto-assign marker on the INSERT path only;
 // delete/update paths must use rtreeRequiredRowid because rowid 0 is a legal
@@ -621,7 +510,11 @@ func rtreeRowidFromValues(values []interface{}) int64 {
 	case float64:
 		return int64(x)
 	case string:
-		return int64(rtreeNumericPrefix(x))
+		return rtreeAtoi64(x)
+	case []byte:
+		return rtreeAtoi64(string(x))
+	case value.ZeroBlob:
+		return rtreeAtoi64(string(x.Bytes()))
 	}
 	return 0
 }
@@ -653,13 +546,17 @@ func (v *rtreeVTab[T]) buildCellFromValues(values []interface{}) (int64, bool, R
 	}
 	cell.aCoord = make([]T, v.nDim2)
 	for i := 0; i < v.nDim2; i += 2 {
-		lo := toCoord[T](values[1+i])
-		hi := toCoord[T](values[1+i+1])
+		// rtree.c rtreeUpdate: convert BOTH bounds first — rtreeValueDown for
+		// the min (even) coordinate, rtreeValueUp for the max (odd) one on
+		// float32 tables (rtree.c:3149-3155) — and compare only AFTER
+		// rounding, so the constraint sees the values as they will be stored.
+		lo := toCoord[T](values[1+i], false)
+		hi := toCoord[T](values[1+i+1], true)
 		if asFloat64(lo) > asFloat64(hi) {
-			// SQLite wording (rtree.c rtreeInsertPoint): "rtree constraint
-			// failed: t1.(x1<=x2)".
+			// SQLite wording (rtree.c rtreeConstraintError, which reads the
+			// DECLARED column names): "rtree constraint failed: t1.(x1<=x2)".
 			return 0, false, cell, fmt.Errorf("rtree constraint failed: %s.(%s<=%s)",
-				v.name, v.columns[1+i], v.columns[1+i+1])
+				v.name, v.declared[1+i], v.declared[1+i+1])
 		}
 		cell.aCoord[i] = lo
 		cell.aCoord[i+1] = hi
@@ -679,7 +576,7 @@ func (v *rtreeVTab[T]) InsertRow(values []interface{}) (int64, error) {
 	}
 	if hasRowid {
 		if _, exists, _ := v.getRowidNode(rowid); exists {
-			return 0, &UniqueConstraintError{Table: v.name, Column: v.columns[0], RowID: rowid}
+			return 0, &UniqueConstraintError{Table: v.name, Column: v.declared[0], RowID: rowid}
 		}
 		cell.iRowid = rowid
 	} else {
@@ -694,12 +591,17 @@ func (v *rtreeVTab[T]) InsertRow(values []interface{}) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	// Aux values are stored AFTER the (possibly splitting) insert, like
+	// rtree.c's pWriteAux step — never inside rtreeInsertCell.
 	v.pendingAux = auxFromValues(values, 1+v.nDim2)
 	if err := v.rtreeInsertCell(leaf, &cell, 0); err != nil {
 		v.nodeRelease(leaf)
 		return 0, err
 	}
 	v.nodeRelease(leaf)
+	if err := v.storeAuxColumns(rowid); err != nil {
+		return 0, err
+	}
 	if err := v.nodeFlush(); err != nil {
 		return 0, err
 	}
@@ -739,7 +641,7 @@ func (v *rtreeVTab[T]) UpdateRow(oldValues, newValues []interface{}) error {
 	if hasRowid {
 		if u := rtreeRowidFromValues(newValues); u != newID {
 			if _, exists, _ := v.getRowidNode(u); exists {
-				return &UniqueConstraintError{Table: v.name, Column: v.columns[0], RowID: u}
+				return &UniqueConstraintError{Table: v.name, Column: v.declared[0], RowID: u}
 			}
 			newID = u
 		}
@@ -759,6 +661,9 @@ func (v *rtreeVTab[T]) UpdateRow(oldValues, newValues []interface{}) error {
 		return err
 	}
 	v.nodeRelease(leaf)
+	if err := v.storeAuxColumns(newID); err != nil {
+		return err
+	}
 	return v.nodeFlush()
 }
 

@@ -151,6 +151,50 @@ func rowidPasses(op string, id int64, value interface{}) bool {
 	return numCompare(op, id, applyColumnAffinity(value, true))
 }
 
+// filterAuxConstraints re-checks constraints pushed on AUXILIARY columns
+// (declared index > nDim2). The core hands them to the sink and omits them
+// from the residual WHERE like every rtree constraint, but an aux column has
+// no coordinates — the comparison must run against the %_rowid value the scan
+// attached. Aux columns are declared without a type, so no affinity is
+// applied (raw comparison, SQL NULL never satisfies a comparison).
+func (v *rtreeVTab[T]) filterAuxConstraints(rows [][]interface{}, constraints []rtreeConstraint[T]) [][]interface{} {
+	var aux []rtreeConstraint[T]
+	for _, con := range constraints {
+		if con.col > v.nDim2 {
+			aux = append(aux, con)
+		}
+	}
+	if len(aux) == 0 {
+		return rows
+	}
+	out := rows[:0]
+	for _, row := range rows {
+		if v.rowPassesAux(row, aux) {
+			out = append(out, row)
+		}
+	}
+	return out
+}
+
+// rowPassesAux reports whether one row's attached aux values satisfy every
+// aux-column constraint.
+func (v *rtreeVTab[T]) rowPassesAux(row []interface{}, aux []rtreeConstraint[T]) bool {
+	for _, con := range aux {
+		cell := 1 + v.nDim2 + (con.col - v.nDim2 - 1)
+		var val interface{}
+		if cell < len(row) {
+			val = row[cell]
+		}
+		if val == nil {
+			return false
+		}
+		if !numCompare(con.op, val, con.value) {
+			return false
+		}
+	}
+	return true
+}
+
 // ---- filtered scan (priority-ordered MBR descent) ----
 
 // scanDataRowsFiltered walks the tree depth-first honoring the pushed
