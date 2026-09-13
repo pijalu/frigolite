@@ -74,6 +74,10 @@ func (e *Engine) registerVTabModules() {
 	// resolved through the Database handle.
 	e.vtabs.Register("sqlite_dbdata", vtab.NewDBDataModule(enginePageSources{e: e}, e.Database()))
 	e.vtabs.Register("sqlite_dbptr", vtab.NewDBPtrModule(enginePageSources{e: e}, e.Database()))
+	// dbstat (src/dbstat.c): one row per b-tree page (plus per-btree
+	// aggregates via the hidden aggregate= column); pages come from this
+	// connection's pagers, the b-tree set from sqlite_schema.
+	e.vtabs.Register("dbstat", vtab.NewDBStatModule(enginePageSources{e: e}, e.Database()))
 	// rtree / rtree_i32 (ext/rtree/rtree.c): R-tree B+tree over shadow tables.
 	// Bound to this connection's Database handle so the module can create/read its
 	// shadow tables and register its SQL functions (rtreenode/rtreedepth/...).

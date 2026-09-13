@@ -181,7 +181,6 @@ func (r *Registry) RegisterDefaults() {
 	r.Register("fts4", &NoopModule{ModuleName: "fts4"})
 	r.Register("fts5", &NoopModule{ModuleName: "fts5"})
 	r.Register("fts4aux", &NoopModule{ModuleName: "fts4aux"})
-	r.Register("dbstat", &NoopModule{ModuleName: "dbstat"})
 	r.Register("zipfile", NewZipfileModule())
 	r.Register("fsdir", NewFsdirModule())
 	r.Register("fstree", NewFsTreeModule())
