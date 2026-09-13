@@ -152,7 +152,10 @@ func (t *Table) loadConfigValues() error {
 }
 
 // flushShadowIndex rewrites the %_data id=11 block with the serialized token
-// streams (sqlite3Fts5StorageSync's persistence point).
+// streams (sqlite3Fts5StorageSync's persistence point). The payload honors
+// the detail mode — C's detail=none persists no positions and detail=column
+// no offsets — so coarser tables persist strictly smaller blocks
+// (fts5detail 5.2/5.3's block-size ordering).
 func (t *Table) flushShadowIndex() error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
 	var payload bytes.Buffer
@@ -160,7 +163,7 @@ func (t *Table) flushShadowIndex() error {
 	blob := indexBlob{Docs: make([]blobDoc, 0)}
 	for _, rowid := range t.ix.SortedRowids() {
 		doc := t.ix.Doc(rowid)
-		blob.Docs = append(blob.Docs, blobDoc{Rowid: rowid, Cols: doc.cols})
+		blob.Docs = append(blob.Docs, blobDoc{Rowid: rowid, Cols: detailCols(t.cfg.Detail, doc.cols)})
 	}
 	if err := gob.NewEncoder(&payload).Encode(blob); err != nil {
 		return err
@@ -169,6 +172,30 @@ func (t *Table) flushShadowIndex() error {
 	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=11; INSERT INTO %s(id, block) VALUES(11, X'%s');",
 		qData, qData, hexed))
 	return err
+}
+
+// detailCols reduces a document's token streams to the detail mode's
+// persistence level: detail=none drops them entirely; detail=column keeps
+// each column's distinct terms (positions are not persisted).
+func detailCols(detail DetailMode, cols [][]string) [][]string {
+	switch detail {
+	case DetailNone:
+		return nil
+	case DetailColumns:
+		out := make([][]string, len(cols))
+		for c, tokens := range cols {
+			seen := make(map[string]bool, len(tokens))
+			for _, tok := range tokens {
+				if seen[tok] {
+					continue
+				}
+				seen[tok] = true
+				out[c] = append(out[c], tok)
+			}
+		}
+		return out
+	}
+	return cols
 }
 
 // loadFromShadow rebuilds the in-memory index from the shadow tables
@@ -209,7 +236,14 @@ func (t *Table) loadFromShadow() error {
 		if stored, ok := t.contentValues[bd.Rowid]; ok {
 			values = stored
 		}
-		t.ix.AddDoc(bd.Rowid, values, bd.Cols)
+		cols := bd.Cols
+		// A detail=none blob stores no token streams; a normal-content table
+		// rebuilds them from %_content so single-term MATCH keeps working
+		// after a reopen (C's detail=none segments keep the term rowids).
+		if t.cfg.Detail == DetailNone && cols == nil && len(values) > 0 {
+			cols = t.tokenizeValues(values)
+		}
+		t.ix.AddDoc(bd.Rowid, values, cols)
 		t.noteRowid(bd.Rowid)
 	}
 	if os.Getenv("CL_DBG") != "" {

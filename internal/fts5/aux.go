@@ -30,6 +30,9 @@ type AuxQuery struct {
 	root    queryNode
 	phrases []*phraseNode
 	hits    []int
+	// auxdata holds the statement-scoped integer auxdata slots the
+	// test-support functions use (xSetAuxdataInt/xGetAuxdataInt parity).
+	auxdata map[string]int64
 }
 
 // PrepareAux parses a MATCH query for auxiliary-function evaluation. col
@@ -45,6 +48,47 @@ func (t *Table) PrepareAux(query string, col int) (*AuxQuery, error) {
 	return &AuxQuery{t: t, root: node, phrases: phrases, hits: make([]int, len(phrases))}, nil
 }
 
+// AuxConstraint is one MATCH constraint of a statement (the query text plus
+// the user column it is restricted to, -1 for the whole table).
+type AuxConstraint struct {
+	Query string
+	Col   int
+}
+
+// PrepareAuxMulti parses several MATCH constraints into ONE combined aux
+// context (C's xFilter merges every MATCH constraint on the table into a
+// single query expression: the phrases concatenate in constraint order and
+// the combined tree ANDs the constraint nodes with their per-constraint
+// column filters applied).
+func (t *Table) PrepareAuxMulti(constraints []AuxConstraint) (*AuxQuery, error) {
+	if len(constraints) == 1 {
+		return t.PrepareAux(constraints[0].Query, constraints[0].Col)
+	}
+	var kids []queryNode
+	var phrases []*phraseNode
+	for _, c := range constraints {
+		node, phs, err := parseQueryAll(t, c.Query)
+		if err != nil {
+			return nil, err
+		}
+		if c.Col >= 0 {
+			node = applyColset(node, []int{c.Col})
+		}
+		// The phrase idx values are per-parse; renumber to the combined
+		// order so xInst phrase numbers match the merged query.
+		for _, ph := range phs {
+			ph.idx = len(phrases)
+			phrases = append(phrases, ph)
+		}
+		kids = append(kids, node)
+	}
+	combined, err := combineAndNodes(kids)
+	if err != nil {
+		return nil, err
+	}
+	return &AuxQuery{t: t, root: combined, phrases: phrases, hits: make([]int, len(phrases))}, nil
+}
+
 // NewScanAux builds the aux context of a scan without a MATCH constraint: the
 // aux functions see zero instances (C's full-scan cursor: bm25() = -0.0,
 // highlight()/snippet() return the text unchanged).
@@ -55,8 +99,14 @@ func (t *Table) NewScanAux() *AuxQuery {
 // PhraseCount returns the number of phrases in the query (xPhraseCount).
 func (aq *AuxQuery) PhraseCount() int { return len(aq.phrases) }
 
-// PhraseSize returns phrase i's token count (xPhraseSize).
-func (aq *AuxQuery) PhraseSize(i int) int { return aq.phrases[i].size() }
+// PhraseSize returns phrase i's token count, or 0 when i is out of range
+// (xPhraseSize: the out-of-range form is defined to return 0).
+func (aq *AuxQuery) PhraseSize(i int) int {
+	if i < 0 || i >= len(aq.phrases) {
+		return 0
+	}
+	return aq.phrases[i].size()
+}
 
 // RowInstances returns the document's phrase instances in xInst order
 // (column, offset, phrase) with the NEAR/pruning semantics applied.

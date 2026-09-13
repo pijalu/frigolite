@@ -36,12 +36,24 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 }
 
 // evalAggCallArgs evaluates the arguments of an aggregate function call for a
-// single row, unwrapping column values and substituting nil on error.
+// single row, unwrapping column values and substituting nil on error. Each
+// argument evaluates inside an aggregate-argument marker (C resolves
+// aggregate arguments to TK_AGG_COLUMN, which the fts5 aux overload rewrite
+// does not match), so aux calls inside aggregate arguments fail with the
+// placeholder error.
 func (e *SelectEngine) evalAggCallArgs(fn *sql.FuncCall, row RowMap) []interface{} {
 	args := make([]interface{}, len(fn.Args))
 	for i, arg := range fn.Args {
+		restore := e.ctx.EnterAuxAggArg()
 		v, err := e.ctx.EvalExpr(arg, row)
+		restore()
 		if err != nil {
+			// An fts5 aux failure inside an aggregate argument aborts the
+			// statement (the overload placeholder error propagates; C's aux
+			// callback returns SQLITE_ERROR from inside the aggregate step).
+			if fc, isFC := arg.(*sql.FuncCall); isFC && execexpr.IsFTS5AuxFunc(fc.Name) {
+				e.aggPendingErr = err
+			}
 			args[i] = nil
 		} else {
 			// Mirror evalFuncArgs: peel both ColumnValue affinity wrappers

@@ -117,7 +117,9 @@ func newUnicode61(args []string) (Tokenizer, error) {
 
 // parseCategories parses a category specification like "L* N* Co"
 // (unicodeSetCategories): whitespace-separated two-letter codes, a trailing
-// '*' meaning the whole one-letter family. Unknown codes fail.
+// '*' meaning the whole one-letter family. Unknown codes fail. A
+// whitespace-only specification parses zero words and leaves the category
+// set unchanged (nil return).
 func parseCategories(spec string) ([]*unicode.RangeTable, error) {
 	var tables []*unicode.RangeTable
 	for _, word := range strings.Fields(spec) {
@@ -132,9 +134,6 @@ func parseCategories(spec string) ([]*unicode.RangeTable, error) {
 			return nil, tokenizerArgError()
 		}
 		tables = append(tables, tbl)
-	}
-	if len(tables) == 0 {
-		return nil, tokenizerArgError()
 	}
 	return tables, nil
 }
@@ -168,8 +167,13 @@ func (t *unicode61Tokenizer) isCategory(r rune) bool {
 }
 
 // isAlnum reports whether r is a token character (fts5UnicodeIsAlnum):
-// category match XOR exception.
+// category match XOR exception. Codepoint 0x00 is always a separator
+// (fts5_unicode2.c sqlite3Fts5UnicodeAscii: "0x00 is never a token
+// character"), even when Cc joins the category set.
 func (t *unicode61Tokenizer) isAlnum(r rune) bool {
+	if r == 0 {
+		return false
+	}
 	alarm := t.isCategory(r)
 	if t.exceptions[r] {
 		return !alarm
@@ -235,17 +239,49 @@ func (t *unicode61Tokenizer) Tokenize(text string) []Token {
 
 // asciiTokenizer ports fts5's ascii tokenizer (fts5_tokenize.c
 // fts5AsciiTokenize): a token is a run of ASCII alphanumeric or underscore
-// bytes; A-Z are lowercased, all other bytes are separators.
-type asciiTokenizer struct{}
-
-func newASCIITokenizer(args []string) (Tokenizer, error) {
-	if len(args) != 0 {
-		return nil, tokenizerArgError()
-	}
-	return asciiTokenizer{}, nil
+// bytes; A-Z are lowercased, all other bytes are separators. The
+// tokenchars=/separators= options invert the token-byte decision per byte
+// (fts5AsciiAddExceptions).
+type asciiTokenizer struct {
+	// exceptions inverts the default token-byte decision per ASCII byte.
+	exceptions map[byte]bool
 }
 
-func (asciiTokenizer) isTok(b byte) bool {
+func newASCIITokenizer(args []string) (Tokenizer, error) {
+	t := &asciiTokenizer{}
+	for i := 0; i < len(args); i += 2 {
+		if i+1 >= len(args) {
+			return nil, tokenizerArgError()
+		}
+		bTokenChars := false
+		switch strings.ToLower(args[i]) {
+		case "tokenchars":
+			bTokenChars = true
+		case "separators":
+		default:
+			return nil, tokenizerArgError()
+		}
+		if t.exceptions == nil {
+			t.exceptions = make(map[byte]bool)
+		}
+		for j := 0; j < len(args[i+1]); j++ {
+			b := args[i+1][j]
+			if b < 128 {
+				t.exceptions[b] = bTokenChars
+			}
+		}
+	}
+	return t, nil
+}
+
+// isTok reports whether b is a token byte, honoring the per-byte exceptions
+// (fts5AsciiAddExceptions's aTokenChar inversions).
+func (t *asciiTokenizer) isTok(b byte) bool {
+	if t.exceptions != nil {
+		if invert, set := t.exceptions[b]; set {
+			return invert
+		}
+	}
 	return b == '_' ||
 		(b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')
 }

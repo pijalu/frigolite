@@ -142,6 +142,21 @@ func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
 			return res, true
 		}
 	}
+	// A FROM term that names a CREATED virtual table (CREATE VIRTUAL TABLE
+	// entry): the arguments bind to the leftmost HIDDEN columns as equality
+	// constraints (SQLite's vtab TVF form, e.g. FROM fts5tokenize-t('text')).
+	if s.From.IsTabFunc && len(s.From.Args) > 0 {
+		opts := e.vtabScanOptions(s)
+		residual := opts.Where
+		opts.Residual = &residual
+		defs, rows, rowids, err, handled := e.ctx.MaterializeCreatedVTabFunc(s.From, opts)
+		if handled {
+			if err != nil {
+				return &Result{Error: err}, true
+			}
+			return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids), true
+		}
+	}
 	if s.From.IsTabFunc && !isPragmaTableFunc(s.From.Name) {
 		if _, isModule := e.ctx.VTables().Find(strings.ToLower(s.From.Name)); !isModule {
 			if e.relationExists(s, s.From.Name) {

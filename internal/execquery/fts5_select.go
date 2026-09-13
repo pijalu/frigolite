@@ -19,7 +19,7 @@ import (
 // constraint drives the scan universe from the index (xFilter parity), so
 // index-only documents of external-content tables are visible.
 func (e *SelectEngine) execFTS5Select(s *sql.SelectStmt, t5 *fts5.Table, colDefs []sql.ColumnDef) *Result {
-	hasMatch := statementHasFTS5Match(s, t5.Name())
+	hasMatch := statementHasFTS5Match(s, t5)
 	override, hasOverride, err := e.fts5RankOverride(s.Where)
 	if err != nil {
 		return &Result{Error: err}
@@ -42,24 +42,45 @@ func (e *SelectEngine) execFTS5Select(s *sql.SelectStmt, t5 *fts5.Table, colDefs
 }
 
 // fts5PrepareAux parses the statement's MATCH constraint query for the
-// auxiliary-function context. The universe evaluation re-parses (memoized by
-// the table's match cache), matching C's per-cursor single parse closely
-// enough for observation.
+// auxiliary-function context. Every MATCH conjunct on the table merges into
+// ONE combined query (C's xFilter receives the merged expression), so the
+// aux context sees every phrase. The universe evaluation re-parses
+// (memoized by the table's match cache), matching C's per-cursor single
+// parse closely enough for observation.
 func (e *SelectEngine) fts5PrepareAux(where sql.Expr, t5 *fts5.Table, hasMatch bool) (*fts5.AuxQuery, error) {
 	if !hasMatch {
 		return t5.NewScanAux(), nil
 	}
-	q, col, ok := e.firstFTS5MatchConstraint(where, t5)
-	if !ok {
+	var constraints []fts5.AuxConstraint
+	for _, conjunct := range fts5TopLevelConjuncts(where) {
+		bop, ok := conjunct.(*sql.BinaryOp)
+		if !ok || bop.Operator != "MATCH" {
+			continue
+		}
+		col, applies := fts5MatchConstraintColumn(bop.Left, t5)
+		if !applies {
+			continue
+		}
+		qv, err := e.ctx.EvalExpr(bop.Right, nil)
+		if err != nil {
+			return nil, err
+		}
+		q, ok := util.UnwrapColumnValue(qv).(string)
+		if !ok {
+			continue
+		}
+		// A special query ('*reads'/'*id' — fts5SpecialMatch) never reaches
+		// the expression parser: xFilter dispatches it before the aux
+		// context is built, and aux functions see zero instances.
+		if strings.HasPrefix(q, "*") {
+			return t5.NewScanAux(), nil
+		}
+		constraints = append(constraints, fts5.AuxConstraint{Query: q, Col: col})
+	}
+	if len(constraints) == 0 {
 		return t5.NewScanAux(), nil
 	}
-	// A special query ('*reads'/'*id' — fts5SpecialMatch) never reaches the
-	// expression parser: xFilter dispatches it before the aux context is
-	// built, and aux functions see zero instances.
-	if strings.HasPrefix(q, "*") {
-		return t5.NewScanAux(), nil
-	}
-	return t5.PrepareAux(q, col)
+	return t5.PrepareAuxMulti(constraints)
 }
 
 // firstFTS5MatchConstraint extracts the first MATCH conjunct's query string
@@ -413,14 +434,15 @@ func fts5ColDefs(t5 *fts5.Table) []sql.ColumnDef {
 }
 
 // statementHasFTS5Match reports whether the statement's WHERE contains a
-// MATCH constraint against the given fts5 table.
-func statementHasFTS5Match(s *sql.SelectStmt, tableName string) bool {
-	return walkForFTS5Match(s.Where, tableName)
+// MATCH constraint against the given fts5 table (the table-name reference or
+// any of the table's user columns).
+func statementHasFTS5Match(s *sql.SelectStmt, t5 *fts5.Table) bool {
+	return walkForFTS5Match(s.Where, t5)
 }
 
 // walkForFTS5Match walks expressions for MATCH ops whose left operand
-// references the table (bare or qualified).
-func walkForFTS5Match(expr sql.Expr, tableName string) bool {
+// references the table (bare, qualified or a user column of it).
+func walkForFTS5Match(expr sql.Expr, t5 *fts5.Table) bool {
 	if expr == nil {
 		return false
 	}
@@ -428,16 +450,21 @@ func walkForFTS5Match(expr sql.Expr, tableName string) bool {
 	case *sql.BinaryOp:
 		if n.Operator == "MATCH" {
 			if ref, ok := n.Left.(*sql.ColumnRef); ok {
-				if strings.EqualFold(ref.Name, tableName) || strings.EqualFold(ref.Table, tableName) {
+				if strings.EqualFold(ref.Name, t5.Name()) || strings.EqualFold(ref.Table, t5.Name()) {
+					return true
+				}
+				// A column-restricted MATCH (a MATCH 'x') is a table
+				// constraint too (fts5MatchConstraintColumn's col resolution).
+				if t5.ColumnIndex(ref.Name) >= 0 {
 					return true
 				}
 			}
 		}
-		if walkForFTS5Match(n.Left, tableName) || walkForFTS5Match(n.Right, tableName) {
+		if walkForFTS5Match(n.Left, t5) || walkForFTS5Match(n.Right, t5) {
 			return true
 		}
 	case *sql.UnaryOp:
-		return walkForFTS5Match(n.Operand, tableName)
+		return walkForFTS5Match(n.Operand, t5)
 	}
 	return false
 }

@@ -80,6 +80,10 @@ type SelectContext interface {
 	// the current fts5 SELECT (bm25/highlight/snippet evaluation).
 	SetFTS5Aux(table string, aq *fts5.AuxQuery)
 	ClearFTS5Aux()
+	// EnterAuxAggArg marks one aggregate-argument evaluation as in flight
+	// (C's TK_AGG_COLUMN: fts5 aux overloads do not apply there); the
+	// returned function restores the previous depth.
+	EnterAuxAggArg() func()
 	Expr() *execexpr.Evaluator
 	// ColumnLimit returns the runtime SQLITE_LIMIT_COLUMN value (used by
 	// CREATE TABLE column counts and ORDER BY/GROUP BY term counts).
@@ -144,6 +148,11 @@ type SelectContext interface {
 	// rows for SELECT (RootPage 0 + stored SQL naming a registered module,
 	// e.g. csv). ok is false when the name is not such a table.
 	MaterializeCreatedVTab(name string, opts VtabScanOptions) (colDefs []sql.ColumnDef, rows [][]interface{}, rowids []int64, err error, ok bool)
+	// MaterializeCreatedVTabFunc materializes a FROM <created-vtab>(args...)
+	// reference: each argument binds to the next HIDDEN column as an
+	// equality constraint (SQLite's vtab table-valued form). ok is false
+	// when the name is not a created vtab.
+	MaterializeCreatedVTabFunc(ref sql.TableRef, opts VtabScanOptions) (colDefs []sql.ColumnDef, rows [][]interface{}, rowids []int64, err error, ok bool)
 	// VtabPlanInstance resolves a created virtual table (CREATE VIRTUAL TABLE
 	// schema entry, RootPage 0) to a representative instance plus its declared
 	// column names, for prepare-time xBestIndex calls (EQP parity,

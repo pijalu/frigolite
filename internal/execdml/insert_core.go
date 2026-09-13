@@ -36,7 +36,7 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 	if _, isFTS5 := e.ctx.FTS5Tables()[tableEntry.Name]; isFTS5 {
 		defer func() {
 			if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil {
-				if ferr := t5.FlushShadowIfDirty(); ferr != nil && (ret == nil || ret.Error == nil) {
+				if ferr := e.flushFTS5Shadow(t5); ferr != nil && (ret == nil || ret.Error == nil) {
 					ret = &Result{Error: ferr}
 				}
 			}

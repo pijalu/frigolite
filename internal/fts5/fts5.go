@@ -40,17 +40,18 @@ func (m *Module) Create(args []string) (vtab.VirtualTable, error) {
 	return m.Connect(args)
 }
 
-// Connect implements vtab.Module (xConnect shares xCreate's parsing).
+// Connect implements vtab.Module (xConnect shares xCreate's parsing). A
+// tokenizer-resolution failure is DEFERRED to BindSchema, which decides the
+// message: a CREATE reports C's specific text ("no such tokenizer: ..."), a
+// reopen of an existing (corrupted-config) table reports the generic
+// SQLITE_ERROR text the aux path pins (fts5aux.test 13.4).
 func (m *Module) Connect(args []string) (vtab.VirtualTable, error) {
 	cfg, err := ParseConfig("", args)
 	if err != nil {
 		return nil, err
 	}
-	tok, err := tableTokenizer(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &vtabInstance{mod: m, cfg: cfg, tok: tok}, nil
+	tok, tokErr := tableTokenizer(cfg)
+	return &vtabInstance{mod: m, cfg: cfg, tok: tok, tokErr: tokErr}, nil
 }
 
 // Bind completes a CREATE: the name-dependent checks run, the shadow family
@@ -93,6 +94,18 @@ func (m *Module) Bind(dbName, tableName string, cfg *Config, tok Tokenizer) (*Ta
 	t.ix = NewInvertedIndex(len(cfg.Columns))
 	m.tables[strings.ToLower(tableName)] = t
 	return t, nil
+}
+
+// familyExists reports whether a table's shadow family is already in the
+// schema (the %_data table is present for every fts5 configuration).
+func (m *Module) familyExists(dbName, tableName string) bool {
+	rows, err := m.db.ExecSQL(fmt.Sprintf(
+		"SELECT 1 FROM %s WHERE type='table' AND name=%s",
+		qual(dbName, "sqlite_schema"), sqlLiteral(tableName+"_data")))
+	if err != nil {
+		return false
+	}
+	return len(rows) > 0
 }
 
 // familyExists reports whether this table's shadow family is already in the
@@ -170,9 +183,10 @@ func checkTableName(name string) error {
 // machinery (fts5_main.c Fts5Table). Scans and writes take the engine's
 // dedicated fts5 paths, so Open serves no rows.
 type vtabInstance struct {
-	mod *Module
-	cfg *Config
-	tok Tokenizer
+	mod    *Module
+	cfg    *Config
+	tok    Tokenizer
+	tokErr error // deferred tokenizer-resolution failure (surfaced at BindSchema)
 }
 
 // BestIndex implements vtab.VirtualTable (fts5BestIndexMethod accepts every
@@ -193,6 +207,15 @@ func (emptyCursor) Close() error                    { return nil }
 // name complete the CREATE (name checks, shadow-table creation, persistent
 // registration). An error aborts the owning CREATE statement.
 func (v *vtabInstance) BindSchema(dbName, tableName string) error {
+	if v.tokErr != nil {
+		// A shadow family already in the schema means this bind is a REOPEN
+		// of a table whose stored config names an unresolvable tokenizer:
+		// C's xConnect failure carries no message there (SQLITE_ERROR).
+		if v.mod.familyExists(dbName, tableName) {
+			return fmt.Errorf("SQL logic error")
+		}
+		return v.tokErr
+	}
 	if err := checkTableName(tableName); err != nil {
 		return err
 	}
@@ -213,6 +236,9 @@ type Table struct {
 	// version bumps on every index mutation, invalidating the match cache.
 	version uint64
 	cache   *matchCacheEntry
+	// shadowDirty records pending %_data blob writes (flushed at the
+	// statement boundary by FlushShadowIfDirty).
+	shadowDirty bool
 	// maxRowid tracks the largest allocated rowid for auto rowid allocation.
 	maxRowid int64
 }
@@ -303,7 +329,8 @@ func (t *Table) Insert(rowid int64, values []interface{}) error {
 	if err := t.insertDocsizeRow(rowid); err != nil {
 		return err
 	}
-	return t.flushShadowIndex()
+	t.markShadowDirty()
+	return nil
 }
 
 // Delete removes a document (fts5StorageDelete). It reports whether the
@@ -320,7 +347,23 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 	if err := t.deleteDocsizeRow(rowid); err != nil {
 		return true, err
 	}
-	return true, t.flushShadowIndex()
+	t.markShadowDirty()
+	return true, nil
+}
+
+// markShadowDirty records that the in-memory index has diverged from the
+// %_data id=11 blob (the pending-terms state; C flushes pending terms at
+// sync points, i.e. statement ends).
+func (t *Table) markShadowDirty() { t.shadowDirty = true }
+
+// FlushShadowIfDirty persists the index blob when the index changed since
+// the last flush (sqlite3Fts5StorageSync at the statement boundary).
+func (t *Table) FlushShadowIfDirty() error {
+	if !t.shadowDirty {
+		return nil
+	}
+	t.shadowDirty = false
+	return t.flushShadowIndex()
 }
 
 // DeleteAll clears the whole index (the 'delete-all' special command and a
@@ -375,7 +418,7 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		_, err := t.Delete(rowid)
 		return true, err
 	case "rebuild":
-		if t.cfg.EContent != ContentExternal {
+		if t.cfg.Contentless() {
 			return true, fmt.Errorf("'rebuild' cannot be used with a contentless fts5 table")
 		}
 		return true, t.rebuild()
@@ -443,15 +486,31 @@ func badConfigValue(cmd string, v int64) bool {
 // rebuild re-indexes every external content row (fts5StorageRebuild).
 func (t *Table) rebuild() error {
 	defer t.bumpVersion()
-	rowids, values, err := t.scanExternal()
-	if err != nil {
-		return err
+	type doc struct {
+		rowid  int64
+		values []interface{}
+	}
+	var docs []doc
+	if t.cfg.EContent == ContentExternal {
+		rowids, values, err := t.scanExternal()
+		if err != nil {
+			return err
+		}
+		for i, rowid := range rowids {
+			docs = append(docs, doc{rowid: rowid, values: values[i]})
+		}
+	} else {
+		// Normal content re-reads the stored %_content mirror
+		// (fts5StorageRebuild scans %_content for content= tables).
+		for _, rowid := range t.ix.SortedRowids() {
+			docs = append(docs, doc{rowid: rowid, values: t.contentValues[rowid]})
+		}
 	}
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
 	t.maxRowid = 0
-	for i, rowid := range rowids {
-		t.ix.AddDoc(rowid, nil, t.tokenizeValues(values[i]))
-		t.noteRowid(rowid)
+	for _, d := range docs {
+		t.ix.AddDoc(d.rowid, nil, t.tokenizeValues(d.values))
+		t.noteRowid(d.rowid)
 	}
 	return t.flushShadowIndex()
 }

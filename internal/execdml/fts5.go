@@ -15,6 +15,20 @@ import (
 // shadow IO; these helpers map statement values, enforce the contentless
 // rules and drive rowid allocation.
 
+// flushFTS5Shadow persists the table's pending index blob without disturbing
+// the connection's last_insert_rowid: the %_data id=11 write goes through the
+// SQL layer, which would otherwise clobber lastRowID (C's shadow writes run
+// through the storage API and never touch db->lastRowid — the same
+// preserve-and-restore the FTS3 segment flush applies).
+func (e *DMLExecutor) flushFTS5Shadow(t5 *fts5.Table) error {
+	saved := e.ctx.LastRowID()
+	if err := t5.FlushShadowIfDirty(); err != nil {
+		return err
+	}
+	e.ctx.SetLastRowID(saved)
+	return nil
+}
+
 // fts5UserValues maps an insert's values tuple (indexed by the colDefs order:
 // user columns then the hidden table-name and rank columns) onto the user
 // columns.
@@ -181,7 +195,7 @@ func (e *DMLExecutor) execFTS5Delete(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			deleted++
 		}
 	}
-	if ferr := t5.FlushShadowIfDirty(); ferr != nil {
+	if ferr := e.flushFTS5Shadow(t5); ferr != nil {
 		return &Result{Error: ferr}
 	}
 	return &Result{Changes: deleted}
@@ -275,7 +289,7 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 		}
 		updated++
 	}
-	if ferr := t5.FlushShadowIfDirty(); ferr != nil {
+	if ferr := e.flushFTS5Shadow(t5); ferr != nil {
 		return &Result{Error: ferr}
 	}
 	return &Result{Changes: updated}

@@ -71,6 +71,117 @@ type notNode struct{ l, r queryNode }
 // FTS5DefaultNearDist mirrors FTS5_DEFAULT_NEARDIST.
 const FTS5DefaultNearDist = 10
 
+// maxExprDepth is SQLITE_FTS5_MAX_EXPR_DEPTH: the tallest expression tree
+// the parser accepts (fts5ParseNode's depth guard).
+const maxExprDepth = 256
+
+// ExprDepthError is fts5ParseNode's over-deep expression failure.
+type ExprDepthError struct{}
+
+func (e *ExprDepthError) Error() string {
+	return "fts5 expression tree is too large (maximum depth 256)"
+}
+
+// exprHeight returns the node's distance to its deepest leaf
+// (Fts5ExprNode.iHeight: the node is malloc-zeroed, so leaf STRING/EOF
+// nodes are height 0 and each combinator adds one).
+func exprHeight(n queryNode) int {
+	switch x := n.(type) {
+	case andNode:
+		h := 0
+		for _, c := range x.children {
+			if ch := exprHeight(c); ch > h {
+				h = ch
+			}
+		}
+		return h + 1
+	case orNode:
+		h := 0
+		for _, c := range x.children {
+			if ch := exprHeight(c); ch > h {
+				h = ch
+			}
+		}
+		return h + 1
+	case notNode:
+		h := exprHeight(x.l)
+		if r := exprHeight(x.r); r > h {
+			h = r
+		}
+		return h + 1
+	default:
+		return 0
+	}
+}
+
+// combineAND combines operands under one AND node, flattening same-type
+// children (fts5ExprAddChildren) and enforcing the depth guard.
+func (p *qParser) combineAND(children ...queryNode) (queryNode, error) {
+	return combineAndNodes(children)
+}
+
+// combineOR is combineAND for OR nodes.
+func (p *qParser) combineOR(children ...queryNode) (queryNode, error) {
+	return combineOrNodes(children)
+}
+
+// combineAndNodes is the package-level AND combinator: same-type children
+// flatten into one n-ary node (fts5ExprAddChildren) and the depth guard
+// applies (sqlite3Fts5ParseNode's AND/OR branch).
+func combineAndNodes(children []queryNode) (queryNode, error) {
+	return combineCombinatorNodes(children, func(kids []queryNode) queryNode {
+		return andNode{children: kids}
+	}, func(c queryNode) ([]queryNode, bool) {
+		n, ok := c.(andNode)
+		return n.children, ok
+	})
+}
+
+// combineOrNodes is combineAndNodes for OR nodes.
+func combineOrNodes(children []queryNode) (queryNode, error) {
+	return combineCombinatorNodes(children, func(kids []queryNode) queryNode {
+		return orNode{children: kids}
+	}, func(c queryNode) ([]queryNode, bool) {
+		n, ok := c.(orNode)
+		return n.children, ok
+	})
+}
+
+// combineCombinatorNodes flattens same-type children and applies the depth
+// check (sqlite3Fts5ParseNode's AND/OR branch via fts5ExprAddChildren).
+func combineCombinatorNodes(children []queryNode, build func([]queryNode) queryNode, isSame func(queryNode) ([]queryNode, bool)) (queryNode, error) {
+	var kids []queryNode
+	for _, c := range children {
+		if sub, ok := isSame(c); ok {
+			kids = append(kids, sub...)
+			continue
+		}
+		kids = append(kids, c)
+	}
+	h := 0
+	for _, k := range kids {
+		if ch := exprHeight(k); ch > h {
+			h = ch
+		}
+	}
+	if h+1 > maxExprDepth {
+		return nil, &ExprDepthError{}
+	}
+	return build(kids), nil
+}
+
+// combineNOT combines a binary NOT with the depth guard.
+func (p *qParser) combineNOT(l, r queryNode) (queryNode, error) {
+	h := 1 + exprHeight(l)
+	if hr := exprHeight(r) + 1; hr > h {
+		h = hr
+	}
+	if h > maxExprDepth {
+		return nil, &ExprDepthError{}
+	}
+	return notNode{l: l, r: r}, nil
+}
+
 // matchSyntaxError renders C's query syntax error (fts5parse.y %syntax_error).
 func matchSyntaxError(near string) error {
 	return &QuerySyntaxError{Near: near}
@@ -102,6 +213,9 @@ func parseQueryAll(t *Table, query string) (queryNode, []*phraseNode, error) {
 	}
 	if p.kind != tkEOF {
 		return nil, nil, matchSyntaxError(p.tokenText())
+	}
+	if p.deferredColQueries != nil {
+		return nil, nil, p.deferredColQueries
 	}
 	return node, p.phrases, nil
 }
@@ -276,6 +390,9 @@ type qParser struct {
 	unterminated bool
 	// phrases lists every phrase in parse order (fts5Parse.apPhrase).
 	phrases []*phraseNode
+	// deferredColQueries records fts5ParseSetColset's detail=none rejection
+	// for raising after a well-formed parse (see parseColsetPhrase).
+	deferredColQueries error
 }
 
 func (p *qParser) next() {
@@ -327,7 +444,10 @@ func (p *qParser) parseOr() (queryNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		left = orNode{children: []queryNode{left, right}}
+		left, err = p.combineOR(left, right)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return left, nil
 }
@@ -344,7 +464,10 @@ func (p *qParser) parseAnd() (queryNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		left = andNode{children: []queryNode{left, right}}
+		left, err = p.combineAND(left, right)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return left, nil
 }
@@ -363,7 +486,10 @@ func (p *qParser) parseNot() (queryNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		left = notNode{l: left, r: right}
+		left, err = p.combineNOT(left, right)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return left, nil
 }
@@ -407,7 +533,10 @@ func (p *qParser) parseOperand() (queryNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		node = andNode{children: []queryNode{node, next}}
+		node, err = p.combineAND(node, next)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return node, nil
 }
@@ -447,7 +576,13 @@ func (p *qParser) parseColsetPhrase(allowExpr bool) (queryNode, error) {
 		return nil, p.syntaxError()
 	}
 	if p.t.cfg.Detail == DetailNone {
-		return nil, &ColumnQueriesError{}
+		// The detail=none rejection is recorded and raised only when the
+		// rest of the parse is well-formed: C's parser raises it at the
+		// colset reduce, after a trailing-garbage syntax error has already
+		// been reported (fts5detail 4.1 vs 4.2).
+		if p.deferredColQueries == nil {
+			p.deferredColQueries = &ColumnQueriesError{}
+		}
 	}
 	p.next()
 	if p.kind == tkLP {

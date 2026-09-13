@@ -147,6 +147,17 @@ type ExprContext interface {
 
 	// Aggregate evaluation state.
 	AggRowMaps() []RowMap
+
+	// EnterAuxAggArg marks one aggregate-argument evaluation as in flight
+	// and returns the restore function (C resolves aggregate arguments to
+	// TK_AGG_COLUMN, which the fts5 aux overload rewrite does not match —
+	// inside an aggregate argument every aux call fails with the
+	// placeholder error).
+	EnterAuxAggArg() func()
+
+	// AuxAggArgDepth reports how many aggregate-argument evaluations are in
+	// flight.
+	AuxAggArgDepth() int
 }
 
 // Evaluator evaluates SQL expressions. It owns the entire evaluation tree
