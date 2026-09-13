@@ -6135,3 +6135,45 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   harness-blocked (testvfs/xSleep, sqlite3_setlk_timeout, test_control
   faultsim, vfs_shmlock-as-SQL, testfixture_nb) — superseded with native
   anchors in frigolite_wallocks_test.go (evidence NA_EVIDENCE.md §P7.WAL-G7).
+
+## 2026-09-13 (session 3): FTS5 test-support tranche + census discipline
+- **fts5 corpus regeneration needs an explicit -testdir**: `ori/sqlite/test`
+  contains ZERO fts5 sources (1219 files only). `go run ./tools/tcl2go/` never
+  touches the 144 testgen/fts5* packages; skipTestFiles entries for fts5
+  packages only take effect via
+  `go run ./tools/tcl2go/ -testdir ../sqlite/ext/fts5/test <names...>`.
+  A "skipped" fts5 package whose generated file still contains assertions is
+  a STALE generation, not a live skip.
+- **kill -9 on `go test` orphans its package test binaries**: they keep
+  burning CPU/RAM unsupervised (never time out — their parent is gone). After
+  killing a stuck go test, `pkill -9 '<pkg>.test'` too. The 0%-CPU `go test`
+  parent is NORMAL (it waits on children); check for `<pkg>.test` CHILDREN
+  and their CPU time before diagnosing a wedge.
+- **Never launch two census scripts** (restart without killing the first's
+  SCRIPT process): they interleave batches and their children fight over the
+  build cache. One census instance at a time; a new instance restarts only
+  after `pkill -f fts5_census` + orphan check.
+- **macOS bash is 3.2**: no mapfile, no negative array indices — split batch
+  files with `split -l 12` instead.
+- **Census pipelines must tee FULL output** (grep-only pipes lose assertion
+  details needed for triage; re-running individual packages afterwards costs
+  more than keeping the log).
+- **Adjudicate regressions against a slice baseline worktree**, not from
+  memory: `git worktree add /tmp/frigo_s5 <commit>` + run the suspect package
+  there. Load-flakes under concurrent censuses produce phantom failures
+  (fts5optimize2/3 failed in a census, passed standalone in both trees).
+- **fts5 shadow flush must preserve last_insert_rowid** (DMLExecutor.
+  flushFTS5Shadow saves/restores ctx.LastRowID around FlushShadowIfDirty):
+  the %_data id=11 blob write goes through the SQL layer and otherwise
+  clobbers lastRowID (fts5lastrowid 1.5/1.6). Same preserve-restore the FTS3
+  segment flush applies (engine_core_tail.go).
+- **HEAD was a broken-build commit for ~40 min** (2cd027daf referenced
+  EnterAuxAggArg before the interface change landed): commit seams together —
+  `go build ./...` in a CLEAN worktree (git worktree add /tmp/x HEAD) is the
+  only trustworthy post-commit check.
+- **fts5 red-class adjudication 2026-09-13**: census 74/144 green (7 stubs
+  superseded, fts5bigpl/fts5contentless2 not run — P9.PERF). All reds match
+  documented classes: config `version 4 vs 5` divergence (secure2/version),
+  TVF MATCH form (`FROM ft('query')`), fts5tok2 index-out-of-range panic
+  (pre-existing, next tranche), corruption/fault-injection harness classes,
+  exprprint colset rendering (`{a}` vs `a `).
