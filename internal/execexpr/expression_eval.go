@@ -272,7 +272,18 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 		return nil, fmt.Errorf("ORDER BY may not be used with non-aggregate %s()", f.Name)
 	}
 
+	// Aggregate arguments evaluate inside an aggregate-argument marker (C
+	// resolves them to TK_AGG_COLUMN, which the fts5 aux overload rewrite
+	// does not match — aux calls inside aggregate arguments fail with the
+	// placeholder error).
+	var restoreAggArg func()
+	if fn.Type == function.TypeAggregate {
+		restoreAggArg = ev.ctx.EnterAuxAggArg()
+	}
 	args, err := ev.evalFuncArgs(f, row)
+	if restoreAggArg != nil {
+		restoreAggArg()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -509,6 +520,13 @@ func (ev *Evaluator) evalEngineFunc(f *sql.FuncCall, row Row) (interface{}, bool
 		// fragment around the matches; optimize(TABLE) merges segments
 		// (fts3_snippet.c / fts3.c fts3OptimizeFunc).
 		val, err := ev.evalFTSAux(f.Name, f, row)
+		return val, true, err
+	}
+	// The fts5 test-support family (fts5_aux_test_functions and the
+	// fts5aux.test create_function registrations) dispatches through the fts5
+	// aux machinery: these names are not in the function registry (C
+	// registers them as vtab overloads, invisible to sqlite3_find_function).
+	if val, handled, err := ev.evalFTS5Aux(f.Name, f, row); handled {
 		return val, true, err
 	}
 	return nil, false, nil

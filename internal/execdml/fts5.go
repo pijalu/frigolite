@@ -39,6 +39,65 @@ func fts5HiddenValues(t5 *fts5.Table, values []interface{}) (cmd interface{}, ra
 	return cmd, rank
 }
 
+// insertSourceIsVocabOver reports whether the INSERT...SELECT sources a
+// fts5vocab virtual table defined over the named fts5 table (fts5vocab2.test
+// 5.1/5.2's conflicting write aborts with SQLITE_ABORT).
+func insertSourceIsVocabOver(ctx DMLContext, sel *sql.SelectStmt, target string) bool {
+	if sel == nil || sel.From.Name == "" {
+		return false
+	}
+	entry, _, err := ctx.FindTable(sel.From.Name)
+	if err != nil || entry == nil || entry.RootPage != 0 {
+		return false
+	}
+	modName, args, ok := splitVtabSQLHead(entry.SQL)
+	if !ok || !strings.EqualFold(modName, "fts5vocab") || len(args) == 0 {
+		return false
+	}
+	return strings.EqualFold(dequoteFirstArg(args[0]), target)
+}
+
+// splitVtabSQLHead extracts the module name and argument texts from a stored
+// CREATE VIRTUAL TABLE statement.
+func splitVtabSQLHead(sqlStr string) (module string, args []string, ok bool) {
+	up := strings.ToUpper(sqlStr)
+	idx := strings.Index(up, " USING ")
+	if idx < 0 {
+		return "", nil, false
+	}
+	rest := strings.TrimSpace(sqlStr[idx+len(" USING "):])
+	open := strings.IndexByte(rest, '(')
+	if open < 0 {
+		return strings.ToLower(strings.TrimSuffix(strings.TrimSpace(rest), ";")), nil, true
+	}
+	module = strings.ToLower(strings.TrimSpace(rest[:open]))
+	inner := rest[open+1:]
+	if close := strings.LastIndexByte(inner, ')'); close >= 0 {
+		inner = inner[:close]
+	}
+	for _, a := range strings.Split(inner, ",") {
+		a = strings.TrimSpace(a)
+		if a != "" {
+			args = append(args, a)
+		}
+	}
+	return module, args, true
+}
+
+// dequoteFirstArg removes one level of SQL quoting from a module argument.
+func dequoteFirstArg(s string) string {
+	if len(s) >= 2 && (s[0] == '\'' || s[0] == '"' || s[0] == '`' || s[0] == '[') {
+		q := s[0]
+		if q == '[' {
+			q = ']'
+		}
+		if s[len(s)-1] == q {
+			return strings.ReplaceAll(s[1:len(s)-1], string(q)+string(q), string(q))
+		}
+	}
+	return s
+}
+
 // insertFTS5Row routes one INSERT row to an fts5 table (fts5UpdateMethod's
 // insert + special-insert paths). values is indexed by the fts5 colDefs order
 // (user columns, then the hidden table-name and rank columns).
@@ -121,6 +180,9 @@ func (e *DMLExecutor) execFTS5Delete(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 		if ok {
 			deleted++
 		}
+	}
+	if ferr := t5.FlushShadowIfDirty(); ferr != nil {
+		return &Result{Error: ferr}
 	}
 	return &Result{Changes: deleted}
 }
@@ -212,6 +274,9 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			return &Result{Error: err}
 		}
 		updated++
+	}
+	if ferr := t5.FlushShadowIfDirty(); ferr != nil {
+		return &Result{Error: ferr}
 	}
 	return &Result{Changes: updated}
 }

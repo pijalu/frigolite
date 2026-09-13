@@ -30,6 +30,18 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 		}
 		return e.execInsertView(s, viewEntry)
 	}
+	// fts5 INSERTs persist the index blob once, at the statement boundary
+	// (sqlite3Fts5StorageSync's statement-end flush): the per-row writes only
+	// mark the table dirty and the pending blob flushes here.
+	if _, isFTS5 := e.ctx.FTS5Tables()[tableEntry.Name]; isFTS5 {
+		defer func() {
+			if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil {
+				if ferr := t5.FlushShadowIfDirty(); ferr != nil && (ret == nil || ret.Error == nil) {
+					ret = &Result{Error: ferr}
+				}
+			}
+		}()
+	}
 	// build.c sqlite3AddColumnToList: every name in the INSERT column list
 	// must be a real table column ("table t has no column named z").
 	if len(s.Columns) > 0 {
@@ -83,6 +95,17 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 	}
 
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+
+	// An fts5 table cannot be written while a fts5vocab cursor over it feeds
+	// the same statement (fts5vocab2.test 5.1/5.2: the vocab vtab holds a
+	// read on the index; SQLite aborts the conflicting write with
+	// SQLITE_ABORT). The engine materializes the source scan up front, so
+	// the conflict is detected from the statement's source references.
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil && s.Select != nil {
+		if insertSourceIsVocabOver(e.ctx, s.Select, tableEntry.Name) {
+			return &Result{Error: fmt.Errorf("query aborted")}
+		}
+	}
 
 	// The statement maintains every index on the target table, so each
 	// index key's collation must resolve at prepare time (build.c
