@@ -53,14 +53,20 @@ frigolite/
 │   ├── execddl/         # DDL execution (CREATE/DROP/ALTER/ATTACH + dependency analysis)
 │   ├── execdml/         # DML execution (INSERT/UPDATE/DELETE + OR/RETURNING/rowid/triggers)
 │   ├── execquery/       # SELECT execution (join, aggregate, validate, scan, planner, core)
+│   ├── execexpr/        # SQL expression evaluation (function dispatch, fts5 aux overloads)
+│   ├── execpragma/      # PRAGMA statement execution
 │   ├── execconstraint/  # FOREIGN KEY constraint enforcement (ON actions, deferred FK checks)
 │   ├── exectrigger/     # Trigger execution state (depth, NEW/OLD rows, trigger caches)
 │   ├── schema/    # sqlite_schema table management
 │   ├── function/  # Scalar + aggregate SQL functions (60+ functions)
-│   ├── fts/       # Full-text search tokenizer and ranking
+│   ├── fts/       # FTS3/4 full-text search (tokenizers, inverted index, MATCH)
+│   ├── fts5/      # FTS5 full-text engine (config, tokenizers, index, MATCH, vocab/tok modules)
+│   ├── lockreg/   # Cross-connection database file lock tracking (backup/WAL)
+│   ├── quota/     # SQLite quota layer (test_quota.c port)
+│   ├── recover/   # .recover command (page reachability, lost_and_found)
 │   ├── rename/    # ALTER TABLE RENAME dependency management
 │   ├── value/     # SQL value comparison and type system
-│   └── vtab/      # Virtual table module system (generate_series, etc.)
+│   └── vtab/      # Virtual table modules (generate_series, rtree/geopoly, dbstat, dbdata, …)
 │
 ├── cmd/frigolite/ # Interactive CLI shell (separate module)
 ├── benchmarks/    # Performance benchmarks
@@ -93,13 +99,21 @@ Frigolite supports a useful subset of SQLite SQL:
 - VIEW / TRIGGER (stored and expanded/fired)
 
 ### Implemented Extensions
-- **FTS3/4** — `internal/fts/` (tokenizers simple/unicode61, inverted index, MATCH, FTS3/4 modules). fts5 is NOT implemented (`NoopModule`, zero testgen packages) — queued goal `P6.FTS5` (see PORTPLAN §4)
-- **Virtual tables** — `internal/vtab/` module system (`generate_series`, `fts3`/`fts4`; `fts5`/`dbstat`/`dbdata` are `NoopModule` stubs — queued goals `P6.FTS5`/`P6.DBSTAT`/`P6.DBDATA`)
+- **FTS3/4** — `internal/fts/` (tokenizers simple/unicode61, inverted index, MATCH, FTS3/4 modules)
+- **FTS5** — `internal/fts5/` (T31+T33: config, tokenizers unicode61/ascii/porter/trigram, inverted
+  index, full MATCH query language, rank/bm25, highlight/snippet, fts5vocab + fts5tok modules,
+  fts5_rowid/fts5_decode, fts5_expr, test-support aux family; testgen corpus live 74/144 —
+  goal `P6.FTS5`)
+- **Virtual tables** — `internal/vtab/` module system: `generate_series`, `rtree`/`rtree_i32`/`geopoly`
+  (goal `P6.RTREE`, complete), `dbstat` (`P6.DBSTAT`), `sqlite_dbdata`/`sqlite_dbptr` (`P6.DBDATA`),
+  `sqlite_dbpage`, `transitive_closure`, `spellfix1`, `approximate_match`; remaining `NoopModule`
+  stubs: `fts4aux`, `prefix_length`
 - **EXPLAIN / EXPLAIN QUERY PLAN** — `internal/execquery/explain.go`
 
 ### Not Yet Implemented (planned — see PORTPLAN phases)
-- WAL mode / shared-memory / concurrency (G7)
-- JSON, RTree, session/RBU (G6/G7)
+- WAL mode / shared-memory — IN PROGRESS (goal `P7.WAL-G7`: registry, recovery, lock protocol
+  landed; snapshot API + shared-cache queued)
+- JSON, session/RBU (G6/G7)
 - Window functions (parsed; execution in G4)
 - CTE `WITH` (parsed; execution in G4)
 - C API functions (sqlite3_prepare, sqlite3_step, etc.) — N/A (pure Go, no C)
