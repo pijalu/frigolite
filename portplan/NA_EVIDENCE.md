@@ -1689,3 +1689,29 @@ regeneration (go run ./tools/tcl2go/) leaves the packages as green stubs.
 Remaining harness-skip drift for the JSON layer (testdata/walsetlk*.json in
 frigolite_harness_test.go unsupportedTestFiles with stale pre-WAL reasons) is
 queued with the slice-3 stale-skip re-verification (wal/wal2/wal3 class).
+
+## P6.FTS5 T33 — test-support API packages (2026-09-13)
+
+Six packages stay red ONLY on transpiler/harness artifacts after the T33
+engine work landed (fts5vocab, fts5tok, fts5_rowid/decode, fts5_expr print,
+fts5_test_* aux family). Each was run UN-SKIPPED and triaged per-assertion
+(pure-Go repros in frigolite_fts5_testfn_test.go drive the engine directly):
+
+| package | transpiler artifact | engine contract pinned natively |
+|---|---|---|
+| fts5rowid | 6.0-6.2 pin C's physical %_data block counts (32/34/36 detail=none segment pages); the Go engine persists one blob (documented divergence, internal/fts5/storage.go) | TestFTS5TestFnRowid (fts5_rowid error texts, segment-rowid encoding, fts5_decode incl. corrupt bytes) |
+| fts5aux | 8.x wants wrap multi-row highlight output in TCL quote characters the engine (like C) never emits; 10.1.3/10.1.4 aggregate placeholder + api mirrors pass in-package | TestFTS5TestFnAux |
+| fts5detail | 3.x wants embed the unresolved TCL variable literal "matchdata $expr" (untranspilable proc call) | TestFTS5TestFnDetailNone (detail-mode poslist/collist) |
+| fts5colset | 5.2/5.3 wants strip term quotes + colset braces that C's fts5ExprPrint emits (TCL normalization; the C output passes the real TCL list compare) | TestFTS5TestFnExpr (C-faithful rendering) |
+| fts5vocab2 | 5.2's db-eval loop expects a write-conflict abort to break iteration after one insert — the transpiled loop has no break, so the un-aborted engine inserts 'five' once per vocab row | TestFTS5TestFnVocabWrite (the abort contract itself) |
+| fts5tok1 | 1.13.2's explicit t1.* expansion includes the HIDDEN input column while the want excludes it (fts3tok1's SELECT * form pins the opposite inclusion) | TestFTS5TestFnTokJoin |
+
+NOTE (regeneration): unlike the ori-corpus packages, fts5 testgen packages
+regenerate ONLY via `go run ./tools/tcl2go/ -testdir ../sqlite/ext/fts5/test
+<name>.test ...` — the default ori/sqlite/test directory contains no fts5
+sources, so these stubs require the explicit -testdir form to (re)take
+effect.
+
+Separately, fts5unicode2 carries a RUNAWAY safety stub (unbounded temp growth
+~9G/min in the current engine — triage the loop before any un-skip; NOT a
+supersession).
