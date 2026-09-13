@@ -173,7 +173,8 @@ func (e *DDLExecutor) renameFTSShadowTables(ctx *DatabaseContext, oldName, newNa
 }
 
 // vtabFamilyModuleOf reports whether entry's stored SQL creates an
-// rtree-family virtual table ("rtree" / "rtree_i32").
+// rtree-family virtual table ("rtree" / "rtree_i32" / "geopoly" — the
+// geopoly module shares the rtree shadow family and rename lifecycle).
 func vtabFamilyModuleOf(sqlStr string) bool {
 	upper := strings.ToUpper(sqlStr)
 	idx := strings.Index(upper, " USING ")
@@ -186,7 +187,7 @@ func vtabFamilyModuleOf(sqlStr string) bool {
 	if end > 0 {
 		name = strings.ToLower(rest[:end])
 	}
-	return name == "rtree" || name == "rtree_i32"
+	return name == "rtree" || name == "rtree_i32" || name == "geopoly"
 }
 
 // rtreeShadowSuffixes are the backing tables the rtree module manages.

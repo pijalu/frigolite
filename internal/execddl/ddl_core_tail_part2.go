@@ -616,7 +616,8 @@ func (e *DDLExecutor) dropFTSState(ctx *DatabaseContext, tableName string) {
 func (e *DDLExecutor) dropVtabModuleState(ctx *DatabaseContext, entry *schema.Entry) *Result {
 	tableName := entry.Name
 	if modName, _, isVtab := parseVTabSQL(entry.SQL); isVtab == nil &&
-		(strings.EqualFold(modName, "rtree") || strings.EqualFold(modName, "rtree_i32")) {
+		(strings.EqualFold(modName, "rtree") || strings.EqualFold(modName, "rtree_i32") ||
+			strings.EqualFold(modName, "geopoly")) {
 		e.dropShadowTables(ctx, tableName, []string{"_node", "_rowid", "_parent"})
 	}
 	if modName, _, isVtab := parseVTabSQL(entry.SQL); isVtab == nil && modName != "" {

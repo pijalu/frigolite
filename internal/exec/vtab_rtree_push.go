@@ -44,6 +44,24 @@ func (e *Engine) rtreePushConjunct(sink vtab.ConstraintSink, cols map[string]int
 	if bo, isOp := conj.(*sql.BinaryOp); isOp && strings.EqualFold(bo.Operator, "MATCH") {
 		return e.rtreePushMatchConjunct(sink, cols, bo)
 	}
+	// geopoly-family overloaded-function constraints (geopoly.c
+	// geopolyBestIndex idxNum 2/3): geopoly_overlap(_shape, X) and
+	// geopoly_within(_shape, X) narrow the scan to X's bounding-box candidate
+	// set via the sink, but are NOT consumed — C leaves
+	// aConstraintUsage[].omit = 0 so the core re-checks the true polygon
+	// predicate per candidate row.
+	if fc, isFunc := conj.(*sql.FuncCall); isFunc && len(fc.Args) == 2 {
+		if gs, can := sink.(vtab.GeopolyFuncSink); can {
+			if cr, isRef := fc.Args[0].(*sql.ColumnRef); isRef {
+				if col, found := cols[strings.ToLower(cr.Name)]; found && !exprHasColumnRef(fc.Args[1]) {
+					if val, err := e.evalExpr(fc.Args[1], nil); err == nil {
+						gs.PushGeopolyFunc(fc.Name, col, util.UnwrapColumnValue(val))
+					}
+				}
+			}
+			return false, nil
+		}
+	}
 	bo, isOp := conj.(*sql.BinaryOp)
 	if !isOp || !rtreePushableOp(bo.Operator) {
 		return e.rtreePushInConjunct(sink, cols, conj), nil

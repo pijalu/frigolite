@@ -73,6 +73,11 @@ func (e *Engine) registerVTabModules() {
 	e.vtabs.Register("rtree_i32", vtab.NewRtreeModule[int32](e.Database()))
 	// ext/rtree global SQL functions (rtreenode/rtreedepth/rtreecheck).
 	vtab.RegisterRTreeSQLFunctions(e.Database())
+	// geopoly (ext/rtree/geopoly.c, compiled into rtree.c under
+	// SQLITE_ENABLE_GEOPOLY): polygon-shaped rtree subclass sharing the
+	// rtree shadow tables and machinery, plus its scalar/aggregate functions.
+	e.vtabs.Register("geopoly", vtab.NewGeopolyModule(e.Database()))
+	vtab.RegisterGeopolyFunctions(e.Database())
 	// transitive_closure (ext/misc/closure.c): closure of a tree/DAG base
 	// table; the source resolves edges through this connection's tables.
 	e.vtabs.Register("transitive_closure", vtab.NewTransitiveClosureModule(closureEdgeSource{e: e}))
