@@ -7,6 +7,7 @@
 package pager
 
 import (
+	"os"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -20,6 +21,13 @@ import (
 // hexio_write).
 const fileVersLen = 16
 
+// walRef reports whether the pager is in WAL mode (a walWriter is attached).
+func (p *Pager) walRef() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.wal != nil
+}
+
 // CheckExternalFile compares the file's change version and size against the
 // baseline this connection last observed (set at open and refreshed after
 // every own flush). On a difference — another connection committed, or an
@@ -27,9 +35,41 @@ const fileVersLen = 16
 // header are invalidated and the new state becomes the baseline (pager.c
 // pager_reset). Reports whether an external change was seen. In-memory
 // pagers have no file and never change externally.
+//
+// In WAL mode (P7.WAL-G7) the per-statement change signal is the SHARED
+// wal-index header (sqlite3WalBeginReadTransaction's walIndexReadHdr port),
+// not the main-file stamp: the main file only moves at checkpoint time,
+// while other connections' WAL-only commits bump mxFrame/iChange in the
+// wal-index. A header change drops the page cache and reloads page 1
+// through the wal-index read path, so the caller's schema reload observes
+// the other connection's commits.
 func (p *Pager) CheckExternalFile() bool {
 	if p.file == nil {
 		return false
+	}
+	if p.walRef() {
+		p.mu.Lock()
+		defer p.mu.Unlock()
+		// While this connection holds unflushed writes (an in-flight
+		// transaction), its cached pages ARE its snapshot: do not drop
+		// them (schema.checkExternalMod applies the same guard).
+		if len(p.dirty) > 0 {
+			if os.Getenv("CL_DBG") != "" {
+				fmt.Fprintf(os.Stderr, "CEF: dirty guard, n=%d\n", len(p.dirty))
+			}
+			return false
+		}
+		ch := p.walIndexRefreshLocked()
+		if os.Getenv("CL_DBG") != "" {
+			mx := uint32(0)
+			ic := uint32(0)
+			if p.wal != nil {
+				mx = p.wal.hdr.MxFrame
+				ic = p.wal.hdr.IChange
+			}
+			fmt.Fprintf(os.Stderr, "CEF: wi=%p changed=%v mx=%d ich=%d\n", p.walWIPtr(), ch, mx, ic)
+		}
+		return ch
 	}
 	vers, size, ok := p.readFileStamp()
 	if !ok {
@@ -234,13 +274,21 @@ func (p *Pager) DecrementFreelistCount(n uint32) {
 
 // currentHeader returns the 100-byte database header: the cached copy when
 // present, else a fresh read from the file (filling the cache as a side
-// effect, mirroring readDbPage restoring Pager.dbFileVers from page 1).
+// effect, mirroring readDbPage restoring Pager.dbFileVers from page 1). In
+// WAL mode the fallback goes through the wal-index read path — the main
+// file may not carry the committed image until a checkpoint.
 func (p *Pager) currentHeader() []byte {
 	p.mu.RLock()
 	h := p.header
 	p.mu.RUnlock()
 	if len(h) >= 100 || p.file == nil {
 		return h
+	}
+	if p.walRef() {
+		if pg, err := p.ReadPage(1); err == nil && len(pg.Data) >= HeaderSize {
+			return pg.Data[:HeaderSize]
+		}
+		return p.header
 	}
 	buf := make([]byte, HeaderSize)
 	if _, err := p.file.ReadAt(buf, 0); err != nil && err != io.EOF {

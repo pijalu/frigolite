@@ -1,10 +1,12 @@
 package exec
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 )
@@ -27,6 +29,12 @@ func (e *Engine) normalizeCorruptionError(res *Result) *Result {
 		strings.Contains(msg, "cell index") ||
 		strings.Contains(msg, "out of range") ||
 		strings.Contains(msg, "corrupt") {
+		// SQLITE_RANGE errors (the fts5 snippet/highlight column-index
+		// checks) are argument errors, not corruption (sqlite3_errstr).
+		var rangeErr *fts5.ColumnRangeError
+		if errors.As(res.Error, &rangeErr) {
+			return res
+		}
 		res.Error = fmt.Errorf("database disk image is malformed")
 	}
 	return res

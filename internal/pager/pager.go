@@ -495,25 +495,39 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 
 	// WAL crash recovery / WAL-mode detection: SQLite auto-detects WAL from the
 	// presence of a valid "-wal" file. When one accompanies the main database,
-	// recover its committed frames into the page cache before the first read
-	// (wal.c walIndexRecover on open) and place the connection in WAL mode so
-	// the WAL write path and WAL-aware header validation are active. A WAL
-	// database whose main file is still empty (uncheckpointed) carries its page
-	// size only in the "-wal" header, so prefer that when the main file did not
-	// yield a size.
+	// attach to the shared wal-index (rebuilding it from the "-wal" via the
+	// walIndexRecover port when the shared header does not parse) and place
+	// the connection in WAL mode so the WAL write path and the wal-index read
+	// path are active. A WAL database whose main file is still empty
+	// (uncheckpointed) carries its page size only in the "-wal" header, so
+	// prefer that when the main file did not yield a size.
 	if _, err := os.Stat(cleanPath + "-wal"); err == nil {
 		if pr.pageSize == 0 {
 			if wps, ok := readWalPageSize(cleanPath + "-wal"); ok {
 				pr.pageSize = wps
 			}
 		}
-		if err := recoverWal(pr, cleanPath, pr.pageSize); err != nil {
+		w, werr := openWal(pr, cleanPath, pr.pageSize)
+		if werr != nil {
 			f.Close()
-			return nil, err
+			return nil, werr
 		}
-		if w, werr := openWal(pr, cleanPath, pr.pageSize); werr == nil {
-			pr.wal = w
-			pr.journalMode = "wal"
+		pr.wal = w
+		pr.journalMode = "wal"
+		// Adopt the recovered wal-index state: the committed page count comes
+		// from the last commit record (pager.c pagerPagecount reads nPage
+		// from the wal-index when a WAL is open), and page 1 is materialized
+		// through the wal-index read path so the cached header is the
+		// committed image, not a stale main-file one.
+		if n := w.hdr.NPage; n > 0 {
+			pr.numPages = n
+		}
+		pr.header = nil
+		if pr.numPages > 0 {
+			if _, err := pr.readPageLocked(1); err != nil {
+				f.Close()
+				return nil, err
+			}
 		}
 	}
 
@@ -614,6 +628,17 @@ func (p *Pager) Close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	flushErr := p.flushAll()
+	// Release the WAL writer: close the "-wal" fd and drop this connection's
+	// shared wal-index reference (the last detach closes the shm fd and
+	// removes the registry entry — the next attach re-runs the DMS truncate
+	// + recovery from the "-wal").
+	if p.wal != nil {
+		walErr := p.wal.Close()
+		p.wal = nil
+		if walErr != nil && flushErr == nil {
+			flushErr = walErr
+		}
+	}
 	if p.journalFile != nil {
 		// Close the open rollback-journal sidecar (PERSIST/TRUNCATE
 		// modes keep it open across commits; Close is the only path
@@ -1357,17 +1382,36 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		Data:    make([]byte, p.pageSize),
 		PageNum: pageNum,
 	}
-	if p.file != nil {
+	if p.wal != nil {
+		// WAL mode (P7.WAL-G7): resolve the page through the shared
+		// wal-index (sqlite3WalFindFrame port) — the newest frame within the
+		// reader's snapshot carries the page. minFrame is 0 until read-mark
+		// pinning arrives in slice 3. Pages absent from the WAL come from
+		// the main database file (checkpointed content).
+		if iFrame := p.wal.wi.FindFrame(pageNum, p.wal.hdr.MxFrame, 0); iFrame > 0 {
+			off := walFrameOffset(int(iFrame), p.pageSize) + WalFrameHdrSize
+			if _, err := p.wal.file.ReadAt(pg.Data, off); err != nil {
+				return nil, fmt.Errorf("pager: read wal frame %d: %w", iFrame, err)
+			}
+		} else if p.file != nil {
+			off := int64(pageNum-1) * int64(p.pageSize)
+			if _, err := p.file.ReadAt(pg.Data, off); err != nil {
+				return nil, fmt.Errorf("pager: read page %d: %w", pageNum, err)
+			}
+		}
+	} else if p.file != nil {
 		off := int64(pageNum-1) * int64(p.pageSize)
 		_, err := p.file.ReadAt(pg.Data, off)
 		if err != nil {
 			return nil, fmt.Errorf("pager: read page %d: %w", pageNum, err)
 		}
-		// For page 1, extract the header from the full page data
-		if pageNum == 1 && p.header == nil {
-			p.header = make([]byte, HeaderSize)
-			copy(p.header, pg.Data[:HeaderSize])
-		}
+	}
+	// For page 1, extract the header from the full page data (only when the
+	// page was actually sourced from a file — memory pagers own their header
+	// through storage.DefaultHeader).
+	if pageNum == 1 && p.header == nil && (p.wal != nil || p.file != nil) {
+		p.header = make([]byte, HeaderSize)
+		copy(p.header, pg.Data[:HeaderSize])
 	}
 	p.pages[pageNum] = pg
 	return pg, nil
@@ -1398,8 +1442,9 @@ func (p *Pager) FileInfo() (os.FileInfo, bool) {
 // InvalidateCache drops the in-memory page cache and page-count so the next
 // read re-reads the file. Used when an external connection may have modified
 // the database file (schema reload after an ATTACHed file changes). In WAL
-// mode the cache is then rebuilt from the "-wal" (wal.c reads pages through
-// the WAL index), so a schema reload never loses uncheckpointed commits.
+// mode the cache is then rebuilt through the shared wal-index (reads resolve
+// via walIndexFind → frame → page bytes), so a schema reload never loses
+// uncheckpointed commits.
 func (p *Pager) InvalidateCache() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -1412,10 +1457,10 @@ func (p *Pager) InvalidateCache() {
 	// and pass, serving stale rows. The next ReadPage re-reads page 1 from
 	// disk including the corrupt header bytes.
 	if p.wal != nil {
-		// Rebuild the cache from the WAL's committed frames; this restores
-		// numPages/header that the stale main file no longer reflects. The
-		// caller holds p.mu, so use the lock-free variant.
-		_ = recoverWalLocked(p, p.path, p.pageSize)
+		// Refresh the shared wal-index header (recovering it when another
+		// connection left it unparsable) and rebuild the header/page-count
+		// state through the wal-index read path. The caller holds p.mu.
+		p.walIndexRefreshLocked()
 		return
 	}
 	if p.file != nil {
@@ -1427,6 +1472,57 @@ func (p *Pager) InvalidateCache() {
 			}
 		}
 	}
+}
+
+// walIndexRefreshLocked polls the shared wal-index header (the
+// walIndexReadHdr port of wal.c L2640: try the lockless read; recover under
+// the writer section when it does not parse) and adopts the shared state
+// into this connection's cached view: page count from hdr.nPage, and page 1
+// re-read through the wal-index so the cached database header is the
+// committed image. Reports whether the shared header changed since the
+// connection's cached copy (the pChanged signal that drives the pager cache
+// reset). Caller holds p.mu.
+func (p *Pager) walIndexRefreshLocked() bool {
+	if p.wal == nil {
+		return false
+	}
+	changed := false
+	_ = p.wal.wi.WriterSection(func() error {
+		ch, ok := p.wal.wi.tryRefreshLocked(&p.wal.hdr)
+		if !ok {
+			if err := p.wal.walIndexRecoverLocked(); err != nil {
+				return err
+			}
+			ch = true
+		}
+		if ch {
+			changed = true
+			p.wal.adoptHeaderLocked()
+		}
+		return nil
+	})
+	if changed {
+		if n := p.wal.hdr.NPage; n > 0 {
+			p.numPages = n
+		}
+		// Another connection committed: drop the WHOLE page cache
+		// (pager.c pager_reset on an external change) — every cached page
+		// may have a newer frame in the wal-index. Then re-read page 1
+		// through the wal-index read path so ValidateHeader and the schema
+		// reload see the committed image (SQLite's shared lock re-reads
+		// page 1 after walIndexReadHdr reports a change).
+		p.pages = make(map[uint32]*Page)
+		p.header = nil
+		if p.numPages > 0 {
+			if _, err := p.readPageLocked(1); err != nil {
+				// The wal-index may reference frames the -wal lost to an
+				// external truncation: leave the cache empty and let the
+				// next read surface the error.
+				delete(p.pages, 1)
+			}
+		}
+	}
+	return changed
 }
 
 // WritePage marks a page as dirty. The first write under a non-memory/non-off
@@ -1849,18 +1945,22 @@ func (p *Pager) SetJournalFileOpHook(fn func(op, path string)) {
 // convenience wrapper; new code should call CheckpointMode with the desired
 // PRAGMA wal_checkpoint mode.
 func (p *Pager) Checkpoint() error {
-	return p.CheckpointMode(WalCkptRestart)
+	_, _, _, err := p.CheckpointMode(WalCkptRestart)
+	return err
 }
 
-// CheckpointMode performs a WAL checkpoint in the given mode. PASSIVE
-// only reports (frames are kept in -wal); FULL backfills the main DB but
-// does not truncate; RESTART/TRUNCATE backfill and truncate the -wal to
-// its 32-byte header (sqlite/src/wal.c walCheckpoint).
-func (p *Pager) CheckpointMode(mode WalCheckpointMode) error {
+// CheckpointMode performs a WAL checkpoint in the given mode and returns the
+// PRAGMA wal_checkpoint result triple (busy, nLog, nCkpt) — nLog is the
+// number of frames in the log and nCkpt the number backfilled into the main
+// file (sqlite/src/wal.c walCheckpoint; walprotocol-2.1 expects {0 5 5} for
+// a PASSIVE checkpoint over 5 frames). PASSIVE backfills the main DB but
+// keeps the -wal; FULL is PASSIVE with completion guaranteed; RESTART/
+// TRUNCATE backfill and reset the -wal to its 32-byte header.
+func (p *Pager) CheckpointMode(mode WalCheckpointMode) (busy, nLog, nCkpt int, err error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.wal == nil {
-		return nil
+		return 0, 0, 0, nil
 	}
 	return p.wal.checkpoint(mode)
 }
