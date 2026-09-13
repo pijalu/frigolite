@@ -6023,3 +6023,31 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   (4) packages exceeding ~120s or ~2GB RSS get flagged pathological and
   skipped for the census (supersession/triage class), not run to completion;
   (5) `pkill -f 'go test'` is the emergency brake.
+- **T30 geopoly close (2026-09-13)**: the implementing agent was lost to the
+  memory-crash mid-verification but its LANDED CODE was complete — the
+  coordinator verified directly (native tests 8/8, rtreefuzz001 :6006/:6012
+  flipped, family sweep 27/27, gates) and committed. LESSON: an agent crash
+  does not lose committed-quality work in the tree; verify-and-commit the
+  files rather than re-dispatching blindly. Check `git status` for the
+  agent's UNCOMMITTED WIRING too — the geopoly registration/MATCH-push/
+  rename-family edits sat in internal/exec + execddl outside the agent's
+  named new-file territory and needed a separate review+commit.
+- **database_may_be_corrupt class**: TCL files declaring
+  `database_may_be_corrupt` tolerate corruption-expectation drift across C
+  builds — before treating a `{/1 .*corrupt.*/}` matcher failure as an engine
+  gap, reproduce the fixture against python3 sqlite3 (3.53.4): rtreefuzz001
+  :2447 fails IDENTICALLY on current C ("malformed" does not contain
+  "corrupt"). Supersession-with-oracle-evidence, not an engine fix.
+- **FTS5 slice-0 census (T31)**: all 144 ext/fts5/*.test convert via tcl2go
+  (`-testdir ../sqlite/ext/fts5/test`); 35 green pre-engine. Census classes:
+  (a) CREATE USING fts5 dispatch collides with FTS3/4 machinery ("unknown
+  tokenizer: unicode61 categories"), (b) rank pseudo-column, (c) TVF MATCH
+  form FROM t1('q'), (d) aux functions, (e) fts5_tcl.c harness APIs (N-A).
+  Pathological RAM users (engine materializes in memory): fts5bigpl 236s,
+  fts5contentless2 900s — P9.PERF, never run casually.
+- **tcl2go reserved-name lesson 2**: the generated code's OWN locals
+  (`db, err := Open`) are shadowing hazards just like keywords — a TCL var
+  named `err` must map to _err (switch-closure selectors in fts5contentless).
+  And `uniq := keys[:0]`-style dedupe: aliasing into the source slice header
+  is fine for build-time emission but regenerate AFTER rebuilding the tool —
+  a stale regen raced the fix and produced a phantom "fix didn't land".
