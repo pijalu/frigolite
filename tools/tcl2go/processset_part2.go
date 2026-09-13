@@ -1126,7 +1126,7 @@ func (tp *transpiler) setCatchValue(goName, cmdText string) bool {
 	}
 	// Avoid using Go's 'err' (error type) as catch error var
 	if errVar == "err" {
-		errVar = "_err_tcl"
+		errVar = tclVarToGo("err")
 	}
 	tp.emitCatchBlock(varName, errVar, bodyStr)
 	return true

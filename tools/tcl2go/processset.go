@@ -453,7 +453,7 @@ func (tp *transpiler) redirectErrVar(goName string) string {
 	if goName != "err" {
 		return goName
 	}
-	goName = "_err_tcl"
+	goName = tclVarToGo("err") // "_err": same name as the pre-declared var and the string-context references
 	if !tp.isVarDeclared(goName) {
 		tp.emitLine("var %s string", goName)
 		tp.vars = append(tp.vars, goName)

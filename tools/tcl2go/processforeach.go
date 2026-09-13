@@ -330,9 +330,6 @@ func (tp *transpiler) emitBreakUnpack(args []tcl.RawWord, varNames []string, lis
 	tp.indent++
 	for i, vn := range varNames {
 		goVN := tclVarToGo(vn)
-		if goVN == "err" {
-			goVN = "_err_tcl"
-		}
 		if !tp.isVarDeclared(goVN) && !isPreDeclaredDB(goVN) && goVN != tp.dbVar {
 			tp.emitLine("var %s string", goVN)
 			tp.vars = append(tp.vars, goVN)
@@ -436,12 +433,6 @@ func (tp *transpiler) emitArrayGetForeach(args []tcl.RawWord, varNames []string,
 	mapVar := tclVarToGo(base) + "Map"
 	keyVar := tclVarToGo(varNames[0])
 	valVar := tclVarToGo(varNames[1])
-	if keyVar == "err" {
-		keyVar = "_err_tcl"
-	}
-	if valVar == "err" {
-		valVar = "_err_tcl"
-	}
 	if !isValidGoIdent(keyVar) || !isValidGoIdent(valVar) {
 		return false
 	}
@@ -502,11 +493,8 @@ func (tp *transpiler) emitArrayGetForeach(args []tcl.RawWord, varNames []string,
 // single loop variable.
 func (tp *transpiler) emitSingleVarForeach(varName, listExpr, splitExpr string) {
 	goVN := tclVarToGo(varName)
-	// A TCL loop variable named 'err' must map to _err_tcl so body
-	// references to $err (redirected to _err_tcl) see the loop value.
-	if goVN == "err" {
-		goVN = "_err_tcl"
-	}
+	// A TCL loop variable named 'err' maps to _err (tclVarToGo) so body
+	// references to $err see the loop value (unified naming).
 	// Avoid shadowing the main DB connection variable (dbVar)
 	if goVN == tp.dbVar {
 		// The loop variable holds a connection NAME at runtime (TCL
@@ -552,13 +540,8 @@ func (tp *transpiler) emitMultiVarForeach(varNames []string, listExpr string) {
 	tp.indent++
 	for i, vn := range varNames {
 		goVN := tclVarToGo(vn)
-		// A TCL loop variable named 'err' must map to _err_tcl so body
-		// references to $err (redirected to _err_tcl) see the loop value.
-		if goVN == "err" {
-			goVN = "_err_tcl"
-			if !tp.isVarDeclared(goVN) {
-				tp.vars = append(tp.vars, goVN)
-			}
+		if goVN == "_err" && !tp.isVarDeclared(goVN) {
+			tp.vars = append(tp.vars, goVN)
 		}
 		tp.emitLine("%s := %s[%s+%d]", goVN, itemsVar, idxVar, i)
 		tp.emitLine("_ = %s // suppress unused warning", goVN)

@@ -332,7 +332,9 @@ func (tp *transpiler) renderVarPart(vn string, sqlMode bool) string {
 	if base, key := splitTclArrayRef(vn); base != "" {
 		inner = tp.arrayLookupExpr(base, key)
 	} else if vn == "err" {
-		inner = "_err_tcl"
+		// Same canonical name as the pre-declaration and the assignment
+		// redirect: tclVarToGo("err") = _err (never the Go error var).
+		inner = tclVarToGo(vn)
 	} else if vn == "db" {
 		inner = `""`
 	} else if vn == "::db1" || vn == "db1" {
@@ -490,7 +492,7 @@ func toggleQuoteState(lit string, inQuote *bool) {
 func renderListVarPart(vn string, inQuote bool) string {
 	var inner string
 	if vn == "err" {
-		inner = "_err_tcl"
+		inner = tclVarToGo(vn)
 	} else if vn == "db" {
 		inner = `""`
 	} else {

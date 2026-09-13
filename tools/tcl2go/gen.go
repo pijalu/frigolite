@@ -647,13 +647,10 @@ func collectPredeclaredVars(src string, setVars, refVars []string, knownGlobals,
 	seen := make(map[string]bool)
 	for _, v := range append(append([]string{}, setVars...), refVars...) {
 		gv := tclVarToGo(v)
-		// The TCL variable err is mapped to _err_tcl throughout the generated
-		// code (it would shadow nothing, but the name keeps it distinct from
-		// the db error var); pre-declare it so a `set err` inside an if/else
-		// branch is still visible after the branch.
-		if gv == "err" {
-			gv = "_err_tcl"
-		}
+		// The TCL variable err maps to _err (tclVarToGo) everywhere — never
+		// the generated db-open error var; pre-declare it so a `set err`
+		// inside an if/else branch is still visible after the branch.
+		gv = tclVarToGo(gv)
 		legacyOpenTarget := strings.Contains(src, "set ::"+v+" [sqlite3_open") || strings.Contains(src, "set "+v+" [sqlite3_open")
 		if legacyOpenTarget {
 			sqliteTargets[gv] = true
