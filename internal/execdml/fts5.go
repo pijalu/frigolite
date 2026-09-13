@@ -59,7 +59,9 @@ func (e *DMLExecutor) insertFTS5Row(t5 *fts5.Table, tableEntry *schema.Entry, va
 				e.ctx.SetLastRowID(0)
 				return &Result{Changes: 0, LastInsertRowID: 0}
 			}
-			return &Result{Error: fmt.Errorf("unknown fts5 special insert directive: %s", s)}
+			// An unknown directive reaches fts5ConfigSetValue's badkey path:
+			// C's generic SQLITE_ERROR.
+			return &Result{Error: fmt.Errorf("SQL logic error")}
 		}
 	}
 	// Resolve the rowid: explicit, or auto-allocated (max existing + 1).

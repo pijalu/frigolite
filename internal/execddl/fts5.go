@@ -45,6 +45,13 @@ func (e *DDLExecutor) registerFTS5VTab(tableName string) error {
 // (xConnect): the configuration is re-parsed from the stored CREATE VIRTUAL
 // TABLE SQL and the index is rebuilt from the shadow tables.
 func (e *DDLExecutor) EnsureFTS5ForTable(entry *schema.Entry) {
+	// Re-entrancy guard: loadFromShadow's shadow-table reads run through the
+	// engine and can trigger a schema reload, which re-dispatches here for
+	// the same table while the outer hydration is still in flight. The outer
+	// call completes the hydration; nested dispatches are no-ops.
+	if fts5EnsureActive {
+		return
+	}
 	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
 		return
 	}
@@ -59,6 +66,8 @@ func (e *DDLExecutor) EnsureFTS5ForTable(entry *schema.Entry) {
 	if !ok {
 		return
 	}
+	fts5EnsureActive = true
+	defer func() { fts5EnsureActive = false }()
 	ctxName := ""
 	if ctx, _, terr := e.ctx.FindTable(entry.Name); terr == nil && ctx != nil {
 		ctxName = ctx.Name
@@ -102,3 +111,7 @@ func (e *DDLExecutor) renameFTS5(oldName, newName string) error {
 	delete(e.ctx.FTS5Tables(), oldName)
 	return nil
 }
+
+// fts5EnsureActive guards EnsureFTS5ForTable against schema-reload
+// re-entrancy from its own shadow-table reads.
+var fts5EnsureActive bool
