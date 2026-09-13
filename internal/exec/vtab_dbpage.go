@@ -184,6 +184,9 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
 		return nil, nil, nil, nil, false // FTS keeps its dedicated scan path
 	}
+	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
+		return nil, nil, nil, nil, false // fts5 keeps its dedicated scan path
+	}
 	if debugClosure {
 		fmt.Fprintf(os.Stderr, "MCVT name=%s mod=%q args=%q\n", name, modName, modArgs)
 	}
@@ -263,6 +266,9 @@ func (e *Engine) VtabPlanInstance(name string) (vtab.VirtualTable, []string, boo
 	}
 	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
 		return nil, nil, false // FTS keeps its dedicated scan path
+	}
+	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
+		return nil, nil, false // fts5 keeps its dedicated scan path
 	}
 	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
 	if !isVtab {

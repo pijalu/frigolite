@@ -600,6 +600,9 @@ func (e *DDLExecutor) dropTableCleanup(entry *schema.Entry, ctx *DatabaseContext
 // table is dropped, so a recreated FTS table of the same name starts fresh
 // (e_fts3 1.1.7/1.1.8 DROP TABLE data then CREATE VIRTUAL TABLE data).
 func (e *DDLExecutor) dropFTSState(ctx *DatabaseContext, tableName string) {
+	if e.dropFTS5State(tableName) {
+		return
+	}
 	if ftsMod := e.getFTSModuleForTable(tableName); ftsMod != nil {
 		ftsMod.DropTable(tableName)
 		delete(e.ctx.FTSTables(), tableName)

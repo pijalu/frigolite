@@ -104,6 +104,11 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 		}
 	}
 
+	// Route fts5 virtual table updates through the fts5 engine.
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		return e.execFTS5Update(t5, colDefs, s)
+	}
+
 	// Route FTS virtual table updates directly to the FTS table (SQLite's
 	// fts3UpdateMethod handles docid and content column updates).
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {

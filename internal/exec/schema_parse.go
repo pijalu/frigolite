@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execddl"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
@@ -116,10 +117,55 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		e.caches.colCache[tableName] = colDefs
 		return colDefs
 	}
+	// fts5 tables: user columns then the hidden table-name and rank columns
+	// (fts5ConfigDeclareVtab). The live table instance (or a config re-parse
+	// for a not-yet-hydrated table) supplies the column list; fts5 has no
+	// docid alias.
+	if t5, ok := e.fts5Tables[tableName]; ok {
+		return e.fts5ColumnDefs(t5)
+	}
+	if colDefs := e.fts5ColumnDefsFromSQL(tableName, createSQL); colDefs != nil {
+		e.caches.colCache[tableName] = colDefs
+		return colDefs
+	}
 	if colDefs := e.vtabColumnDefs(tableName, stmts[0]); colDefs != nil {
 		return colDefs
 	}
 	return nil
+}
+
+// fts5ColumnDefs renders the column defs of a live fts5 table.
+func (e *Engine) fts5ColumnDefs(t5 *fts5.Table) []sql.ColumnDef {
+	colDefs := make([]sql.ColumnDef, 0, len(t5.ColumnNames())+2)
+	for _, name := range t5.ColumnNames() {
+		colDefs = append(colDefs, sql.ColumnDef{Name: name})
+	}
+	colDefs = append(colDefs,
+		sql.ColumnDef{Name: t5.Name(), Hidden: true},
+		sql.ColumnDef{Name: "rank", Hidden: true})
+	return colDefs
+}
+
+// fts5ColumnDefsFromSQL parses the module arguments of a persisted fts5
+// CREATE VIRTUAL TABLE for its columns (used before the table instance is
+// rehydrated). Returns nil when the statement is not a resolvable fts5 vtab.
+func (e *Engine) fts5ColumnDefsFromSQL(tableName, createSQL string) []sql.ColumnDef {
+	modName, args, ok := vtabModuleFromSQL(createSQL)
+	if !ok || !strings.EqualFold(modName, "fts5") || len(args) == 0 {
+		return nil
+	}
+	cfg, cerr := fts5.ParseConfig(tableName, args)
+	if cerr != nil || len(cfg.Columns) == 0 {
+		return nil
+	}
+	colDefs := make([]sql.ColumnDef, 0, len(cfg.Columns)+2)
+	for _, name := range cfg.Columns {
+		colDefs = append(colDefs, sql.ColumnDef{Name: name})
+	}
+	colDefs = append(colDefs,
+		sql.ColumnDef{Name: tableName, Hidden: true},
+		sql.ColumnDef{Name: "rank", Hidden: true})
+	return colDefs
 }
 
 // vtabColumnDefs resolves column definitions for a CREATE VIRTUAL TABLE

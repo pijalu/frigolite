@@ -239,6 +239,7 @@ func (e *Engine) execBegin(stmt *sql.BeginStmt) *Result {
 	// Snapshot the FTS in-memory indexes so ROLLBACK undoes FTS writes the
 	// pager restore does not cover (the FTS store is in-memory).
 	e.tx.txFTSnapshots = e.snapshotAllFTS()
+	e.tx.txFTS5Snapshots = e.snapshotAllFTS5()
 	if stmt != nil {
 		switch stmt.Type {
 		case "EXCLUSIVE":
@@ -339,6 +340,12 @@ func (e *Engine) execRollback() *Result {
 		}
 	}
 	e.tx.txFTSnapshots = nil
+	for _, snap := range e.tx.txFTS5Snapshots {
+		if snap.table != nil && snap.state != nil {
+			snap.table.Restore(snap.state)
+		}
+	}
+	e.tx.txFTS5Snapshots = nil
 	e.invalidateTableCaches()
 	for _, dbCtx := range e.dbList {
 		dbCtx.Schema.InvalidateCache()
@@ -352,11 +359,12 @@ func (e *Engine) execRollback() *Result {
 // savepointEntry records the pager state at a SAVEPOINT so ROLLBACK TO can
 // undo writes since the savepoint (mirroring the BEGIN snapshot mechanism).
 type savepointEntry struct {
-	name         string
-	snapshots    map[string]*pager.PagerState
-	ftsSnapshots []ftsSnap
-	ddlLen       int
-	inTxBefore   bool
+	name          string
+	snapshots     map[string]*pager.PagerState
+	ftsSnapshots  []ftsSnap
+	fts5Snapshots []fts5Snap
+	ddlLen        int
+	inTxBefore    bool
 }
 
 // --- SAVEPOINT / RELEASE / ROLLBACK TO ---
@@ -382,11 +390,12 @@ func (e *Engine) execSavepointCreate(s *sql.SavepointStmt) *Result {
 		snaps[name] = ctx.Pager.Snapshot()
 	}
 	e.tx.savepointStack = append(e.tx.savepointStack, savepointEntry{
-		name:         s.Name,
-		snapshots:    snaps,
-		ftsSnapshots: e.snapshotAllFTS(),
-		ddlLen:       len(e.tx.ddlBuffer),
-		inTxBefore:   e.tx.inTransaction,
+		name:          s.Name,
+		snapshots:     snaps,
+		ftsSnapshots:  e.snapshotAllFTS(),
+		fts5Snapshots: e.snapshotAllFTS5(),
+		ddlLen:        len(e.tx.ddlBuffer),
+		inTxBefore:    e.tx.inTransaction,
 	})
 	// A SAVEPOINT outside BEGIN implicitly starts a transaction.
 	if !e.tx.inTransaction {
@@ -483,6 +492,11 @@ func (e *Engine) execSavepointRollback(s *sql.SavepointStmt) *Result {
 				snap.table.Restore(snap.state)
 			}
 			snap.table.RestorePending(snap.pending)
+		}
+	}
+	for _, snap := range sp.fts5Snapshots {
+		if snap.table != nil && snap.state != nil {
+			snap.table.Restore(snap.state)
 		}
 	}
 	e.invalidateTableCaches()

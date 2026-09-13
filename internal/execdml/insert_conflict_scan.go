@@ -271,6 +271,11 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 			tableEntry.Name, expectedCount, numSelectCols)}
 	}
 
+	// Route fts5 virtual table inserts through the fts5 engine: each SELECT
+	// row becomes an fts5 document.
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		return e.insertSelectIntoFTS5(t5, tableEntry, colDefs, s, selectResult)
+	}
 	// Route FTS virtual table inserts directly to the FTS table (same as
 	// insertRow): the SELECT result rows become FTS documents.
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {

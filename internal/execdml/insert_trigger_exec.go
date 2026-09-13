@@ -3,11 +3,11 @@ package execdml
 import (
 	"fmt"
 	"github.com/pijalu/frigolite/internal/execexpr"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"strings"
-	"github.com/pijalu/frigolite/internal/execquery"
 )
 
 // triggerTableContext resolves the database context for a table's triggers:

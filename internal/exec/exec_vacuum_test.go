@@ -3,8 +3,8 @@ package exec
 import (
 	"testing"
 
-	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 )
 
 // TestAutoVacuumCommitCallbackFires verifies the sqlite3_autovacuum_pages
@@ -41,11 +41,11 @@ func TestAutoVacuumCommitCallbackFires(t *testing.T) {
 
 	// Register the callback.
 	var (
-		called       int
-		gotSchema    string
-		gotFilesize  uint32
-		gotFreesize  uint32
-		gotPagesize  uint32
+		called      int
+		gotSchema   string
+		gotFilesize uint32
+		gotFreesize uint32
+		gotPagesize uint32
 	)
 	e.SetAutovacuumPagesCallback(func(schema string, fileSize, nFree, pageSize uint32) uint32 {
 		called++

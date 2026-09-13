@@ -38,7 +38,8 @@ var internalLayers = map[string]int{
 	"github.com/pijalu/frigolite/internal/function":       5, // functions
 	"github.com/pijalu/frigolite/internal/execpragma":     5, // pragma dispatch
 	"github.com/pijalu/frigolite/internal/vtab":           5, // virtual tables
-	"github.com/pijalu/frigolite/internal/fts":            5, // FTS3/4/5 full-text search
+	"github.com/pijalu/frigolite/internal/fts":            5, // FTS3/4 full-text search
+	"github.com/pijalu/frigolite/internal/fts5":           5, // FTS5 full-text search
 	"github.com/pijalu/frigolite/internal/execexpr":       5, // expression evaluation
 	"github.com/pijalu/frigolite/internal/execquery":      5, // SELECT execution
 	"github.com/pijalu/frigolite/internal/execdml":        5, // DML execution (INSERT/UPDATE/DELETE)

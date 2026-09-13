@@ -22,6 +22,7 @@ import (
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/exectrigger"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/lockreg"
 	"github.com/pijalu/frigolite/internal/pager"
@@ -122,6 +123,7 @@ type Engine struct {
 	totalChanges    int64  // all I/U/D changes since connection open (sqlite3_total_changes)
 	encoding        string // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
 	ftsTables       map[string]*fts.FTS3Table
+	fts5Tables      map[string]*fts5.Table
 	currentFTSMatch string
 	// ftsMatchInfo holds the matchinfo() context for the current FTS SELECT:
 	// the parsed MATCH query phrases for the table being selected. It is set
@@ -145,6 +147,9 @@ type Engine struct {
 	// (restoreAllFTS). The FTS store is in-memory, so the pager restore does
 	// not cover it.
 	ftsSnapshots []ftsSnap
+	// fts5Snapshots holds the fts5 in-memory state copies captured at
+	// statement start (the fts5 counterpart of ftsSnapshots).
+	fts5Snapshots []fts5Snap
 	// settings groups the PRAGMA/config flags and limits.
 	settings engineSettings
 	// caches groups the per-table and statement caches.
@@ -310,11 +315,12 @@ type tableCaches struct {
 
 // txState groups transaction state (BEGIN/COMMIT/ROLLBACK/SAVEPOINT).
 type txState struct {
-	inTransaction  bool                         // tracks if we're inside a BEGIN/COMMIT block
-	ddlBuffer      []func()                     // DDL undo operations for transaction rollback
-	txSnapshots    map[string]*pager.PagerState // pager snapshots per database at BEGIN (for ROLLBACK undo)
-	txFTSnapshots  []ftsSnap                    // FTS in-memory index snapshots at BEGIN (for ROLLBACK undo)
-	savepointStack []savepointEntry             // nested SAVEPOINT stack
+	inTransaction   bool                         // tracks if we're inside a BEGIN/COMMIT block
+	ddlBuffer       []func()                     // DDL undo operations for transaction rollback
+	txSnapshots     map[string]*pager.PagerState // pager snapshots per database at BEGIN (for ROLLBACK undo)
+	txFTSnapshots   []ftsSnap                    // FTS in-memory index snapshots at BEGIN (for ROLLBACK undo)
+	txFTS5Snapshots []fts5Snap                   // fts5 in-memory state snapshots at BEGIN
+	savepointStack  []savepointEntry             // nested SAVEPOINT stack
 	// execDepth counts nested Exec calls (triggers, the eval() extension).
 	// rollbackAborted is set when a nested statement runs ROLLBACK that
 	// undoes schema changes, which aborts the enclosing statement with "abort
@@ -992,6 +998,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		collations:         make(map[string]func(a, b string) int),
 		encoding:           encodingName(headerTextEncoding(pg)),
 		ftsTables:          make(map[string]*fts.FTS3Table),
+		fts5Tables:         make(map[string]*fts5.Table),
 		ftsDeleteDepth:     make(map[string]int),
 		unionFileDBs:       make(map[unionFileKey]*unionFileDBHandle),
 		unionVtabInstances: make(map[string]vtab.VirtualTable),

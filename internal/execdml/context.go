@@ -5,6 +5,7 @@ import (
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -70,6 +71,7 @@ type DMLContext interface {
 	Schema() *schema.Manager
 	MainDB() *DatabaseContext
 	FTSTables() map[string]*fts.FTS3Table
+	FTS5Tables() map[string]*fts5.Table
 	LastRowID() int64
 	SetLastRowID(id int64)
 	LastChanges() int64

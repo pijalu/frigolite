@@ -352,6 +352,10 @@ func (e *DMLExecutor) resolveReplaceNotNullDefaults(tableEntry *schema.Entry, co
 // insertFTSRow routes a row insert to an FTS virtual table, or returns nil
 // when the table is not FTS-backed.
 func (e *DMLExecutor) insertFTSRow(tableEntry *schema.Entry, values []interface{}, fixedRowID *int64, orConflict string) *Result {
+	// fts5 tables route to their own engine (fts5UpdateMethod).
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		return e.insertFTS5Row(t5, tableEntry, values, fixedRowID, orConflict)
+	}
 	ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]
 	if !ok {
 		return nil

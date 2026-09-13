@@ -815,6 +815,16 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 	}
 	e.cachePersistentVtabInstance(tableName, vt)
 
+	// fts5 owns its module lifecycle: the instance bound by BindSchema above
+	// registered the table in the fts5 module; record it in the engine map so
+	// DML/SELECT route to the fts5 machinery.
+	if strings.EqualFold(s.Module, "fts5") {
+		if err := e.registerFTS5VTab(tableName); err != nil {
+			ctx.Schema.RemoveEntry(entry.Name)
+			return &Result{Error: err}
+		}
+		return &Result{}
+	}
 	// If this is an FTS module, create and store the FTS table. The args
 	// are re-parsed from the stored SQL text (which preserves the original
 	// spacing) so that module validation matches SQLite: "xyz=abc" fails

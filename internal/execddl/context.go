@@ -4,6 +4,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -39,6 +40,7 @@ type DDLContext interface {
 	Pager() *pager.Pager
 	VTables() *vtab.Registry
 	FTSTables() map[string]*fts.FTS3Table
+	FTS5Tables() map[string]*fts5.Table
 	TextEncoding() string
 	CheckProgress() error
 

@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/sql"
 )
@@ -130,6 +131,7 @@ type ExprContext interface {
 	// FTS MATCH support.
 	CurrentFTSMatch() string
 	FTSTables() map[string]*fts.FTS3Table
+	FTS5Tables() map[string]*fts5.Table
 	// FTS matchinfo() context (the current FTS SELECT's MATCH phrases).
 	FTSMatchInfo() (string, bool, []fts.MatchPhrase)
 	// FTSShadowBlob reads a value BLOB from an FTS4 shadow table for

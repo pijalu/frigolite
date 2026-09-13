@@ -266,6 +266,10 @@ func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *Dat
 		}
 	}
 	prevDMLCtx := e.currentDMLCtx
+	// Route fts5 virtual table deletes through the fts5 engine.
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		return nil, nil, nil, nil, e.execFTS5Delete(t5, colDefs, s), prevDMLCtx
+	}
 	// Route FTS virtual table deletes
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
 		return nil, nil, nil, nil, e.ctx.ExecFTSDelete(tableEntry.Name, ftsTable, colDefs, s), prevDMLCtx

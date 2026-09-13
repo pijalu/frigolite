@@ -388,6 +388,8 @@ func (e *DDLExecutor) ensureFTSForTable(entry *schema.Entry) {
 	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
 		return
 	}
+	// fts5 tables rehydrate through their module (xConnect parity).
+	e.EnsureFTS5ForTable(entry)
 	if _, ok := e.ctx.FTSTables()[entry.Name]; ok {
 		return
 	}

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -73,8 +74,11 @@ func (e *Engine) isStoragelessVirtualTable(entry *schema.Entry) bool {
 	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
 		return false
 	}
-	_, isFTS := e.ftsTables[entry.Name]
-	return !isFTS
+	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
+		return false
+	}
+	_, isFTS5 := e.fts5Tables[entry.Name]
+	return !isFTS5
 }
 
 // findView searches for a view across all attached databases.
@@ -219,6 +223,13 @@ type ftsSnap struct {
 	deleteMarkers map[int64][]string
 }
 
+// fts5Snap pairs an fts5 table with a snapshot of its in-memory state (index
+// + content mirror), the fts5 counterpart of ftsSnap.
+type fts5Snap struct {
+	table *fts5.Table
+	state *fts5.TableState
+}
+
 // dmlCanSkipSnapshot reports whether a DML statement can skip the pre-rollback
 // pager snapshot because it cannot fail after partially writing. A single-row
 // VALUES INSERT (no SELECT, no RETURNING, not REPLACE/upsert, no triggers, no
@@ -270,13 +281,16 @@ func (e *Engine) stmtTargetsFTSContent(stmt sql.Stmt) bool {
 	switch s := stmt.(type) {
 	case *sql.InsertStmt:
 		_, isFTS := e.ftsTables[s.Table]
-		return isFTS
+		_, isFTS5 := e.fts5Tables[s.Table]
+		return isFTS || isFTS5
 	case *sql.UpdateStmt:
 		_, isFTS := e.ftsTables[s.Table]
-		return isFTS
+		_, isFTS5 := e.fts5Tables[s.Table]
+		return isFTS || isFTS5
 	case *sql.DeleteStmt:
 		_, isFTS := e.ftsTables[s.Table]
-		return isFTS
+		_, isFTS5 := e.fts5Tables[s.Table]
+		return isFTS || isFTS5
 	}
 	return false
 }
@@ -307,6 +321,13 @@ func (e *Engine) stmtFTSShadowOwner(stmt sql.Stmt) string {
 			}
 		}
 	}
+	for name := range e.fts5Tables {
+		for _, suffix := range []string{"_data", "_idx", "_content", "_docsize", "_config"} {
+			if strings.EqualFold(target, name+suffix) {
+				return name
+			}
+		}
+	}
 	return ""
 }
 
@@ -330,6 +351,7 @@ func (e *Engine) snapshotAllPagers() []pagerSnap {
 	// (restoreAllPagers restores only pager entries; the FTS entries are
 	// consumed by restoreFTSAll).
 	e.ftsSnapshots = e.snapshotAllFTS()
+	e.fts5Snapshots = e.snapshotAllFTS5()
 	return snaps
 }
 
@@ -339,6 +361,17 @@ func (e *Engine) snapshotAllFTS() []ftsSnap {
 	for _, t := range e.ftsTables {
 		if t != nil {
 			snaps = append(snaps, ftsSnap{table: t, state: t.Snapshot(), pending: t.PendingSnapshot(), deleteMarkers: t.DeleteMarkerTermsSnapshot()})
+		}
+	}
+	return snaps
+}
+
+// snapshotAllFTS5 captures the in-memory state of every registered fts5 table.
+func (e *Engine) snapshotAllFTS5() []fts5Snap {
+	var snaps []fts5Snap
+	for _, t := range e.fts5Tables {
+		if t != nil {
+			snaps = append(snaps, fts5Snap{table: t, state: t.Snapshot()})
 		}
 	}
 	return snaps
@@ -358,6 +391,12 @@ func (e *Engine) restoreAllFTS() {
 		}
 	}
 	e.ftsSnapshots = nil
+	for _, snap := range e.fts5Snapshots {
+		if snap.table != nil && snap.state != nil {
+			snap.table.Restore(snap.state)
+		}
+	}
+	e.fts5Snapshots = nil
 }
 
 // restoreAllPagers restores each pager to the snapshot captured from it by

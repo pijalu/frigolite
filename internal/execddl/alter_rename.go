@@ -65,6 +65,11 @@ func (e *DDLExecutor) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		ftsMod.RenameTable(oldName, newName)
 		e.renameFTSShadowTables(entryCtx, oldName, newName)
 	}
+	// An fts5 table renames its shadow family through the module
+	// (fts5StorageRename) and follows the engine map key.
+	if err := e.renameFTS5(oldName, newName); err != nil {
+		return &Result{Error: err}
+	}
 	// Rename the three shadow tables of an rtree family vtab to follow their
 	// owner (rtree.c rtreeRename); collision pre-check ran earlier.
 	if vtabFamilyModuleOf(entry.SQL) {

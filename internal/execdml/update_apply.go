@@ -185,7 +185,9 @@ func (e *DMLExecutor) fireUpdateBeforeTriggers(tableName string, rootPage uint32
 // (live-table) row's values are returned so the caller can name the
 // violated column (trigger2-6.2b: "tbl.a", not bare "tbl") — the
 // change's own old values differ on the SET column and would miss.
-func (e *DMLExecutor) updateRowConflictsWithTable(tree *btree.BTree, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflict bool, _ error) {return e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, nil)}
+func (e *DMLExecutor) updateRowConflictsWithTable(tree *btree.BTree, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflict bool, _ error) {
+	return e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, nil)
+}
 
 // updateRowConflictValues is updateRowConflictsWithTable with an optional
 // out-parameter receiving the conflicting live-table row's values (declared

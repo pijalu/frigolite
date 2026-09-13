@@ -7,6 +7,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/execddl"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -109,21 +110,24 @@ func (e *Engine) registerFTSModules() {
 	// Register FTS modules (overrides NoopModule defaults)
 	ftsMod := fts.NewFTS3Module("fts3")
 	e.vtabs.Register("fts3", ftsMod)
-	e.vtabs.Register("fts4", fts.NewFTS3Module("fts4"))
-	e.vtabs.Register("fts5", fts.NewFTS3Module("fts5"))
-	// fts4aux reads the FTS3/4/5 in-memory indexes (fts3_aux.c). Register it
+	fts4Mod := fts.NewFTS3Module("fts4")
+	e.vtabs.Register("fts4", fts4Mod)
+	// fts5 (ext/fts5): a full-text engine with its own module, tokenizers,
+	// index and query language; it owns its shadow tables through the
+	// vtab.Database handle like rtree does.
+	e.vtabs.Register("fts5", fts5.NewModule(e.Database()))
+	// fts4aux reads the FTS3/4 in-memory indexes (fts3_aux.c). Register it
 	// after the FTS modules so it can resolve the target table.
-	fts4Mod, _ := e.vtabs.Find("fts4")
-	fts5Mod, _ := e.vtabs.Find("fts5")
-	byName := map[string]*fts.FTS3Module{
+	e.vtabs.Register("fts4aux", fts.NewFTS4AuxModule(map[string]*fts.FTS3Module{
 		"fts3": ftsMod,
-		"fts4": fts4Mod.(*fts.FTS3Module),
-		"fts5": fts5Mod.(*fts.FTS3Module),
-	}
-	e.vtabs.Register("fts4aux", fts.NewFTS4AuxModule(byName))
+		"fts4": fts4Mod,
+	}))
 	// fts4term exposes the raw terms of each FTS index (fts3_term.c), a
 	// test-only module that fts3prefix.test uses to verify prefix indexes.
-	e.vtabs.Register("fts4term", fts.NewFTS4TermModule(byName))
+	e.vtabs.Register("fts4term", fts.NewFTS4TermModule(map[string]*fts.FTS3Module{
+		"fts3": ftsMod,
+		"fts4": fts4Mod,
+	}))
 	// fts3tokenize exposes a tokenizer as a virtual table (fts3_tokenize_vtab.c):
 	// querying WHERE input = <text> returns one row per token.
 	e.vtabs.Register("fts3tokenize", fts.NewFTS3TokenizeModule())

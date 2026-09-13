@@ -360,6 +360,13 @@ func (ev *Evaluator) rowValueIsEqual(lv, rv []interface{}) (bool, error) {
 	return equal, nil
 }
 
+// ftsMatchTable is the MATCH-evaluation contract an FTS table (FTS3/4 or
+// fts5) must satisfy: per-document query evaluation plus column resolution.
+type ftsMatchTable interface {
+	MatchQueryColumn(rowid int64, query, columnName string, langid ...int64) (bool, error)
+	ColumnNames() []string
+}
+
 // evalMatchOp evaluates a MATCH or NOT MATCH expression for FTS virtual tables.
 func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 	queryStr, isNull, ok := ev.matchQueryString(v, row)
@@ -399,7 +406,7 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 	// (fts3.c fts3FilterMethod binds pLangid to the expression parser —
 	// fts4langid 4.1.3 tokenizes 'Quick' differently at langid 1).
 	var matchLangid int64
-	if langCol := ftsTable.LangIDColName(); langCol != "" {
+	if langCol := ftsMatchLangColumn(ftsTable); langCol != "" {
 		if lv, ok := row.Get(langCol); ok {
 			matchLangid = ToIntValue(util.UnwrapColumnValue(lv))
 		}
@@ -410,9 +417,13 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 		// malformed" (fts3corrupt4 11.1/19.1). A query-parse failure is
 		// treated as no match (matches SQLite behavior) EXCEPT a malformed
 		// MATCH expression, which SQLite reports at prepare and fails the
-		// statement (fts3expr 2.x, fts3ag 4.x).
+		// statement (fts3expr 2.x, fts3ag 4.x). fts5 query errors ("fts5:
+		// syntax error near ...", detail restrictions, unknown query
+		// columns) are statement errors too.
 		if strings.Contains(err.Error(), "database disk image is malformed") ||
-			strings.Contains(err.Error(), "malformed MATCH expression") {
+			strings.Contains(err.Error(), "malformed MATCH expression") ||
+			strings.HasPrefix(err.Error(), "fts5:") ||
+			strings.Contains(err.Error(), "no such column: ") {
 			return nil, err
 		}
 		return int64(0), nil
@@ -421,6 +432,15 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 		return boolToInt(!matched), nil
 	}
 	return boolToInt(matched), nil
+}
+
+// ftsMatchLangColumn returns the languageid column of an FTS3 table (fts5
+// tables have none; the interface cannot expose LangIDColName directly).
+func ftsMatchLangColumn(t ftsMatchTable) string {
+	if f3, ok := t.(*fts.FTS3Table); ok {
+		return f3.LangIDColName()
+	}
+	return ""
 }
 
 // matchQueryString evaluates the right-hand side of a MATCH expression and
@@ -505,11 +525,16 @@ func getRowIDPresence(row Row) (int64, bool) {
 //     When several FTS tables declare the same column, the row's qualified
 //     <table>.col key disambiguates which table the column belongs to (the
 //     row is built from the joined tables in the query's FROM clause).
-func (ev *Evaluator) matchFTSLookup(v *sql.BinaryOp, row Row) (*fts.FTS3Table, string, string, bool) {
+//
+// Both FTS3/4 tables and fts5 tables resolve here.
+func (ev *Evaluator) matchFTSLookup(v *sql.BinaryOp, row Row) (ftsMatchTable, string, string, bool) {
 	// 1. Current FTS match context (single-table FTS SELECT).
 	if name := ev.ctx.CurrentFTSMatch(); name != "" {
 		if ft, ok := ev.ctx.FTSTables()[name]; ok {
 			return ft, name, ev.leftMatchColumnName(v), true
+		}
+		if t5, ok := ev.ctx.FTS5Tables()[name]; ok {
+			return t5, name, ev.leftMatchColumnName(v), true
 		}
 	}
 	colRef, isColRef := v.Left.(*sql.ColumnRef)
@@ -521,6 +546,9 @@ func (ev *Evaluator) matchFTSLookup(v *sql.BinaryOp, row Row) (*fts.FTS3Table, s
 		if ft, ok := ev.ctx.FTSTables()[colRef.Table]; ok {
 			return ft, colRef.Table, colRef.Name, true
 		}
+		if t5, ok := ev.ctx.FTS5Tables()[colRef.Table]; ok {
+			return t5, colRef.Table, colRef.Name, true
+		}
 		return nil, "", "", false
 	}
 	// 3. Bare left identifier.
@@ -528,6 +556,9 @@ func (ev *Evaluator) matchFTSLookup(v *sql.BinaryOp, row Row) (*fts.FTS3Table, s
 	// 3a. Whole-table match: the name IS an FTS table.
 	if ft, ok := ev.ctx.FTSTables()[name]; ok {
 		return ft, name, "", true
+	}
+	if t5, ok := ev.ctx.FTS5Tables()[name]; ok {
+		return t5, name, "", true
 	}
 	// 3b. Column match: find the FTS table that declares this column. Prefer
 	// the table whose qualified <table>.col key exists in the row, so a
@@ -543,6 +574,15 @@ func (ev *Evaluator) matchFTSLookup(v *sql.BinaryOp, row Row) (*fts.FTS3Table, s
 				}
 			}
 		}
+		for tname, t5 := range ev.ctx.FTS5Tables() {
+			for _, col := range t5.ColumnNames() {
+				if strings.EqualFold(col, name) {
+					if _, ok := row.Get(tname + "." + name); ok {
+						return t5, tname, name, true
+					}
+				}
+			}
+		}
 	}
 	// Fall back to the first FTS table declaring the column (single-table
 	// context without a qualified row key).
@@ -550,6 +590,13 @@ func (ev *Evaluator) matchFTSLookup(v *sql.BinaryOp, row Row) (*fts.FTS3Table, s
 		for _, col := range ft.ColumnNames() {
 			if strings.EqualFold(col, name) {
 				return ft, tname, name, true
+			}
+		}
+	}
+	for tname, t5 := range ev.ctx.FTS5Tables() {
+		for _, col := range t5.ColumnNames() {
+			if strings.EqualFold(col, name) {
+				return t5, tname, name, true
 			}
 		}
 	}
@@ -565,6 +612,9 @@ func (ev *Evaluator) leftMatchColumnName(v *sql.BinaryOp) string {
 		// (e.g. ft1 MATCH 'abc'); the table name is not a column restriction.
 		if colRef.Table == "" {
 			if _, isTable := ev.ctx.FTSTables()[colRef.Name]; isTable {
+				return ""
+			}
+			if _, isTable := ev.ctx.FTS5Tables()[colRef.Name]; isTable {
 				return ""
 			}
 		}

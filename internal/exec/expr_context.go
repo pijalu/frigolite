@@ -5,6 +5,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/sql"
 )
@@ -235,9 +236,14 @@ func (e *Engine) FTSMatchInfo() (string, bool, []fts.MatchPhrase) {
 	return e.ftsMatchInfo.table, e.ftsMatchInfo.hasMatch, e.ftsMatchInfo.phrases
 }
 
-// FTSTables returns the registered FTS3/4/5 tables (table name -> instance).
+// FTSTables returns the registered FTS3/4 tables (table name -> instance).
 func (e *Engine) FTSTables() map[string]*fts.FTS3Table {
 	return e.ftsTables
+}
+
+// FTS5Tables returns the registered fts5 tables (table name -> instance).
+func (e *Engine) FTS5Tables() map[string]*fts5.Table {
+	return e.fts5Tables
 }
 
 // AggRowMaps returns the aggregate row maps for aggregate function

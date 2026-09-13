@@ -1,8 +1,8 @@
 package exec
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/schema"
