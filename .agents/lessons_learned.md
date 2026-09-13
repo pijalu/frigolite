@@ -6009,3 +6009,17 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   shows rtree(id,x1,x2) IS valid (1-dim); the expected-error assertions were
   procs the transpiler never ran. Verify the TCL premise against the oracle
   before writing an engine fix.
+- **INCIDENT (2026-09-13): fts5 corpus census crashed the machine**: running
+  all 144 testgen/fts5* packages as ONE `go test` invocation (go executes
+  many package binaries concurrently) WHILE the geopoly agent ran its own
+  verification filled memory — frigolite materializes full row sets in RAM
+  (no streaming), and several fts5 TCL tests drive multi-thousand-row loops
+  / huge generated content (fts5aj alone ran 249s). macOS hit memory
+  pressure and the system became unresponsive. GUARDRAILS (mandatory):
+  (1) new-corpus first passes run in batches of ≤8 packages with
+  `-timeout 300s` per batch, NEVER one invocation; (2) never overlap a big
+  corpus run with another agent's test runs — serialize; (3) before batch
+  2+, run the heaviest package ALONE first and watch RSS (ps -o rss=);
+  (4) packages exceeding ~120s or ~2GB RSS get flagged pathological and
+  skipped for the census (supersession/triage class), not run to completion;
+  (5) `pkill -f 'go test'` is the emergency brake.
