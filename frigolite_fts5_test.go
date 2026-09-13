@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -117,9 +118,12 @@ func TestFTS5InsertSelect(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t1(a, rank) VALUES('seven', 5)"))
 	checkQueryResult(t, db.Query("SELECT a FROM t1 WHERE rowid=4"), "seven")
 
-	// rank reads as NULL without a MATCH, 0.0 with one (bm25 in slice 5).
+	// rank reads as NULL without a MATCH; with one it is the bm25 value
+	// (negated BM25, oracle-verified: -1.1282051282051283e-06 at full
+	// precision, printed at SQLite's 15 significant digits).
 	checkQueryResult(t, db.Query("SELECT rank FROM t1 WHERE rowid=1"), "NULL")
-	checkQueryResult(t, db.Query("SELECT rowid, rank FROM t1 WHERE t1 MATCH 'one'"), "1 0.0 2 0.0")
+	checkQueryResult(t, db.Query("SELECT rowid, rank FROM t1 WHERE t1 MATCH 'one'"),
+		"1 -1.12820512820513e-06 2 -8.8e-07")
 }
 
 // --- Slice 3: MATCH queries ---
@@ -204,7 +208,11 @@ func TestFTS5Tokenizers(t *testing.T) {
 	// tokenchars/separators exceptions.
 	checkExecOK(t, db.Exec(`CREATE VIRTUAL TABLE u3 USING fts5(a, tokenize="unicode61 tokenchars '-'")`))
 	checkExecOK(t, db.Exec("INSERT INTO u3(rowid, a) VALUES(1, 'full-text 42nd')"))
-	checkQueryResult(t, db.Query("SELECT rowid FROM u3 WHERE u3 MATCH 'full-text'"), "1")
+	// The query lexer is tokenizer-independent: an unquoted '-' is the
+	// inverted-colset token, so 'full-text' resolves 'text' as a column
+	// (oracle-verified); the quoted form tokenizes with the table tokenizer.
+	checkExecError(t, db.Exec("SELECT rowid FROM u3 WHERE u3 MATCH 'full-text'"), "no such column: text")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM u3 WHERE u3 MATCH '"full-text"'`), "1")
 	checkQueryResult(t, db.Query("SELECT rowid FROM u3 WHERE u3 MATCH 'full'"), "")
 	checkExecOK(t, db.Exec(`CREATE VIRTUAL TABLE u4 USING fts5(a, tokenize="unicode61 separators 'x'")`))
 	checkExecOK(t, db.Exec("INSERT INTO u4(rowid, a) VALUES(1, 'axb')"))
@@ -311,6 +319,8 @@ func TestFTS5DetailModes(t *testing.T) {
 	// detail=none: no column or phrase queries.
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE d1 USING fts5(a, b, detail=none)"))
 	checkExecOK(t, db.Exec("INSERT INTO d1(rowid, a, b) VALUES(1, 'x y', 'z')"))
+	// detail=none still matches single terms (positions are the only thing
+	// dropped) — oracle-verified.
 	checkQueryResult(t, db.Query("SELECT rowid FROM d1 WHERE d1 MATCH 'x'"), "1")
 	checkExecError(t, db.Exec(`SELECT rowid FROM d1 WHERE d1 MATCH '"x y"'`),
 		"fts5: phrase queries are not supported (detail!=full)")
@@ -417,4 +427,154 @@ func checkExecError(t *testing.T, res *Result, expected string) {
 	if !strings.Contains(res.Error.Error(), expected) {
 		t.Errorf("expected error containing %q, got %q", expected, res.Error.Error())
 	}
+}
+
+// --- Slice 4: full query language (fts5_expr.c/fts5parse.y) ---
+
+// fts5QLSetup builds the shared query-language corpus (oracle-transcribed).
+func fts5QLSetup(t *testing.T) *DB {
+	t.Helper()
+	db := setupDB(t)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts5(a, b)"))
+	type row struct {
+		rowid int
+		a, b  string
+	}
+	rows := []row{
+		{1, "one two three", "three four"},
+		{2, "two three", "five"},
+		{3, "three", "one two"},
+		{4, "four five six", "seven"},
+	}
+	for _, r := range rows {
+		checkExecOK(t, db.Exec(fmt.Sprintf(
+			"INSERT INTO t1(rowid, a, b) VALUES(%d, '%s', '%s')", r.rowid, r.a, r.b)))
+	}
+	return db
+}
+
+func TestFTS5QueryLanguage(t *testing.T) {
+	db := fts5QLSetup(t)
+	defer db.Close()
+
+	// Operator precedence: OR < AND < NOT < implicit AND.
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one AND two OR five'"), "1 2 3 4")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one OR two AND five'"), "1 2 3")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'two NOT one AND five'"), "2")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one two NOT four'"), "3")
+	// NOT's right operand absorbs implicit ANDs.
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one NOT four two'"), "3")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'two NOT one five'"), "1 2 3")
+	// Left-associative NOT.
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one NOT four NOT two'"), "")
+
+	// Implicit AND joins cnearsets only; a parenthesized expression cannot
+	// join a chain (oracle: 'two (four)' parses as a NEAR call named "two").
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'two (four)'"), `fts5: syntax error near "two"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'two (four OR five)'"), `fts5: syntax error near "OR"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '(one) (two)'"), `fts5: syntax error near "("`)
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '(one two) OR five'"), "1 2 3 4")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'two NEAR(one three)'"), "1")
+
+	// Keywords are case-sensitive: lowercase and/or/not are plain terms.
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one and two'"), "")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'NOT one'"), `fts5: syntax error near "NOT"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'AND one'"), `fts5: syntax error near "AND"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'OR one'"), `fts5: syntax error near "OR"`)
+
+	// NEAR: the call word is case-sensitive; one phrase is legal (the window
+	// is inert); the distance is a raw digit string.
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'NEAR(one three)'"), "1")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'NEAR(one three, 0)'"), "")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'near(a b)'"), `fts5: syntax error near "near"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'foo(a b)'"), `fts5: syntax error near "foo"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'NEAR(a b, x)'"), `expected integer, got "x"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'NEAR(a b, )'"), `fts5: syntax error near ")"`)
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'NEAR(two, 5)'"), "1 2 3")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'two NEAR(one three) five'"), "")
+
+	// Column filters: braces (space-separated, no commas), exclusion with a
+	// leading minus, quoted names, and parse-time merging.
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '{a b} : two'"), "1 2 3")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '-{a} : two'"), "3")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '-a : two'"), "3")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '"b" : one'`), "3")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '{"a" b} : one'`), "1 3")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '{a a} : one'"), "1")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'a : one OR five'"), "1 2 4")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'a : (one OR five)'"), "1 4")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'a : one + two'"), "1")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '{a} : ^three'"), "3")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'zz : a'"), "no such column: zz")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '{zz} : a'"), "no such column: zz")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '- one'"), "no such column: one")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '{} : one'"), `fts5: syntax error near "}"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '{a , b} : one'"), `fts5: syntax error near ","`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '{a} b'"), `fts5: syntax error near "b"`)
+	// Nested filters merge; an empty merge matches nothing (no error).
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'a : (b : one)'"), "")
+
+	// Phrases: "+" continuation, per-term stars, caret anchoring.
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH 'two + "three four"'`), "")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '"one two" + three'`), "1")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '"one two"*'`), "1 3")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'one + + two'"), `fts5: syntax error near "+"`)
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '^one + two'"), "1 3")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '^(one two)'"), `fts5: syntax error near "("`)
+
+	// A zero-token phrase is an EOF node: it matches nothing and poisons AND.
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '""'`), "")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH 'one ""'`), "")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '"" + one'`), "1 3")
+	checkExecError(t, db.Exec(`SELECT rowid FROM t1 WHERE t1 MATCH '"abc'`), "unterminated string")
+
+	// Lexer: double quotes only; barewords are digits/letters/_/high bytes.
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'one & two'"), `fts5: syntax error near "&"`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH \"'one'\""), `fts5: syntax error near "'"`)
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'ONE'"), "1 3")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH ''"), `fts5: syntax error near ""`)
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH ''"), `fts5: syntax error near ""`)
+
+	// NEAR windows never span columns (column-major absolute positions).
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'NEAR(two three four)'"), "")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'NEAR(one three, 0)'"), "")
+
+	// Special queries (fts5SpecialMatch).
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '*bogus'"), "unknown special query: bogus")
+	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '*'"), "unknown special query: ")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '*reads'"), "0")
+}
+
+func TestFTS5QueryLanguageDetailErrors(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE d1 USING fts5(x, y, detail=none)"))
+	checkExecOK(t, db.Exec("INSERT INTO d1(rowid, x, y) VALUES(1, 'one two', 'three')"))
+	checkExecError(t, db.Exec("SELECT rowid FROM d1 WHERE d1 MATCH 'NEAR(x y)'"),
+		"fts5: NEAR queries are not supported (detail!=full)")
+	checkExecError(t, db.Exec("SELECT rowid FROM d1 WHERE d1 MATCH 'x : y'"),
+		"fts5: column queries are not supported (detail=none)")
+	checkQueryResult(t, db.Query("SELECT rowid FROM d1 WHERE d1 MATCH 'x'"), "")
+
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE d2 USING fts5(x, y, detail=columns)"))
+	checkExecOK(t, db.Exec("INSERT INTO d2(rowid, x, y) VALUES(1, 'one two', 'three')"))
+	checkExecError(t, db.Exec(`SELECT rowid FROM d2 WHERE d2 MATCH '"one two"'`),
+		"fts5: phrase queries are not supported (detail!=full)")
+	checkExecError(t, db.Exec("SELECT rowid FROM d2 WHERE d2 MATCH '^one'"),
+		"fts5: phrase queries are not supported (detail!=full)")
+	checkExecError(t, db.Exec("SELECT rowid FROM d2 WHERE d2 MATCH 'NEAR(one two)'"),
+		"fts5: NEAR queries are not supported (detail!=full)")
+	checkQueryResult(t, db.Query("SELECT rowid FROM d2 WHERE d2 MATCH 'y : three'"), "1")
+}
+
+// --- Slice 5: rank/bm25 and highlight/snippet ---
+
+func TestFTS5AuxInWhere(t *testing.T) {
+	db := fts5QLSetup(t)
+	defer db.Close()
+
+	// Auxiliary functions are usable in any expression context.
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'two' AND bm25(t1) < 0"), "1 2 3")
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'two' AND highlight(t1, 0, '<', '>') LIKE '%<two>%'"), "1 2")
 }

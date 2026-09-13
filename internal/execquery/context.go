@@ -76,6 +76,10 @@ type SelectContext interface {
 	FullColumnNames() bool
 	FTSTables() map[string]*fts.FTS3Table
 	FTS5Tables() map[string]*fts5.Table
+	// SetFTS5Aux / ClearFTS5Aux drive the fts5 auxiliary-function context of
+	// the current fts5 SELECT (bm25/highlight/snippet evaluation).
+	SetFTS5Aux(table string, aq *fts5.AuxQuery)
+	ClearFTS5Aux()
 	Expr() *execexpr.Evaluator
 	// ColumnLimit returns the runtime SQLITE_LIMIT_COLUMN value (used by
 	// CREATE TABLE column counts and ORDER BY/GROUP BY term counts).

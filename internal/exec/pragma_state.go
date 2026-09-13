@@ -202,10 +202,13 @@ func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 	case "truncate":
 		mode = pager.WalCkptTruncate
 	}
-	if err := ctx.Pager.CheckpointMode(mode); err != nil {
+	busy, nLog, nCkpt, err := ctx.Pager.CheckpointMode(mode)
+	if err != nil {
 		return &execpragma.Result{Error: err}
 	}
-	return &execpragma.Result{Rows: [][]interface{}{{0, 0, 0}}}
+	return &execpragma.Result{Rows: [][]interface{}{{
+		int64(busy), int64(nLog), int64(nCkpt),
+	}}}
 }
 
 // PageCount implements PRAGMA page_count: the current number of pages in the

@@ -472,7 +472,7 @@ func (e *SelectEngine) materializeVTabJoinRows(tableEntry *schema.Entry, rightDe
 	}
 	// fts5 tables in a join materialize through the fts5 engine.
 	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
-		rowids, allRows, err := fts5ScanRows(t5, rightDefs, false)
+		rowids, allRows, err := fts5ScanRows(t5, rightDefs, nil)
 		if err != nil {
 			return nil, err
 		}

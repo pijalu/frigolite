@@ -134,6 +134,10 @@ type ExprContext interface {
 	FTS5Tables() map[string]*fts5.Table
 	// FTS matchinfo() context (the current FTS SELECT's MATCH phrases).
 	FTSMatchInfo() (string, bool, []fts.MatchPhrase)
+	// FTS5Aux returns the current fts5 auxiliary-function context: the fts5
+	// table being selected and its prepared MATCH query (bm25/highlight/
+	// snippet evaluation; nil query = a scan without MATCH, zero instances).
+	FTS5Aux() (string, *fts5.AuxQuery)
 	// FTSShadowBlob reads a value BLOB from an FTS4 shadow table for
 	// matchinfo 'l'/'a' (kind "docsize" = %_docsize row for docID,
 	// "doctotal" = %_stat row id=0). A missing row or non-BLOB value errors

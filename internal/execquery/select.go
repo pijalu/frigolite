@@ -501,8 +501,10 @@ func (e *SelectEngine) execSelectVtab(s *sql.SelectStmt, tableEntry *schema.Entr
 			return e.execFTS5Select(s, t5, colDefs)
 		}
 		// A join: materialize the fts5 documents (rowid-backed row maps) and
-		// run the generic join pipeline over them.
-		rowids, allRows, err := fts5ScanRows(t5, colDefs, statementHasFTS5Match(s, t5.Name()))
+		// run the generic join pipeline over them. No rank projection: a
+		// joined fts5 scan has no single rank function (C's
+		// "unable to use function MATCH in the requested context" class).
+		rowids, allRows, err := fts5ScanRows(t5, colDefs, nil)
 		if err != nil {
 			return &Result{Error: err}
 		}

@@ -495,7 +495,14 @@ func (ev *Evaluator) evalEngineFunc(f *sql.FuncCall, row Row) (interface{}, bool
 		}
 		fts.RegisterCustomTokenizer(strings.ToLower(name), func() fts.Tokenizer { return fts.NewTestTokenizer() })
 		return mod, true, nil
-	case "MATCHINFO", "OFFSETS", "SNIPPET", "OPTIMIZE":
+	case "MATCHINFO", "OFFSETS", "SNIPPET", "OPTIMIZE", "BM25", "HIGHLIGHT", "FTS5_GET_LOCALE":
+		// fts5 auxiliary functions first: bm25()/highlight()/fts5_get_locale()
+		// are fts5-only; snippet() exists on both FTS3/4 and fts5 and the fts5
+		// dispatch yields when the statement's context is an FTS3 table
+		// (fts5_aux.c / fts3_snippet.c via xFindFunction).
+		if val, handled, err := ev.evalFTS5Aux(f.Name, f, row); handled {
+			return val, true, err
+		}
 		// FTS3 auxiliary functions: matchinfo(TABLE[, fmt]) returns a blob of
 		// per-row match statistics; offsets(TABLE) returns the byte spans of
 		// query-token occurrences; snippet(TABLE, ...) extracts a text

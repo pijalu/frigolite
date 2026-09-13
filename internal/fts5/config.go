@@ -71,6 +71,11 @@ type Config struct {
 	Detail               DetailMode
 	Locale               bool
 	Tokendata            bool
+
+	// Rank is the resolved rank-function configuration (the 'rank' special
+	// insert: C's pConfig->zRank/zRankArgs; empty Func means the default
+	// "bm25" with no arguments).
+	Rank RankSpec
 }
 
 // Contentless reports whether the table is content=” (no stored text).

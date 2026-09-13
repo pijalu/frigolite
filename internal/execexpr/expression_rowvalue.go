@@ -369,6 +369,15 @@ type ftsMatchTable interface {
 
 // evalMatchOp evaluates a MATCH or NOT MATCH expression for FTS virtual tables.
 func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) {
+	// The fts5 rank override ("WHERE rank MATCH 'bm25(...)'") is consumed by
+	// the fts5 scan (xFilter's rank constraint), never a row filter: it
+	// evaluates to true for every visited row.
+	if ref, ok := v.Left.(*sql.ColumnRef); ok && strings.EqualFold(ref.Name, "rank") {
+		ctxTable, _ := ev.ctx.FTS5Aux()
+		if ctxTable != "" {
+			return int64(1), nil
+		}
+	}
 	queryStr, isNull, ok := ev.matchQueryString(v, row)
 	if isNull {
 		return nil, nil

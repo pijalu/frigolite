@@ -131,6 +131,11 @@ type Engine struct {
 	// matchinfo(TABLE) can compute per-phrase hit statistics
 	// (fts3_snippet.c fts3GetMatchinfo).
 	ftsMatchInfo ftsMatchInfoCtx
+	// fts5Aux holds the fts5 auxiliary-function context for the current fts5
+	// SELECT: the table name and its prepared MATCH query (bm25/highlight/
+	// snippet evaluate against it). Set by the fts5 scan paths and cleared
+	// when the statement finishes.
+	fts5Aux fts5AuxCtx
 	// overloadProbe enables per-TRUE-invocation of user-registered
 	// like()/glob()/regexp() functions while a virtual-table scan whose
 	// module opted in (vtab.OperatorOverloadCounter) feeds the current

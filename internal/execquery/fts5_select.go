@@ -1,6 +1,7 @@
 package execquery
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/fts5"
@@ -10,24 +11,170 @@ import (
 
 // fts5 SELECT support: the dedicated scan path materializes the fts5 table's
 // documents and runs the generic materialized pipeline (WHERE with MATCH
-// evaluation, aggregates, DISTINCT, ORDER BY, LIMIT) over them.
+// evaluation, aggregates, DISTINCT, ORDER BY, LIMIT) over them. The statement
+// also drives the fts5 auxiliary-function context (bm25/highlight/snippet)
+// and the rank pseudo-column.
 
 // execFTS5Select executes a single-table SELECT over an fts5 table. A MATCH
 // constraint drives the scan universe from the index (xFilter parity), so
 // index-only documents of external-content tables are visible.
 func (e *SelectEngine) execFTS5Select(s *sql.SelectStmt, t5 *fts5.Table, colDefs []sql.ColumnDef) *Result {
 	hasMatch := statementHasFTS5Match(s, t5.Name())
-	rowids, rows, err := e.fts5UniverseRows(s.Where, t5, colDefs, hasMatch)
+	override, hasOverride, err := e.fts5RankOverride(s.Where)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	aq, err := e.fts5PrepareAux(s.Where, t5, hasMatch)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	rankFn, err := e.fts5RankFn(s, t5, aq, override, hasOverride, hasMatch)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	e.ctx.SetFTS5Aux(t5.Name(), aq)
+	defer e.ctx.ClearFTS5Aux()
+	rowids, rows, err := e.fts5UniverseRows(s.Where, t5, colDefs, rankFn)
 	if err != nil {
 		return &Result{Error: err}
 	}
 	return e.execSelectOverMaterializedRowids(s, colDefs, rows, rowids)
 }
 
+// fts5PrepareAux parses the statement's MATCH constraint query for the
+// auxiliary-function context. The universe evaluation re-parses (memoized by
+// the table's match cache), matching C's per-cursor single parse closely
+// enough for observation.
+func (e *SelectEngine) fts5PrepareAux(where sql.Expr, t5 *fts5.Table, hasMatch bool) (*fts5.AuxQuery, error) {
+	if !hasMatch {
+		return t5.NewScanAux(), nil
+	}
+	q, col, ok := e.firstFTS5MatchConstraint(where, t5)
+	if !ok {
+		return t5.NewScanAux(), nil
+	}
+	// A special query ('*reads'/'*id' — fts5SpecialMatch) never reaches the
+	// expression parser: xFilter dispatches it before the aux context is
+	// built, and aux functions see zero instances.
+	if strings.HasPrefix(q, "*") {
+		return t5.NewScanAux(), nil
+	}
+	return t5.PrepareAux(q, col)
+}
+
+// firstFTS5MatchConstraint extracts the first MATCH conjunct's query string
+// and column restriction for the given fts5 table.
+func (e *SelectEngine) firstFTS5MatchConstraint(where sql.Expr, t5 *fts5.Table) (string, int, bool) {
+	for _, conjunct := range fts5TopLevelConjuncts(where) {
+		bop, ok := conjunct.(*sql.BinaryOp)
+		if !ok || bop.Operator != "MATCH" {
+			continue
+		}
+		col, applies := fts5MatchConstraintColumn(bop.Left, t5)
+		if !applies {
+			continue
+		}
+		qv, err := e.ctx.EvalExpr(bop.Right, nil)
+		if err != nil {
+			return "", -1, false
+		}
+		q, ok := util.UnwrapColumnValue(qv).(string)
+		if !ok {
+			continue
+		}
+		return q, col, true
+	}
+	return "", -1, false
+}
+
+// fts5RankOverride resolves the WHERE's `rank MATCH '...'` constraint (the
+// per-cursor rank function override, fts5_main.c fts5CursorParseRank). The
+// constraint is consumed by the fts5 scan, not a row filter.
+func (e *SelectEngine) fts5RankOverride(where sql.Expr) (*fts5.RankSpec, bool, error) {
+	for _, conjunct := range fts5TopLevelConjuncts(where) {
+		bop, ok := conjunct.(*sql.BinaryOp)
+		if !ok || bop.Operator != "MATCH" {
+			continue
+		}
+		ref, ok := bop.Left.(*sql.ColumnRef)
+		if !ok || !strings.EqualFold(ref.Name, "rank") {
+			continue
+		}
+		v, err := e.ctx.EvalExpr(bop.Right, nil)
+		if err != nil {
+			return nil, false, err
+		}
+		text := ""
+		switch x := util.UnwrapColumnValue(v).(type) {
+		case string:
+			text = x
+		case []byte:
+			text = string(x)
+		case nil:
+			text = ""
+		default:
+			text = fmt.Sprintf("%v", x)
+		}
+		spec, perr := fts5.ParseRankSpec(text)
+		if perr != nil {
+			return nil, false, &fts5.RankParseError{Text: text}
+		}
+		return spec, true, nil
+	}
+	return nil, false, nil
+}
+
+// fts5RankFn builds the per-document rank-value function for the statement:
+// NULL without a MATCH constraint (C's full-scan cursors have no rank), the
+// rank function's value with one. The function resolves lazily — only a
+// statement that reads rank pays the resolution cost ("no such function").
+func (e *SelectEngine) fts5RankFn(s *sql.SelectStmt, t5 *fts5.Table, aq *fts5.AuxQuery, override *fts5.RankSpec, hasOverride, hasMatch bool) (func(int64) (interface{}, error), error) {
+	if !hasMatch {
+		return nil, nil
+	}
+	if !statementReadsFTS5Rank(s, t5.Name()) {
+		return nil, nil
+	}
+	spec := &t5.Config().Rank
+	if hasOverride {
+		spec = override
+	}
+	return func(rowid int64) (interface{}, error) {
+		return t5.RankValue(spec, aq, rowid)
+	}, nil
+}
+
+// statementReadsFTS5Rank reports whether the statement projects or orders by
+// the rank column of the given fts5 table.
+func statementReadsFTS5Rank(s *sql.SelectStmt, tableName string) bool {
+	found := false
+	check := func(expr sql.Expr) {
+		if found || expr == nil {
+			return
+		}
+		WalkExprFull(expr, func(n sql.Expr) {
+			if ref, ok := n.(*sql.ColumnRef); ok {
+				if strings.EqualFold(ref.Name, "rank") &&
+					(ref.Table == "" || strings.EqualFold(ref.Table, tableName)) {
+					found = true
+				}
+			}
+		})
+	}
+	for _, c := range s.Columns {
+		check(c.Expr)
+	}
+	for _, o := range s.OrderBy {
+		check(o.Expr)
+	}
+	check(s.Having)
+	return found
+}
+
 // fts5UniverseRows materializes the documents the statement's WHERE can
 // visit: the intersection of the top-level MATCH conjuncts' rowid sets when
 // one exists (index-driven scan), otherwise the full document scan.
-func (e *SelectEngine) fts5UniverseRows(where sql.Expr, t5 *fts5.Table, colDefs []sql.ColumnDef, hasMatch bool) ([]int64, [][]interface{}, error) {
+func (e *SelectEngine) fts5UniverseRows(where sql.Expr, t5 *fts5.Table, colDefs []sql.ColumnDef, rankFn func(int64) (interface{}, error)) ([]int64, [][]interface{}, error) {
 	set, err := t5.MatchUniverse(where, func(expr sql.Expr) (interface{}, error) {
 		return e.ctx.EvalExpr(expr, nil)
 	})
@@ -43,19 +190,27 @@ func (e *SelectEngine) fts5UniverseRows(where sql.Expr, t5 *fts5.Table, colDefs 
 			if verr != nil {
 				return nil, nil, verr
 			}
+			flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
+			if rerr != nil {
+				return nil, nil, rerr
+			}
 			rowids = append(rowids, rowid)
-			rows = append(rows, fts5FlatRow(t5, rowid, vals, hasMatch))
+			rows = append(rows, flat)
 		}
 		return rowids, rows, nil
 	}
-	return fts5ScanRows(t5, colDefs, hasMatch)
+	return fts5ScanRows(t5, colDefs, rankFn)
 }
 
 // fts5FlatRow renders one document's flat row in colDefs order.
-func fts5FlatRow(t5 *fts5.Table, rowid int64, values []interface{}, hasMatch bool) []interface{} {
-	rank := interface{}(nil)
-	if hasMatch {
-		rank = float64(0)
+func fts5FlatRow(t5 *fts5.Table, rowid int64, values []interface{}, rankFn func(int64) (interface{}, error)) ([]interface{}, error) {
+	var rank interface{}
+	if rankFn != nil {
+		v, err := rankFn(rowid)
+		if err != nil {
+			return nil, err
+		}
+		rank = v
 	}
 	nUser := len(t5.ColumnNames())
 	row := make([]interface{}, 0, nUser+2)
@@ -67,7 +222,7 @@ func fts5FlatRow(t5 *fts5.Table, rowid int64, values []interface{}, hasMatch boo
 		row = append(row, v)
 	}
 	row = append(row, rowid, rank)
-	return row
+	return row, nil
 }
 
 // execFTS5TableFunc materializes the table-valued form FROM t1('query'): each
@@ -81,6 +236,7 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 	}
 	matched := make(map[int64]bool)
 	restrictRowid := make(map[int64]bool)
+	var firstQuery string
 	for _, arg := range ref.Args {
 		v, err := e.ctx.EvalExpr(arg, nil)
 		if err != nil {
@@ -92,6 +248,9 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 			if merr != nil {
 				return &Result{Error: merr}, true
 			}
+			if firstQuery == "" {
+				firstQuery = x
+			}
 			for rowid := range set {
 				matched[rowid] = true
 			}
@@ -101,8 +260,25 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 			return &Result{Error: errFTS5TVFArg()}, true
 		}
 	}
-	colDefs := fts5ColDefs(t5)
 	hasArgs := len(ref.Args) > 0
+	aq := t5.NewScanAux()
+	if firstQuery != "" {
+		prepared, perr := t5.PrepareAux(firstQuery, -1)
+		if perr != nil {
+			return &Result{Error: perr}, true
+		}
+		aq = prepared
+	}
+	var rankFn func(int64) (interface{}, error)
+	if firstQuery != "" && statementReadsFTS5Rank(s, t5.Name()) {
+		spec := &t5.Config().Rank
+		rankFn = func(rowid int64) (interface{}, error) {
+			return t5.RankValue(spec, aq, rowid)
+		}
+	}
+	e.ctx.SetFTS5Aux(t5.Name(), aq)
+	defer e.ctx.ClearFTS5Aux()
+	colDefs := fts5ColDefs(t5)
 	if hasArgs {
 		// Index-driven universe: the TVF's MATCH/rowid arguments select the
 		// documents (external-content index-only rows included).
@@ -117,12 +293,16 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 			if verr != nil {
 				return &Result{Error: verr}, true
 			}
+			flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
+			if rerr != nil {
+				return &Result{Error: rerr}, true
+			}
 			outIDs = append(outIDs, rowid)
-			rows = append(rows, fts5FlatRow(t5, rowid, vals, hasArgs))
+			rows = append(rows, flat)
 		}
 		return e.execSelectOverMaterializedRowids(s, colDefs, rows, outIDs), true
 	}
-	rowids, rows, err := fts5ScanRows(t5, colDefs, false)
+	rowids, rows, err := fts5ScanRows(t5, colDefs, rankFn)
 	if err != nil {
 		return &Result{Error: err}, true
 	}
@@ -131,17 +311,12 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 
 // fts5ScanRows materializes the table's documents into flat rows in colDefs
 // order (user columns, hidden table-name column = rowid, rank) plus the
-// parallel rowid slice. hasMatch drives the rank pseudo-column: NULL without
-// a MATCH constraint in the statement, 0.0 with one (full bm25 ranking is
-// slice 5).
-func fts5ScanRows(t5 *fts5.Table, colDefs []sql.ColumnDef, hasMatch bool) ([]int64, [][]interface{}, error) {
+// parallel rowid slice. rankFn drives the rank pseudo-column: NULL without a
+// MATCH constraint, the rank function's value with one.
+func fts5ScanRows(t5 *fts5.Table, colDefs []sql.ColumnDef, rankFn func(int64) (interface{}, error)) ([]int64, [][]interface{}, error) {
 	rowids, values, err := t5.ScanDocs()
 	if err != nil {
 		return nil, nil, err
-	}
-	rank := interface{}(nil)
-	if hasMatch {
-		rank = float64(0)
 	}
 	nUser := len(t5.ColumnNames())
 	rows := make([][]interface{}, len(rowids))
@@ -154,10 +329,58 @@ func fts5ScanRows(t5 *fts5.Table, colDefs []sql.ColumnDef, hasMatch bool) ([]int
 			}
 			row = append(row, v)
 		}
+		rank := interface{}(nil)
+		if rankFn != nil {
+			v, rerr := rankFn(rowid)
+			if rerr != nil {
+				return nil, nil, rerr
+			}
+			rank = v
+		}
 		row = append(row, rowid, rank)
 		rows[i] = row
 	}
 	return rowids, rows, nil
+}
+
+// fts5TopLevelConjuncts splits an expression into its top-level AND operands.
+func fts5TopLevelConjuncts(where sql.Expr) []sql.Expr {
+	if where == nil {
+		return nil
+	}
+	if bop, ok := where.(*sql.BinaryOp); ok && bop.Operator == "AND" {
+		return append(fts5TopLevelConjuncts(bop.Left), fts5TopLevelConjuncts(bop.Right)...)
+	}
+	return []sql.Expr{where}
+}
+
+// fts5MatchConstraintColumn resolves a MATCH left operand to a column index of
+// the given table: -1 for a whole-table match. applies=false when the operand
+// references a different table.
+func fts5MatchConstraintColumn(left sql.Expr, t5 *fts5.Table) (col int, applies bool) {
+	ref, ok := left.(*sql.ColumnRef)
+	if !ok {
+		return -1, false
+	}
+	switch {
+	case ref.Table != "":
+		if strings.EqualFold(ref.Table, t5.Name()) {
+			if idx := t5.ColumnIndex(ref.Name); idx >= 0 {
+				return idx, true
+			}
+			return -1, true
+		}
+		return -1, false
+	case strings.EqualFold(ref.Name, t5.Name()):
+		return -1, true // t1 MATCH — whole table
+	case strings.EqualFold(ref.Name, "rank"):
+		return -1, false // the rank override is not a row filter
+	default:
+		if idx := t5.ColumnIndex(ref.Name); idx >= 0 {
+			return idx, true // a MATCH — column restricted
+		}
+		return -1, false
+	}
 }
 
 // unwrapTVFArg unwraps a ColumnValue wrapper for TVF argument inspection.

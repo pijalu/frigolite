@@ -236,6 +236,28 @@ func (e *Engine) FTSMatchInfo() (string, bool, []fts.MatchPhrase) {
 	return e.ftsMatchInfo.table, e.ftsMatchInfo.hasMatch, e.ftsMatchInfo.phrases
 }
 
+// fts5AuxCtx is the fts5 auxiliary-function query context: the fts5 table
+// being selected and its prepared MATCH query (nil without a MATCH — the aux
+// functions then see zero instances, like C's full-scan cursors).
+type fts5AuxCtx struct {
+	table string
+	aq    *fts5.AuxQuery
+}
+
+// SetFTS5Aux stores the fts5 aux-function context for the current fts5
+// SELECT.
+func (e *Engine) SetFTS5Aux(table string, aq *fts5.AuxQuery) {
+	e.fts5Aux = fts5AuxCtx{table: table, aq: aq}
+}
+
+// ClearFTS5Aux resets the fts5 aux-function context (statement end).
+func (e *Engine) ClearFTS5Aux() { e.fts5Aux = fts5AuxCtx{} }
+
+// FTS5Aux returns the current fts5 aux-function context.
+func (e *Engine) FTS5Aux() (string, *fts5.AuxQuery) {
+	return e.fts5Aux.table, e.fts5Aux.aq
+}
+
 // FTSTables returns the registered FTS3/4 tables (table name -> instance).
 func (e *Engine) FTSTables() map[string]*fts.FTS3Table {
 	return e.ftsTables

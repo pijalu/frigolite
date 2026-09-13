@@ -21,15 +21,23 @@ type matchCacheKey struct {
 // MatchRowids evaluates a MATCH query and returns the matching rowids. col
 // restricts the match to one user column (-1 for the whole table).
 func (t *Table) MatchRowids(query string, col int) (map[int64]bool, error) {
+	if strings.HasPrefix(query, "*") {
+		// A special query ('*reads'/'*id'): one row carrying the special
+		// value as its rowid (fts5SpecialMatch).
+		value, err := t.SpecialQueryValue(query)
+		if err != nil {
+			return nil, err
+		}
+		return map[int64]bool{value: true}, nil
+	}
 	node, err := parseQuery(t, query)
 	if err != nil {
 		return nil, err
 	}
-	var cols []int
 	if col >= 0 {
-		cols = []int{col}
+		node = applyColset(node, []int{col})
 	}
-	return node.eval(t, cols)
+	return node.eval(t)
 }
 
 // MatchQueryColumn evaluates a MATCH query for one document (the engine's

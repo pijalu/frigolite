@@ -74,12 +74,37 @@ func (m *Module) Bind(dbName, tableName string, cfg *Config, tok Tokenizer) (*Ta
 		return t, nil
 	}
 	t := newTable(m.db, dbName, tableName, cfg, tok)
+	// xConnect parity: when the shadow family already exists in the schema,
+	// this Bind is a re-open of a persisted table (the prepare-time plan
+	// instance / EQP / write-path resolutions all Bind) — load its state
+	// instead of re-creating the family (whose seed would collide with the
+	// persisted %_config rows).
+	if t.familyExists() {
+		m.tables[strings.ToLower(tableName)] = t
+		if err := t.loadFromShadow(); err != nil {
+			delete(m.tables, strings.ToLower(tableName))
+			return nil, err
+		}
+		return t, nil
+	}
 	if err := t.createShadowTables(); err != nil {
 		return nil, err
 	}
 	t.ix = NewInvertedIndex(len(cfg.Columns))
 	m.tables[strings.ToLower(tableName)] = t
 	return t, nil
+}
+
+// familyExists reports whether this table's shadow family is already in the
+// schema (the %_data table is present for every fts5 configuration).
+func (t *Table) familyExists() bool {
+	rows, err := t.db.ExecSQL(fmt.Sprintf(
+		"SELECT 1 FROM %s WHERE type='table' AND name=%s",
+		qual(t.dbName, "sqlite_schema"), sqlLiteral(t.cfg.Name+"_data")))
+	if err != nil {
+		return false
+	}
+	return len(rows) > 0
 }
 
 // Load restores a persisted table at connection time (xConnect): the
@@ -98,10 +123,15 @@ func (m *Module) Load(dbName, tableName string, args []string) (*Table, error) {
 		return nil, err
 	}
 	t := newTable(m.db, dbName, tableName, cfg, tok)
+	// Register BEFORE loadFromShadow: its schema reads re-enter
+	// EnsureFTS5ForTable on this connection (schema-load recursion), and the
+	// sentinel must be present for the re-entry to observe the table exists.
+	// A failed load removes the sentinel.
+	m.tables[strings.ToLower(tableName)] = t
 	if err := t.loadFromShadow(); err != nil {
+		delete(m.tables, strings.ToLower(tableName))
 		return nil, err
 	}
-	m.tables[strings.ToLower(tableName)] = t
 	return t, nil
 }
 
@@ -321,6 +351,10 @@ func (t *Table) DeleteAll() error {
 func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 	switch strings.ToLower(cmd) {
 	case "delete-all":
+		if t.cfg.EContent == ContentNormal {
+			return true, fmt.Errorf("'delete-all' may only be used with a " +
+				"contentless or external content fts5 table")
+		}
 		return true, t.DeleteAll()
 	case "delete":
 		if t.cfg.ContentlessDelete {
@@ -346,16 +380,64 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		}
 		return true, t.rebuild()
 	case "rank":
-		// The rank= configuration (slice 5 evaluates bm25 variants); accepted
-		// as a parsed no-op for now.
-		return true, nil
-	case "merge", "integrity-check", "optimize", "automerge", "usermerge",
-		"crisismerge", "pgsz", "tokenize":
+		// The rank function configuration: parsed and persisted in %_config
+		// (fts5SpecialInsert's sqlite3Fts5ConfigSetValue('rank') path).
+		spec := ""
+		if len(args) > 0 {
+			if s, ok := args[0].(string); ok {
+				spec = s
+			}
+		}
+		parsed, err := ParseRankSpec(spec)
+		if err != nil {
+			return true, err
+		}
+		t.cfg.Rank = *parsed
+		return true, t.storeConfigValue("rank", spec)
+	case "pgsz", "hashsize", "automerge", "usermerge", "crisismerge",
+		"deletemerge", "secure-delete", "insttoken":
+		// Integer-valued maintenance/config directives (fts5ConfigSetValue):
+		// range-checked and persisted in %_config (the raw value is stored,
+		// like C's sqlite3Fts5StorageConfigValue).
+		v, _ := asInt64(argValue(args))
+		if bad := badConfigValue(strings.ToLower(cmd), v); bad {
+			return true, errRankLogic()
+		}
+		return true, t.storeConfigValue(strings.ToLower(cmd), v)
+	case "merge", "integrity-check", "optimize":
 		// Index maintenance directives with no SQL-observable effect at this
 		// storage granularity; integrity-check on a healthy index is a no-op.
 		return true, nil
 	}
 	return false, nil
+}
+
+// argValue returns the first special-insert argument.
+func argValue(args []interface{}) interface{} {
+	if len(args) > 0 {
+		return args[0]
+	}
+	return nil
+}
+
+// badConfigValue reports whether v falls outside the accepted range of the
+// fts5ConfigSetValue directive (badkey → C's generic SQLITE_ERROR).
+func badConfigValue(cmd string, v int64) bool {
+	switch cmd {
+	case "pgsz":
+		return v < 32 || v > 64*1024
+	case "hashsize":
+		return v <= 0
+	case "automerge":
+		return v < 0 || v > 64
+	case "usermerge":
+		return v < 2 || v > 16
+	case "crisismerge":
+		return v < 0
+	case "deletemerge", "secure-delete", "insttoken":
+		return v < 0
+	}
+	return true
 }
 
 // rebuild re-indexes every external content row (fts5StorageRebuild).

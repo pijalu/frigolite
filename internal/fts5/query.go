@@ -1,17 +1,25 @@
 package fts5
 
 import (
-	"fmt"
-	"sort"
-	"strconv"
 	"strings"
 )
 
 // This file ports the fts5 MATCH query language (fts5_expr.c + fts5parse.y):
-// quoted phrases, bareword terms, prefix terms (abc*), initial-token caret
-// (^abc), column filters (a : term, {a b} : term), implicit AND, the explicit
-// AND/OR/NOT operators and NEAR(phrase phrase, N). Evaluation resolves nodes
-// to matching rowid sets against the inverted index.
+// the lexer (fts5ExprGetToken — double-quoted strings, barewords, the
+// case-sensitive AND/OR/NOT keywords), the operator precedence (OR < AND <
+// NOT < implicit AND < COLON) and the parse-time column-filter application
+// (fts5ParseSetColset merges colsets down the tree; an empty merge becomes an
+// EOF node that matches nothing). Evaluation resolves nodes to matching rowid
+// sets against the inverted index.
+//
+// Grammar notes proven against SQLite:
+//   - implicit AND joins cnearsets only (phrases, NEAR(...) calls and
+//     "colset : nearset"); a parenthesized expression cannot join a chain
+//     ("two (four)" parses as a NEAR call named "two" and fails).
+//   - a word followed by "(" is always a NEAR call: non-"NEAR" words fail
+//     with `fts5: syntax error near "<word>"` (case-sensitive).
+//   - NOT's right operand absorbs implicit ANDs ("a NOT b c" = a NOT (b c)).
+//   - a phrase with zero tokens (MATCH '""') is an EOF node (no error).
 
 // qTerm is one token of a phrase; Prefix marks an abc* term.
 type qTerm struct {
@@ -19,535 +27,802 @@ type qTerm struct {
 	prefix bool
 }
 
-// queryNode is a parsed MATCH expression.
-type queryNode interface {
-	// eval returns the matching rowids restricted to the active columns.
-	eval(t *Table, cols []int) (map[int64]bool, error)
+// phraseNode is one phrase: a chain of adjacent tokens (fts5ExprPhrase).
+// First marks a ^phrase (the first token sits at token position 0 of a
+// column); Colset is the effective column filter (nil = every column).
+type phraseNode struct {
+	terms  []qTerm
+	first  bool
+	colset []int
+	// idx is the phrase's position in the query's phrase list (the aux API's
+	// xInst phrase numbers).
+	idx int
 }
 
-// qParser parses one MATCH query string.
-type qParser struct {
-	src  string
-	tok  string // current token text ("" at end)
-	kind int    // current token kind
-	bad  bool   // lexer hit an invalid position (tok holds the offender)
-	t    *Table
+// size returns the phrase's token count (xPhraseSize).
+func (p *phraseNode) size() int { return len(p.terms) }
+
+// queryNode is a parsed MATCH expression.
+type queryNode interface {
+	// eval returns the matching rowids.
+	eval(t *Table) (map[int64]bool, error)
 }
+
+// eofNode is FTS5_EOF: a node that matches no documents (a zero-token phrase
+// or a column filter merged down to nothing).
+type eofNode struct{}
+
+func (eofNode) eval(*Table) (map[int64]bool, error) { return map[int64]bool{}, nil }
+
+// stringNode is FTS5_STRING: a near cluster of one or more phrases
+// (fts5ExprNearset). Window is the NEAR distance; with a single phrase it is
+// inert (NEAR(a, 5) matches like a).
+type stringNode struct {
+	phrases []*phraseNode
+	window  int
+}
+
+// andNode, orNode, notNode are the boolean combinators (n-ary AND/OR like
+// fts5ExprAddChildren, binary NOT).
+type andNode struct{ children []queryNode }
+type orNode struct{ children []queryNode }
+type notNode struct{ l, r queryNode }
+
+// FTS5DefaultNearDist mirrors FTS5_DEFAULT_NEARDIST.
+const FTS5DefaultNearDist = 10
+
+// matchSyntaxError renders C's query syntax error (fts5parse.y %syntax_error).
+func matchSyntaxError(near string) error {
+	return &QuerySyntaxError{Near: near}
+}
+
+// QuerySyntaxError is the fts5 MATCH parse error ("fts5: syntax error near
+// \"...\""); exported because the engine treats fts5 query errors as
+// statement errors rather than no-match results.
+type QuerySyntaxError struct{ Near string }
+
+func (e *QuerySyntaxError) Error() string { return "fts5: syntax error near \"" + e.Near + "\"" }
+
+// parseQuery parses a MATCH query against a table (sqlite3Fts5ExprNew).
+func parseQuery(t *Table, query string) (queryNode, error) {
+	node, _, err := parseQueryAll(t, query)
+	return node, err
+}
+
+// parseQueryAll is parseQuery, additionally returning the query's phrase list
+// in parse order (fts5Parse.apPhrase — including zero-token phrases, which
+// the aux API counts).
+func parseQueryAll(t *Table, query string) (queryNode, []*phraseNode, error) {
+	p := &qParser{t: t}
+	p.lex.init(query)
+	p.next()
+	node, err := p.parseOr()
+	if err != nil {
+		return nil, nil, err
+	}
+	if p.kind != tkEOF {
+		return nil, nil, matchSyntaxError(p.tokenText())
+	}
+	return node, p.phrases, nil
+}
+
+// --- lexer (fts5ExprGetToken) ---
 
 // token kinds.
 const (
 	tkEOF = iota
-	tkWord
 	tkString
 	tkLP
 	tkRP
 	tkColon
-	tkCaret
+	tkComma
 	tkPlus
 	tkStar
+	tkMinus
+	tkCaret
 	tkLBrace
 	tkRBrace
-	tkComma
-	tkMinus
+	tkOr
+	tkAnd
+	tkNot
+	tkErr
 )
 
-// matchSyntaxError renders C's query syntax error (fts5_expr.c:2005).
-func matchSyntaxError(near string) error {
-	return fmt.Errorf("fts5: syntax error near \"%s\"", near)
+// qLexer is the fts5_expr.c lexer state.
+type qLexer struct {
+	src  string
+	tok  string // current token text (raw, quotes included for strings)
+	kind int
+	// unterminated records an "unterminated string" lex failure.
+	unterminated bool
 }
 
-// parseQuery parses a MATCH query against a table.
-func parseQuery(t *Table, query string) (queryNode, error) {
-	p := &qParser{src: query, t: t}
-	p.next()
-	node, err := p.parseOr()
-	if err != nil {
-		return nil, err
+// lexMark captures the lexer state for lookahead backtracking.
+type lexMark struct {
+	src  string
+	tok  string
+	kind int
+}
+
+func (l *qLexer) init(s string) { l.src = s; l.kind = tkErr; l.tok = "" }
+
+// mark captures the current lexer state.
+func (l *qLexer) mark() lexMark { return lexMark{src: l.src, tok: l.tok, kind: l.kind} }
+
+func (l *qLexer) restore(m lexMark) {
+	l.src, l.tok, l.kind = m.src, m.tok, m.kind
+}
+
+func (l *qLexer) advance() {
+	if l.kind == tkEOF {
+		return
 	}
-	if p.kind != tkEOF {
-		return nil, matchSyntaxError(p.tok)
+	l.src = strings.TrimLeft(l.src, " \t\n\r")
+	if l.src == "" {
+		l.kind = tkEOF
+		l.tok = ""
+		return
 	}
-	return node, nil
+	switch l.src[0] {
+	case '(':
+		l.punct(1, tkLP)
+	case ')':
+		l.punct(1, tkRP)
+	case '{':
+		l.punct(1, tkLBrace)
+	case '}':
+		l.punct(1, tkRBrace)
+	case ':':
+		l.punct(1, tkColon)
+	case ',':
+		l.punct(1, tkComma)
+	case '+':
+		l.punct(1, tkPlus)
+	case '*':
+		l.punct(1, tkStar)
+	case '-':
+		l.punct(1, tkMinus)
+	case '^':
+		l.punct(1, tkCaret)
+	case '"':
+		l.lexString()
+	default:
+		if !isFts5Bareword(l.src[0]) {
+			// An invalid first byte: the offender is that single byte
+			// (fts5_expr.c "fts5: syntax error near \"%.1s\"").
+			l.tok = l.src[:1]
+			l.kind = tkErr
+			return
+		}
+		i := 0
+		for i < len(l.src) && isFts5Bareword(l.src[i]) {
+			i++
+		}
+		l.tok = l.src[:i]
+		l.src = l.src[i:]
+		switch l.tok {
+		case "OR":
+			l.kind = tkOr
+		case "AND":
+			l.kind = tkAnd
+		case "NOT":
+			l.kind = tkNot
+		default:
+			l.kind = tkString
+		}
+	}
+}
+
+// punct consumes n bytes as one punctuation token.
+func (l *qLexer) punct(n int, kind int) {
+	l.tok = l.src[:n]
+	l.src = l.src[n:]
+	l.kind = kind
+}
+
+// lexString scans a double-quoted string with "" escapes (fts5ExprGetToken's
+// quote branch). An unterminated string is a distinct parse error.
+func (l *qLexer) lexString() {
+	for i := 1; i < len(l.src); i++ {
+		if l.src[i] == '"' {
+			if i+1 < len(l.src) && l.src[i+1] == '"' {
+				i++
+				continue
+			}
+			l.tok = l.src[:i+1]
+			l.src = l.src[i+1:]
+			l.kind = tkString
+			return
+		}
+	}
+	l.tok = l.src
+	l.kind = tkErr
+	l.unterminated = true
+}
+
+// isFts5Bareword mirrors sqlite3Fts5IsBareword: digits, A-Z, a-z, '_', 0x1B
+// and every byte >= 0x80.
+func isFts5Bareword(b byte) bool {
+	if b >= 0x80 {
+		return true
+	}
+	switch {
+	case b >= '0' && b <= '9', b >= 'A' && b <= 'Z', b >= 'a' && b <= 'z':
+		return true
+	case b == '_', b == 0x1B:
+		return true
+	}
+	return false
+}
+
+// dequoteFts5 removes surrounding double quotes and unescapes "" pairs
+// (sqlite3Fts5Dequote for the query lexer's only quote character).
+func dequoteFts5(s string) string {
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		return strings.ReplaceAll(s[1:len(s)-1], `""`, `"`)
+	}
+	return s
+}
+
+// --- parser ---
+
+// qParser parses one MATCH query.
+type qParser struct {
+	lex qLexer
+	kind int
+	tok  string
+	t    *Table
+	// unterminated records an "unterminated string" lex failure.
+	unterminated bool
+	// phrases lists every phrase in parse order (fts5Parse.apPhrase).
+	phrases []*phraseNode
 }
 
 func (p *qParser) next() {
-	p.src = strings.TrimLeft(p.src, " \t\n\r\v\f")
-	if p.src == "" {
-		p.kind = tkEOF
-		p.tok = ""
-		return
-	}
-	switch p.src[0] {
-	case '(':
-		p.advance(1, tkLP)
-	case ')':
-		p.advance(1, tkRP)
-	case ':':
-		p.advance(1, tkColon)
-	case '^':
-		p.advance(1, tkCaret)
-	case '+':
-		p.advance(1, tkPlus)
-	case '*':
-		p.advance(1, tkStar)
-	case '{':
-		p.advance(1, tkLBrace)
-	case '}':
-		p.advance(1, tkRBrace)
-	case ',':
-		p.advance(1, tkComma)
-	case '"', '\'', '`', '[':
-		closeQ := map[byte]byte{'"': '"', '\'': '\'', '`': '`', '[': ']'}[p.src[0]]
-		q := p.src[0]
-		var sb strings.Builder
-		i := 1
-		for i < len(p.src) {
-			if p.src[i] == closeQ {
-				if q != '[' && i+1 < len(p.src) && p.src[i+1] == q {
-					sb.WriteByte(q)
-					i += 2
-					continue
-				}
-				p.tok = sb.String()
-				p.src = p.src[i+1:]
-				p.kind = tkString
-				return
-			}
-			sb.WriteByte(p.src[i])
-			i++
-		}
-		// Unterminated string: the whole tail is the offending token.
-		p.kind = tkEOF
-		p.tok = sb.String()
-		p.bad = true
-	default:
-		i := 0
-		for i < len(p.src) && isQueryWordByte(p.src[i]) {
-			i++
-		}
-		if i == 0 {
-			// An unknown punctuation byte: report it as the offending token.
-			p.tok = p.src[:1]
-			p.kind = tkEOF
-			p.bad = true
-			return
-		}
-		p.tok = p.src[:i]
-		p.src = p.src[i:]
-		p.kind = tkWord
-	}
+	p.lex.advance()
+	p.kind = p.lex.kind
+	p.tok = p.lex.tok
+	p.unterminated = p.lex.unterminated
 }
 
-// advance consumes n bytes as one punctuation token.
-func (p *qParser) advance(n int, kind int) {
-	p.tok = p.src[:n]
-	p.src = p.src[n:]
-	p.kind = kind
-}
-
-// isQueryWordByte reports whether b continues a bareword (fts5_expr.c's
-// lexer: everything except whitespace and the reserved punctuation).
-func isQueryWordByte(b byte) bool {
-	switch b {
-	case ' ', '\t', '\n', '\r', '\v', '\f',
-		'(', ')', '{', '}', ':', ',', '+', '*', '^', '"', '\'', '`', '[':
-		return false
+// tokenText renders the current token for error messages: the raw token text,
+// or "" at end of input (lemon reports the empty token at EOF).
+func (p *qParser) tokenText() string {
+	if p.kind == tkEOF {
+		return ""
 	}
-	return true
+	return p.tok
 }
 
-// errAtEnd reports a syntax error when the lexer hit an invalid position.
-func (p *qParser) errAtEnd() error {
-	if p.bad {
-		return matchSyntaxError(p.tok)
+// syntaxError records the current-token syntax error.
+func (p *qParser) syntaxError() error { return matchSyntaxError(p.tokenText()) }
+
+// lexError returns the failure for a tkErr token: an unterminated string or
+// the invalid-byte syntax error.
+func (p *qParser) lexError() error {
+	if p.unterminated {
+		return errUnterminatedString()
 	}
-	return nil
+	return matchSyntaxError(p.tok)
 }
 
-// parseOr parses OR-level expressions (lowest precedence).
+// errUnterminatedString builds the lexer's unterminated-string error
+// (fts5_expr.c: no "fts5:" prefix).
+func errUnterminatedString() error { return &UnterminatedStringError{} }
+
+// UnterminatedStringError is the MATCH lexer's unterminated "..." error.
+type UnterminatedStringError struct{}
+
+func (e *UnterminatedStringError) Error() string { return "unterminated string" }
+
+// parseOr parses OR-level expressions (lowest precedence, left associative).
 func (p *qParser) parseOr() (queryNode, error) {
 	left, err := p.parseAnd()
 	if err != nil {
 		return nil, err
 	}
-	for p.kind == tkWord && strings.EqualFold(p.tok, "OR") {
+	for p.kind == tkOr {
 		p.next()
 		right, err := p.parseAnd()
 		if err != nil {
 			return nil, err
 		}
-		left = orNode{left, right}
+		left = orNode{children: []queryNode{left, right}}
 	}
 	return left, nil
 }
 
-// parseAnd parses AND-level expressions (explicit AND or implicit
-// concatenation).
+// parseAnd parses AND-level expressions (left associative).
 func (p *qParser) parseAnd() (queryNode, error) {
-	if err := p.errAtEnd(); err != nil {
-		return nil, err
-	}
 	left, err := p.parseNot()
 	if err != nil {
 		return nil, err
 	}
-	for {
-		if p.kind == tkWord && strings.EqualFold(p.tok, "AND") {
-			p.next()
-		} else if p.startsOperand() {
-			// Implicit AND: "a b" means a AND b.
-		} else {
-			break
-		}
+	for p.kind == tkAnd {
+		p.next()
 		right, err := p.parseNot()
 		if err != nil {
 			return nil, err
 		}
-		left = andNode{left, right}
+		left = andNode{children: []queryNode{left, right}}
 	}
 	return left, nil
 }
 
-// startsOperand reports whether the current token can begin an operand
-// (implicit-AND lookahead). NOT/EOF/closing punctuation end the expression.
-func (p *qParser) startsOperand() bool {
+// parseNot parses NOT-level expressions. The right operand is a full operand:
+// an implicit-AND chain absorbs following cnearsets ("a NOT b c" is
+// "a NOT (b AND c)", proven against SQLite).
+func (p *qParser) parseNot() (queryNode, error) {
+	left, err := p.parseOperand()
+	if err != nil {
+		return nil, err
+	}
+	for p.kind == tkNot {
+		p.next()
+		right, err := p.parseOperand()
+		if err != nil {
+			return nil, err
+		}
+		left = notNode{l: left, r: right}
+	}
+	return left, nil
+}
+
+// startsCnearset reports whether the current token can begin a cnearset (an
+// implicit-AND chain member): a bareword/quoted phrase, a NEAR call, a colset
+// or a caret phrase. LP cannot (a parenthesized expression is an expr, not a
+// cnearset).
+func (p *qParser) startsCnearset() bool {
 	switch p.kind {
-	case tkLP, tkString, tkCaret, tkLBrace, tkMinus:
+	case tkString, tkLBrace, tkMinus, tkCaret:
 		return true
-	case tkWord:
-		return !strings.EqualFold(p.tok, "OR") && !strings.EqualFold(p.tok, "NOT")
 	}
 	return false
 }
 
-// parseNot parses NOT-level expressions (left NOT right).
-func (p *qParser) parseNot() (queryNode, error) {
-	left, err := p.parsePrimary()
-	if err != nil {
-		return nil, err
+// parseOperand parses one operand at the AND/NOT/OR levels: a parenthesized
+// expression, or a cnearset chain (implicit AND).
+func (p *qParser) parseOperand() (queryNode, error) {
+	if p.kind == tkErr {
+		return nil, p.lexError()
 	}
-	for p.kind == tkWord && strings.EqualFold(p.tok, "NOT") {
-		p.next()
-		right, err := p.parsePrimary()
-		if err != nil {
-			return nil, err
-		}
-		left = notNode{left, right}
-	}
-	return left, nil
-}
-
-// parsePrimary parses one operand: a parenthesized expression, a column
-// filter, a phrase set or NEAR.
-func (p *qParser) parsePrimary() (queryNode, error) {
-	if err := p.errAtEnd(); err != nil {
-		return nil, err
-	}
-	switch p.kind {
-	case tkLP:
+	if p.kind == tkLP {
 		p.next()
 		node, err := p.parseOr()
 		if err != nil {
 			return nil, err
 		}
 		if p.kind != tkRP {
-			return nil, matchSyntaxError(p.tok)
+			return nil, p.syntaxError()
 		}
 		p.next()
 		return node, nil
-	case tkWord:
-		if strings.EqualFold(p.tok, "NEAR") {
-			// NEAR is a keyword only when followed by '('; a bareword
-			// "near" is an ordinary term (fts5parse.y).
-			rest := &qParser{src: p.src, t: p.t}
-			rest.next()
-			if rest.kind == tkLP {
-				return p.parseNear()
-			}
-		}
-		return p.parsePhraseSet()
-	case tkString, tkCaret:
-		return p.parsePhraseSet()
-	case tkLBrace:
-		return p.parseColsetPhrase()
 	}
-	return nil, matchSyntaxError(p.tok)
+	node, err := p.parseCnearset(true)
+	if err != nil {
+		return nil, err
+	}
+	for p.startsCnearset() {
+		next, err := p.parseCnearset(true)
+		if err != nil {
+			return nil, err
+		}
+		node = andNode{children: []queryNode{node, next}}
+	}
+	return node, nil
 }
 
-// parseColsetPhrase parses "{a b} : expr" (fts5parse.y colset COLON expr).
-func (p *qParser) parseColsetPhrase() (queryNode, error) {
+// parseCnearset parses one cnearset: a nearset, or "colset : nearset". A
+// bareword followed by ":" is a colset (its column resolves immediately);
+// a bareword followed by "(" is a NEAR-style call.
+func (p *qParser) parseCnearset(allowExpr bool) (queryNode, error) {
+	if p.kind == tkLBrace || p.kind == tkMinus {
+		return p.parseColsetPhrase(allowExpr)
+	}
+	if p.kind == tkString {
+		m := p.lex.mark()
+		p.next()
+		isColon := p.kind == tkColon
+		isLP := p.kind == tkLP
+		p.lex.restore(m)
+		p.kind, p.tok = p.lex.kind, p.lex.tok
+		if isColon {
+			return p.parseColsetPhrase(allowExpr)
+		}
+		if isLP {
+			return p.parseNearset()
+		}
+	}
+	return p.parseNearset()
+}
+
+// parseColsetPhrase parses "colset : expr" or "colset : nearset"
+// (fts5parse.y: colset COLON LP expr RP | colset COLON nearset).
+func (p *qParser) parseColsetPhrase(allowExpr bool) (queryNode, error) {
 	cols, err := p.parseColset()
 	if err != nil {
 		return nil, err
 	}
 	if p.kind != tkColon {
-		return nil, matchSyntaxError(p.tok)
+		return nil, p.syntaxError()
+	}
+	if p.t.cfg.Detail == DetailNone {
+		return nil, &ColumnQueriesError{}
 	}
 	p.next()
-	var child queryNode
 	if p.kind == tkLP {
+		if !allowExpr {
+			return nil, p.syntaxError()
+		}
 		p.next()
-		child, err = p.parseOr()
+		child, err := p.parseOr()
 		if err != nil {
 			return nil, err
 		}
 		if p.kind != tkRP {
-			return nil, matchSyntaxError(p.tok)
+			return nil, p.syntaxError()
 		}
 		p.next()
-	} else {
-		child, err = p.parsePrimary()
+		return applyColset(child, cols), nil
+	}
+	node, err := p.parseNearset()
+	if err != nil {
+		return nil, err
+	}
+	return applyColset(node, cols), nil
+}
+
+// parseColset parses a column set (fts5parse.y colset/colsetlist): a
+// brace-enclosed space-separated list, either optionally inverted with a
+// leading '-', or a single (possibly inverted) bareword/quoted name. Names
+// resolve against the table columns immediately (C's parse-time
+// "no such column" failure).
+func (p *qParser) parseColset() ([]int, error) {
+	invert := false
+	if p.kind == tkMinus {
+		invert = true
+		p.next()
+	}
+	var cols []int
+	if p.kind == tkLBrace {
+		p.next()
+		for p.kind != tkRBrace {
+			if p.kind != tkString {
+				return nil, p.syntaxError()
+			}
+			idx, err := p.resolveColumn(dequoteFts5(p.tok))
+			if err != nil {
+				return nil, err
+			}
+			cols = append(cols, idx)
+			p.next()
+		}
+		if len(cols) == 0 {
+			// "{}" is a syntax error (the empty colsetlist cannot reduce).
+			return nil, matchSyntaxError("}")
+		}
+		p.next()
+	} else if p.kind == tkString {
+		idx, err := p.resolveColumn(dequoteFts5(p.tok))
 		if err != nil {
 			return nil, err
 		}
-	}
-	return colNode{cols: cols, child: child}, nil
-}
-
-// parseColset parses the column list inside braces.
-func (p *qParser) parseColset() ([]int, error) {
-	p.next() // consume '{'
-	var cols []int
-	accept := func(name string) error {
-		idx := p.t.ColumnIndex(name)
-		if idx < 0 {
-			return fmt.Errorf("fts5: no such column: %s", name)
-		}
-		cols = append(cols, idx)
-		return nil
-	}
-	for {
-		if p.kind == tkRBrace {
-			p.next()
-			break
-		}
-		if p.kind != tkWord && p.kind != tkString {
-			return nil, matchSyntaxError(p.tok)
-		}
-		if err := accept(p.tok); err != nil {
-			return nil, err
-		}
+		cols = []int{idx}
 		p.next()
-		if p.kind == tkComma {
-			p.next()
-		}
+	} else {
+		return nil, p.syntaxError()
 	}
-	if len(cols) == 0 {
-		return nil, matchSyntaxError("}")
+	if invert {
+		return p.invertColset(cols), nil
 	}
 	return cols, nil
 }
 
-// parsePhraseSet parses a phrase with optional + continuations and a trailing
-// prefix star, or a NEAR call, or a column filter "a : ...".
-func (p *qParser) parsePhraseSet() (queryNode, error) {
-	// A bareword column filter ("a : term" / "a : (expr)") is detected before
-	// phrase parsing: the LHS must be a single plain bareword.
-	if p.kind == tkWord && !strings.EqualFold(p.tok, "NEAR") {
-		rest := &qParser{src: p.src, t: p.t}
-		rest.next()
-		if rest.kind == tkColon {
-			return p.parseColFilter()
+// resolveColumn resolves one column name (fts5ParseColset): case-insensitive
+// against the declared columns; unknown names fail without the "fts5:"
+// prefix.
+func (p *qParser) resolveColumn(name string) (int, error) {
+	if idx := p.t.ColumnIndex(name); idx >= 0 {
+		return idx, nil
+	}
+	return -1, &NoSuchColumnError{Column: name}
+}
+
+// NoSuchColumnError is the colset/name resolution error ("no such column:
+// x"); the engine surfaces it as a statement error.
+type NoSuchColumnError struct{ Column string }
+
+func (e *NoSuchColumnError) Error() string { return "no such column: " + e.Column }
+
+// ColumnQueriesError is fts5ParseSetColset's detail=none rejection.
+type ColumnQueriesError struct{}
+
+func (e *ColumnQueriesError) Error() string {
+	return "fts5: column queries are not supported (detail=none)"
+}
+
+// invertColset returns the ascending complement of cols over every column.
+func (p *qParser) invertColset(cols []int) []int {
+	excl := make(map[int]bool, len(cols))
+	for _, c := range cols {
+		excl[c] = true
+	}
+	var out []int
+	for i := range p.t.cfg.Columns {
+		if !excl[i] {
+			out = append(out, i)
 		}
 	}
-	first, err := p.parsePhrase()
+	return out
+}
+
+// parseNearset parses a nearset: a phrase, a caret phrase or a NEAR call
+// (fts5parse.y nearset).
+func (p *qParser) parseNearset() (queryNode, error) {
+	if p.kind == tkCaret {
+		p.next()
+		ph, err := p.parsePhrase()
+		if err != nil {
+			return nil, err
+		}
+		ph.first = true
+		return p.newStringNode([]*phraseNode{ph}, FTS5DefaultNearDist)
+	}
+	if p.kind == tkString {
+		// A word followed by "(" is a NEAR-style call — even for non-NEAR
+		// words, which fail at the closing reduce like C.
+		m := p.lex.mark()
+		p.next()
+		isCall := p.kind == tkLP
+		p.lex.restore(m)
+		p.kind, p.tok = p.lex.kind, p.lex.tok
+		if isCall {
+			return p.parseNearCall()
+		}
+	}
+	ph, err := p.parsePhrase()
 	if err != nil {
 		return nil, err
 	}
-	terms := first.terms
-	for p.kind == tkPlus {
-		p.next()
-		next, err := p.parsePhrase()
-		if err != nil {
-			return nil, err
-		}
-		terms = append(terms, next.terms...)
-	}
-	return phraseNode{terms: terms, initial: first.initial}, nil
+	return p.newStringNode([]*phraseNode{ph}, FTS5DefaultNearDist)
 }
 
-// parseColFilter parses "<colname> : expr" (the LHS bareword is consumed).
-func (p *qParser) parseColFilter() (queryNode, error) {
-	name := p.tok
-	p.next() // column name
-	p.next() // colon
-	idx := p.t.ColumnIndex(name)
-	if idx < 0 {
-		return nil, fmt.Errorf("fts5: no such column: %s", name)
-	}
-	var child queryNode
-	var err error
-	if p.kind == tkLP {
-		p.next()
-		child, err = p.parseOr()
-		if err != nil {
-			return nil, err
-		}
-		if p.kind != tkRP {
-			return nil, matchSyntaxError(p.tok)
-		}
-		p.next()
-	} else {
-		child, err = p.parsePrimary()
-		if err != nil {
-			return nil, err
-		}
-	}
-	return colNode{cols: []int{idx}, child: child}, nil
-}
-
-// parsePhrase parses one phrase: an optional caret, a bareword or string,
-// and a trailing star. A bareword "NEAR" not followed by '(' is an ordinary
-// term. A quoted string is TOKENIZED by the table's tokenizer into one or
-// more adjacent terms (fts5_expr.c: a quoted phrase's tokens must appear
-// consecutively), so '"one two"' is the two-term phrase [one, two].
-func (p *qParser) parsePhrase() (*phraseNode, error) {
-	initial := false
-	if p.kind == tkCaret {
-		initial = true
-		p.next()
-	}
-	var terms []qTerm
-	prefix := false
-	switch p.kind {
-	case tkWord:
-		// A bareword goes through the table's tokenizer too: case folding
-		// (MATCH 'HELLO' matches 'hello') and the porter stemmer apply to
-		// query terms exactly as to indexed text (fts5_expr.c tokenizes the
-		// query with the table's tokenizer). A bareword that splits into
-		// several tokens becomes a phrase.
-		for _, tok := range p.t.tok.Tokenize(p.tok) {
-			terms = append(terms, qTerm{term: tok.Term})
-		}
-		p.next()
-	case tkString:
-		for _, tok := range p.t.tok.Tokenize(p.tok) {
-			terms = append(terms, qTerm{term: tok.Term})
-		}
-		p.next()
-	default:
-		return nil, matchSyntaxError(p.tok)
-	}
-	if len(terms) == 0 {
-		return nil, matchSyntaxError("")
-	}
-	if p.kind == tkStar {
-		prefix = true
-		p.next()
-	}
-	if prefix {
-		terms[len(terms)-1].prefix = true
-	}
-	return &phraseNode{terms: terms, initial: initial}, nil
-}
-
-// parseNearArgs parses the NEAR argument list (NEAR already consumed).
-func (p *qParser) parseNear() (queryNode, error) {
-	p.next() // consume NEAR
-	if p.kind != tkLP {
-		return nil, matchSyntaxError(p.tok)
-	}
-	p.next()
+// parseNearCall parses NEAR(phrase phrase ...[, N]) (fts5parse.y: STRING LP
+// nearphrases neardist_opt RP). The function word must be exactly "NEAR"
+// (case-sensitive); the optional distance is a raw (unquoted) digit string.
+func (p *qParser) parseNearCall() (queryNode, error) {
+	word := p.tok
+	p.next() // the word
+	p.next() // the '('
 	var phrases []*phraseNode
-	window := 10 // fts5's default NEAR window
-	for p.kind != tkRP {
+	window := FTS5DefaultNearDist
+	distRaw := ""
+	hasDist := false
+	for {
 		ph, err := p.parsePhrase()
 		if err != nil {
 			return nil, err
 		}
 		phrases = append(phrases, ph)
-		if p.kind == tkPlus {
-			p.next()
-			continue
-		}
 		if p.kind == tkComma {
 			p.next()
-			if p.kind != tkWord {
-				return nil, matchSyntaxError(p.tok)
+			if p.kind != tkString {
+				return nil, p.syntaxError()
 			}
-			n, err := strconv.Atoi(p.tok)
-			if err != nil || n <= 0 {
-				return nil, matchSyntaxError(p.tok)
-			}
-			window = n
+			distRaw = p.tok
+			hasDist = true
 			p.next()
 			break
 		}
-		if p.kind != tkRP && p.kind != tkWord && p.kind != tkString && p.kind != tkCaret {
-			return nil, matchSyntaxError(p.tok)
+		if p.kind != tkString {
+			break
 		}
 	}
 	if p.kind != tkRP {
-		return nil, matchSyntaxError(p.tok)
+		return nil, p.syntaxError()
 	}
 	p.next()
-	if len(phrases) < 2 {
-		return nil, matchSyntaxError("NEAR")
+	if word != "NEAR" {
+		return nil, matchSyntaxError(word)
 	}
-	return nearNode{phrases: phrases, window: window}, nil
+	if hasDist {
+		n, ok := parseNearDistance(distRaw)
+		if !ok {
+			return nil, &NearDistanceError{Got: distRaw}
+		}
+		window = n
+	}
+	return p.newStringNode(phrases, window)
 }
 
-// colNode restricts a child expression to a column set.
-type colNode struct {
-	cols  []int
-	child queryNode
+// parseNearDistance parses fts5ParseSetDistance's digit string: every byte
+// must be a digit; the value saturates at 214748363 (C's overflow guard).
+func parseNearDistance(s string) (int, bool) {
+	if s == "" {
+		return 0, false
+	}
+	n := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return 0, false
+		}
+		if n < 214748363 {
+			n = n*10 + int(s[i]-'0')
+		}
+	}
+	return n, true
 }
 
-func (n colNode) eval(t *Table, cols []int) (map[int64]bool, error) {
-	if t.cfg.Detail == DetailNone {
-		return nil, fmt.Errorf("fts5: column queries are not supported (detail=none)")
+// NearDistanceError is fts5ParseSetDistance's "expected integer" error.
+type NearDistanceError struct{ Got string }
+
+func (e *NearDistanceError) Error() string { return "expected integer, got \"" + e.Got + "\"" }
+
+// parsePhrase parses one phrase: STRING tokens joined by '+' with per-term
+// trailing stars (fts5parse.y phrase). Each word/string is tokenized with the
+// table's tokenizer; a string yielding no tokens contributes nothing (an
+// entirely empty phrase is a zero-term phrase).
+func (p *qParser) parsePhrase() (*phraseNode, error) {
+	ph := &phraseNode{idx: len(p.phrases)}
+	for {
+		if p.kind == tkErr {
+			return nil, p.lexError()
+		}
+		if p.kind != tkString {
+			return nil, p.syntaxError()
+		}
+		text := dequoteFts5(p.tok)
+		p.next()
+		prefix := false
+		if p.kind == tkStar {
+			prefix = true
+			p.next()
+		}
+		for _, tok := range p.t.tok.Tokenize(text) {
+			ph.terms = append(ph.terms, qTerm{term: tok.Term})
+		}
+		if prefix && len(ph.terms) > 0 {
+			ph.terms[len(ph.terms)-1].prefix = true
+		}
+		if p.kind != tkPlus {
+			break
+		}
+		p.next()
 	}
-	return n.child.eval(t, n.cols)
+	p.phrases = append(p.phrases, ph)
+	return ph, nil
 }
 
-// andNode, orNode, notNode are the boolean combinators.
-type andNode struct{ l, r queryNode }
-type orNode struct{ l, r queryNode }
-type notNode struct{ l, r queryNode }
+// newStringNode builds the STRING node for a near cluster, applying the
+// zero-phrase EOF rule and the detail-mode restrictions
+// (sqlite3Fts5ParseNode).
+func (p *qParser) newStringNode(phrases []*phraseNode, window int) (queryNode, error) {
+	for _, ph := range phrases {
+		if len(ph.terms) == 0 {
+			return eofNode{}, nil
+		}
+	}
+	if p.t.cfg.Detail != DetailFull {
+		if len(phrases) != 1 || len(phrases[0].terms) > 1 || phrases[0].first {
+			kind := "NEAR"
+			if len(phrases) == 1 {
+				kind = "phrase"
+			}
+			return nil, &DetailUnsupportedError{Kind: kind}
+		}
+	}
+	return stringNode{phrases: phrases, window: window}, nil
+}
 
-func (n andNode) eval(t *Table, cols []int) (map[int64]bool, error) {
-	l, err := n.l.eval(t, cols)
-	if err != nil {
-		return nil, err
+// DetailUnsupportedError is fts5ParseNode's detail!=full rejection.
+type DetailUnsupportedError struct{ Kind string }
+
+func (e *DetailUnsupportedError) Error() string {
+	return "fts5: " + e.Kind + " queries are not supported (detail!=full)"
+}
+
+// applyColset applies a column filter to a parsed subtree (fts5ParseSetColset):
+// STRING nodes merge the filter into their phrases' colsets; an empty merge
+// becomes an EOF node. AND/OR/NOT subtrees recurse into every child.
+func applyColset(node queryNode, cols []int) queryNode {
+	switch n := node.(type) {
+	case eofNode:
+		return node
+	case stringNode:
+		// Every phrase of the node carries the same effective colset (they
+		// are set together), so one intersection decides the merge.
+		merged := intersectColsets(n.phrases[0].colset, cols)
+		if len(merged) == 0 {
+			return eofNode{}
+		}
+		for _, ph := range n.phrases {
+			ph.colset = merged
+		}
+		return node
+	case andNode:
+		for i, c := range n.children {
+			n.children[i] = applyColset(c, cols)
+		}
+		return node
+	case orNode:
+		for i, c := range n.children {
+			n.children[i] = applyColset(c, cols)
+		}
+		return node
+	case notNode:
+		n.l = applyColset(n.l, cols)
+		n.r = applyColset(n.r, cols)
+		return node
 	}
-	r, err := n.r.eval(t, cols)
-	if err != nil {
-		return nil, err
+	return node
+}
+
+// intersectColsets intersects two ascending column sets (fts5MergeColset).
+// A nil set means every column.
+func intersectColsets(a, b []int) []int {
+	if a == nil {
+		return append([]int(nil), b...)
 	}
-	out := make(map[int64]bool, len(l))
-	for rowid := range l {
-		if r[rowid] {
+	if b == nil {
+		return append([]int(nil), a...)
+	}
+	var out []int
+	for i, j := 0, 0; i < len(a) && j < len(b); {
+		switch {
+		case a[i] == b[j]:
+			out = append(out, a[i])
+			i++
+			j++
+		case a[i] < b[j]:
+			i++
+		default:
+			j++
+		}
+	}
+	return out
+}
+
+// --- evaluation (set based) ---
+
+func (n stringNode) eval(t *Table) (map[int64]bool, error) {
+	if len(n.phrases) == 1 {
+		return t.evalPhrase(n.phrases[0])
+	}
+	return t.evalNear(n.phrases, n.window)
+}
+
+func (n andNode) eval(t *Table) (map[int64]bool, error) {
+	sets := make([]map[int64]bool, len(n.children))
+	for i, c := range n.children {
+		s, err := c.eval(t)
+		if err != nil {
+			return nil, err
+		}
+		sets[i] = s
+	}
+	return intersectSets(sets), nil
+}
+
+func (n orNode) eval(t *Table) (map[int64]bool, error) {
+	out := map[int64]bool{}
+	for _, c := range n.children {
+		s, err := c.eval(t)
+		if err != nil {
+			return nil, err
+		}
+		for rowid := range s {
 			out[rowid] = true
 		}
 	}
 	return out, nil
 }
 
-func (n orNode) eval(t *Table, cols []int) (map[int64]bool, error) {
-	l, err := n.l.eval(t, cols)
+func (n notNode) eval(t *Table) (map[int64]bool, error) {
+	l, err := n.l.eval(t)
 	if err != nil {
 		return nil, err
 	}
-	r, err := n.r.eval(t, cols)
-	if err != nil {
-		return nil, err
-	}
-	out := make(map[int64]bool, len(l)+len(r))
-	for rowid := range l {
-		out[rowid] = true
-	}
-	for rowid := range r {
-		out[rowid] = true
-	}
-	return out, nil
-}
-
-func (n notNode) eval(t *Table, cols []int) (map[int64]bool, error) {
-	l, err := n.l.eval(t, cols)
-	if err != nil {
-		return nil, err
-	}
-	r, err := n.r.eval(t, cols)
+	r, err := n.r.eval(t)
 	if err != nil {
 		return nil, err
 	}
@@ -560,33 +835,73 @@ func (n notNode) eval(t *Table, cols []int) (map[int64]bool, error) {
 	return out, nil
 }
 
-// phraseNode is a phrase: one or more adjacent tokens (a single term when
-// len(terms) == 1).
-type phraseNode struct {
-	terms   []qTerm
-	initial bool // ^abc: the first token sits at position 0
+// intersectSets intersects rowid sets.
+func intersectSets(sets []map[int64]bool) map[int64]bool {
+	smallest := 0
+	for i, s := range sets {
+		if len(s) < len(sets[smallest]) {
+			smallest = i
+		}
+	}
+	out := make(map[int64]bool, len(sets[smallest]))
+	for rowid := range sets[smallest] {
+		in := true
+		for i, s := range sets {
+			if i != smallest && !s[rowid] {
+				in = false
+				break
+			}
+		}
+		if in {
+			out[rowid] = true
+		}
+	}
+	return out
 }
 
-func (n phraseNode) eval(t *Table, cols []int) (map[int64]bool, error) {
-	if err := t.requireDetailForPhrase(n.terms, n.initial); err != nil {
-		return nil, err
-	}
-	if len(n.terms) == 1 && !n.terms[0].prefix && !n.initial {
-		return t.termRowids(n.terms[0].term, cols), nil
-	}
-	return t.matchPhrase(n.terms, cols, n.initial), nil
+// phraseCols returns the phrase's active columns.
+func phraseCols(t *Table, ph *phraseNode) []int {
+	return activeColIndexes(t, ph.colset)
 }
 
-// requireDetailForPhrase rejects phrase features the detail= mode cannot
-// serve (fts5_expr.c:2239/2424).
-func (t *Table) requireDetailForPhrase(terms []qTerm, initial bool) error {
-	if len(terms) > 1 && t.cfg.Detail != DetailFull {
-		return fmt.Errorf("fts5: phrase queries are not supported (detail!=full)")
+// evalPhrase evaluates one phrase to its matching rowids.
+func (t *Table) evalPhrase(ph *phraseNode) (map[int64]bool, error) {
+	cols := phraseCols(t, ph)
+	if len(ph.terms) == 1 && !ph.terms[0].prefix && !ph.first {
+		return t.termRowids(ph.terms[0].term, cols), nil
 	}
-	if initial && t.cfg.Detail != DetailFull {
-		return fmt.Errorf("fts5: phrase queries are not supported (detail!=full)")
+	return t.matchPhrase(ph.terms, cols, ph.first), nil
+}
+
+// evalNear evaluates a NEAR cluster: every phrase must have an instance
+// within the window in one column (fts5ExprNearIsMatch).
+func (t *Table) evalNear(phrases []*phraseNode, window int) (map[int64]bool, error) {
+	cols := phraseCols(t, phrases[0])
+	out := make(map[int64]bool)
+	var cand []int64
+	for i, ph := range phrases {
+		m, err := t.evalPhrase(ph)
+		if err != nil {
+			return nil, err
+		}
+		if i == 0 {
+			cand = t.SortedMatchRowids(m)
+			continue
+		}
+		var next []int64
+		for _, rowid := range cand {
+			if m[rowid] {
+				next = append(next, rowid)
+			}
+		}
+		cand = next
 	}
-	return nil
+	for _, rowid := range cand {
+		if t.nearMatchesDoc(phrases, rowid, cols, window) {
+			out[rowid] = true
+		}
+	}
+	return out, nil
 }
 
 // termRowids returns the docs containing one term in the active columns.
@@ -602,7 +917,7 @@ func (t *Table) termRowids(term string, cols []int) map[int64]bool {
 
 // matchPhrase finds docs where the token chain is adjacent (positions step by
 // one) within one active column.
-func (t *Table) matchPhrase(terms []qTerm, cols []int, initial bool) map[int64]bool {
+func (t *Table) matchPhrase(terms []qTerm, cols []int, first bool) map[int64]bool {
 	out := make(map[int64]bool)
 	candidates := t.phraseCandidateRowids(terms, cols)
 	for _, rowid := range candidates {
@@ -616,7 +931,7 @@ func (t *Table) matchPhrase(terms []qTerm, cols []int, initial bool) map[int64]b
 			}
 			tokens := doc.cols[col]
 			for i := 0; i+len(terms) <= len(tokens); i++ {
-				if initial && i != 0 {
+				if first && i != 0 {
 					break
 				}
 				if phraseMatches(terms, tokens, i) {
@@ -653,7 +968,7 @@ func (t *Table) phraseCandidateRowids(terms []qTerm, cols []int) []int64 {
 	for rowid := range set {
 		rowids = append(rowids, rowid)
 	}
-	sort.Slice(rowids, func(i, j int) bool { return rowids[i] < rowids[j] })
+	sortRowids(rowids)
 	return rowids
 }
 
@@ -674,71 +989,30 @@ func phraseMatches(terms []qTerm, tokens []string, start int) bool {
 	return true
 }
 
-// nearNode is NEAR(phrase phrase ...[, N]): every phrase must have an
-// instance within a window of `window` tokens inside one active column.
-type nearNode struct {
-	phrases []*phraseNode
-	window  int
-}
-
-func (n nearNode) eval(t *Table, cols []int) (map[int64]bool, error) {
-	if t.cfg.Detail == DetailNone {
-		return nil, fmt.Errorf("fts5: NEAR queries are not supported (detail=none)")
-	}
-	if t.cfg.Detail != DetailFull {
-		return nil, fmt.Errorf("fts5: NEAR queries are not supported (detail!=full)")
-	}
-	out := make(map[int64]bool)
-	// Candidate docs: intersection over phrases.
-	var cand []int64
-	for i, ph := range n.phrases {
-		m, err := ph.eval(t, cols)
-		if err != nil {
-			return nil, err
-		}
-		if i == 0 {
-			for rowid := range m {
-				cand = append(cand, rowid)
-			}
-			sort.Slice(cand, func(a, b int) bool { return cand[a] < cand[b] })
-			continue
-		}
-		var next []int64
-		for _, rowid := range cand {
-			if m[rowid] {
-				next = append(next, rowid)
-			}
-		}
-		cand = next
-	}
-	for _, rowid := range cand {
-		if t.nearMatchesDoc(n, rowid, cols) {
-			out[rowid] = true
-		}
-	}
-	return out, nil
-}
-
 // nearMatchesDoc checks one document: every phrase needs an instance and the
-// instance set must fit C's NEAR window (fts5_expr.c fts5ExprNearIsMatch):
-// anchoring on the running maximum position iMax, each phrase's instance at
-// p (its FIRST token) must satisfy p >= iMax - nTerm_i - N and p <= iMax.
-// Windows are per column.
-func (t *Table) nearMatchesDoc(n nearNode, rowid int64, cols []int) bool {
+// instance set must fit C's NEAR window (fts5ExprNearIsMatch): anchoring on
+// the running maximum position iMax, each phrase's instance at p (its FIRST
+// token) must satisfy p >= iMax - nTerm_i - N and p <= iMax. Windows are per
+// column (positions are column-major absolute in C, so a window never spans
+// columns).
+func (t *Table) nearMatchesDoc(phrases []*phraseNode, rowid int64, cols []int, window int) bool {
 	doc := t.ix.Doc(rowid)
 	if doc == nil {
 		return false
 	}
-	for _, col := range activeColIndexes(t, cols) {
+	for _, col := range cols {
 		if col >= len(doc.cols) {
 			continue
 		}
 		tokens := doc.cols[col]
-		instances := make([][]int, len(n.phrases))
+		instances := make([][]int, len(phrases))
 		empty := false
-		for i, ph := range n.phrases {
+		for i, ph := range phrases {
 			var pos []int
 			for p := 0; p+len(ph.terms) <= len(tokens); p++ {
+				if ph.first && p != 0 {
+					break
+				}
 				if phraseMatches(ph.terms, tokens, p) {
 					pos = append(pos, p)
 				}
@@ -752,7 +1026,11 @@ func (t *Table) nearMatchesDoc(n nearNode, rowid int64, cols []int) bool {
 		if empty {
 			continue
 		}
-		if nearWindowMatch(n.phrases, instances, n.window) {
+		sizes := make([]int, len(phrases))
+		for i, ph := range phrases {
+			sizes[i] = len(ph.terms)
+		}
+		if nearWindowMatch(instances, sizes, window) {
 			return true
 		}
 	}
@@ -760,14 +1038,15 @@ func (t *Table) nearMatchesDoc(n nearNode, rowid int64, cols []int) bool {
 }
 
 // nearWindowMatch ports fts5ExprNearIsMatch's advancing-anchors loop for one
-// column's phrase instances (all non-empty, ascending).
-func nearWindowMatch(phrases []*phraseNode, instances [][]int, window int) bool {
+// column's phrase instances (all non-empty, ascending). sizes[i] is phrase i's
+// token count.
+func nearWindowMatch(instances [][]int, sizes []int, window int) bool {
 	idx := make([]int, len(instances))
 	iMax := instances[0][0]
 	for {
 		bMatch := true
 		for i := range instances {
-			iMin := iMax - len(phrases[i].terms) - window
+			iMin := iMax - sizes[i] - window
 			for instances[i][idx[i]] < iMin {
 				idx[i]++
 				if idx[i] >= len(instances[i]) {

@@ -1,6 +1,7 @@
 package fts5
 
 import (
+	"os"
 	"bytes"
 	"encoding/gob"
 	"encoding/hex"
@@ -107,11 +108,47 @@ func (t *Table) createShadowTables() error {
 	// Seed the config version row and the two seed blocks C writes
 	// (fts5StorageConfigValue 'version', the empty averages record id=1 and
 	// the empty structure record id=10).
+	fmt.Fprintf(os.Stderr, "SEED-CONFIG db=%s\n", t.dbName)
 	seed := fmt.Sprintf("INSERT INTO %s(k, v) VALUES('version', 4);", q("_config")) +
 		fmt.Sprintf("INSERT INTO %s(id, block) VALUES(1, X'');", q("_data")) +
 		fmt.Sprintf("INSERT INTO %s(id, block) VALUES(10, X'00000000000000');", q("_data"))
 	_, err := t.db.ExecSQL(seed)
 	return err
+}
+
+// storeConfigValue persists one %_config row (sqlite3Fts5StorageConfigValue).
+func (t *Table) storeConfigValue(key string, v interface{}) error {
+	qc := qual(t.dbName, t.cfg.Name+"_config")
+	fmt.Fprintf(os.Stderr, "SCV %s=%s db=%s\n", key, v, t.dbName)
+	_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(k, v) VALUES(%s, %s)",
+		qc, sqlLiteral(key), sqlLiteral(v)))
+	return err
+}
+
+// loadConfigValues reads the %_config rows into the configuration at
+// connection time (fts5ConfigLoadSpecial: the rank function survives
+// reopen).
+func (t *Table) loadConfigValues() error {
+	qc := qual(t.dbName, t.cfg.Name+"_config")
+	rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT k, v FROM %s", qc))
+	if err != nil {
+		return nil // a missing/corrupt config table: defaults
+	}
+	for _, row := range rows {
+		if len(row) < 2 {
+			continue
+		}
+		key, _ := row[0].(string)
+		switch strings.ToLower(key) {
+		case "rank":
+			if spec, ok := row[1].(string); ok {
+				if parsed, perr := ParseRankSpec(spec); perr == nil {
+					t.cfg.Rank = *parsed
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // flushShadowIndex rewrites the %_data id=11 block with the serialized token
@@ -138,6 +175,10 @@ func (t *Table) flushShadowIndex() error {
 // index; document values for normal-content tables come from %_content.
 func (t *Table) loadFromShadow() error {
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
+	if err := t.loadConfigValues(); err != nil {
+		fmt.Fprintf(os.Stderr, "LFS config err=%v\n", err)
+		return err
+	}
 	if t.cfg.EContent == ContentNormal {
 		if err := t.loadContentValues(); err != nil {
 			return err
@@ -145,6 +186,9 @@ func (t *Table) loadFromShadow() error {
 	}
 	qData := qual(t.dbName, t.cfg.Name+"_data")
 	rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT block FROM %s WHERE id=11", qData))
+	if os.Getenv("CL_DBG") != "" {
+		fmt.Fprintf(os.Stderr, "LFS id11 err=%v rows=%d\n", err, len(rows))
+	}
 	if err != nil || len(rows) == 0 || rows[0][0] == nil {
 		return err // no persisted payload: an empty index
 	}
