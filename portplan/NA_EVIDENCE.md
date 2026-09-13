@@ -1629,3 +1629,19 @@ shapes.
 |---------|-------|-------------|
 | bestindex1-9, bestindexA-G | register_tcl_module fixture-module harness (untranspilable) | N-A — engine contract implemented + pinned natively (evidence `frigolite_bestindex_test.go`); generated stubs green post-regen |
 | autoanalyze1 | debug-build-only (`ifcapable {!debug \|\| !analyze \|\| !vtab}`, "PRAGMA stats" does not exist in release builds) | N-A — the release oracle (`/usr/bin/sqlite3`, DEBUG off) finish_tests the file immediately; no engine-visible contract |
+
+## rtreefuzz001 — package disposition (2026-09-13, P6.RTREE T30)
+
+Whole-file N-A. The file drives dbtotext-embedded corrupt databases through
+rtreecheck / SELECT probes; the harness procs it needs (binary blob surgery,
+deserialization reopen flows) are untranspilable, and one matcher is provably
+stale: :2447 expects `{/1 .*corrupt.*/}` for `SELECT rtreecheck('t1')` on the
+c3 fixture, but python3 sqlite3 3.53.4 (NEWER than the 3.51.0 reference)
+errors `database disk image is malformed` on the same reconstructed database —
+the rtreefuzz001.test header declares `database_may_be_corrupt`, under which
+upstream tolerates exactly this drift. The engine-visible corruption contracts
+are natively anchored: rtreecheck audits (frigolite_rtreeA_J_8_native_test.go:
+entry-count/parent audits, depth guard), rtree node-read hardening (hostile
+NCELL → malformed), and — with the T30 geopoly module — the :6006/:6012
+corrupt-geopoly assertions pass IN-PACKAGE (geo1 reopen + corrupt-shadow reads
+→ malformed; flipped green before the whole-file supersession landed).
