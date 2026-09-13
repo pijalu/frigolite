@@ -6086,3 +6086,11 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   identical trees, early-abort truncation) — diff SCOPED runs
   (`FRIGOLITE_TEST=<family>` -v, file-level subtest lines) instead; that was
   stable (vtab family 19=19 before/after).
+- **DISK HAZARD (2026-09-13, second incident)**: killed test runs skip
+  t.TempDir() cleanup — two leaked fts5 census dirs held 147 GB (a pre-fix
+  engine ran an effectively-unbounded insert loop inside fts5prefix2). The
+  disk hit 100% and caused fts5delete's ENOSPC journal failures. After ANY
+  killed/timed-out test run: `du -sh $TMPDIR/Test_* | sort -rh | head` and
+  purge; corpus batches must always carry -timeout so hangs die before
+  multi-GB growth. fts5prefix2/fts5unicode2 are healthy on the current
+  engine (green, <1s) — the runaway was pre-parser-fix vintage.
