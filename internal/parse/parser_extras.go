@@ -196,12 +196,39 @@ func funcCallOrderByTerms(inner string) []sql.OrderByTerm {
 	return parseSortlistText(obText)
 }
 
+// asciiUpper returns s with ASCII 'a'-'z' folded to 'A'-'Z', leaving every
+// other byte (including multi-byte UTF-8 sequences) untouched. Like SQLite's
+// sqlite3UpperToLower, folding is ASCII-only, so the result is guaranteed to
+// have the same byte length as s — required by scanners that index the folded
+// copy with positions from the original string. strings.ToUpper is NOT safe
+// for that: some code points shrink when upper-cased (U+017F "ſ" is 2 bytes,
+// its uppercase "S" is 1), desynchronizing raw/folded byte offsets.
+func asciiUpper(s string) string {
+	hasLower := false
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 'a' && s[i] <= 'z' {
+			hasLower = true
+			break
+		}
+	}
+	if !hasLower {
+		return s
+	}
+	b := []byte(s)
+	for i, c := range b {
+		if c >= 'a' && c <= 'z' {
+			b[i] = c - ('a' - 'A')
+		}
+	}
+	return string(b)
+}
+
 // collectFuncCallOrderBy scans raw SQL for every "funcname( ... ORDER BY
 // sortlist )" call and returns, keyed by upper-cased function name, the
 // recovered sortlists in source order.
 func collectFuncCallOrderBy(raw string) map[string][][]sql.OrderByTerm {
 	result := make(map[string][][]sql.OrderByTerm)
-	upper := strings.ToUpper(raw)
+	upper := asciiUpper(raw)
 	for i := 0; i < len(raw); i++ {
 		k, name := nextFuncCallParen(raw, upper, i)
 		if k < 0 {
