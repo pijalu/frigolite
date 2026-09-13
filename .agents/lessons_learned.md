@@ -6051,3 +6051,38 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   And `uniq := keys[:0]`-style dedupe: aliasing into the source slice header
   is fine for build-time emission but regenerate AFTER rebuilding the tool —
   a stale regen raced the fix and produced a phantom "fix didn't land".
+- **P6.DBDATA close (2026-09-13)**: `sqlite_dbdata`/`sqlite_dbptr` landed in
+  `internal/vtab/dbdata.go` (eponymous-only; `NewDBDataModule`/`NewDBPtrModule`
+  registered in `engine_register.go`; `dbdata` Noop removed from
+  `RegisterDefaults`). Facts that cost time, keep for P6.RECOVER:
+  (a) ext/recover/dbdata.c's real schema is `(pgno, cell, field, value,
+  schema HIDDEN)` — the "header/type/length/leaf" column list in older notes
+  is a DIFFERENT dbdata variant; C source is ground truth.
+  (b) Interior TABLE pages (0x05) yield NO dbdata rows (default case in the
+  page-type switch); only 0x02/0x0a/0x0d decode. dbptr's first row per page is
+  the right-most child (iCell=-1, header offset 8).
+  (c) DBDATA_MX_FIELD is verbatim 32676 (not 32767) — port the typo.
+  (d) Both page and record buffers carry DBDATA_PADDING_BYTES=100 zero
+  padding; every corrupt-buffer read in the C relies on it — reproduce it in
+  Go or bounds panics appear under corruption.
+  (e) The `schema='fn()'` form (dbdataIsFunction) routes page fetch + page
+  count through a SQL UDF (`fn(0)` = page count, `fn(n)` = page image) via
+  vtab.Database.ExecSQL — that is recover's alternate page source.
+  (f) ORACLE RECIPE (reusable): no shipped binary has dbdata (python3 3.53.4
+  doesn't, /usr/bin/sqlite3 doesn't). Build one:
+  `clang -DSQLITE_ENABLE_DBPAGE_VTAB -I../sqlite ../sqlite/sqlite3.c
+  ../sqlite/ext/recover/dbdata.c main.c` where main.c opens the db and calls
+  `sqlite3_dbdata_init(db,0,0)` (pApi=NULL is safe — dbdata.c ignores it).
+  dbpage auto-registers under the define. Byte-identical dbdata/dbptr output
+  vs frigolite verified on: frigolite-written and oracle-written dbs, 512/1024/
+  8192 page sizes, UTF-16 db (PRAGMA encoding BEFORE any table), WITHOUT ROWID,
+  and 3 hand-corrupted images (66-72 row salvages identical).
+  (g) testgen/dbdata green-ness is VACUOUS: the transpiled test early-returns
+  on `load_extension('../dbdata')` failing (frigolite has no load_extension),
+  so no assertion ever runs; likewise testdata/dbdata.json is harness-skip-
+  listed. Native `frigolite_dbdata_test.go` + the oracle are the real gates.
+  (h) Regression-signal discipline under concurrent agent sessions: full
+  harness failure SETS fluctuate run-to-run (227 vs 285 file failures across
+  identical trees, early-abort truncation) — diff SCOPED runs
+  (`FRIGOLITE_TEST=<family>` -v, file-level subtest lines) instead; that was
+  stable (vtab family 19=19 before/after).

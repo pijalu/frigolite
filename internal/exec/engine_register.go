@@ -66,6 +66,13 @@ func (e *Engine) registerVTabModules() {
 	// every attached database; registered here so instances can resolve the
 	// schema argument against this connection's databases.
 	e.vtabs.Register("sqlite_dbpage", vtab.NewDBPageModule(enginePageSources{e: e}))
+	// sqlite_dbdata / sqlite_dbptr (ext/recover/dbdata.c): decode database
+	// b-tree pages into per-cell record-field rows (dbdata) and parent/child
+	// pointer rows (dbptr); pages come from this connection's pagers, and a
+	// schema argument ending in "()" names a SQL page-supplying function
+	// resolved through the Database handle.
+	e.vtabs.Register("sqlite_dbdata", vtab.NewDBDataModule(enginePageSources{e: e}, e.Database()))
+	e.vtabs.Register("sqlite_dbptr", vtab.NewDBPtrModule(enginePageSources{e: e}, e.Database()))
 	// rtree / rtree_i32 (ext/rtree/rtree.c): R-tree B+tree over shadow tables.
 	// Bound to this connection's Database handle so the module can create/read its
 	// shadow tables and register its SQL functions (rtreenode/rtreedepth/...).

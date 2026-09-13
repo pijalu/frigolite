@@ -185,7 +185,6 @@ func (r *Registry) RegisterDefaults() {
 	r.Register("zipfile", NewZipfileModule())
 	r.Register("fsdir", NewFsdirModule())
 	r.Register("fstree", NewFsTreeModule())
-	r.Register("dbdata", &NoopModule{ModuleName: "dbdata"})
 	r.Register("tcl", NewTclCommandModule())
 	r.Register("csv", &CSVModule{})
 	r.Register("csv_wr", &CSVModule{})
