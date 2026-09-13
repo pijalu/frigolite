@@ -592,11 +592,3 @@ func (w *walWriter) Close() error {
 	}
 	return nil
 }
-
-// walWIPtr returns the shared wal-index pointer for diagnostics.
-func (p *Pager) walWIPtr() interface{} {
-	if p.wal == nil {
-		return nil
-	}
-	return p.wal.wi
-}

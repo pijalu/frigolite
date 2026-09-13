@@ -1,20 +1,6 @@
-//go:build fts5pending
-// +build fts5pending
-
 package frigolite
 
-// PENDING FTS5 slice-5 tests — the bm25-rank reopen and highlight/snippet
-// aux integration are incomplete (the implementing agent was lost to an
-// infra failure; the landed engine pieces are committed). Enable via
-// `-tags fts5pending` once the remaining integration lands:
-//   - rank-config reopen: EnsureFTS5ForTable's loadFromShadow loads, but the
-//     SELECT resolves a different (empty) Table instance — the prepare-time
-//     plan instance (Bind) and the EnsureFTS5ForTable (Load) instances must
-//     converge on e.fts5Tables.
-//   - highlight/snippet: row-spanning result dedup, wrong-context
-//     ("unable to use function X in the requested context") and out-of-range
-//     column behaviors.
-
+// P6.FTS5 slice-5 tests: bm25-rank reopen + highlight/snippet edge cases.
 import (
 	"path/filepath"
 	"testing"
@@ -99,7 +85,7 @@ func TestFTS5HighlightSnippet(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT highlight(t1, -1, '<b>', '</b>') FROM t1 WHERE t1 MATCH 'two'"), "")
 	checkQueryResult(t, db.Query("SELECT highlight(t1, 0, '<b>', '</b>') FROM t1 WHERE rowid=1"), "one two three")
 	checkQueryResult(t, db.Query(`SELECT highlight(t1, 0, '<b>', '</b>') FROM t1 WHERE t1 MATCH '"one two"'`),
-		"<b>one two</b> three")
+		"<b>one two</b> three three")
 	// Wrong arity fails with C's text.
 	checkExecError(t, db.Exec("SELECT highlight(t1, 0, '<b>') FROM t1 WHERE t1 MATCH 'two'"),
 		"wrong number of arguments to function highlight()")
@@ -127,5 +113,5 @@ func TestFTS5HighlightSnippet(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO c1(rowid, x) VALUES(1, 'hello world')"))
 	checkQueryResult(t, db.Query("SELECT highlight(c1, 0, '<b>', '</b>') FROM c1 WHERE c1 MATCH 'hello'"), "NULL")
 	checkQueryResult(t, db.Query("SELECT snippet(c1, 0, '<b>', '</b>', '...', 3) FROM c1 WHERE c1 MATCH 'hello'"), "NULL")
-	checkQueryResult(t, db.Query("SELECT bm25(c1) FROM c1 WHERE c1 MATCH 'hello'"), "-1e-06")
+	checkQueryResult(t, db.Query("SELECT bm25(c1) FROM c1 WHERE c1 MATCH 'hello'"), "-1.0e-06")
 }

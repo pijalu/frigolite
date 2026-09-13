@@ -55,6 +55,13 @@ func (ev *Evaluator) evalFTS5Aux(name string, f *sql.FuncCall, row Row) (interfa
 		return nil, true, unusable
 	}
 	ref, isRef := f.Args[0].(*sql.ColumnRef)
+	if !isRef {
+		// The first argument must be a column reference of the scanned fts5
+		// table (fts5FindAuxFunction → aFunc[0] must be TK_COLUMN of the
+		// vtab cursor); anything else (a literal, an expression) is C's
+		// "unable to use function ... in the requested context".
+		return nil, true, unusable
+	}
 	ctxTable, aq := ev.ctx.FTS5Aux()
 	tableName := ctxTable
 	if isRef && ref.Name != "" {

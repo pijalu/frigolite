@@ -7,7 +7,6 @@
 package pager
 
 import (
-	"os"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -54,22 +53,9 @@ func (p *Pager) CheckExternalFile() bool {
 		// transaction), its cached pages ARE its snapshot: do not drop
 		// them (schema.checkExternalMod applies the same guard).
 		if len(p.dirty) > 0 {
-			if os.Getenv("CL_DBG") != "" {
-				fmt.Fprintf(os.Stderr, "CEF: dirty guard, n=%d\n", len(p.dirty))
-			}
 			return false
 		}
-		ch := p.walIndexRefreshLocked()
-		if os.Getenv("CL_DBG") != "" {
-			mx := uint32(0)
-			ic := uint32(0)
-			if p.wal != nil {
-				mx = p.wal.hdr.MxFrame
-				ic = p.wal.hdr.IChange
-			}
-			fmt.Fprintf(os.Stderr, "CEF: wi=%p changed=%v mx=%d ich=%d\n", p.walWIPtr(), ch, mx, ic)
-		}
-		return ch
+		return p.walIndexRefreshLocked()
 	}
 	vers, size, ok := p.readFileStamp()
 	if !ok {

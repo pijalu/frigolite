@@ -156,6 +156,7 @@ func (t *Table) loadConfigValues() error {
 func (t *Table) flushShadowIndex() error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
 	var payload bytes.Buffer
+	payload.WriteString("GF") // magic checked by loadFromShadow
 	blob := indexBlob{Docs: make([]blobDoc, 0)}
 	for _, rowid := range t.ix.SortedRowids() {
 		doc := t.ix.Doc(rowid)
@@ -186,18 +187,21 @@ func (t *Table) loadFromShadow() error {
 	}
 	qData := qual(t.dbName, t.cfg.Name+"_data")
 	rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT block FROM %s WHERE id=11", qData))
-	if os.Getenv("CL_DBG") != "" {
-		fmt.Fprintf(os.Stderr, "LFS id11 err=%v rows=%d\n", err, len(rows))
-	}
 	if err != nil || len(rows) == 0 || rows[0][0] == nil {
 		return err // no persisted payload: an empty index
 	}
 	raw, ok := toBytes(rows[0][0])
+	if os.Getenv("CL_DBG") != "" {
+		fmt.Fprintf(os.Stderr, "LFS raw ok=%v len=%d head=%q\n", ok, len(raw), string(raw[:min(8, len(raw))]))
+	}
 	if !ok || len(raw) < 4 || !bytes.Equal(raw[:2], []byte("GF")) {
 		return nil // foreign or empty payload: treat as empty index
 	}
 	var blob indexBlob
 	if err := gob.NewDecoder(bytes.NewReader(raw[2:])).Decode(&blob); err != nil {
+		if os.Getenv("CL_DBG") != "" {
+			fmt.Fprintf(os.Stderr, "LFS gob err=%v\n", err)
+		}
 		return nil
 	}
 	for _, bd := range blob.Docs {
@@ -207,6 +211,9 @@ func (t *Table) loadFromShadow() error {
 		}
 		t.ix.AddDoc(bd.Rowid, values, bd.Cols)
 		t.noteRowid(bd.Rowid)
+	}
+	if os.Getenv("CL_DBG") != "" {
+		fmt.Fprintf(os.Stderr, "LFS docs=%d cols0=%v\n", len(blob.Docs), blob.Docs[0].Cols)
 	}
 	return nil
 }
