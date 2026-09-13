@@ -738,6 +738,11 @@ var allStandardImports = []struct{ name, path string }{
 }
 
 func detectImports(code string) []string {
+	// Package references inside line comments (label comments carry Go
+	// expression TEXT, e.g. "{ // "1." + tn + strconv.Itoa(...) }") must not
+	// register imports — fts5phrase's label comment referenced strconv only
+	// in comment text and produced an unused import (compile error).
+	code = stripGoLineComments(code)
 	needed := map[string]bool{
 		"testing":                     true, // always needed
 		"github.com/pijalu/frigolite": true, // always needed
@@ -766,7 +771,6 @@ func detectImports(code string) []string {
 			needed[imp.path] = true
 		}
 	}
-
 	// Sort for deterministic output
 	var result []string
 	for p := range needed {
@@ -799,6 +803,46 @@ func hasPackageRef(code, pkgName string) bool {
 		}
 		code = code[idx+len(search):]
 	}
+}
+
+// stripGoLineComments removes // line comments from emitted Go code, honoring
+// string literals (a "//" inside a quoted or raw string is not a comment).
+func stripGoLineComments(code string) string {
+	var b strings.Builder
+	for i := 0; i < len(code); {
+		c := code[i]
+		switch {
+		case c == '"' || c == '`':
+			quote := c
+			b.WriteByte(c)
+			i++
+			for i < len(code) {
+				if quote == '"' && code[i] == '\\' && i+1 < len(code) {
+					b.WriteByte(code[i])
+					b.WriteByte(code[i+1])
+					i += 2
+					continue
+				}
+				b.WriteByte(code[i])
+				if code[i] == quote {
+					i++
+					break
+				}
+				i++
+			}
+		case c == '\'' && i+2 < len(code) && code[i+1] != '\\':
+			b.WriteString(code[i : i+3])
+			i += 3
+		case c == '/' && i+1 < len(code) && code[i+1] == '/':
+			for i < len(code) && code[i] != '\n' {
+				i++
+			}
+		default:
+			b.WriteByte(c)
+			i++
+		}
+	}
+	return b.String()
 }
 
 // isPackageRefBoundary reports whether the character before position idx is a
