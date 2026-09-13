@@ -12,6 +12,7 @@ package pager
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/quota"
 	"io"
@@ -227,6 +228,10 @@ func (p *Pager) Restore(s *PagerState) {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// ROLLBACK ends the write transaction: drop the WRITER shm lock
+	// (sqlite3WalEndWriteTransaction parity; a savepoint rollback that still
+	// leaves dirty pages re-acquires it at the next write).
+	p.walEndWriteLocked()
 	// Evict pages the snapshot does not know about: they were loaded (and
 	// possibly modified) after the snapshot was taken, so their cached
 	// content is post-statement state. Dropping them sends the next read
@@ -1475,32 +1480,26 @@ func (p *Pager) InvalidateCache() {
 }
 
 // walIndexRefreshLocked polls the shared wal-index header (the
-// walIndexReadHdr port of wal.c L2640: try the lockless read; recover under
-// the writer section when it does not parse) and adopts the shared state
-// into this connection's cached view: page count from hdr.nPage, and page 1
-// re-read through the wal-index so the cached database header is the
-// committed image. Reports whether the shared header changed since the
-// connection's cached copy (the pChanged signal that drives the pager cache
-// reset). Caller holds p.mu.
-func (p *Pager) walIndexRefreshLocked() bool {
+// walIndexReadHdr port of wal.c L2640): try the lockless read; when it does
+// not parse, recover through the WRITER-lock dance (busy/protocol aware —
+// see wallocks.go) outside the wal-index mutex. On any refresh the shared
+// state is adopted into this connection's cached view: page count from
+// hdr.nPage, and page 1 re-read through the wal-index so the cached database
+// header is the committed image. Reports whether the shared header changed
+// since the connection's cached copy (the pChanged signal that drives the
+// pager cache reset) and the refresh error (BUSY_RECOVERY / SQLITE_PROTOCOL).
+// Caller holds p.mu.
+func (p *Pager) walIndexRefreshLocked() (bool, error) {
 	if p.wal == nil {
-		return false
+		return false, nil
 	}
-	changed := false
-	_ = p.wal.wi.WriterSection(func() error {
-		ch, ok := p.wal.wi.tryRefreshLocked(&p.wal.hdr)
-		if !ok {
-			if err := p.wal.walIndexRecoverLocked(); err != nil {
-				return err
-			}
-			ch = true
-		}
-		if ch {
-			changed = true
-			p.wal.adoptHeaderLocked()
-		}
-		return nil
-	})
+	changed, err := p.wal.walIndexReadHdr()
+	if err != nil {
+		// An unparsable wal-index that cannot be recovered right now
+		// (another connection holds it busy, or the retry budget burned):
+		// surface the error to the statement (walTryBeginRead's contract).
+		return false, err
+	}
 	if changed {
 		if n := p.wal.hdr.NPage; n > 0 {
 			p.numPages = n
@@ -1522,7 +1521,7 @@ func (p *Pager) walIndexRefreshLocked() bool {
 			}
 		}
 	}
-	return changed
+	return changed, nil
 }
 
 // WritePage marks a page as dirty. The first write under a non-memory/non-off
@@ -1542,13 +1541,24 @@ func (p *Pager) WritePage(pg *Page) error {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
 	p.mu.Lock()
-	defer p.mu.Unlock()
+	// Open the WAL write transaction on the first dirty page
+	// (sqlite3WalBeginWriteTransaction parity): the WRITER shm lock is held
+	// from the first write until COMMIT/ROLLBACK so the whole write phase
+	// serializes against other connections — the b-tree edits themselves,
+	// not just the frame appends. A contended or stale-snapshot write
+	// reports "database is locked" (SQLITE_BUSY / SQLITE_BUSY_SNAPSHOT)
+	// BEFORE any page is dirtied, so the failed statement aborts cleanly.
+	if _, err := p.walBeginWriteLocked(false); err != nil {
+		p.mu.Unlock()
+		return err
+	}
 	p.pages[pg.PageNum] = pg
 	p.dirty[pg.PageNum] = true
 	// Open the rollback journal eagerly on the first write so a ROLLBACK
 	// before COMMIT can replay the BEFORE images. openRollbackJournalLocked
 	// is a no-op for memory/off/wal modes and for pagers without a file.
 	if err := p.openRollbackJournalLocked(); err != nil {
+		p.mu.Unlock()
 		return err
 	}
 	// Record the BEFORE image of this page (on disk) into the open journal
@@ -1561,11 +1571,125 @@ func (p *Pager) WritePage(pg *Page) error {
 		before := make([]byte, p.pageSize)
 		if _, err := p.file.ReadAt(before, off); err == nil {
 			if err := p.appendRollbackRecordLocked(pg.PageNum, before); err != nil {
+				p.mu.Unlock()
 				return err
 			}
 		}
 	}
+	p.mu.Unlock()
 	return nil
+}
+
+// walBeginWriteLocked acquires the WRITER shm lock for this connection's
+// write transaction when not already held (C's pWal->writeLock). Under the
+// lock the shared wal-index header is compared against this connection's
+// pinned snapshot: another connection having committed in between fails the
+// write with SQLITE_BUSY_SNAPSHOT ("database is locked",
+// walprotocol2-2.2/2.3). Caller holds p.mu.
+//
+// cacheDroppable enables the stale-snapshot retry (busyTimeout > 0,
+// walprotocol2-2.4/2.5: refresh the pin, drop the page cache, re-check).
+// It is safe only BEFORE the statement's btree phase opened pages — the
+// eager engine gate (WALBeginWrite); the WritePage path passes false,
+// because C's retry re-runs the whole statement from sqlite3_reset and
+// frigolite models that by failing the statement for the caller to retry.
+func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
+	w := p.wal
+	if w == nil || w.writeLock {
+		return false, nil
+	}
+	if err := w.walBusyLockExclusive(walLockWrite, 1); err != nil {
+		return false, err
+	}
+	w.writeLock = true
+	adopted := false
+	var deadline time.Time
+	if w.busyTimeout > 0 {
+		deadline = time.Now().Add(w.busyTimeout)
+	}
+	for {
+		err := w.wi.WriterSection(func() error {
+			// The snapshot-consistency check (sqlite3WalBeginWriteTransaction's
+			// memcmp): the shared header must still match the pin.
+			pin := w.hdr
+			changed, ok := w.wi.tryRefreshLocked(&pin)
+			if !ok {
+				// Corrupt header under the WRITER lock: recover (its caller
+				// contract) — the rebuilt state becomes the pin.
+				if rerr := w.walIndexRecoverLocked(); rerr != nil {
+					return rerr
+				}
+				return nil
+			}
+			if changed && !pin.Equal(&w.hdr) {
+				return errWalBusySnapshot
+			}
+			if changed {
+				w.adoptHeaderLocked()
+			}
+			return nil
+		})
+		if err == nil {
+			return adopted, nil
+		}
+		if errors.Is(err, errWalBusySnapshot) &&
+			cacheDroppable && w.busyTimeout > 0 && time.Now().Before(deadline) {
+			// walprotocol2-2.4/2.5: the busy handler fired; re-run from a
+			// fresh read snapshot. The statement has not read or dirtied a
+			// page yet, so dropping the cache is the pager_reset parity.
+			// The caller must ALSO drop its schema/table caches: rowid
+			// counters derived from the pre-retry snapshot are stale.
+			_ = w.wi.WriterSection(func() error {
+				if ch, ok := w.wi.tryRefreshLocked(&w.hdr); ok && ch {
+					w.adoptHeaderLocked()
+					adopted = true
+				}
+				return nil
+			})
+			p.pages = make(map[uint32]*Page)
+			p.header = nil
+			continue
+		}
+		w.walUnlockExclusive(walLockWrite, 1)
+		w.writeLock = false
+		return adopted, err
+	}
+}
+
+// WALBeginWrite opens the WAL write transaction eagerly for a writing
+// statement — the engine calls this from its per-statement gate BEFORE the
+// statement's btree phase reads any page (sqlite3WalBeginWriteTransaction
+// parity: C takes the WRITER lock before the btree cursor work, so the
+// statement's page images build on a snapshot the WRITER lock freezes).
+// The stale-snapshot retry may drop the page cache safely here. Reports
+// whether the shared wal-index header had changed since the connection's
+// cached view (the caller must invalidate its schema/table caches, the
+// engine-side pager_reset — the plain CheckExternalFile path would no longer
+// see the change, the refresh having been consumed here).
+func (p *Pager) WALBeginWrite() (bool, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal == nil {
+		return false, nil
+	}
+	// Refresh the pin first: this IS the statement's read-transaction open
+	// (walIndexReadHdr), so the snapshot check compares against fresh state.
+	changed, err := p.walIndexRefreshLocked()
+	if err != nil {
+		return changed, err
+	}
+	retryChanged, err := p.walBeginWriteLocked(true)
+	return changed || retryChanged, err
+}
+
+// walEndWriteLocked releases the WRITER shm lock at the end of the write
+// transaction (sqlite3WalEndWriteTransaction parity: COMMIT, ROLLBACK and
+// Close all drop it). Caller holds p.mu.
+func (p *Pager) walEndWriteLocked() {
+	if w := p.wal; w != nil && w.writeLock {
+		w.walUnlockExclusive(walLockWrite, 1)
+		w.writeLock = false
+	}
 }
 
 // Truncate drops all pages after n, shrinking the in-memory cache and the

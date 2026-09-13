@@ -1645,3 +1645,47 @@ entry-count/parent audits, depth guard), rtree node-read hardening (hostile
 NCELL → malformed), and — with the T30 geopoly module — the :6006/:6012
 corrupt-geopoly assertions pass IN-PACKAGE (geo1 reopen + corrupt-shadow reads
 → malformed; flipped green before the whole-file supersession landed).
+
+## P7.WAL-G7 slice 2 — wal-index shm lock protocol packages (2026-09-13)
+
+Slice 2 delivers the real shm lock layer (src/wal.c walLockShared/
+walLockExclusive/walBusyLock + src/os_unix.c unixShmSystemLock: POSIX
+F_SETLK at shm bytes 120..127 over ONE registry-owned fd per path, plus the
+load-bearing os_unix.c-style aLock[] shadow for in-process arbitration —
+POSIX fcntl locks never conflict within one process). The eight-slot matrix,
+busy/BUSY_RECOVERY/BUSY_SNAPSHOT semantics, SQLITE_PROTOCOL retry budget,
+recovery lock dance ({0 1 lock exclusive}, {1 2 lock exclusive}, read marks
+{4..7 1 lock/unlock exclusive}), checkpoint PASS1/PASS2 and TRUNCATE→0 are
+implemented in internal/pager/wallocks.go (+ wal.go/walrecover.go/pager.go
+integration) and pinned natively by frigolite_wallocks_test.go:
+
+| native test | C contract (oracle text) |
+|---|---|
+| TestShmLockMatrix | shmlock.test 1.3's full slot matrix (shared coexist / exclusive excludes / ranges) |
+| TestWalLockHookRecoverySequence | walprotocol-1.1/1.2 xShmLock recovery sequence, exact order |
+| TestWalLockProtocol | walprotocol-1.3/1.4: persistent xShmLock BUSY ⇒ SQLITE_PROTOCOL "locking protocol" |
+| TestWalLockRecoverBusy | BUSY_RECOVERY "database is locked" while another connection recovers |
+| TestWalLockBusySnapshot | walprotocol2-2.2/2.3 "database is locked" (SQLITE_BUSY_SNAPSHOT) + 2.4/2.5 retry |
+| TestWalLockBusyTimeout / TestWalLockWriterSerialization | sqlite3_busy_timeout parity + writer serialization |
+| TestWalLockCorruptShmRecovery | walsetlk-1.2..1.6 (corrupt -shm recovery, BEGIN EXCLUSIVE busy, cross-connection commit) |
+| TestWalCheckpointTruncateZero | walsetlk-1.7/1.8 (R-44699-57140: TRUNCATE ⇒ -wal 0 bytes, triple {0 0 0}) |
+| TestWalLockCheckpointBusy / TestWalRestartConcurrent | checkpoint busy triple; checkpoint-vs-writer race integrity |
+| TestWalLockExclusiveMode | locking_mode=EXCLUSIVE issues no xShmLock calls |
+
+Per-package dispositions (each run UN-SKIPPED first, then classified):
+
+| package | harness machinery (untranspilable) | engine contract pinned natively |
+|---|---|---|
+| walsetlk | testvfs -fullshm + xSleep counting (3.2 asserts sleep_count > 0) | TestWalLockCorruptShmRecovery / TestWalLockBusyTimeout / TestWalCheckpointTruncateZero |
+| walsetlk2 | sqlite3_setlk_timeout C-API, db .timeout | TestWalLockBusyTimeout / TestWalLockBusySnapshot |
+| walsetlk3 | sqlite3_setlk_timeout deadline C-API | TestWalLockBusyTimeout / TestWalLockProtocol |
+| walrestart | sqlite3_test_control faultsim injection (1.2/1.4 races) | TestWalRestartConcurrent + triple shapes (TestWalCheckpointTruncateZero) |
+| shmlock | vfs_shmlock custom command (transpiles to SQL, syntax error) | TestShmLockMatrix (Pager.WALIndexLock = vfs_shmlock parity seam) |
+| walsetlk_recover | testfixture_nb subprocess + testvfs -fullshm (setup untranspiled) | TestWalLockRecoverBusy / TestWalLockCorruptShmRecovery |
+| walsetlk_snapshot | testfixture_nb + testvfs -fullshm; blocking snapshot_open = slice-4 API | TestWalLockRecoverBusy (slice 4 completes the snapshot surface) |
+
+All seven carry upgraded skipTestFiles entries citing this section;
+regeneration (go run ./tools/tcl2go/) leaves the packages as green stubs.
+Remaining harness-skip drift for the JSON layer (testdata/walsetlk*.json in
+frigolite_harness_test.go unsupportedTestFiles with stale pre-WAL reasons) is
+queued with the slice-3 stale-skip re-verification (wal/wal2/wal3 class).

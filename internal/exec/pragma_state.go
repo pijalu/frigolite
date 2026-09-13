@@ -167,6 +167,13 @@ func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
 				// unlock-at-transaction-end).
 				e.clearPersistentShared()
 			}
+			// WAL parity (wal.c walLockShared/walLockExclusive): in
+			// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
+			for _, dbCtx := range e.dbList {
+				if dbCtx != nil && dbCtx.Pager != nil {
+					dbCtx.Pager.SetWALExclusiveMode(m == "exclusive")
+				}
+			}
 		default:
 			// Unrecognised token: leave the current mode unchanged (no error),
 			// matching SQLite's lenient handling of invalid pragma values.

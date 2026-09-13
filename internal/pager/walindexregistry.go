@@ -393,20 +393,6 @@ func (w *WALIndex) LockExclusive(idx, n int) bool {
 	return w.lockSlotsLocked(idx, n, true)
 }
 
-// tryExclusiveLocked is LockExclusive for callers already inside a
-// WriterSection (the wal-index mutex is held — e.g. the checkpoint PASS1/PASS2
-// read-mark coordination, wal.c's walBusyLock calls which run under the
-// WRITER lock).
-func (w *WALIndex) tryExclusiveLocked(idx, n int) bool {
-	return w.lockSlotsLocked(idx, n, true)
-}
-
-// releaseExclusiveLocked is UnlockExclusive for callers already inside a
-// WriterSection.
-func (w *WALIndex) releaseExclusiveLocked(idx, n int) {
-	w.unlockSlotsLocked(idx, n, true)
-}
-
 // LockShared takes shared in-process locks on shm slots [idx, idx+n); false
 // means BUSY (an exclusive holder is present).
 func (w *WALIndex) LockShared(idx, n int) bool {

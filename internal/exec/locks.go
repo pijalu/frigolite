@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/lockreg"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -179,6 +180,65 @@ func (e *Engine) stmtLockKey(stmt sql.Stmt, schemaName string, write bool) strin
 		}
 	}
 	return e.LockKeyForDB(schemaName)
+}
+
+// walBeginStmtWrite opens the WAL write transaction eagerly for a writing
+// statement — P7.WAL-G7 slice 2's sqlite3WalBeginWriteTransaction parity
+// (see pager.Pager.WALBeginWrite): the WRITER shm lock is taken BEFORE the
+// statement's btree phase reads pages, so the page images it commits build
+// on a snapshot the WRITER lock freezes (concurrent writers cannot interleave
+// b-tree edits). Non-WAL pagers and read statements no-op. Called from
+// execEntry's statement gates; nested statements (trigger bodies) run inside
+// the outer statement's already-held WRITER lock, so the pager-side guard
+// makes the call a no-op for them.
+func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
+	// PRAGMA wal_checkpoint takes its WRITER/CKPT locks inside
+	// sqlite3WalCheckpoint and reports contention as the result triple's
+	// busy flag, not as a statement error (pragma.c PragTyp_WAL_CHECKPOINT).
+	if p, ok := stmt.(*sql.PragmaStmt); ok && strings.EqualFold(p.Name, "wal_checkpoint") {
+		return nil
+	}
+	write, schemaName := lockAccessForStmt(stmt)
+	if !write {
+		return nil
+	}
+	key := e.stmtLockKey(stmt, schemaName, true)
+	var p *pager.Pager
+	var ctx *DatabaseContext
+	if key == "" {
+		p = e.pager
+	} else {
+		for _, dbc := range e.dbList {
+			if dbc != nil && dbc.Pager != nil && lockKey(dbc, e.connID) == key {
+				p = dbc.Pager
+				ctx = dbc
+				break
+			}
+		}
+	}
+	if p == nil {
+		p = e.pager
+	}
+	if p == nil {
+		return nil
+	}
+	changed, err := p.WALBeginWrite()
+	if err != nil {
+		return err
+	}
+	// The pager refresh consumed the external-change signal this statement
+	// would otherwise see via checkDBFileCtx: apply the full engine-side reset
+	// now (schema caches + table/rowid caches — the execRollback pairing of
+	// invalidateTableCaches + Schema.InvalidateCache) so table objects, rowid
+	// counters and btree pages rebuild on the fresh page images (R4 in
+	// plan/goals/P7.WAL-G7.md).
+	if changed {
+		e.invalidateTableCaches()
+		if ctx != nil && ctx.Schema != nil {
+			ctx.Schema.InvalidateCache()
+		}
+	}
+	return nil
 }
 
 // AttachFileLockError reports whether ATTACHing the file at path would be

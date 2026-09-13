@@ -142,6 +142,13 @@ func (e *Engine) readCellByRowID(tree *btree.BTree, rowID int64) (*storage.Cell,
 
 // Close closes every database pager, flushing buffered writes to disk.
 func (e *Engine) Close() error {
+	// Flush pending fts5 index blobs first (sqlite3Fts5StorageSync fires
+	// before the connection drops; a later reopen loads the shadow state).
+	for _, t5 := range e.fts5Tables {
+		if t5 != nil {
+			_ = t5.FlushShadowIfDirty()
+		}
+	}
 	// Release this connection's cross-connection lock marks first
 	// (sqlite3_close drops the connection's file locks; a connection closed
 	// mid-transaction must not keep blocking others on the same file).

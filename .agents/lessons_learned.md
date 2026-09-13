@@ -6094,3 +6094,44 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   purge; corpus batches must always carry -timeout so hangs die before
   multi-GB growth. fts5prefix2/fts5unicode2 are healthy on the current
   engine (green, <1s) — the runaway was pre-parser-fix vintage.
+
+## P7.WAL-G7 slice 2 — WAL shm lock protocol (2026-09-13)
+
+- **POSIX flock + shadow co-management (R1, validated)**: one registry-owned
+  shm fd per path means ALL goroutines share one kernel lock owner. A failed
+  in-process attempt (flock "succeeds" same-process, shadow rejects) must
+  RECONCILE kernel bytes back to the shadow state (`reconcileFlockHeld`) or
+  the transient F_WRLCK masks a concurrent in-process F_RDLCK holder; likewise
+  an unlock must re-assert RDLCK for remaining co-holders instead of F_UNLCK.
+- **Hooks must fire outside the lock that guards state they re-enter**: firing
+  SetShmLockHook inside the wal-index mutex deadlocked the walprotocol2-style
+  sabotage test (hook → second connection's commit → WriterSection). Public
+  lock paths fire hooks BEFORE taking w.mu; protocol-internal grabs (recovery
+  marks, checkpoint marks) fire under it (veto-only hooks are safe there).
+- **WRITER lock must span the whole write statement, not just the frame
+  append**: flush-time-only acquisition still allowed interleaved b-tree
+  edits on stale page images (silent lost updates, count 22/100 with NO
+  errors). Fixed with the eager per-statement gate (exec walBeginStmtWrite →
+  pager.WALBeginWrite before the btree phase) + BUSY_SNAPSHOT check +
+  cache-drop retry (C's sqlite3WalBeginWriteTransaction memcmp placement).
+- **A stale-snapshot retry invalidates MORE than the pager cache**: the
+  BUSY_SNAPSHOT retry (busyTimeout > 0) adopts the new wal-index header, so
+  the engine must re-run invalidateTableCaches + Schema.InvalidateCache AFTER
+  the retry settles — the rowid counter cache otherwise yields a duplicate
+  rowid and silently overwrites another connection's row (observed as 25/100
+  rows surviving). C is immune because its retry re-runs the whole statement
+  from sqlite3_reset with a fresh read txn.
+- **Consuming a change signal early requires forwarding it**: the gate's
+  refresh consumed the pChanged signal, so checkDBFileCtx later saw
+  changed=false and skipped Schema.InvalidateCache. Any early consumer of
+  CheckExternalFile's signal must forward `changed` to the same invalidation.
+- **TRUNCATE checkpoint truncates the -wal to ZERO bytes** (C R-44699-57140,
+  walsetlk-1.8 `file size test.db-wal` == 0), NOT to the 32-byte header —
+  the next writer rewrites the header before frame 1 (walFrames' iFrame==0
+  branch; commitLocked's nFrame==0 branch). The slice-1 "32 bytes" pin in
+  TestNativeWalCheckpointHonorsMode was re-pointed to the oracle value.
+- **testgen triage**: walsetlk(2,3)/walrestart/shmlock/walsetlk_recover/
+  walsetlk_snapshot were each run UN-SKIPPED before classification; all are
+  harness-blocked (testvfs/xSleep, sqlite3_setlk_timeout, test_control
+  faultsim, vfs_shmlock-as-SQL, testfixture_nb) — superseded with native
+  anchors in frigolite_wallocks_test.go (evidence NA_EVIDENCE.md §P7.WAL-G7).

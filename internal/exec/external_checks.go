@@ -82,11 +82,18 @@ func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool) (changed bool, er
 	// validating the stale pre-drop header against the truncated file would
 	// mis-report "malformed" (HeaderBeyondFile) instead of running on the
 	// new image (SQLite's shared-lock re-reads page 1 before lockBtree).
-	if ctx.Pager.CheckExternalFile() {
+	// In WAL mode the refresh error surfaces (P7.WAL-G7 slice 2): a wal-index
+	// that cannot be recovered right now is BUSY_RECOVERY ("database is
+	// locked") or — after the retry budget — SQLITE_PROTOCOL ("locking
+	// protocol"), exactly walTryBeginRead's error contract.
+	changed, ferr := ctx.Pager.CheckExternalFileErr()
+	if ferr != nil {
+		return false, ferr
+	}
+	if changed {
 		if ctx.Schema != nil {
 			ctx.Schema.InvalidateCache()
 		}
-		changed = true
 	}
 	if verr := ctx.Pager.ValidateHeader(); verr != nil {
 		return changed, verr

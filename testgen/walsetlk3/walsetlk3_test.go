@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walsetlk3(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: N-A G7 slice 2 (sqlite3_setlk_timeout blocking-lock C-API with deadline — untranspilable; engine contracts covered by frigolite_wallocks_test.go TestWalLockBusyTimeout/TestWalLockProtocol; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)

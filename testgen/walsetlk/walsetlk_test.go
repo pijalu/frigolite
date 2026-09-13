@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walsetlk(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: N-A G7 slice 2 (testvfs -fullshm + xSleep counting for blocking-lock timing is harness-observable, untranspilable; engine contracts — corrupt -shm recovery, BEGIN EXCLUSIVE busy, TRUNCATE→0 — covered by frigolite_wallocks_test.go TestWalLockCorruptShmRecovery/TestWalLockBusyTimeout/TestWalCheckpointTruncateZero; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)

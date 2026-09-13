@@ -273,3 +273,14 @@ func (e *Engine) FTS5Tables() map[string]*fts5.Table {
 func (e *Engine) AggRowMaps() []RowMap {
 	return e.selectEngine.AggRowMaps()
 }
+
+// EnterAuxAggArg marks one aggregate-argument evaluation as in flight and
+// returns the restore function (fts5 aux dispatch parity with C's
+// TK_AGG_COLUMN: aux overloads do not apply inside aggregate arguments).
+func (e *Engine) EnterAuxAggArg() func() {
+	e.auxAggArgDepth++
+	return func() { e.auxAggArgDepth-- }
+}
+
+// AuxAggArgDepth reports the in-flight aggregate-argument evaluation count.
+func (e *Engine) AuxAggArgDepth() int { return e.auxAggArgDepth }

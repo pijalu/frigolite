@@ -250,6 +250,124 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 // debugClosure toggles verbose tracing of created-vtab materialization.
 var debugClosure = os.Getenv("CL_DBG") != ""
 
+// MaterializeCreatedVTabFunc materializes the table-valued form of a CREATED
+// virtual table (FROM t('x')): the FROM arguments bind to the leftmost
+// HIDDEN columns as equality constraints (SQLite's vtab TVF form). ok is
+// false when ref does not name a created vtab (the caller falls back to
+// "'t' is not a function" handling).
+func (e *Engine) MaterializeCreatedVTabFunc(ref sql.TableRef, opts execquery.VtabScanOptions) ([]sql.ColumnDef, [][]interface{}, []int64, error, bool) {
+	entry, ctx, err := e.findTable(ref.Name)
+	if err != nil || entry == nil || entry.RootPage != 0 {
+		return nil, nil, nil, nil, false
+	}
+	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
+		return nil, nil, nil, nil, false // FTS keeps its dedicated scan path
+	}
+	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
+		return nil, nil, nil, nil, false // fts5 has its own TVF path
+	}
+	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
+	if !isVtab {
+		return nil, nil, nil, nil, false
+	}
+	module, found := e.vtabs.Find(modName)
+	if !found {
+		return nil, nil, nil, fmt.Errorf("no such module: %s", modName), true
+	}
+	// Discover the hidden columns from a representative instance; without
+	// declared columns or hidden columns the TVF form cannot bind arguments
+	// (handled=false falls through to the not-a-function error).
+	vt, cerr := createVtabModuleConn(module, modArgs, nil)
+	if cerr != nil {
+		return nil, nil, nil, cerr, true
+	}
+	hidden := tvfHiddenColumns(vt)
+	if len(ref.Args) > 0 && len(hidden) == 0 {
+		return nil, nil, nil, nil, false
+	}
+	for i, argExpr := range ref.Args {
+		if i >= len(hidden) {
+			break
+		}
+		conj := &sql.BinaryOp{
+			Left:     &sql.ColumnRef{Name: hidden[i]},
+			Operator: "=",
+			Right:    argExpr,
+		}
+		opts.Where = andExpr(opts.Where, conj)
+	}
+	rows, rowids, rerr := e.materializeVtabModule(module, modArgs, nil, opts, func(vt vtab.VirtualTable) error {
+		if sb, ok := vt.(vtab.SchemaBoundVTab); ok && entry != nil && ctx != nil {
+			return sb.BindSchema(ctx.Name, entry.Name)
+		}
+		return nil
+	})
+	if rerr != nil {
+		return nil, nil, nil, rerr, true
+	}
+	return createdVtabColumnDefs(module, modArgs), rows, rowids, nil, true
+}
+
+// tvfHiddenColumns lists the leftmost-hidden-column names of an instance in
+// declaration order.
+func tvfHiddenColumns(vt vtab.VirtualTable) []string {
+	ci, ok := vt.(vtab.ColumnInfo)
+	if !ok {
+		return nil
+	}
+	hc, ok := vt.(vtab.HiddenColumnInfo)
+	if !ok || len(hc.HiddenColumns()) == 0 {
+		return nil
+	}
+	var out []string
+	for i, c := range ci.Columns() {
+		if hc.HiddenColumns()[i] {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
+// andExpr ANDs a conjunction onto a WHERE expression.
+func andExpr(where, conj sql.Expr) sql.Expr {
+	if where == nil {
+		return conj
+	}
+	return &sql.BinaryOp{Left: where, Right: conj, Operator: "AND"}
+}
+
+// createdVtabColumnDefs builds the projected column definitions (with types
+// and HIDDEN flags) of a created vtab's representative instance.
+func createdVtabColumnDefs(module vtab.Module, modArgs []string) []sql.ColumnDef {
+	vt, err := createVtabModule(module, modArgs, nil)
+	if err != nil {
+		return nil
+	}
+	ci, ok := vt.(vtab.ColumnInfo)
+	if !ok {
+		return nil
+	}
+	defs := make([]sql.ColumnDef, 0, len(ci.Columns()))
+	for _, c := range ci.Columns() {
+		defs = append(defs, sql.ColumnDef{Name: c})
+	}
+	if ct, ok := vt.(vtab.ColumnTypeInfo); ok {
+		types := ct.ColumnTypes()
+		for i := range defs {
+			if i < len(types) && types[i] != "" {
+				defs[i].Type = types[i]
+			}
+		}
+	}
+	if hc, ok := vt.(vtab.HiddenColumnInfo); ok {
+		hidden := hc.HiddenColumns()
+		for i := range defs {
+			defs[i].Hidden = hidden[i]
+		}
+	}
+	return defs
+}
+
 // VtabPlanInstance resolves a created virtual table (CREATE VIRTUAL TABLE
 // schema entry, RootPage 0) to a representative instance plus its declared
 // column names, for prepare-time xBestIndex calls (EQP parity, wherecode.c).

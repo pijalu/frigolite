@@ -9,4 +9,4 @@ import (
 )
 
 func Test_shmlock(t *testing.T) {}
-// skipped: WAL shared-memory (vfs_shmlock) locking not implemented N-A
+// skipped: N-A G7 slice 2 (vfs_shmlock custom TCL command transpiles to SQL and errors — untranspilable harness; the full 8-slot matrix is ported natively as frigolite_wallocks_test.go TestShmLockMatrix via Pager.WALIndexLock, the vfs_shmlock parity seam; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)

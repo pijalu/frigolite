@@ -120,6 +120,12 @@ func (e *Engine) registerFTSModules() {
 	// index and query language; it owns its shadow tables through the
 	// vtab.Database handle like rtree does.
 	e.vtabs.Register("fts5", fts5.NewModule(e.Database()))
+	// fts5vocab (ext/fts5/fts5_vocab.c): row/col/instance views of an fts5
+	// table's terms, resolved against this connection's live fts5 instances.
+	e.vtabs.Register("fts5vocab", fts5.NewVocabModule(e.resolveFTS5VocabTarget))
+	// fts5tokenize (ext/fts5/fts5_test_tok.c): a tokenizer exposed as a
+	// virtual table; querying WHERE input = <text> returns one row per token.
+	e.vtabs.Register("fts5tokenize", fts5.NewTokenizeModule())
 	// fts4aux reads the FTS3/4 in-memory indexes (fts3_aux.c). Register it
 	// after the FTS modules so it can resolve the target table.
 	e.vtabs.Register("fts4aux", fts.NewFTS4AuxModule(map[string]*fts.FTS3Module{
@@ -135,6 +141,39 @@ func (e *Engine) registerFTSModules() {
 	// fts3tokenize exposes a tokenizer as a virtual table (fts3_tokenize_vtab.c):
 	// querying WHERE input = <text> returns one row per token.
 	e.vtabs.Register("fts3tokenize", fts.NewFTS3TokenizeModule())
+	// fts5's test-support scalar functions (fts5_index.c's fts5_rowid and
+	// fts5_expr.c's fts5_expr/fts5_expr_tcl, SQLITE_TEST-only in C and
+	// registered unconditionally here).
+	e.funcs.Register("fts5_rowid", fts5.RowidFunc, 0, -1)
+	e.funcs.Register("fts5_decode", fts5.DecodeFunc, 2, 2)
+	e.funcs.Register("fts5_decode_none", fts5.DecodeNoneFunc, 2, 2)
+	e.funcs.Register("fts5_expr", fts5.ExprFuncExpr, 0, -1)
+	e.funcs.Register("fts5_expr_tcl", fts5.ExprFuncTcl, 0, -1)
+}
+
+// resolveFTS5VocabTarget resolves an fts5vocab module's target table: the
+// live fts5 instance registered in the engine map, plus the schema module
+// name of the entry (an fts5vocab target that is itself a vocab table is a
+// recursive definition). found reports any schema entry with that name.
+func (e *Engine) resolveFTS5VocabTarget(dbName, tbl string) (*fts5.Table, string, bool) {
+	_ = dbName // the engine map spans the main schema; temp fts5 tables are unsupported
+	if t, ok := e.fts5Tables[tbl]; ok {
+		return t, "fts5", true
+	}
+	// Case-insensitive fallback (the engine map is keyed at registration).
+	for n, t := range e.fts5Tables {
+		if strings.EqualFold(n, tbl) {
+			return t, "fts5", true
+		}
+	}
+	if entry, _, err := e.findTable(tbl); err == nil && entry != nil {
+		modName := ""
+		if m, _, isVtab := vtabModuleFromSQL(entry.SQL); isVtab {
+			modName = m
+		}
+		return nil, modName, true
+	}
+	return nil, "", false
 }
 
 // registerEngineFuncs registers the built-in and test-harness scalar and

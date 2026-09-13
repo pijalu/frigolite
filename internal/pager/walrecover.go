@@ -3,27 +3,51 @@ package pager
 // walrecover.go — walIndexRecover port (src/wal.c L1384): rebuild the
 // wal-index (shared header + pgno→frame hash tables) from the "-wal" file.
 //
-// Recovery runs under the wal-index writer section (slice 1's WRITER+RECOVER
-// lock stand-in; the flock dance arrives in slice 2): the caller refreshes
-// the shared header first, and an unparsable header means the wal-index must
-// be reconstructed — a crashed process's frames are re-indexed frame by
-// frame, stopping at the first invalid frame or after the last commit
-// record, exactly like wal.c's walk.
+// Recovery runs under the WRITER shm lock (its C caller contract) and takes
+// the exclusive CKPT+RECOVER byte range {1 2 lock exclusive} for the duration
+// (slice 2: the real flock + aLock shadow pair) — a contended range reports
+// BUSY, which the caller converts to WAL_RETRY / BUSY_RECOVERY
+// (walprotocol-1.3: a persistent veto burns the retry budget into
+// SQLITE_PROTOCOL "locking protocol"). The finishing block re-initializes
+// read marks 1..4 under transient exclusive READ_LOCK(i) locks, tolerating
+// BUSY on each (wal.c L1576: a reader holding a mark keeps its mark;
+// walprotocol-1.5 succeeds anyway).
+//
+// The caller refreshes the shared header first; an unparsable header means
+// the wal-index must be reconstructed — a crashed process's frames are
+// re-indexed frame by frame, stopping at the first invalid frame or after
+// the last commit record, exactly like wal.c's walk.
 
 import (
 	"encoding/binary"
 	"fmt"
 )
 
-// walIndexRecoverLocked ports walIndexRecover. It validates the WAL file
-// header (magic, page size, checksum, version — a version mismatch is the
-// SQLITE_CANTOPEN family error), walks every frame updating the cumulative
-// checksum chain (walDecodeFrame validity rules), appends each frame's
-// pgno→frame mapping to the shared hash tables, and finishes by publishing
-// the recovered header and resetting the checkpoint info (nBackfill=0,
-// read marks per wal.c L1546-1560). Caller holds the wal-index writer
-// section.
+// walIndexRecoverLocked ports walIndexRecover. The caller holds the WRITER
+// shm lock (w.writeLock) and the wal-index writer section. This function
+// takes the exclusive CKPT+RECOVER range for its duration and releases it on
+// every exit path (wal.c recovery_error's unlock).
 func (w *walWriter) walIndexRecoverLocked() error {
+	// iLock = WAL_ALL_BUT_WRITE + ckptLock = 1, n = WAL_READ_LOCK(0)-iLock = 2
+	// (slice 4's snapshot_recover caller, which pre-holds CKPT, will widen
+	// this to the C ckptLock form).
+	if err := w.wi.shmTryLockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true); err != nil {
+		return err
+	}
+	err := w.walIndexRecoverBodyLocked()
+	w.wi.shmUnlockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true)
+	return err
+}
+
+// walIndexRecoverBodyLocked is the recovery proper (wal.c L1404-1565): it
+// validates the WAL file header (magic, page size, checksum, version — a
+// version mismatch is the SQLITE_CANTOPEN family error), walks every frame
+// updating the cumulative checksum chain (walDecodeFrame validity rules),
+// appends each frame's pgno→frame mapping to the shared hash tables, and
+// finishes by publishing the recovered header and resetting the checkpoint
+// info (nBackfill=0, read marks per wal.c L1546-1560). Caller holds the
+// CKPT+RECOVER range and the wal-index writer section.
+func (w *walWriter) walIndexRecoverBodyLocked() error {
 	// memset(&pWal->hdr, 0, sizeof(WalIndexHdr))
 	w.hdr = WalIndexHdr{}
 	var aFrameCksum [2]uint32
@@ -111,8 +135,10 @@ func (w *walWriter) walIndexRecoverLocked() error {
 }
 
 // finishRecoveryLocked publishes the recovered header and resets the
-// checkpoint info (wal.c's "finished:" block). Caller holds the wal-index
-// writer section.
+// checkpoint info (wal.c's "finished:" block L1562-1596): read marks 1..4
+// are re-initialized each under a transient exclusive READ_LOCK(i) — a BUSY
+// mark (an active reader) keeps its old value and does not fail recovery.
+// Caller holds the CKPT+RECOVER range and the wal-index writer section.
 func (w *walWriter) finishRecoveryLocked(aFrameCksum [2]uint32) error {
 	w.hdr.AFrameCksum = aFrameCksum
 	w.wi.writeHdrLocked(&w.hdr)
@@ -120,14 +146,20 @@ func (w *walWriter) finishRecoveryLocked(aFrameCksum [2]uint32) error {
 		ci.NBackfill = 0
 		ci.NBackfillAttempted = w.hdr.MxFrame
 		ci.AReadMark[0] = 0
-		for i := 1; i < WalNReader; i++ {
-			if i == 1 && w.hdr.MxFrame != 0 {
-				ci.AReadMark[i] = w.hdr.MxFrame
-			} else {
-				ci.AReadMark[i] = ReadmarkNotUsed
-			}
-		}
 	})
+	for i := 1; i < WalNReader; i++ {
+		if w.wi.shmTryLockHeld(walReadLockIdx(i), 1, true) == nil {
+			w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) {
+				if i == 1 && w.hdr.MxFrame != 0 {
+					ci.AReadMark[i] = w.hdr.MxFrame
+				} else {
+					ci.AReadMark[i] = ReadmarkNotUsed
+				}
+			})
+			w.wi.shmUnlockHeld(walReadLockIdx(i), 1, true)
+		}
+		// BUSY on the mark: leave the reader's value untouched (wal.c tolerates).
+	}
 	// Adopt the recovered state into the writer (next frame index, chain).
 	w.nFrame = int(w.hdr.MxFrame)
 	if w.hdr.MxFrame > 0 {

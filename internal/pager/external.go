@@ -55,7 +55,8 @@ func (p *Pager) CheckExternalFile() bool {
 		if len(p.dirty) > 0 {
 			return false
 		}
-		return p.walIndexRefreshLocked()
+		ch, _ := p.walIndexRefreshLocked()
+		return ch
 	}
 	vers, size, ok := p.readFileStamp()
 	if !ok {

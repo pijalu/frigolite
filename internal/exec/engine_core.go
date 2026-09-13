@@ -832,6 +832,17 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 	if err := e.CrossConnLockError(stmt); err != nil {
 		return &Result{Error: err}
 	}
+	// WAL write gate (P7.WAL-G7 slice 2, sqlite3WalBeginWriteTransaction
+	// parity): writing statements open the WAL write transaction BEFORE the
+	// btree phase reads pages, so the WRITER shm lock freezes the snapshot
+	// the statement's page images build on. A stale snapshot fails here with
+	// "database is locked" (SQLITE_BUSY_SNAPSHOT, walprotocol2-2.2/2.3);
+	// with a busy timeout the statement retries from a fresh read snapshot
+	// (2.4/2.5) — the pager drops its page cache, which is safe exactly
+	// because no btree cursor has opened yet.
+	if err := e.walBeginStmtWrite(stmt); err != nil {
+		return &Result{Error: err}
+	}
 	// sqlite3_interrupt(): when the interrupt flag is set, the next statement
 	// on this connection fails with "interrupted" and the flag is consumed
 	// (SQLite clears it when the interrupted step returns).

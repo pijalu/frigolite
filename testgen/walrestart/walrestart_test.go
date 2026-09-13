@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walrestart(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: N-A G7 slice 2 (sqlite3_test_control faultsim injection drives the 1.2/1.4 checkpoint-vs-writer races — untranspilable; race contract covered by frigolite_wallocks_test.go TestWalRestartConcurrent + triple shapes in TestWalCheckpointTruncateZero; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)

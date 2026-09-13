@@ -22,7 +22,8 @@
 //   TestNativeWalCheckpointHonorsMode  — incrvacuum2 4.2.1 (001af0a8):
 //     default `PRAGMA wal_checkpoint` (PASSIVE) must NOT truncate the
 //     -wal file. PASSIVE keeps the committed frames on disk; only
-//     RESTART / TRUNCATE reset the -wal to its 32-byte header. The
+//     RESTART resets the -wal to its 32-byte header; TRUNCATE truncates it
+//     to zero bytes (C R-44699-57140). The
 //     pre-fix engine always did a full RESTART, breaking incrvacuum2
 //     4.2.1's `file size test.db-wal == 1104` assertion.
 //
@@ -226,8 +227,8 @@ func TestNativeBtreeDividerMatchesSQLite(t *testing.T) {
 //      breaking incrvacuum2 4.2.1's `file size test.db-wal == 1104`
 //      assertion.
 //
-//   2. `PRAGMA wal_checkpoint(TRUNCATE)` resets -wal to its 32-byte
-//      header. Mirrors wal.c walTruncateLog.
+//   2. `PRAGMA wal_checkpoint(TRUNCATE)` truncates -wal to ZERO bytes
+//      (C R-44699-57140; the 32-byte header returns on the next write). Mirrors wal.c walTruncateLog.
 //
 //   3. After a PASSIVE checkpoint, the committed frames are still
 //      visible to a new reader (engine reads from -wal + main DB).
@@ -300,13 +301,15 @@ func TestNativeWalCheckpointHonorsMode(t *testing.T) {
 	}
 	reader.Close()
 
-	// TRUNCATE: -wal should reset to 32 bytes.
+	// TRUNCATE: -wal should reset to ZERO bytes (P7.WAL-G7 slice 2 parity
+	// with C R-44699-57140 / walsetlk-1.8: sqlite3OsTruncate(pWalFd, 0); the
+	// 32-byte header is rewritten lazily by the next writer).
 	if r := engineDB.Exec("PRAGMA wal_checkpoint(TRUNCATE)"); r.Error != nil {
 		t.Fatalf("engine PRAGMA wal_checkpoint(TRUNCATE): %v", r.Error)
 	}
 	engineWalAfterTruncate := fileSize(t, enginePath+"-wal")
-	if engineWalAfterTruncate != 32 {
-		t.Fatalf("engine TRUNCATE -wal size = %d, want 32", engineWalAfterTruncate)
+	if engineWalAfterTruncate != 0 {
+		t.Fatalf("engine TRUNCATE -wal size = %d, want 0 (C R-44699-57140)", engineWalAfterTruncate)
 	}
 
 	// After TRUNCATE the main DB still carries the committed data.

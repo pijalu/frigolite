@@ -24,8 +24,10 @@ package pager
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
+	"time"
 )
 
 // walWriter implements the SQLite WAL write path for one connection.
@@ -41,10 +43,23 @@ type walWriter struct {
 	// database path, refcounted by the WALIndexRegistry).
 	wi *WALIndex
 	// hdr is the connection's cached copy of the shared wal-index header
-	// (C's pWal->hdr): mxFrame/nPage/iChange/aFrameCksum/aSalt/szPage.
+	// (C's pWal->hdr): mxFrame/nPage/iChange/aFrameCksum/aSalt/szPage. It is
+	// ALSO the read-snapshot pin: sqlite3WalBeginWriteTransaction compares it
+	// against the shared header under the WRITER lock and fails with
+	// SQLITE_BUSY_SNAPSHOT when another connection committed since.
 	hdr WalIndexHdr
 	// nCkpt is the checkpoint sequence from the WAL file header.
 	nCkpt uint32
+	// writeLock/ckptLock mirror C's pWal->writeLock/ckptLock: which shm locks
+	// this connection currently holds (released on Close).
+	writeLock bool
+	ckptLock  bool
+	// exclusiveMode is locking_mode=EXCLUSIVE: every shm lock call becomes a
+	// no-op (wal.c walLockShared/walLockExclusive).
+	exclusiveMode bool
+	// busyTimeout is sqlite3_busy_timeout: contended shm lock acquisitions
+	// retry until the deadline, then report "database is locked".
+	busyTimeout time.Duration
 }
 
 // walMagicLE is the little-endian-checksum WAL magic (WalMagic); the LSB 0
@@ -52,10 +67,11 @@ type walWriter struct {
 const walMagicLE = WalMagic // 0x377f0682
 
 // openWal opens (or creates) the "-wal" file for dbPath and attaches to the
-// shared wal-index. The shared header is read (walIndexReadHdr port); an
-// unusable header triggers recovery from the -wal file (walIndexRecover
-// port). Committed frames are NOT replayed into the page cache here — reads
-// resolve through the wal-index (see Pager.readPageLocked).
+// shared wal-index. The shared header is read (walIndexReadHdr port, with the
+// slice-2 lock dance: recovery runs under the WRITER lock and a contended
+// recovery reports BUSY_RECOVERY / SQLITE_PROTOCOL); committed frames are NOT
+// replayed into the page cache — reads resolve through the wal-index (see
+// Pager.readPageLocked).
 func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 	walPath := dbPath + "-wal"
 	f, err := os.OpenFile(walPath, os.O_RDWR|os.O_CREATE, 0644)
@@ -68,7 +84,7 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 		return nil, err
 	}
 	w := &walWriter{p: p, path: walPath, file: f, pageSize: pageSize, wi: wi}
-	if err := wi.WriterSection(w.initHeaderLocked); err != nil {
+	if err := w.walInitHeader(); err != nil {
 		wi.release()
 		f.Close()
 		return nil, err
@@ -76,21 +92,32 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 	return w, nil
 }
 
-// initHeaderLocked loads the shared wal-index header (recovering from the
-// -wal when it does not parse) and adopts the WAL file's header state.
-// Caller holds the wal-index writer section.
-func (w *walWriter) initHeaderLocked() error {
-	_, ok := w.wi.tryRefreshLocked(&w.hdr)
-	if ok && w.hdr.MxFrame > 0 && !w.walFileHeaderSaltsMatchLocked() {
+// walInitHeader loads the shared wal-index header (recovering from the -wal
+// through the WRITER-lock dance when it does not parse), rebuilds when the
+// shared header outlives its -wal file, and adopts the WAL file's header
+// state into the writer.
+func (w *walWriter) walInitHeader() error {
+	if _, err := w.walIndexReadHdr(); err != nil {
+		return err
+	}
+	stale := false
+	_ = w.wi.WriterSection(func() error {
+		stale = w.hdr.MxFrame > 0 && !w.walFileHeaderSaltsMatchLocked()
+		return nil
+	})
+	if stale {
 		// The shared header outlived its WAL file (restarted/truncated by
 		// another generation): the -wal is the authority — rebuild.
-		ok = false
-	}
-	if !ok {
-		if err := w.walIndexRecoverLocked(); err != nil {
+		if err := w.walRecoverWithWriterLock(); err != nil {
 			return err
 		}
 	}
+	return w.wi.WriterSection(w.initHeaderAdoptLocked)
+}
+
+// initHeaderAdoptLocked seeds the writer's derived state from the (parsed)
+// shared header. Caller holds the wal-index writer section.
+func (w *walWriter) initHeaderAdoptLocked() error {
 	if w.hdr.IVersion != WalIndexMaxVersion {
 		return fmt.Errorf("pager: open wal %s: unable to open database file", w.path)
 	}
@@ -102,6 +129,99 @@ func (w *walWriter) initHeaderLocked() error {
 		w.cksum1, w.cksum2 = w.hdr.AFrameCksum[0], w.hdr.AFrameCksum[1]
 	}
 	return nil
+}
+
+// walIndexReadHdr ports walIndexReadHdr (wal.c L2640) + walTryBeginRead's
+// busy conversion (wal.c L3043): try the lockless header read; when it does
+// not parse, take the WRITER lock and run walIndexRecover. A contended WRITER
+// (or recovery lock) converts per C: RECOVER held by someone ⇒ BUSY_RECOVERY
+// ("database is locked"); RECOVER free ⇒ brief retry, up to
+// WAL_RETRY_PROTOCOL_LIMIT rounds ⇒ SQLITE_PROTOCOL ("locking protocol").
+// With a busy timeout set, the BUSY_RECOVERY round also waits (pager.c wraps
+// the whole read in the busy handler). Reports whether the shared header
+// changed since the connection's cached copy (the pChanged signal).
+func (w *walWriter) walIndexReadHdr() (bool, error) {
+	var deadline time.Time
+	if w.busyTimeout > 0 {
+		deadline = time.Now().Add(w.busyTimeout)
+	}
+	changed := false
+	for cnt := 0; ; cnt++ {
+		ch, ok := w.tryHeaderRefresh()
+		changed = changed || ch
+		if ok {
+			return changed, nil
+		}
+		rc := w.walRecoverWithWriterLock()
+		switch {
+		case rc == nil:
+			continue // recovered — the next round's parse succeeds
+		case errors.Is(rc, errWalRetry):
+			if cnt >= walRetryProtocolLimit {
+				return changed, errWalProtocol
+			}
+			if cnt >= walBusyEarlyRounds {
+				time.Sleep(walRetrySleep)
+			}
+		case errors.Is(rc, errWalBusyRecovery) && w.busyTimeout > 0 && time.Now().Before(deadline):
+			time.Sleep(walBusySleep)
+		default:
+			return changed, rc
+		}
+	}
+}
+
+// tryHeaderRefresh runs one lockless walIndexTryHdr round and adopts the
+// shared state into the connection's pin when it moved. Reports whether the
+// header parsed and whether the pin moved. Caller must NOT hold the wal-index
+// mutex.
+func (w *walWriter) tryHeaderRefresh() (changed, ok bool) {
+	_ = w.wi.WriterSection(func() error {
+		ch, parsed := w.wi.tryRefreshLocked(&w.hdr)
+		if parsed && ch {
+			w.adoptHeaderLocked()
+			changed = true
+		}
+		ok = parsed
+		return nil
+	})
+	return changed, ok
+}
+
+// walRecoverWithWriterLock runs walIndexRecover under the WRITER lock (its C
+// caller contract: the WRITER byte is held before the recovery locks). On a
+// contended WRITER or a contended recovery lock it applies walTryBeginRead's
+// conversion: probe the RECOVER lock shared — held ⇒ BUSY_RECOVERY (a
+// recovery is running), free ⇒ WAL_RETRY (the holder will release; retry).
+func (w *walWriter) walRecoverWithWriterLock() error {
+	if err := w.walLockExclusive(walLockWrite, 1); err != nil {
+		return w.busyToRetryOrRecovery(err)
+	}
+	w.writeLock = true
+	err := w.wi.WriterSection(func() error {
+		return w.walIndexRecoverLocked()
+	})
+	w.walUnlockExclusive(walLockWrite, 1)
+	w.writeLock = false
+	if err != nil && errors.Is(err, errWalBusy) {
+		return w.busyToRetryOrRecovery(err)
+	}
+	return err
+}
+
+// busyToRetryOrRecovery converts a contended lock per walTryBeginRead: when
+// the RECOVER lock is held by another connection the result is
+// BUSY_RECOVERY; otherwise the contention is transient (WAL_RETRY).
+func (w *walWriter) busyToRetryOrRecovery(busy error) error {
+	if err := w.walLockShared(walLockRecover, 1); err != nil {
+		if errors.Is(err, errWalBusy) {
+			return errWalBusyRecovery
+		}
+		return err
+	}
+	w.walUnlockShared(walLockRecover, 1)
+	_ = busy
+	return errWalRetry
 }
 
 // walFileHeaderSaltsMatchLocked reports whether the -wal file carries a valid
@@ -188,23 +308,16 @@ func (w *walWriter) writeWalFileHeaderLocked() error {
 	return nil
 }
 
-// writerBeginLocked ports the shared-header synchronization of
-// sqlite3WalBeginWriteTransaction / walFrames: re-read the shared header,
-// recover when it does not parse, and adopt its frame state. (The
-// SQLITE_BUSY_SNAPSHOT staleness error requires a pinned read snapshot —
-// slice 3.) Caller holds the wal-index writer section.
-func (w *walWriter) writerBeginLocked() error {
+// writerRefreshLocked ports the shared-header synchronization of walFrames:
+// re-read the shared header and adopt its frame state when it moved. Unlike
+// the read path it does not recover a corrupt header (the WRITER lock that
+// recovery requires is not held here — callers took only the CKPT lock);
+// a checkpoint on an unparsable header proceeds with the connection's cached
+// snapshot, exactly as C reads pWal->hdr without re-validating.
+// Caller holds the wal-index writer section.
+func (w *walWriter) writerRefreshLocked() error {
 	changed, ok := w.wi.tryRefreshLocked(&w.hdr)
-	if !ok {
-		if err := w.walIndexRecoverLocked(); err != nil {
-			return err
-		}
-		changed = true
-	}
-	if w.hdr.IVersion != WalIndexMaxVersion {
-		return fmt.Errorf("pager: wal: unable to open database file")
-	}
-	if changed {
+	if ok && changed {
 		w.adoptHeaderLocked()
 	}
 	return nil
@@ -274,14 +387,24 @@ func (w *walWriter) appendFrame(pg *Page, commit bool, dbSize uint32) error {
 
 // commit writes all currently-dirty pages of the pager as WAL frames, marking
 // the final frame as the commit record (post-transaction database size =
-// p.numPages). Frames are recorded in the shared wal-index hash tables and
-// the shared header is published double-buffered (mxFrame, nPage, iChange++,
-// aFrameCksum) — wal.c walFrames' isCommit branch. The wal hook
-// (sqlite3_wal_hook) fires after the commit with the number of frames
-// appended.
+// p.numPages). It is the sqlite3WalBeginWriteTransaction + walFrames port:
+// the WRITER shm lock is taken first (busy-handler aware — a contended
+// writer reports "database is locked" once the busy timeout expires), then
+// the snapshot-consistency check runs (another connection committing since
+// this connection's read snapshot pins the header ⇒ SQLITE_BUSY_SNAPSHOT,
+// "database is locked", walprotocol2-2.2/2.3 — retried while the busy
+// timeout allows, 2.4/2.5), and the frames are appended under the lock.
+// Frames are recorded in the shared wal-index hash tables and the shared
+// header is published double-buffered (mxFrame, nPage, iChange++,
+// aFrameCksum). The wal hook (sqlite3_wal_hook) fires after the commit with
+// the number of frames appended.
 func (w *walWriter) commit() (int, error) {
 	p := w.p
 	if len(p.dirty) == 0 {
+		// Nothing to commit; still end the write transaction the eager
+		// statement gate may have opened (a write-class statement that
+		// affected no pages — UPDATE matching nothing and friends).
+		p.walEndWriteLocked()
 		return 0, nil
 	}
 	// Deterministic order: sort dirty page numbers ascending.
@@ -297,49 +420,102 @@ func (w *walWriter) commit() (int, error) {
 			pages[j], pages[j-1] = pages[j-1], pages[j]
 		}
 	}
+	// The WRITER shm lock is already held for an open write transaction
+	// (walBeginWriteLocked, taken at the first dirty page). Transactions
+	// that dirtied pages through allocation-only paths acquire it here as a
+	// fallback.
+	if !w.writeLock {
+		if err := w.walBusyLockExclusive(walLockWrite, 1); err != nil {
+			return 0, err
+		}
+		w.writeLock = true
+	}
 	appended := 0
-	err := w.wi.WriterSection(func() error {
-		if err := w.writerBeginLocked(); err != nil {
-			return err
+	var commitErr error
+	func() {
+		defer p.walEndWriteLocked()
+		if err := w.wi.WriterSection(func() error { return w.commitLocked(pages, &appended) }); err != nil {
+			commitErr = err
 		}
-		// walRestartLog (wal.c L3852): when the log is fully backfilled
-		// (nBackfill == mxFrame > 0) and no readers hold WAL read marks, the
-		// new frames overwrite the log from frame 1.
-		info := w.wi.ckptInfoLocked()
-		if info.NBackfill > 0 && info.NBackfill == w.hdr.MxFrame {
-			if err := w.walRestartHdrLocked(false); err != nil {
-				return err
-			}
-		}
-		dbSize := p.numPages
-		for i, pg := range pages {
-			commit := i == len(pages)-1
-			if err := w.appendFrame(pg, commit, dbSize); err != nil {
-				return err
-			}
-			// walIndexAppend: record pgno→frame in the shared hash tables
-			// (the mxFrame cleanup bound is the pre-commit value).
-			if err := w.wi.appendLocked(uint32(w.nFrame), pg.PageNum, w.hdr.MxFrame); err != nil {
-				return err
-			}
-		}
-		// Publish the new header (wal.c walFrames isCommit branch).
-		w.hdr.MxFrame = uint32(w.nFrame)
-		w.hdr.NPage = dbSize
-		w.hdr.IChange++
-		w.hdr.AFrameCksum = [2]uint32{w.cksum1, w.cksum2}
-		setPageSizeForHdr(&w.hdr, w.pageSize)
-		w.wi.writeHdrLocked(&w.hdr)
-		appended = len(pages)
-		return nil
-	})
-	if err != nil {
-		return 0, err
+	}()
+	if commitErr != nil {
+		return 0, commitErr
 	}
 	if p.walHook != nil {
 		p.walHook(appended, 0)
 	}
 	return appended, nil
+}
+
+// commitPrepareLocked synchronizes the writer with the shared wal-index
+// before frames are appended: the snapshot-consistency check
+// (sqlite3WalBeginWriteTransaction's memcmp — the WRITER lock has been held
+// since the first dirty page, so the shared header cannot have moved since
+// the pin was checked there), walRestartLog (wal.c L3852: when the log is
+// fully backfilled and no readers hold read marks, the new frames overwrite
+// the log from frame 1; contended read locks skip the restart — the BUSY
+// branch keeps appending at the log end) and the frame-less-log file header
+// (walFrames' iFrame==0 branch — e.g. right after a TRUNCATE checkpoint
+// zeroed the file). Caller holds the WRITER lock and the wal-index writer
+// section.
+func (w *walWriter) commitPrepareLocked() error {
+	pin := w.hdr
+	changed, ok := w.wi.tryRefreshLocked(&pin)
+	if !ok {
+		// Header corrupted under the held WRITER: recover (its caller
+		// contract) — the rebuilt state becomes the pin.
+		if err := w.walIndexRecoverLocked(); err != nil {
+			return err
+		}
+		return nil
+	}
+	if changed && !pin.Equal(&w.hdr) {
+		return errWalBusySnapshot
+	}
+	if changed {
+		w.adoptHeaderLocked()
+	}
+	if info := w.wi.ckptInfoLocked(); info.NBackfill > 0 && info.NBackfill == w.hdr.MxFrame {
+		if w.wi.shmTryLockHeld(walReadLockIdx(1), WalNReader-1, true) == nil {
+			if err := w.walRestartHdrLocked(false); err != nil {
+				return err
+			}
+			w.wi.shmUnlockHeld(walReadLockIdx(1), WalNReader-1, true)
+		}
+	}
+	if w.nFrame == 0 {
+		return w.syncChainFromWalFileLocked()
+	}
+	return nil
+}
+
+// commitLocked appends the transaction's frames and publishes the header.
+// Caller holds the WRITER shm lock and the wal-index writer section.
+func (w *walWriter) commitLocked(pages []*Page, appended *int) error {
+	if err := w.commitPrepareLocked(); err != nil {
+		return err
+	}
+	dbSize := w.p.numPages
+	for i, pg := range pages {
+		commit := i == len(pages)-1
+		if err := w.appendFrame(pg, commit, dbSize); err != nil {
+			return err
+		}
+		// walIndexAppend: record pgno→frame in the shared hash tables
+		// (the mxFrame cleanup bound is the pre-commit value).
+		if err := w.wi.appendLocked(uint32(w.nFrame), pg.PageNum, w.hdr.MxFrame); err != nil {
+			return err
+		}
+	}
+	// Publish the new header (wal.c walFrames isCommit branch).
+	w.hdr.MxFrame = uint32(w.nFrame)
+	w.hdr.NPage = dbSize
+	w.hdr.IChange++
+	w.hdr.AFrameCksum = [2]uint32{w.cksum1, w.cksum2}
+	setPageSizeForHdr(&w.hdr, w.pageSize)
+	w.wi.writeHdrLocked(&w.hdr)
+	*appended = len(pages)
+	return nil
 }
 
 // walRestartHdrLocked ports walRestartHdr (wal.c L2146) + the WAL file header
@@ -391,96 +567,168 @@ const (
 	WalCkptTruncate WalCheckpointMode = 3
 )
 
-// checkpoint ports walCheckpoint (wal.c L2193) for the single-process
-// registry model: backfill committed frames (nBackfill, mxSafeFrame] into
-// the main database file, coordinate the aReadMark slots (unpinned in
-// slice 1 — the loop is the slice-3 seam), and reset the log for
-// RESTART/TRUNCATE. It returns the PRAGMA wal_checkpoint triple
+// checkpoint ports sqlite3WalCheckpoint + walCheckpoint (wal.c L2193) for the
+// single-process registry model. Lock acquisition follows C: non-PASSIVE
+// modes take the WRITER lock first (busy handler honored), then every mode
+// takes the exclusive CKPT lock (PASSIVE never invokes the busy handler —
+// EVIDENCE-OF R-62920-47450). PASS1 computes mxSafeFrame stepping over active
+// readers' read marks, backfills (nBackfill, mxSafeFrame] under exclusive
+// READ_LOCK(0) and updates nBackfill; PASS2 (eMode != PASSIVE) reports busy
+// when the log is not fully backfilled, and RESTART/TRUNCATE reset the log
+// under exclusive READ_LOCK(1..4) — TRUNCATE truncates the -wal to ZERO
+// bytes (R-44699-57140). The result is the PRAGMA wal_checkpoint triple
 // (busy, nLog, nCkpt) — walprotocol-2.1 expects {0 5 5} for PASSIVE.
 func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, err error) {
-	err = w.wi.WriterSection(func() error {
-		// sqlite3WalCheckpoint: exclusive CKPT lock always; WRITER for
-		// non-PASSIVE modes (slice 1: aLock shadow, uncontended; the shadow
-		// helpers run under the held wal-index writer section).
-		if !w.wi.tryExclusiveLocked(walLockCkpt, 1) {
-			busy = 1
-			return nil
+	if mode != WalCkptPassive && !w.writeLock {
+		if berr := w.walBusyLockExclusive(walLockWrite, 1); berr != nil {
+			return 1, 0, 0, nil
 		}
-		defer w.wi.releaseExclusiveLocked(walLockCkpt, 1)
-		if mode != WalCkptPassive {
-			if !w.wi.tryExclusiveLocked(walLockWrite, 1) {
-				busy = 1
-				return nil
+		w.writeLock = true
+		defer func() {
+			if w.writeLock {
+				w.walUnlockExclusive(walLockWrite, 1)
+				w.writeLock = false
 			}
-			defer w.wi.releaseExclusiveLocked(walLockWrite, 1)
+		}()
+	}
+	if !w.ckptLock {
+		if berr := w.walBusyLockCkpt(mode != WalCkptPassive); berr != nil {
+			return 1, 0, 0, nil
 		}
-		if err := w.writerBeginLocked(); err != nil {
+		w.ckptLock = true
+		defer func() {
+			if w.ckptLock {
+				w.walUnlockExclusive(walLockCkpt, 1)
+				w.ckptLock = false
+			}
+		}()
+	}
+	err = w.wi.WriterSection(func() error {
+		if err := w.writerRefreshLocked(); err != nil {
 			return err
 		}
-		nBackfill0 := w.wi.ckptInfoLocked().NBackfill
-		mxFrame := w.hdr.MxFrame
-		// PASS1: compute mxSafeFrame, stepping over active readers' marks.
-		mxSafeFrame := mxFrame
-		info := w.wi.ckptInfoLocked()
-		for i := 1; i < WalNReader; i++ {
-			y := info.AReadMark[i]
-			if mxSafeFrame > y && y != ReadmarkNotUsed {
-				if w.wi.tryExclusiveLocked(walReadLockIdx(i), 1) {
-					iMark := uint32(ReadmarkNotUsed)
-					if i == 1 {
-						iMark = mxSafeFrame
-					}
-					w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.AReadMark[i] = iMark })
-					w.wi.releaseExclusiveLocked(walReadLockIdx(i), 1)
-				} else {
-					// BUSY reader: stop the backfill short of its mark
-					// (and stop invoking the busy handler, wal.c xBusy=0).
-					mxSafeFrame = y
-				}
-			}
-		}
-		if nBackfill0 < mxSafeFrame {
-			// Backfill under exclusive READ_LOCK(0) (wal.c walBusyLock).
-			if !w.wi.tryExclusiveLocked(walReadLockIdx(0), 1) {
-				mxSafeFrame = nBackfill0
-			} else {
-				w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
-				berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame)
-				if berr == nil {
-					w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfill = mxSafeFrame })
-				}
-				w.wi.releaseExclusiveLocked(walReadLockIdx(0), 1)
-				if berr != nil {
-					return berr
-				}
-			}
-		}
-		// PASS2 (eMode != PASSIVE): the log must be fully backfilled, else
-		// report busy; RESTART/TRUNCATE reset the log under the read locks.
-		if mode != WalCkptPassive {
-			if w.wi.ckptInfoLocked().NBackfill < w.hdr.MxFrame {
-				busy = 1
-				return nil
-			}
-			if mode >= WalCkptRestart {
-				if !w.wi.tryExclusiveLocked(walReadLockIdx(1), WalNReader-1) {
-					busy = 1
-					return nil
-				}
-				rerr := w.walRestartHdrLocked(true)
-				w.wi.releaseExclusiveLocked(walReadLockIdx(1), WalNReader-1)
-				if rerr != nil {
-					return rerr
-				}
-			}
-		}
+		busy, err = w.checkpointPasses(mode)
 		// Result triple from the final state (sqlite3WalCheckpoint tail):
 		// nLog = mxFrame, nCkpt = nBackfill — both 0 after a RESTART reset.
 		nLog = int(w.hdr.MxFrame)
 		nCkpt = int(w.wi.ckptInfoLocked().NBackfill)
-		return nil
+		return err
 	})
 	return busy, nLog, nCkpt, err
+}
+
+// checkpointPasses runs walCheckpoint's two passes. PASS1 computes
+// mxSafeFrame stepping over active readers' read marks and backfills
+// (nBackfill, mxSafeFrame] under exclusive READ_LOCK(0); PASS2 (eMode !=
+// PASSIVE) reports busy when the log is not fully backfilled, and
+// RESTART/TRUNCATE reset the log under exclusive READ_LOCK(1..4). Caller
+// holds the WRITER (non-PASSIVE) and CKPT locks and the wal-index writer
+// section.
+func (w *walWriter) checkpointPasses(mode WalCheckpointMode) (busy int, err error) {
+	// PASS1: compute mxSafeFrame, stepping over active readers' marks, and
+	// backfill (nBackfill, mxSafeFrame] under exclusive READ_LOCK(0).
+	if _, err := w.ckptPass1ReaderMarks(w.hdr.MxFrame); err != nil {
+		return busy, err
+	}
+	return w.ckptPass2(mode)
+}
+
+// ckptPass1ReaderMarks ports walCheckpoint's PASS1 reader-mark loop: try an
+// exclusive READ_LOCK(i) under every mark below mxSafeFrame, re-initializing
+// the mark when granted; a BUSY reader (a mark left in place) stops the
+// backfill short of it and disables the busy handler (wal.c xBusy=0).
+// Caller holds the wal-index writer section.
+func (w *walWriter) ckptPass1ReaderMarks(mxFrame uint32) (uint32, error) {
+	mxSafeFrame := mxFrame
+	info := w.wi.ckptInfoLocked()
+	for i := 1; i < WalNReader; i++ {
+		y := info.AReadMark[i]
+		if mxSafeFrame <= y || y == ReadmarkNotUsed {
+			continue
+		}
+		if w.wi.shmTryLockHeld(walReadLockIdx(i), 1, true) == nil {
+			iMark := uint32(ReadmarkNotUsed)
+			if i == 1 {
+				iMark = mxSafeFrame
+			}
+			w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.AReadMark[i] = iMark })
+			w.wi.shmUnlockHeld(walReadLockIdx(i), 1, true)
+		} else {
+			// BUSY reader: stop the backfill short of its mark
+			// (and stop invoking the busy handler, wal.c xBusy=0).
+			mxSafeFrame = y
+		}
+	}
+	return w.ckptBackfillPass(mxFrame, mxSafeFrame)
+}
+
+// ckptBackfillPass backfills (nBackfill, mxSafeFrame] under exclusive
+// READ_LOCK(0) (wal.c walBusyLock) and stores nBackfillAttempted/nBackfill.
+// On a contended lock the backfill window collapses to nBackfill (the
+// caller's fallback); an I/O error aborts the checkpoint.
+func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32) (uint32, error) {
+	nBackfill0 := w.wi.ckptInfoLocked().NBackfill
+	if nBackfill0 >= mxSafeFrame {
+		return mxSafeFrame, nil
+	}
+	// Backfill under exclusive READ_LOCK(0) (wal.c walBusyLock).
+	if w.wi.shmTryLockHeld(walReadLockIdx(0), 1, true) != nil {
+		return nBackfill0, nil
+	}
+	w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
+	berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame)
+	if berr == nil {
+		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfill = mxSafeFrame })
+	}
+	w.wi.shmUnlockHeld(walReadLockIdx(0), 1, true)
+	if berr != nil {
+		return mxSafeFrame, berr
+	}
+	return mxSafeFrame, nil
+}
+
+// ckptPass2 ports walCheckpoint's PASS2 (eMode != PASSIVE): the log must be
+// fully backfilled, else report busy; RESTART/TRUNCATE reset the log under
+// exclusive READ_LOCK(1..4) — TRUNCATE truncates the -wal to ZERO bytes
+// (R-44699-57140). Caller holds the wal-index writer section.
+func (w *walWriter) ckptPass2(mode WalCheckpointMode) (int, error) {
+	busy := 0
+	if mode == WalCkptPassive {
+		return busy, nil
+	}
+	if w.wi.ckptInfoLocked().NBackfill < w.hdr.MxFrame {
+		return 1, nil
+	}
+	if mode < WalCkptRestart {
+		return busy, nil
+	}
+	if w.wi.shmTryLockHeld(walReadLockIdx(1), WalNReader-1, true) != nil {
+		return 1, nil
+	}
+	rerr := w.walRestartHdrLocked(true)
+	w.wi.shmUnlockHeld(walReadLockIdx(1), WalNReader-1, true)
+	if rerr != nil {
+		return busy, rerr
+	}
+	if mode == WalCkptTruncate {
+		// R-44699-57140: TRUNCATE truncates the log file to ZERO bytes
+		// prior to a successful return; the next writer rewrites the
+		// 32-byte header before frame 1 (commitLocked's nFrame==0 branch).
+		if terr := w.file.Truncate(0); terr != nil {
+			return busy, fmt.Errorf("pager: truncate wal: %w", terr)
+		}
+	}
+	return busy, nil
+}
+
+// walBusyLockCkpt takes the exclusive CKPT lock. It honors the busy timeout
+// only for the non-PASSIVE modes (the PASSIVE checkpoint's busy handler is
+// never invoked — wal.c EVIDENCE-OF R-62920-47450).
+func (w *walWriter) walBusyLockCkpt(retry bool) error {
+	if !retry {
+		return w.walLockExclusive(walLockCkpt, 1)
+	}
+	return w.walBusyLockExclusive(walLockCkpt, 1)
 }
 
 // backfillLocked copies frames (nFrom, nTo] of the -wal into the main
@@ -579,9 +827,19 @@ func (w *walWriter) FileSize() int64 {
 }
 
 // Close closes the "-wal" file and releases the shared wal-index reference
-// (the last detach closes the shm fd and drops the registry entry).
+// (the last detach closes the shm fd and drops the registry entry). Any shm
+// locks this connection still holds are released first (C's connection close
+// drops its locks — close(2) semantics on the POSIX locks).
 func (w *walWriter) Close() error {
 	if w.file != nil {
+		if w.writeLock {
+			w.walUnlockExclusive(walLockWrite, 1)
+			w.writeLock = false
+		}
+		if w.ckptLock {
+			w.walUnlockExclusive(walLockCkpt, 1)
+			w.ckptLock = false
+		}
 		err := w.file.Close()
 		w.file = nil
 		if w.wi != nil {

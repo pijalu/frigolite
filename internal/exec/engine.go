@@ -124,6 +124,7 @@ type Engine struct {
 	encoding        string // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
 	ftsTables       map[string]*fts.FTS3Table
 	fts5Tables      map[string]*fts5.Table
+	auxAggArgDepth  int // in-flight aggregate-argument evaluations (fts5 aux dispatch)
 	currentFTSMatch string
 	// ftsMatchInfo holds the matchinfo() context for the current FTS SELECT:
 	// the parsed MATCH query phrases for the table being selected. It is set
