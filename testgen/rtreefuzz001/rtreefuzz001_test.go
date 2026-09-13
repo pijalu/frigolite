@@ -9,4 +9,4 @@ import (
 )
 
 func Test_rtreefuzz001(t *testing.T) {}
-// skipped: N-A database_may_be_corrupt tolerance + untranspilable corruption fixtures (evidence frigolite_rtreeA_J_8_native_test.go + frigolite_geopoly_test.go + frigolite_rtree_query2_test.go: corruption audits, geopoly vtab + corrupt-read malformed contract; :2447's {/1 .*corrupt.*/} matcher is stale on current C builds — python3 sqlite3 3.53.4 oracle errors 'malformed' on the same c3.db)
+// skipped: N-A database_may_be_corrupt stale matchers + untranspilable corruption fixtures (evidence frigolite_rtreeA_J_8_native_test.go + frigolite_geopoly_test.go + frigolite_rtree_query2_test.go; :2447's {/1 .*corrupt.*/} is stale on current C builds — python3 sqlite3 3.53.4 errors 'malformed' on the same c3.db; :6006/:6012 geopoly assertions GREEN with the T30 geopoly module)

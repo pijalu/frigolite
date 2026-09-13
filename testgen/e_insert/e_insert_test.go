@@ -62,8 +62,8 @@ func Test_e_insert(t *testing.T) {
 	_ = ac // pre-declared from TCL source
 	var data string
 	_ = data // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
 	var args string
@@ -1349,8 +1349,8 @@ func Test_e_insert(t *testing.T) {
 			}
 		}
 		vtab.TclVarSet("err", "", "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}")
-		_err_tcl = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
-		_ = _err_tcl // suppress unused warning
+		_err = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+		_ = _err // suppress unused warning
 		{ // "e_insert-5.1.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			if !tclCatchsqlMatches(_res, _err_tcl) {

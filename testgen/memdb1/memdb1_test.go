@@ -414,18 +414,18 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "650"
 		_res = db.Exec("\n    CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;\n  ")
 	_ = rc // suppress unused warning
-	var _err_tcl string
-	_ = _err_tcl // suppress unused warning
+	var _err string
+	_ = _err // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if derr := db.Deserialize("temp", []byte(string(tclSerialize(db, "main"))), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
 			if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }
 			if _catchErr != nil {
 				rc = "1"
-				_err_tcl = _catchErr.Error()
+				_err = _catchErr.Error()
 			} else {
 				rc = "0"
-				_err_tcl = ""
+				_err = ""
 			}
 		}
 		rc = tclListAppend(rc, "err")

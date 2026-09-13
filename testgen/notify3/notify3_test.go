@@ -64,8 +64,8 @@ func Test_notify3(t *testing.T) {
 	_ = when // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var noerr string
 	_ = noerr // pre-declared from TCL source
 	var tn string
@@ -186,14 +186,14 @@ func Test_notify3(t *testing.T) {
 	}
 	db.Close()
 	vtab.TclVarSet("err", "", "{1 {unable to open database: test.db2}}")
-	_err_tcl = "{1 {unable to open database: test.db2}}"
-	_ = _err_tcl // suppress unused warning
+	_err = "{1 {unable to open database: test.db2}}"
+	_ = _err // suppress unused warning
 	vtab.TclVarSet("noerr", "", "{0 {}}")
 	noerr = "{0 {}}"
 	_ = noerr // suppress unused warning
 	if tclBool("presql" + " == \"\"") {
-		// foreach {tn db1_loaded db2_loaded enable_extended_errors result error1 error2} "0   0 0 0   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK"
-		_items0 := tclSplitList("0   0 0 0   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclListElem(_err_tcl) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK")
+		// foreach {tn db1_loaded db2_loaded enable_extended_errors result error1 error2} "0   0 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK"
+		_items0 := tclSplitList("0   0 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK")
 		for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning

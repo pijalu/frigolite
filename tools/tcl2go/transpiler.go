@@ -347,6 +347,11 @@ func tclVarToGo(name string) string {
 		name = "_t"
 	case "r":
 		name = "_r"
+	// `err` is the generated code's connection-open/db-eval error variable
+	// (db, err := frigolite.Open); a TCL var or array-key selector named
+	// `err` (fts5contentless5's res($err) lookup) must not collide with it.
+	case "err":
+		name = "_err"
 	// Avoid shadowing stdlib imports used by generated code (time, os, strings, etc.)
 	case "time", "os", "strings", "strconv", "fmt", "regexp", "filepath", "sort":
 		name = "_" + name

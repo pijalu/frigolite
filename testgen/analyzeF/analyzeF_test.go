@@ -73,8 +73,8 @@ func Test_analyzeF(t *testing.T) {
 	_ = a // pre-declared from TCL source
 	var x string
 	_ = x // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "analyzeF")

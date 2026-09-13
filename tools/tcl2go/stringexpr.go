@@ -393,6 +393,17 @@ func (tp *transpiler) arrayLookupExpr(base, key string) string {
 		// produced so output still compiles.
 		return tclVarToGo(base + "(" + key + ")")
 	}
+	// A TCL array can record the same key twice (array set listing, or set
+	// arr(k) re-assignments); duplicate switch cases do not compile.
+	seen := make(map[string]bool, len(keys))
+	uniq := keys[:0]
+	for _, k := range keys {
+		if !seen[k] {
+			seen[k] = true
+			uniq = append(uniq, k)
+		}
+	}
+	keys = uniq
 	var b strings.Builder
 	b.WriteString("(func() string { switch ")
 	// Route the selector through the same identifier sanitizer as every other

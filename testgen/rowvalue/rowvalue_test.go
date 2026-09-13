@@ -101,8 +101,8 @@ func Test_rowvalue(t *testing.T) {
 	_ = q // pre-declared from TCL source
 	var n string
 	_ = n // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
 	var map_res string
@@ -783,12 +783,12 @@ func Test_rowvalue(t *testing.T) {
 											_ = _idx11
 												if func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n == 0 }() {
 													vtab.TclVarSet("err", "", "row value misused")
-													_err_tcl = "row value misused"
-													_ = _err_tcl // suppress unused warning
+													_err = "row value misused"
+													_ = _err // suppress unused warning
 												} else {
 													vtab.TclVarSet("err", "", "sub-select returns " + n + " columns - expected 1")
-													_err_tcl = "sub-select returns " + n + " columns - expected 1"
-													_ = _err_tcl // suppress unused warning
+													_err = "sub-select returns " + n + " columns - expected 1"
+													_ = _err // suppress unused warning
 												}
 												{ // "14.2." + tn
 													_res = db.Exec(sql)

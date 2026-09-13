@@ -63,8 +63,8 @@ func Test_window1(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 	var expr string
 	_ = expr // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
 	var plan string
@@ -1225,8 +1225,8 @@ func Test_window1(t *testing.T) {
 						_ = tn // suppress unused warning
 						expr := _items4[_idx4+1]
 						_ = expr // suppress unused warning
-						_err_tcl := _items4[_idx4+2]
-						_ = _err_tcl // suppress unused warning
+						_err := _items4[_idx4+2]
+						_ = _err // suppress unused warning
 						_ = _idx4
 							vtab.TclVarSet("res", "", "0 1")
 							res = "0 1"

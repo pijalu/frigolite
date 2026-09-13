@@ -64,8 +64,8 @@ func Test_nulls1(t *testing.T) {
 	_ = limit // pre-declared from TCL source
 	var sql string
 	_ = sql // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var res1 string
 	_ = res1 // pre-declared from TCL source
 	var res2 string
@@ -206,8 +206,8 @@ func Test_nulls1(t *testing.T) {
 			_ = tn // suppress unused warning
 			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_err_tcl := _items1[_idx1+2]
-			_ = _err_tcl // suppress unused warning
+			_err := _items1[_idx1+2]
+			_ = _err // suppress unused warning
 			_ = _idx1
 				{ // "3.1." + tn
 					_res = db.Exec(sql)

@@ -59,8 +59,8 @@ func Test_trigger1(t *testing.T) {
 	_ = view_v1 // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trigger1-1.1.1"
@@ -224,7 +224,7 @@ func Test_trigger1(t *testing.T) {
 	{ // "trigger1-3.3" (prepare-step internals; SQL side effects only)
 		db.Close()
 	_ = rc // suppress unused warning
-	_ = _err_tcl // suppress unused warning
+	_ = _err // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db, err = frigolite.Open("test.db")
@@ -237,10 +237,10 @@ func Test_trigger1(t *testing.T) {
 			}
 			if _catchErr != nil {
 				rc = "1"
-				_err_tcl = _catchErr.Error()
+				_err = _catchErr.Error()
 			} else {
 				rc = "0"
-				_err_tcl = ""
+				_err = ""
 			}
 		}
 		if tclBool(rc) {

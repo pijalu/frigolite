@@ -66,8 +66,8 @@ func Test_filefmt(t *testing.T) {
 	_ = Id_ // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var n string
 	_ = n // pre-declared from TCL source
 
@@ -88,7 +88,7 @@ func Test_filefmt(t *testing.T) {
 	{ // "filefmt-1.2" (prepare-step internals; SQL side effects only)
 		tclHexioWrite("test.db", int64(0), "54")
 	_ = x // suppress unused warning
-	_ = _err_tcl // suppress unused warning
+	_ = _err // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db, err = frigolite.Open("test.db")
@@ -101,10 +101,10 @@ func Test_filefmt(t *testing.T) {
 			}
 			if _catchErr != nil {
 				x = "1"
-				_err_tcl = _catchErr.Error()
+				_err = _catchErr.Error()
 			} else {
 				x = "0"
-				_err_tcl = ""
+				_err = ""
 			}
 		}
 		x = tclListAppend(x, _err_tcl)

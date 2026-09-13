@@ -69,8 +69,8 @@ func Test_spellfix(t *testing.T) {
 	_ = trace // pre-declared from TCL source
 	var conflict string
 	_ = conflict // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var bRollback string
 	_ = bRollback // pre-declared from TCL source
 	var sql string
@@ -553,8 +553,8 @@ func Test_spellfix(t *testing.T) {
 						_ = tn // suppress unused warning
 						conflict := _items4[_idx4+1]
 						_ = conflict // suppress unused warning
-						_err_tcl := _items4[_idx4+2]
-						_ = _err_tcl // suppress unused warning
+						_err := _items4[_idx4+2]
+						_ = _err // suppress unused warning
 						bRollback := _items4[_idx4+3]
 						_ = bRollback // suppress unused warning
 						res := _items4[_idx4+4]
@@ -608,8 +608,8 @@ func Test_spellfix(t *testing.T) {
 							_ = tn // suppress unused warning
 							conflict := _items5[_idx5+1]
 							_ = conflict // suppress unused warning
-							_err_tcl := _items5[_idx5+2]
-							_ = _err_tcl // suppress unused warning
+							_err := _items5[_idx5+2]
+							_ = _err // suppress unused warning
 							bRollback := _items5[_idx5+3]
 							_ = bRollback // suppress unused warning
 							res := _items5[_idx5+4]

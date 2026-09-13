@@ -61,8 +61,8 @@ func Test_autoinc(t *testing.T) {
 	_ = STMT // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var root1 string
 	_ = root1 // pre-declared from TCL source
 	var root2 string
@@ -740,8 +740,8 @@ func Test_autoinc(t *testing.T) {
 		}
 	}
 	vtab.TclVarSet("err", "", "database disk image is malformed")
-	_err_tcl = "database disk image is malformed"
-	_ = _err_tcl // suppress unused warning
+	_err = "database disk image is malformed"
+	_ = _err // suppress unused warning
 	{ // do_test "autoinc-12.3"
 		db.Close()
 		os.Remove("test.db")

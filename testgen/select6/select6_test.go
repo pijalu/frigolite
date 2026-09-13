@@ -54,8 +54,8 @@ func Test_select6(t *testing.T) {
 	_ = testdir // pre-declared from TCL source
 	var testprefix string
 	_ = testprefix // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
 	var sql string
@@ -483,8 +483,8 @@ func Test_select6(t *testing.T) {
 	_list0 := tclList([]string{"1", "SELECTs to the left and right of UNION ALL do not have the same number of result columns"})
 	_ = _list0
 	_r = _list0
-	_err_tcl = _r
-	_ = _err_tcl // suppress unused warning
+	_err = _r
+	_ = _err // suppress unused warning
 	{ // "10.2"
 		r = db.Query("\n  SELECT * FROM (SELECT * FROM t), j;\n")
 		if r.Error != nil {
