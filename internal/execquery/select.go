@@ -135,6 +135,13 @@ func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
 	// ordinary CTE, table or view is SQLite resolve.c's "'%s' is not a
 	// function" (tabfunc01-1.21/1.23/1.25/1.26). Registered vtab modules and
 	// pragma table functions are genuine table-valued functions and proceed.
+	// An fts5 table is table-valued too: FROM t1('query') is the MATCH TVF
+	// form (fts5_main.c), so it is consumed before the not-a-function check.
+	if s.From.IsTabFunc && len(s.From.Args) > 0 {
+		if res, handled := e.execFTS5TableFunc(s.From, s); handled {
+			return res, true
+		}
+	}
 	if s.From.IsTabFunc && !isPragmaTableFunc(s.From.Name) {
 		if _, isModule := e.ctx.VTables().Find(strings.ToLower(s.From.Name)); !isModule {
 			if e.relationExists(s, s.From.Name) {
@@ -487,6 +494,21 @@ func (e *SelectEngine) execSelectJoins(s *sql.SelectStmt, allRowMaps []RowMap, c
 // tables materialize their rows (with an upper-bound hint for bounded tables)
 // and run the full SELECT pipeline over them.
 func (e *SelectEngine) execSelectVtab(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	// fts5 tables take the dedicated materialized scan: documents come from
+	// the fts5 engine and the generic pipeline applies WHERE/ORDER/LIMIT.
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		if len(s.Joins) == 0 {
+			return e.execFTS5Select(s, t5, colDefs)
+		}
+		// A join: materialize the fts5 documents (rowid-backed row maps) and
+		// run the generic join pipeline over them.
+		rowids, allRows, err := fts5ScanRows(t5, colDefs, statementHasFTS5Match(s, t5.Name()))
+		if err != nil {
+			return &Result{Error: err}
+		}
+		allRowMaps := buildMaterializedRowMaps(s, colDefs, allRows, rowids)
+		return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+	}
 	// For FTS virtual tables, use full SELECT processing (WHERE, ORDER BY, LIMIT).
 	// A single-table FTS SELECT uses ExecFTSSelect (which sets the FTS match
 	// context for MATCH evaluation); an FTS table in a JOIN needs the generic

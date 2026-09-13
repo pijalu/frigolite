@@ -5,6 +5,7 @@ import (
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -74,6 +75,7 @@ type SelectContext interface {
 	VTables() *vtab.Registry
 	FullColumnNames() bool
 	FTSTables() map[string]*fts.FTS3Table
+	FTS5Tables() map[string]*fts5.Table
 	Expr() *execexpr.Evaluator
 	// ColumnLimit returns the runtime SQLITE_LIMIT_COLUMN value (used by
 	// CREATE TABLE column counts and ORDER BY/GROUP BY term counts).

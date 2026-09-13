@@ -1231,7 +1231,7 @@ func Test_window1(t *testing.T) {
 							vtab.TclVarSet("res", "", "0 1")
 							res = "0 1"
 							_ = res // suppress unused warning
-							if tclBool(_err_tcl) {
+							if tclBool(_err) {
 								vtab.TclVarSet("res", "", "1 {frame starting offset must be a non-negative number}")
 								res = "1 {frame starting offset must be a non-negative number}"
 								_ = res // suppress unused warning
@@ -1245,7 +1245,7 @@ func Test_window1(t *testing.T) {
 							vtab.TclVarSet("res", "", "0 1")
 							res = "0 1"
 							_ = res // suppress unused warning
-							if tclBool(_err_tcl) {
+							if tclBool(_err) {
 								vtab.TclVarSet("res", "", "1 {frame ending offset must be a non-negative number}")
 								res = "1 {frame ending offset must be a non-negative number}"
 								_ = res // suppress unused warning

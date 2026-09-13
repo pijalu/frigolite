@@ -654,39 +654,39 @@ func Test_e_fkey(t *testing.T) {
 		_ = _idx0
 			{ // do_test "e_fkey-20." + tn + ".1"
 				_res = db.Exec("INSERT INTO " + tbl + " VALUES('a', 'b')")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "INSERT INTO " + tbl + " VALUES('a', 'b')")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), "INSERT INTO " + tbl + " VALUES('a', 'b')")
 				}
 			}
 			{ // do_test "e_fkey-20." + tn + ".2"
 				_res = db.Exec("UPDATE " + tbl + " SET c = ?, d = ?")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "UPDATE " + tbl + " SET c = ?, d = ?")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), "UPDATE " + tbl + " SET c = ?, d = ?")
 				}
 			}
 			{ // do_test "e_fkey-20." + tn + ".3"
 				_res = db.Exec("INSERT INTO " + tbl + " SELECT ?, ?")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "INSERT INTO " + tbl + " SELECT ?, ?")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), "INSERT INTO " + tbl + " SELECT ?, ?")
 				}
 			}
 			if ptbl != "" {
 				{ // do_test "e_fkey-20." + tn + ".4"
 					_res = db.Exec("DELETE FROM " + ptbl)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "DELETE FROM " + ptbl)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), "DELETE FROM " + ptbl)
 					}
 				}
 				{ // do_test "e_fkey-20." + tn + ".5"
 					_res = db.Exec("UPDATE " + ptbl + " SET a = ?, b = ?")
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "UPDATE " + ptbl + " SET a = ?, b = ?")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), "UPDATE " + ptbl + " SET a = ?, b = ?")
 					}
 				}
 				{ // do_test "e_fkey-20." + tn + ".6"
 					_res = db.Exec("INSERT INTO " + ptbl + " SELECT ?, ?")
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "INSERT INTO " + ptbl + " SELECT ?, ?")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), "INSERT INTO " + ptbl + " SELECT ?, ?")
 					}
 				}
 			}
@@ -1013,8 +1013,8 @@ func Test_e_fkey(t *testing.T) {
 							_res = db.Exec("PRAGMA foreign_keys = ON")
 							{ // do_test "e_fkey-28." + tn
 								_res = db.Exec(sql)
-								if !tclCatchsqlMatches(_res, "1"+" "+_err_tcl) {
-									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", resErrString(_res), "1"+" "+_err_tcl, "e_fkey-28." + tn)
+								if !tclCatchsqlMatches(_res, "1"+" "+_err) {
+									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", resErrString(_res), "1"+" "+_err, "e_fkey-28." + tn)
 								}
 							}
 						}

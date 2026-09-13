@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
-"strconv"
 "strings"
 "testing"
 )

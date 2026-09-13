@@ -470,6 +470,14 @@ func (e *SelectEngine) materializeVTabJoinRows(tableEntry *schema.Entry, rightDe
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
 		return e.ftsJoinRowMaps(ftsTable, rightDefs, tableName), nil
 	}
+	// fts5 tables in a join materialize through the fts5 engine.
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		rowids, allRows, err := fts5ScanRows(t5, rightDefs, false)
+		if err != nil {
+			return nil, err
+		}
+		return buildMaterializedRowMaps(&sql.SelectStmt{From: sql.TableRef{Name: tableName}}, rightDefs, allRows, rowids), nil
+	}
 	return buildScanRowMaps(rows, rightDefs, tableName), nil
 }
 

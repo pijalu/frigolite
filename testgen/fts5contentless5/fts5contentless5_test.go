@@ -58,8 +58,8 @@ func Test_fts5contentless5(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 	var up string
 	_ = up // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 	var res_0 string
 	_ = res_0 // pre-declared from TCL source
 	var res_1 string
@@ -101,8 +101,8 @@ func Test_fts5contentless5(t *testing.T) {
 		_ = tn // suppress unused warning
 		up := _items0[_idx0+1]
 		_ = up // suppress unused warning
-		_err_tcl := _items0[_idx0+2]
-		_ = _err_tcl // suppress unused warning
+		_err := _items0[_idx0+2]
+		_ = _err // suppress unused warning
 		_ = _idx0
 			vtab.TclVarSet("res", "0", "0 {}")
 			res_0 = "0 {}"
@@ -112,8 +112,8 @@ func Test_fts5contentless5(t *testing.T) {
 			_ = res_1 // suppress unused warning
 			{ // "1." + tn
 				_res = db.Exec(up)
-				if !tclCatchsqlMatches(_res, (func() string { switch err { case "0": return res_0; case "1": return res_1; default: return "" } }())) {
-					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch err { case "0": return res_0; case "1": return res_1; default: return "" } }()), up)
+				if !tclCatchsqlMatches(_res, (func() string { switch _err { case "0": return res_0; case "1": return res_1; default: return "" } }())) {
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch _err { case "0": return res_0; case "1": return res_1; default: return "" } }()), up)
 				}
 			}
 		}

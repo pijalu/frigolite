@@ -770,7 +770,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		res = tclListAppend(res, msg)
 		got := tclListFlatten(res)
-		want := tclListFlatten("1"+" "+_err_tcl)
+		want := tclListFlatten("1"+" "+_err)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.3")
 		}

@@ -1353,14 +1353,14 @@ func Test_e_insert(t *testing.T) {
 		_ = _err // suppress unused warning
 		{ // "e_insert-5.1.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
-			if !tclCatchsqlMatches(_res, _err_tcl) {
-				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
+			if !tclCatchsqlMatches(_res, _err) {
+				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			}
 		}
 		{ // "e_insert-5.1.2"
 			_res = db.Exec("\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
-			if !tclCatchsqlMatches(_res, _err_tcl) {
-				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
+			if !tclCatchsqlMatches(_res, _err) {
+				t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err, "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
 			}
 		}
 		{ // "e_insert-5.2.1"

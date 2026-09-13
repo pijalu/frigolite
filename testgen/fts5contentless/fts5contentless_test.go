@@ -145,8 +145,8 @@ func Test_fts5contentless(t *testing.T) {
 				}
 				{ // "1." + tn
 					_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts5 " + sql)
-					if !tclCatchsqlMatches(_res, (func() string { switch bError { case "0": return res_0; case "1": return res_1; case "0": return res_0; case "1": return res_1; default: return "" } }())) {
-						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch bError { case "0": return res_0; case "1": return res_1; case "0": return res_0; case "1": return res_1; default: return "" } }()), "CREATE VIRTUAL TABLE t1 USING fts5 " + sql)
+					if !tclCatchsqlMatches(_res, (func() string { switch bError { case "0": return res_0; case "1": return res_1; default: return "" } }())) {
+						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), (func() string { switch bError { case "0": return res_0; case "1": return res_1; default: return "" } }()), "CREATE VIRTUAL TABLE t1 USING fts5 " + sql)
 					}
 				}
 				_res = db.Exec(" ROLLBACK ")

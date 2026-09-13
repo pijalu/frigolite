@@ -244,7 +244,7 @@ func Test_trigger1(t *testing.T) {
 			}
 		}
 		if tclBool(rc) {
-			rc = tclListAppend(rc, _err_tcl)
+			rc = tclListAppend(rc, _err)
 		}
 	}
 	{ // do_test "trigger1-3.4"

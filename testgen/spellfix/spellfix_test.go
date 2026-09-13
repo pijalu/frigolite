@@ -579,8 +579,8 @@ func Test_spellfix(t *testing.T) {
 							_ = sql // suppress unused warning
 							{ // "7.4.2." + tn + ".1"
 								_res = db.Exec(sql)
-								if !tclCatchsqlMatches(_res, _err_tcl) {
-									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, sql)
+								if !tclCatchsqlMatches(_res, _err) {
+									t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err, sql)
 								}
 							}
 							{ // "7.4.2." + tn + ".2"
@@ -634,8 +634,8 @@ func Test_spellfix(t *testing.T) {
 								_ = sql // suppress unused warning
 								{ // "7.5.2." + tn + ".1"
 									_res = db.Exec(sql)
-									if !tclCatchsqlMatches(_res, _err_tcl) {
-										t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err_tcl, sql)
+									if !tclCatchsqlMatches(_res, _err) {
+										t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  sql: %s", resErrString(_res), _err, sql)
 									}
 								}
 								{ // "7.5.2." + tn + ".2"

@@ -211,8 +211,8 @@ func Test_nulls1(t *testing.T) {
 			_ = _idx1
 				{ // "3.1." + tn
 					_res = db.Exec(sql)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported use of NULLS " + _err_tcl) {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS " + _err_tcl, resErrString(_res), sql)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported use of NULLS " + _err) {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS " + _err, resErrString(_res), sql)
 					}
 				}
 			}

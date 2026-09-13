@@ -792,8 +792,8 @@ func Test_rowvalue(t *testing.T) {
 												}
 												{ // "14.2." + tn
 													_res = db.Exec(sql)
-													if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-														t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), sql)
+													if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+														t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), sql)
 													}
 												}
 											}

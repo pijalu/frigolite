@@ -107,7 +107,7 @@ func Test_filefmt(t *testing.T) {
 				_err = ""
 			}
 		}
-		x = tclListAppend(x, _err_tcl)
+		x = tclListAppend(x, _err)
 	}
 	{ // do_test "filefmt-1.3"
 		_res = db.Exec("\n    SELECT count(*) FROM sqlite_master\n  ")

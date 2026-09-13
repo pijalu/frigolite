@@ -64,8 +64,8 @@ func Test_fts5eb(t *testing.T) {
 	_ = res // pre-declared from TCL source
 	var i string
 	_ = i // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 
 	vtab.TclVarSet("testprefix", "", "fts5eb")
 	testprefix = "fts5eb"

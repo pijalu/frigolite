@@ -61,8 +61,8 @@ func Test_fts5ea(t *testing.T) {
 	_ = expr // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
-	var _err_tcl string
-	_ = _err_tcl // pre-declared from TCL source
+	var _err string
+	_ = _err // pre-declared from TCL source
 
 	vtab.TclVarSet("testprefix", "", "fts5ea")
 	testprefix = "fts5ea"
@@ -122,13 +122,13 @@ func Test_fts5ea(t *testing.T) {
 				_ = tn // suppress unused warning
 				expr := _items2[_idx2+1]
 				_ = expr // suppress unused warning
-				_err_tcl := _items2[_idx2+2]
-				_ = _err_tcl // suppress unused warning
+				_err := _items2[_idx2+2]
+				_ = _err // suppress unused warning
 				_ = _idx2
 					{ // "3." + tn
 						_res = db.Exec("SELECT fts5_expr(" + sqlLiteral(expr) + ", 'name', 'addr')")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, resErrString(_res), "SELECT fts5_expr(" + sqlLiteral(expr) + ", 'name', 'addr')")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err) {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err, resErrString(_res), "SELECT fts5_expr(" + sqlLiteral(expr) + ", 'name', 'addr')")
 						}
 					}
 				}

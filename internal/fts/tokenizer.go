@@ -349,6 +349,13 @@ func (t *PorterTokenizer) Tokenize(text string) []Token {
 	return tokens
 }
 
+// PorterStem exposes the Porter stemming algorithm for the fts5 package's
+// porter tokenizer (fts5_porter.c wraps a base tokenizer and stems each of
+// its tokens with the same classic algorithm).
+func PorterStem(word string) string {
+	return stemPorter(word)
+}
+
 // stemPorter implements the Porter stemming algorithm.
 func stemPorter(word string) string {
 	if len(word) <= 2 {
