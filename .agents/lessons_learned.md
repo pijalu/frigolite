@@ -6230,3 +6230,24 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **Forensics tip**: the SetShmLockHook trace (log every idx/op) pinpoints
   leaked shm locks instantly — the failing op is the one after the last
   logged line.
+
+## 2026-09-14 (session 4): slice-3 numPages-adopt regression
+- **Per-statement adoption of frozen WAL state must stay change-gated**: the
+  slice-3 `p.numPages = w.hdr.NPage` adopt in `walIndexRefreshLocked` ran on
+  EVERY statement. While a transaction is open the hdr is FROZEN at the
+  pin-time committed count, but the pager's numPages has grown past it (this
+  txn's allocations) — resetting it made `allocateExtend` re-issue page
+  numbers already used by dirty pages. Symptom ladder: writer can't see its
+  own rows past the first leaf (`max(i)` stuck at 6) → torn btree → cyclic
+  overflow chain → infinite `readOverflow` loop (the pager2 testgen hang).
+  Rule: adopt-on-`changed` only; a pinned/frozen header must never shrink
+  live engine state. C parity: lockBtree reads nPage at read-txn open, and
+  the read transaction does not re-open mid-transaction.
+- **Triage protocol that found it**: serial re-run of a flip sample
+  (alterdropcol passed serially = phantom; pager2 hung = real) → worktree
+  bisect at the parent commit (passes at e862daae5) → minimal repro outside
+  the harness (never-released savepoints + WAL + interleaved reads) → fix
+  → native regression test (TestWalMVCCOpenTxnPageAllocationStable).
+- **Census full runs under load produce phantom pass→fail flips** — always
+  serially re-run a flip sample before bisecting; but a HANG in the serial
+  re-run is always real.

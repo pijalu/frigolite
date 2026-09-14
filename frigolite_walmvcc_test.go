@@ -509,3 +509,44 @@ func TestWalMVCCReaderAfterBackfill(t *testing.T) {
 		t.Errorf("conn2 count = %s, want 4", got)
 	}
 }
+
+// TestWalMVCCOpenTxnPageAllocationStable pins the slice-3 regression fix:
+// the per-statement wal-index refresh must not adopt the FROZEN committed
+// hdr.NPage while a transaction is open. This transaction's own page
+// allocations grow the pager past the pin-time committed count; resetting
+// it per statement made allocateExtend re-issue page numbers already used
+// by this transaction's dirty pages — torn btree (rows invisible past the
+// first leaf, cyclic overflow chains hanging scans). Mirrors
+// pager2-1's loop shape: never-released savepoints + interleaved reads.
+func TestWalMVCCOpenTxnPageAllocationStable(t *testing.T) {
+	c1, _ := openWalPair(t)
+	if res := c1.Exec(`CREATE TABLE t2(i INTEGER PRIMARY KEY, j blob)`); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	for k := 0; k < 40; k++ {
+		if res := c1.Exec("SAVEPOINT sp"); res.Error != nil {
+			t.Fatal(res.Error)
+		}
+		if res := c1.Exec(`INSERT INTO t2(j) VALUES(randomblob(1500))`); res.Error != nil {
+			t.Fatal(res.Error)
+		}
+		// An interleaved read must see every row written so far: each
+		// statement's refresh used to reset numPages to the frozen
+		// committed count, clobbering this transaction's pages.
+		want := strconv.Itoa(k + 1)
+		if got := queryInt(t, c1, "SELECT COALESCE(max(i),0) FROM t2"); got != want {
+			t.Fatalf("after insert %d: max(i) = %s, want %s", k+1, got, want)
+		}
+	}
+	// The full scan (the shape that hung on a cyclic overflow chain) must
+	// walk every row.
+	if got := queryInt(t, c1, "SELECT count(*) FROM t2"); got != "40" {
+		t.Errorf("final count = %s, want 40", got)
+	}
+	if res := c1.Exec("COMMIT"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if got := queryInt(t, c1, "SELECT count(*) FROM t2"); got != "40" {
+		t.Errorf("post-commit count = %s, want 40", got)
+	}
+}

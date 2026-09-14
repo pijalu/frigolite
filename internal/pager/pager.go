@@ -1527,12 +1527,16 @@ func (p *Pager) walIndexRefreshLocked() (bool, error) {
 		// surface the error to the statement (walTryBeginRead's contract).
 		return false, err
 	}
-	// The committed page count governs the pager's database size (lockBtree
-	// reads nPage from the freshly loaded page 1 every transaction).
-	if n := p.wal.hdr.NPage; n > 0 {
-		p.numPages = n
-	}
+	// Adopt the shared state ONLY when the header moved (another
+	// connection committed): the committed page count must never shrink a
+	// live transaction's view — this transaction's own allocations grow
+	// p.numPages past the frozen hdr.NPage, and a mid-transaction reset
+	// would make allocateExtend re-issue page numbers already used by
+	// dirty pages (torn btree: lost rows, cyclic overflow chains).
 	if changed {
+		if n := p.wal.hdr.NPage; n > 0 {
+			p.numPages = n
+		}
 		// Another connection committed: drop the WHOLE page cache
 		// (pager.c pager_reset on an external change) — every cached page
 		// may have a newer frame in the wal-index. Then re-read page 1
