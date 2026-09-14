@@ -330,10 +330,11 @@ func newPorterTokenizer(args []string) (Tokenizer, error) {
 		}
 		return porterTokenizer{base: base}, nil
 	}
-	if len(args) != 1 {
-		return nil, tokenizerArgError()
-	}
-	base, err := NewTokenizer([]string{args[0]})
+	// fts5_porter.c fts5PorterCreate: the first argument names the base
+	// tokenizer (default unicode61) and the REMAINING arguments are passed
+	// to the base tokenizer's constructor ("porter unicode61
+	// remove_diacritics 1").
+	base, err := NewTokenizer(args)
 	if err != nil {
 		return nil, err
 	}

@@ -250,6 +250,19 @@ func fts5FlatRow(t5 *fts5.Table, rowid int64, values []interface{}, rankFn func(
 func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*Result, bool) {
 	t5, ok := e.ctx.FTS5Tables()[ref.Name]
 	if !ok {
+		// A fresh connection rehydrates fts5 instances lazily on the first
+		// table lookup (xConnect parity, execddl EnsureFTS5ForTable). The
+		// TVF path consults the instance map before any such lookup runs,
+		// so force the table resolution first — otherwise FROM ft('query')
+		// on a reopened database misses and falls through to "'ft' is not
+		// a function" (fts5connect).
+		entry, _, ferr := e.ctx.FindTable(ref.Name)
+		fmt.Printf("DBG TVF hydrate name=%q entry=%v err=%v mapNow=%v\n", ref.Name, entry != nil, ferr, func() bool { _, o := e.ctx.FTS5Tables()[ref.Name]; return o }())
+		if ferr == nil && entry != nil {
+			t5, ok = e.ctx.FTS5Tables()[ref.Name]
+		}
+	}
+	if !ok {
 		return nil, false
 	}
 	// whereexpr.c sqlite3ErrorMsg "too many arguments on %s() - max %d":

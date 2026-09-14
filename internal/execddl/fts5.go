@@ -68,9 +68,15 @@ func (e *DDLExecutor) EnsureFTS5ForTable(entry *schema.Entry) {
 	}
 	fts5EnsureActive = true
 	defer func() { fts5EnsureActive = false }()
+	// FindTable returns (entry, dbCtx, error): the DATABASE context is the
+	// second result. Binding the first result (the schema entry) made
+	// ctxName the TABLE name, so a reopened table hydrated against
+	// "<table>.<table>_content", loadFromShadow failed "no such table", and
+	// the fts5 instance never registered — FROM t('query') on a reopened
+	// database then fell through to "'t' is not a function" (fts5connect).
 	ctxName := ""
-	if ctx, _, terr := e.ctx.FindTable(entry.Name); terr == nil && ctx != nil {
-		ctxName = ctx.Name
+	if _, dbCtx, terr := e.ctx.FindTable(entry.Name); terr == nil && dbCtx != nil {
+		ctxName = dbCtx.Name
 	}
 	t, err := mod.Load(ctxName, entry.Name, args)
 	if err != nil {
