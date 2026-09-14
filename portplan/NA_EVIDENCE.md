@@ -1830,3 +1830,98 @@ Disposition: `shared`, `shared2..9`, `shared_err`, `sharedlock`, `walshared`,
 locks) is logged in the PORTPLAN Blocker Register as candidate standalone
 goal `P7.SHAREDCACHE` — different subsystem, different lock universe, zero
 wal.c overlap.
+
+## P6.FTS5 — harness-only red classes adjudicated (2026-09-14)
+
+Scope: the 29 corruption / fault-injection / harness-machinery fts5 packages
+(fts5corrupt*, fts5fault*, fts5fuzz1, fts5secure2/3/4/6/8, fts5interrupt,
+fts5tokenizer*, fts5integrity, fts5conflict, fts5connect, fts5savepoint,
+fts5restart, fts5blob). Method: run each testgen package, read the FIRST
+failure, read the TCL source in ../sqlite/ext/fts5/test/, classify
+(fault-injection / corruption-poking / harness-API / engine gap), verify
+every engine-gap suspect against the oracles (python3 sqlite3 3.53.4 and
+/usr/bin/sqlite3 3.51.0), and pin each reproducible engine contract
+natively. Native pins: frigolite_fts5corrupt_test.go,
+frigolite_fts5savepoint_test.go, frigolite_fts5interrupt_test.go,
+frigolite_fts5restart_test.go (11 tests, green).
+
+| package | disposition | evidence |
+|---|---|---|
+| fts5fault1 | N-A fault-injection (malloc_common.tcl faultsim OOM drives every body; SQLITE_TESTCTRL FAULT_INSTALL has no Go equivalent) | skip entry |
+| fts5fault6 | N-A fault-injection + fts5_tcl.c 'tcl' test tokenizer | skip entry |
+| fts5faultF | N-A fault-injection (OOM around contentless_delete) | skip entry |
+| fts5faultG | N-A fault-injection | skip entry |
+| fts5faultH | N-A fault-injection + sqlite3_fts5_register_origintext (harness API) | skip entry |
+| fts5faultI | N-A fault-injection + fts5_aux_test_functions + locale/tclnum harness APIs | skip entry |
+| fts5corrupt | N-A superseded — corruption injected by plain SQL on %_data/%_content; C's detection texts are unreachable: the Go index is single-blob storage (internal/fts5/storage.go, the fts5rowid divergence) and the shadow tables are write-through mirrors | TestFTS5CorruptDataTamperResilience, TestFTS5CorruptContentTamperResilience |
+| fts5corrupt2 | N-A superseded — all failures loop the integrity-check wanting "fts5: corruption.*" after mirror tampering | frigolite_fts5corrupt_test.go |
+| fts5corrupt3 | N-A harness — 16K lines driven by the fts5_rnddoc C UDF + fts5_common.tcl procs (stubbed nil by the transpiler); corruption wants are the same mirror contract | frigolite_fts5corrupt_test.go |
+| fts5corrupt5 | N-A harness — sqlite3_deserialize + decode_hexdb pre-built corrupt db images (C test-API class, no Go seam); the generated test runs against an empty db ("'t1' is not a function") | skip entry |
+| fts5corrupt6 | N-A superseded — editblock corruption UDF stubbed nil + unreachable malformed detection | TestFTS5CorruptDataTamperResilience |
+| fts5corrupt7 | N-A superseded — pins C's physical %_data blob bytes (X'0000001A...') + edit_block UDF; physical-layout divergence per fts5rowid | TestFTS5CorruptReopenResilience |
+| fts5corrupt8 | N-A superseded — hex_to_blob crafts structure records; C's "fts5: corrupt structure record" / "invalid fts5 file format (found 555, expected 4 or 5)" unreachable; engine stays functional across reopen | TestFTS5CorruptReopenResilience |
+| fts5integrity | N-A superseded — healthy-table integrity-check passes natively; 4.x docsize-tamper detection is the mirror contract | TestFTS5CorruptHealthyIntegrityCheck, TestFTS5CorruptDocsizeTamperResilience |
+| fts5savepoint | N-A superseded — 1.0/3.x pass natively; 2.0's dropped-%_idx → "database disk image is malformed" unreachable by design | TestFTS5SavepointNestedRollback, TestFTS5SavepointCommitIntegrity, TestFTS5CorruptReopenResilience |
+| fts5secure3 | N-A superseded — ONLY failure is 2.8's `count(*) FROM t1_data` = 4 (C physical block count; fts5rowid precedent); semantic sections pass | frigolite_fts5corrupt_test.go |
+| fts5restart | N-A superseded — 1.4.x needs a half-stepped cursor to hold a read lock, 4.x mid-scan DELETE visibility; both sqlite3_step cursor-model artifacts; the cross-connection 'optimize'-vs-reader lock contract is real and pinned | TestFTS5OptimizeVsConcurrentReader ("database is locked", then success after ROLLBACK) |
+| fts5interrupt | N-A superseded — the progress-handler TCL proc is untranspilable and stubbed `return true` (always-interrupt), so the retry loop can never succeed (INFINITE LOOP — never un-skip without transpiler proc support); the interrupt contract is pinned via SetInterruptCount/SetProgressHandler | TestFTS5InterruptRetryResilience, TestFTS5ProgressHandlerInterrupt |
+| fts5secure6 | N-A harness — same always-interrupt stub (every statement fails "interrupted"); the file pins C progress-handler call COUNTS (instrumentation, no SQL surface) | TestFTS5SecureDeleteInterruptConsistency |
+| fts5tokenizer2 | N-A harness — sqlite3_fts5_create_tokenizer registers a TCL-implemented tokenizer ('tst'); no engine tokenizer-registration seam | skip entry |
+| fts5tokenizer3 | N-A harness — same class ('lowercase'/'split_on_dot' TCL tokenizers, -parent/-v2 forms) | skip entry |
+
+ENGINE GAPS ESCALATED (oracle agrees with the generated test; packages left
+red, NOT skipped — need an engine agent):
+
+1. fts5blob — under `PRAGMA encoding = utf16`, blob column values lose
+   their LAST byte on the round-trip through the index (rowid-scoped
+   insert of X'0000000041424320444546' returns X'00000000414243204445');
+   utf8 is unaffected; oracle returns the full blob in both encodings.
+2. fts5connect — the SECOND insert through a BEFORE INSERT trigger whose
+   body inserts into an fts5 table fails "constraint failed" (minimal
+   repro: t3_ai trigger + two INSERTs into t3; oracle runs the full 3.0
+   section clean). Isolated single inserts pass.
+3. fts5conflict — external-content maintenance via triggers: UPDATE /
+   REPLACE / DELETE on the content table all fail "database disk image is
+   malformed" (internal/fts5/fts5.go SpecialCommand 'delete' fires its
+   !HasDoc guard for docs the external-content inserts DID index);
+   oracle runs fts5conflict 2.1 clean including integrity-check.
+4. fts5secure2 — enabling secure-delete must upgrade %_config
+   `version 4` → `version 5` at the first secure-delete DELETE and
+   persist it (oracle /usr/bin/sqlite3 3.51.0: `secure-delete|1 /
+   version|5` after DELETE); the engine stays at version 4. (Section 1.4;
+   2.1-2.4's physical X'00000004' block-count pins are the fts5rowid
+   divergence class.)
+5. fts5secure4 — the 'delete' special command must be a no-op SUCCESS when
+   the rowid (or the named token) is absent from a secure-delete index
+   (oracle: all of 1.2/1.4/1.5 OK + integrity-check); the engine errors
+   "database disk image is malformed".
+6. fts5secure8 — `content=''` tables must ACCEPT the 'delete' command
+   (oracle: 2.0 clean, quick_check ok) and reject a non-integer
+   secure-delete value with "SQL logic error" (oracle-verified); the
+   engine classifies content='' as contentless and rejects 'delete'.
+7. fts5tokenizer — `tokenize='porter nosuch'` must fail with "error in
+   tokenizer constructor" (the wrapper-constructor mapping; oracle
+   verified; plain 'nosuch' correctly says "no such tokenizer: nosuch");
+   the engine leaks the underlying error text. NOTE: the semantic-classes
+   agent is concurrently editing internal/fts5 parseTokenize — coordinate.
+8. fts5fuzz1 — (a) a form-feed byte (0x0C) inside a CREATE argument list
+   is rejected "unrecognized token" (C's sqlite3Isspace treats \f and \v
+   as whitespace; oracle says `parse error in "a\x0c b"`); (b) an empty
+   phrase in a TVF query (`SELECT rowid FROM f1('"" a')`) matches nothing
+   in the engine; oracle returns all rows (C: empty phrase matches).
+
+Additional engine findings made while pinning (recorded for the engine
+agent, not tied to a first failure):
+- `CREATE VIRTUAL TABLE IF NOT EXISTS t` errors "table t1 already exists"
+  when t exists (oracle suppresses the error) — IF NOT EXISTS is not
+  honored on the vtab path.
+- Interrupting a COMMIT (SetInterruptCount) returns "interrupted" but the
+  transaction's changes ARE committed; in C an interrupted COMMIT never
+  commits. Interrupted single-row INSERTs persisting matches C
+  (oracle-verified); interrupted multi-row inserts roll back atomically
+  in both.
+
+Skip-map note: 21 entries added (6 fault N-A + 10 superseded-with-pin +
+5 harness N-A); no entries removed; the tools/status floor (>= 260) only
+grows. Regenerated via `go run ./tools/tcl2go/ -testdir
+../sqlite/ext/fts5/test <name>.test`; all 21 packages run green as stubs.

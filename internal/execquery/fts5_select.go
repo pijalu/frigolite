@@ -19,12 +19,13 @@ import (
 // constraint drives the scan universe from the index (xFilter parity), so
 // index-only documents of external-content tables are visible.
 func (e *SelectEngine) execFTS5Select(s *sql.SelectStmt, t5 *fts5.Table, colDefs []sql.ColumnDef) *Result {
+	csrID := t5.NextCursorID() // cursor open (fts5Filter's iCsrId; '*id' reports it)
 	hasMatch := statementHasFTS5Match(s, t5)
 	override, hasOverride, err := e.fts5RankOverride(s.Where)
 	if err != nil {
 		return &Result{Error: err}
 	}
-	aq, err := e.fts5PrepareAux(s.Where, t5, hasMatch)
+	aq, err := e.fts5PrepareAux(s.Where, t5, hasMatch, csrID)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -47,7 +48,7 @@ func (e *SelectEngine) execFTS5Select(s *sql.SelectStmt, t5 *fts5.Table, colDefs
 // aux context sees every phrase. The universe evaluation re-parses
 // (memoized by the table's match cache), matching C's per-cursor single
 // parse closely enough for observation.
-func (e *SelectEngine) fts5PrepareAux(where sql.Expr, t5 *fts5.Table, hasMatch bool) (*fts5.AuxQuery, error) {
+func (e *SelectEngine) fts5PrepareAux(where sql.Expr, t5 *fts5.Table, hasMatch bool, csrID int64) (*fts5.AuxQuery, error) {
 	if !hasMatch {
 		return t5.NewScanAux(), nil
 	}
@@ -65,15 +66,19 @@ func (e *SelectEngine) fts5PrepareAux(where sql.Expr, t5 *fts5.Table, hasMatch b
 		if err != nil {
 			return nil, err
 		}
-		q, ok := util.UnwrapColumnValue(qv).(string)
-		if !ok {
-			continue
-		}
+		// xFilter renders the constraint with sqlite3_value_text (NULL
+		// yields ""); a non-query text fails the later parse.
+		q := fts5TVFArgText(qv)
 		// A special query ('*reads'/'*id' — fts5SpecialMatch) never reaches
 		// the expression parser: xFilter dispatches it before the aux
-		// context is built, and aux functions see zero instances.
+		// context is built and the cursor is FTS5_PLAN_SPECIAL, so aux
+		// calls fail with "no such cursor".
 		if strings.HasPrefix(q, "*") {
-			return t5.NewScanAux(), nil
+			sv, serr := t5.SpecialCursorValue(q, csrID)
+			if serr != nil {
+				return nil, serr
+			}
+			return t5.NewSpecialAux(sv), nil
 		}
 		constraints = append(constraints, fts5.AuxConstraint{Query: q, Col: col})
 	}
@@ -264,6 +269,7 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 	if !ok {
 		return nil, false
 	}
+	csrID := t5.NextCursorID() // cursor open (fts5Filter's iCsrId; '*id' reports it)
 	// whereexpr.c sqlite3ErrorMsg "too many arguments on %s() - max %d":
 	// more arguments than HIDDEN columns is a parse-time error.
 	if len(ref.Args) > 2 {
@@ -302,7 +308,17 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 	}
 	hasArgs := len(ref.Args) > 0
 	aq := t5.NewScanAux()
-	if firstQuery != "" {
+	if firstQuery != "" && strings.HasPrefix(firstQuery, "*") {
+		// A special query ('*id'/'*reads'): xFilter never parses an
+		// expression for it and the cursor is FTS5_PLAN_SPECIAL, so every
+		// aux call fails with "no such cursor" (fts5misc 2.x). The cursor
+		// carries the special value ('*id' -> its own id).
+		sv, serr := t5.SpecialCursorValue(firstQuery, csrID)
+		if serr != nil {
+			return &Result{Error: serr}, true
+		}
+		aq = t5.NewSpecialAux(sv)
+	} else if firstQuery != "" {
 		prepared, perr := t5.PrepareAux(firstQuery, -1)
 		if perr != nil {
 			return &Result{Error: perr}, true

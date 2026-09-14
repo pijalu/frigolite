@@ -321,8 +321,20 @@ func (t *Table) Insert(rowid int64, values []interface{}) error {
 	defer t.bumpVersion()
 	t.noteRowid(rowid)
 	t.ix.AddDoc(rowid, nil, cols)
-	if t.cfg.EContent == ContentNormal {
-		t.contentValues[rowid] = append([]interface{}(nil), values...)
+	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
+		// ContentNormal stores every column; UNINDEXED content stores only
+		// the UNINDEXED ones — mirror the stored subset for scans and
+		// DocValues (fts5StorageInsert's content-table writes).
+		stored := make([]interface{}, len(values))
+		copy(stored, values)
+		if t.cfg.EContent == ContentUnindexed {
+			for i := range stored {
+				if i < len(t.cfg.Unindexed) && !t.cfg.Unindexed[i] {
+					stored[i] = nil
+				}
+			}
+		}
+		t.contentValues[rowid] = stored
 	}
 	if err := t.insertContentRow(rowid, values); err != nil {
 		return err
@@ -347,6 +359,12 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 	}
 	if err := t.deleteDocsizeRow(rowid); err != nil {
 		return true, err
+	}
+	if len(t.ix.SortedRowids()) == 0 {
+		// An emptied table restarts auto rowid allocation at 1: the shadow
+		// %_content rowid table is empty, and OP_NewRowid (no AUTOINCREMENT)
+		// picks 1 for an empty b-tree.
+		t.maxRowid = 0
 	}
 	t.markShadowDirty()
 	return true, nil
@@ -404,11 +422,11 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		if t.cfg.ContentlessDelete {
 			return true, fmt.Errorf("'delete' may not be used with a contentless_delete=1 table")
 		}
-		if t.cfg.Contentless() {
-			return true, fmt.Errorf("cannot use the delete command on fts5 contentless tables")
-		}
-		// External-content (or normal) delete of one document by rowid; a
-		// rowid absent from the index fails like C's checksum mismatch.
+		// The special 'delete' command is allowed on every content mode
+		// except contentless_delete=1 (fts5_main.c fts5UpdateMethod: only
+		// the bContentlessDelete gate precedes fts5SpecialDelete) — it
+		// removes the index entries for one rowid using the SUPPLIED
+		// values, so it works with no content table at all.
 		if len(args) == 0 {
 			return true, fmt.Errorf("database disk image is malformed")
 		}
@@ -420,7 +438,7 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		return true, err
 	case "rebuild":
 		if t.cfg.Contentless() {
-			return true, fmt.Errorf("'rebuild' cannot be used with a contentless fts5 table")
+			return true, fmt.Errorf("'rebuild' may not be used with a contentless fts5 table")
 		}
 		return true, t.rebuild()
 	case "rank":
@@ -538,13 +556,46 @@ func (t *Table) rebuild() error {
 
 // ScanDocs returns the documents a full scan visits in ascending rowid order
 // with their stored values (fts5StorageScan). A contentless table without
-// columnsize has no scan source and fails like C.
+// columnsize has no scan source and fails like C. Normal and unindexed
+// content tables scan %_content itself (C's FTS5_PLAN_SCAN runs
+// FTS5_STMT_SCAN_ASC — "SELECT <cols>, rowid FROM %_content ORDER BY rowid"),
+// so a document whose content row is missing does not appear even if the
+// index still holds it (fts5matchinfo 15.2/15.3).
 func (t *Table) ScanDocs() ([]int64, [][]interface{}, error) {
 	if t.cfg.EContent == ContentExternal {
 		return t.scanExternal()
 	}
 	if t.cfg.Contentless() && !t.cfg.ColumnSize {
 		return nil, nil, fmt.Errorf("%s: table does not support scanning", t.cfg.Name)
+	}
+	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
+		qc := qual(t.dbName, t.cfg.Name+"_content")
+		colList := "id"
+		for _, c := range t.contentCols() {
+			colList += fmt.Sprintf(", c%d", c)
+		}
+		rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT %s FROM %s ORDER BY id ASC", colList, qc))
+		if err != nil {
+			return nil, nil, err
+		}
+		rowids := make([]int64, 0, len(rows))
+		values := make([][]interface{}, 0, len(rows))
+		stored := t.contentCols()
+		for _, row := range rows {
+			id, ok := asInt64(row[0])
+			if !ok {
+				continue
+			}
+			full := make([]interface{}, len(t.cfg.Columns))
+			for j, c := range stored {
+				if j+1 < len(row) {
+					full[c] = row[j+1]
+				}
+			}
+			rowids = append(rowids, id)
+			values = append(values, full)
+		}
+		return rowids, values, nil
 	}
 	rowids := t.ix.SortedRowids()
 	values := make([][]interface{}, len(rowids))
@@ -561,7 +612,11 @@ func (t *Table) ScanDocs() ([]int64, [][]interface{}, error) {
 // of the external content table, or NULLs for a contentless table.
 func (t *Table) DocValues(rowid int64) ([]interface{}, error) {
 	switch t.cfg.EContent {
-	case ContentNormal:
+	case ContentNormal, ContentUnindexed:
+		// ContentNormal stores every column; UNINDEXED content stores only
+		// the UNINDEXED ones (the mirror already expands them to user
+		// positions). Indexed columns of a contentless_unindexed table read
+		// as NULL (fts5StorageColumn's content-only paths).
 		if v, ok := t.contentValues[rowid]; ok {
 			return v, nil
 		}

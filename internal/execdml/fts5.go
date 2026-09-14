@@ -124,7 +124,13 @@ func (e *DMLExecutor) insertFTS5Row(t5 *fts5.Table, tableEntry *schema.Entry, va
 		cmd := util.UnwrapColumnValue(cmdVal)
 		if s, ok := cmd.(string); ok {
 			_, rankVal := fts5HiddenValues(t5, values)
-			handled, err := t5.SpecialCommand(s, []interface{}{util.UnwrapColumnValue(rankVal)})
+			// fts5SpecialDelete reads apVal[1] — the explicit rowid —
+			// before the rank slot the other commands use.
+			cmdArgs := []interface{}{util.UnwrapColumnValue(rankVal)}
+			if fixedRowID != nil && strings.EqualFold(s, "delete") {
+				cmdArgs = []interface{}{*fixedRowID, util.UnwrapColumnValue(rankVal)}
+			}
+			handled, err := t5.SpecialCommand(s, cmdArgs)
 			if err != nil {
 				return &Result{Error: err}
 			}
@@ -141,6 +147,13 @@ func (e *DMLExecutor) insertFTS5Row(t5 *fts5.Table, tableEntry *schema.Entry, va
 	var rowid int64
 	if fixedRowID != nil {
 		rowid = *fixedRowID
+	} else if t5.Config().EContent != fts5.ContentNormal &&
+		t5.Config().EContent != fts5.ContentUnindexed && !t5.Config().ColumnSize {
+		// A NONE/EXTERNAL content table without columnsize has no backing
+		// store to allocate a rowid from: fts5StorageNewRowid returns
+		// SQLITE_MISMATCH and the user must provide the rowid explicitly
+		// (fts5columnsize 2.1: content='' inserts).
+		return &Result{Error: fmt.Errorf("datatype mismatch")}
 	} else {
 		rowid = t5.NextRowid()
 	}
@@ -243,9 +256,10 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			if indexedAssigned {
 				return &Result{Error: fmt.Errorf("cannot UPDATE contentless fts5 table: %s", t5.Name())}
 			}
-			// Only unindexed columns changed: the index is untouched and the
-			// content table holds nothing to update (contentless) — report
-			// the matched row count with no index work.
+			// Only unindexed columns changed: the index is untouched. A
+			// contentless_unindexed table rewrites the stored (UNINDEXED)
+			// columns of each affected row — fts5UpdateMethod's bContent
+			// branch (sqlite3Fts5StorageContentInsert with bContent=1).
 			if fromJoin {
 				n, err := e.fts5FromMatchedCount(t5, s)
 				if err != nil {
@@ -253,9 +267,32 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 				}
 				return &Result{Changes: n}
 			}
-			rowids, err := fts5MatchedRowids(e, t5, colDefs, s.Where)
+			rowMaps, rowids, err := e.fts5MatchedRows(t5, colDefs, s.Where, nil, nil)
 			if err != nil {
 				return &Result{Error: err}
+			}
+			if t5.Config().EContent == fts5.ContentUnindexed {
+				for i, rowid := range rowids {
+					newVals := make([]interface{}, len(t5.ColumnNames()))
+					copy(newVals, fts5RowValues(t5, rowMaps[i]))
+					for _, a := range s.Assignments {
+						idx := t5.ColumnIndex(a.Column)
+						if idx < 0 {
+							return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
+						}
+						v, verr := e.ctx.EvalExpr(a.Value, rowMaps[i])
+						if verr != nil {
+							return &Result{Error: verr}
+						}
+						newVals[idx] = v
+					}
+					if uerr := t5.UpdateUnindexedContent(rowid, newVals); uerr != nil {
+						return &Result{Error: uerr}
+					}
+				}
+				if ferr := e.flushFTS5Shadow(t5); ferr != nil {
+					return &Result{Error: ferr}
+				}
 			}
 			return &Result{Changes: int64(len(rowids))}
 		}
@@ -316,6 +353,19 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 		}
 		if !changed {
 			continue
+		}
+		// A changed rowid colliding with another document is resolved per
+		// the statement's OR action (fts5_main.c fts5UpdateMethod: REPLACE
+		// deletes the conflicting document first, IGNORE skips the row).
+		if newRowid != rowid && t5.HasDoc(newRowid) {
+			switch strings.ToUpper(s.OnConflict) {
+			case "REPLACE":
+				if _, rerr := t5.Delete(newRowid); rerr != nil {
+					return &Result{Error: rerr}
+				}
+			case "IGNORE":
+				continue
+			}
 		}
 		if _, derr := t5.Delete(rowid); derr != nil {
 			return &Result{Error: derr}

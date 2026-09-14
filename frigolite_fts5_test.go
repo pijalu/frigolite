@@ -522,9 +522,11 @@ func TestFTS5QueryLanguage(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '^one + two'"), "1 3")
 	checkExecError(t, db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH '^(one two)'"), `fts5: syntax error near "("`)
 
-	// A zero-token phrase is an EOF node: it matches nothing and poisons AND.
+	// A zero-token phrase is an EOF node: it matches nothing on its own and
+	// is dropped from implicit-AND chains (sqlite3Fts5ParseImplicitAnd —
+	// verified against the 3.51.0 oracle: MATCH 'one ""' == MATCH 'one').
 	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '""'`), "")
-	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH 'one ""'`), "")
+	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH 'one ""'`), "1 3")
 	checkQueryResult(t, db.Query(`SELECT rowid FROM t1 WHERE t1 MATCH '"" + one'`), "1 3")
 	checkExecError(t, db.Exec(`SELECT rowid FROM t1 WHERE t1 MATCH '"abc'`), "unterminated string")
 

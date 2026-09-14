@@ -149,6 +149,10 @@ func (e *Engine) registerFTSModules() {
 	e.funcs.Register("fts5_decode_none", fts5.DecodeNoneFunc, 2, 2)
 	e.funcs.Register("fts5_expr", fts5.ExprFuncExpr, 0, -1)
 	e.funcs.Register("fts5_expr_tcl", fts5.ExprFuncTcl, 0, -1)
+	// fts5_isalnum/fts5_fold: fts5ExprInit's remaining SQLITE_TEST helpers
+	// (fts5_expr.c); the functions raise C's arity messages themselves.
+	e.funcs.Register("fts5_isalnum", fts5.IsAlnumFunc, 0, -1)
+	e.funcs.Register("fts5_fold", fts5.FoldFunc, 0, -1)
 }
 
 // resolveFTS5VocabTarget resolves an fts5vocab module's target table: the

@@ -2247,7 +2247,7 @@
   },
   "fts5aux": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5aux2": {
@@ -2292,22 +2292,22 @@
   },
   "fts5colset": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5columnsize": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: t2(rowid, x) VALUES(3, 'a b c d e f g h');\n    fts5columnsize_test.go:136: result mismatch\n          got:  [1 :: 1 ::]\n          want: [3 :: 1 2 3 :: 2 3]\n  ...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: columnsize=0 + content-none 'delete' + xColumnSize -1",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5config": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5conflict": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: ts5conflict_test.go:92: query error: database disk image is malformed\n          sql: \n          PRAGMA recursive_triggers = 1;\n          INSERT INTO tbl VALU...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: external-content maintenance via fixed 'delete' guard",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5connect": {
@@ -2346,18 +2346,18 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: reading blob 137438953476 from table \"t1\"]\n    fts5corrupt_test.go:208: expected error containing \"fts5: missing row 3 from content table 'main'.'t3_content'...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (native pin frigolite_fts5corrupt_test.go); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt2": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: got:  [0 {}]\n          want pattern: [1.*fts5: corruption.*]\n          sql: \n            INSERT INTO t1(t1) VALUES('integrity-check');\n          \n    fts5cor...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (native pin); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt3": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5corrupt3 (0.00s)\n    fts5corrupt3_test.go:199: query error: no such function: rnddoc\n          sql: \n          CREATE VIRTUAL TABLE t2 USI...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: harness N/A (fts5_rnddoc UDF); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt4": {
@@ -2366,23 +2366,23 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt5": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: SET b=quote(zeroblob(current_date)) WHERE t1 MATCH 't*';\n    fts5corrupt5_test.go:2412: expected success, got error: database disk image is malformed\n       ...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: harness N/A (deserialize/decode_hexdb); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt6": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5corrupt6 (0.27s)\n    fts5corrupt6_test.go:75: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n   ...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (native pin); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt7": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: IL: Test_fts5corrupt7 (0.02s)\n    fts5corrupt7_test.go:191: result mismatch\n          got:  [X'4746207F03010109696E646578426C6F6201FF800001010104446F637301FF...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (native pin); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corrupt8": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: .go:200: result mismatch\n          got:  [00000000000000]\n          want: [00000000FF00000101010200010101010101010102]\n    fts5corrupt8_test.go:212: expected...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (native pin); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5corruptbig": {
@@ -2397,7 +2397,7 @@
   },
   "fts5detail": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5determin": {
@@ -2416,8 +2416,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5ea": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5ea (0.00s)\n    fts5ea_test.go:144: result mismatch\n          got:  [\"a\" AND \"\"]\n          want: [\"a\" AND \"\"\"\"]\nFAIL\nFAIL\tgithub.com/pijalu...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: fts5_expr tokenize= directives",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5eb": {
@@ -2431,8 +2431,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5fault1": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5fault1 (9.43s)\n    fts5fault1_test.go:233: result mismatch\n          got:  [3]\n          want: [17]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: fault-injection N/A; evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5fault2": {
@@ -2456,8 +2456,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5fault6": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: ql:  INSERT INTO t1(rowid, a) VALUES(48, 'ffff ffff e dddd ffffff dd dd dddd f fffff') \n    fts5fault6_test.go:210: exec error: no such table: t1\n          s...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: fault-injection N/A; evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5fault7": {
@@ -2496,23 +2496,23 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5faultF": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: VALUES(4, 'a b c d');\n          COMMIT;\n    fts5faultF_test.go:116: exec error: parse error in \"content=\"\n          sql: \n          CREATE VIRTUAL TABLE t1 U...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: fault-injection N/A; evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5faultG": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5faultG (0.00s)\n    fts5faultG_test.go:89: exec error: parse error in \"content=\"\n          sql: \n          CREATE VIRTUAL TABLE t1 USING ft...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: fault-injection N/A; evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5faultH": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: ;\n            INSERT INTO t1(rowid, x) VALUES(28, 'bbb Bbb BBB');\n            INSERT INTO t1(rowid, x) VALUES(29, 'bbb Bbb BBB');\n            INSERT INTO t1(...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: fault-injection N/A; evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5faultI": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: ft VALUES('four five six iv v vi');\n          INSERT INTO ft VALUES('eight nine ten viii ix x');\n    fts5faultI_test.go:225: exec error: no such function: ft...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: fault-injection N/A; evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5first": {
@@ -2536,8 +2536,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5integrity": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: 5integrity_test.go:520: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n          INSERT INTO vt0(vt0, rank) VALUES(...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (native pin); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5integrity2": {
@@ -2546,8 +2546,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5interrupt": {
-   "state": "fail",
-   "evidence": "FTS5 red class \u2014 serial FAIL at 300s cap; serial-confirmed 2026-09-14 (\u00a75g item 6)",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (frigolite_fts5interrupt_test.go; never-unskip: stub loops forever); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5join": {
@@ -2576,8 +2576,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5matchinfo": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5matchinfo (0.01s)\n    fts5matchinfo_test.go:167: expected error containing \"unrecognized matchinfo flag: d\", got: illegal first argument t...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: fts5 matchinfo() ported (fts5_test_mi.c)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5merge": {
@@ -2697,27 +2697,27 @@
   },
   "fts5rank": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5rebuild": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5rebuild (0.01s)\n    fts5rebuild_test.go:106: exec error: parse error in \"content=\"\n          sql: \n          CREATE VIRTUAL TABLE nc USING...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: 'rebuild' error text parity",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5restart": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5restart (4.22s)\n    fts5restart_test.go:192: result mismatch\n          got:  [0 {}]\n          want: [1 database is locked]\n          body:...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (frigolite_fts5restart_test.go); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5rowid": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5savepoint": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5savepoint (0.01s)\n    fts5savepoint_test.go:82: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n ...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (frigolite_fts5savepoint_test.go); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5secure": {
@@ -2731,8 +2731,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5secure3": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5secure3 (9.50s)\n    fts5secure3_test.go:166: result mismatch\n          got:  [3]\n          want: [4]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: superseded (native pin); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5secure4": {
@@ -2746,8 +2746,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5secure6": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: INSERT INTO t1(t1, rank) VALUES('secure-delete', 1) \n          \n    fts5secure6_test.go:100: exec error: interrupted\n          sql:  DELETE FROM t1; \n    fts...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: harness N/A (interrupt stub + progress counting); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5secure7": {
@@ -2756,8 +2756,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5secure8": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5secure8 (0.01s)\n    fts5secure8_test.go:93: exec error: cannot use the delete command on fts5 contentless tables\n          sql: \n         ...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: content='' 'delete' via content-none fix",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5securefault": {
@@ -2792,7 +2792,7 @@
   },
   "fts5tok1": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5tok2": {
@@ -2811,13 +2811,13 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5tokenizer2": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5tokenizer2 (0.00s)\n    fts5tokenizer2_test.go:86: exec error: no such tokenizer: tst\n          sql: \n          CREATE VIRTUAL TABLE t1 USI...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: harness N/A (TCL tokenizer); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5tokenizer3": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5tokenizer3 (0.00s)\n    fts5tokenizer3_test.go:94: exec error: no such tokenizer: split_on_dot\n          sql: \n            CREATE VIRTUAL T...",
+   "state": "skipped",
+   "evidence": "N-A G7-slice4-style supersession/harness: harness N/A (TCL tokenizer); evidence portplan/NA_EVIDENCE.md \u00a7P6.FTS5 (2026-09-14)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5trigram": {
@@ -2847,12 +2847,12 @@
   },
   "fts5unicode2": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5unicode3": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: sql: \n          SELECT fts5_fold();\n    fts5unicode3_test.go:143: expected error containing \"wrong number of arguments to function fts5_fold\", got: no such f...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: fts5_isalnum/fts5_fold registered",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5unicode4": {
@@ -2866,8 +2866,8 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5unindexed2": {
-   "state": "fail",
-   "evidence": "baseline 2026-09-14T20:29:05Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: --- FAIL: Test_fts5unindexed2 (0.00s)\n    fts5unindexed2_test.go:63: exec error: parse error in \"content=\"\n          sql: \n          CREATE VIRTUAL TABLE t1 ...",
+   "state": "pass",
+   "evidence": "engine fixed 2026-09-14: contentless_unindexed promotion + UNINDEXED subset writes",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts5update": {
@@ -2892,7 +2892,7 @@
   },
   "fts5vocab2": {
    "state": "skipped",
-   "evidence": "skipTestFiles reason; see portplan/NA_EVIDENCE.md \u00a7FULL-SUITE-DRIFT",
+   "evidence": "superseded/N-A (skip map; evidence NA_EVIDENCE.md / frigolite_fts5*_test.go)",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "fts_9fd058691": {

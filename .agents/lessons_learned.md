@@ -85,6 +85,43 @@ consolidate stale points.
 
 ## Engine/SQLite knowledge
 
+- **FTS5 test-only functions need a C oracle built with flags.** fts5_expr/fts5_expr_tcl/fts5_fold/
+  fts5_isalnum/matchinfo exist only under SQLITE_TEST||SQLITE_FTS5_DEBUG, so /usr/bin/sqlite3 and
+  python3 lack them. Build once: `gcc -DSQLITE_ENABLE_FTS5 -DSQLITE_FTS5_DEBUG -I<sqlite> main.c
+  <sqlite>/sqlite3.c -o oracle` (main.c = sqlite3_exec over argv SQL). That binary answers every
+  fts5_expr/matchinfo question at 3.51.0 exactly.
+- **FTS5 expression EOF (zero-token phrase) semantics (fts5_expr.c sqlite3Fts5ParseImplicitAnd):**
+  implicit-AND chains DROP a zero-token `""` operand (right EOF dropped; EOF left replaced by the
+  right operand); explicit AND/OR/NOT keep it; `+` merges add no term. apPhrase loses the dropped
+  phrase, shifting later phrase indices. MATCH 'one ""' == MATCH 'one' (verified vs oracle).
+- **fts5 bareword set = alnum + '_' + 0x1A + >=0x80** (fts5_buffer.c aBareword table). 0x1B is NOT
+  a bareword in 3.51 (older corpora allow it — drift). Query STRING token `""""` dequotes to one
+  `"`, so with tokenchars '""' fts5_expr prints `""""` (2+len*2 quoting).
+- **GLOB character classes were missing.** C patternCompare bracket branch: members, a-b ranges
+  (prior_c rule), leading-^, `]` first = literal, unterminated class = no-match; GLOB is case
+  sensitive byte/rune-wise. Ported in internal/function globMatchClass; oracle-verified incl.
+  `[a-]`, `[]d]`, `[^]d]` edges.
+- **fts5 full-scan (no MATCH) iterates %_content, not the index** (FTS5_PLAN_SCAN ->
+  FTS5_STMT_SCAN_ASC "SELECT cols,rowid FROM %_content ORDER BY rowid"). So a doc whose content
+  row was deleted directly disappears from scans while 'n' (index count) stays. frigolite
+  ScanDocs now reads %_content for NORMAL/UNINDEXED content.
+- **fts5StorageNewRowid: NONE/EXTERNAL content + implicit rowid + columnsize=0 -> SQLITE_MISMATCH
+  ("datatype mismatch")**; with columnsize=1 the rowid comes from the %_docsize REPLACE. Also:
+  the special 'delete' command is legal on ALL non-contentless_delete tables (fts5SpecialDelete
+  uses the SUPPLIED values, no content read); contentless_unindexed promotes content= tables to
+  CONTENT_UNINDEXED (config.c:690 chain) and UPDATE of unindexed columns is a content-only write.
+- **FTS5 special queries ('*id'/'*reads') bypass expression parsing entirely** — xFilter sets
+  FTS5_PLAN_SPECIAL; every aux call on such a cursor fails "no such cursor: <hidden value>"
+  where the value is the cursor id ('*id' -> iCsrId, process-wide counter; '*reads' -> reads
+  counter). Never parse '*...' in PrepareAux/MatchUniverse paths.
+- **fts5 xColumnSize with columnsize=0:** content NONE (incl. content='') or UNINDEXED ->
+  -1 per indexed column, 0 for unindexed (fts5ApiColumnSize REQUIRE_DOCSIZE branches); with
+  real content C re-tokenizes the content row.
+- **Tokenizer ctor args:** C's tokenize directive splits words via fts5ConfigSkipLiteral
+  ('-words, '' doubling) or fts5ConfigSkipBareword, then fts5Dequote — NOT gobbleWord escaping.
+  And ExprFunc (fts5_expr) must run trailing args through full config parsing so tokenize=
+  applies; an empty arg is "parse error in \"\"" (SkipBareword of "" returns NULL).
+
 - **Lazy file creation is global (pager.c)**: opening a 0-byte database must not
   materialize it — not at open, not at close, even though schema.Init builds an
   in-memory page 1. Pager.MarkClean drops dirty flags + re-baselines the change

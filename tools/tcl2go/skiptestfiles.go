@@ -786,4 +786,59 @@ var skipTestFiles = map[string]string{
 	"fts5colset": "5.2/5.3 wants strip the term quotes and colset braces C's fts5ExprPrint emits (TCL normalization artifact; the C output passes the real TCL list compare); C-faithful rendering pinned in frigolite_fts5_testfn_test.go TestFTS5TestFnExpr",
 	"fts5vocab2": "5.2's db-eval loop expects the write-conflict abort to break iteration after one insert — the transpiled loop has no break, so the un-aborted engine inserts 'five' once per vocab row; the abort contract itself is pinned in frigolite_fts5_testfn_test.go TestFTS5TestFnVocabWrite",
 	"fts5tok1":   "1.13.2's explicit t1.* expansion includes the HIDDEN input column while the want excludes it (fts3tok1's SELECT * form pins the opposite inclusion); correlated-input + constructor + no-binding contracts pinned in frigolite_fts5_testfn_test.go TestFTS5TestFnTokJoin",
+
+	// P6.FTS5 harness-only adjudication (2026-09-14): the corruption /
+	// fault-injection / harness-machinery classes. Per-package evidence in
+	// portplan/NA_EVIDENCE.md §P6.FTS5. EIGHT packages stay red as
+	// ENGINE GAPS (oracle-verified, deliberately NOT skipped): fts5blob
+	// (utf16 blob last-byte truncation), fts5connect (second BEFORE-trigger
+	// insert into fts5 fails "constraint failed"), fts5conflict
+	// (external-content 'delete' command mis-fires "database disk image is
+	// malformed"), fts5secure2 (secure-delete DELETE must upgrade %_config
+	// version 4->5), fts5secure4 ('delete' command must no-op success for
+	// absent rowid/token), fts5secure8 (content='' tables must accept the
+	// 'delete' command), fts5tokenizer ('porter nosuch' must say "error in
+	// tokenizer constructor"), fts5fuzz1 (form-feed not lexer whitespace;
+	// empty-phrase TVF matches nothing).
+
+	// (a) Genuine N/A — malloc_common.tcl faultsim OOM injection drives
+	// every body; sqlite3_test_control FAULT_INSTALL has no Go equivalent
+	// (PORTPLAN section 1 C test-VFS class). fault6 additionally needs the
+	// fts5_tcl.c 'tcl' tokenizer; faultH sqlite3_fts5_register_origintext;
+	// faultI fts5_aux_test_functions + locale + tclnum.
+	"fts5fault1": "Genuine N/A (C test-VFS fault-injection harness, PORTPLAN §1 class) — evidence portplan/NA_EVIDENCE.md §P6.FTS5",
+	"fts5fault6": "Genuine N/A (C test-VFS fault-injection harness, PORTPLAN §1 class) — evidence portplan/NA_EVIDENCE.md §P6.FTS5",
+	"fts5faultF": "Genuine N/A (C test-VFS fault-injection harness, PORTPLAN §1 class) — evidence portplan/NA_EVIDENCE.md §P6.FTS5",
+	"fts5faultG": "Genuine N/A (C test-VFS fault-injection harness, PORTPLAN §1 class) — evidence portplan/NA_EVIDENCE.md §P6.FTS5",
+	"fts5faultH": "Genuine N/A (C test-VFS fault-injection harness, PORTPLAN §1 class) — evidence portplan/NA_EVIDENCE.md §P6.FTS5",
+	"fts5faultI": "Genuine N/A (C test-VFS fault-injection harness, PORTPLAN §1 class) — evidence portplan/NA_EVIDENCE.md §P6.FTS5",
+
+	// (b) N/A superseded — corruption-by-SQL classes: C detects tampered
+	// shadow tables ("fts5: corruption found reading blob ...", "fts5:
+	// missing row N from content table", "fts5: corrupt structure record",
+	// "invalid fts5 file format (found 555, expected 4 or 5)", "database
+	// disk image is malformed"); frigolite's fts5 index is Go-native
+	// single-blob storage (internal/fts5/storage.go, the documented
+	// fts5rowid divergence) and the shadow tables are write-through
+	// mirrors, so the injection vectors have no engine-visible effect by
+	// design. The reachable contracts (healthy-table integrity-check,
+	// tamper-resilience, savepoint/rollback, reopen) are pinned natively.
+	"fts5corrupt":   "N-A superseded (evidence frigolite_fts5corrupt_test.go TestFTS5CorruptDataTamperResilience/TestFTS5CorruptContentTamperResilience; documented mirror-storage divergence, internal/fts5/storage.go; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5corrupt2":  "N-A superseded (evidence frigolite_fts5corrupt_test.go; every section loops the integrity-check wanting \"1 fts5: corruption.*\" after mirror tampering — unreachable by design; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5corrupt6":  "N-A superseded (evidence frigolite_fts5corrupt_test.go TestFTS5CorruptDataTamperResilience; the editblock corruption UDF is stubbed nil by the transpiler AND the resulting C \"database disk image is malformed\" is the unreachable mirror-detection contract; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5corrupt7":  "N-A superseded (evidence frigolite_fts5corrupt_test.go TestFTS5CorruptReopenResilience; pins C's physical %_data blob bytes X'0000001A...' and edit_block UDF — physical-layout divergence per the fts5rowid precedent; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5corrupt8":  "N-A superseded (evidence frigolite_fts5corrupt_test.go TestFTS5CorruptReopenResilience; hex_to_blob crafts structure records whose C detection texts (\"fts5: corrupt structure record\", \"invalid fts5 file format (found 555, expected 4 or 5)\") are unreachable in the mirror-storage engine — reopen stays functional; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5integrity": "N-A superseded (evidence frigolite_fts5corrupt_test.go TestFTS5CorruptHealthyIntegrityCheck/TestFTS5CorruptDocsizeTamperResilience; healthy-table integrity-checks pass; the 4.x docsize-tamper detection is the unreachable mirror contract; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5savepoint": "N-A superseded (evidence frigolite_fts5savepoint_test.go TestFTS5SavepointNestedRollback/TestFTS5SavepointCommitIntegrity; only 2.0 fails — DROP of the %_idx mirror must yield \"database disk image is malformed\" in C, unreachable by design (pinned as resilience in frigolite_fts5corrupt_test.go TestFTS5CorruptReopenResilience); portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5secure3":   "N-A superseded (evidence frigolite_fts5corrupt_test.go; the ONLY failure is 2.8's count(*) FROM t1_data = 4 — C's physical block count, the documented single-blob divergence per the fts5rowid precedent; semantic sections pass; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5restart":   "N-A superseded (evidence frigolite_fts5restart_test.go TestFTS5OptimizeVsConcurrentReader; 1.4.x needs db2's half-stepped MATCH cursor to hold a read lock and 4.x mid-scan DELETE visibility — both sqlite3_step cursor-model artifacts unobservable through the materializing Go API; the cross-connection lock contract is pinned natively; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5interrupt": "N-A superseded (evidence frigolite_fts5interrupt_test.go; the TCL progress-handler proc is untranspilable and the transpiler stubs it always-interrupt, so the retry loop can never succeed — infinite loop/timeout hazard, never un-skip without transpiler proc support; the interrupt-retry contract is pinned natively; portplan/NA_EVIDENCE.md §P6.FTS5)",
+
+	// (c) N/A harness — C test-API machinery with no engine seam and no
+	// pinnable SQL-visible contract.
+	"fts5corrupt3":   "N-A harness (fts5_rnddoc C test UDF + fts5_common.tcl procs, stubbed nil by the transpiler, drive all 16K lines; the corruption-detection wants are the unreachable mirror-storage contract pinned natively in frigolite_fts5corrupt_test.go; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5corrupt5":   "Genuine N/A (sqlite3_deserialize + decode_hexdb pre-built corrupt db images — C test-API class, no Go engine seam; the generated test runs against an empty db, hence \"'t1' is not a function\"; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5secure6":    "N-A harness (the progress-handler proc is untranspilable and stubbed always-interrupt, so every statement fails \"interrupted\"; the file pins C progress-handler call COUNTS — instrumentation with no SQL surface; the underlying interrupt-consistency contract is pinned natively in frigolite_fts5interrupt_test.go; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5tokenizer2": "Genuine N/A (fts5_tcl.c dynamic tokenizer registration sqlite3_fts5_create_tokenizer — the 'tst' tokenizer is implemented in TCL; no engine tokenizer-registration seam; portplan/NA_EVIDENCE.md §P6.FTS5)",
+	"fts5tokenizer3": "Genuine N/A (fts5_tcl.c dynamic tokenizer registration sqlite3_fts5_create_tokenizer -parent/-v2 — 'lowercase'/'split_on_dot' tokenizers implemented in TCL; no engine tokenizer-registration seam; portplan/NA_EVIDENCE.md §P6.FTS5)",
 }

@@ -49,8 +49,13 @@ type queryNode interface {
 }
 
 // eofNode is FTS5_EOF: a node that matches no documents (a zero-token phrase
-// or a column filter merged down to nothing).
-type eofNode struct{}
+// or a column filter merged down to nothing). It retains the phrases the
+// parse registered for it — C's EOF node keeps pNear->apPhrase, and the
+// implicit-AND merge removes exactly those phrases from pParse->apPhrase when
+// it discards the node (fts5_expr.c sqlite3Fts5ParseImplicitAnd).
+type eofNode struct {
+	phrases []*phraseNode
+}
 
 func (eofNode) eval(*Table) (map[int64]bool, error) { return map[int64]bool{}, nil }
 
@@ -354,8 +359,8 @@ func (l *qLexer) lexString() {
 	l.unterminated = true
 }
 
-// isFts5Bareword mirrors sqlite3Fts5IsBareword: digits, A-Z, a-z, '_', 0x1B
-// and every byte >= 0x80.
+// isFts5Bareword mirrors sqlite3Fts5IsBareword: digits, A-Z, a-z, '_', 0x1A
+// (the unicode substitute character) and every byte >= 0x80.
 func isFts5Bareword(b byte) bool {
 	if b >= 0x80 {
 		return true
@@ -363,7 +368,7 @@ func isFts5Bareword(b byte) bool {
 	switch {
 	case b >= '0' && b <= '9', b >= 'A' && b <= 'Z', b >= 'a' && b <= 'z':
 		return true
-	case b == '_', b == 0x1B:
+	case b == '_', b == 0x1A:
 		return true
 	}
 	return false
@@ -533,12 +538,59 @@ func (p *qParser) parseOperand() (queryNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		node, err = p.combineAND(node, next)
+		node, err = p.parseImplicitAnd(node, next)
 		if err != nil {
 			return nil, err
 		}
 	}
 	return node, nil
+}
+
+// parseImplicitAnd merges one cnearset into an implicit-AND chain
+// (fts5_expr.c sqlite3Fts5ParseImplicitAnd): a zero-token (EOF) right operand
+// is dropped; an EOF left operand (or last AND child) is replaced by the
+// right operand. In both cases the EOF's phrases leave apPhrase; anything
+// else becomes a regular AND node (with its depth guard).
+func (p *qParser) parseImplicitAnd(left, right queryNode) (queryNode, error) {
+	if re, ok := right.(eofNode); ok {
+		p.dropEofPhrases(re)
+		return left, nil
+	}
+	if lf, ok := left.(eofNode); ok {
+		p.dropEofPhrases(lf)
+		return right, nil
+	}
+	if and, ok := left.(andNode); ok {
+		if lf, ok := and.children[len(and.children)-1].(eofNode); ok {
+			p.dropEofPhrases(lf)
+			and.children[len(and.children)-1] = right
+			return left, nil
+		}
+	}
+	return combineAndNodes([]queryNode{left, right})
+}
+
+// dropEofPhrases removes an EOF node's phrases from the parser's phrase list
+// (the C parse's nPhrase--/memmove on the discarded FTS5_EOF node) and
+// renumbers the surviving phrases' indices to their list positions.
+func (p *qParser) dropEofPhrases(e eofNode) {
+	if len(e.phrases) == 0 {
+		return
+	}
+	drop := make(map[*phraseNode]bool, len(e.phrases))
+	for _, ph := range e.phrases {
+		drop[ph] = true
+	}
+	kept := p.phrases[:0:0]
+	for _, ph := range p.phrases {
+		if !drop[ph] {
+			kept = append(kept, ph)
+		}
+	}
+	p.phrases = kept
+	for i, ph := range p.phrases {
+		ph.idx = i
+	}
 }
 
 // parseCnearset parses one cnearset: a nearset, or "colset : nearset". A
@@ -834,7 +886,8 @@ func (p *qParser) parsePhrase() (*phraseNode, error) {
 func (p *qParser) newStringNode(phrases []*phraseNode, window int) (queryNode, error) {
 	for _, ph := range phrases {
 		if len(ph.terms) == 0 {
-			return eofNode{}, nil
+			// C's FTS5_EOF node keeps the nearset (apPhrase) attached.
+			return eofNode{phrases: phrases}, nil
 		}
 	}
 	if p.t.cfg.Detail != DetailFull {
@@ -868,7 +921,9 @@ func applyColset(node queryNode, cols []int) queryNode {
 		// are set together), so one intersection decides the merge.
 		merged := intersectColsets(n.phrases[0].colset, cols)
 		if len(merged) == 0 {
-			return eofNode{}
+			// C's fts5ParseSetColset flips the node to FTS5_EOF, keeping
+			// pNear (and apPhrase) attached.
+			return eofNode{phrases: n.phrases}
 		}
 		for _, ph := range n.phrases {
 			ph.colset = merged
@@ -1001,6 +1056,11 @@ func phraseCols(t *Table, ph *phraseNode) []int {
 
 // evalPhrase evaluates one phrase to its matching rowids.
 func (t *Table) evalPhrase(ph *phraseNode) (map[int64]bool, error) {
+	if len(ph.terms) == 0 {
+		// A zero-token phrase (e.g. MATCH '"/"' under unicode61) matches
+		// nothing; C's eval loop never reaches term iteration for it.
+		return map[int64]bool{}, nil
+	}
 	cols := phraseCols(t, ph)
 	if len(ph.terms) == 1 && !ph.terms[0].prefix && !ph.first {
 		return t.termRowids(ph.terms[0].term, cols), nil

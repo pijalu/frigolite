@@ -252,3 +252,23 @@ func (t *Table) SpecialQueryValue(query string) (int64, error) {
 	}
 	return 0, fmt.Errorf("unknown special query: %s", name)
 }
+
+// SpecialCursorValue resolves the hidden-column value a special query's
+// cursor carries: '*id' reports the evaluating cursor's own id
+// (pCsr->iSpecial = pCsr->iCsrId) and '*reads' the index read counter
+// (frigolite performs no tracked reads: 0).
+func (t *Table) SpecialCursorValue(query string, csrID int64) (int64, error) {
+	z := strings.TrimLeft(query[1:], " ")
+	n := strings.IndexByte(z, ' ')
+	if n < 0 {
+		n = len(z)
+	}
+	name := z[:n]
+	switch {
+	case strings.EqualFold(name, "reads"):
+		return 0, nil
+	case strings.EqualFold(name, "id"):
+		return csrID, nil
+	}
+	return 0, fmt.Errorf("unknown special query: %s", name)
+}

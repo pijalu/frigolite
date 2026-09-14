@@ -50,6 +50,10 @@ func qual(dbName, name string) string {
 // quoteSQL escapes a single-quoted SQL string.
 func quoteSQL(s string) string { return strings.ReplaceAll(s, "'", "''") }
 
+// quoteIdent quotes a SQL identifier with double quotes (contents escaped by
+// doubling) so names with spaces or punctuation stay one token.
+func quoteIdent(s string) string { return `"` + strings.ReplaceAll(s, `"`, `""`) + `"` }
+
 // sqlLiteral renders a value as a SQL literal for shadow-table DML (the
 // vtab.Database contract inlines argument values into the SQL text).
 func sqlLiteral(v interface{}) string {
@@ -271,7 +275,16 @@ func (t *Table) loadContentValues() error {
 		if !ok {
 			continue
 		}
-		t.contentValues[id] = append([]interface{}(nil), row[1:]...)
+		// The stored columns are the contentCols subset in declared order
+		// (UNINDEXED-content tables store only the UNINDEXED ones); expand
+		// them back to full user-column positions.
+		full := make([]interface{}, len(t.cfg.Columns))
+		for j, c := range t.contentCols() {
+			if j+1 < len(row) {
+				full[c] = row[j+1]
+			}
+		}
+		t.contentValues[id] = full
 	}
 	return nil
 }
@@ -298,6 +311,28 @@ func asInt64(v interface{}) (int64, bool) {
 		return int64(x), true
 	}
 	return 0, false
+}
+
+// updateUnindexedContent rewrites the stored (UNINDEXED) columns of one
+// document without touching the index — fts5UpdateMethod's bContent branch
+// for contentless_unindexed tables (sqlite3Fts5StorageContentInsert with
+// bReplace=1 writes only the abUnindexed columns).
+func (t *Table) UpdateUnindexedContent(rowid int64, values []interface{}) error {
+	if err := t.deleteContentRow(rowid); err != nil {
+		return err
+	}
+	if err := t.insertContentRow(rowid, values); err != nil {
+		return err
+	}
+	stored := make([]interface{}, len(values))
+	copy(stored, values)
+	for i := range stored {
+		if i < len(t.cfg.Unindexed) && !t.cfg.Unindexed[i] {
+			stored[i] = nil
+		}
+	}
+	t.contentValues[rowid] = stored
+	return nil
 }
 
 // insertContentRow writes the %_content row of one document.
@@ -364,10 +399,10 @@ func (t *Table) deleteDocsizeRow(rowid int64) error {
 // readExternalValues fetches one document's values from the external content
 // table (fts5StorageRead's content=<table> path).
 func (t *Table) readExternalValues(rowid int64) ([]interface{}, error) {
-	cols := strings.Join(t.cfg.Columns, ", ")
+	cols := strings.Join(quoteCols(t.cfg.Columns), ", ")
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s WHERE %s = %d",
-		quoteSQL(t.cfg.ContentRowid), cols, quoteSQL(t.cfg.ContentTable),
-		quoteSQL(t.cfg.ContentRowid), rowid)
+		quoteIdent(t.cfg.ContentRowid), cols, quoteIdent(t.cfg.ContentTable),
+		quoteIdent(t.cfg.ContentRowid), rowid)
 	rows, err := t.db.ExecSQL(sql)
 	if err != nil {
 		return nil, err
@@ -383,7 +418,7 @@ func (t *Table) readExternalValues(rowid int64) ([]interface{}, error) {
 func (t *Table) scanExternal() ([]int64, [][]interface{}, error) {
 	cols := strings.Join(quoteCols(t.cfg.Columns), ", ")
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s ORDER BY %s",
-		quoteSQL(t.cfg.ContentRowid), cols, quoteSQL(t.cfg.ContentTable), quoteSQL(t.cfg.ContentRowid))
+		quoteIdent(t.cfg.ContentRowid), cols, quoteIdent(t.cfg.ContentTable), quoteIdent(t.cfg.ContentRowid))
 	rows, err := t.db.ExecSQL(sql)
 	if err != nil {
 		return nil, nil, err
@@ -405,7 +440,7 @@ func (t *Table) scanExternal() ([]int64, [][]interface{}, error) {
 func quoteCols(cols []string) []string {
 	out := make([]string, len(cols))
 	for i, c := range cols {
-		out[i] = quoteSQL(c)
+		out[i] = quoteIdent(c)
 	}
 	return out
 }

@@ -2,7 +2,11 @@ package fts5
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"unicode"
+
+	"github.com/pijalu/frigolite/internal/fts"
 )
 
 // This file ports the fts5_expr() and fts5_expr_tcl() test-support scalar
@@ -21,8 +25,70 @@ func ExprFuncExpr(args []interface{}) (interface{}, error) { return ExprFunc(arg
 // ExprFuncTcl is the fts5_expr_tcl() registration entry point.
 func ExprFuncTcl(args []interface{}) (interface{}, error) { return ExprFunc(args, true) }
 
+// valueInt coerces a function-argument value to an integer
+// (sqlite3_value_int: REAL truncates toward zero, text parses numerically).
+func valueInt(v interface{}) int {
+	switch x := v.(type) {
+	case nil:
+		return 0
+	case int64:
+		return int(x)
+	case int:
+		return x
+	case float64:
+		return int(x)
+	case string:
+		n, _ := strconv.Atoi(strings.TrimSpace(x))
+		return n
+	case []byte:
+		n, _ := strconv.Atoi(strings.TrimSpace(string(x)))
+		return n
+	}
+	return 0
+}
+
+// IsAlnumFunc implements fts5_isalnum(iCode) (fts5_expr.c fts5ExprIsAlnum):
+// 1 when the codepoint's Unicode category is L*, N* or Co — the same set the
+// unicode61 tokenizer treats as token characters. Registered with the other
+// SQLITE_TEST-only fts5 expression helpers.
+func IsAlnumFunc(args []interface{}) (interface{}, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("wrong number of arguments to function fts5_isalnum")
+	}
+	r := rune(uint32(valueInt(args[0])))
+	isAlnum := false
+	for _, tbl := range []*unicode.RangeTable{unicode.L, unicode.N, unicode.Co} {
+		if unicode.Is(tbl, r) {
+			isAlnum = true
+			break
+		}
+	}
+	if isAlnum {
+		return 1, nil
+	}
+	return 0, nil
+}
+
+// FoldFunc implements fts5_fold(iCode [, bRemoveDiacritics]) (fts5_expr.c
+// fts5ExprFold): the unicode61 case/diacritic fold of one codepoint.
+func FoldFunc(args []interface{}) (interface{}, error) {
+	if len(args) != 1 && len(args) != 2 {
+		return nil, fmt.Errorf("wrong number of arguments to function fts5_fold")
+	}
+	iCode := valueInt(args[0])
+	bRemoveDiacritics := 0
+	if len(args) == 2 {
+		bRemoveDiacritics = valueInt(args[1])
+	}
+	return fts.Unicode61Fold(iCode, bRemoveDiacritics), nil
+}
+
 // ExprFunc implements fts5_expr() (bTcl=false) and fts5_expr_tcl()
-// (bTcl=true). An empty parse (a zero-token phrase root) renders as "".
+// (bTcl=true). The trailing arguments go through the full config parse
+// (C's azConfig -> sqlite3Fts5ConfigParse), so tokenize= directives apply and
+// a malformed argument fails with C's "parse error in \"%s\"" — an empty
+// argument fails too (fts5ConfigSkipBareword returns NULL for it,
+// fts5_config.c:627). An empty parse (a zero-token phrase root) renders as "".
 func ExprFunc(args []interface{}, bTcl bool) (interface{}, error) {
 	name := "fts5_expr"
 	if bTcl {
@@ -37,11 +103,15 @@ func ExprFunc(args []interface{}, bTcl bool) (interface{}, error) {
 		nearsetCmd = valueText(args[1])
 		iArg = 2
 	}
-	cols := make([]string, 0, len(args)-iArg)
+	cfgArgs := make([]string, 0, len(args)-iArg)
 	for ; iArg < len(args); iArg++ {
-		cols = append(cols, valueText(args[iArg]))
+		s := valueText(args[iArg])
+		if s == "" {
+			return nil, fmt.Errorf("parse error in \"\"")
+		}
+		cfgArgs = append(cfgArgs, s)
 	}
-	t, err := syntheticExprTable(cols)
+	t, err := syntheticExprTable(cfgArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -60,17 +130,18 @@ func ExprFunc(args []interface{}, bTcl bool) (interface{}, error) {
 }
 
 // syntheticExprTable builds the bare table the expression parses against
-// (no index and no storage: only the column list, the default tokenizer and
-// detail=full take part in parsing).
-func syntheticExprTable(cols []string) (*Table, error) {
-	tok, err := NewTokenizer([]string{"unicode61"})
+// (no index and no storage: only the column list, the tokenizer and the
+// detail mode take part in parsing).
+func syntheticExprTable(cfgArgs []string) (*Table, error) {
+	cfg, err := ParseConfig("tbl", cfgArgs)
 	if err != nil {
 		return nil, err
 	}
-	return &Table{
-		cfg: &Config{Name: "tbl", Columns: cols, Detail: DetailFull},
-		tok: tok,
-	}, nil
+	tok, err := tableTokenizer(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &Table{cfg: cfg, tok: tok}, nil
 }
 
 // printExpr ports fts5ExprPrint.

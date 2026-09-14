@@ -30,9 +30,40 @@ type AuxQuery struct {
 	root    queryNode
 	phrases []*phraseNode
 	hits    []int
+	// special marks a special-query cursor ('*id'/'*reads'): every aux
+	// function call on its rows fails like C's fts5ApiInvoke on an
+	// FTS5_PLAN_SPECIAL cursor. specialValue records the cursor's value so
+	// the error message carries the hidden column's value.
+	special      bool
+	specialValue int64
 	// auxdata holds the statement-scoped integer auxdata slots the
 	// test-support functions use (xSetAuxdataInt/xGetAuxdataInt parity).
 	auxdata map[string]int64
+}
+
+// NewSpecialAux builds the aux context of a special-query cursor: aux
+// function calls must fail with "no such cursor: <value>" where value is the
+// special query's result (the cursor's hidden-column value).
+func (t *Table) NewSpecialAux(value int64) *AuxQuery {
+	return &AuxQuery{t: t, root: eofNode{}, special: true, specialValue: value}
+}
+
+// IsSpecial reports whether the context belongs to a special-query cursor.
+func (aq *AuxQuery) IsSpecial() bool { return aq.special }
+
+// SpecialValue returns the special query's value for the "no such cursor"
+// message (fts5_misc.h: fts5ApiInvoke prints the hidden column's value).
+func (aq *AuxQuery) SpecialValue() int64 { return aq.specialValue }
+
+// globalCursorID is the process-wide fts5 cursor counter every vtab cursor
+// receives at open (Fts5Global.iNextCursorId): '*id' reports it.
+var globalCursorID int64
+
+// NextCursorID allocates the next cursor id (fts5Filter's cursor
+// registration). C numbers cursors process-wide in open order.
+func (t *Table) NextCursorID() int64 {
+	globalCursorID++
+	return globalCursorID
 }
 
 // PrepareAux parses a MATCH query for auxiliary-function evaluation. col

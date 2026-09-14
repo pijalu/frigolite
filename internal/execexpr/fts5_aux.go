@@ -42,6 +42,7 @@ var fts5AuxDispatch = map[string]bool{
 	"bm25":                      true,
 	"highlight":                 true,
 	"snippet":                   true,
+	"matchinfo":                 true,
 	"fts5_get_locale":           true,
 	"inst":                      true,
 	"colsize":                   true,
@@ -86,9 +87,10 @@ func (ev *Evaluator) evalFTS5Aux(name string, f *sql.FuncCall, row Row) (interfa
 	if !fts5AuxFuncs(lower) {
 		return nil, false, nil
 	}
-	// snippet() is also an FTS3/4 auxiliary function: when the statement's
-	// FTS context or the first argument names an FTS3 table, FTS3 owns it.
-	if lower == "snippet" && ev.snippetBelongsToFTS3(f) {
+	// snippet()/matchinfo() are also FTS3/4 auxiliary functions: when the
+	// statement's FTS context or the first argument names an FTS3 table,
+	// the FTS3 implementation owns the call.
+	if (lower == "snippet" || lower == "matchinfo") && ev.snippetBelongsToFTS3(f) {
 		return nil, false, nil
 	}
 	unusable := fmt.Errorf("unable to use function %s in the requested context", lower)
@@ -145,6 +147,13 @@ func (ev *Evaluator) evalFTS5Aux(name string, f *sql.FuncCall, row Row) (interfa
 	}
 	if aq == nil {
 		aq = t5.NewScanAux()
+	}
+	if aq.IsSpecial() {
+		// A special-query cursor ('*id'/'*reads'): C's fts5ApiInvoke fails
+		// every aux call with "no such cursor: <hidden-column value>"
+		// (fts5_main.c: ePlan==FTS5_PLAN_SPECIAL). The stored value is the
+		// special query's result.
+		return nil, true, fmt.Errorf("no such cursor: %d", aq.SpecialValue())
 	}
 	val, err := ev.evalFTS5AuxFunc(lower, t5, aq, f, row)
 	return val, true, err
@@ -264,6 +273,16 @@ func (ev *Evaluator) evalFTS5TestFunc(lower string, t5 *fts5.Table, aq *fts5.Aux
 			return nil, err
 		}
 		return aq.ColumnSize(rowid, i)
+	case "matchinfo": // fts5_test_mi.c's matchinfo(t, zArg)
+		flag := ""
+		if len(args) > 0 {
+			v, err := ev.evalExpr(args[0], row)
+			if err != nil {
+				return nil, err
+			}
+			flag = valueTextOf(util.UnwrapColumnValue(v))
+		}
+		return aq.Matchinfo(rowid, flag)
 	case "totalsize": // xColumnTotalSize(i)
 		i, err := argInt(0)
 		if err != nil {

@@ -102,10 +102,10 @@ func (t *Table) MatchUniverse(where sql.Expr, evalExpr func(sql.Expr) (interface
 		if err != nil {
 			return nil, err
 		}
-		q, ok := util.UnwrapColumnValue(qv).(string)
-		if !ok {
-			continue
-		}
+		// The query text is rendered with sqlite3_value_text semantics
+		// (fts5ExtractExprText): NULL yields "" — whose parse fails with
+		// C's "fts5: syntax error near \"\"" (fts5simple 6.2/6.3).
+		q := util.SQLiteValueString(util.UnwrapColumnValue(qv))
 		set, merr := t.MatchRowids(q, col)
 		if merr != nil {
 			return nil, merr

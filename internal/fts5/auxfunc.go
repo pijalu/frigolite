@@ -37,7 +37,11 @@ func (aq *AuxQuery) Inst(rowid int64, i int) (Inst, error) {
 }
 
 // ColumnSize returns the row's token count in column iCol, or the whole
-// document's count for -1 (xColumnSize).
+// document's count for -1 (xColumnSize). With columnsize=0 there is no
+// stored size: when the content is unavailable (content NONE — including
+// content='' — or UNINDEXED content) xColumnSize reports -1 for every
+// indexed column and 0 for unindexed ones (fts5_main.c
+// fts5ApiColumnSize's REQUIRE_DOCSIZE branches).
 func (aq *AuxQuery) ColumnSize(rowid int64, iCol int) (int64, error) {
 	t := aq.t
 	switch {
@@ -45,6 +49,11 @@ func (aq *AuxQuery) ColumnSize(rowid int64, iCol int) (int64, error) {
 		return int64(t.docTokenCount(rowid)), nil
 	case iCol < 0 || iCol >= len(t.cfg.Columns):
 		return 0, ErrSQLITERange
+	}
+	if !t.cfg.ColumnSize &&
+		(t.cfg.EContent == ContentNone || t.cfg.EContent == ContentUnindexed) &&
+		!t.cfg.Unindexed[iCol] {
+		return -1, nil
 	}
 	return int64(t.columnTokenCount(rowid, iCol)), nil
 }

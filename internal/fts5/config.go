@@ -137,10 +137,13 @@ func finishConfig(cfg *Config) error {
 	if cfg.ContentlessUnindexed && !cfg.Contentless() {
 		return fmt.Errorf("contentless_unindexed=1 requires a contentless table")
 	}
-	if cfg.EContent != ContentNone && cfg.ContentTable == "" {
+	if cfg.EContent == ContentNone && cfg.ContentTable == "" {
 		// C fills zContent with the default shadow (%_content/%_docsize); the
 		// Go storage layer derives shadow names from the mode, so only the
-		// contentless_unindexed promotion happens here.
+		// contentless_unindexed promotion happens here. C's chain
+		// (fts5_config.c:690) promotes any non-NORMAL content table with
+		// UNINDEXED columns and contentless_unindexed=1 — in practice the
+		// content= (NONE) tables.
 		if len(cfg.Unindexed) > 0 && cfg.ContentlessUnindexed {
 			cfg.EContent = ContentUnindexed
 		}
@@ -165,8 +168,13 @@ func splitConfigArg(arg string) (key, val string, isOption bool, err error) {
 		if quoted {
 			return "", "", false, fmt.Errorf("parse error in \"%s\"", arg)
 		}
-		rest = rest[1:]
-		rest = skipWhitespace(rest)
+		rest = strings.TrimLeft(rest[1:], " \t\n\r\v\f")
+		if rest == "" {
+			// C leaves the value word NULL for "option=" — parsed as an
+			// empty value (fts5ConfigParse passes zTwo?:"" to
+			// fts5ConfigParseSpecial; fts5content 7.4 content= etc.).
+			return k, "", true, nil
+		}
 		rest, v, _, ok := gobbleWord(rest)
 		if !ok {
 			return "", "", false, fmt.Errorf("parse error in \"%s\"", arg)
@@ -414,8 +422,11 @@ func parsePrefix(cfg *Config, val string) error {
 }
 
 // parseTokenize parses the tokenize= directive value into whitespace-separated
-// words (fts5ConfigParseSpecial's tokenize branch): bare or quoted, each
-// dequoted. Only one tokenize directive is allowed per table.
+// words (fts5ConfigParseSpecial's tokenize branch, fts5_config.c:298): a word
+// starting with ' is validated as an SQL literal (fts5ConfigSkipLiteral) and
+// dequoted (sqlite3Fts5Dequote); any other word must be a bareword
+// (fts5ConfigSkipBareword) and is not dequoted. Only one tokenize directive
+// is allowed per table.
 func parseTokenize(cfg *Config, val string) error {
 	if cfg.TokSpec != nil {
 		return fmt.Errorf("multiple tokenize=... directives")
@@ -426,9 +437,23 @@ func parseTokenize(cfg *Config, val string) error {
 		if p == "" {
 			break
 		}
-		rest, word, _, ok := gobbleWord(p)
-		if !ok {
-			return fmt.Errorf("parse error in tokenize directive")
+		var word, rest string
+		if p[0] == '\'' {
+			r, ok := skipSQLLiteral(p)
+			if !ok {
+				return fmt.Errorf("parse error in tokenize directive")
+			}
+			rest = r
+			word = fts5Dequote(p[:len(p)-len(r)])
+		} else {
+			i := 0
+			for i < len(p) && isFts5BarewordByte(p[i]) {
+				i++
+			}
+			if i == 0 {
+				return fmt.Errorf("parse error in tokenize directive")
+			}
+			word, rest = p[:i], p[i:]
 		}
 		cfg.TokSpec = append(cfg.TokSpec, word)
 		p = rest
@@ -437,4 +462,74 @@ func parseTokenize(cfg *Config, val string) error {
 		return fmt.Errorf("parse error in tokenize directive")
 	}
 	return nil
+}
+
+// skipSQLLiteral consumes one '-quoted SQL literal with '' escapes
+// (fts5ConfigSkipLiteral's quote branch). It returns the text after the
+// literal, or ok=false when the literal is unterminated.
+func skipSQLLiteral(s string) (rest string, ok bool) {
+	i := 1
+	for i < len(s) {
+		if s[i] == '\'' {
+			if i+1 >= len(s) {
+				return s[i+1:], true
+			}
+			if s[i+1] != '\'' {
+				return s[i+1:], true
+			}
+			i += 2
+			continue
+		}
+		i++
+	}
+	return "", false
+}
+
+// fts5Dequote removes surrounding quotes (fts5Dequote): the quote character
+// is s[0] ('[', '\'', '"' or '`'); doubled quotes are escapes. s is returned
+// unchanged when it does not start with an open-quote character.
+func fts5Dequote(s string) string {
+	if s == "" {
+		return s
+	}
+	q := s[0]
+	switch q {
+	case '\'', '"', '`', '[':
+	default:
+		return s
+	}
+	closeQ := q
+	if q == '[' {
+		closeQ = ']'
+	}
+	var b strings.Builder
+	i := 1
+	for i < len(s) {
+		if s[i] == closeQ {
+			if q != '[' && i+1 < len(s) && s[i+1] == q {
+				b.WriteByte(q)
+				i += 2
+				continue
+			}
+			break
+		}
+		b.WriteByte(s[i])
+		i++
+	}
+	return b.String()
+}
+
+// isFts5BarewordByte mirrors sqlite3Fts5IsBareword: digits, A-Z, a-z, '_',
+// 0x1A (the unicode substitute character) and every byte >= 0x80.
+func isFts5BarewordByte(b byte) bool {
+	if b >= 0x80 {
+		return true
+	}
+	switch {
+	case b >= '0' && b <= '9', b >= 'A' && b <= 'Z', b >= 'a' && b <= 'z':
+		return true
+	case b == '_', b == 0x1A:
+		return true
+	}
+	return false
 }
