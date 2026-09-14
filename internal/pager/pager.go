@@ -1525,6 +1525,11 @@ func (p *Pager) walIndexRefreshLocked() (bool, error) {
 		// An unparsable wal-index that cannot be recovered right now
 		// (another connection holds it busy, or the retry budget burned):
 		// surface the error to the statement (walTryBeginRead's contract).
+		// pager.c pagerBeginReadTransaction (L3257-3261) drops the cache on
+		// a FAILED read-transaction open as well as a changed one — a
+		// failed snapshot open must not leave snapshot-era pages cached.
+		p.pages = make(map[uint32]*Page)
+		p.header = nil
 		return false, err
 	}
 	// Adopt the shared state ONLY when the header moved (another

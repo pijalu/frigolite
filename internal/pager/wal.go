@@ -65,6 +65,20 @@ type walWriter struct {
 	// below it — they are already in the main file and the hash tables may
 	// hold stale entries for them.
 	minFrame uint32
+	// snapshot is the armed sqlite3_snapshot (C's pWal->pSnapshot,
+	// wal.c L548): when non-nil, the NEXT read transaction pins mxFrame at
+	// the snapshot's (capped, wal.c L3158) and verifies the salt /
+	// nBackfillAttempted under the shared CKPT lock (wal.c L3401-3441) —
+	// SQLITE_ERROR_SNAPSHOT ("snapshot is out of date") when the WAL was
+	// wrapped or checkpointed past the snapshot. Arming is scoped to one
+	// read-transaction open (see walsnapshot.go).
+	snapshot *Snapshot
+	// bGetSnapshot is C's pWal->bGetSnapshot (wal.c L549), set while a read
+	// transaction is opened on behalf of sqlite3_snapshot_get: the
+	// fully-backfilled READ_LOCK(0) shortcut is skipped (unless mxFrame==0)
+	// so the snapshot cannot be destroyed by a later WAL wrap while the
+	// caller's transaction stays open (wal.c L3116).
+	bGetSnapshot bool
 	// exclusiveMode is locking_mode=EXCLUSIVE: every shm lock call becomes a
 	// no-op (wal.c walLockShared/walLockExclusive).
 	exclusiveMode bool

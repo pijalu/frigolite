@@ -5,8 +5,173 @@
 package speed3
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_speed3(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_speed3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var NROW string
+	_ = NROW // pre-declared from TCL source
+	var ones string
+	_ = ones // pre-declared from TCL source
+	var tens string
+	_ = tens // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var repeats string
+	_ = repeats // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var stats1_read string
+	_ = stats1_read // pre-declared from TCL source
+	var stats1_write string
+	_ = stats1_write // pre-declared from TCL source
+	var stats2_read string
+	_ = stats2_read // pre-declared from TCL source
+	var stats2_write string
+	_ = stats2_write // pre-declared from TCL source
+	stats1Map := map[string]string{}
+	_ = stats1Map // dynamic-key array from TCL source
+	stats2Map := map[string]string{}
+	_ = stats2Map // dynamic-key array from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// speed_trial_init speed1 (unsupported command, not transpiled)
+	// expr srand(0) (not evaluated)
+	vtab.TclVarSet("NROW", "", "1000")
+	NROW = "1000" // TCL namespace variable
+	_ = NROW // suppress unused warning
+	vtab.TclVarSet("ones", "", "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen")
+	ones = "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen"
+	_ = ones // suppress unused warning
+	vtab.TclVarSet("tens", "", "{} ten twenty thirty forty fifty sixty seventy eighty ninety")
+	tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
+	_ = tens // suppress unused warning
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	os.Remove("test2.db")
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';")
+	{ // do_test "speed3-0.1"
+		_res = db.Exec("\n    CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);\n  ")
+		}
+		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "speed3-0.2"
+		_res = db.Exec("\n    CREATE TABLE aux.t1(a INTEGER, b TEXT, c INTEGER);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE aux.t1(a INTEGER, b TEXT, c INTEGER);\n  ")
+		}
+		r = db.Query("\n    SELECT name FROM aux.sqlite_master ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM aux.sqlite_master ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "speed3-0.3"
+		// proc populate_t1 (not transpiled)
+		r = db.Query("\n    SELECT count(*) FROM main.t1;\n    SELECT count(*) FROM aux.t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM main.t1;\n    SELECT count(*) FROM aux.t1;\n  ")
+		}
+	}
+	{ // do_test "speed3-0.4"
+		r = db.Query("\n    PRAGMA main.auto_vacuum;\n    PRAGMA aux.auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.auto_vacuum;\n    PRAGMA aux.auto_vacuum;\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';")
+	// speed_trial speed3-1.incrvacuum $::NROW row {DELETE FROM main.t1 WHERE 1} (unsupported command, not transpiled)
+	// speed_trial speed3-1.normal $::NROW row {DELETE FROM aux.t1 WHERE 1} (unsupported command, not transpiled)
+	// io_log db (unsupported command, not transpiled)
+	_res = db.Exec("BEGIN")
+	for _ii := 0; _ii < toInt(NROW); _ii++ {
+		_n := tclNumberName(_ii)
+		_repeats := 10000/len(_n) + 1
+		_text := tclStringRepeat(_n, _repeats)
+		if len(_text) > 10001 {
+			_text = _text[:10001]
+		}
+		_res = db.Exec("INSERT INTO main.t1 VALUES(" + strconv.Itoa(_ii) + ", " + sqlLiteral(_text) + ", " + strconv.Itoa(_ii) + ")")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v", _res.Error)
+		}
+	}
+	_res = db.Exec("INSERT INTO aux.t1 SELECT * FROM main.t1")
+	_res = db.Exec("COMMIT")
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';")
+	// speed_trial speed3-2.incrvacuum $::NROW row {SELECT c FROM main.t1} (unsupported command, not transpiled)
+	// speed_trial speed3-2.normal $::NROW row {SELECT c FROM aux.t1} (unsupported command, not transpiled)
+	// io_log db (unsupported command, not transpiled)
+}

@@ -334,17 +334,51 @@ func (tp *transpiler) processCreateT1(args []tcl.RawWord) {
 	tp.emitLine("}")
 }
 
-// processPopulateT1 handles the incrblob4.test `populate_t1` proc: inserts 26
-// rows (a-z) each with a 900-char repeated string.
+// processPopulateT1 handles a file's `populate_t1` proc. The name is shared
+// by unrelated files with different table shapes, so dispatch on the source
+// file: incrblob4.test inserts 26 rows (a-z) of a 900-char repeated string
+// into t1(v); speed3.test populates main.t1(a,b,c) with NROW rows whose text
+// is built from number_name, then copies into aux.t1.
 func (tp *transpiler) processPopulateT1(args []tcl.RawWord) {
-	tp.emitLine("for _, _ch := range []string{\"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"} {")
-	tp.indent++
-	tp.emitLine("_res = %s.Exec(\"INSERT INTO t1(v) VALUES(\" + sqlLiteral(tclStringRepeat(_ch, 900)) + \")\")", tp.dbVar)
-	tp.emitLine("if _res.Error != nil {")
-	tp.emitLine("\tt.Errorf(\"exec error: %%v\", _res.Error)")
-	tp.emitLine("}")
-	tp.indent--
-	tp.emitLine("}")
+	switch {
+	case strings.Contains(tp.currentTestFile, "incrblob4"):
+		tp.emitLine("for _, _ch := range []string{\"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"} {")
+		tp.indent++
+		tp.emitLine("_res = %s.Exec(\"INSERT INTO t1(v) VALUES(\" + sqlLiteral(tclStringRepeat(_ch, 900)) + \")\")", tp.dbVar)
+		tp.emitLine("if _res.Error != nil {")
+		tp.emitLine("\tt.Errorf(\"exec error: %%v\", _res.Error)")
+		tp.emitLine("}")
+		tp.indent--
+		tp.emitLine("}")
+	case strings.Contains(tp.currentTestFile, "speed3"):
+		// proc populate_t1 {db} { $db transaction {
+		//   for {set ii 0} {$ii < $::NROW} {incr ii} {
+		//     set N [number_name $ii]
+		//     set repeats [expr {(10000/[string length $N])+1}]
+		//     set text [string range [string repeat $N $repeats] 0 10000]
+		//     $db eval {INSERT INTO main.t1 VALUES($ii, $text, $ii)}
+		//   }
+		//   $db eval {INSERT INTO aux.t1 SELECT * FROM main.t1} } }
+		tp.emitLine("_res = %s.Exec(\"BEGIN\")", tp.dbVar)
+		tp.emitLine("for _ii := 0; _ii < toInt(NROW); _ii++ {")
+		tp.indent++
+		tp.emitLine("_n := tclNumberName(_ii)")
+		tp.emitLine("_repeats := 10000/len(_n) + 1")
+		tp.emitLine("_text := tclStringRepeat(_n, _repeats)")
+		tp.emitLine("if len(_text) > 10001 {")
+		tp.emitLine("\t_text = _text[:10001]")
+		tp.emitLine("}")
+		tp.emitLine("_res = %s.Exec(\"INSERT INTO main.t1 VALUES(\" + strconv.Itoa(_ii) + \", \" + sqlLiteral(_text) + \", \" + strconv.Itoa(_ii) + \")\")", tp.dbVar)
+		tp.emitLine("if _res.Error != nil {")
+		tp.emitLine("\tt.Errorf(\"exec error: %%v\", _res.Error)")
+		tp.emitLine("}")
+		tp.indent--
+		tp.emitLine("}")
+		tp.emitLine("_res = %s.Exec(\"INSERT INTO aux.t1 SELECT * FROM main.t1\")", tp.dbVar)
+		tp.emitLine("_res = %s.Exec(\"COMMIT\")", tp.dbVar)
+	default:
+		tp.emitLine("// proc populate_t1 (not transpiled)")
+	}
 }
 
 func (tp *transpiler) processSqlite3BlobOpen(args []tcl.RawWord) {

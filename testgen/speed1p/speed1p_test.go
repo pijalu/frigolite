@@ -5,8 +5,405 @@
 package speed1p
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_speed1p(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_speed1p(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var old_lookaside string
+	_ = old_lookaside // pre-declared from TCL source
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ones string
+	_ = ones // pre-declared from TCL source
+	var tens string
+	_ = tens // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var list string
+	_ = list // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var lwr string
+	_ = lwr // pre-declared from TCL source
+	var upr string
+	_ = upr // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var pattern string
+	_ = pattern // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		_r = ""
+		db.Close()
+	}
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	old_lookaside = "sqlite3_config_lookaside 2048 300"
+	_ = old_lookaside // suppress unused warning
+	// set testdir: test directory (not used in Go test context)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// speed_trial_init speed1 (unsupported command, not transpiled)
+	// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
+	// expr srand(0) (not evaluated)
+	vtab.TclVarSet("ones", "", "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen")
+	ones = "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen"
+	_ = ones // suppress unused warning
+	vtab.TclVarSet("tens", "", "{} ten twenty thirty forty fifty sixty seventy eighty ninety")
+	tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
+	_ = tens // suppress unused warning
+	// proc definition (not transpiled)
+	{ // do_test "speed1p-1.0"
+		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=500;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=500;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
+		}
+		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
+		}
+	}
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		x = "number_name $r"
+		_ = x // suppress unused warning
+		list = tclListAppend(list, i, _r, x)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t1 VALUES($i,$r,$x)}\n  }\n")
+	script = "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t1 VALUES($i,$r,$x)}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-insert1 50000 row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		x = "number_name $r"
+		_ = x // suppress unused warning
+		list = tclListAppend(list, i, _r, x)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t2 VALUES($i,$r,$x)}\n  }\n")
+	script = "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t2 VALUES($i,$r,$x)}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-insert2 50000 row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
+		lwr = tclExprWith("$i*100", map[string]string{"i": i})
+		_ = lwr // suppress unused warning
+		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
+		_ = upr // suppress unused warning
+		list = tclListAppend(list, lwr, upr)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach {lwr upr} $::list {\n    db eval  {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n")
+	script = "\n  foreach {lwr upr} $::list {\n    db eval  {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-select1 [expr {50*50000}] row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
+		list = tclListAppend(list, "%" + "number_name $i" + "%")
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach pattern $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE c LIKE $pattern}\n  }\n")
+	script = "\n  foreach pattern $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE c LIKE $pattern}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-select2 [expr {50*50000}] row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1p-createidx 150000 row {\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b... (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
+		lwr = tclExprWith("$i*100", map[string]string{"i": i})
+		_ = lwr // suppress unused warning
+		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
+		_ = upr // suppress unused warning
+		list = tclListAppend(list, lwr, upr)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach {lwr upr} $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n")
+	script = "\n  foreach {lwr upr} $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-select3 5000 stmt $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
+		id = "1"
+		_ = id // suppress unused warning
+		list = tclListAppend(list, id)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE rowid=$id}\n  }\n")
+	script = "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE rowid=$id}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-select4 100000 row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
+		id = "1"
+		_ = id // suppress unused warning
+		list = tclListAppend(list, id)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE a=$id}\n  }\n")
+	script = "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE a=$id}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-select5 100000 row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	_dbeval0 := tclExecSQL(db, "SELECT c FROM t1 ORDER BY random() LIMIT 50000")
+	list = _dbeval0
+	_ = list // suppress unused warning
+	vtab.TclVarSet("script", "", "\n  foreach c $::list {\n    db eval {SELECT c FROM t1 WHERE c=$c}\n  }\n")
+	script = "\n  foreach c $::list {\n    db eval {SELECT c FROM t1 WHERE c=$c}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-select6 50000 row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1p-vacuum 100000 row VACUUM (unsupported command, not transpiled)
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
+		lwr = tclExprWith("$i*2", map[string]string{"i": i})
+		_ = lwr // suppress unused warning
+		upr = tclExprWith("($i+1)*2", map[string]string{"i": i})
+		_ = upr // suppress unused warning
+		list = tclListAppend(list, lwr, upr)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach {lwr upr} $::list {\n    db eval {UPDATE t1 SET b=b*2 WHERE a>=$lwr AND a<$upr}\n  }\n")
+	script = "\n  foreach {lwr upr} $::list {\n    db eval {UPDATE t1 SET b=b*2 WHERE a>=$lwr AND a<$upr}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-update1 5000 stmt $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		list = tclListAppend(list, i, _r)
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach {i r} $::list {\n    db eval {UPDATE t1 SET b=$r WHERE a=$i}\n  }\n")
+	script = "\n  foreach {i r} $::list {\n    db eval {UPDATE t1 SET b=$r WHERE a=$i}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-update2 50000 row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1p-update3 50000 row {\n  UPDATE t1 SET c=a;\n} (unsupported command, not transpiled)
+	vtab.TclVarSet("list", "", "")
+	list = ""
+	_ = list // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		list = tclListAppend(list, i, "number_name $r")
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("script", "", "\n  foreach {i x} $::list {\n    db eval {UPDATE t1 SET c=$x WHERE a=$i}\n  }\n")
+	script = "\n  foreach {i x} $::list {\n    db eval {UPDATE t1 SET c=$x WHERE a=$i}\n  }\n"
+	_ = script // suppress unused warning
+	_res = db.Exec("BEGIN")
+	// speed_trial_tcl speed1p-update4 50000 row $script (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1p-delete1 50000 row {DELETE FROM t1} (unsupported command, not transpiled)
+	// speed_trial speed1p-copy1 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	// speed_trial speed1p-delete2 50000 row {DELETE FROM t1 WHERE 1} (unsupported command, not transpiled)
+	// speed_trial speed1p-copy2 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1p-drop1 50000 row {\n   DROP TABLE t1;\n   CREATE TABLE t1(a INTEGER,...} (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1p-copy3 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	// speed_trial speed1p-random1 50000 row {\n  SELECT rowid FROM t1 ORDER BY random() LIMIT 2...... (unsupported command, not transpiled)
+	// speed_trial speed1p-random-del1 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT ro... (unsupported command, not transpiled)
+	{ // do_test "speed1p-1.1"
+	}
+	// speed_trial speed1p-random-del2 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT ro... (unsupported command, not transpiled)
+	{ // do_test "speed1p-1.2"
+	}
+	// speed_trial_summary speed1 (unsupported command, not transpiled)
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// eval (dynamic, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
+}

@@ -315,6 +315,24 @@ func (w *WALIndex) walCleanupHashLocked(mxFrame uint32) {
 	w.markDirtyLocked(iHash)
 }
 
+// pgnoAtFrameLocked returns the database page number recorded for WAL frame
+// iFrame in the pgno→frame hash tables (wal.c walHashGet's aPgno lookup:
+// frame i lives in hash page walFramePage(i) at aPgno[i - iZero - 1]).
+// 0 when the frame has no entry (before the table's iZero or beyond the
+// pgno region). Caller holds w.mu.
+func (w *WALIndex) pgnoAtFrameLocked(iFrame uint32) uint32 {
+	iHash := walFramePageOf(iFrame)
+	loc := newWalHashLoc(w.pageLocked(iHash), iHash)
+	if iFrame < loc.iZero {
+		return 0
+	}
+	idx := int(iFrame - loc.iZero) // -based aPgno index is idx-1 (appendLocked)
+	if idx <= 0 || idx > WalHashtableNPage {
+		return 0
+	}
+	return loc.pgno(idx - 1)
+}
+
 // FindFrame ports walFindFrame (wal.c L3505, minFrame rule included): the
 // largest frame ≤ mxFrame containing pgno, searched newest hash table first;
 // 0 when the page is not in the WAL (or mxFrame is 0 — the WAL is ignored).

@@ -5,8 +5,389 @@
 package speed1
 
 import (
+"errors"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_speed1(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_speed1(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var old_lookaside string
+	_ = old_lookaside // pre-declared from TCL source
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlout string
+	_ = sqlout // pre-declared from TCL source
+	var ones string
+	_ = ones // pre-declared from TCL source
+	var tens string
+	_ = tens // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var lwr string
+	_ = lwr // pre-declared from TCL source
+	var upr string
+	_ = upr // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		_r = ""
+		db.Close()
+	}
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	old_lookaside = "sqlite3_config_lookaside 1000 300"
+	_ = old_lookaside // suppress unused warning
+	// set testdir: test directory (not used in Go test context)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// speed_trial_init speed1 (unsupported command, not transpiled)
+	// expr srand(0) (not evaluated)
+	_ = os.WriteFile("speed1.txt", nil, 0644)
+	sqlout = "speed1.txt"
+	_ = sqlout // suppress unused warning
+	// proc definition (not transpiled)
+	vtab.TclVarSet("ones", "", "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen")
+	ones = "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen"
+	_ = ones // suppress unused warning
+	vtab.TclVarSet("tens", "", "{} ten twenty thirty forty fifty sixty seventy eighty ninety")
+	tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
+	_ = tens // suppress unused warning
+	// proc definition (not transpiled)
+	{ // do_test "speed1-1.0"
+		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=8192;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=8192;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
+		}
+		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
+		}
+	}
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		sql += "INSERT INTO t1 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-insert1 50000 row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		sql += "INSERT INTO t2 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-insert2 50000 row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
+		lwr = tclExprWith("$i*100", map[string]string{"i": i})
+		_ = lwr // suppress unused warning
+		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
+		_ = upr // suppress unused warning
+		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-select1 [expr {50*50000}] row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
+		sql += "SELECT count(*), avg(b) FROM t1 WHERE c LIKE '%" + "number_name $i" + "%';"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-select2 [expr {50*50000}] row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-createidx 150000 row {\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b.... (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
+		lwr = tclExprWith("$i*100", map[string]string{"i": i})
+		_ = lwr // suppress unused warning
+		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
+		_ = upr // suppress unused warning
+		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-select3 5000 stmt $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
+		id = "1"
+		_ = id // suppress unused warning
+		sql += "SELECT c FROM t1 WHERE rowid=" + id + ";"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-select4 100000 row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
+		id = "1"
+		_ = id // suppress unused warning
+		sql += "SELECT c FROM t1 WHERE a=" + id + ";"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-select5 100000 row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	_dbevalRows0 := db.Query("SELECT c FROM t1 ORDER BY random() LIMIT 50000")
+	var _dbevalRb1 bool
+	var _dbevalErr2 error
+	var _dbevalInt3 bool
+	if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
+	db.BeginActiveStatement()
+	for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+		for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+			switch _dbevalRows0.Columns[_ci] {
+				case "c":
+					c = tclStr(_dbevalRows0.Rows[_ri][_ci])
+			}
+		}
+		sql += "SELECT c FROM t1 WHERE c='" + c + "';"
+		if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
+	}
+	db.EndActiveStatement()
+	if _dbevalErr2 != nil {
+		t.Errorf("db eval callback error: %v", _dbevalErr2)
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-select6 50000 row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1-vacuum 100000 row VACUUM (unsupported command, not transpiled)
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
+		lwr = tclExprWith("$i*2", map[string]string{"i": i})
+		_ = lwr // suppress unused warning
+		upr = tclExprWith("($i+1)*2", map[string]string{"i": i})
+		_ = upr // suppress unused warning
+		sql += "UPDATE t1 SET b=b*2 WHERE a>=" + lwr + " AND a<" + upr + ";"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-update1 5000 stmt $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		sql += "UPDATE t1 SET b=" + _r + " WHERE a=" + i + ";"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-update2 50000 row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1-update3 50000 row {\n  UPDATE t1 SET c=a;\n} (unsupported command, not transpiled)
+	vtab.TclVarSet("sql", "", "")
+	sql = ""
+	_ = sql // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
+		_r = "0"
+		_ = _r // suppress unused warning
+		sql += "UPDATE t1 SET c='" + "number_name $r" + "' WHERE a=" + i + ";"
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-update4 50000 row $sql (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1-delete1 50000 row {DELETE FROM t1} (unsupported command, not transpiled)
+	// speed_trial speed1-copy1 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	// speed_trial speed1-delete2 50000 row {DELETE FROM t1 WHERE 1} (unsupported command, not transpiled)
+	// speed_trial speed1-copy2 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	_res = db.Exec("BEGIN")
+	// speed_trial speed1-drop1 50000 row {\n   DROP TABLE t1;\n   CREATE TABLE t1(a INTEGER,...} (unsupported command, not transpiled)
+	_res = db.Exec("COMMIT")
+	// speed_trial speed1-copy3 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	// speed_trial speed1-random1 50000 row {\n  SELECT rowid FROM t1 ORDER BY random() LIMIT 2...} (unsupported command, not transpiled)
+	// speed_trial speed1-random-del1 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT row... (unsupported command, not transpiled)
+	{ // do_test "speed1-1.1"
+	}
+	// speed_trial speed1-random-del2 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT row... (unsupported command, not transpiled)
+	{ // do_test "speed1-1.2"
+	}
+	// speed_trial_summary speed1 (unsupported command, not transpiled)
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// eval (dynamic, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
+}

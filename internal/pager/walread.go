@@ -50,6 +50,22 @@ import (
 // wal.c: BUSY while a recovery is running elsewhere is BUSY_RECOVERY
 // ("database is locked"); exhausting the retry budget is SQLITE_PROTOCOL
 // ("locking protocol").
+//
+// Snapshot anchoring (the SQLITE_ENABLE_SNAPSHOT branch of C's
+// walBeginReadTransaction, wal.c L3357-3448): when a snapshot is armed, the
+// whole open runs under the shared CKPT lock so no concurrent checkpointer
+// can advance nBackfillAttempted mid-check; after the pin, the snapshot is
+// verified against the refreshed live header — a changed salt (the WAL was
+// wrapped) or nBackfillAttempted past the snapshot's mxFrame (a checkpoint
+// attempted to write frames beyond it) fails the open with
+// SQLITE_ERROR_SNAPSHOT and ends the just-taken transaction. On success the
+// connection's header is OVERWRITTEN with the snapshot image (wal.c L3430)
+// and pChanged reports whether the snapshot differed from the pre-open
+// cached header (C overwrites, not ORs, at L3432 — when the snapshot equals
+// the cached header the pager's caches are still valid). A snapshot reader
+// never ignores the start of the log (minFrame=1, wal.c L3437): a
+// checkpointer may have skipped frames below its own nBackfill that this
+// snapshot still needs.
 func (w *walWriter) walBeginReadTxn() (bool, error) {
 	if w.readLock >= 0 {
 		return false, nil // read transaction already open: snapshot frozen
@@ -59,32 +75,121 @@ func (w *walWriter) walBeginReadTxn() (bool, error) {
 		deadline = time.Now().Add(w.busyTimeout)
 	}
 	changed := false
+	// C L3366-3385: armed snapshot ⇒ the whole open runs under the shared
+	// CKPT lock (blocking in C; plain F_SETLK here — a busy CKPT reports
+	// "database is locked" immediately, snapshot.test 5.3's SQLITE_BUSY).
+	releaseCkpt, snapChanged, err := w.walSnapshotPrologue(&changed)
+	if err != nil {
+		return changed, err
+	}
+	if releaseCkpt != nil {
+		defer releaseCkpt()
+	}
+	return w.walReadTxnLoop(&changed, snapChanged, deadline)
+}
+
+// walReadTxnLoop is walBeginReadTxn's walTryBeginRead retry loop (C's
+// `do{...}while(rc==WAL_RETRY)` with the WAL_RETRY_PROTOCOL_LIMIT budget).
+func (w *walWriter) walReadTxnLoop(changed *bool, snapChanged bool, deadline time.Time) (bool, error) {
 	for cnt := 0; ; cnt++ {
 		// C step 1: refresh (and recover, if needed) the wal-index header.
 		// Its busy conversion (BUSY_RECOVERY vs WAL_RETRY) is the wal.c
 		// walIndexReadHdr port; a header error is terminal here.
 		ch, err := w.walIndexReadHdr()
-		changed = changed || ch
+		*changed = *changed || ch
 		if err != nil {
-			return changed, err
+			return *changed, err
 		}
-		// C steps 3-9: one read-mark round under the wal-index mutex.
-		var rerr error
-		_ = w.wi.WriterSection(func() error {
-			rerr = w.walTryBeginReadHeld(true)
-			return nil
-		})
+		// C steps 3-9: one read-mark round under the wal-index mutex, with
+		// the post-pin snapshot verification (C L3401-3441) in the same
+		// section so its nBackfillAttempted read is atomic with the pin.
+		rerr, stale := w.walReadRoundHeld(changed, snapChanged)
+		if stale {
+			w.walEndReadTxn() // wal.c L3439: end the read transaction
+			return *changed, errWalSnapshotStale
+		}
 		if rerr == nil {
-			return changed, nil
+			return *changed, nil
 		}
 		if !errors.Is(rerr, errWalRetry) {
-			return changed, rerr
+			return *changed, rerr
 		}
 		if cnt >= walRetryProtocolLimit {
-			return changed, errWalProtocol
+			return *changed, errWalProtocol
 		}
 		w.walReadRetryPace(cnt, deadline)
 	}
+}
+
+// walSnapshotPrologue ports walBeginReadTransaction's snapshot preamble
+// (wal.c L3366-3385): remember whether the armed snapshot differs from the
+// cached header (the *pChanged answer on the overwrite path), refresh the
+// header once, and exclude checkpointer races with the shared CKPT lock.
+// Returns the release callback for that lock (nil when no snapshot is
+// armed) and the snapshot-vs-cached-header comparison. The refresh's
+// changed signal feeds the same *pChanged answer C's loop produces
+// (walIndexReadHdr writes it through): when the snapshot equals the live
+// header the differ-branch is skipped, so this is the only notice that the
+// cached header (a previously pinned snapshot) is stale and the caches must
+// drop.
+func (w *walWriter) walSnapshotPrologue(changed *bool) (release func(), snapChanged bool, err error) {
+	if w.snapshot == nil {
+		return nil, false, nil
+	}
+	snapChanged = !w.snapshot.hdrEqual(&w.hdr)
+	var ch bool
+	if ch, err = w.walIndexReadHdr(); err != nil {
+		return nil, snapChanged, err
+	}
+	if ch {
+		*changed = true
+	}
+	if err = w.walLockShared(walLockCkpt, 1); err != nil {
+		return nil, snapChanged, err
+	}
+	return func() { w.walUnlockShared(walLockCkpt, 1) }, snapChanged, nil
+}
+
+// walReadRoundHeld runs one read-mark round and — when the pin succeeded
+// with a snapshot armed — the post-pin verification of C L3401-3441 in the
+// same wal-index section. stale marks the SQLITE_ERROR_SNAPSHOT exit, whose
+// walEndReadTxn the caller must run OUTSIDE the section (it takes the shm
+// locks itself).
+func (w *walWriter) walReadRoundHeld(changed *bool, snapChanged bool) (rerr error, stale bool) {
+	_ = w.wi.WriterSection(func() error {
+		if rerr = w.walTryBeginReadHeld(true); rerr != nil {
+			return nil
+		}
+		stale = w.walSnapshotPostPinHeld(changed, snapChanged)
+		return nil
+	})
+	return rerr, stale
+}
+
+// walSnapshotPostPinHeld is the C L3401-3441 tail of a pinned read
+// transaction with a snapshot armed: when the snapshot equals the refreshed
+// live header there is nothing to verify (C skips the whole branch, keeping
+// the loop's *pChanged). Otherwise the snapshot must be valid — the WAL not
+// wrapped (salt unchanged) and no checkpoint attempted frames past it
+// (mxFrame >= nBackfillAttempted) — and the connection's header is
+// OVERWRITTEN with the snapshot image (C overwrites *pChanged with the
+// pre-open comparison at L3432: when the snapshot equals the cached header
+// the pager's caches are still valid) and minFrame resets to 1 (L3437 — a
+// non-current reader may not ignore any log prefix). Returns stale for the
+// ERROR_SNAPSHOT exit. Caller holds the wal-index writer section and the
+// shared CKPT lock.
+func (w *walWriter) walSnapshotPostPinHeld(changed *bool, snapChanged bool) (stale bool) {
+	if w.snapshot == nil || w.snapshot.hdrEqual(&w.hdr) {
+		return false
+	}
+	info := w.wi.ckptInfoLocked()
+	if w.snapshot.ASalt == w.hdr.ASalt && w.snapshot.MxFrame >= info.NBackfillAttempted {
+		w.hdr = WalIndexHdr(*w.snapshot) // wal.c L3430: read at the snapshot
+		*changed = snapChanged
+		w.minFrame = 1 // wal.c L3437
+		return false
+	}
+	return true // wal.c L3433: SQLITE_ERROR_SNAPSHOT
 }
 
 // walReadRetryPace paces read-retry rounds (walTryBeginRead's entry sleep):
@@ -133,15 +238,19 @@ func (w *walWriter) tryLockZeroHeld(info *WalCkptInfo) int {
 // Caller holds the wal-index writer section.
 func (w *walWriter) walTryBeginReadHeld(lock0Allowed bool) error {
 	info := w.wi.ckptInfoLocked()
-	if lock0Allowed && info.NBackfill == w.hdr.MxFrame {
-		switch w.tryLockZeroHeld(&info) {
-		case rdPinOK:
-			return nil
-		case rdPinRetry:
-			return errWalRetry
+	if lock0Allowed {
+		done, err := w.tryLockZeroShortcutHeld(&info)
+		if done {
+			return err
 		}
 	}
-	mxI, mxReadMark := w.walBumpOrSelectHeld(&info, w.hdr.MxFrame)
+	// C wal.c L3157-3160: an armed snapshot caps the frame universe — no
+	// mark may exceed the snapshot's mxFrame.
+	mxFrame := w.hdr.MxFrame
+	if w.snapshot != nil && w.snapshot.MxFrame < mxFrame {
+		mxFrame = w.snapshot.MxFrame
+	}
+	mxI, mxReadMark := w.walBumpOrSelectHeld(&info, mxFrame)
 	if mxI == 0 {
 		// Every mark is above mxFrame and every slot is pinned: retry
 		// (C returns WAL_RETRY on SQLITE_BUSY here).
@@ -162,6 +271,32 @@ func (w *walWriter) walTryBeginReadHeld(lock0Allowed bool) error {
 	}
 	w.readLock = mxI
 	return nil
+}
+
+// tryLockZeroShortcutHeld decides and takes the READ_LOCK(0) "ignore the
+// log" pin (wal.c L3114-3147): it applies only when the log is fully
+// backfilled (nBackfill == mxFrame) AND no snapshot is in play — the
+// transaction-open path for sqlite3_snapshot_get sets bGetSnapshot, and an
+// armed pSnapshot both exclude it (L3114-3117: taking mark 0 would let a
+// later writer wrap the log and destroy the snapshot while the transaction
+// holds) unless mxFrame==0, where there is nothing to preserve. done=true
+// means the round is decided (err nil = pinned; errWalRetry = header moved
+// under the pin); done=false falls through to read-mark selection. Caller
+// holds the wal-index writer section.
+func (w *walWriter) tryLockZeroShortcutHeld(info *WalCkptInfo) (done bool, err error) {
+	if (w.snapshot != nil || w.bGetSnapshot) && w.hdr.MxFrame != 0 {
+		return false, nil
+	}
+	if info.NBackfill != w.hdr.MxFrame {
+		return false, nil
+	}
+	switch w.tryLockZeroHeld(info) {
+	case rdPinOK:
+		return true, nil
+	case rdPinRetry:
+		return true, errWalRetry
+	}
+	return false, nil
 }
 
 // walBumpOrSelectHeld selects the read-mark slot to pin (the largest mark ≤

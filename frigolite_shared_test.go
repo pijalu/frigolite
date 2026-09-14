@@ -85,20 +85,46 @@ func TestSharedCacheContract(t *testing.T) {
 	// --- Documented gap: shared-cache table-level locking is absent -------
 	// In shared-cache mode (shared.test shared-1.4) conn1 holding a read-lock
 	// on `abc` would make conn2's INSERT fail with "database table is
-	// locked: abc". The engine has no such lock table, so the write succeeds
-	// against conn2's independent pager. This is the N-A G7 gap, not a
-	// regression: assert the behavior so it is pinned as the baseline.
+	// locked: abc". The engine has no such lock table — that is the N-A G7
+	// slice-5 gap. The base lock behavior below is ORACLE-VERIFIED
+	// (/usr/bin/sqlite3 3.51.0, python3 double-connection probe):
+	// rollback-journal mode: the writer's INSERT reports "database is
+	// locked" (COMMIT needs EXCLUSIVE while db1 holds SHARED); WAL mode: it
+	// succeeds (wal.c has no reader/writer exclusion).
 	if r := db1.Exec("BEGIN; SELECT * FROM abc"); r.Error != nil {
 		t.Fatalf("db1 read transaction: %v", r.Error)
 	}
-	if r := db2.Exec("INSERT INTO abc VALUES(4, 5, 6)"); r.Error != nil {
-		// If this ever fails with "database table is locked: abc" it means
-		// shared-cache table-level locking landed in G7 — at that point this
-		// package should be un-skipped and this assertion removed.
-		t.Fatalf("without shared-cache table locking this must succeed, got: %v", r.Error)
+	if r := db2.Exec("INSERT INTO abc VALUES(4, 5, 6)"); r.Error == nil {
+		t.Fatalf("rollback-journal: writer blocked by the reader is the oracle contract — the INSERT unexpectedly succeeded")
 	}
 	db1.Exec("ROLLBACK")
 	db2.Exec("ROLLBACK")
 	db1.Close()
 	db2.Close()
+
+	// WAL mode: the same scenario succeeds (slice-3's stmtWALMode exemption:
+	// no reader/writer exclusion in wal.c).
+	db3, err := Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db3.Close()
+	if r := db3.Exec("PRAGMA journal_mode=WAL"); r.Error != nil {
+		t.Fatalf("journal_mode=WAL: %v", r.Error)
+	}
+	if r := db3.Exec("INSERT INTO abc VALUES(4, 5, 6)"); r.Error != nil {
+		t.Fatalf("wal write: %v", r.Error)
+	}
+	db4, err := Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db4.Close()
+	if r := db4.Exec("BEGIN; SELECT * FROM abc"); r.Error != nil {
+		t.Fatalf("wal reader begin: %v", r.Error)
+	}
+	if r := db3.Exec("INSERT INTO abc VALUES(7, 8, 9)"); r.Error != nil {
+		t.Fatalf("wal: writer must NOT block on a reader: %v", r.Error)
+	}
+	db4.Exec("ROLLBACK")
 }

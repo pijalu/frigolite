@@ -85,7 +85,10 @@ func TestParseSkipMaps_Stable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(skips.skipTestFiles) < 280 {
+	// 280 -> 264 (2026-09-14): re-based alongside status_test.go's floor at
+	// the P7.WAL-G7 close (drift tranches T7-T28 un-skipped 21 green
+	// packages; walshared added N-A slice 5).
+	if len(skips.skipTestFiles) < 264 {
 		t.Errorf("skipTestFiles shrank: %d entries", len(skips.skipTestFiles))
 	}
 }

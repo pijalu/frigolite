@@ -6281,3 +6281,48 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **Full-suite runs are invalid while an agent edits engine files in the same
   tree** — go test compiles at package-run time, so results straddle edits. Run
   tools/status only on a quiescent tree (goal close), or in a dedicated worktree.
+
+## 2026-09-14 (session 4c): P7.WAL-G7 slice 4 — sqlite3_snapshot surface
+- **The sqlite3_snapshot blob IS the 48-byte WalIndexHdr image** (sqlite.h.in
+  `hidden[48]`; test1.c `sqlite3_snapshot_get_blob` memcpy's the struct) — LE
+  fields incl. aCksum; frigolite reuses EncodeWalIndexHdr/DecodeWalIndexHdr.
+- **C defines NO message text for the snapshot C-API failures**: main.c
+  sqlite3_snapshot_get/open/recover return bare rc (SQLITE_ERROR) — the
+  sqlite3_errmsg text is sqlite3ErrStr's masked "SQL logic error";
+  SQLITE_ERROR_SNAPSHOT has only the CODE (wal.c L3433/L4582) and the NAME
+  (main.c L1531 sqlite3ErrName). frigolite carriers: "SQL logic error" for
+  contract violations; "snapshot is out of date" → SQLITE_ERROR_SNAPSHOT.
+- **The ERROR_SNAPSHOT check fires ONLY when snapshot != live cached hdr**
+  (wal.c L3401 `memcmp(pSnapshot, &pWal->hdr)`): a snapshot AT the head stays
+  openable after a checkpoint (its frames are all in the main file) but dies
+  at the next WAL RESTART (salt1++ — happens at the writer's next commit when
+  nBackfill==mxFrame and no readers hold marks; snapshot.test 4.2.3).
+- ***pChanged is OVERWRITTEN, not OR'd, on the snapshot overwrite path**
+  (wal.c L3432 `*pChanged = bChanged` — pre-open cached-vs-snapshot compare):
+  when snapshot == cached hdr the pager caches are still valid. When snapshot
+  == LIVE hdr (no differ-branch), the loop's walIndexReadHdr changed signal
+  is the ONLY cache-drop notice — frigolite's pre-CKPT refresh must
+  accumulate it (bug found by TestWalSnapshotOpenReanchorsReadTxn: a
+  re-anchor to the head served a stale page from the older snapshot's read).
+- **pager.c pagerBeginReadTransaction L3257-3261 resets the cache on a FAILED
+  read-txn open too** (`rc!=SQLITE_OK || changed → pager_reset`) — ported into
+  walIndexRefreshLocked's error path so a failed snapshot open cannot leave
+  snapshot-era pages cached.
+- **sqlite3_snapshot_recover needs the recovery-driven nBackfillAttempted
+  bump to matter** (walIndexRecover sets nBA=mxFrame, wal.c L1574): the walk-
+  back scan then proves which "attempted" frames are absent from the main
+  file (never-checkpointed ⇒ all of them, via the db-size guard) or still
+  present (full checkpoint ⇒ frame matches db page ⇒ scan stops, snapshot
+  stays stale — snapshot2-2.5). nBA==nBackfill ⇒ empty scan range.
+- **A same-process CKPT shared lock blocks the connection's own recovery**
+  (the aLock shadow has no owner identity — POSIX would self-upgrade): the
+  snapshot prologue refreshes the header BEFORE taking the CKPT lock so the
+  recovery window closes (corrupt-shm-while-armed is the residual divergence).
+- **SnapshotOpen on an ALREADY-pinned read txn mirrors main.c's
+  check→BtreeCommit→arm→BeginTrans→disarm→Unlock dance under one shared CKPT
+  lock** (bUnlock, L5039-5057); engine must propagate the `changed` signal to
+  invalidateTableCaches + Schema.InvalidateCache (the per-statement gate won't
+  re-pin while the txn holds — same propagation as walBeginStmtWrite).
+- **Empty-WAL check in sqlite3WalSnapshotGet is 16 bytes**: aFrameCksum[2] AND
+  aSalt[2] all zero (memcmp aZero[4] — contiguous C struct fields; in Go two
+  field comparisons).

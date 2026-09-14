@@ -1737,7 +1737,44 @@ notes):
 
 All upgraded unsupportedTestFiles entries cite this section.
 
-## P6.FTS5 T33 — test-support API packages (2026-09-13)
+## P7.WAL-G7 slice 4 — snapshot API packages (2026-09-14)
+
+Slice 4 lands the sqlite3_snapshot surface (src/wal.c SQLITE_ENABLE_SNAPSHOT
+block: sqlite3WalSnapshotGet/Open/Check/Unlock/Recover + snapshot_cmp's
+salt[0]-then-mxFrame ordering + the pSnapshot branch of
+walBeginReadTransaction — CKPT-locked stale check, ERROR_SNAPSHOT on salt
+change or mxFrame < nBackfillAttempted, hdr overwrite + minFrame=1; blob
+forms = the 48-byte LE WalIndexHdr image) in internal/pager/walsnapshot.go +
+internal/exec/wal_snapshot.go + the public API in frigolite.go
+(DB.SnapshotGet/GetBlob/Open/OpenBlob/Cmp/CmpBlob/Recover, SnapshotCmp).
+Error texts: bare contract violations (autocommit on, temp schema, write
+txn, non-WAL, empty WAL) surface "SQL logic error" (sqlite3ErrStr's
+SQLITE_ERROR text); staleness surfaces "snapshot is out of date" mapping to
+SQLITE_ERROR_SNAPSHOT (C defines no message; name from main.c L1531).
+pager.c pagerBeginReadTransaction L3257-3261 parity: a FAILED read-txn open
+now drops the pager cache too (walIndexRefreshLocked).
+
+Triage: all five target packages RUN UN-SKIPPED as currently generated —
+they "pass" as EMPTY STUBS (whole-file skipTestFiles entries make tcl2go
+emit `func Test_x(t *testing.T) {}` with the reason baked in — e.g.
+testgen/snapshot/snapshot_test.go contains zero assertions). tcl2go has no
+handler for the sqlite3_snapshot_* commands (74 occurrences across the five
+sources) nor for snapshot2's sqlite3_db_config NO_CKPT_ON_CLOSE or
+snapshot4's testvfs, so a real transpilation has nothing to emit; the
+engine-visible contract is pinned natively instead:
+
+| package | harness machinery (untranspilable) | engine contract pinned natively (frigolite_walsnapshot_test.go) |
+|---|---|---|
+| snapshot | sqlite3_snapshot_get/open/cmp/free + _blob wrappers (test1.c) | TestWalSnapshotGetErrors (1.1-1.3), TestWalSnapshotRepeatableRead (2.1/2.2), TestWalSnapshotWriteInSnapshotBusy (2.3.3), TestWalSnapshotStaleAfterCheckpoint/AfterRestart (4.x), TestWalSnapshotOpenErrors (3.x), TestWalSnapshotCmp (cmp+blob) |
+| snapshot2 | _blob forms + sqlite3_snapshot_recover + NO_CKPT_ON_CLOSE | TestWalSnapshotRecover (2.3 walk-back), TestWalSnapshotFullCheckpointKeepsStale (2.5), TestWalSnapshotRecoverErrors (4.x), TestWalSnapshotRecoverAfterGrow (3.x), TestWalSnapshotCmp (blob len 48 / "bad SNAPSHOT") |
+| snapshot3 | three-connection snapshot_open + ERROR_SNAPSHOT via C API | TestWalSnapshotStaleAfterCheckpoint / TestWalSnapshotFreshConnectionOpen (6.3/6.4) |
+| snapshot4 | testvfs xShmLock instrumentation around snapshot_open | lock surface: frigolite_wallocks_test.go; snapshot contract: TestWalSnapshot* |
+| snapshot_up | snapshot_open with a read transaction already open | TestWalSnapshotOpenReanchorsReadTxn (1.3-1.5 re-anchor) |
+
+`snapshot_fault` keeps its genuine harness N-A entry (sqlite3_test_control
+FAULT_INSTALL). All five skipTestFiles entries upgraded to "N-A G7 slice 4
+superseded ..." citing this section; regeneration keeps them as green
+stubs.
 
 Six packages stay red ONLY on transpiler/harness artifacts after the T33
 engine work landed (fts5vocab, fts5tok, fts5_rowid/decode, fts5_expr print,
@@ -1762,3 +1799,34 @@ effect.
 Separately, fts5unicode2 carries a RUNAWAY safety stub (unbounded temp growth
 ~9G/min in the current engine — triage the loop before any un-skip; NOT a
 supersession).
+
+## P7.WAL-G7 slice 5 — shared-cache disposition (2026-09-14)
+
+Evidence-gathered decision (sub-plan §Slice 5), NOT a silent defer:
+
+1. **Harness**: every shared*.test drives `sqlite3_enable_shared_cache()`
+   (global C-API, untranspilable — tcl2go emits empty stubs for the whole
+   file). shared-1.2's uncommitted-write visibility, shared-1.4's "database
+   table is locked: abc" and shared_err's "database schema is locked: main"
+   all require the **btree-level table-lock table** (btree.c shared-cache
+   locking, pager.c lockTable) plus a shared pager cache + schema registry.
+   No part of wal.c implements it — zero code overlap with the WAL shm
+   layer this goal ports.
+2. **Upstream status**: shared-cache is deprecated since SQLite 3.43.0
+   (compile-out via SQLITE_OMIT_SHARED_CACHE); the WAL multi-connection
+   machinery (slices 1-4) is the supported concurrency model.
+3. **Partial wins**: sharedA/sharedB pass without shared-cache; the
+   committed-data cross-connection visibility that the non-shared parts of
+   shared.test exercise is pinned by `frigolite_shared_test.go`
+   (TestSharedCacheContract — oracle-verified 2026-09-14: rollback-journal
+   blocks a concurrent writer with "database is locked" at COMMIT, WAL mode
+   does not) and `frigolite_walmvcc_test.go`.
+4. **walshared** (WAL + shared-cache) needs the same table-lock layer; its
+   FAIL is the same class.
+
+Disposition: `shared`, `shared2..9`, `shared_err`, `sharedlock`, `walshared`,
+`tkt2854`, `tkt3793` remain **N-A** with upgraded skip-map reasons
+(`tools/tcl2go/skiptestfiles.go`); the residual engine gap (table-level
+locks) is logged in the PORTPLAN Blocker Register as candidate standalone
+goal `P7.SHAREDCACHE` — different subsystem, different lock universe, zero
+wal.c overlap.
