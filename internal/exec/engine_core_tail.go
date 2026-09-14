@@ -35,6 +35,12 @@ func (e *Engine) normalizeCorruptionError(res *Result) *Result {
 		if errors.As(res.Error, &rangeErr) {
 			return res
 		}
+		// fts5's prefix= directive rejects lengths above 999 with its own
+		// fixed message (fts5_config.c fts5ConfigParseSpecial) — a config
+		// argument error, not corruption.
+		if strings.Contains(msg, "prefix length out of range") {
+			return res
+		}
 		res.Error = fmt.Errorf("database disk image is malformed")
 	}
 	return res
