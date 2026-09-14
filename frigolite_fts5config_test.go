@@ -85,14 +85,19 @@ func TestFTS5ConfigOptions(t *testing.T) {
 	checkExecError(t, db.Exec(`CREATE VIRTUAL TABLE abc USING fts5(a, "nosuchoption"=123)`),
 		`parse error in ""nosuchoption"=123"`)
 
-	// 9.x: option value checks.
+	// 9.x: option value checks (mirroring the source sections exactly:
+	// pgsz rejects -5/50000000 and the REAL 66.67; hashsize rejects
+	// non-integer text and -500000 but accepts 500000).
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE abc USING fts5(a, b)"))
 	for _, val := range []string{"-5", "50000000", "66.67"} {
 		checkExecError(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('pgsz', "+val+")"),
 			"SQL logic error")
-		checkExecError(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('hashsize', "+val+")"),
-			"SQL logic error")
 	}
+	checkExecError(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('hashsize', 'not an integer')"),
+		"SQL logic error")
+	checkExecError(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('hashsize', -500000)"),
+		"SQL logic error")
+	checkExecOK(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('hashsize', 500000)"))
 	for _, val := range []string{"-5", "50000000", "66.67"} {
 		checkExecError(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('automerge', "+val+")"),
 			"SQL logic error")
@@ -103,9 +108,6 @@ func TestFTS5ConfigOptions(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('crisismerge', 1)"))
 	checkExecOK(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('crisismerge', 50000000)"))
 	checkExecError(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('nosuchoption', 1)"), "SQL logic error")
-	checkExecError(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('hashsize', 'not an integer')"),
-		"SQL logic error")
-	checkExecOK(t, db.Exec("INSERT INTO abc(abc, rank) VALUES('hashsize', 500000)"))
 
 	// 10.x: too many prefix indexes.
 	checkExecError(t, db.Exec(
