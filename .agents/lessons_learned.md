@@ -6251,3 +6251,33 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **Census full runs under load produce phantom pass→fail flips** — always
   serially re-run a flip sample before bisecting; but a HANG in the serial
   re-run is always real.
+
+## 2026-09-14 (session 4b): regression-tranche mechanics + transpiler collation fidelity
+- **tcl2go emission is only as faithful as the recognized proc-body shapes**: T11's
+  CREATE-time collation validation exposed that `db collate c2 c2` was emitted as a
+  COMMENT because `expr {-[string compare $a $b]}` (negated) and
+  `[list string match]` bodies were unrecognized — while `string compare $a $b`
+  was recognized only through a `Contains` fallback. Engine validation converts
+  silent transpiler skips into loud CREATE failures. When adding engine validation,
+  audit the transpiler for silent-skip emissions of the same feature
+  (`grep "(not transpiled)" testgen/<pkg>/`).
+- **`db collation_needed PROC`**: the hook body is `dbN collate NAME PROC2` —
+  transpile by registering NAME directly before the statement (observationally
+  equivalent; reindex-3.3's full-REINDEX error must name c2, so db2 must know c1).
+- **tclPrepareStep must keep Step() semantics**: switching it to Stmt.Exec() for
+  rtree8-1.3.2 first-row visibility dropped the prepared-read-lock side effect
+  (backup5-1.4 "destination database is in use"). Fix = Step() + Stmt.StepResult()
+  accessor; both contracts hold.
+- **Test functions MUST start with `Test`** — an `XTest...` prefix compiles but
+  `go test` reports "no tests to run" (silently runs nothing).
+- **Parallel agents in one repo share the root package**: throwaway probes in the
+  repo root collide (duplicate symbols block unrelated builds). Use a scratch
+  subdirectory package (e.g. `.scratchprobe/`) or worktrees instead.
+- **VACUUM's logical copy is not page-level**: the destination executes INSERTs, so
+  custom collations must transfer to the rebuild engine (copyViaBackup) or any
+  COLLATE-using table fails the copy. C parity note: page-level backup never
+  consults collations; the observable effect (records re-sorted under the CURRENT
+  collation) is what must be preserved.
+- **Full-suite runs are invalid while an agent edits engine files in the same
+  tree** — go test compiles at package-run time, so results straddle edits. Run
+  tools/status only on a quiescent tree (goal close), or in a dedicated worktree.
