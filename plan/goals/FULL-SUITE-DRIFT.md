@@ -1715,3 +1715,27 @@ TestLedgerJSONValid) fail at HEAD identically — unrelated.
   t9.c1" must precede "table t10 already exists") (misc1-643/649/655/667).
   (d) two result mismatches (753/761 — group-by numeric-collation sort
   order, cascade of (a)). Owner: the next misc1 tranche; (a) first.
+
+## 2026-09-14 close-run cluster index (150 non-fts5 fails)
+
+From the P7.WAL-G7 close run (stamp 2026-09-14T20:29:05Z; ledger adjudicated,
+`tools/status --check` PASS). Clusters of ≥2 (66 single-package fails not
+listed):
+
+| cluster | packages | first-pass triage note |
+|---|---|---|
+| fts3/fts4 | fts3conf, fts3corrupt, fts3corrupt3/4, fts3fuzz001, fts3join, fts4content, fts4growth, fts4merge, fts4merge4, fts4onepass (11) | fts4merge/4 = FTS-RESIDUE; corrupt* = corruption-byte classes (hexio) |
+| corrupt family | corrupt, corruptB/C/F/L/N (6) | P8.CORRUPT residue — hexio byte-poke classes |
+| misc | misc1/3/4/5/7/8 (6) | per-assertion oracle drift class |
+| select | select1/2/3/5/7/H (6) | pre-squash drift class — per-assertion oracle grind |
+| tktNNNN | tkt2565/2822/3121/3935/3992 (5) | one-assertion bugs (cheap wins) |
+| tkt_hash | tkt_2a5629202f/4a03edc4c8/54844eea3f/78e04e52ea/80ba201079 (5) | one-assertion bugs |
+| trigger | trigger1/4/7/B (4) | |
+| qrf | qrf01-3 (3) | result mismatches from assertion 1 — oracle check needed |
+| rowvalue | rowvalue/3/4 (3) | |
+| vtab | vtab1/3/6 (3) | |
+| pairs | alter+alter3, altertab2+3, collate3+4, conflict2+3, fkey1+2, func3+4, lock+lock5, pcache+pcache2, trace+trace3, update+update2, upsert4+5, view+view3, windowC+E, with1+2, without_rowid3+4 (15×2) | |
+| singles | 66 packages | run individually |
+
+Next-tranche order (value per effort): tkt singles → pairs → trigger →
+select/misc pre-squash grind → corrupt/fts3 corrupt classes.
