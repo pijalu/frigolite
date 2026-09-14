@@ -85,10 +85,10 @@ func TestParseSkipMaps_Stable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// 280 -> 264 (2026-09-14): re-based alongside status_test.go's floor at
-	// the P7.WAL-G7 close (drift tranches T7-T28 un-skipped 21 green
-	// packages; walshared added N-A slice 5).
-	if len(skips.skipTestFiles) < 264 {
+	// 280 -> 264 -> 260 (2026-09-14): re-based at the P7.WAL-G7 close (drift
+	// tranches T7-T28 un-skipped 21 green packages; walshared added N-A
+	// slice 5; P9.PERF un-skipped speed1/speed1p/speed2/speed3).
+	if len(skips.skipTestFiles) < 260 {
 		t.Errorf("skipTestFiles shrank: %d entries", len(skips.skipTestFiles))
 	}
 }
@@ -346,9 +346,10 @@ func TestLedgerJSONValid(t *testing.T) {
 	if p := l.Packages["incrvacuum2"]; p.State != statePass || p.Goal != "P8.INCRVACUUM" {
 		t.Errorf("incrvacuum2 ledger entry wrong: %+v", p)
 	}
-	// Spot-check: fts4opt is a real FAIL (serial re-confirmed 2026-09-05 at
-	// 180s — not a timeout), goal=P6.FTS-F.
-	if p := l.Packages["fts4opt"]; p.State != stateFail || p.Goal != "P6.FTS-F" {
+	// Spot-check: fts4opt is now PASS (serial green 17.9s, 2026-09-14 — the
+	// 2026-09-05-era perf/hang red was resolved by the FTS-RESIDUE
+	// crisis-merge work), goal=P6.FTS-F.
+	if p := l.Packages["fts4opt"]; p.State != statePass || p.Goal != "P6.FTS-F" {
 		t.Errorf("fts4opt ledger entry wrong: %+v", p)
 	}
 }

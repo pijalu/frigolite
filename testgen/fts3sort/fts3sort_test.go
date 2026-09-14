@@ -283,7 +283,6 @@ func Test_fts3sort(t *testing.T) {
 					}
 					if CONTROLMap[tn] != "" {
 						{ // do_test tn + ".9"
-							CONTROLMap[tn] = ""
 							got := tclListFlatten(CONTROLMap[tn])
 							want := tclListFlatten(tclSort("array get DATA"))
 							if got != want {

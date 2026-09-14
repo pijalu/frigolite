@@ -101,19 +101,19 @@ func TestParseSkipMaps(t *testing.T) {
 		// 288 -> 285 (2026-09-03): removed 3 dead keys that matched no
 		// generated test file base (atof, quota_, win32) — see
 		// .agents/lessons_learned.md sub-plan-validation entry.
-		// 285 -> 264 (2026-09-14): the 2026-09-11..14 FULL-SUITE-DRIFT
+		// 285 -> 264 -> 260 (2026-09-14): the 2026-09-11..14 FULL-SUITE-DRIFT
 		// tranches (T7-T28 + WAL-G7 slices) un-skipped 21 packages as they
 		// went green natively (pragma2, autovacuum, collate7, insert3,
 		// trans/avtrans, upsert1-3, vtab5, tableopts, whereA, windowB,
 		// tkt1514/tkt3508/tkt_a8a0d2996a, thread003-5, strict2, wherelimit,
 		// delete4, transitive1, shell1/6, loadext, notify2, index2,
 		// e_droptrigger/e_dropview, e_reindex, fkey6, permutations,
-		// rtree1/7/circ, walcrash2, walsetlk_recover, ...) and walshared was
-		// added (N-A slice 5); the floor was not moved per-tranche. Floor
-		// re-based at the P7.WAL-G7 close; rationale in
-		// plan/goals/P7.WAL-G7.md slice-5 block.
-		if len(skips.skipTestFiles) < 264 {
-			t.Errorf("skipTestFiles has %d entries, want >= 264", len(skips.skipTestFiles))
+		// rtree1/7/circ, walcrash2, walsetlk_recover, ...), walshared was
+		// added (N-A slice 5), and P9.PERF un-skipped the 4 speed packages;
+		// the floor was not moved per-tranche. Floor re-based at the
+		// P7.WAL-G7 close; rationale in plan/goals/P7.WAL-G7.md slice-5.
+		if len(skips.skipTestFiles) < 260 {
+			t.Errorf("skipTestFiles has %d entries, want >= 260", len(skips.skipTestFiles))
 		}
 	if len(skips.skipTests) < 600 {
 		t.Errorf("skipTests has %d entries, want >= 600", len(skips.skipTests))

@@ -4194,6 +4194,37 @@ func tclPrepareStep(db *frigolite.DB, sqlText, name string) {
 	}
 }
 
+// tclNumberName ports the test-suite number_name proc (speed1p/speed2/
+// speed3.test): converts an integer to English words ("one hundred twenty
+// three"), used to build deterministic wide text payloads.
+func tclNumberName(n int) string {
+	ones := []string{"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+		"ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
+		"eighteen", "nineteen"}
+	tens := []string{"", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"}
+	txt := ""
+	if n >= 1000 {
+		txt = tclNumberName(n/1000) + " thousand"
+		n = n % 1000
+	}
+	if n >= 100 {
+		txt += " " + ones[n/100] + " hundred"
+		n = n % 100
+	}
+	if n >= 20 {
+		txt += " " + tens[n/10]
+		n = n % 10
+	}
+	if n > 0 {
+		txt += " " + ones[n]
+	}
+	txt = strings.TrimSpace(txt)
+	if txt == "" {
+		txt = "zero"
+	}
+	return txt
+}
+
 // tclStepEmulated runs one legacy-emulation step of the named statement and
 // leaves the step state current for sqlite3_column_* reads (queries read
 // rows; writes report only the error state — vdbeapi.c sqlite3_step).

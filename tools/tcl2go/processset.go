@@ -161,8 +161,12 @@ func (tp *transpiler) emitDynamicArraySet(base, keyVar string, args []tcl.RawWor
 func (tp *transpiler) processSetPlain(args []tcl.RawWord) {
 	// Dynamic-key array assignment `set arr($keyvar) V`: emit a Go map store
 	// arrMap[keyvar] = V (the array is declared as map[string]string in the
-	// preamble because its keys are runtime values).
-	if base, key, isDyn := tp.dynamicArraySet(args[0].Text); isDyn {
+	// preamble because its keys are runtime values). `set arr($keyvar)` with
+	// NO value is TCL's READ form — its result is captured as the enclosing
+	// do_test body's got value, never a store (fts3sort tn.9: writing ""
+	// cleared the control value before the read and every comparison
+	// mismatched).
+	if base, key, isDyn := tp.dynamicArraySet(args[0].Text); isDyn && len(args) >= 2 {
 		tp.emitDynamicArraySet(base, key, args)
 		return
 	}

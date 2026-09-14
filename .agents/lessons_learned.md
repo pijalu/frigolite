@@ -6326,3 +6326,19 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
 - **Empty-WAL check in sqlite3WalSnapshotGet is 16 bytes**: aFrameCksum[2] AND
   aSalt[2] all zero (memcmp aZero[4] — contiguous C struct fields; in Go two
   field comparisons).
+- **helpers_template*.go are RAW-STRING templates**: the file is
+  `const helpersTemplatePart2Tail = ` + backtick + `...` + backtick and is
+  rendered through Sprintf. Backticks inside inserted text TERMINATE the raw
+  string (syntax error at that column), and a bare `%` becomes `%!`(MISSING)`
+  in the generated output — write `%%` and avoid backticks in template
+  content.
+- **tcl2go proc-name handlers must dispatch on the source file** when the
+  proc name is shared across files with different shapes: `populate_t1`
+  exists in incrblob4.test (t1(v), 26 rows) AND speed3.test (t1(a,b,c),
+  NROW number_name rows) — the global handler emitted the incrblob4 body
+  for speed3 (`INSERT INTO t1(v)`, "no such column: v"). Guard on
+  `tp.currentTestFile`.
+- **Running a "green" testgen package may be vacuous**: whole-file skip
+  entries make tcl2go emit 12-line empty stubs (`func Test_x(t *testing.T)
+  {}`). Before trusting an un-skip, check the generated file size / assert
+  count. (This is how speed1p's 445s runtime and walshared's FAIL hid.)

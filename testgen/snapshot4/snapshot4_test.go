@@ -9,4 +9,4 @@ import (
 )
 
 func Test_snapshot4(t *testing.T) {}
-// skipped: N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)
+// skipped: N-A G7 slice 4 superseded (testvfs-instrumented C-API harness sqlite3_snapshot_* — untranspilable, tcl2go emits empty stubs; the engine-visible xShmLock surface is pinned by frigolite_wallocks_test.go and the snapshot contract by frigolite_walsnapshot_test.go; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7 slice 4)

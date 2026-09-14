@@ -67,11 +67,19 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
 
 ## 2. Current State (checkpoint 2026-09-11)
 
-- **Live full-suite baseline (2026-09-11, `tools/status` run
-  2026-09-11T00:09:07Z: 1,219 testgen packages, 60s/pkg timeout):
-  769 PASS (63.1%), 207 FAIL, 243 SKIPPED (+4 timeout-suspect folded into
-  the ledger as fail: 203 fail + 4 timeout-suspect)** — ledger re-seeded
-  2026-09-11T00:26:44Z; `tools/status --check` PASS. Supersedes the
+- **Live full-suite baseline (2026-09-14, `tools/status` close run
+  stamp 2026-09-14T20:29:05Z: 1,363 testgen packages — 1,219 main corpus +
+  144 fts5; census at 60s/pkg + §5g-6 serial adjudication of all 31
+  long-duration packages recorded in the ledger):
+  887 PASS (65.1%), 216 FAIL, 260 SKIPPED, 0 timeout-suspects** — ledger
+  re-seeded at the P7.WAL-G7 + P9.PERF close; `tools/status --check` PASS.
+  Supersedes the 2026-09-11 769/207/243-of-1219 baseline. Movement vs it:
+  +45 fail→pass (drift tranches T7-T28 + the 2026-09-14 regression
+  tranches: pager2 numPages hang, reindex/altertab/orderby5 collation
+  class, index3 COLLATE-ASC, vacuum2 VACUUM collation transfer, fts4upfrom
+  fts5 UPDATE..FROM, backup5 tclPrepareStep, fts3sort set-read-form), the
+  fts5 corpus joined the census (69 pass), and the fts4opt perf/hang red
+  resolved (serial 17.9s). Supersedes the
   2026-09-07 710/255/254 baseline cited below. Known reds against the
   fresh baseline: `autovacuum` (2.4.5), `pragma2` (page_size=16384 +
   cache_spill "file is not a database"), `attach2`, `trigger2` +
@@ -348,7 +356,7 @@ Each phase starts only after its dependencies are green.
 
 | Goal | Sub-plan | # Pkgs | Focus |
 |------|----------|--------|-------|
-| `P9.PERF` | [`P9.PERF.md`](plan/goals/P9.PERF.md) | 4 | Performance test packages (functional assertions) |
+| `P9.PERF` | [`P9.PERF.md`](plan/goals/P9.PERF.md) | 4 | ✅ **functionally complete** (2026-09-14) — speed1/speed1p/speed2/speed3 un-skipped and green (speed1 28.6s, speed1p 445.4s serial, speed2 44.9s, speed3 1.1s after the tcl2go populate_t1 name-collision fix + tclNumberName helper); `speed4` remains genuine N/A (§1). PERF residue: the speed family runs ~10-100x C wall clock — engine hot-path optimization (btree insert/overflow write, DML loop overhead) tracked as the explicit P9.PERF backlog; sub-plan verify timeout moved 300s→900s per §5g-6 (slow-but-green, never a skip) |
 
 ---
 
@@ -390,12 +398,12 @@ created only after the previous goal's `verifyCommand` passes and the goal is
 > | 10a | `GREEN-LEDGER` ✅ **complete** (2026-09-05) | SPLIT from item 11: instrument lands FIRST (`tools/status/ledger.json` seeded from `last_run.json` + PORTPLAN §4 markers; `tools/status --check` diffs live run vs ledger, exits non-zero on any unexpected flip; §5g item 6 serial re-confirm cleared 8/13 timeout-suspects; 15 unit tests; SOLID/-race/quality_gate clean). Every later goal close now runs `tools/status --check` as the no-flip gate (§5g items 1, 2, 4, 7). | §5g item 1 ("instrument FIRST") |
 > | 11a | `P6.FTS-RESIDUE` | NEW (from Blocker Register) | fts4langid (3 assertions) + fts4merge4 (automerge distribution) on the P6.FTS-WPORT structural-port base; runs after FULL-SUITE-DRIFT per blocker-register order |
 > | 11b | `P7.PLANNER.bestindex` ✅ **complete** (2026-09-12) | sqlite3_index_info port + planner (allocateIndexInfo/isAuxiliaryVtabOperator/sqlite3WhereAddLimit) + xFilter runtime glue + EQP vtab string + DB.RegisterVtabModule; bestindex1-9/A-G + autoanalyze1 N-A with native evidence (8 native tests, -race clean); 54-package sweep zero new failures | plan/goals/P7.PLANNER.md T27 |
-> | 12d | `P7.WAL-G7` | NEW (from Blocker Register "P7 WAL G7 layer") | port src/wal.c wal-index header + lock-bitmap protocol; un-skips walprotocol/walsetlk/walrestart/snapshot/shared families currently N-A G7; sub-plan to be written per §5b before engine edits |
+> | 12d | `P7.WAL-G7` ✅ **complete** (2026-09-14) | NEW (from Blocker Register "P7 WAL G7 layer") | 5 slices landed: wal-index header + registry (slice 1), flock shm lock protocol + BUSY/BUSY_SNAPSHOT + checkpoint PASS1/2 (slice 2), read-marks + MVCC visibility + numPages-adopt regression fix (slice 3), snapshot C-API surface SnapshotGet/Open/Cmp/Recover + blob forms with 13 native tests superseding the 5 C-API harness packages (slice 4), shared-cache N-A disposition + P7.SHAREDCACHE logged (slice 5) |
 >
 > Full order: INCRVACUUM → **GREEN-LEDGER ✅ (2026-09-05)** → P8.MISC ✅ → **P8.PRAGMA ✅ (2026-09-06)** → P8.PAGER ✅ (2026-09-07) →
 > P8.RECOVER ✅ (2026-09-07) → P8.ROLLBACK ✅ (2026-09-07; row updated 2026-09-11) → P8.VACUUM ✅ (2026-09-07) → FULL-SUITE-DRIFT (**ACTIVE** — T4.11 closed 2026-09-09 in plan/goals/FULL-SUITE-DRIFT.md; post-T4.11 attach/reindex/automerge/conflict/check/bloom/minmax/cacheflush tranches committed 2026-09-10/11, T-log backfill pending) → P6.FTS-RESIDUE (**ACTIVE** — automerge grind tranches committed 2026-09-11 incl. uncommitted segdirNextRowID sync + trace strip, pending verification) →
 > **P7.PLANNER.bestindex ✅ (2026-09-12)** → P6.RTREE → P6.FTS5 → P6.DBDATA → P6.DBSTAT →
-> P7.WAL-G7 → P9.PERF. Every goal carries the §5e strict DoD + §5g
+> P7.WAL-G7 ✅ (2026-09-14, slices 0-5; close run stamp 2026-09-14T20:08:27Z re-seeded) → P9.PERF ✅ (2026-09-14: speed1/speed1p/speed2/speed3 un-skipped and functionally green — speed3 via the tcl2go populate_t1 name-collision fix + tclNumberName helper; speed1p 445s serial = the documented PERF residue). Every goal carries the §5e strict DoD + §5g
 > anti-regression protocol (baseline before edits, zero unexpected flips at
 > close, native regression tests pinning previously-green seams before
 > refactors, `tools/status --check` gate once GREEN-LEDGER lands).

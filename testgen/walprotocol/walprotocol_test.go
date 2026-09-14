@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walprotocol(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: N-A G7 slice 1 superseded (xShmLock sequence instrumentation via testvfs filter — untranspilable, tcl2go emits empty stubs; the SQL-surface contracts — checkpoint triple {0 5 5}, two-connection commit visibility, recovery lock dance — are pinned natively: frigolite_walmulti_test.go + frigolite_wallocks_test.go + frigolite_walmvcc_test.go; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)

@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walprotocol2(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: N-A G7 slice 1 superseded (testvfs two-connection harness + BUSY_SNAPSHOT via sqlite3 extended codes — untranspilable, tcl2go emits empty stubs; the stale-snapshot-writer contract is pinned natively: frigolite_walmvcc_test.go TestWalMVCCWriterSnapshotBusy + busy-timeout retry via TestWalLockBusyTimeout; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)

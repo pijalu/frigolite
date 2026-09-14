@@ -9,4 +9,4 @@ import (
 )
 
 func Test_shared(t *testing.T) {}
-// skipped: shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)
+// skipped: N-A G7 slice 5: shared-cache is a separate subsystem (global sqlite3_enable_shared_cache C-API + shared pager cache/schema registry + btree table-level locks — none of it in wal.c), deprecated upstream since 3.43.0 (SQLITE_OMIT_SHARED_CACHE); the WAL multi-connection machinery is the supported model. Residual engine gap logged as candidate goal P7.SHAREDCACHE (PORTPLAN Blocker Register); committed-data cross-connection visibility pinned natively by frigolite_shared_test.go; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7 slice 5)
