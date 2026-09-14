@@ -1389,20 +1389,9 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 	}
 	if p.wal != nil {
 		// WAL mode (P7.WAL-G7): resolve the page through the shared
-		// wal-index (sqlite3WalFindFrame port) — the newest frame within the
-		// reader's snapshot carries the page. minFrame is 0 until read-mark
-		// pinning arrives in slice 3. Pages absent from the WAL come from
-		// the main database file (checkpointed content).
-		if iFrame := p.wal.wi.FindFrame(pageNum, p.wal.hdr.MxFrame, 0); iFrame > 0 {
-			off := walFrameOffset(int(iFrame), p.pageSize) + WalFrameHdrSize
-			if _, err := p.wal.file.ReadAt(pg.Data, off); err != nil {
-				return nil, fmt.Errorf("pager: read wal frame %d: %w", iFrame, err)
-			}
-		} else if p.file != nil {
-			off := int64(pageNum-1) * int64(p.pageSize)
-			if _, err := p.file.ReadAt(pg.Data, off); err != nil {
-				return nil, fmt.Errorf("pager: read page %d: %w", pageNum, err)
-			}
+		// wal-index or the checkpointed main file (readPageWALLocked).
+		if err := p.readPageWALLocked(pg, pageNum); err != nil {
+			return nil, err
 		}
 	} else if p.file != nil {
 		off := int64(pageNum-1) * int64(p.pageSize)
@@ -1420,6 +1409,41 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 	}
 	p.pages[pageNum] = pg
 	return pg, nil
+}
+
+// readPageWALLocked fills pg from the connection's WAL snapshot: the newest
+// frame within the reader's frozen view (hdr.mxFrame) at or above minFrame,
+// else the main database file. A reader pinned at READ_LOCK(0) (readLock==0
+// — the log was fully backfilled at pin time) ignores the WAL entirely: the
+// main database file is the snapshot (wal.c walFindFrame's early return).
+// Frames below minFrame are already checkpointed and their hash entries may
+// be stale, so walIndexFind skips them (the minFrame rule). Caller holds
+// p.mu for writing.
+func (p *Pager) readPageWALLocked(pg *Page, pageNum uint32) error {
+	if p.wal.readLock == 0 {
+		return p.readFilePageLocked(pg, pageNum)
+	}
+	if iFrame := p.wal.wi.FindFrame(pageNum, p.wal.hdr.MxFrame, p.wal.minFrame); iFrame > 0 {
+		off := walFrameOffset(int(iFrame), p.pageSize) + WalFrameHdrSize
+		if _, err := p.wal.file.ReadAt(pg.Data, off); err != nil {
+			return fmt.Errorf("pager: read wal frame %d: %w", iFrame, err)
+		}
+		return nil
+	}
+	return p.readFilePageLocked(pg, pageNum)
+}
+
+// readFilePageLocked fills pg from the main database file (pager.c
+// readDbPage). Caller holds p.mu for writing.
+func (p *Pager) readFilePageLocked(pg *Page, pageNum uint32) error {
+	if p.file == nil {
+		return nil
+	}
+	off := int64(pageNum-1) * int64(p.pageSize)
+	if _, err := p.file.ReadAt(pg.Data, off); err != nil {
+		return fmt.Errorf("pager: read page %d: %w", pageNum, err)
+	}
+	return nil
 }
 
 // IsMemory reports whether the pager is backed by memory (no file).
@@ -1479,31 +1503,36 @@ func (p *Pager) InvalidateCache() {
 	}
 }
 
-// walIndexRefreshLocked polls the shared wal-index header (the
-// walIndexReadHdr port of wal.c L2640): try the lockless read; when it does
-// not parse, recover through the WRITER-lock dance (busy/protocol aware —
-// see wallocks.go) outside the wal-index mutex. On any refresh the shared
-// state is adopted into this connection's cached view: page count from
-// hdr.nPage, and page 1 re-read through the wal-index so the cached database
-// header is the committed image. Reports whether the shared header changed
-// since the connection's cached copy (the pChanged signal that drives the
-// pager cache reset) and the refresh error (BUSY_RECOVERY / SQLITE_PROTOCOL).
+// walIndexRefreshLocked opens the connection's WAL read transaction (the
+// sqlite3WalBeginReadTransaction port of wal.c L3473): the wal-index header
+// is refreshed (recovering it when another connection left it unparsable)
+// and a shared read-mark lock pins the snapshot (walread.go). While a read
+// transaction is open the header is FROZEN — repeated calls see the same
+// frame universe (repeatable reads); it is released by WALEndRead at the
+// end of the read transaction. On any refresh the shared state is adopted
+// into this connection's cached view: page count from hdr.nPage, and — when
+// the header moved — the page cache is dropped and page 1 re-read through
+// the wal-index so the cached database header is the committed image. The
+// returned bool is the pChanged signal (the caller must reset its caches);
+// the error surfaces BUSY_RECOVERY / SQLITE_PROTOCOL per walTryBeginRead.
 // Caller holds p.mu.
 func (p *Pager) walIndexRefreshLocked() (bool, error) {
 	if p.wal == nil {
 		return false, nil
 	}
-	changed, err := p.wal.walIndexReadHdr()
+	changed, err := p.wal.walBeginReadTxn()
 	if err != nil {
 		// An unparsable wal-index that cannot be recovered right now
 		// (another connection holds it busy, or the retry budget burned):
 		// surface the error to the statement (walTryBeginRead's contract).
 		return false, err
 	}
+	// The committed page count governs the pager's database size (lockBtree
+	// reads nPage from the freshly loaded page 1 every transaction).
+	if n := p.wal.hdr.NPage; n > 0 {
+		p.numPages = n
+	}
 	if changed {
-		if n := p.wal.hdr.NPage; n > 0 {
-			p.numPages = n
-		}
 		// Another connection committed: drop the WHOLE page cache
 		// (pager.c pager_reset on an external change) — every cached page
 		// may have a newer frame in the wal-index. Then re-read page 1
@@ -1661,25 +1690,66 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 // statement's btree phase reads any page (sqlite3WalBeginWriteTransaction
 // parity: C takes the WRITER lock before the btree cursor work, so the
 // statement's page images build on a snapshot the WRITER lock freezes).
-// The stale-snapshot retry may drop the page cache safely here. Reports
-// whether the shared wal-index header had changed since the connection's
-// cached view (the caller must invalidate its schema/table caches, the
-// engine-side pager_reset — the plain CheckExternalFile path would no longer
-// see the change, the refresh having been consumed here).
+// The statement's read snapshot is pinned first (walIndexRefreshLocked):
+// in autocommit that is a fresh read transaction whose stale-snapshot
+// write retry may drop the page cache; inside an explicit transaction the
+// snapshot is already frozen and the retry is disabled (C re-runs from the
+// SAME snapshot only, else repeatable reads would break). Reports whether
+// the shared wal-index header had changed since the connection's cached
+// view (the caller must invalidate its schema/table caches, the
+// engine-side pager_reset — the plain CheckExternalFile path would no
+// longer see the change, the refresh having been consumed here). A failed
+// write gate ends a read snapshot THIS call created (C's autocommit
+// statement failure closes the transaction); a snapshot pinned before the
+// call (explicit transaction) stays open.
 func (p *Pager) WALBeginWrite() (bool, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.wal == nil {
 		return false, nil
 	}
+	wasPinned := p.wal.readLock >= 0
 	// Refresh the pin first: this IS the statement's read-transaction open
 	// (walIndexReadHdr), so the snapshot check compares against fresh state.
 	changed, err := p.walIndexRefreshLocked()
 	if err != nil {
+		if !wasPinned {
+			p.wal.walEndReadTxn()
+		}
 		return changed, err
 	}
-	retryChanged, err := p.walBeginWriteLocked(true)
+	retryChanged, err := p.walBeginWriteLocked(!wasPinned)
+	if err != nil && !wasPinned {
+		p.wal.walEndReadTxn()
+	}
 	return changed || retryChanged, err
+}
+
+// WALEndRead releases the connection's pinned WAL read snapshot (the
+// sqlite3WalEndReadTransaction parity): the shared read-mark lock is
+// dropped so checkpoints may backfill past the mark and the writer may wrap
+// the log. The next statement re-pins a fresh snapshot and observes every
+// commit that landed in between. No-op when not in WAL mode or when no read
+// transaction is open.
+func (p *Pager) WALEndRead() {
+	p.mu.Lock()
+	if w := p.wal; w != nil {
+		w.walEndReadTxn()
+	}
+	p.mu.Unlock()
+}
+
+// WalReadMarks returns the shared wal-index checkpoint info (nBackfill,
+// nBackfillAttempted, aReadMark[5]) and the connection's pinned read-lock
+// index (-1 none, 0..4): the observability seam for the read-mark protocol
+// (native tests; a future pragma). False when the pager is not in WAL mode.
+func (p *Pager) WalReadMarks() (info WalCkptInfo, readLock int, ok bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal == nil || p.wal.wi == nil {
+		return WalCkptInfo{}, -1, false
+	}
+	return p.wal.wi.CkptInfo(), p.wal.readLock, true
 }
 
 // walEndWriteLocked releases the WRITER shm lock at the end of the write

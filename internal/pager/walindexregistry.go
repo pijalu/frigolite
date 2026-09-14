@@ -233,6 +233,15 @@ func (w *WALIndex) ckptInfoLocked() WalCkptInfo {
 	return DecodeWalCkptInfo(w.pageLocked(0))
 }
 
+// CkptInfo returns a copy of the shared checkpoint info (nBackfill,
+// aReadMark[5], nBackfillAttempted) — the read-side accessor for the
+// read-mark protocol (tests, future pragmas).
+func (w *WALIndex) CkptInfo() WalCkptInfo {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.ckptInfoLocked()
+}
+
 // setCkptInfoLocked applies fn to the shared WalCkptInfo. Caller holds w.mu.
 func (w *WALIndex) setCkptInfoLocked(fn func(*WalCkptInfo)) {
 	page0 := w.pageLocked(0)

@@ -182,6 +182,40 @@ func (e *Engine) stmtLockKey(stmt sql.Stmt, schemaName string, write bool) strin
 	return e.LockKeyForDB(schemaName)
 }
 
+// stmtWALMode reports whether the statement's target database is in WAL
+// mode (resolved like stmtLockKey: through the table's schema entry). The
+// WAL visibility model differs from the rollback-journal lock matrix:
+// readers never block writers and writers never block readers — only the
+// WRITER shm byte serializes writers (P7.WAL-G7 slice 3).
+func (e *Engine) stmtWALMode(stmt sql.Stmt, schemaName string) bool {
+	var tableName string
+	switch s := stmt.(type) {
+	case *sql.InsertStmt:
+		tableName = s.Table
+	case *sql.UpdateStmt:
+		tableName = s.Table
+	case *sql.DeleteStmt:
+		tableName = s.Table
+	case *sql.SelectStmt:
+		if s.From.Name != "" {
+			tableName = s.From.Name
+		}
+	}
+	var ctx *DatabaseContext
+	if tableName != "" {
+		if _, c, err := e.findTable(tableName); err == nil {
+			ctx = c
+		}
+	}
+	if ctx == nil {
+		if schemaName == "" {
+			schemaName = "main"
+		}
+		ctx = e.GetDB(schemaName)
+	}
+	return ctx != nil && ctx.Pager != nil && ctx.Pager.WALMode()
+}
+
 // walBeginStmtWrite opens the WAL write transaction eagerly for a writing
 // statement — P7.WAL-G7 slice 2's sqlite3WalBeginWriteTransaction parity
 // (see pager.Pager.WALBeginWrite): the WRITER shm lock is taken BEFORE the
@@ -239,6 +273,25 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 		}
 	}
 	return nil
+}
+
+// walEndStmtRead ends the outermost statement's WAL read snapshot on every
+// file-backed database (sqlite3WalEndReadTransaction parity, P7.WAL-G7
+// slice 3): an autocommit statement releases its shared read-mark lock at
+// statement end so the NEXT statement re-pins a fresh snapshot and observes
+// other connections' commits. Inside an explicit transaction the snapshot
+// stays pinned until COMMIT/ROLLBACK ends the transaction (repeatable
+// reads). Statement failures reach this through the same execDepthLeave
+// path, so a failed statement never leaks its mark.
+func (e *Engine) walEndStmtRead() {
+	if e.tx.inTransaction {
+		return
+	}
+	for _, ctx := range e.dbList {
+		if ctx != nil && ctx.Pager != nil {
+			ctx.Pager.WALEndRead()
+		}
+	}
 }
 
 // AttachFileLockError reports whether ATTACHing the file at path would be
@@ -398,21 +451,25 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 			return fmt.Errorf("database is locked")
 		}
 		return nil
-	default: // LockStyleDefault — fine-grained SHARED/RESERVED/PENDING/EXCLUSIVE matrix
-		if _, ok := lockreg.Global.ExclusiveLockedByOther(key, e.connID); ok {
-			return fmt.Errorf("database is locked")
-		}
-		// A read transaction holds SHARED on the file (pager.c holds the
-		// SHARED lock for the whole read txn): another connection's write
-		// must reserve (RESERVED→EXCLUSIVE upgrade blocked by the reader) —
-		// attach2-4.4: db2's autocommit INSERT fails while db holds
-		// BEGIN + SELECT on the same file. Autocommit writes go through
-		// the COMMIT upgrade path, so they are refused up front; writes
-		// inside an explicit transaction take RESERVED (allowed) and fail
-		// later at COMMIT (attach2-4.10) via commitLockError.
-		if write && !e.tx.inTransaction && lockreg.Global.SharedTxByOther(key, e.connID) {
-			return fmt.Errorf("database is locked")
-		}
+		default: // LockStyleDefault — fine-grained SHARED/RESERVED/PENDING/EXCLUSIVE matrix
+			walMode := e.stmtWALMode(stmt, schemaName)
+			if _, ok := lockreg.Global.ExclusiveLockedByOther(key, e.connID); ok {
+				return fmt.Errorf("database is locked")
+			}
+			// A read transaction holds SHARED on the file (pager.c holds the
+			// SHARED lock for the whole read txn): another connection's write
+			// must reserve (RESERVED→EXCLUSIVE upgrade blocked by the reader) —
+			// attach2-4.4: db2's autocommit INSERT fails while db holds
+			// BEGIN + SELECT on the same file. Autocommit writes go through
+			// the COMMIT upgrade path, so they are refused up front; writes
+			// inside an explicit transaction take RESERVED (allowed) and fail
+			// later at COMMIT (attach2-4.10) via commitLockError.
+			// WAL mode exempts this rule: readers never block writers (the
+			// WRITER shm byte is the only writer serialization — C's wal.c
+			// protocol has no reader/writer exclusion).
+			if write && !walMode && !e.tx.inTransaction && lockreg.Global.SharedTxByOther(key, e.connID) {
+				return fmt.Errorf("database is locked")
+			}
 		// PENDING blocks only NEW SHARED acquisitions by other connections. A
 		// connection that already holds a transaction-level SHARED lock on the file
 		// keeps reading (src/os_unix.c unixLock: the PENDING check applies on the
@@ -494,17 +551,12 @@ func (e *Engine) setPendingAll() {
 // Dirty pages (not the DML write-tracker) decide: the tracker misses writes
 // that bypass the DML executor paths, while the pager records every write.
 func (e *Engine) commitLockError() error {
-	keys := e.allLockKeys()
-	var dirty []string
-	for _, ctx := range e.dbList {
-		if ctx != nil && ctx.Pager != nil && ctx.Pager.HasDirtyPages() {
-			if k := lockKey(ctx, e.connID); k != "" {
-				dirty = append(dirty, k)
-			}
-		}
-	}
-	if len(dirty) > 0 {
-		keys = dirty
+	// WAL mode has no EXCLUSIVE upgrade at COMMIT: the writer appended its
+	// frames under the WRITER shm byte and commits regardless of readers
+	// (wal.c — readers/writer exclusion does not exist in the WAL protocol).
+	keys, walMode := e.commitDirtyKeys()
+	if walMode {
+		return nil
 	}
 	for _, k := range keys {
 		if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
@@ -524,6 +576,30 @@ func (e *Engine) commitLockError() error {
 		}
 	}
 	return nil
+}
+
+// commitDirtyKeys returns the registry keys a COMMIT must upgrade — the
+// files this transaction DIRTIED when any exist (a writer upgrades the files
+// it holds RESERVED on, not every attached file — attach2-4.12), else every
+// attached file's key — and reports whether any dirtied pager is in WAL
+// mode. Dirty pages (not the DML write-tracker) decide: the tracker misses
+// writes that bypass the DML executor paths, while the pager records every
+// write.
+func (e *Engine) commitDirtyKeys() (keys []string, walMode bool) {
+	all := e.allLockKeys()
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil || !ctx.Pager.HasDirtyPages() {
+			continue
+		}
+		if k := lockKey(ctx, e.connID); k != "" {
+			keys = append(keys, k)
+		}
+		walMode = walMode || ctx.Pager.WALMode()
+	}
+	if len(keys) > 0 {
+		return keys, walMode
+	}
+	return all, false
 }
 
 // lockAccessForStmt classifies a statement's file access: write=true for

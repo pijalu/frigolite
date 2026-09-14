@@ -1690,6 +1690,53 @@ Remaining harness-skip drift for the JSON layer (testdata/walsetlk*.json in
 frigolite_harness_test.go unsupportedTestFiles with stale pre-WAL reasons) is
 queued with the slice-3 stale-skip re-verification (wal/wal2/wal3 class).
 
+## P7.WAL-G7 slice 3 — JSON-layer WAL fixture triage + read-marks/MVCC (2026-09-13)
+
+Slice 3 lands the reader read-mark protocol (src/wal.c walTryBeginRead:
+aReadMark[] selection + mark bumping under transient exclusive locks + the
+shared READ_LOCK pin + minFrame = nBackfill+1; walIndexFind's minFrame rule
+wired into Pager.ReadPage's WAL path) and the read-transaction lifecycle
+wiring (engine pins a snapshot at the first b-tree-touching statement of a
+transaction — skip-listing transaction control and PRAGMA wal_checkpoint —
+and releases it at autocommit statement end / COMMIT / ROLLBACK via
+execDepthLeave; sqlite3WalEndReadTransaction parity). Native anchors:
+frigolite_walmvcc_test.go (repeatable reads, statement-boundary visibility,
+BUSY_SNAPSHOT under a parked transaction, second-writer BUSY, observable
+read marks, checkpoint PASS1 capped by a parked reader, 5-reader
+coexistence, re-pin-after-backfill minFrame behavior, exclusive-mode
+visibility) and internal/pager/walread_test.go (walIndexFind minFrame rule,
+read-mark selection law). In WAL mode the cross-connection lock matrix no
+longer blocks writers on readers (C's wal.c has no reader/writer exclusion;
+CrossConnLockError/commitLockError/beginLockError WAL exemptions).
+
+Per-package JSON-fixture triage (every stale "WAL mode not implemented"
+unsupportedTestFiles entry run UN-SKIPPED; logs in the slice-3 working
+notes):
+
+- **Un-skipped permanently (green live)**: `walcrash2`, `walsetlk_recover`
+  — removed from unsupportedTestFiles.
+- **Green as transpiled testgen** (JSON fixture fails on harness
+  machinery only): `wal5` ("unknown database aux" — the fixture's second
+  database cannot be opened by the JSON harness; testgen/wal5 covers the
+  same content and PASSES, likewise testgen/wal, wal2, wal3, wal4 —
+  all five run green with slice 3).
+- **Harness-machinery, engine contract natively pinned**:
+  wal64k (test_syscall pagesize), wal7/walcksum/waloverwrite/walpersist/
+  walslow (converter reordering re-runs setup), walbig (TCL a_string),
+  walcrash/walcrash3/walcrash4/walhook (crash/hook machinery —
+  frigolite_walrecovery_test.go, P7.WAL-C), wal8/walnoshm (testvfs shm
+  wiring — TestWalMVCCExclusiveModeVisibility + TestWalLockExclusiveMode,
+  restart/wrap: TestWalCheckpointTruncateZero/TestWalRestartConcurrent),
+  walprotocol/walprotocol2/walrestart/walsetlk/walsetlk2/walsetlk3/
+  walsetlk_snapshot (testvfs/setlk_timeout/testfixture_nb machinery —
+  frigolite_wallocks_test.go, slice 2),
+  walthread (testfixture threads — TestWalLockWriterSerialization +
+  TestWalMVCCRaceWriterReaders).
+- `walshared` stays for the slice-5 shared-cache disposition (different
+  subsystem: btree table locks, not the WAL shm layer).
+
+All upgraded unsupportedTestFiles entries cite this section.
+
 ## P6.FTS5 T33 — test-support API packages (2026-09-13)
 
 Six packages stay red ONLY on transpiler/harness artifacts after the T33

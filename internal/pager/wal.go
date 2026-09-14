@@ -54,6 +54,17 @@ type walWriter struct {
 	// this connection currently holds (released on Close).
 	writeLock bool
 	ckptLock  bool
+	// readLock mirrors C's pWal->readLock: the shared WAL_READ_LOCK this
+	// connection holds for its open read transaction (-1 none, 0..4 the
+	// read-mark index; 0 pins the "ignore the WAL" state). Set by
+	// walBeginReadTxn (walread.go, the walTryBeginRead port), released by
+	// walEndReadTxn at the end of the read transaction or on Close.
+	readLock int
+	// minFrame mirrors C's pWal->minFrame: the first frame not yet
+	// checkpointed at pin time (nBackfill+1). walIndexFind skips frames
+	// below it — they are already in the main file and the hash tables may
+	// hold stale entries for them.
+	minFrame uint32
 	// exclusiveMode is locking_mode=EXCLUSIVE: every shm lock call becomes a
 	// no-op (wal.c walLockShared/walLockExclusive).
 	exclusiveMode bool
@@ -83,7 +94,7 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 		f.Close()
 		return nil, err
 	}
-	w := &walWriter{p: p, path: walPath, file: f, pageSize: pageSize, wi: wi}
+	w := &walWriter{p: p, path: walPath, file: f, pageSize: pageSize, wi: wi, readLock: -1}
 	if err := w.walInitHeader(); err != nil {
 		wi.release()
 		f.Close()
@@ -475,12 +486,13 @@ func (w *walWriter) commitPrepareLocked() error {
 	if changed {
 		w.adoptHeaderLocked()
 	}
-	if info := w.wi.ckptInfoLocked(); info.NBackfill > 0 && info.NBackfill == w.hdr.MxFrame {
-		if w.wi.shmTryLockHeld(walReadLockIdx(1), WalNReader-1, true) == nil {
-			if err := w.walRestartHdrLocked(false); err != nil {
-				return err
-			}
-			w.wi.shmUnlockHeld(walReadLockIdx(1), WalNReader-1, true)
+	if w.readLock == 0 {
+		// walRestartLog (wal.c L3852): this writer's read transaction pins
+		// READ_LOCK(0) — the log is fully backfilled and may be overwritten
+		// from frame 1 when no other reader holds a mark; the pin is then
+		// re-selected as a real read mark.
+		if err := w.walRestartLogHeld(); err != nil {
+			return err
 		}
 	}
 	if w.nFrame == 0 {
@@ -839,6 +851,12 @@ func (w *walWriter) Close() error {
 		if w.ckptLock {
 			w.walUnlockExclusive(walLockCkpt, 1)
 			w.ckptLock = false
+		}
+		// A connection closed mid-read-transaction drops its shared
+		// read-mark lock (close(2) semantics on the POSIX locks — C's
+		// pWal->readLock dies with the handle).
+		if w.readLock >= 0 {
+			w.walEndReadTxn()
 		}
 		err := w.file.Close()
 		w.file = nil

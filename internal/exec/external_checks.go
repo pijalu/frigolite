@@ -43,8 +43,15 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 		return nil
 	}
 	changed := false
+	// pinWAL: file-backed WAL databases open their read transaction (the
+	// read-mark pin, sqlite3WalBeginReadTransaction parity) as part of the
+	// per-statement check. Transaction-control statements and PRAGMA
+	// wal_checkpoint never read pages through the WAL — pinning them would
+	// park a read mark and block a concurrent checkpointer where C runs the
+	// checkpoint outside any read transaction.
+	pinWAL := !stmtSkipsWalReadPin(stmt)
 	for _, ctx := range e.databases {
-		dbChanged, err := checkDBFileCtx(ctx, e.settings.writableSchema)
+		dbChanged, err := checkDBFileCtx(ctx, e.settings.writableSchema, pinWAL)
 		if err != nil {
 			return &Result{Error: err}
 		}
@@ -66,7 +73,7 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 // (pBt->db)==0 )" (src/btree.c:3415-3418) — with the flag set the btree
 // tolerates a header leading the file (incrvacuum-17.1 runs
 // incremental_vacuum against such an image and expects success).
-func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool) (changed bool, err error) {
+func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool, pinWAL bool) (changed bool, err error) {
 	if ctx == nil || ctx.Pager == nil || ctx.IsMemory || ctx.Pager.IsMemory() {
 		return false, nil
 	}
@@ -86,7 +93,7 @@ func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool) (changed bool, er
 	// that cannot be recovered right now is BUSY_RECOVERY ("database is
 	// locked") or — after the retry budget — SQLITE_PROTOCOL ("locking
 	// protocol"), exactly walTryBeginRead's error contract.
-	changed, ferr := ctx.Pager.CheckExternalFileErr()
+	changed, ferr := ctx.Pager.CheckExternalFileErr(pinWAL)
 	if ferr != nil {
 		return false, ferr
 	}
@@ -102,6 +109,23 @@ func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool) (changed bool, er
 		return changed, fmt.Errorf("database disk image is malformed")
 	}
 	return changed, nil
+}
+
+// stmtSkipsWalReadPin reports whether a statement class must NOT open the
+// WAL read transaction (the read-mark pin) at its per-statement file check:
+// transaction control (BEGIN is deferred in C — it opens no b-tree read
+// transaction until the first b-tree access; COMMIT/ROLLBACK/SAVEPOINT run
+// inside the transaction's own snapshot or none) and PRAGMA wal_checkpoint
+// (pragma.c runs sqlite3WalCheckpoint outside any read transaction — a
+// pinned mark would busy a RESTART/TRUNCATE checkpoint C completes).
+func stmtSkipsWalReadPin(stmt sql.Stmt) bool {
+	switch s := stmt.(type) {
+	case *sql.BeginStmt, *sql.CommitStmt, *sql.RollbackStmt, *sql.SavepointStmt:
+		return true
+	case *sql.PragmaStmt:
+		return strings.EqualFold(s.Name, "wal_checkpoint")
+	}
+	return false
 }
 
 // stmtTouchesDatabase reports whether a statement uses a database b-tree

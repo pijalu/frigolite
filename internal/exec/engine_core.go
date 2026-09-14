@@ -691,17 +691,22 @@ func (e *Engine) checkSelectRaise(s *sql.SelectStmt) error {
 }
 
 // execDepthLeave unwinds one Exec nesting level. When the outermost
-// statement finishes it clears snapActive and — mirroring vdbeapi.c:779-782
-// — clears the interrupt flag: sqlite3 clears u1.isInterrupted when the
-// last active statement returns, so an interrupted statement does not
-// poison the following one (interrupt-2.5.3/2.7 observe 0 right after).
-// An interrupt raised while no statement is active (between statements)
-// survives until the next Exec consumes it at entry.
+// statement finishes it clears snapActive, ends the statement's WAL read
+// snapshot when no explicit transaction keeps it open (autocommit parity:
+// the next statement begins a fresh read transaction and observes other
+// connections' commits — P7.WAL-G7 slice 3), and — mirroring
+// vdbeapi.c:779-782 — clears the interrupt flag: sqlite3 clears
+// u1.isInterrupted when the last active statement returns, so an
+// interrupted statement does not poison the following one
+// (interrupt-2.5.3/2.7 observe 0 right after). An interrupt raised while no
+// statement is active (between statements) survives until the next Exec
+// consumes it at entry.
 func (e *Engine) execDepthLeave() {
 	e.tx.execDepth--
 	if e.tx.execDepth == 0 {
 		e.tx.snapActive = false
 		e.interrupted = false
+		e.walEndStmtRead()
 	}
 }
 

@@ -309,6 +309,13 @@ func (p *Pager) SetBusyTimeout(d time.Duration) {
 	}
 }
 
+// WALMode reports whether the pager runs in WAL mode (a walWriter is
+// attached). The engine consults it for the cross-connection lock matrix:
+// in WAL mode readers never block writers and writers never block readers
+// (only the WRITER shm byte serializes writers), unlike the rollback-journal
+// RESERVED/EXCLUSIVE upgrade model.
+func (p *Pager) WALMode() bool { return p.walRef() }
+
 // SetWALExclusiveMode toggles locking_mode=EXCLUSIVE for the WAL writer
 // (wal.c: in exclusive mode every walLockShared/walLockExclusive is a no-op —
 // the shm locks are never taken, assuming single-process access).
@@ -344,11 +351,21 @@ func (p *Pager) WALIndexLock(idx, n int, excl, lock bool) bool {
 // right now reports SQLITE_BUSY_RECOVERY ("database is locked", another
 // connection is mid-recovery) or SQLITE_PROTOCOL ("locking protocol"). The
 // plain CheckExternalFile keeps the no-error signature for existing callers.
-func (p *Pager) CheckExternalFileErr() (bool, error) {
+//
+// pinWAL selects whether a WAL-mode pager OPENS ITS READ TRANSACTION (the
+// read-mark pin — sqlite3WalBeginReadTransaction parity) as part of the
+// check. Statements that never read pages through the WAL (transaction
+// control, PRAGMA wal_checkpoint) pass false: pinning there would park a
+// read mark across the statement and cap/FAIL a checkpoint that C runs
+// outside any read transaction. Caller: the engine's per-statement gate.
+func (p *Pager) CheckExternalFileErr(pinWAL bool) (bool, error) {
 	if p.file == nil {
 		return false, nil
 	}
 	if p.walRef() {
+		if !pinWAL {
+			return false, nil
+		}
 		p.mu.Lock()
 		defer p.mu.Unlock()
 		if len(p.dirty) > 0 {

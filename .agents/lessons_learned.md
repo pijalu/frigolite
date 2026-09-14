@@ -6177,3 +6177,56 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   TVF MATCH form (`FROM ft('query')`), fts5tok2 index-out-of-range panic
   (pre-existing, next tranche), corruption/fault-injection harness classes,
   exprprint colset rendering (`{a}` vs `a `).
+
+## P7.WAL-G7 slice 3 — read-marks + MVCC visibility (2026-09-13)
+
+- **MVCC pin lives on the walWriter, the lifecycle on the engine**: C's
+  pWal->readLock/-minFrame port as `walWriter.readLock` (−1 none, 0..4) and
+  `walWriter.minFrame` (internal/pager/walread.go). walTryBeginRead's round
+  structure: header refresh OUTSIDE the wal-index mutex (it takes WRITER for
+  recovery), read-mark work INSIDE one WriterSection (mark reads, bump,
+  shared pin + verify are atomic vs the header). READ_LOCK(0) means "log
+  fully backfilled — ignore the WAL, read the main file"; FindFrame must
+  early-return for it.
+- **Freeze = gate the refresh, not the cache**: repeatable reads come from
+  `walIndexRefreshLocked` returning early while `readLock >= 0` — the pin
+  makes every per-statement external-check path (CheckExternalFileErr,
+  CheckExternalFile via schema, InvalidateCache, WALBeginWrite) a no-op.
+  Unpin at execDepthLeave when `!e.tx.inTransaction`; a failed statement
+  reaches the same path, so pins never leak. WALBeginWrite unpins when ITS
+  refresh created the pin and the write gate then failed (autocommit
+  statement failure closes the txn in C).
+- **Pin exclusions are load-bearing**: transaction-control statements
+  (BEGIN/COMMIT/ROLLBACK/SAVEPOINT) and PRAGMA wal_checkpoint must NOT pin —
+  C runs checkpoints outside any read transaction; a pinned mark would busy
+  a RESTART/TRUNCATE checkpoint (wrong result triple, -wal not truncated).
+- **walRestartLog port detail**: at commit, a writer whose readLock==0
+  (a) tries the log restart under exclusive READ_LOCK(1..4), (b) releases
+  READ_LOCK(0), (c) re-selects a real mark via walTryBeginRead(useWal=1) —
+  a writer appending frames must not keep the "ignore the WAL" pin.
+- **In-process shm locks: the held helpers must honor exclusiveMode** —
+  slice-2's walLockShared/walLockExclusive wrappers short-circuit
+  locking_mode=EXCLUSIVE, but direct `shmTryLockHeld` calls bypass it and
+  fire xShmLock hooks (TestWalLockExclusiveMode caught it). Also: pass READ
+  -MARK indices (0..4) through mark helpers that translate walReadLockIdx
+  internally — a literal slot 0 locks the WRITER byte and self-deadlocks the
+  statement (first bug slice 3 hit; symptom: "database is locked" on the
+  FIRST statement after journal_mode=WAL).
+- **WAL-mode lock-matrix exemptions**: the generic rollback-journal
+  CrossConnLockError/commitLockError/beginLockError blocked writers on
+  readers (SharedTxByOther/ReadTxByOther) — C's WAL has NO reader/writer
+  exclusion; gate those checks on `stmtWALMode(stmt, schema)`. Writer-vs-
+  writer (WriteTxByOther) stays.
+- **mark value vs pin**: the mark VALUE stays in aReadMark[] after the
+  reader unpins (later readers share it, C leaves it too); only the SHARED
+  LOCK is released. Checkpoint PASS1 re-inits mark 1 to mxSafeFrame when
+  granted — so "some mark == mxFrame" stays observable after checkpoints.
+- **JSON harness WAL fixtures are almost all harness-limited**: converter
+  reordering re-runs setups ("table t1 already exists"), testvfs/noshm/
+  setlk_timeout/crashsql machinery is untranspilable. Triage un-skipped,
+  then upgrade skip reasons per family; walcrash2 + walsetlk_recover are
+  GREEN un-skipped (removed from unsupportedTestFiles). testgen/wal..
+  wal5 all pass with slice 3.
+- **Forensics tip**: the SetShmLockHook trace (log every idx/op) pinpoints
+  leaked shm locks instantly — the failing op is the one after the last
+  logged line.
