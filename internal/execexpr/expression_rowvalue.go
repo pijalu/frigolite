@@ -243,6 +243,12 @@ func (ev *Evaluator) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error)
 	if v.Operator == "MATCH" || v.Operator == "NOT MATCH" {
 		return ev.evalMatchOp(v, row)
 	}
+	// The fts5 rank override in EQ form ("WHERE rank = 'bm25(...)'") is a
+	// consumed xFilter constraint (fts5_main.c fts5BestIndexMethod's 'r'
+	// constraint, omit=1), never a row filter: it passes every visited row.
+	if (v.Operator == "=" || v.Operator == "==") && ev.consumesFTS5RankOverride(v) {
+		return int64(1), nil
+	}
 
 	left, err := ev.evalExprWithCollation(v.Left, row)
 	if err != nil {
@@ -365,6 +371,18 @@ func (ev *Evaluator) rowValueIsEqual(lv, rv []interface{}) (bool, error) {
 type ftsMatchTable interface {
 	MatchQueryColumn(rowid int64, query, columnName string, langid ...int64) (bool, error)
 	ColumnNames() []string
+}
+
+// consumesFTS5RankOverride reports whether the EQ comparison's left operand is
+// the fts5 rank pseudo-column while an fts5 aux context is active (an fts5
+// scan is visiting rows): the constraint is then consumed by the scan.
+func (ev *Evaluator) consumesFTS5RankOverride(v *sql.BinaryOp) bool {
+	ref, ok := v.Left.(*sql.ColumnRef)
+	if !ok || !strings.EqualFold(ref.Name, "rank") {
+		return false
+	}
+	ctxTable, _ := ev.ctx.FTS5Aux()
+	return ctxTable != ""
 }
 
 // evalMatchOp evaluates a MATCH or NOT MATCH expression for FTS virtual tables.

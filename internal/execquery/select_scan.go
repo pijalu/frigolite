@@ -770,6 +770,12 @@ func (e *SelectEngine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, boo
 	if !isSimpleComparisonOp(bop.Operator) {
 		return false, false
 	}
+	// A consumed fts5 rank override (rank = '...' — the xFilter 'r'
+	// constraint) never filters rows (execexpr's evalBinaryOp parity for
+	// this fast path).
+	if (bop.Operator == "=" || bop.Operator == "==") && e.consumesFTS5RankEq(bop) {
+		return true, true
+	}
 
 	// Try ColumnRef OP Literal
 	if colRef, ok := bop.Left.(*sql.ColumnRef); ok {
@@ -799,6 +805,18 @@ func isSimpleComparisonOp(op string) bool {
 		return true
 	}
 	return false
+}
+
+// consumesFTS5RankEq reports whether the comparison consumes the fts5 rank
+// pseudo-column override (rank = '...' with an active fts5 aux context):
+// the constraint belongs to the scan's xFilter, not the row filter.
+func (e *SelectEngine) consumesFTS5RankEq(bop *sql.BinaryOp) bool {
+	ref, ok := bop.Left.(*sql.ColumnRef)
+	if !ok || !strings.EqualFold(ref.Name, "rank") {
+		return false
+	}
+	ctxTable, _ := e.ctx.FTS5Aux()
+	return ctxTable != ""
 }
 
 // resolveColRefAndLiteral resolves a column reference and a literal operand for

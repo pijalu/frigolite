@@ -80,6 +80,9 @@ type SelectContext interface {
 	// the current fts5 SELECT (bm25/highlight/snippet evaluation).
 	SetFTS5Aux(table string, aq *fts5.AuxQuery)
 	ClearFTS5Aux()
+	// FTS5Aux returns the active aux context's table name ("" when no fts5
+	// scan is in flight) and its query.
+	FTS5Aux() (string, *fts5.AuxQuery)
 	// EnterAuxAggArg marks one aggregate-argument evaluation as in flight
 	// (C's TK_AGG_COLUMN: fts5 aux overloads do not apply there); the
 	// returned function restores the previous depth.

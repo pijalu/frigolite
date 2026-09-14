@@ -34,7 +34,13 @@ func ParseRankSpec(zIn string) (*RankSpec, error) {
 	if !strings.HasPrefix(p, "(") {
 		return nil, errRankLogic()
 	}
-	args, ok := skipRankArgs(p[1:])
+	// An empty argument list is valid (fts5_config.c: fts5ConfigSkipArgs only
+	// runs when the byte after '(' is not ')') — "bm25()" carries no args.
+	q := skipRankWS(p[1:])
+	if strings.HasPrefix(q, ")") {
+		return &RankSpec{Func: bare}, nil
+	}
+	args, ok := skipRankArgs(q)
 	if !ok {
 		return nil, errRankLogic()
 	}
