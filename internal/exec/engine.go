@@ -780,6 +780,20 @@ func (e *Engine) lookupCollation(name string) func(a, b string) int {
 	return e.collations[strings.ToUpper(name)]
 }
 
+// RegisteredCollations returns a copy of this connection's custom collation
+// registry (the VACUUM rebuild transfers it to the destination engine so the
+// logical copy resolves every source collation — vacuum2-6).
+func (e *Engine) RegisteredCollations() map[string]func(a, b string) int {
+	if e == nil || e.collations == nil {
+		return nil
+	}
+	out := make(map[string]func(a, b string) int, len(e.collations))
+	for k, v := range e.collations {
+		out[k] = v
+	}
+	return out
+}
+
 // compareValuesCollate compares two SQL values with a collation name,
 // consulting this engine's registered custom collations in addition to the
 // built-in BINARY/NOCASE/RTRIM. An empty or unknown collation falls back to

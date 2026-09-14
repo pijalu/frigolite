@@ -115,10 +115,10 @@ func Test_reindex(t *testing.T) {
 		}
 	}
 	{ // do_test "reindex-2.1"
-		// proc definition (not transpiled)
-		// proc definition (not transpiled)
-		db.RegisterCollation("c1", func(a, b string) int { return strings.Compare(a, b) })
-		// db collate c2 (not transpiled)
+		// proc c1 collation (registered via db collate)
+		// proc c2 collation (registered via db collate)
+		db.RegisterCollation("c1", func(a, b string) int { return -strings.Compare(a, b) })
+		db.RegisterCollation("c2", func(a, b string) int { return -strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		r = db.Query("\n    CREATE TABLE t2(\n      a TEXT PRIMARY KEY COLLATE c1,\n      b TEXT UNIQUE COLLATE c2,\n      c TEXT COLLATE nocase,\n      d TEST COLLATE binary\n    );\n    INSERT INTO t2 VALUES('abc','abc','abc','abc');\n    INSERT INTO t2 VALUES('ABCD','ABCD','ABCD','ABCD');\n    INSERT INTO t2 VALUES('bcd','bcd','bcd','bcd');\n    INSERT INTO t2 VALUES('BCDE','BCDE','BCDE','BCDE');\n    SELECT a FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(\n      a TEXT PRIMARY KEY COLLATE c1,\n      b TEXT UNIQUE COLLATE c2,\n      c TEXT COLLATE nocase,\n      d TEST COLLATE binary\n    );\n    INSERT INTO t2 VALUES('abc','abc','abc','abc');\n    INSERT INTO t2 VALUES('ABCD','ABCD','ABCD','ABCD');\n    INSERT INTO t2 VALUES('bcd','bcd','bcd','bcd');\n    INSERT INTO t2 VALUES('BCDE','BCDE','BCDE','BCDE');\n    SELECT a FROM t2 ORDER BY a;\n  ")
@@ -181,7 +181,8 @@ func Test_reindex(t *testing.T) {
 	}
 	{ // do_test "reindex-3.2"
 		// proc definition (not transpiled)
-		// db2.collation_needed (db command)
+		// db2 collation_needed need_collate: body registers the collation directly
+		db2.RegisterCollation("c1", func(a, b string) int { return strings.Compare(a, b) })
 		_res = db2.Exec("\n    REINDEX c1;\n  ")
 		_ = _res // catchsql
 	}

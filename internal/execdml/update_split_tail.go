@@ -7,6 +7,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -530,7 +531,40 @@ func (e *DMLExecutor) readUpdateFromTable(s *sql.UpdateStmt, ref sql.TableRef) (
 	if ftsTable, ok := e.ctx.FTSTables()[entry.Name]; ok {
 		return e.scanUpdateFromFTS(ftsTable, colDefs, alias)
 	}
+	if t5, ok := e.ctx.FTS5Tables()[entry.Name]; ok {
+		return e.scanUpdateFromFTS5(t5, alias)
+	}
 	return e.scanUpdateFromTable(entry, colDefs, fromCtx, alias)
+}
+
+// scanUpdateFromFTS5 reads every row of an fts5 virtual table (an UPDATE ...
+// FROM operand) into row maps qualified with the alias: the rowid under
+// rowid/docid and each user column under its name (fts4upfrom 1.x, fts5
+// loop iteration).
+func (e *DMLExecutor) scanUpdateFromFTS5(t5 *fts5.Table, alias string) ([]RowMap, error) {
+	rowids, values, err := t5.ScanDocs()
+	if err != nil {
+		return nil, err
+	}
+	cols := t5.ColumnNames()
+	rows := make([]RowMap, 0, len(rowids))
+	for i, rowid := range rowids {
+		m := RowMap{
+			"rowid":          &util.ColumnValue{Value: rowid, Affinity: 'I'},
+			"docid":          &util.ColumnValue{Value: rowid, Affinity: 'I'},
+			alias + ".rowid": &util.ColumnValue{Value: rowid, Affinity: 'I'},
+		}
+		for c, col := range cols {
+			var v interface{} = nil
+			if i < len(values) && c < len(values[i]) {
+				v = values[i][c]
+			}
+			m[col] = &util.ColumnValue{Value: v}
+			m[alias+"."+col] = &util.ColumnValue{Value: v}
+		}
+		rows = append(rows, m)
+	}
+	return rows, nil
 }
 
 // scanUpdateFromFTS reads every row of an FTS virtual table (used as an

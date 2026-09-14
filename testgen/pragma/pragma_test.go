@@ -1488,7 +1488,8 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma-11.2"
-		// db collate New_Collation (not transpiled)
+		// db collation New_Collation: proc body unrecognized — binary-order fallback registration
+		db.RegisterCollation("New_Collation", func(a, b string) int { return strings.Compare(a, b) })
 		r = db.Query("\n      pragma collation_list;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma collation_list;\n    ")

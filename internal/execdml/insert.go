@@ -238,12 +238,32 @@ func parseIndexKeyCollations(colText string) []string {
 	for i, part := range parts {
 		upper := strings.ToUpper(part)
 		if idx := strings.Index(upper, " COLLATE "); idx >= 0 {
-			name := strings.TrimSpace(part[idx+len(" COLLATE "):])
-			name = strings.Trim(name, "'\"")
-			colls[i] = name
+			colls[i] = collationNameToken(part[idx+len(" COLLATE "):])
 		}
 	}
 	return colls
+}
+
+// collationNameToken extracts a COLLATE clause's collation name: SQLite's
+// grammar takes a single identifier (expr.c "COLLATE id"), so a trailing
+// sort-order keyword ("binary ASC") or any following text is not part of the
+// name. A quoted name ('my coll') is taken up to its closing quote.
+func collationNameToken(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	if q := s[0]; q == '\'' || q == '"' || q == '`' || q == '[' {
+		closer := map[byte]byte{'\'': '\'', '"': '"', '`': '`', '[': ']'}[q]
+		if end := strings.IndexByte(s[1:], closer); end >= 0 {
+			return s[1 : 1+end]
+		}
+		return strings.Trim(s, "'\"`]")
+	}
+	if idx := strings.IndexAny(s, " \t\n"); idx >= 0 {
+		s = s[:idx]
+	}
+	return strings.TrimSuffix(strings.TrimSuffix(s, ")"), ",")
 }
 
 // parseIndexKeyCols parses a CREATE INDEX key column-list into stripped key

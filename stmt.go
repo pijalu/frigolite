@@ -257,6 +257,16 @@ func (s *Stmt) Columns() []string {
 	return s.result.Columns
 }
 
+// StepResult returns the statement's materialized result after the first
+// Step (the tcl2go sqlite3_step emulation serves later step calls and
+// sqlite3_column_* reads from it without re-running the statement).
+func (s *Stmt) StepResult() *Result {
+	if s == nil {
+		return nil
+	}
+	return s.result
+}
+
 // Exec executes statement and returns its complete result. Unlike Step it
 // re-runs the statement from the start on every call (the transpiler helpers
 // use it for side-effect-only steps).

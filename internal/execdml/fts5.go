@@ -204,6 +204,15 @@ func (e *DMLExecutor) execFTS5Delete(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 // execFTS5Update implements UPDATE on an fts5 table.
 func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s *sql.UpdateStmt) *Result {
 	cfg := t5.Config()
+	fromJoin := s.From.Name != "" || s.From.Subquery != nil || len(s.From.Args) > 0
+	if fromJoin {
+		// SQLite resolves the UPDATE ... FROM sources at prepare time: a
+		// missing FROM table errors even when no target row matches
+		// (fts4upfrom 1.x.4 "no such table: changes").
+		if _, jerr := e.JoinUpdateFromRows(s, nil); jerr != nil {
+			return &Result{Error: jerr}
+		}
+	}
 	if cfg.Contentless() {
 		// fts5ContentlessUpdate (fts5_main.c:1847): only unindexed columns
 		// may change on a contentless table; with contentless_delete=1 every
@@ -237,6 +246,13 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			// Only unindexed columns changed: the index is untouched and the
 			// content table holds nothing to update (contentless) — report
 			// the matched row count with no index work.
+			if fromJoin {
+				n, err := e.fts5FromMatchedCount(t5, s)
+				if err != nil {
+					return &Result{Error: err}
+				}
+				return &Result{Changes: n}
+			}
 			rowids, err := fts5MatchedRowids(e, t5, colDefs, s.Where)
 			if err != nil {
 				return &Result{Error: err}
@@ -244,12 +260,32 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			return &Result{Changes: int64(len(rowids))}
 		}
 	}
-	rowMaps, rowids, err := e.fts5MatchedRows(t5, colDefs, s.Where, nil, nil)
+	var rowMaps []RowMap
+	var rowids []int64
+	var err error
+	if fromJoin {
+		// No pre-filtering by WHERE: its FROM-column terms can only be
+		// evaluated per (target, FROM) pair below.
+		rowMaps, rowids, err = e.fts5UniverseRows(t5, s.Where)
+	} else {
+		rowMaps, rowids, err = e.fts5MatchedRows(t5, colDefs, s.Where, nil, nil)
+	}
 	if err != nil {
 		return &Result{Error: err}
 	}
 	updated := int64(0)
 	for i, rowid := range rowids {
+		evalMap := rowMaps[i]
+		if fromJoin {
+			joined, ok, jerr := e.fts5JoinedEvalMap(s, rowMaps[i])
+			if jerr != nil {
+				return &Result{Error: jerr}
+			}
+			if !ok {
+				continue
+			}
+			evalMap = joined
+		}
 		newRowid := rowid
 		newVals := make([]interface{}, len(t5.ColumnNames()))
 		copy(newVals, fts5RowValues(t5, rowMaps[i]))
@@ -257,7 +293,7 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 		for _, a := range s.Assignments {
 			lower := strings.ToLower(a.Column)
 			if lower == "rowid" || lower == "_rowid_" || lower == "oid" {
-				v, verr := e.ctx.EvalExpr(a.Value, rowMaps[i])
+				v, verr := e.ctx.EvalExpr(a.Value, evalMap)
 				if verr != nil {
 					return &Result{Error: verr}
 				}
@@ -271,7 +307,7 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			if idx < 0 {
 				return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
 			}
-			v, verr := e.ctx.EvalExpr(a.Value, rowMaps[i])
+			v, verr := e.ctx.EvalExpr(a.Value, evalMap)
 			if verr != nil {
 				return &Result{Error: verr}
 			}
@@ -293,6 +329,52 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 		return &Result{Error: ferr}
 	}
 	return &Result{Changes: updated}
+}
+
+// fts5JoinedEvalMap builds the evaluation row map for one target document in
+// an UPDATE ... FROM: the document's row map merged with the FIRST joined
+// FROM row whose WHERE is satisfied (fts4upfrom 1.x: UPDATE ft SET b=o.c
+// FROM ft AS o WHERE ft.a == ...). ok is false when no FROM row matches (the
+// document is not updated). With no WHERE, the first joined row applies.
+func (e *DMLExecutor) fts5JoinedEvalMap(s *sql.UpdateStmt, base RowMap) (RowMap, bool, error) {
+	joined, jerr := e.JoinUpdateFromRows(s, base)
+	if jerr != nil {
+		return nil, false, jerr
+	}
+	if len(joined) == 0 {
+		return base, true, nil
+	}
+	if s.Where != nil {
+		for _, jrow := range joined {
+			match, merr := e.ctx.EvalBool(s.Where, jrow)
+			if merr == nil && match {
+				return jrow, true, nil
+			}
+		}
+		return base, false, nil
+	}
+	return joined[0], true, nil
+}
+
+// fts5FromMatchedCount counts the documents an UPDATE ... FROM would update
+// (the contentless path's change count): the WHERE is evaluated per joined
+// (target, FROM) pair.
+func (e *DMLExecutor) fts5FromMatchedCount(t5 *fts5.Table, s *sql.UpdateStmt) (int64, error) {
+	rowMaps, _, err := e.fts5UniverseRows(t5, s.Where)
+	if err != nil {
+		return 0, err
+	}
+	n := int64(0)
+	for i := range rowMaps {
+		_, ok, jerr := e.fts5JoinedEvalMap(s, rowMaps[i])
+		if jerr != nil {
+			return 0, jerr
+		}
+		if ok {
+			n++
+		}
+	}
+	return n, nil
 }
 
 // fts5RowValues extracts a row map's user-column values in declared order.
@@ -324,6 +406,36 @@ func fts5MatchedRowids(e *DMLExecutor, t5 *fts5.Table, colDefs []sql.ColumnDef, 
 func (e *DMLExecutor) fts5MatchedRows(t5 *fts5.Table, colDefs []sql.ColumnDef, where sql.Expr, orderBy []sql.OrderByTerm, limit sql.Expr) ([]RowMap, []int64, error) {
 	_ = orderBy
 	_ = limit
+	rowMaps, rowids, err := e.fts5UniverseRows(t5, where)
+	if err != nil {
+		return nil, nil, err
+	}
+	var matched []RowMap
+	var matchedIDs []int64
+	for i, rowMap := range rowMaps {
+		if where == nil {
+			matched = append(matched, rowMap)
+			matchedIDs = append(matchedIDs, rowids[i])
+			continue
+		}
+		pass, perr := e.ctx.RowPassesWhere(where, rowMap, nil)
+		if perr != nil {
+			return nil, nil, perr
+		}
+		if pass {
+			matched = append(matched, rowMap)
+			matchedIDs = append(matchedIDs, rowids[i])
+		}
+	}
+	return matched, matchedIDs, nil
+}
+
+// fts5UniverseRows resolves the UPDATE/DELETE scan universe (the MATCH
+// conjunct's index hit, else every document) WITHOUT applying the WHERE
+// filter: the UPDATE ... FROM executor re-evaluates the WHERE per joined
+// (target, FROM) row pair, so filtering here against the bare document row
+// would drop rows whose WHERE references FROM columns.
+func (e *DMLExecutor) fts5UniverseRows(t5 *fts5.Table, where sql.Expr) ([]RowMap, []int64, error) {
 	set, err := t5.MatchUniverse(where, func(expr sql.Expr) (interface{}, error) {
 		return e.ctx.EvalExpr(expr, nil)
 	})
@@ -347,25 +459,7 @@ func (e *DMLExecutor) fts5MatchedRows(t5 *fts5.Table, colDefs []sql.ColumnDef, w
 			return nil, nil, err
 		}
 	}
-	rowMaps := fts5DMLRowMaps(rowids, values, t5)
-	var matched []RowMap
-	var matchedIDs []int64
-	for i, rowMap := range rowMaps {
-		if where == nil {
-			matched = append(matched, rowMap)
-			matchedIDs = append(matchedIDs, rowids[i])
-			continue
-		}
-		pass, perr := e.ctx.RowPassesWhere(where, rowMap, nil)
-		if perr != nil {
-			return nil, nil, perr
-		}
-		if pass {
-			matched = append(matched, rowMap)
-			matchedIDs = append(matchedIDs, rowids[i])
-		}
-	}
-	return matched, matchedIDs, nil
+	return fts5DMLRowMaps(rowids, values, t5), rowids, nil
 }
 
 // fts5DMLRowMaps builds WHERE-evaluation row maps for fts5 documents, with

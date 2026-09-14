@@ -468,12 +468,26 @@ func collationProcGo(body string) string {
 	// Strip a leading command-substitution bracket so `[string compare $a $b]`
 	// is detected like the bare form.
 	scLower := strings.TrimPrefix(lower, "[")
+	// [list string match ...] / `string match $a $b` — TCL glob-match
+	// collations (orderby5.test's `db collate hello [list string match]`).
+	if sm := strings.TrimSpace(strings.TrimPrefix(lower, "[list ")); sm != lower && strings.HasPrefix(sm, "string match") {
+		return collationStringMatch
+	}
+	if strings.HasPrefix(lower, "string match ") {
+		return collationStringMatch
+	}
 	// string compare $a $b  /  string compare -nocase $a $b
 	if strings.HasPrefix(lower, "[list string compare") {
 		return collationCompare(lower[len("[list string compare"):])
 	}
 	if strings.HasPrefix(scLower, "string compare") {
 		return collationStringCompare(lower, scLower[len("string compare"):])
+	}
+	// [expr {-[string compare $a $b]}] and the case-folded variant
+	// [expr {-[string compare [string tolower $a] [string tolower $b]]}]
+	// (reindex.test's c1/c2 collation procs).
+	if expr, ok := negatedStringCompareCollation(lower); ok {
+		return expr
 	}
 	if expr, ok := backwardsCollation(lower); ok {
 		return expr
@@ -548,6 +562,53 @@ func collationCompare(rest string) string {
 		return "func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) }"
 	}
 	return "func(a, b string) int { return strings.Compare(a, b) }"
+}
+
+// collationStringMatch is the Go closure for a `string match $a $b` glob
+// collation (TCL string match returns 1/0, never negative — orderby5.test's
+// `db collate hello [list string match]`).
+const collationStringMatch = "func(a, b string) int { if tclStringMatch(a, b) { return 1 }; return 0 }"
+
+// negatedStringCompareCollation recognizes `[expr {-[string compare A B]}]`
+// collation bodies (reindex.test's c1/c2): the comparison result is negated,
+// so the collation sorts in reverse order. Returns the Go closure for the
+// base comparison with the sign flipped.
+func negatedStringCompareCollation(lower string) (string, bool) {
+	s := strings.TrimSpace(lower)
+	if !strings.HasPrefix(s, "[expr") {
+		return "", false
+	}
+	s = strings.TrimSpace(strings.TrimPrefix(s, "[expr"))
+	if !strings.HasPrefix(s, "{") {
+		return "", false
+	}
+	s = strings.TrimSuffix(strings.TrimPrefix(s, "{"), "}]")
+	s = strings.TrimSpace(s)
+	negated := strings.HasPrefix(s, "-")
+	if !negated {
+		return "", false
+	}
+	s = strings.TrimSpace(s[1:])
+	if !strings.HasPrefix(s, "[string compare") || !strings.HasSuffix(s, "]") {
+		return "", false
+	}
+	rest := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(s, "[string compare"), "]"))
+	var base string
+	switch {
+	case strings.HasPrefix(rest, "-nocase"):
+		base = "func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) }"
+	case strings.HasPrefix(rest, "[string tolower $a] [string tolower $b]"):
+		base = "func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) }"
+	default:
+		base = collationFieldCompare(rest)
+	}
+	if base == "" {
+		return "", false
+	}
+	if !negated {
+		return base, true
+	}
+	return strings.Replace(base, "return strings.Compare(", "return -strings.Compare(", 1), true
 }
 
 // collationStringCompare handles the `string compare ...` form.

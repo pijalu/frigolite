@@ -199,7 +199,9 @@ func trimOuterParens(s string) string {
 }
 
 // splitCollateExpr splits "<base> COLLATE <name>" into (base, name). Returns
-// the whole string with collate "" when there is no COLLATE suffix.
+// the whole string with collate "" when there is no COLLATE suffix. The name
+// is one identifier (expr.c "COLLATE id"): a trailing sort-order keyword is
+// not part of it.
 func splitCollateExpr(s string) (string, string) {
 	upper := strings.ToUpper(s)
 	idx := strings.LastIndex(upper, " COLLATE ")
@@ -207,7 +209,7 @@ func splitCollateExpr(s string) (string, string) {
 		return s, ""
 	}
 	base := strings.TrimSpace(s[:idx])
-	coll := strings.Trim(strings.TrimSpace(s[idx+len(" COLLATE "):]), "'\"")
+	coll := collationNameToken(s[idx+len(" COLLATE "):])
 	return base, coll
 }
 

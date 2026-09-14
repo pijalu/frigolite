@@ -190,7 +190,7 @@ func Test_orderby5(t *testing.T) {
 		_res = db.Exec("\n  explain query plan\n  SELECT typeID, key, value FROM Records \n  WHERE typeID = 2 \n  ORDER BY key, value;\n")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	// db collate hello (not transpiled)
+	db.RegisterCollation("hello", func(a, b string) int { if tclStringMatch(a, b) { return 1 }; return 0 })
 	{ // "4.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
 		if _res.Error != nil {

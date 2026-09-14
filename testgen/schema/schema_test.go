@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strings"
 "testing"
 )
 
@@ -392,7 +393,8 @@ func Test_schema(t *testing.T) {
 		// sqlite3_finalize $STMT
 	}
 	{ // "schema-11.5" (prepare-step internals; SQL side effects only)
-		// db collate tstcollate (not transpiled)
+		// db collation tstcollate: proc body unrecognized — binary-order fallback registration
+		db.RegisterCollation("tstcollate", func(a, b string) int { return strings.Compare(a, b) })
 		vtab.TclVarSet("sql", "", "SELECT * FROM abc")
 		sql = "SELECT * FROM abc"
 		_ = sql // suppress unused warning
@@ -411,7 +413,8 @@ func Test_schema(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// db collate tstcollate (not transpiled)
+			// db collation tstcollate: proc body unrecognized — binary-order fallback registration
+			db.RegisterCollation("tstcollate", func(a, b string) int { return strings.Compare(a, b) })
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

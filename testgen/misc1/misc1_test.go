@@ -80,7 +80,8 @@ func Test_misc1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	db.RegisterCollation("numeric", func(a, b string) int { return strings.Compare(a, b) })
 	// proc numeric_collate collation (registered via db collate)
-	// db collate text (not transpiled)
+	// db collation text: proc body unrecognized — binary-order fallback registration
+	db.RegisterCollation("text", func(a, b string) int { return strings.Compare(a, b) })
 	// proc numeric_collate collation (registered via db collate)
 	{ // do_test "misc1-1.1"
 		vtab.TclVarSet("cmd", "", "CREATE TABLE manycol(x0 text")

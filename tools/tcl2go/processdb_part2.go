@@ -156,6 +156,12 @@ func (tp *transpiler) processDBCollate(rest []tcl.RawWord) {
 	}
 	if goFn != "" && collName != "" {
 		tp.emitLine("db.RegisterCollation(%s, %s)", tp.goStringLiteral(collWord), goFn)
+	} else if collName != "" {
+		// Unrecognized proc body: binary-order fallback registration (see
+		// processNamedDBCollate — the NAME must exist for CREATE-time
+		// collation resolution).
+		tp.emitLine("// db collation %s: proc body unrecognized — binary-order fallback registration", collName)
+		tp.emitLine("db.RegisterCollation(%s, func(a, b string) int { return strings.Compare(a, b) })", tp.goStringLiteral(collWord))
 	} else {
 		tp.emitLine("// db collate %s (not transpiled)", collName)
 	}
@@ -460,6 +466,7 @@ func (tp *transpiler) transpileHookBody(body, kind string) {
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
 		collateGoFuncs: tp.collateGoFuncs,
+		procBodies:     tp.procBodies,
 		preparedState:  tp.preparedState,
 		varConstValues: tp.varConstValues,
 	}
@@ -570,6 +577,7 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
 		collateGoFuncs: tp.collateGoFuncs,
+		procBodies:     tp.procBodies,
 		rollbackFlag:   rbFlag,
 		interruptFlag:  intFlag,
 		catchMode:      tp.catchMode,
@@ -664,6 +672,8 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 		// no-op: infrastructure
 	case "collate":
 		tp.processNamedDBCollate(goName, rest)
+	case "collation_needed":
+		tp.processNamedDBCollationNeeded(goName, rest)
 	case "progress":
 		tp.processNamedDBProgress(rest)
 	case "authorizer":
@@ -808,9 +818,62 @@ func (tp *transpiler) processNamedDBCollate(goName string, rest []tcl.RawWord) {
 	}
 	if goFn != "" && collName != "" {
 		tp.emitLine("%s.RegisterCollation(%s, %s)", goName, tp.goStringLiteral(collWord), goFn)
+	} else if collName != "" {
+		// The proc body is unrecognized (defined in another file or an
+		// untranspilable shape): register a binary-order fallback so the
+		// collation NAME exists — SQLite resolves collations at CREATE time
+		// (build.c sqlite3AddCollateType), and altertab-23.x only stores and
+		// echoes the name through DDL.
+		tp.emitLine("// %s collation %s: proc body unrecognized — binary-order fallback registration", goName, collName)
+		tp.emitLine("%s.RegisterCollation(%s, func(a, b string) int { return strings.Compare(a, b) })", goName, tp.goStringLiteral(collWord))
 	} else {
 		tp.emitLine("// db collate %s (not transpiled)", collName)
 	}
+}
+
+// processNamedDBCollationNeeded handles `dbN collation_needed PROC`: the TCL
+// callback registers a collation the engine reports as missing. When the
+// proc body is a single `dbN collate NAME PROC2` command with a recognized
+// PROC2, emit the registration directly — the engine asks for the collation
+// at the next statement, and registering it up front is observationally
+// equivalent (reindex-3.2: the hook registers c1 so 3.3's full REINDEX
+// fails on c2, not c1).
+func (tp *transpiler) processNamedDBCollationNeeded(goName string, rest []tcl.RawWord) {
+	if len(rest) < 1 {
+		tp.emitLine("// %s collation_needed (query)", goName)
+		return
+	}
+	procName := strings.TrimPrefix(strings.TrimSpace(rest[0].Text), "::")
+	body, ok := tp.procBodies[procName]
+	if ok {
+		if cmds := tcl.ParseCommands(body); len(cmds) == 1 && len(cmds[0]) >= 3 {
+			// Body shape 1: `collate NAME PROC2`; shape 2: `dbN collate NAME
+			// PROC2` (the reindex.test need_collate hook). Both register the
+			// collation on the connection owning the hook.
+			words := cmds[0]
+			if words[0].Text == "collate" {
+				words = words[1:]
+			} else if len(words) >= 2 && words[1].Text == "collate" {
+				words = words[2:]
+			} else {
+				words = nil
+			}
+			if len(words) >= 2 {
+				collWord := words[0]
+				procArg := strings.TrimSpace(words[1].Text)
+				goFn := collationProcGo(procArg)
+				if goFn == "" {
+					goFn = tp.collateGoFuncs[procArg]
+				}
+				if goFn != "" {
+					tp.emitLine("// %s collation_needed %s: body registers the collation directly", goName, procName)
+					tp.emitLine("%s.RegisterCollation(%s, %s)", goName, tp.goStringLiteral(collWord), goFn)
+					return
+				}
+			}
+		}
+	}
+	tp.emitLine("// %s collation_needed %s (proc not transpiled)", goName, procName)
 }
 
 // processNamedDBProgress handles `dbN progress N fn`.

@@ -429,7 +429,12 @@ func Test_pager1(t *testing.T) {
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
-				db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+				// db func a_string a_string (filefmt — counter-suffixed string)
+				db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+					if len(args) < 1 || args[0] == nil { return "", nil }
+					n := tclToInt(tclStr(args[0]))
+					return tclAString(&a_string_counter, n), nil
+				}, 1, 1)
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -537,7 +542,12 @@ func Test_pager1(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
-			db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+			// db func a_string a_string (filefmt — counter-suffixed string)
+			db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+				if len(args) < 1 || args[0] == nil { return "", nil }
+				n := tclToInt(tclStr(args[0]))
+				return tclAString(&a_string_counter, n), nil
+			}, 1, 1)
 			r = db.Query("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
@@ -1625,7 +1635,12 @@ func Test_pager1(t *testing.T) {
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								tcl_nullvalue = "{}" // fresh connection resets nullvalue
-								db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+								// db func a_string a_string (filefmt — counter-suffixed string)
+								db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+									if len(args) < 1 || args[0] == nil { return "", nil }
+									n := tclToInt(tclStr(args[0]))
+									return tclAString(&a_string_counter, n), nil
+								}, 1, 1)
 								r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
@@ -1873,7 +1888,12 @@ func Test_pager1(t *testing.T) {
 									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
 									tcl_nullvalue = "{}" // fresh connection resets nullvalue
-									db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+									// db func a_string a_string (filefmt — counter-suffixed string)
+									db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+										if len(args) < 1 || args[0] == nil { return "", nil }
+										n := tclToInt(tclStr(args[0]))
+										return tclAString(&a_string_counter, n), nil
+									}, 1, 1)
 									r = db.Query("\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
@@ -2388,7 +2408,12 @@ func Test_pager1(t *testing.T) {
 								db, err = frigolite.Open("")
 								tclConnRegister("db", db)
 								if err != nil { t.Fatal(err) }
-								db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+								// db func a_string a_string (filefmt — counter-suffixed string)
+								db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+									if len(args) < 1 || args[0] == nil { return "", nil }
+									n := tclToInt(tclStr(args[0]))
+									return tclAString(&a_string_counter, n), nil
+								}, 1, 1)
 								r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
@@ -2440,7 +2465,12 @@ func Test_pager1(t *testing.T) {
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								tcl_nullvalue = "{}" // fresh connection resets nullvalue
-								db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+								// db func a_string a_string (filefmt — counter-suffixed string)
+								db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+									if len(args) < 1 || args[0] == nil { return "", nil }
+									n := tclToInt(tclStr(args[0]))
+									return tclAString(&a_string_counter, n), nil
+								}, 1, 1)
 								r = db.Query("\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
@@ -2697,7 +2727,12 @@ func Test_pager1(t *testing.T) {
 									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
 									tcl_nullvalue = "{}" // fresh connection resets nullvalue
-									db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+									// db func a_string a_string (filefmt — counter-suffixed string)
+									db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+										if len(args) < 1 || args[0] == nil { return "", nil }
+										n := tclToInt(tclStr(args[0]))
+										return tclAString(&a_string_counter, n), nil
+									}, 1, 1)
 									r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
@@ -2773,7 +2808,12 @@ func Test_pager1(t *testing.T) {
 									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
 									tcl_nullvalue = "{}" // fresh connection resets nullvalue
-									db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+									// db func a_string a_string (filefmt — counter-suffixed string)
+									db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+										if len(args) < 1 || args[0] == nil { return "", nil }
+										n := tclToInt(tclStr(args[0]))
+										return tclAString(&a_string_counter, n), nil
+									}, 1, 1)
 									r = db.Query("\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
@@ -2965,7 +3005,12 @@ func Test_pager1(t *testing.T) {
 										db, err = frigolite.Open("test.db")
 										if err != nil { t.Fatal(err) }
 										tcl_nullvalue = "{}" // fresh connection resets nullvalue
-										db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+										// db func a_string a_string (filefmt — counter-suffixed string)
+										db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+											if len(args) < 1 || args[0] == nil { return "", nil }
+											n := tclToInt(tclStr(args[0]))
+											return tclAString(&a_string_counter, n), nil
+										}, 1, 1)
 										_res = db.Exec(pragma)
 										{ // "34." + tn + ".1"
 											_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")

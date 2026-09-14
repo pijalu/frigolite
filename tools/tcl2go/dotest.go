@@ -371,6 +371,7 @@ func (tp *transpiler) runDoTestBody(bodyCmds [][]tcl.RawWord) *preparedState {
 		rangeListFuncs:      tp.rangeListFuncs,
 		collateDtorVars:     tp.collateDtorVars,
 		collateGoFuncs:      tp.collateGoFuncs,
+		procBodies:          tp.procBodies,
 		testPrefix:          tp.testPrefix,
 		queryVars:           tp.queryVars,
 		dbAliases:           tp.dbAliases,

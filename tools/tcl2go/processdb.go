@@ -1405,6 +1405,7 @@ func (tp *transpiler) emitDBEvalArrayRows(arrName string, rest []tcl.RawWord) {
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
 		collateGoFuncs:   tp.collateGoFuncs,
+		procBodies:          tp.procBodies,
 		preparedState:    tp.preparedState,
 		varConstValues:   tp.varConstValues,
 		sqlVarValues:     tp.sqlVarValues,

@@ -43,6 +43,7 @@ func (tp *transpiler) runSubBody(args []tcl.RawWord, idx int) bool {
 		rangeListFuncs:      tp.rangeListFuncs,
 		collateDtorVars:     tp.collateDtorVars,
 		collateGoFuncs:      tp.collateGoFuncs,
+		procBodies:          tp.procBodies,
 		queryVars:           tp.queryVars,
 		dbAliases:           tp.dbAliases,
 		dbClosed:            tp.dbClosed,

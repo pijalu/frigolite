@@ -186,6 +186,15 @@ func copyViaBackup(src *DB, srcSchema string, dst *DB, dstSchema string, keepDes
 	prevIgnoreChecks := dst.engine.IgnoreCheckConstraints()
 	dst.engine.SetIgnoreCheckConstraints(true)
 	defer dst.engine.SetIgnoreCheckConstraints(prevIgnoreChecks)
+	// The logical copy INSERTs rows into the destination, so the destination
+	// must resolve the source's custom collations (C's page-level copy never
+	// consults them, but the ordering effect is the same: records re-sort per
+	// the CURRENT collation definition — vacuum2-6). Registered on dst only
+	// for the copy; a named destination is discarded right after (VACUUM
+	// INTO), and the in-memory temp dies with the rebuild.
+	for name, fn := range src.engine.RegisteredCollations() {
+		dst.engine.RegisterCollation(name, fn)
+	}
 	b, err := src.NewBackup(dst, dstSchema, srcSchema)
 	if err != nil {
 		return err

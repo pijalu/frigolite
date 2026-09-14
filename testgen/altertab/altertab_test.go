@@ -885,7 +885,8 @@ func Test_altertab(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// db collate compare64 (not transpiled)
+	// db collation compare64: proc body unrecognized — binary-order fallback registration
+	db.RegisterCollation("compare64", func(a, b string) int { return strings.Compare(a, b) })
 	{ // "23.1"
 		_res = db.Exec("\n  CREATE TABLE gigo(a text);\n  CREATE TABLE idx(x text COLLATE compare64);\n  CREATE VIEW v1 AS SELECT * FROM idx WHERE x='abc';\n")
 		if _res.Error != nil {

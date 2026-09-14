@@ -435,11 +435,19 @@ func tclPrepareStep(db *frigolite.DB, sqlText, name string) {
 	stmt, err := db.Prepare(sqlText)
 	if err != nil { return }
 	tclPrepared[name] = stmt
-	// The implicit first step materializes the rows (tclStepStmt's Exec
-	// model) and leaves row 0 current, so sqlite3_column_text reads after
-	// prepare+step see the first row (rtree8-1.3.2: lappend
-	// [sqlite3_column_text $stmt 0]).
-	r := stmt.Exec()
+	// vdbeapi.c sqlite3_step: the first step materializes the rows, leaves
+	// row 0 current so sqlite3_column_text reads after prepare+step see the
+	// first row (rtree8-1.3.2), and — while rows remain — holds the
+	// statement's prepared read lock so the database reports "in use" for a
+	// concurrent backup destination (backup5-1.4).
+	_, serr := stmt.Step()
+	r := stmt.StepResult()
+	if r == nil {
+		r = &frigolite.Result{}
+	}
+	if serr != nil && r.Error == nil {
+		r = &frigolite.Result{Error: serr}
+	}
 	tclLastStep[name] = &tclStepState{r: r, row: 0}
 	if r.Error != nil && db != nil {
 		db.SetLastErr(r.Error.Error(), db.ErrorCodeFor(r.Error))

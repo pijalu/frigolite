@@ -229,6 +229,7 @@ func (tp *transpiler) transpileSelectRepair(repair string) {
 		rangeListFuncs:  tp.rangeListFuncs,
 		collateDtorVars: tp.collateDtorVars,
 		collateGoFuncs:  tp.collateGoFuncs,
+		procBodies:          tp.procBodies,
 		testPrefix:      tp.testPrefix,
 		queryVars:       tp.queryVars,
 		dbAliases:       tp.dbAliases,
