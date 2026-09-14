@@ -1,7 +1,6 @@
 package fts5
 
 import (
-	"os"
 	"bytes"
 	"encoding/gob"
 	"encoding/hex"
@@ -108,7 +107,6 @@ func (t *Table) createShadowTables() error {
 	// Seed the config version row and the two seed blocks C writes
 	// (fts5StorageConfigValue 'version', the empty averages record id=1 and
 	// the empty structure record id=10).
-	fmt.Fprintf(os.Stderr, "SEED-CONFIG db=%s\n", t.dbName)
 	seed := fmt.Sprintf("INSERT INTO %s(k, v) VALUES('version', 4);", q("_config")) +
 		fmt.Sprintf("INSERT INTO %s(id, block) VALUES(1, X'');", q("_data")) +
 		fmt.Sprintf("INSERT INTO %s(id, block) VALUES(10, X'00000000000000');", q("_data"))
@@ -119,7 +117,6 @@ func (t *Table) createShadowTables() error {
 // storeConfigValue persists one %_config row (sqlite3Fts5StorageConfigValue).
 func (t *Table) storeConfigValue(key string, v interface{}) error {
 	qc := qual(t.dbName, t.cfg.Name+"_config")
-	fmt.Fprintf(os.Stderr, "SCV %s=%s db=%s\n", key, v, t.dbName)
 	_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(k, v) VALUES(%s, %s)",
 		qc, sqlLiteral(key), sqlLiteral(v)))
 	return err
@@ -204,7 +201,6 @@ func detailCols(detail DetailMode, cols [][]string) [][]string {
 func (t *Table) loadFromShadow() error {
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
 	if err := t.loadConfigValues(); err != nil {
-		fmt.Fprintf(os.Stderr, "LFS config err=%v\n", err)
 		return err
 	}
 	if t.cfg.EContent == ContentNormal {
@@ -218,17 +214,11 @@ func (t *Table) loadFromShadow() error {
 		return err // no persisted payload: an empty index
 	}
 	raw, ok := toBytes(rows[0][0])
-	if os.Getenv("CL_DBG") != "" {
-		fmt.Fprintf(os.Stderr, "LFS raw ok=%v len=%d head=%q\n", ok, len(raw), string(raw[:min(8, len(raw))]))
-	}
 	if !ok || len(raw) < 4 || !bytes.Equal(raw[:2], []byte("GF")) {
 		return nil // foreign or empty payload: treat as empty index
 	}
 	var blob indexBlob
 	if err := gob.NewDecoder(bytes.NewReader(raw[2:])).Decode(&blob); err != nil {
-		if os.Getenv("CL_DBG") != "" {
-			fmt.Fprintf(os.Stderr, "LFS gob err=%v\n", err)
-		}
 		return nil
 	}
 	for _, bd := range blob.Docs {
@@ -245,9 +235,6 @@ func (t *Table) loadFromShadow() error {
 		}
 		t.ix.AddDoc(bd.Rowid, values, cols)
 		t.noteRowid(bd.Rowid)
-	}
-	if os.Getenv("CL_DBG") != "" {
-		fmt.Fprintf(os.Stderr, "LFS docs=%d cols0=%v\n", len(blob.Docs), blob.Docs[0].Cols)
 	}
 	return nil
 }

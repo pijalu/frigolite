@@ -13,6 +13,7 @@ package fts5
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/vtab"
@@ -440,10 +441,13 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 	case "pgsz", "hashsize", "automerge", "usermerge", "crisismerge",
 		"deletemerge", "secure-delete", "insttoken":
 		// Integer-valued maintenance/config directives (fts5ConfigSetValue):
-		// range-checked and persisted in %_config (the raw value is stored,
-		// like C's sqlite3Fts5StorageConfigValue).
-		v, _ := asInt64(argValue(args))
-		if bad := badConfigValue(strings.ToLower(cmd), v); bad {
+		// the value must be INTEGER-typed — C's
+		// sqlite3_value_numeric_type(pVal)==SQLITE_INTEGER check, so REAL
+		// values (66.67) and non-numeric text fail before any range check —
+		// then range-checked and persisted in %_config (the raw value is
+		// stored, like C's sqlite3Fts5StorageConfigValue).
+		v, ok := configIntValue(argValue(args))
+		if !ok || badConfigValue(strings.ToLower(cmd), v) {
 			return true, errRankLogic()
 		}
 		return true, t.storeConfigValue(strings.ToLower(cmd), v)
@@ -461,6 +465,23 @@ func argValue(args []interface{}) interface{} {
 		return args[0]
 	}
 	return nil
+}
+
+// configIntValue coerces a special-insert argument the way C's
+// sqlite3_value_numeric_type(pVal)==SQLITE_INTEGER gate does: INTEGER values
+// pass, text that converts to an integer passes, and REAL values (66.67) or
+// non-numeric text fail (fts5_config.c fts5ConfigSetValue).
+func configIntValue(v interface{}) (int64, bool) {
+	switch x := v.(type) {
+	case int64:
+		return x, true
+	case int:
+		return int64(x), true
+	case string:
+		n, err := strconv.ParseInt(strings.TrimSpace(x), 10, 64)
+		return n, err == nil
+	}
+	return 0, false
 }
 
 // badConfigValue reports whether v falls outside the accepted range of the

@@ -257,7 +257,6 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 		// on a reopened database misses and falls through to "'ft' is not
 		// a function" (fts5connect).
 		entry, _, ferr := e.ctx.FindTable(ref.Name)
-		fmt.Printf("DBG TVF hydrate name=%q entry=%v err=%v mapNow=%v\n", ref.Name, entry != nil, ferr, func() bool { _, o := e.ctx.FTS5Tables()[ref.Name]; return o }())
 		if ferr == nil && entry != nil {
 			t5, ok = e.ctx.FTS5Tables()[ref.Name]
 		}
