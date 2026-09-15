@@ -293,7 +293,7 @@ func (e *Engine) findTableUncached(name string) (*schema.Entry, *DatabaseContext
 	// before any temp/main/attached fallback.
 	if entry, ctx, handled := e.findTableTriggerScoped(name); handled {
 		if entry == nil {
-			return nil, nil, fmt.Errorf("no such table: %s", name)
+			return nil, nil, triggerScopedNoSuchTable(name, ctx)
 		}
 		return entry, ctx, nil
 	}
@@ -311,14 +311,17 @@ func (e *Engine) findTableUncached(name string) (*schema.Entry, *DatabaseContext
 	// A schema pin (view being expanded in its own schema) restricts
 	// unqualified name resolution to that schema, matching SQLite's
 	// sqlite3FixSrcList: the body of a non-temp view cannot see temp/other
-	// schema objects of the same name.
-	if e.selectEngine.SchemaPin() != nil {
-		entry, err := e.selectEngine.SchemaPin().Schema.FindTable(name)
+	// schema objects of the same name. The fixer stores the owning schema on
+	// the source item, so sqlite3LocateTable receives it as the database and
+	// the not-found error carries the qualifier ("no such table: main.t9",
+	// trigger4-3.3 — a view scan whose body table was dropped).
+	if pin := e.selectEngine.SchemaPin(); pin != nil {
+		entry, err := pin.Schema.FindTable(name)
 		if err != nil {
-			return nil, nil, fmt.Errorf("no such table: %s", name)
+			return nil, nil, fmt.Errorf("no such table: %s.%s", strings.ToLower(pin.Name), name)
 		}
-		e.cacheTableEntry(name, entry, e.selectEngine.SchemaPin())
-		return entry, e.selectEngine.SchemaPin(), nil
+		e.cacheTableEntry(name, entry, pin)
+		return entry, pin, nil
 	}
 
 	// No schema prefix: search temp first (temp shadows main), then main,
@@ -368,7 +371,22 @@ func (e *Engine) findTableTriggerScoped(name string) (entry *schema.Entry, ctx *
 		e.cacheTableEntry(name, found, trigCtx)
 		return found, trigCtx, true
 	}
-	return nil, nil, true
+	// Return the trigger context so the caller can qualify the not-found
+	// error with the trigger's own schema: trigger bodies are schema-fixed at
+	// CREATE time (sqlite3FixSrcList), so the error reports that schema, not
+	// the firing statement's database.
+	return nil, trigCtx, true
+}
+
+// triggerScopedNoSuchTable renders the not-found error for a table lookup
+// scoped to a trigger's own schema. build.c sqlite3LocateTable: the
+// schema-fixed source item carries its database, so the error is qualified
+// ("no such table: main.t9"); a qualified name reports the prefix as written.
+func triggerScopedNoSuchTable(name string, trigCtx *DatabaseContext) error {
+	if schemaName, objName := parseSchemaName(name); schemaName != "" {
+		return fmt.Errorf("no such table: %s.%s", schemaName, objName)
+	}
+	return fmt.Errorf("no such table: %s.%s", strings.ToLower(trigCtx.Name), name)
 }
 
 // findTableCached returns a cached table entry when one exists for this
@@ -477,12 +495,14 @@ func (e *Engine) findView(name string) (*schema.Entry, *DatabaseContext, error) 
 
 	// A schema pin (view being expanded in its own schema) restricts
 	// unqualified view resolution to that schema (SQLite sqlite3FixSrcList).
-	if e.selectEngine.SchemaPin() != nil {
-		entry, err := e.selectEngine.SchemaPin().Schema.FindView(name)
+	// The not-found error is qualified with the pinned schema, matching
+	// sqlite3LocateTable's LOCATE_VIEW message.
+	if pin := e.selectEngine.SchemaPin(); pin != nil {
+		entry, err := pin.Schema.FindView(name)
 		if err != nil {
-			return nil, nil, fmt.Errorf("no such view: %s", name)
+			return nil, nil, fmt.Errorf("no such view: %s.%s", strings.ToLower(pin.Name), name)
 		}
-		return entry, e.selectEngine.SchemaPin(), nil
+		return entry, pin, nil
 	}
 
 	// Search the temp schema first (temp shadows main for unqualified names).

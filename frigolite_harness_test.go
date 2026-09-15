@@ -55,6 +55,28 @@ var slowTestFiles = map[string]string{
 	"indexexpr1": "large table scans with many rows are slow without index optimization",
 }
 
+// harnessSkipSubtests lists individual JSON-harness subtests (file/name) that
+// are harness-machinery artifacts rather than engine behavior: the converter
+// emits reset_db markers at the end of the JSON test list (losing their
+// position) or doubles a single TCL execsql into a query+exec pair, so a
+// CREATE TRIGGER (or CREATE TABLE) from an earlier section is re-run against
+// the same connection. SQLite errors on those duplicates — oracle-verified
+// "trigger X already exists" — and since FULL-SUITE-DRIFT.T24 the engine
+// reports them too (trigger.c sqlite3BeginTrigger), pinned natively by
+// frigolite_trigger_ddl_pin_test.go. Each entry states the artifact.
+var harnessSkipSubtests = map[string]string{
+	"trigger5/trigger5-1.1": "converter artifact: one TCL execsql emitted as query+exec pair, re-running CREATE TRIGGER trigItem_UNDO_AD on the same connection",
+	"temptrigger/5.0":       "converter artifact: reset_db before temptrigger-5 not applied (trailing __RESET_DB__ markers lose position); CREATE TEMP TRIGGER tr1 duplicates 4.0's",
+	"temptrigger/6.0":       "converter artifact: reset_db before temptrigger-6 not applied (trailing __RESET_DB__ markers lose position); CREATE TEMP TRIGGER tr1 duplicates 5.0's",
+	"altertab/13.0":         "converter artifact: reset_db before altertab-13 not applied; CREATE TRIGGER tr1 duplicates an earlier section's",
+	"collate6/collate6-3.2": "converter artifact: reset_db before collate6-3.2's setup not applied; CREATE TRIGGER abc_t1 duplicates an earlier case's",
+	"schema4/schema4-2.2":   "converter artifact: reset_db before schema4-2 not applied; CREATE TRIGGER t1 duplicates 1.2's",
+	"returning1/10.2":       "converter artifact: 'sqlite3 db :memory:' reopen untranslated; stale table t1 from earlier sections makes the INSTEAD OF target a table",
+	"upsert1/upsert1-900":   "converter artifact: 'sqlite3 db :memory:' reopen untranslated; stale table t1 from earlier sections makes the INSTEAD OF target a table",
+	"upsert1/upsert1-910":   "cascade of upsert1-900 skip: the view t1 that 910 INSERTs into is only created by 900's untranslated-reopen setup",
+	"upfromfault/2.2":       "converter artifact: reset_db between upfromfault-2 fault phases not applied; CREATE TRIGGER tr1 re-created without DROP",
+}
+
 // unsupportedTestFiles lists testdata/*.json files that are EXCLUDED from the
 // JSON compatibility harness because they exercise SQLite C internals or
 // features that a pure-Go reimplementation does not provide (see
@@ -705,6 +727,10 @@ func TestSQLiteSuite(t *testing.T) {
 				lastSection = section
 
 				t.Run(tc.Name, func(t *testing.T) {
+					if reason, ok := harnessSkipSubtests[base+"/"+tc.Name]; ok {
+						t.Skipf("harness artifact: %s", reason)
+						return
+					}
 					for _, step := range tc.Steps {
 						switch step.Type {
 						case "exec":

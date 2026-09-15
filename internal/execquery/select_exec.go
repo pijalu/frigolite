@@ -512,8 +512,11 @@ func (e *SelectEngine) validateNoFromSelect(s *sql.SelectStmt, columns []string)
 
 // validateNoFromRefsAndRaise validates column references (when not inside an
 // outer query) and RAISE usage outside triggers for a FROM-less SELECT.
+// Trigger NEW./OLD. references stay exempt through checkNoFromRef's
+// isTriggerRowRef (resolved against the trigger row's columns, triggerB-2.2:
+// an unrecognized name inside a trigger body still errors "no such column").
 func (e *SelectEngine) validateNoFromRefsAndRaise(s *sql.SelectStmt) error {
-	if e.outerRow == nil && len(e.outerRows) == 0 && e.ctx.TriggerNewRow() == nil && e.ctx.TriggerOldRow() == nil {
+	if e.outerRow == nil && len(e.outerRows) == 0 {
 		if err := e.validateNoFromColumnRefs(s); err != nil {
 			return err
 		}
