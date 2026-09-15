@@ -93,6 +93,7 @@ func Test_chunksize(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(jrnlmode)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

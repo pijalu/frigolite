@@ -893,6 +893,13 @@ func (tp *transpiler) processProc(args []tcl.RawWord) {
 	if tp.registerProcKinds(name, body) {
 		return
 	}
+	// `proc trigfunc {args} { set ::TRIGGER $args }` (alter.test) — the SQL
+	// function REPLACES a TCL global with the TCL rendering of its argument
+	// list on every call. Register the target variable so `db func NAME
+	// NAME` emits the recorder closure.
+	if tp.registerRecorderProcKind(name, args[1].Text, body) {
+		return
+	}
 	// `proc create_db {{sql ""}} { ... }` (e_vacuum.test) creates test.db
 	// with page_size 1024, auto_vacuum settings, and the t1/t2 tables used by
 	// the vacuum tests. The file-size return value is VACUUM-dependent and
@@ -909,6 +916,21 @@ func (tp *transpiler) processProc(args []tcl.RawWord) {
 		return
 	}
 	tp.emitLine("// proc definition (not transpiled)")
+}
+
+// registerRecorderProcKind registers a `proc NAME {args} { set ::VAR $args }`
+// body as a recorder UDF kind. Returns true when the body matched.
+func (tp *transpiler) registerRecorderProcKind(name, params, body string) bool {
+	goVar := recorderProcVar(params, body)
+	if goVar == "" {
+		return false
+	}
+	if tp.recorderFuncs == nil {
+		tp.recorderFuncs = make(map[string]string)
+	}
+	tp.recorderFuncs[name] = goVar
+	tp.emitLine("// proc %s records its args into %s (registered via db func)", name, goVar)
+	return true
 }
 
 // registerProcKinds tries each simple proc kind (constant, counter, predicate,

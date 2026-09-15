@@ -100,6 +100,7 @@ func Test_cksumvfs(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("1"+" "+text+" "+"{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

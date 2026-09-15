@@ -206,6 +206,7 @@ func Test_vacuum5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(sizeTemp)
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

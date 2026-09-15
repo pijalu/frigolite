@@ -108,6 +108,7 @@ func Test_json101(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -120,6 +121,7 @@ func Test_json101(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -742,6 +744,7 @@ func Test_json101(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(isvalid)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -2890,6 +2893,7 @@ func Test_json101(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(strings.NewReplacer("(", "{", ")", "}", "'", "\"", "<", "[", ">", "]").Replace(ins))
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -2902,6 +2906,7 @@ func Test_json101(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(strings.NewReplacer("(", "{", ")", "}", "'", "\"", "<", "[", ">", "]").Replace(set))
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -2914,6 +2919,7 @@ func Test_json101(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(strings.NewReplacer("(", "{", ")", "}", "'", "\"", "<", "[", ">", "]").Replace(repl))
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

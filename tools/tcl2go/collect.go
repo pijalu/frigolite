@@ -579,6 +579,34 @@ func prefixProcValue(body string) string {
 	return prefix
 }
 
+// recorderProcVar extracts the recorded variable name from a
+// `proc NAME {args} { set ::VAR $args }` body: the UDF replaces VAR with the
+// TCL rendering of its argument list on every call (alter.test trigfunc).
+// params must be the variadic "{args}"; returns the Go variable name, or ""
+// when the body does not match.
+func recorderProcVar(params, body string) string {
+	if strings.TrimSpace(params) != "args" {
+		return ""
+	}
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	if !strings.HasPrefix(body, "set ::") {
+		return ""
+	}
+	rest := strings.TrimSpace(body[len("set ::"):])
+	parts := strings.Fields(rest)
+	if len(parts) != 2 || parts[1] != "$args" {
+		return ""
+	}
+	goName := tclVarToGo(parts[0])
+	if !isValidGoIdent(goName) {
+		return ""
+	}
+	return goName
+}
+
 // counterProcValue extracts the incremented variable name from a counter proc
 // body like "{ incr ::udf }". It returns the Go variable name, or "" when the
 // body is not a single incr of a namespace variable.

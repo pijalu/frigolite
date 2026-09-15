@@ -888,6 +888,7 @@ func Test_rtree1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := tclListFlatten(data)
+						got = tclListFlattenCollapse(got)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

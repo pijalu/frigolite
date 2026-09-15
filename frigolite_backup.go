@@ -383,6 +383,15 @@ func (b *Backup) copyLocked() error {
 	if srcCtx == nil || dstCtx == nil {
 		return fmt.Errorf("unknown database")
 	}
+	// vacuum.c replays the rebuilt schema and copies rows at the PAGE level:
+	// no trigger program ever runs. Suppress trigger firing on the
+	// destination engine for the whole logical copy — an AFTER INSERT
+	// trigger whose body references a table the rebuild has not recreated
+	// yet (rowid order) would fail the rebuild (alter3 7.x with a temp
+	// trigger surviving an ADD COLUMN).
+	prevSuppressed := b.dst.engine.TriggersSuppressed()
+	b.dst.engine.SetTriggersSuppressed(true)
+	defer b.dst.engine.SetTriggersSuppressed(prevSuppressed)
 	srcEntries, err := srcCtx.Schema.GetEntries("")
 	if err != nil {
 		return err

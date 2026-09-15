@@ -379,6 +379,7 @@ func Test_e_blobopen(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten((string([]byte{byte(tclBlobInt(0))}) + string([]byte{byte(tclBlobInt(1))}) + string([]byte{byte(tclBlobInt(iRow))})))
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

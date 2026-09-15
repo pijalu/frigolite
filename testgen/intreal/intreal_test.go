@@ -213,6 +213,7 @@ func Test_intreal(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(D)
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

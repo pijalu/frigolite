@@ -263,6 +263,7 @@ func Test_corruptI(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(tclExprWith("$nPage+1", map[string]string{"nPage": nPage}))
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

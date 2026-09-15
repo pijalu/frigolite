@@ -51,6 +51,7 @@ type transpiler struct {
 	collateDtorVars     map[string]string       // collation NAME → Go var incremented by sqlite3_create_collation_v2 destructor
 	unzipDirs           map[string]bool         // dirs created by `file mkdir D` + `exec ... -d D` procs (extraction skipped)
 	joinFuncs           map[string]string       // `proc NAME {args} { return [join $args -] }`: NAME joins its args with SEP
+	recorderFuncs       map[string]string       // `proc NAME {args} { set ::VAR $args }`: NAME records its args into VAR (alter.test trigfunc)
 	prefixFuncs         map[string]string       // `proc NAME {args} { return "P: $args" }`: NAME prepends a fixed prefix to its args
 	rangeListFuncs      map[string]string       // `proc NAME {} { set L [list]; for ... lappend ... }`: NAME returns a generated list
 	varConstValues      map[string]string       // TCL var name → last simple string value (set var "lit")

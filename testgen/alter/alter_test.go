@@ -290,8 +290,16 @@ func Test_alter(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"(\": syntax error", resErrString(_res), "\n    ALTER TABLE t3 ADD COLUMN (ALTER TABLE t3 ADD COLUMN);\n  ")
 		}
 	}
-	// proc definition (not transpiled)
-	db.RegisterFunction("trigfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// proc trigfunc records its args into TRIGGER (registered via db func)
+	// db function trigfunc: replaces TRIGGER with the TCL rendering of its args
+	db.RegisterFunction("trigfunc", func(args []interface{}) (interface{}, error) {
+		parts := make([]string, 0, len(args))
+		for _, a := range args {
+			parts = append(parts, tclListElem(tclStr(a)))
+		}
+		TRIGGER = tclList(parts)
+		return nil, nil
+	}, 0, -1)
 	{ // do_test "alter-3.1.0"
 		_res = db.Exec("\n    CREATE TABLE t6(a, b, c);\n    -- Different case for the table name in the trigger.\n    CREATE TRIGGER trig1 AFTER INSERT ON T6 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;\n  ")
 		if _res.Error != nil {
@@ -751,17 +759,9 @@ func Test_alter(t *testing.T) {
 		if tclBool("!" + isutf16) {
 			{ // "alter-11.8" — skipped: sqlite3_exec test-harness command not transpiled
 			}
-			{ // do_test "alter-11.9"
-				_r = tclExec(db, "SELECT [%81%82%83] AS xyz, abc FROM t11c")
-				if tclListFlatten(_r) != tclListFlatten("0 xyz abc 5 6") {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "0 xyz abc 5 6", "alter-11.9")
-				}
+			{ // "alter-11.9" — skipped: setup uses untranspiled sqlite3_exec harness command (alter-11.7 t11c) (no-side-effects)
 			}
-			{ // do_test "alter-11.10"
-				_r = tclExec(db, "SELECT \"%81%82%83\" AS xyz, abc FROM t11c")
-				if tclListFlatten(_r) != tclListFlatten("0 xyz abc 5 6") {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "0 xyz abc 5 6", "alter-11.10")
-				}
+			{ // "alter-11.10" — skipped: setup uses untranspiled sqlite3_exec harness command (alter-11.7 t11c) (no-side-effects)
 			}
 		}
 		{ // do_test "alter-12.1"

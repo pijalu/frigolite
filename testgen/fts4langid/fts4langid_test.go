@@ -571,6 +571,7 @@ func Test_fts4langid(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten(tclExprWith("0==($i%2)", map[string]string{"i": i}))
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -634,6 +635,7 @@ func Test_fts4langid(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten(langid)
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

@@ -266,7 +266,13 @@ func (tp *transpiler) emitExpectedQueryResult(dbConn, sqlExpr, expectedExpr stri
 		if isSingleBracedStructuredLiteral(expectedExpr) {
 			tp.emitLine("want := %s", expectedExpr)
 		} else {
+			// The variable may hold multi-line list elements (altertab2 3.x:
+			// trigger/view CREATE SQL with embedded newlines). Normalize BOTH
+			// sides identically: tclListFlatten collapses the expectation's
+			// list structure and whitespace runs, so the got side must
+			// collapse its cell-internal whitespace too.
 			tp.emitLine("want := tclListFlatten(%s)", expectedExpr)
+			tp.emitLine("got = tclListFlattenCollapse(got)")
 		}
 	} else if strings.Contains(expectedExpr, `\n`) {
 		// Multi-line expected results are TCL lists whose separators include

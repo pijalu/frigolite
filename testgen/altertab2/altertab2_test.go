@@ -174,6 +174,7 @@ func Test_altertab2(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(expect)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -204,6 +205,7 @@ func Test_altertab2(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(expect)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

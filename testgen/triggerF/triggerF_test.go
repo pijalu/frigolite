@@ -108,6 +108,7 @@ func Test_triggerF(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(log)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

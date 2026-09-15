@@ -129,6 +129,7 @@ func Test_ctime(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(res)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
