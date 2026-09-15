@@ -6,11 +6,36 @@ package fts5porter
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/fts5"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
+"strings"
 "testing"
 )
+
+// fts5TclTokenize mirrors the sqlite3_fts5_tokenize TCL command
+// (ext/fts5/fts5_tcl.c f5tTokenize + xTokenizeCb2 without -subst): tokenize
+// input through the tokenizer named by spec (a TCL list of spec words) and
+// return the flat TCL list "token start end ..." with one triple per
+// token. A failed tokenizer lookup yields an empty string (the C command
+// raises a TCL error; corpora reaching this helper use valid specs).
+func fts5TclTokenize(db *frigolite.DB, spec, input string) string {
+	_ = db
+	tok, err := fts5.NewTokenizer(tclSplitList(spec))
+	if err != nil {
+		return ""
+	}
+	var b strings.Builder
+	for _, t := range tok.Tokenize(input) {
+		if b.Len() > 0 {
+			b.WriteByte(' ')
+		}
+		b.WriteString(tclListElem(t.Term))
+		b.WriteString(" " + strconv.Itoa(t.Start) + " " + strconv.Itoa(t.End))
+	}
+	return b.String()
+}
 
 func Test_fts5porter(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
@@ -80,7 +105,7 @@ func Test_fts5porter(t *testing.T) {
 		_ = out // suppress unused warning
 		_ = _idx0
 			{ // do_test "1." + i + ".(" + in + " -> " + out + ")"
-				_r = tclLIndex("sqlite3_fts5_tokenize db porter $in", "0") // lindex result
+				_r = tclLIndex(fts5TclTokenize(db, "porter", in), "0") // lindex result
 				if _r != out {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, out, "1." + i + ".(" + in + " -> " + out + ")")
 				}

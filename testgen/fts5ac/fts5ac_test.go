@@ -84,7 +84,7 @@ func Test_fts5ac(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "AND [nearset -- a ] [nearset -- b ]"
+		want := "AND [nearset -- {a}] [nearset -- {b}]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -95,8 +95,8 @@ func Test_fts5ac(t *testing.T) {
 	{ // do_test "2.2.2"
 		// nearset {{a b c}} -- c (unsupported command, not transpiled)
 	}
-	// foreach {tn expr tclexpr} "1 {a b} {AND [N " + tclListElem(x) + " -- {a}] [N " + tclListElem(x) + " -- {b}]}"
-	_items0 := tclSplitList("1 {a b} {AND [N " + tclListElem(x) + " -- {a}] [N " + tclListElem(x) + " -- {b}]}")
+	// foreach {tn expr tclexpr} "1 {a b} {AND [N $x -- {a}] [N $x -- {b}]}"
+	_items0 := tclSplitList("1 {a b} {AND [N $x -- {a}] [N $x -- {b}]}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

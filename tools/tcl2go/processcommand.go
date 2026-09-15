@@ -712,6 +712,20 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 		return
 	}
 
+	// sqlite3_fts5_register_str DB — the fts5_tcl.c test proc (f5tRegisterStr)
+	// that registers the str() UDF: f5tStrFunc returns a copy of its single
+	// argument's text (NULL passes through as NULL). Emit the equivalent
+	// RegisterFunction on the current connection.
+	if cmdName == "sqlite3_fts5_register_str" {
+		tp.emitLine("// sqlite3_fts5_register_str (fts5_tcl.c str() UDF)")
+		tp.emitLine("%s.RegisterFunction(\"str\", func(args []interface{}) (interface{}, error) {", tp.dbVar)
+		tp.emitLine("\tif len(args) != 1 { return nil, fmt.Errorf(\"wrong number of arguments to function str()\") }")
+		tp.emitLine("\tif args[0] == nil { return nil, nil }")
+		tp.emitLine("\treturn tclStr(args[0]), nil")
+		tp.emitLine("}, 1, 1)")
+		return
+	}
+
 	// Unsupported command — emit as comment to avoid test failures
 	if len(args) > 0 {
 		tp.emitLine("// %s %s (unsupported command, not transpiled)", cmdName, sanitizeTCLComment(describeArgsShort(args)))

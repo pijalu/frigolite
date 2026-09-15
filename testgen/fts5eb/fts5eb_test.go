@@ -192,7 +192,7 @@ func Test_fts5eb(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "AND [nearset -- e ] [{}]"
+			want := "AND [nearset -- {e}] [{}]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

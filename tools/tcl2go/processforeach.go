@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
@@ -224,18 +225,19 @@ func literalForeachList(rawList string) []string {
 // (e.g. [execsql {SQL}]), the result is already a flat space-separated list;
 // wrapping it in tclListElem (as buildListStringExpr does) would brace the
 // entire string and corrupt tclSplitList. In those cases the raw expression
-// is used directly. A braced list (isBraced) keeps [...] literal
-// (buildListStringExprNoCmd), since TCL brace words do not substitute
-// commands (fts4unicode.test section 9: [tokenchars= .] reaches SQL as a
-// bracket-quoted identifier).
+// is used directly. A braced list (isBraced) performs NO substitution at all
+// — TCL brace words expand neither [commands] (fts4unicode.test section 9:
+// [tokenchars= .] reaches SQL as a bracket-quoted identifier) nor $vars
+// (fts5ac 2.3's `{1 {a b} {AND [N $x -- {a}] ...}}` keeps the literal `$x`),
+// so the raw word text is emitted verbatim and tclSplitList parses the
+// elements at runtime.
 func (tp *transpiler) resolveForeachListExpr(rawList string, isBraced bool) string {
 	if isBraced {
-		listExpr := tp.buildListStringExprNoCmd(rawList)
 		trimmed := strings.TrimSpace(rawList)
 		if strings.HasPrefix(trimmed, "$") && !strings.ContainsAny(trimmed, " \t\n") {
 			return tclVarToGo(strings.TrimPrefix(trimmed, "$"))
 		}
-		return listExpr
+		return strconv.Quote(rawList)
 	}
 	trimmed := strings.TrimSpace(rawList)
 	// Single bare $var: use the variable directly.

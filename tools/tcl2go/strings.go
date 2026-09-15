@@ -68,6 +68,14 @@ func unescapeBareWordEscape(s string, i int, b *strings.Builder) int {
 	if nextJ, ok := writeHexEscape(s, j, b); ok {
 		return nextJ
 	}
+	// \uXXXX unicode escapes apply to bare words too (Tcl(n) backslash
+	// substitution; fts5trigram2.test's combining-tilde \u0303 expectations).
+	// Mirror tclUnescapeQuotedEscape, which already handles them for quoted
+	// words — the two paths must agree or SQL literals and their expected
+	// values diverge.
+	if nextJ, ok := writeUnicodeEscape(s, j, b); ok {
+		return nextJ
+	}
 	writeLetterEscape(s[j], b)
 	return j + 1
 }

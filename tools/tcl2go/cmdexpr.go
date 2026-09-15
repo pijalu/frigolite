@@ -340,6 +340,18 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		return `"0"`
 	}
 
+	// [sqlite3_fts5_tokenize DB TOKENIZER TEXT] — the fts5_tcl.c test bridge
+	// (f5tTokenize): returns the flat TCL list "token start end ..." for TEXT
+	// tokenized through TOKENIZER (a TCL list of spec words). The generated
+	// fts5TclTokenize helper (emitted on demand) routes the request through
+	// the engine's own tokenizer registry (internal/fts5).
+	if cmdName == "sqlite3_fts5_tokenize" && len(rest) >= 3 {
+		useFTS5Tokenize()
+		spec := tp.buildStringExpr(rest[len(rest)-2])
+		input := tp.buildStringExpr(rest[len(rest)-1])
+		return fmt.Sprintf("fts5TclTokenize(%s, %s, %s)", tp.dbVar, spec, input)
+	}
+
 	if h, ok := cmdExprHandlersRef()[cmdName]; ok {
 		return h(tp, cmdName, cmdText, rest)
 	}
