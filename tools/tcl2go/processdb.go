@@ -1404,13 +1404,14 @@ func (tp *transpiler) emitDBEvalArrayRows(arrName string, rest []tcl.RawWord) {
 		queryVars:    tp.queryVars,
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		collateGoFuncs:   tp.collateGoFuncs,
+		collateGoFuncs:      tp.collateGoFuncs,
+		collateEmittedProcs: tp.collateEmittedProcs,
 		procBodies:          tp.procBodies,
-		preparedState:    tp.preparedState,
-		varConstValues:   tp.varConstValues,
-		sqlVarValues:     tp.sqlVarValues,
-		foreachLitValues: tp.foreachLitValues,
-		rowFlatVars:      tp.rowFlatVars,
+		preparedState:       tp.preparedState,
+		varConstValues:      tp.varConstValues,
+		sqlVarValues:        tp.sqlVarValues,
+		foreachLitValues:    tp.foreachLitValues,
+		rowFlatVars:         tp.rowFlatVars,
 	}
 	bodyTP.processCommands(parseCommands(bodyText))
 	tp.varCount = bodyTP.varCount

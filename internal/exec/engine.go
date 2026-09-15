@@ -1036,6 +1036,10 @@ func NewEngine(pg *pager.Pager) *Engine {
 	}
 	e.expr = execexpr.New(e)
 	e.selectEngine = execquery.NewSelectEngine(e)
+	// Function implementations that render BLOB values as text must decode
+	// those bytes per the database encoding (OP_Column tags disk blobs with
+	// the header encoding; windowC-2.x).
+	e.funcs.SetEncoding(e.encoding)
 	e.dml = execdml.NewDMLExecutor(e)
 	e.ddl = execddl.NewDDLExecutor(e)
 	e.constraints = execconstraint.New(e)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"math"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/util"
@@ -28,11 +29,68 @@ func (c *countAgg) Final() (interface{}, error) {
 	return c.count, nil
 }
 
+// sumAgg ports func.c SumCtx + sumStep/sumFinalize: an exact int64 running
+// sum that, on int64 overflow or first non-integer input, switches to a
+// Kahan-Babuška-Neumaier compensated double sum. SUM() only raises
+// "integer overflow" at finalize time when the overflow was never absorbed
+// by a later non-integer input (func.c: the non-integer branch clears
+// ovrfl); otherwise it yields the double.
 type sumAgg struct {
 	intSum   int64
-	floatSum float64
+	floatSum float64 // KBN running sum (rSum)
+	rErr     float64 // KBN compensation term (rErr)
 	count    int64
-	isFloat  bool // true if we've switched to float mode (non-int input or overflow)
+	isFloat  bool // approx: switched to the compensated double sum
+	ovrfl    bool // int64 overflow seen and not yet absorbed (func.c ovrfl)
+}
+
+// kahanBabuskaNeumaierStep adds r to the running compensated sum
+// (func.c kahanBabuskaNeumaierStep).
+func (s *sumAgg) kahanBabuskaNeumaierStep(r float64) {
+	fl := s.floatSum
+	t := fl + r
+	if absF(fl) > absF(r) {
+		s.rErr += (fl - t) + r
+	} else {
+		s.rErr += (r - t) + fl
+	}
+	s.floatSum = t
+}
+
+// kahanBabuskaNeumaierStepInt64 adds a possibly large int64, splitting values
+// beyond the exact-double range into big+small parts
+// (func.c kahanBabuskaNeumaierStepInt64).
+func (s *sumAgg) kahanBabuskaNeumaierStepInt64(v int64) {
+	const maxExact = 4503599627370496 // 2^52
+	if v <= -maxExact || v >= maxExact {
+		iSm := v % 16384
+		iBig := v - iSm
+		s.kahanBabuskaNeumaierStep(float64(iBig))
+		s.kahanBabuskaNeumaierStep(float64(iSm))
+	} else {
+		s.kahanBabuskaNeumaierStep(float64(v))
+	}
+}
+
+// kahanBabuskaNeumaierInit reseeds the compensated sum from the current
+// int64 accumulator (func.c kahanBabuskaNeumaierInit).
+func (s *sumAgg) kahanBabuskaNeumaierInit(v int64) {
+	const maxExact = 4503599627370496 // 2^52
+	if v <= -maxExact || v >= maxExact {
+		iSm := v % 16384
+		s.floatSum = float64(v - iSm)
+		s.rErr = float64(iSm)
+	} else {
+		s.floatSum = float64(v)
+		s.rErr = 0
+	}
+}
+
+func absF(f float64) float64 {
+	if f < 0 {
+		return -f
+	}
+	return f
 }
 
 func (s *sumAgg) Step(args []interface{}) error {
@@ -40,34 +98,57 @@ func (s *sumAgg) Step(args []interface{}) error {
 		return nil
 	}
 	s.count++
-
 	if !s.isFloat {
-		if v, ok := args[0].(int64); ok {
-			// SQLite's sum() raises "integer overflow" when the int64
-			// accumulator overflows (total() promotes to float instead).
-			newSum := s.intSum + v
-			if (v > 0 && newSum < s.intSum) || (v < 0 && newSum > s.intSum) {
-				return fmt.Errorf("integer overflow")
-			}
-			s.intSum = newSum
-			return nil
-		}
-		// Non-int input: switch to float mode
-		s.isFloat = true
-		s.floatSum = float64(s.intSum)
+		return s.stepExact(args[0])
 	}
+	if _, ok := args[0].(int64); !ok {
+		// A non-integer input while already in float mode absorbs any
+		// earlier overflow (sumStep clears ovrfl in this branch).
+		s.ovrfl = false
+	}
+	return s.stepApprox(args[0])
+}
 
-	// Float mode: add as float64. A BLOB input ([]byte) is ignored entirely
-	// (SQLite sum()/total() skip non-numeric BLOBs without contributing), and
-	// a non-numeric string contributes 0.
-	if _, isBlob := args[0].([]byte); isBlob {
+// stepExact accumulates an exact int64 input, promoting to the compensated
+// double sum on int64 overflow (sumStep's sqlite3AddInt64 failure branch).
+func (s *sumAgg) stepExact(arg interface{}) error {
+	v, ok := arg.(int64)
+	if !ok {
+		// Non-integer input: switch to the compensated sum seeded from the
+		// int64 accumulator (sumStep's kahanBabuskaNeumaierInit branch).
+		s.kahanBabuskaNeumaierInit(s.intSum)
+		s.isFloat = true
+		return s.stepApprox(arg)
+	}
+	newSum := s.intSum + v
+	if (v > 0 && newSum < s.intSum) || (v < 0 && newSum > s.intSum) {
+		// Overflow: promote to the compensated double sum, flag ovrfl.
+		s.ovrfl = true
+		s.kahanBabuskaNeumaierInit(s.intSum)
+		s.kahanBabuskaNeumaierStepInt64(v)
+		s.isFloat = true
 		return nil
 	}
-	f, err := toFloat64(args[0])
+	s.intSum = newSum
+	return nil
+}
+
+// stepApprox accumulates one input into the compensated double sum. A BLOB
+// input ([]byte) is ignored entirely (SQLite sum()/total() skip non-numeric
+// BLOBs without contributing), and a non-numeric string contributes 0.
+func (s *sumAgg) stepApprox(arg interface{}) error {
+	if _, isBlob := arg.([]byte); isBlob {
+		return nil
+	}
+	if v, ok := arg.(int64); ok {
+		s.kahanBabuskaNeumaierStepInt64(v)
+		return nil
+	}
+	f, err := toFloat64(arg)
 	if err != nil {
 		return err
 	}
-	s.floatSum += f
+	s.kahanBabuskaNeumaierStep(f)
 	return nil
 }
 
@@ -76,7 +157,16 @@ func (s *sumAgg) Final() (interface{}, error) {
 		return nil, nil
 	}
 	if s.isFloat {
-		return s.floatSum, nil
+		if s.ovrfl {
+			// sumFinalize: an unabsorbed int64 overflow errors even though
+			// the double sum kept running.
+			return nil, fmt.Errorf("integer overflow")
+		}
+		r := s.floatSum + s.rErr
+		if math.IsInf(r, 0) {
+			r = s.floatSum
+		}
+		return r, nil
 	}
 	return s.intSum, nil
 }
@@ -217,6 +307,10 @@ type groupConcatAgg struct {
 	// OVER (... ROWS 1 PRECEDING)) use a DIFFERENT separator per junction —
 	// storing one separator applied the last row's value to every junction.
 	seps []string
+	// enc is the database text encoding: BLOB values render as text by
+	// decoding their bytes per the encoding (sqlite3_value_text on a disk
+	// blob, which carries the OP_Column encoding tag; windowC-2.x).
+	enc string
 }
 
 func (g *groupConcatAgg) Step(args []interface{}) error {
@@ -225,9 +319,9 @@ func (g *groupConcatAgg) Step(args []interface{}) error {
 	}
 	sep := ","
 	if len(args) > 1 && args[1] != nil {
-		sep = toString(args[1])
+		sep = textOfEncoding(args[1], g.enc)
 	}
-	g.values = append(g.values, toString(args[0]))
+	g.values = append(g.values, textOfEncoding(args[0], g.enc))
 	g.seps = append(g.seps, sep)
 	return nil
 }
@@ -255,7 +349,8 @@ func (g *groupConcatAgg) Final() (interface{}, error) {
 // text of each row's first argument and returns the lowercase hex MD5 of the
 // concatenation (SQLite's test_config.c md5sum registers the same behavior).
 type md5sumAgg struct {
-	h hash.Hash
+	h   hash.Hash
+	enc string
 }
 
 func (m *md5sumAgg) Step(args []interface{}) error {
@@ -265,7 +360,7 @@ func (m *md5sumAgg) Step(args []interface{}) error {
 	if m.h == nil {
 		m.h = md5.New()
 	}
-	io.WriteString(m.h, toString(args[0]))
+	io.WriteString(m.h, textOfEncoding(args[0], m.enc))
 	return nil
 }
 
@@ -275,8 +370,4 @@ func (m *md5sumAgg) Final() (interface{}, error) {
 		return "d41d8cd98f00b204e9800998ecf8427e", nil
 	}
 	return hex.EncodeToString(m.h.Sum(nil)), nil
-}
-
-func fnMD5SUM() Aggregator {
-	return &md5sumAgg{}
 }

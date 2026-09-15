@@ -538,6 +538,21 @@ func (e *SelectEngine) validateWindowDefSubqueries(w *sql.WindowDef) error {
 // an added ORDER BY; SQLite rejects it when the base already defines the
 // clause or the combination is invalid.
 func (e *SelectEngine) validateWindowDefinitions(windows []sql.WindowDef) error {
+	// Name resolution walks WINDOW-clause expressions too: a function used
+	// with OVER inside a window definition's PARTITION BY / ORDER BY is
+	// validated (windowE-2.1: PARTITION BY x_count(x) OVER w1).
+	for i := range windows {
+		for _, p := range windows[i].Partitions {
+			if err := e.windowDefOverFuncError(p); err != nil {
+				return err
+			}
+		}
+		for _, ob := range windows[i].OrderBy {
+			if err := e.windowDefOverFuncError(ob.Expr); err != nil {
+				return err
+			}
+		}
+	}
 	for i := range windows {
 		w := &windows[i]
 		if w.BaseName == "" {
@@ -561,6 +576,25 @@ func (e *SelectEngine) validateWindowDefinitions(windows []sql.WindowDef) error 
 		}
 	}
 	return nil
+}
+
+// windowDefOverFuncError validates one WINDOW-clause expression: any
+// function call carrying an OVER clause inside a window definition is checked
+// against the registry (windowFuncOverError).
+func (e *SelectEngine) windowDefOverFuncError(expr sql.Expr) error {
+	if expr == nil {
+		return nil
+	}
+	var err error
+	WalkExprFull(expr, func(n sql.Expr) {
+		if err != nil {
+			return
+		}
+		if fc, ok := n.(*sql.FuncCall); ok && fc.Over != nil {
+			err = e.windowFuncOverError(fc.Name)
+		}
+	})
+	return err
 }
 
 // checkWindowFuncWithoutOver reports a misuse error when a built-in window
@@ -898,12 +932,26 @@ func (e *SelectEngine) validateWindowFuncCall(fn *sql.FuncCall, windows []sql.Wi
 			return err
 		}
 	}
-	// A non-window scalar function used with OVER is an error.
+	// A non-window scalar function used with OVER is an error, as is a
+	// classic application-registered aggregate without a window-value
+	// callback (resolve.c: pDef->xValue==0 && pWin → "%s() may not be used
+	// as a window function", windowE-2.1's x_count()).
 	if fn.Over != nil && !windowOnlyFuncs[name] {
-		reg, found := e.ctx.Functions().Find(fn.Name)
-		if !found || reg.Type != function.TypeAggregate {
-			return fmt.Errorf("%s() may not be used as a window function", strings.ToLower(name))
+		if err := e.windowFuncOverError(fn.Name); err != nil {
+			return err
 		}
+	}
+	return nil
+}
+
+// windowFuncOverError returns the resolve.c "may not be used as a window
+// function" error when name is not a window-capable aggregate (unknown
+// functions and classic application aggregates both reject OVER); nil when
+// the function may be used with OVER.
+func (e *SelectEngine) windowFuncOverError(name string) error {
+	reg, found := e.ctx.Functions().Find(name)
+	if !found || reg.Type != function.TypeAggregate || reg.ClassicAggregate {
+		return fmt.Errorf("%s() may not be used as a window function", strings.ToLower(name))
 	}
 	return nil
 }

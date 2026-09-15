@@ -143,7 +143,8 @@ func Test_reindex(t *testing.T) {
 		}
 	}
 	{ // do_test "reindex-2.5"
-		// proc c1 collation (registered via db collate)
+		// proc c1 collation redefined — re-register (TCL late binding)
+		db.RegisterCollation("c1", func(a, b string) int { return strings.Compare(a, b) })
 		r = db.Query("\n    SELECT a FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 ORDER BY a;\n  ")

@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf16"
 	"unicode/utf8"
 
 	"github.com/pijalu/frigolite/internal/util"
@@ -45,6 +46,12 @@ type Func struct {
 	// SQL (SQLITE_DIRECTONLY): it is never allowed in schema objects,
 	// regardless of trusted_schema.
 	DirectOnly bool
+	// ClassicAggregate marks an application-registered aggregate (SQLite's
+	// sqlite3_create_aggregate): it has no xValue window callback, so using
+	// it with OVER raises "X() may not be used as a window function"
+	// (resolve.c: pDef->xValue==0 && pWin). Built-in aggregates carry window
+	// support in this engine's per-frame re-stepping model.
+	ClassicAggregate bool
 }
 
 // Aggregator is the interface for aggregate functions.
@@ -56,13 +63,65 @@ type Aggregator interface {
 // Registry holds all registered functions.
 type Registry struct {
 	funcs map[string]*Func
+	// encoding is the database text encoding ("UTF-8", "UTF-16le",
+	// "UTF-16be"). SQLite tags every column value read from disk with the
+	// database encoding (vdbe.c OP_Column: pDest->enc = encoding, including
+	// blobs), so a BLOB rendered as text decodes those bytes per the database
+	// encoding (vdbemem.c valueToText -> sqlite3VdbeChangeEncoding).
+	encoding string
 }
 
 // NewRegistry creates a new function registry with default functions.
 func NewRegistry() *Registry {
-	r := &Registry{funcs: make(map[string]*Func)}
+	r := &Registry{funcs: make(map[string]*Func), encoding: "UTF-8"}
 	r.registerDefaults()
 	return r
+}
+
+// SetEncoding records the database text encoding used when rendering BLOB
+// values as text (see the Registry.encoding field comment).
+func (r *Registry) SetEncoding(enc string) {
+	r.encoding = enc
+}
+
+// Encoding returns the database text encoding recorded on the registry.
+func (r *Registry) Encoding() string {
+	if r.encoding == "" {
+		return "UTF-8"
+	}
+	return r.encoding
+}
+
+// textOfEncoding renders v as SQL text the way sqlite3_value_text does: a
+// BLOB read under a UTF-16 database holds UTF-16 code units, so its text
+// decoding converts them (a trailing odd byte is ignored, matching the
+// UTF-16 translation in SQLite's utf16→utf8 converter); under UTF-8 and for
+// non-blob values it falls back to the plain text rendering.
+func textOfEncoding(v interface{}, enc string) string {
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
+	if b, ok := v.([]byte); ok {
+		switch enc {
+		case "UTF-16le", "UTF-16be":
+			n := len(b) &^ 1 // drop a trailing odd byte
+			units := make([]uint16, n/2)
+			for i := 0; i < n; i += 2 {
+				if enc == "UTF-16le" {
+					units[i/2] = uint16(b[i]) | uint16(b[i+1])<<8
+				} else {
+					units[i/2] = uint16(b[i])<<8 | uint16(b[i+1])
+				}
+			}
+			return string(utf16.Decode(units))
+		default:
+			return string(b)
+		}
+	}
+	if z, ok := v.(value.ZeroBlob); ok {
+		return string(z.Bytes())
+	}
+	return toString(v)
 }
 
 // Find looks up a function by name.
@@ -100,9 +159,11 @@ func (r *Registry) RegisterFlags(name string, fn func(args []interface{}) (inter
 
 // RegisterAggregate adds an aggregate function: newAgg creates per-group
 // state, Step consumes each input row and Final produces the group result
-// (zipfile.c's zipfile() aggregate form).
+// (zipfile.c's zipfile() aggregate form). Application aggregates are classic
+// SQLite aggregates without a window-value callback: they may not be used as
+// window functions (resolve.c).
 func (r *Registry) RegisterAggregate(name string, minArgs, maxArgs int, newAgg func() Aggregator) {
-	r.register(&Func{Name: name, Type: TypeAggregate, MinArgs: minArgs, MaxArgs: maxArgs, AggregateFn: newAgg})
+	r.register(&Func{Name: name, Type: TypeAggregate, MinArgs: minArgs, MaxArgs: maxArgs, AggregateFn: newAgg, ClassicAggregate: true})
 }
 
 // SchemaSafe reports whether a function may be used in a schema object under
@@ -133,8 +194,8 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "MIN", Type: TypeAggregate, MinArgs: 1, MaxArgs: -1, AggregateFn: func() Aggregator { return &minAgg{} }})
 	r.register(&Func{Name: "MAX", Type: TypeAggregate, MinArgs: 1, MaxArgs: -1, AggregateFn: func() Aggregator { return &maxAgg{} }})
 	r.register(&Func{Name: "TOTAL", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &totalAgg{} }})
-	r.register(&Func{Name: "GROUP_CONCAT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
-	r.register(&Func{Name: "STRING_AGG", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
+	r.register(&Func{Name: "GROUP_CONCAT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{enc: r.Encoding()} }})
+	r.register(&Func{Name: "STRING_AGG", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{enc: r.Encoding()} }})
 	// Ordered-set percentile aggregates (SQLite ext/misc/percentile.c):
 	//   percentile(Y,P)      P in [0,100], continuous
 	//   percentile_cont(Y,P) P in [0,1], continuous
@@ -236,7 +297,7 @@ func (r *Registry) registerDefaults() {
 	// md5sum is a test-harness aggregate (SQLite's test_config.c registers it
 	// as an aggregate that MD5-hashes the concatenation of its arguments per
 	// row). Used by trans/trans2 signature checks: SELECT md5sum(u1) ...
-	r.register(&Func{Name: "MD5SUM", Type: TypeAggregate, MinArgs: 1, MaxArgs: -1, AggregateFn: fnMD5SUM})
+	r.register(&Func{Name: "MD5SUM", Type: TypeAggregate, MinArgs: 1, MaxArgs: -1, AggregateFn: func() Aggregator { return &md5sumAgg{enc: r.Encoding()} }})
 
 	// Extension/compat functions
 	r.register(&Func{Name: "TOINTEGER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOINTEGER})

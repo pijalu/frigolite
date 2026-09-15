@@ -146,7 +146,8 @@ func Test_without_rowid7(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.RegisterCollation("mysort", func(a, b string) int { return strings.Compare(a, b) })
 	db.RegisterCollation("mysort2", func(a, b string) int { return strings.Compare(a, b) })
-	// proc mysort collation (registered via db collate)
+	// proc mysort collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("mysort", func(a, b string) int { return strings.Compare(a, b) })
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(\n      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n")
 		if _res.Error != nil {
