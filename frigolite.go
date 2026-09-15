@@ -527,6 +527,18 @@ func (db *DB) SetAutovacuumPagesCallback(fn func(schema string, fileSize, nFree,
 	}
 }
 
+// SetBusyHandler registers the connection's busy handler
+// (sqlite3_busy_handler). The callback receives the number of previous
+// invocations for the current locked event and returns true to retry the
+// lock attempt, false to give up ("database is locked"). A nil callback
+// clears the handler.
+func (db *DB) SetBusyHandler(fn func(count int) bool) {
+	if db == nil {
+		return
+	}
+	db.engine.SetBusyHandler(fn)
+}
+
 // SetWalHook registers the connection's WAL hook (sqlite3_wal_hook). The
 // callback fires after each WAL-mode commit with (frames appended this
 // commit, frames checkpointed). A nil callback clears the hook.

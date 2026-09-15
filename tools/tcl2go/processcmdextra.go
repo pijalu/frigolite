@@ -911,6 +911,135 @@ func (tp *transpiler) processProc(args []tcl.RawWord) {
 	tp.emitLine("// proc definition (not transpiled)")
 }
 
+// processNamedDBBusy handles `dbN busy <proc>` — the TCL binding of
+// sqlite3_busy_handler (tclsqlite.c DbBusyHandler): the proc runs with the
+// retry count; a `break` (TCL_BREAK) or a truthy integer result ABORTS the
+// retry loop, any other normal result retries (atoi(result)==0 → retry).
+// Recognizes lock.test's two busy-callback shapes (a `set ::global $param`
+// or `lappend ::global $param` body with an optional trailing `break` /
+// `if {$param > N} break`); anything else keeps the previous no-op
+// emission. The emitted closure mutates the generated test's Go variable
+// for the TCL global and registers through DB.SetBusyHandler.
+func (tp *transpiler) processNamedDBBusy(goName string, rest []tcl.RawWord) {
+	if len(rest) == 0 {
+		return // getter form: unused by the suite
+	}
+	name := strings.TrimSpace(rest[0].Text)
+	body := globalProcBodies[name]
+	if body == "" {
+		if tp.procBodies != nil {
+			body = tp.procBodies[name]
+		}
+	}
+	if body == "" {
+		tp.emitLine("// %s.busy %s (proc body unknown, not transpiled)", goName, name)
+		return
+	}
+	stmts := splitProcBodyStmts(body)
+	if len(stmts) < 1 || len(stmts) > 2 {
+		tp.emitLine("// %s.busy %s (body shape not recognized, not transpiled)", goName, name)
+		return
+	}
+	first := stmts[0]
+	setRe := false
+	lappend := false
+	rest1 := ""
+	if strings.HasPrefix(first, "set ::") {
+		setRe = true
+		rest1 = strings.TrimSpace(strings.TrimPrefix(first, "set ::"))
+	} else if strings.HasPrefix(first, "lappend ::") {
+		lappend = true
+		rest1 = strings.TrimSpace(strings.TrimPrefix(first, "lappend ::"))
+	}
+	if !setRe && !lappend {
+		tp.emitLine("// %s.busy %s (body shape not recognized, not transpiled)", goName, name)
+		return
+	}
+	// rest1: "<var> $<param>"
+	parts := strings.Fields(rest1)
+	if len(parts) != 2 || !strings.HasPrefix(parts[1], "$") {
+		tp.emitLine("// %s.busy %s (body shape not recognized, not transpiled)", goName, name)
+		return
+	}
+	tclVar := strings.TrimPrefix(parts[0], "::")
+	param := strings.TrimPrefix(parts[1], "$")
+	goVar := tclGoVarName(tclVar)
+	aborts := false
+	if len(stmts) == 2 {
+		cond := stmts[1]
+		if cond == "break" {
+			aborts = true
+		} else if strings.HasPrefix(cond, "if {") && strings.HasSuffix(cond, "} break") {
+			// only the shape `if {$param OP num} break` (no spaces required:
+			// lock.test writes `if {$count>4} break`)
+			expr := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(cond, "if {"), "} break"))
+			op := ""
+			opIdx := -1
+			for _, candidate := range []string{">=", "<=", ">", "<"} {
+				if i := strings.Index(expr, candidate); i >= 0 {
+					op, opIdx = candidate, i
+					break
+				}
+			}
+			if op == "" || strings.TrimSpace(expr[:opIdx]) != "$"+param {
+				tp.emitLine("// %s.busy %s (if-break shape not recognized, not transpiled)", goName, name)
+				return
+			}
+			tp.emitLine("%s.SetBusyHandler(func(count int) bool {", goName)
+			if lappend {
+				tp.emitLine("%s = tclListAppend(%s, strconv.Itoa(count))", goVar, goVar)
+			} else {
+				tp.emitLine("%s = strconv.Itoa(count)", goVar)
+			}
+			// Emit the condition with count substituted for $param; aborting
+			// (break) stops the retry loop like a TCL_BREAK from the proc.
+			tp.emitLine("if count %s %s { return false }", op, strings.TrimSpace(expr[opIdx+len(op):]))
+			tp.emitLine("return true")
+			tp.emitLine("})")
+			return
+		} else {
+			tp.emitLine("// %s.busy %s (body shape not recognized, not transpiled)", goName, name)
+			return
+		}
+	}
+	_ = param
+	tp.emitLine("%s.SetBusyHandler(func(count int) bool {", goName)
+	if lappend {
+		tp.emitLine("%s = tclListAppend(%s, strconv.Itoa(count))", goVar, goVar)
+	} else {
+		tp.emitLine("%s = strconv.Itoa(count)", goVar)
+	}
+	if aborts {
+		tp.emitLine("return false")
+	} else {
+		tp.emitLine("return true")
+	}
+	tp.emitLine("})")
+}
+
+// splitProcBodyStmts splits a proc body into top-level statements
+// (newline- or semicolon-separated, trimmed; empty pieces dropped).
+func splitProcBodyStmts(body string) []string {
+	raw := strings.FieldsFunc(body, func(r rune) bool {
+		return r == '\n' || r == ';'
+	})
+	out := make([]string, 0, len(raw))
+	for _, s := range raw {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// tclGoVarName maps a TCL variable name to the generated Go identifier
+// (the transpiler names test locals after the TCL variable, minus any
+// leading :: namespace marker).
+func tclGoVarName(name string) string {
+	return strings.TrimPrefix(name, "::")
+}
+
 // registerProcKinds tries each simple proc kind (constant, counter, predicate,
 // join, collation) in order and registers the first match. Returns true when a
 // kind was registered (the caller stops processing the proc).

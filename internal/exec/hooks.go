@@ -1,5 +1,9 @@
 package exec
 
+import (
+	"time"
+)
+
 // SetCommitHook registers the connection's commit hook (sqlite3_commit_hook).
 // The callback returns 0 to allow the commit or nonzero to abort it with
 // "constraint failed" (SQLITE_CONSTRAINT_COMMITHOOK). A nil callback clears
@@ -78,4 +82,54 @@ func (e *Engine) fireRollbackHook() {
 	if e.rollbackHook != nil {
 		e.rollbackHook()
 	}
+}
+
+// SetBusyHandler registers the connection's busy handler
+// (sqlite3_busy_handler). The callback receives the number of previous
+// invocations for the current locked event and returns true to retry the
+// lock attempt or false to return "database is locked" to the caller
+// (main.c sqlite3BusyHandler: a non-zero handler result retries). A nil
+// callback clears the handler.
+func (e *Engine) SetBusyHandler(fn func(count int) bool) {
+	e.busyHandler = fn
+}
+
+// SetBusyTimeout sets the connection's busy timeout in milliseconds
+// (sqlite3_busy_timeout / PRAGMA busy_timeout). With no custom busy
+// handler, a positive timeout installs sqliteDefaultBusyCallback's
+// sleep-retry behavior between lock attempts.
+func (e *Engine) SetBusyTimeout(ms int) {
+	e.busyTimeoutMs = ms
+}
+
+// busyRetry invokes the busy handler after a failed lock attempt
+// (pager.c pager_wait_on_lock: sqlite3OsLock retries run the handler
+// between attempts until it returns zero).
+func (e *Engine) busyRetry(count int) bool {
+	if e.busyHandler != nil {
+		return e.busyHandler(count)
+	}
+	if e.busyTimeoutMs > 0 {
+		// sqliteDefaultBusyCallback (main.c): sleep delays[count] ms and
+		// give up once the cumulative delay exceeds the timeout.
+		delay, prior := busyDefaultDelay(count)
+		if prior+delay > e.busyTimeoutMs {
+			return false
+		}
+		time.Sleep(time.Duration(delay) * time.Millisecond)
+		return true
+	}
+	return false
+}
+
+// busyDefaultDelay ports main.c sqliteDefaultBusyCallback's delay tables:
+// per-attempt sleep and the cumulative sleep before the attempt.
+func busyDefaultDelay(count int) (delay, prior int) {
+	delays := [...]int{1, 2, 5, 10, 15, 20, 25, 25, 25, 50, 50, 100}
+	totals := [...]int{0, 1, 3, 8, 18, 33, 53, 78, 103, 128, 178, 228}
+	const n = len(delays)
+	if count < n {
+		return delays[count], totals[count]
+	}
+	return delays[n-1], totals[n-1] + delays[n-1]*(count-(n-1))
 }

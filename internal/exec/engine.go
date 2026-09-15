@@ -192,6 +192,13 @@ type Engine struct {
 	// walHook holds the sqlite3_wal_hook callback (fires after each WAL
 	// commit with (frames appended, frames checkpointed)).
 	walHook func(nLog, nCkpt int) int
+	// busyHandler holds the sqlite3_busy_handler callback (invoked between
+	// lock retries; true = retry the attempt, false = return busy).
+	busyHandler func(count int) bool
+	// busyTimeoutMs holds the PRAGMA busy_timeout / sqlite3_busy_timeout
+	// value in milliseconds; with no custom handler it drives the
+	// sqliteDefaultBusyCallback sleep-retry loop.
+	busyTimeoutMs int
 	// returning holds RETURNING evaluation state.
 	returning returningState
 	// testState holds the backing state for test-only SQL functions.
