@@ -96,7 +96,11 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"test_find_cli":     (*transpiler).processTestFindCli,
 
 		// Control flow
-		"foreach":  (*transpiler).processForeach,
+		"foreach": (*transpiler).processForeach,
+		// fts5_common.tcl meta-loop: run the body once per detail mode after
+		// reset_db (fts5simple3 2.x/4.x; untranspiled, its per-mode reset_db
+		// is lost and later CREATEs collide with pre-loop tables).
+		"foreach_detail_mode": (*transpiler).processForEachDetailMode,
 		"for":      (*transpiler).processForCommand,
 		"while":    (*transpiler).processWhile,
 		"if":       (*transpiler).processIf,

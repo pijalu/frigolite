@@ -806,6 +806,18 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 	}
 	e.cachePersistentVtabInstance(tableName, vt)
 
+	// Transaction rollback undoes the pager writes (sqlite_schema row and
+	// the shadow family) but not the module's LIVE instance registration:
+	// without an undo, a later CREATE of the same name inside a new
+	// transaction re-binds the stale instance and silently skips the shadow
+	// family (fts5tokenizer 8.2: CREATE e6 -> ROLLBACK -> CREATE e6 ->
+	// "no such table: e6_content").
+	if e.ctx.InTransaction() {
+		e.ctx.AppendDDLBuffer(func() {
+			e.forgetCreatedVTab(tableName, vt)
+		})
+	}
+
 	// fts5 owns its module lifecycle: the instance bound by BindSchema above
 	// registered the table in the fts5 module; record it in the engine map so
 	// DML/SELECT route to the fts5 machinery.
@@ -836,6 +848,22 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 		}
 	}
 	return &Result{}
+}
+
+// forgetCreatedVTab is the transaction-rollback undo of a CREATE VIRTUAL
+// TABLE: it drops the engine's fts5 registration and the module's live
+// instance for the table (the sqlite_schema row and shadow family are
+// reverted by the pager restore).
+func (e *DDLExecutor) forgetCreatedVTab(tableName string, vt vtab.VirtualTable) {
+	if _, ok := e.ctx.FTS5Tables()[tableName]; ok {
+		delete(e.ctx.FTS5Tables(), tableName)
+		if mod, ok := e.fts5Module(); ok {
+			mod.DropTable(tableName)
+		}
+	}
+	if d, ok := vt.(vtab.Disconnecter); ok {
+		d.Disconnect()
+	}
 }
 
 // disconnectVtabOnCreateFailure rolls back a module instance whose CREATE

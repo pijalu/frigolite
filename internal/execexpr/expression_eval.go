@@ -992,9 +992,12 @@ func (ev *Evaluator) evalFTSOptimize(f *sql.FuncCall) (interface{}, error) {
 
 // evalFuncArgs evaluates a function call's argument expressions, unwrapping
 // BlobColumnValue, ColumnValue and CollatedValue wrappers so functions receive
-// the raw scalar. For UTF-16 encoding, odd-length blobs are truncated (ignore
-// the last byte) to ensure valid UTF-16 byte sequences (SQLite ticket
-// 9eda2697f5cc1aba).
+// the raw scalar. Blobs are passed through verbatim regardless of the database
+// text encoding: SQLite only drops an odd trailing byte when a UTF-16 value is
+// actually TRANSLATED (sqlite3VdbeMemTranslate / sqlite3AtoF, ticket
+// 9eda2697f5cc1aba), never when marshalling function arguments — quote(),
+// length() and hex() of an odd-length blob return the full value (oracle
+// 3.51.0 verified).
 func (ev *Evaluator) evalFuncArgs(f *sql.FuncCall, row Row) ([]interface{}, error) {
 	args := make([]interface{}, len(f.Args))
 	for i, arg := range f.Args {
@@ -1004,11 +1007,6 @@ func (ev *Evaluator) evalFuncArgs(f *sql.FuncCall, row Row) ([]interface{}, erro
 		}
 		v = util.UnwrapColumnValue(v)
 		v = unwrapCollatedValue(v)
-		if b, ok := v.([]byte); ok && len(b)%2 == 1 {
-			if strings.HasPrefix(ev.ctx.TextEncoding(), "UTF-16") {
-				v = b[:len(b)-1]
-			}
-		}
 		args[i] = v
 	}
 	return args, nil

@@ -268,6 +268,7 @@ func (e *Engine) FTS5Tables() map[string]*fts5.Table {
 	return e.fts5Tables
 }
 
+
 // AggRowMaps returns the aggregate row maps for aggregate function
 // evaluation (e.g. round(avg(x),2) over the aggregate row set).
 func (e *Engine) AggRowMaps() []RowMap {

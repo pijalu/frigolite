@@ -824,7 +824,22 @@ func (p *qParser) parseNearCall() (queryNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		phrases = append(phrases, ph)
+		// sqlite3Fts5ParseNearset's incremental empty-phrase rule: a
+		// zero-token phrase added to a non-empty nearset is dropped, and a
+		// non-empty phrase replaces a trailing empty one (NEAR("" c) ≡
+		// NEAR(c); a lone empty phrase keeps the EOF node).
+		if n := len(phrases); n > 0 {
+			if len(ph.terms) == 0 {
+				continue
+			}
+			if len(phrases[n-1].terms) == 0 {
+				phrases[n-1] = ph
+			} else {
+				phrases = append(phrases, ph)
+			}
+		} else {
+			phrases = append(phrases, ph)
+		}
 		if p.kind == tkComma {
 			p.next()
 			if p.kind != tkString {

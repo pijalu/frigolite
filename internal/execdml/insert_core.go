@@ -18,6 +18,29 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 	if res, handled := e.execVTabInsert(s); handled {
 		return res
 	}
+	// Publish the statement's ON CONFLICT policy for trigger-body steps
+	// without an explicit OR clause (SQLite trigger.c codeTriggerProgram:
+	// pParse->eOrconf inheritance). Only the outermost DML statement sets
+	// it; nested trigger-body statements leave it untouched. This runs
+	// BEFORE the table/view dispatch so an INSTEAD OF trigger fired by a
+	// view INSERT (fts5connect 4.x: REPLACE INTO v4) inherits the policy.
+	outerPrev := e.ctx.OuterOrConflict()
+	// The firing (depth-0) statement always publishes its policy — including
+	// a nested depth-0 re-entry from a trigger body (each trigger step runs
+	// at depth 0 via Engine.Exec). A trigger body step that fires its own
+	// triggers must not clobber the outer firing policy with its own weaker
+	// one: only publish when no outer policy is active.
+	outerSet := e.ctx.TriggerDepth() == 0 && outerPrev == ""
+	if outerSet {
+		if s.OrConflict != "" {
+			e.ctx.SetOuterOrConflict(s.OrConflict)
+		} else if s.IsReplace {
+			e.ctx.SetOuterOrConflict("REPLACE")
+		} else {
+			e.ctx.SetOuterOrConflict("")
+		}
+		defer e.ctx.SetOuterOrConflict(outerPrev)
+	}
 	if res := e.prepareInsertStmt(s); res != nil {
 		return res
 	}
@@ -51,27 +74,8 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 		}
 	}
 
-	// Publish the statement's ON CONFLICT policy for trigger-body steps
-	// without an explicit OR clause (SQLite trigger.c codeTriggerProgram:
-	// pParse->eOrconf inheritance). Only the outermost DML statement sets
-	// it; nested trigger-body statements leave it untouched.
-	outerPrev := e.ctx.OuterOrConflict()
-	// The firing (depth-0) statement always publishes its policy — including
-	// a nested depth-0 re-entry from a trigger body (each trigger step runs
-	// at depth 0 via Engine.Exec). A trigger body step that fires its own
-	// triggers must not clobber the outer firing policy with its own weaker
-	// one: only publish when no outer policy is active.
-	outerSet := e.ctx.TriggerDepth() == 0 && outerPrev == ""
-	if outerSet {
-		if s.OrConflict != "" {
-			e.ctx.SetOuterOrConflict(s.OrConflict)
-		} else if s.IsReplace {
-			e.ctx.SetOuterOrConflict("REPLACE")
-		} else {
-			e.ctx.SetOuterOrConflict("")
-		}
-		defer e.ctx.SetOuterOrConflict(outerPrev)
-	}
+	// The statement's ON CONFLICT policy was published at the top of
+	// execInsert (before the table/view dispatch).
 
 	// Track the modified table's database context so trigger firing resolves
 	// triggers in the same context (main vs temp shadowing).
@@ -606,7 +610,7 @@ func (e *DMLExecutor) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema
 // buildRowMapFromValues creates a column-name-to-value map from a values slice.
 // execInsertOnConflict handles INSERT ... ON CONFLICT by attempting the
 // insert and falling back to the conflict action when a conflict is detected.
-func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, s *sql.InsertStmt) *Result {
+func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, s *sql.InsertStmt, explicitRowID *int64) *Result {
 	// Apply column affinity to the attempted VALUES row BEFORE conflict
 	// detection and before exposing it through the "excluded" pseudo-table:
 	// SQLite's upsert uses the affinity-applied row (e.g. a REAL column
@@ -635,8 +639,11 @@ func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.E
 		return &Result{Error: rerr}
 	}
 	ipkWasNil, ipkIndex := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrictTable(tableEntry.SQL))
+	// The trigger-visible new.rowid is the EXPLICIT rowid (statement rowid
+	// column or explicit IPK value); an auto-assigned rowid reads -1.
+	expRowID := explicitTriggerRowid(explicitRowID, values, ipkIndex, withoutRowid)
 	if e.hasTriggersForTable(tableEntry.Name) {
-		newRow := buildBeforeTriggerRow(colDefs, values, ipkWasNil, ipkIndex, withoutRowid)
+		newRow := buildBeforeTriggerRow(colDefs, values, ipkWasNil, ipkIndex, withoutRowid, expRowID)
 		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 			if trigResult.Error == errRaiseIgnore {
 				return &Result{Changes: 0, Row: nil}

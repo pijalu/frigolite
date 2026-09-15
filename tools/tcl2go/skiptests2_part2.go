@@ -811,6 +811,48 @@ var skipTestsMoreTail = map[string]string{
 	// model cannot reproduce (portplan/NA_EVIDENCE.md §P6.FTS5).
 	"fts5simple-14.4": "MATCH '*reads' returns C's cumulative %_data blob-fetch counter (fts5_index.c fts5DataRead p->nRead++); the engine's mirror storage (one Go-native blob, write-through) performs no tracked page reads, so the count is unreachable by design (no-side-effects)",
 	"fts5simple-23.2": "count(*) FROM x1_data inside an open transaction: C buffers inserted rows in the in-RAM pending hash (no new %_data row until flush/COMMIT); the engine flushes its shadow blob at statement boundaries, so the row already exists (pending-hash deferred-leaf storage, the adjudicated P6.FTS5 architectural class; no-side-effects)",
+	// fts5secure2 2.3/2.5: secure-delete empties a C leaf page to the 4-byte
+	// header placeholder X'00000004' (fts5DoSecureDelete zero-fills the
+	// removed doclist inside the leaf). The engine's mirror storage keeps ONE
+	// %_data structure blob, so per-leaf placeholder blocks are unreachable
+	// (the adjudicated P6.FTS5 mirror-storage divergence; no-side-effects).
+	"fts5secure2-2.3": "count(*) FROM ft_data WHERE block=X'00000004' counts C's per-leaf secure-delete placeholder (4-byte emptied leaf header); the engine's mirror storage is a single Go-native structure blob with no leaf pages (no-side-effects)",
+	"fts5secure2-2.5": "count(*) FROM ft_data WHERE block=X'00000004' counts C's per-leaf secure-delete placeholder (4-byte emptied leaf header); the engine's mirror storage is a single Go-native structure blob with no leaf pages (no-side-effects)",
+	// fts5tokenizer 3.x/9.x: tokenizer "tcl" is created by
+	// sqlite3_fts5_create_tokenizer with a TCL proc body
+	// (fts5tokenizer.test:66/270); the pure-Go harness cannot register
+	// TCL-proc tokenizers or observe their xTokenize flag callbacks — the
+	// fts5_tcl.c harness-API class adjudicated for fts5locale/fts5origintext.
+	// The CREATE itself must error "error in tokenizer constructor" but the
+	// engine reports "no such tokenizer: tcl" because no tokenizer module of
+	// that name exists to construct.
+	// fts5tokenizer 3.x/9.x: tokenizer "tcl" is created by
+	// sqlite3_fts5_create_tokenizer with a TCL proc body
+	// (fts5tokenizer.test:66/270); the pure-Go harness cannot register
+	// TCL-proc tokenizers or observe their xTokenize flag callbacks — the
+	// fts5_tcl.c harness-API class adjudicated for fts5locale/fts5origintext.
+	"fts5tokenizer-3.1.1": "tokenizer 'tcl' is a sqlite3_fts5_create_tokenizer TCL-proc module (harness API); unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-3.1.2": "observes the TCL tokenizer's constructor args via ::targs — harness-API state (no-side-effects)",
+	"fts5tokenizer-3.2.1": "tokenizer 'tcl' is a sqlite3_fts5_create_tokenizer TCL-proc module (harness API); unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-3.2.2": "observes the TCL tokenizer's constructor args via ::targs — harness-API state (no-side-effects)",
+	"fts5tokenizer-3.3.1": "tokenizer 'tcl' is a sqlite3_fts5_create_tokenizer TCL-proc module (harness API); unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-3.3.2": "observes the TCL tokenizer's constructor args via ::targs — harness-API state (no-side-effects)",
+	"fts5tokenizer-3.4.1": "tokenizer 'tcl' is a sqlite3_fts5_create_tokenizer TCL-proc module (harness API); unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-3.4.2": "observes the TCL tokenizer's constructor args via ::targs — harness-API state (no-side-effects)",
+	"fts5tokenizer-9.1.1": "table t1 uses the TCL-proc 'tcl' tokenizer (harness API); its MATCH behavior is unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-9.1.2": "observes the TCL tokenizer's xTokenize flag callbacks via ::flags — harness-API state (no-side-effects)",
+	"fts5tokenizer-9.2.1": "table t1 uses the TCL-proc 'tcl' tokenizer (harness API); its MATCH behavior is unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-9.2.2": "observes the TCL tokenizer's xTokenize flag callbacks via ::flags — harness-API state (no-side-effects)",
+	"fts5tokenizer-9.3.1": "table t1 uses the TCL-proc 'tcl' tokenizer (harness API); its MATCH behavior is unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-9.3.2": "observes the TCL tokenizer's xTokenize flag callbacks via ::flags — harness-API state (no-side-effects)",
+	"fts5tokenizer-9.4.1": "table t1 uses the TCL-proc 'tcl' tokenizer (harness API); its MATCH behavior is unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-9.4.2": "observes the TCL tokenizer's xTokenize flag callbacks via ::flags — harness-API state (no-side-effects)",
+	"fts5tokenizer-9.5.1": "table t1 uses the TCL-proc 'tcl' tokenizer (harness API); its MATCH behavior is unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-9.5.2": "observes the TCL tokenizer's xTokenize flag callbacks via ::flags — harness-API state (no-side-effects)",
+	// 3.x names are built inside the foreach loop (3.$tn.1), so the
+	// transpiler sees the literal "$tn" form; the 9.x names are static.
+	"fts5tokenizer-3.$tn.1": "tokenizer 'tcl' is a sqlite3_fts5_create_tokenizer TCL-proc module (harness API); unregistrable in the pure-Go port (no-side-effects)",
+	"fts5tokenizer-3.$tn.2": "observes the TCL tokenizer's constructor args via ::targs — harness-API state (no-side-effects)",
 	// windowE-1.3: the TCL test redefines the `custom` collation proc
 	// (reversed string compare) between 1.2 and 1.3; the transpiler now
 	// re-registers on redefinition, but the engine still evaluates

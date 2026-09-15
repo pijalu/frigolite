@@ -3,6 +3,8 @@ package execdml
 
 import (
 	"fmt"
+	"math"
+	"strconv"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -28,7 +30,7 @@ func (e *DMLExecutor) execInsertRow(dbCtx *DatabaseContext, tableEntry *schema.E
 	// SQLite applies the upsert action (DO NOTHING / DO UPDATE) instead of
 	// the REPLACE conflict deletion when both are present.
 	if s.OnConflict != nil {
-		res := e.execInsertOnConflict(dbCtx.Pager, tableEntry, colDefs, values, s)
+		res := e.execInsertOnConflict(dbCtx.Pager, tableEntry, colDefs, values, s, explicitRowID)
 		if res.Error != nil {
 			return res, nil
 		}
@@ -90,19 +92,22 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 				return nil, &Result{Error: err}
 			}
 			if v != nil {
-				if iv, ok := util.UnwrapColumnValue(v).(int64); ok {
-					explicitRowID = &iv
-					if execquery.IsRowIDName(col) {
-						rowidAliasVal = &iv
-					} else {
-						docidVal = &iv
-					}
-				} else if isFTS {
-					// FTS docid must be an integer: a non-numeric docid
-					// (REPLACE INTO t(docid, x) VALUES('zero', ...)) is a
-					// datatype mismatch (fts3.c fts3UpdateMethod:
-					// "datatype mismatch").
+				iv, isInt := mustBeIntRowid(v)
+				if !isInt {
+					// OP_MustBeInt: an explicit rowid value that cannot be
+					// coerced to an integer fails the statement with
+					// SQLITE_MISMATCH ("datatype mismatch"). Ordinary rowid
+					// tables enforce this at the rowid write; fts3/4's
+					// fts3UpdateMethod reports it for docid; fts5 binds the
+					// raw value to the %_content INTEGER PRIMARY KEY, where
+					// the core raises it (fts5blob 4.1: rowid 4.5/'xyz'/blob).
 					return nil, &Result{Error: fmt.Errorf("datatype mismatch")}
+				}
+				explicitRowID = &iv
+				if execquery.IsRowIDName(col) {
+					rowidAliasVal = &iv
+				} else {
+					docidVal = &iv
 				}
 			}
 		}
@@ -111,6 +116,49 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 		return nil, &Result{Error: fmt.Errorf("SQL logic error")}
 	}
 	return explicitRowID, nil
+}
+
+// explicitTriggerRowid returns the trigger-visible explicit rowid — the
+// statement's rowid column value, else an explicit IPK column value — or nil
+// when the rowid is auto-assigned (a BEFORE INSERT trigger then reads -1).
+func explicitTriggerRowid(fixedRowID *int64, values []interface{}, ipkIndex int, withoutRowid bool) *int64 {
+	if withoutRowid {
+		return nil
+	}
+	if fixedRowID != nil {
+		return fixedRowID
+	}
+	if ipkIndex >= 0 {
+		if v, ok := util.UnwrapColumnValue(values[ipkIndex]).(int64); ok {
+			return &v
+		}
+	}
+	return nil
+}
+
+// mustBeIntRowid applies OP_MustBeInt semantics (numeric affinity + integer
+// requirement) to an explicit rowid value: integers pass through; REALs with
+// an exact integral value convert (4.0 → 4); TEXT/BLOB values whose ENTIRE
+// content is a well-formed base-10 integer convert; anything else — 4.5,
+// 'xyz', a binary blob, NULL-wrapped non-numbers — fails (applyAffinity
+// NUMERIC leaves the value non-integer → SQLITE_MISMATCH).
+func mustBeIntRowid(v interface{}) (int64, bool) {
+	switch x := util.UnwrapColumnValue(v).(type) {
+	case int64:
+		return x, true
+	case float64:
+		if math.IsNaN(x) || math.IsInf(x, 0) || x != math.Trunc(x) || x < -9.223372036854776e18 || x >= 9.223372036854776e18 {
+			return 0, false
+		}
+		return int64(x), true
+	case string:
+		n, err := strconv.ParseInt(strings.TrimSpace(x), 10, 64)
+		return n, err == nil
+	case []byte:
+		n, err := strconv.ParseInt(strings.TrimSpace(string(x)), 10, 64)
+		return n, err == nil
+	}
+	return 0, false
 }
 
 // replaceRowIDAndDelete computes the REPLACE rowid and deletes conflicting
@@ -147,10 +195,12 @@ func fixedRowIDFor(haveReplaceRowID bool, replaceRowID int64, explicitRowID *int
 
 // fireInsertRowBeforeTriggers fires BEFORE INSERT triggers for a row about to
 // be written, re-allocating the rowid when the triggers consumed the
-// pre-computed one. Returns a non-nil Result on trigger failure (errRowSkipped
-// for RAISE(IGNORE)).
-func (e *DMLExecutor) fireInsertRowBeforeTriggers(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, ipkWasNil bool, ipkIndex int) *Result {
-	newRow := buildBeforeTriggerRow(colDefs, values, ipkWasNil, ipkIndex, withoutRowid)
+// pre-computed one. explicitRowID is the statement's explicit rowid (rowid
+// column or explicit IPK value), nil when the rowid is auto-assigned.
+// Returns a non-nil Result on trigger failure (errRowSkipped for
+// RAISE(IGNORE)).
+func (e *DMLExecutor) fireInsertRowBeforeTriggers(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, ipkWasNil bool, ipkIndex int, explicitRowID *int64) *Result {
+	newRow := buildBeforeTriggerRow(colDefs, values, ipkWasNil, ipkIndex, withoutRowid, explicitRowID)
 	if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 		// RAISE(IGNORE) in a BEFORE trigger aborts the insert (the row is
 		// skipped, no error) — SQLite semantics.
@@ -170,8 +220,12 @@ func (e *DMLExecutor) fireInsertRowBeforeTriggers(tableEntry *schema.Entry, colD
 }
 
 // buildBeforeTriggerRow builds the new-row map visible to a BEFORE INSERT
-// trigger, exposing an unassigned rowid (and IPK) as -1.
-func buildBeforeTriggerRow(colDefs []sql.ColumnDef, values []interface{}, ipkWasNil bool, ipkIndex int, withoutRowid bool) RowMap {
+// trigger. An auto-assigned rowid (and IPK) is not yet known to the trigger:
+// SQLite defers OP_NewRowid until after the trigger programs when no explicit
+// rowid is given, so new.rowid/new.<ipk> read -1; an EXPLICIT rowid (rowid
+// column or explicit IPK value) is bound before the trigger runs, so
+// new.rowid exposes it (oracle 3.51.0: explicit → 1/2, 7/7; auto → -1).
+func buildBeforeTriggerRow(colDefs []sql.ColumnDef, values []interface{}, ipkWasNil bool, ipkIndex int, withoutRowid bool, explicitRowID *int64) RowMap {
 	newRow := make(RowMap)
 	for i, v := range values {
 		if i < len(colDefs) {
@@ -184,12 +238,16 @@ func buildBeforeTriggerRow(colDefs []sql.ColumnDef, values []interface{}, ipkWas
 			}
 		}
 	}
-	// SQLite exposes new.rowid as -1 inside a BEFORE INSERT trigger (the
-	// rowid is not assigned until the row is written).
-	if !withoutRowid && !execquery.RowHasRowIDColumn(colDefs) {
-		newRow["rowid"] = int64(-1)
-		newRow["_rowid_"] = int64(-1)
-		newRow["oid"] = int64(-1)
+	// new.rowid/_rowid_/oid: the explicit rowid when supplied, -1 otherwise.
+	// The aliases are visible even when an IPK column carries the value.
+	if !withoutRowid {
+		rowidVal := int64(-1)
+		if explicitRowID != nil {
+			rowidVal = *explicitRowID
+		}
+		newRow["rowid"] = rowidVal
+		newRow["_rowid_"] = rowidVal
+		newRow["oid"] = rowidVal
 	}
 	return newRow
 }

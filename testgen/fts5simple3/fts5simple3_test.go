@@ -8,6 +8,8 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
+"strings"
 "testing"
 )
 
@@ -105,71 +107,273 @@ func Test_fts5simple3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, fts5_test_collist(t1) FROM t1('b:a');\n")
 		}
 	}
-	// foreach_detail_mode $testprefix {\n  if {[detail_is_none]} continue\n\n  do_test 2....} (unsupported command, not transpiled)
-	{ // "3.0"
-		r = db.Query("\n  CREATE VIRTUAL TABLE x3 USING fts5(one);\n  INSERT INTO x3 VALUES('a b c');\n  INSERT INTO x3 VALUES('c b a');\n  INSERT INTO x3 VALUES('o t t');\n  SELECT * FROM x3('x OR y OR z');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE x3 USING fts5(one);\n  INSERT INTO x3 VALUES('a b c');\n  INSERT INTO x3 VALUES('c b a');\n  INSERT INTO x3 VALUES('o t t');\n  SELECT * FROM x3('x OR y OR z');\n")
-		}
-	}
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts5(x);\n  INSERT INTO t1 VALUES('ab');\n  INSERT INTO t1 VALUES('cd');\n  INSERT INTO t1 VALUES('ab cd');\n  INSERT INTO t1 VALUES('ab cdXXX');\n  INSERT INTO t1 VALUES('abXXX cd');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts5(x);\n  INSERT INTO t1 VALUES('ab');\n  INSERT INTO t1 VALUES('cd');\n  INSERT INTO t1 VALUES('ab cd');\n  INSERT INTO t1 VALUES('ab cdXXX');\n  INSERT INTO t1 VALUES('abXXX cd');\n")
-		}
-	}
-	{ // "4.1"
-		r = db.Query("\n  SELECT * FROM t1('\"ab cd\" OR \"ab cd\" *');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"ab cd\" OR \"ab cd\" *');\n")
-			return
-		}
-		got := flatten(r)
-		want := "ab cd ab cdXXX"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2"
-		r = db.Query("\n  SELECT * FROM t1('\"xy zz\" OR \"ab cd\" *');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"xy zz\" OR \"ab cd\" *');\n")
-			return
-		}
-		got := flatten(r)
-		want := "ab cd ab cdXXX"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.3"
-		r = db.Query("\n  SELECT * FROM t1('\"xy zz\" OR \"xy zz\" *');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"xy zz\" OR \"xy zz\" *');\n")
-		}
-	}
-	{ // "4.4"
-		r = db.Query("\n  SELECT * FROM t1('\"ab cd\" OR \"xy zz\" *');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"ab cd\" OR \"xy zz\" *');\n")
-			return
-		}
-		got := flatten(r)
-		want := "ab cd"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.5"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts5(x);\n  INSERT INTO t2 VALUES('ab');\n  INSERT INTO t2 VALUES('cd');\n  INSERT INTO t2 VALUES('ef');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts5(x);\n  INSERT INTO t2 VALUES('ab');\n  INSERT INTO t2 VALUES('cd');\n  INSERT INTO t2 VALUES('ef');\n")
-		}
-	}
-	{ // "4.6"
-		r = db.Query("\n  SELECT * FROM t2('ab + xyz');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2('ab + xyz');\n")
-		}
-	}
+	_fdmPrefix1 := testprefix // foreach_detail_mode $testprefix
+	for _, _fdmMode1 := range []string{"full", "col", "none"} {
+		testprefix = _fdmPrefix1 + "-" + _fdmMode1
+		vtab.TclVarSet("testprefix", "", testprefix)
+		db.Close()
+		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		if _fdmMode1 == "full" {
+			if tclBool(tclBool01(_fdmMode1 == "none")) {
+				continue
+			}
+			{ // do_test "2.1"
+				_res = db.Exec(" DROP TABLE IF EXISTS t2 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t2 ")
+				}
+				cols = ""
+				_ = cols // suppress unused warning
+				vals = ""
+				_ = vals // suppress unused warning
+				vtab.TclVarSet("i", "", "1")
+				i = "1"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 998 }() {
+					cols = tclListAppend(cols, "c" + i)
+					vals = tclListAppend(vals, "'val" + i + "'")
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts5(detail=full," + strings.Join(tclSplitList(cols), ",") + ")")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING fts5(detail=full," + strings.Join(tclSplitList(cols), ",") + ")")
+				}
+			}
+			{ // do_test "2.2"
+				_res = db.Exec("INSERT INTO t2 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+				}
+			}
+			// foreach {tn q res} "1 { c1:val1 }     1\n    2 { c300:val300 } 1\n    3 { c300:val1 } {}\n    4 { c1:val300 } {}"
+			_items0 := tclSplitList("1 { c1:val1 }     1\n    2 { c300:val300 } 1\n    3 { c300:val1 } {}\n    4 { c1:val300 } {}")
+			for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+				tn := _items0[_idx0+0]
+				_ = tn // suppress unused warning
+				q := _items0[_idx0+1]
+				_ = q // suppress unused warning
+				res := _items0[_idx0+2]
+				_ = res // suppress unused warning
+				_ = _idx0
+					{ // "2.3." + tn
+						r = db.Query("\n      SELECT rowid FROM t2(" + sqlLiteral(q) + ")\n    ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t2(" + sqlLiteral(q) + ")\n    ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten(res)
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+			}
+			if _fdmMode1 == "col" {
+				if tclBool(tclBool01(_fdmMode1 == "none")) {
+					continue
+				}
+				{ // do_test "2.1"
+					_res = db.Exec(" DROP TABLE IF EXISTS t2 ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t2 ")
+					}
+					cols = ""
+					_ = cols // suppress unused warning
+					vals = ""
+					_ = vals // suppress unused warning
+					vtab.TclVarSet("i", "", "1")
+					i = "1"
+					_ = i // suppress unused warning
+					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 998 }() {
+						cols = tclListAppend(cols, "c" + i)
+						vals = tclListAppend(vals, "'val" + i + "'")
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+					_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts5(detail=col," + strings.Join(tclSplitList(cols), ",") + ")")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING fts5(detail=col," + strings.Join(tclSplitList(cols), ",") + ")")
+					}
+				}
+				{ // do_test "2.2"
+					_res = db.Exec("INSERT INTO t2 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+					}
+				}
+				// foreach {tn q res} "1 { c1:val1 }     1\n    2 { c300:val300 } 1\n    3 { c300:val1 } {}\n    4 { c1:val300 } {}"
+				_items0 := tclSplitList("1 { c1:val1 }     1\n    2 { c300:val300 } 1\n    3 { c300:val1 } {}\n    4 { c1:val300 } {}")
+				for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+					tn := _items0[_idx0+0]
+					_ = tn // suppress unused warning
+					q := _items0[_idx0+1]
+					_ = q // suppress unused warning
+					res := _items0[_idx0+2]
+					_ = res // suppress unused warning
+					_ = _idx0
+						{ // "2.3." + tn
+							r = db.Query("\n      SELECT rowid FROM t2(" + sqlLiteral(q) + ")\n    ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t2(" + sqlLiteral(q) + ")\n    ")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten(res)
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
+						}
+					}
+				}
+				if _fdmMode1 == "none" {
+					if tclBool(tclBool01(_fdmMode1 == "none")) {
+						continue
+					}
+					{ // do_test "2.1"
+						_res = db.Exec(" DROP TABLE IF EXISTS t2 ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t2 ")
+						}
+						cols = ""
+						_ = cols // suppress unused warning
+						vals = ""
+						_ = vals // suppress unused warning
+						vtab.TclVarSet("i", "", "1")
+						i = "1"
+						_ = i // suppress unused warning
+						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 998 }() {
+							cols = tclListAppend(cols, "c" + i)
+							vals = tclListAppend(vals, "'val" + i + "'")
+							// incr i 1
+							{
+								_n, _err := strconv.Atoi(i)
+								if _err == nil {
+									i = strconv.Itoa(_n + 1)
+								}
+							}
+						}
+						_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts5(detail=none," + strings.Join(tclSplitList(cols), ",") + ")")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING fts5(detail=none," + strings.Join(tclSplitList(cols), ",") + ")")
+						}
+					}
+					{ // do_test "2.2"
+						_res = db.Exec("INSERT INTO t2 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+						}
+					}
+					// foreach {tn q res} "1 { c1:val1 }     1\n    2 { c300:val300 } 1\n    3 { c300:val1 } {}\n    4 { c1:val300 } {}"
+					_items0 := tclSplitList("1 { c1:val1 }     1\n    2 { c300:val300 } 1\n    3 { c300:val1 } {}\n    4 { c1:val300 } {}")
+					for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+						tn := _items0[_idx0+0]
+						_ = tn // suppress unused warning
+						q := _items0[_idx0+1]
+						_ = q // suppress unused warning
+						res := _items0[_idx0+2]
+						_ = res // suppress unused warning
+						_ = _idx0
+							{ // "2.3." + tn
+								r = db.Query("\n      SELECT rowid FROM t2(" + sqlLiteral(q) + ")\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t2(" + sqlLiteral(q) + ")\n    ")
+									return
+								}
+								got := flatten(r)
+								want := tclListFlatten(res)
+								got = tclListFlattenCollapse(got)
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+						}
+					}
+				}
+				testprefix = _fdmPrefix1
+				vtab.TclVarSet("testprefix", "", testprefix)
+				{ // "3.0"
+					r = db.Query("\n  CREATE VIRTUAL TABLE x3 USING fts5(one);\n  INSERT INTO x3 VALUES('a b c');\n  INSERT INTO x3 VALUES('c b a');\n  INSERT INTO x3 VALUES('o t t');\n  SELECT * FROM x3('x OR y OR z');\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE x3 USING fts5(one);\n  INSERT INTO x3 VALUES('a b c');\n  INSERT INTO x3 VALUES('c b a');\n  INSERT INTO x3 VALUES('o t t');\n  SELECT * FROM x3('x OR y OR z');\n")
+					}
+				}
+				{ // "4.0"
+					_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts5(x);\n  INSERT INTO t1 VALUES('ab');\n  INSERT INTO t1 VALUES('cd');\n  INSERT INTO t1 VALUES('ab cd');\n  INSERT INTO t1 VALUES('ab cdXXX');\n  INSERT INTO t1 VALUES('abXXX cd');\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t1 USING fts5(x);\n  INSERT INTO t1 VALUES('ab');\n  INSERT INTO t1 VALUES('cd');\n  INSERT INTO t1 VALUES('ab cd');\n  INSERT INTO t1 VALUES('ab cdXXX');\n  INSERT INTO t1 VALUES('abXXX cd');\n")
+					}
+				}
+				{ // "4.1"
+					r = db.Query("\n  SELECT * FROM t1('\"ab cd\" OR \"ab cd\" *');\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"ab cd\" OR \"ab cd\" *');\n")
+						return
+					}
+					got := flatten(r)
+					want := "ab cd ab cdXXX"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.2"
+					r = db.Query("\n  SELECT * FROM t1('\"xy zz\" OR \"ab cd\" *');\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"xy zz\" OR \"ab cd\" *');\n")
+						return
+					}
+					got := flatten(r)
+					want := "ab cd ab cdXXX"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.3"
+					r = db.Query("\n  SELECT * FROM t1('\"xy zz\" OR \"xy zz\" *');\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"xy zz\" OR \"xy zz\" *');\n")
+					}
+				}
+				{ // "4.4"
+					r = db.Query("\n  SELECT * FROM t1('\"ab cd\" OR \"xy zz\" *');\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1('\"ab cd\" OR \"xy zz\" *');\n")
+						return
+					}
+					got := flatten(r)
+					want := "ab cd"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.5"
+					_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts5(x);\n  INSERT INTO t2 VALUES('ab');\n  INSERT INTO t2 VALUES('cd');\n  INSERT INTO t2 VALUES('ef');\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts5(x);\n  INSERT INTO t2 VALUES('ab');\n  INSERT INTO t2 VALUES('cd');\n  INSERT INTO t2 VALUES('ef');\n")
+					}
+				}
+				{ // "4.6"
+					r = db.Query("\n  SELECT * FROM t2('ab + xyz');\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2('ab + xyz');\n")
+					}
+				}
 }

@@ -891,12 +891,18 @@ func (e *DMLExecutor) fireViewInsertRow(viewEntry *schema.Entry, row RowMap) *Re
 
 // viewNewRow builds the NEW row map for a view INSERT from a value tuple,
 // mapping by explicit column list when given, else by view column order.
+// An explicit rowid/_rowid_/oid column in the INSERT list exposes its value
+// through NEW.rowid to the INSTEAD OF trigger (fts5connect 4.x: REPLACE INTO
+// v4(rowid, a, b) fires t4_ai with NEW.rowid=1).
 func viewNewRow(values []interface{}, columns []string, viewCols []string) RowMap {
 	row := make(RowMap)
 	row["rowid"] = nil
 	if len(columns) > 0 {
 		for i, col := range columns {
 			if i < len(values) {
+				if execquery.IsRowIDName(col) {
+					row["rowid"] = values[i]
+				}
 				row[col] = values[i]
 			}
 		}

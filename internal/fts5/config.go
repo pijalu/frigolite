@@ -72,6 +72,14 @@ type Config struct {
 	Locale               bool
 	Tokendata            bool
 
+	// SecureDelete mirrors the 'secure-delete' config directive
+	// (pConfig->bSecureDelete); FormatVersion is the %_config 'version' row
+	// (pConfig->iVersion: 4, or 5 once secure-delete tombstones have been
+	// written — the upgrade is persisted lazily on the first secure delete,
+	// fts5_index.c fts5DoSecureDeleteEntry's REPLACE INTO %_config).
+	SecureDelete  bool
+	FormatVersion int
+
 	// Rank is the resolved rank-function configuration (the 'rank' special
 	// insert: C's pConfig->zRank/zRankArgs; empty Func means the default
 	// "bm25" with no arguments).
@@ -254,15 +262,14 @@ func isBarewordEnd(b byte) bool {
 	return false
 }
 
-// skipWhitespace skips a run of ASCII whitespace (fts5ConfigSkipWhitespace).
+// skipWhitespace skips a run of whitespace (fts5ConfigSkipWhitespace). C's
+// fts5_iswhitespace matches ONLY the space character: other control bytes
+// (tab, form feed) terminate a bareword but do not separate its parts, so
+// "a<tab>unindexed" is a parse error while "a unindexed" is a column option
+// (fts5fuzz1 1.1: a form feed yields 'parse error in "a b"').
 func skipWhitespace(s string) string {
-	for len(s) > 0 {
-		switch s[0] {
-		case ' ', '\t', '\n', '\r', '\v', '\f':
-			s = s[1:]
-			continue
-		}
-		return s
+	for len(s) > 0 && s[0] == ' ' {
+		s = s[1:]
 	}
 	return s
 }

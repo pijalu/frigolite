@@ -132,11 +132,9 @@ func (m *Module) Load(dbName, tableName string, args []string) (*Table, error) {
 	if err != nil {
 		return nil, err
 	}
-	tok, err := tableTokenizer(cfg)
-	if err != nil {
-		return nil, err
-	}
+	tok, tokErr := tableTokenizer(cfg)
 	t := newTable(m.db, dbName, tableName, cfg, tok)
+	t.tokErr = tokErr
 	// Register BEFORE loadFromShadow: its schema reads re-enter
 	// EnsureFTS5ForTable on this connection (schema-load recursion), and the
 	// sentinel must be present for the re-entry to observe the table exists.
@@ -209,12 +207,9 @@ func (emptyCursor) Close() error                    { return nil }
 // registration). An error aborts the owning CREATE statement.
 func (v *vtabInstance) BindSchema(dbName, tableName string) error {
 	if v.tokErr != nil {
-		// A shadow family already in the schema means this bind is a REOPEN
-		// of a table whose stored config names an unresolvable tokenizer:
-		// C's xConnect failure carries no message there (SQLITE_ERROR).
-		if v.mod.familyExists(dbName, tableName) {
-			return fmt.Errorf("SQL logic error")
-		}
+		// A stored tokenize= spec naming an unresolvable tokenizer fails
+		// xConnect with the constructor error; every use of the table
+		// reports it (fts5tokenizer 10.2/10.3/10.5/10.6, oracle 3.51.0).
 		return v.tokErr
 	}
 	if err := checkTableName(tableName); err != nil {
@@ -242,6 +237,13 @@ type Table struct {
 	shadowDirty bool
 	// maxRowid tracks the largest allocated rowid for auto rowid allocation.
 	maxRowid int64
+	// tokErr defers a failed tokenizer resolution on REOPEN: C constructs
+	// the tokenizer lazily at first use (sqlite3Fts5Tokenize's
+	// LoadTokenizer call), so the index still loads and fts5vocab still
+	// reads a table whose stored tokenize= spec is unresolvable — but every
+	// operation that tokenizes reports the constructor error
+	// (fts5tokenizer 10.x).
+	tokErr error
 }
 
 // newTable builds a Table with its mirrors initialized.
@@ -290,8 +292,13 @@ func (t *Table) ColumnIndex(name string) int {
 
 // tokenizeValues tokenizes one document's values into per-column token
 // streams (fts5StorageInsert: each value is coerced to text and tokenized;
-// unindexed columns yield no tokens).
-func (t *Table) tokenizeValues(values []interface{}) [][]string {
+// unindexed columns yield no tokens). A table whose tokenizer failed to
+// construct reports the deferred error here (sqlite3Fts5Tokenize's lazy
+// LoadTokenizer).
+func (t *Table) tokenizeValues(values []interface{}) ([][]string, error) {
+	if t.tokErr != nil {
+		return nil, t.tokErr
+	}
 	cols := make([][]string, len(t.cfg.Columns))
 	for i := range t.cfg.Columns {
 		if t.cfg.Unindexed[i] {
@@ -312,12 +319,25 @@ func (t *Table) tokenizeValues(values []interface{}) [][]string {
 			cols[i] = append(cols[i], tok.Term)
 		}
 	}
-	return cols
+	return cols, nil
+}
+
+// tokenizeFor tokenizes text with the table's tokenizer, yielding no tokens
+// when the tokenizer failed to construct (the calling aux functions then
+// produce empty results; the error itself surfaces on the DML/MATCH paths).
+func (t *Table) tokenizeFor(text string) []Token {
+	if t.tokErr != nil || t.tok == nil {
+		return nil
+	}
+	return t.tok.Tokenize(text)
 }
 
 // Insert adds a document (fts5UpdateMethod's insert path + fts5StorageInsert).
 func (t *Table) Insert(rowid int64, values []interface{}) error {
-	cols := t.tokenizeValues(values)
+	cols, err := t.tokenizeValues(values)
+	if err != nil {
+		return err
+	}
 	defer t.bumpVersion()
 	t.noteRowid(rowid)
 	t.ix.AddDoc(rowid, nil, cols)
@@ -353,6 +373,15 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 		return false, nil
 	}
 	defer t.bumpVersion()
+	// First secure delete upgrades the format: persist 'version'=5
+	// (fts5_index.c fts5DoSecureDeleteEntry's one-time REPLACE INTO %_config
+	// when iVersion!=FTS5_CURRENT_VERSION_SECUREDELETE).
+	if t.cfg.SecureDelete && t.cfg.FormatVersion != 5 {
+		if err := t.storeConfigValue("version", 5); err != nil {
+			return true, err
+		}
+		t.cfg.FormatVersion = 5
+	}
 	delete(t.contentValues, rowid)
 	if err := t.deleteContentRow(rowid); err != nil {
 		return true, err
@@ -419,23 +448,7 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		}
 		return true, t.DeleteAll()
 	case "delete":
-		if t.cfg.ContentlessDelete {
-			return true, fmt.Errorf("'delete' may not be used with a contentless_delete=1 table")
-		}
-		// The special 'delete' command is allowed on every content mode
-		// except contentless_delete=1 (fts5_main.c fts5UpdateMethod: only
-		// the bContentlessDelete gate precedes fts5SpecialDelete) — it
-		// removes the index entries for one rowid using the SUPPLIED
-		// values, so it works with no content table at all.
-		if len(args) == 0 {
-			return true, fmt.Errorf("database disk image is malformed")
-		}
-		rowid, ok := asInt64(args[0])
-		if !ok || !t.ix.HasDoc(rowid) {
-			return true, fmt.Errorf("database disk image is malformed")
-		}
-		_, err := t.Delete(rowid)
-		return true, err
+		return true, t.specialDelete(args)
 	case "rebuild":
 		if t.cfg.Contentless() {
 			return true, fmt.Errorf("'rebuild' may not be used with a contentless fts5 table")
@@ -468,6 +481,12 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		if !ok || badConfigValue(strings.ToLower(cmd), v) {
 			return true, errRankLogic()
 		}
+		// C keeps bSecureDelete in memory (fts5_config.c fts5ConfigSetValue);
+		// the format version upgrade happens lazily on the first secure
+		// delete.
+		if strings.EqualFold(cmd, "secure-delete") {
+			t.cfg.SecureDelete = v != 0
+		}
 		return true, t.storeConfigValue(strings.ToLower(cmd), v)
 	case "merge", "integrity-check", "optimize":
 		// Index maintenance directives with no SQL-observable effect at this
@@ -480,6 +499,48 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		return true, t.FlushShadowIfDirty()
 	}
 	return false, nil
+}
+
+// specialDelete implements the 'delete' special command (fts5SpecialDelete +
+// fts5StorageDeleteFromIndex). The command is allowed on every content mode
+// except contentless_delete=1 (fts5_main.c fts5UpdateMethod: only the
+// bContentlessDelete gate precedes fts5SpecialDelete) — it removes the index
+// entries for one rowid using the SUPPLIED values, so it works with no
+// content table at all.
+func (t *Table) specialDelete(args []interface{}) error {
+	if t.cfg.ContentlessDelete {
+		return fmt.Errorf("'delete' may not be used with a contentless_delete=1 table")
+	}
+	if len(args) == 0 {
+		return fmt.Errorf("database disk image is malformed")
+	}
+	rowid, ok := asInt64(args[0])
+	if !ok {
+		// fts5SpecialDelete: a non-INTEGER rowid slot deletes nothing.
+		return nil
+	}
+	// fts5StorageDeleteFromIndex subtracts the supplied values' token counts
+	// from the column totals; a negative total, or a delete from a table
+	// with no rows (p->nTotalRow<1), is FTS5_CORRUPT. Row existence is NOT
+	// checked — deleting a rowid the index never saw is a silent no-op
+	// (fts5secure4 1.1).
+	supplied, err := t.tokenizeValues(args[1:])
+	if err != nil {
+		return err
+	}
+	if t.ix.NumDocs() < 1 {
+		return fmt.Errorf("database disk image is malformed")
+	}
+	for i, toks := range supplied {
+		if t.ix.ColTotal(i) < int64(len(toks)) {
+			return fmt.Errorf("database disk image is malformed")
+		}
+	}
+	if !t.ix.HasDoc(rowid) {
+		return nil
+	}
+	_, err = t.Delete(rowid)
+	return err
 }
 
 // argValue returns the first special-insert argument.
@@ -553,7 +614,11 @@ func (t *Table) rebuild() error {
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
 	t.maxRowid = 0
 	for _, d := range docs {
-		t.ix.AddDoc(d.rowid, nil, t.tokenizeValues(d.values))
+		cols, err := t.tokenizeValues(d.values)
+		if err != nil {
+			return err
+		}
+		t.ix.AddDoc(d.rowid, nil, cols)
 		t.noteRowid(d.rowid)
 	}
 	return t.flushShadowIndex()

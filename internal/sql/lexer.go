@@ -419,7 +419,7 @@ func (t *Tokenizer) SetPosition(pos int) {
 func (t *Tokenizer) skipWhitespace() {
 	for t.pos < len(t.input) {
 		ch := t.input[t.pos]
-		if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' {
+		if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || ch == '\f' || ch == '\v' {
 			t.pos++
 		} else {
 			break

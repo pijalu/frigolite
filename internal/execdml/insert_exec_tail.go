@@ -98,8 +98,11 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// parent row — e_fkey-31.3). The statement-end check lives in insertRow.
 
 	// Fire BEFORE INSERT triggers — the row is not in the table yet, so
-	// only build the row map when triggers exist for this table.
-	if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, ipkWasNil, ipkIndex); res != nil {
+	// only build the row map when triggers exist for this table. The
+	// trigger-visible new.rowid is the EXPLICIT rowid (statement rowid
+	// column or explicit IPK value); an auto-assigned rowid reads -1.
+	expRowID := explicitTriggerRowid(fixedRowID, values, ipkIndex, withoutRowid)
+	if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, ipkWasNil, ipkIndex, expRowID); res != nil {
 		return 0, res
 	}
 	return nextRowID, nil
@@ -231,11 +234,11 @@ func (e *DMLExecutor) strictCheckGenerated(tableEntry *schema.Entry, colDefs []s
 // triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
 // fireInsertBeforeTriggersSafe fires BEFORE INSERT triggers for a row when
 // triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
-func (e *DMLExecutor) fireInsertBeforeTriggersSafe(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, ipkWasNil bool, ipkIndex int) *Result {
+func (e *DMLExecutor) fireInsertBeforeTriggersSafe(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, ipkWasNil bool, ipkIndex int, explicitRowID *int64) *Result {
 	if !e.hasTriggersForTable(tableEntry.Name) {
 		return nil
 	}
-	if res := e.fireInsertRowBeforeTriggers(tableEntry, colDefs, values, nextRowID, withoutRowid, ipkWasNil, ipkIndex); res != nil {
+	if res := e.fireInsertRowBeforeTriggers(tableEntry, colDefs, values, nextRowID, withoutRowid, ipkWasNil, ipkIndex, explicitRowID); res != nil {
 		if res.Error == errRowSkipped {
 			return &Result{Changes: 0}
 		}

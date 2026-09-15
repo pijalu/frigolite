@@ -140,16 +140,32 @@ func (t *Table) loadConfigValues() error {
 			continue
 		}
 		key, _ := row[0].(string)
-		switch strings.ToLower(key) {
-		case "rank":
-			if spec, ok := row[1].(string); ok {
-				if parsed, perr := ParseRankSpec(spec); perr == nil {
-					t.cfg.Rank = *parsed
-				}
-			}
-		}
+		t.applyLoadedConfigRow(strings.ToLower(key), row[1])
 	}
 	return nil
+}
+
+// applyLoadedConfigRow folds one %_config row into the configuration
+// (fts5ConfigLoadSpecial: rank survives reopen; secure-delete drives the
+// delete path; version records the format the shadow blobs were written
+// with).
+func (t *Table) applyLoadedConfigRow(key string, val interface{}) {
+	switch key {
+	case "rank":
+		if spec, ok := val.(string); ok {
+			if parsed, perr := ParseRankSpec(spec); perr == nil {
+				t.cfg.Rank = *parsed
+			}
+		}
+	case "secure-delete":
+		if v, ok := asInt64(val); ok {
+			t.cfg.SecureDelete = v != 0
+		}
+	case "version":
+		if v, ok := asInt64(val); ok {
+			t.cfg.FormatVersion = int(v)
+		}
+	}
 }
 
 // flushShadowIndex rewrites the %_data id=11 block with the serialized token
@@ -234,8 +250,8 @@ func (t *Table) loadFromShadow() error {
 		// A detail=none blob stores no token streams; a normal-content table
 		// rebuilds them from %_content so single-term MATCH keeps working
 		// after a reopen (C's detail=none segments keep the term rowids).
-		if t.cfg.Detail == DetailNone && cols == nil && len(values) > 0 {
-			cols = t.tokenizeValues(values)
+		if t.cfg.Detail == DetailNone && cols == nil && len(values) > 0 && t.tokErr == nil {
+			cols, _ = t.tokenizeValues(values)
 		}
 		t.ix.AddDoc(bd.Rowid, values, cols)
 		t.noteRowid(bd.Rowid)

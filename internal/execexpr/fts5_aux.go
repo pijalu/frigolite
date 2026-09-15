@@ -72,6 +72,10 @@ var fts5AuxDispatch = map[string]bool{
 	"my_rowid":                  true,
 	"my_phrasesize":             true,
 	"firstcol":                  true,
+	// "tokenize": the fts5tokenizer.test 6.x aux proc (xColumnText(0) +
+	// xTokenize), riding the same fts5_create_function aux machinery the
+	// fts5_test_* family natively implements.
+	"tokenize": true,
 }
 
 // IsFTS5AuxFunc reports whether name is an fts5 auxiliary function (the
@@ -394,6 +398,18 @@ func (ev *Evaluator) evalFTS5TestFunc(lower string, t5 *fts5.Table, aq *fts5.Aux
 			out[i] = renderTclList(aq.TokenizeText(text))
 		}
 		return strings.Join(out, " "), nil
+	case "tokenize": // fts5tokenizer.test 6.x: tokens of column 0
+		text, err := aq.ColumnText(rowid, 0)
+		if err != nil {
+			return nil, err
+		}
+		toks := aq.TokenizeText(text)
+		// The TCL callback (test_token_cb) returns SQLITE_DONE once three
+		// tokens are collected, so xTokenize stops there.
+		if len(toks) > 3 {
+			toks = toks[:3]
+		}
+		return renderTclList(toks), nil
 	case "fts5_test_rowcount":
 		return aq.RowCount(), nil
 	case "fts5_test_rowid", "my_rowid":
