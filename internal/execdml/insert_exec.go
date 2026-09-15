@@ -147,7 +147,20 @@ func (e *DMLExecutor) execInsertTuples(dbCtx *DatabaseContext, tableEntry *schem
 	for _, tuple := range s.Values {
 		changes, inserted, rowValues, rowid, skip, err := e.insertOneTuple(dbCtx, tableEntry, colDefs, s, tuple)
 		if err != nil {
-			return &Result{Error: err}
+			res := &Result{Error: err}
+			// A constraint with its own ON CONFLICT FAIL keeps the rows
+			// written before the conflict (insert.c FAIL semantics: the
+			// failing row itself was never written — conflict3.test 1.x-11.x
+			// multi-row VALUES), exactly like the INSERT ... SELECT path.
+			if e.uniqueFailConflict(err, tableEntry, colDefs) {
+				res.SetKeepPriorRowsOnError()
+			}
+			// ON CONFLICT ROLLBACK extends the abort to the whole
+			// transaction (uniqueRollbackConflict parity with insertSelect).
+			if e.uniqueRollbackConflict(err, tableEntry, colDefs) {
+				res.SetRollbackTxOnError()
+			}
+			return res
 		}
 		if skip {
 			continue

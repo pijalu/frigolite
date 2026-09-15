@@ -229,7 +229,7 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColIndicesWithPK(colDefs, values)
 	if len(uniqueCols) > 0 {
-		rowID, _, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
+		rowID, _, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
 		if found && (!haveExclude || rowID != excludeRowID) {
 			if conflictIdx >= 0 && conflictIdx < len(colDefs) {
 				return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[conflictIdx].Name)
@@ -754,7 +754,7 @@ func (e *DMLExecutor) execInsertSelectConflict(s *sql.InsertStmt, tableEntry *sc
 // (column-level ON CONFLICT REPLACE).
 func (e *DMLExecutor) deleteReplaceConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, origErr error) *Result {
 	colIndex := buildColumnIndex(colDefs)
-	conflictRowID, conflictVals, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
+	conflictRowID, conflictVals, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
 	if !found {
 		return &Result{Error: origErr}
 	}

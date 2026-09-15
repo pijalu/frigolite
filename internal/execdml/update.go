@@ -540,6 +540,11 @@ func declaredPKMatches(declared []interface{}, tableEntry *schema.Entry, oldValu
 // deleteConflictRows deletes the rows identified as conflicts during UPDATE
 // OR REPLACE resolution, firing BEFORE/AFTER DELETE triggers and rolling back
 // on an error. It returns nil on success.
+//
+// The delete triggers fire ONLY when the recursive-triggers flag is set
+// (insert.c OE_Replace: GenerateRowDelete fires the row triggers when
+// "recursive-triggers flag is set"; otherwise the conflicting rows are
+// removed without firing — conflict3.test 13.x observes both dispositions).
 func (e *DMLExecutor) deleteConflictRows(tree *btree.BTree, tableEntry *schema.Entry, conflicts []conflictInfo, colDefs []sql.ColumnDef, hasTriggers bool, deletedByConflict map[string]bool) *Result {
 	// WITHOUT ROWID tables: delete conflict rows in PRIMARY KEY order (the
 	// order SQLite scans its keyed table btree; hook2.test 2.3.5 observes
@@ -549,9 +554,10 @@ func (e *DMLExecutor) deleteConflictRows(tree *btree.BTree, tableEntry *schema.E
 			return e.withoutRowidLessVals(conflicts[i].values, conflicts[j].values, tableEntry.Name, tableEntry.SQL, colDefs)
 		})
 	}
+	fireTriggers := hasTriggers && e.ctx.RecursiveTriggers()
 	for _, cf := range conflicts {
 		oldRow := buildRowMapFromValues(cf.values, colDefs, cf.rowID)
-		if hasTriggers {
+		if fireTriggers {
 			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 				return trigResult
 			}
@@ -578,7 +584,7 @@ func (e *DMLExecutor) deleteConflictRows(tree *btree.BTree, tableEntry *schema.E
 		}); res != nil {
 			return res
 		}
-		if hasTriggers {
+		if fireTriggers {
 			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 				return trigResult
 			}
@@ -623,13 +629,26 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 	// WITHOUT ROWID rows have no rowid: the OLD-PK delete below is the
 	// existence check (a vanished row deletes nothing and the re-insert
 	// surfaces any anomaly), so the rowid probe runs for rowid tables only.
-	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) && !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
+	withoutRowidKw := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	if !withoutRowidKw && !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
 		e.ctx.RestorePager(e.ctx.Pager(), snap)
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return false, &Result{Error: fmt.Errorf("constraint failed")}
 	}
-	if _, err := e.deleteRowCells(tableEntry, colDefs, c.rowID, c.oldValues); err != nil {
+	deletedCells, err := e.deleteRowCells(tableEntry, colDefs, c.rowID, c.oldValues)
+	if err != nil {
 		return false, &Result{Error: err}
+	}
+	// WITHOUT ROWID rows have no rowid to probe above: the OLD-PK delete IS
+	// the existence check. Zero cells deleted means the row vanished while
+	// this change's conflict resolution fired its delete triggers (the
+	// trigger's DELETE FROM t2 removed the row being updated) — SQLite aborts
+	// the statement with the generic "constraint failed" error, like the
+	// rowid-table probe above (conflict3.test 13.2).
+	if withoutRowidKw && deletedCells == 0 {
+		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
+		return false, &Result{Error: fmt.Errorf("constraint failed")}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 	newRecord, err := storage.EncodeRecord(c.values)
