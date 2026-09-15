@@ -735,15 +735,15 @@ func Test_fts5simple2(t *testing.T) {
 			}
 		}
 		{ // "17.1"
-			r = db.Query(" \n  SELECT * FROM t2('y" + sqlLiteral(a) + "*') WHERE rowid BETWEEN 10 AND 20 \n")
+			r = db.Query(" \n  SELECT * FROM t2('y:a*') WHERE rowid BETWEEN 10 AND 20 \n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT * FROM t2('y" + sqlLiteral(a) + "*') WHERE rowid BETWEEN 10 AND 20 \n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT * FROM t2('y:a*') WHERE rowid BETWEEN 10 AND 20 \n")
 			}
 		}
 		{ // "17.2"
-			r = db.Query("\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y" + sqlLiteral(a) + "*') WHERE rowid BETWEEN 10 AND 20 ;\n")
+			r = db.Query("\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y:a*') WHERE rowid BETWEEN 10 AND 20 ;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y" + sqlLiteral(a) + "*') WHERE rowid BETWEEN 10 AND 20 ;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y:a*') WHERE rowid BETWEEN 10 AND 20 ;\n")
 			}
 		}
 		{ // "17.3"
@@ -760,27 +760,27 @@ func Test_fts5simple2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "17.4"
-			r = db.Query("\n  CREATE VIRTUAL TABLE t2 USING fts5(x, y);\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y" + sqlLiteral(a) + "*') WHERE rowid>66;\n")
+			r = db.Query("\n  CREATE VIRTUAL TABLE t2 USING fts5(x, y);\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y:a*') WHERE rowid>66;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts5(x, y);\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y" + sqlLiteral(a) + "*') WHERE rowid>66;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts5(x, y);\n  BEGIN;\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    INSERT INTO t2 VALUES('a aa aaa', 'b bb bbb');\n    SELECT * FROM t2('y:a*') WHERE rowid>66;\n")
 			}
 		}
 		{ // "17.5"
-			r = db.Query(" SELECT * FROM t2('x" + sqlLiteral(b) + "* OR y" + sqlLiteral(a) + "*') ")
+			r = db.Query(" SELECT * FROM t2('x:b* OR y:a*') ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2('x" + sqlLiteral(b) + "* OR y" + sqlLiteral(a) + "*') ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2('x:b* OR y:a*') ")
 			}
 		}
 		{ // "17.5"
-			r = db.Query(" COMMIT ; SELECT * FROM t2('x" + sqlLiteral(b) + "* OR y" + sqlLiteral(a) + "*') ")
+			r = db.Query(" COMMIT ; SELECT * FROM t2('x:b* OR y:a*') ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM t2('x" + sqlLiteral(b) + "* OR y" + sqlLiteral(a) + "*') ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM t2('x:b* OR y:a*') ")
 			}
 		}
 		{ // "17.6"
-			r = db.Query(" \n  SELECT * FROM t2('x" + sqlLiteral(b) + "* OR y" + sqlLiteral(a) + "*') WHERE rowid>55\n")
+			r = db.Query(" \n  SELECT * FROM t2('x:b* OR y:a*') WHERE rowid>55\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT * FROM t2('x" + sqlLiteral(b) + "* OR y" + sqlLiteral(a) + "*') WHERE rowid>55\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT * FROM t2('x:b* OR y:a*') WHERE rowid>55\n")
 			}
 		}
 }

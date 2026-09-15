@@ -398,6 +398,32 @@ type qParser struct {
 	// deferredColQueries records fts5ParseSetColset's detail=none rejection
 	// for raising after a well-formed parse (see parseColsetPhrase).
 	deferredColQueries error
+	// depth counts open parenthesized expressions (fts5parse.y's lemon shift
+	// stack: YYSTACKDEPTH=100 symbols, ~3 shifted per "( expr AND" nesting
+	// level, so the parser overflows at 34 nested levels — oracle-verified).
+	depth int
+}
+
+// maxParseNesting is the deepest parenthesized-expression nesting the fts5
+// parser accepts before "fts5: parser stack overflow" (fts5parse.y
+// %stack_overflow via the lemon yy_parse stack; oracle-verified: 32 nested
+// levels parse, 33 raise the error).
+const maxParseNesting = 32
+
+// ParseStackOverflowError is fts5parse.y's stack-overflow failure
+// (sqlite3Fts5ParseError "fts5: parser stack overflow").
+type ParseStackOverflowError struct{}
+
+func (e *ParseStackOverflowError) Error() string { return "fts5: parser stack overflow" }
+
+// enterLP accounts one nesting level when an open paren begins a
+// sub-expression; the caller decrements p.depth after the RP.
+func (p *qParser) enterLP() error {
+	p.depth++
+	if p.depth > maxParseNesting {
+		return &ParseStackOverflowError{}
+	}
+	return nil
 }
 
 func (p *qParser) next() {
@@ -519,7 +545,11 @@ func (p *qParser) parseOperand() (queryNode, error) {
 	}
 	if p.kind == tkLP {
 		p.next()
+		if err := p.enterLP(); err != nil {
+			return nil, err
+		}
 		node, err := p.parseOr()
+		p.depth--
 		if err != nil {
 			return nil, err
 		}
@@ -642,7 +672,11 @@ func (p *qParser) parseColsetPhrase(allowExpr bool) (queryNode, error) {
 			return nil, p.syntaxError()
 		}
 		p.next()
+		if err := p.enterLP(); err != nil {
+			return nil, err
+		}
 		child, err := p.parseOr()
+		p.depth--
 		if err != nil {
 			return nil, err
 		}

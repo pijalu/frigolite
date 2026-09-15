@@ -809,15 +809,17 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 	}
 	// TCL catchsql regex form "/1 {near .* syntax error}/" (with2 6.7-6.9),
 	// "/1.*too big.*/" (basexx1 118-119), "/1 .*corrupt.*/"
-	// (rtreefuzz001-210/310): do_test/do_catchsql_test apply the regex to
-	// the STRING of the whole catchsql RESULT — "0 <result>" on success,
-	// "1 {<error>}" on failure — not to the error alone. A statement that
-	// behaves exactly like SQLite (rtreecheck succeeding with a report that
-	// mentions "corrupt") satisfies "/1 .*corrupt.*/" through the success
-	// rendering, so the match must not presuppose an error. Detect the
-	// leading "/1" (space optional) and trailing "/" and emit a regexp
-	// match over the rendered catchsql result string.
-	if strings.HasPrefix(raw, "/1") && strings.HasSuffix(raw, "/") {
+	// (rtreefuzz001-210/310), "/fts5: syntax error/" (fts5simple 11.4):
+	// do_test/do_catchsql_test apply the regex to the STRING of the whole
+	// catchsql RESULT — "0 <result>" on success, "1 {<error>}" on failure —
+	// not to the error alone. A statement that behaves exactly like SQLite
+	// (rtreecheck succeeding with a report that mentions "corrupt")
+	// satisfies "/1 .*corrupt.*/" through the success rendering, so the
+	// match must not presuppose an error. tester.tcl treats ANY expectation
+	// that both starts and ends with "/" as a regex over the rendered
+	// result, so detect the general slash-wrapped form (not just "/1"
+	// prefixes) and emit a regexp match over that string.
+	if len(raw) >= 2 && strings.HasPrefix(raw, "/") && strings.HasSuffix(raw, "/") {
 		tp.emitCatchsqlRegexComparison(sqlExpr, raw, dbConn)
 		return
 	}

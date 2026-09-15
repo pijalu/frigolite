@@ -201,14 +201,27 @@ func (tp *transpiler) resolveColonParamRefs(parts []stringPart) []stringPart {
 // splitColonBindings splits a literal on :varname bindings that resolve to
 // declared vars, emitting alternating literal/variable parts. Returns the
 // rebuilt part list and whether a colon binding was replaced.
+//
+// SQL single-quote state is tracked while scanning: a :varname INSIDE a
+// quoted literal ('y:a*') is column syntax, not a TCL binding
+// (fts5simple2.test 17.x — substituting it rewrote the fts5 query to
+// 'y''*'). SQLite's db eval only binds :name parameters outside string
+// literals.
 func splitColonBindings(lit string, tp *transpiler) ([]stringPart, bool) {
 	var parts []stringPart
 	i := 0
 	replaced := false
+	inSQL := false
 	for i < len(lit) {
-		if lit[i] != ':' || i+1 >= len(lit) || !isVarStartChar(lit[i+1]) {
-			// Not a :varname at this position — advance to next ':' or end.
-			next := strings.IndexByte(lit[i+1:], ':')
+		if lit[i] == '\'' {
+			inSQL = !inSQL
+			i++
+			continue
+		}
+		if inSQL || lit[i] != ':' || i+1 >= len(lit) || !isVarStartChar(lit[i+1]) {
+			// Not a :varname at this position — advance to next ':' or
+			// '\'' (to update the quote state) or end.
+			next := strings.IndexAny(lit[i+1:], ":'")
 			if next < 0 {
 				parts = append(parts, stringPart{literal: lit[i:]})
 				break
