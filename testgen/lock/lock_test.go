@@ -220,6 +220,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows0.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows0.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
 				_qvFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
 				_ = _qvFlat1
@@ -246,6 +247,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows3.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows3.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows3.Rows); _ri++ {
 				_qvFlat4 := tclRowFlatPairs(_dbevalRows3.Columns, _dbevalRows3.Rows[_ri])
 				_ = _qvFlat4
@@ -272,6 +274,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows6.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows6.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows6.Rows); _ri++ {
 				_qvFlat7 := tclRowFlatPairs(_dbevalRows6.Columns, _dbevalRows6.Rows[_ri])
 				_ = _qvFlat7
@@ -316,6 +319,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows8.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows8.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows8.Rows); _ri++ {
 				_qvFlat9 := tclRowFlatPairs(_dbevalRows8.Columns, _dbevalRows8.Rows[_ri])
 				_ = _qvFlat9
@@ -355,6 +359,7 @@ func Test_lock(t *testing.T) {
 			if _dbevalRows0.Error == nil {
 				db.BeginActiveStatement()
 				_qv_arr = strings.Join(_dbevalRows0.Columns, " ")
+				vtab.TclVarSet("qv", "*", _qv_arr)
 				for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
 					_qvFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
 					_ = _qvFlat1

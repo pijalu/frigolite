@@ -766,6 +766,7 @@ func Test_with1(t *testing.T) {
 		if _dbevalRows1.Error == nil {
 			db.BeginActiveStatement()
 			_A_arr = strings.Join(_dbevalRows1.Columns, " ")
+			vtab.TclVarSet("A", "*", _A_arr)
 			for _ri := 0; _ri < len(_dbevalRows1.Rows); _ri++ {
 				_AFlat2 := tclRowFlatPairs(_dbevalRows1.Columns, _dbevalRows1.Rows[_ri])
 				_ = _AFlat2

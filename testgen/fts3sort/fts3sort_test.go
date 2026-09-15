@@ -156,6 +156,7 @@ func Test_fts3sort(t *testing.T) {
 					if _dbevalRows2.Error == nil {
 						db.BeginActiveStatement()
 						_X_arr = strings.Join(_dbevalRows2.Columns, " ")
+						vtab.TclVarSet("X", "*", _X_arr)
 						for _ri := 0; _ri < len(_dbevalRows2.Rows); _ri++ {
 							_XFlat3 := tclRowFlatPairs(_dbevalRows2.Columns, _dbevalRows2.Rows[_ri])
 							_ = _XFlat3
@@ -174,6 +175,7 @@ func Test_fts3sort(t *testing.T) {
 					if _dbevalRows4.Error == nil {
 						db.BeginActiveStatement()
 						_X_arr = strings.Join(_dbevalRows4.Columns, " ")
+						vtab.TclVarSet("X", "*", _X_arr)
 						for _ri := 0; _ri < len(_dbevalRows4.Rows); _ri++ {
 							_XFlat5 := tclRowFlatPairs(_dbevalRows4.Columns, _dbevalRows4.Rows[_ri])
 							_ = _XFlat5
@@ -192,6 +194,7 @@ func Test_fts3sort(t *testing.T) {
 					if _dbevalRows6.Error == nil {
 						db.BeginActiveStatement()
 						_X_arr = strings.Join(_dbevalRows6.Columns, " ")
+						vtab.TclVarSet("X", "*", _X_arr)
 						for _ri := 0; _ri < len(_dbevalRows6.Rows); _ri++ {
 							_XFlat7 := tclRowFlatPairs(_dbevalRows6.Columns, _dbevalRows6.Rows[_ri])
 							_ = _XFlat7
@@ -210,6 +213,7 @@ func Test_fts3sort(t *testing.T) {
 					if _dbevalRows8.Error == nil {
 						db.BeginActiveStatement()
 						_X_arr = strings.Join(_dbevalRows8.Columns, " ")
+						vtab.TclVarSet("X", "*", _X_arr)
 						for _ri := 0; _ri < len(_dbevalRows8.Rows); _ri++ {
 							_XFlat9 := tclRowFlatPairs(_dbevalRows8.Columns, _dbevalRows8.Rows[_ri])
 							_ = _XFlat9
@@ -256,6 +260,7 @@ func Test_fts3sort(t *testing.T) {
 					if _dbevalRows10.Error == nil {
 						db.BeginActiveStatement()
 						_X_arr = strings.Join(_dbevalRows10.Columns, " ")
+						vtab.TclVarSet("X", "*", _X_arr)
 						for _ri := 0; _ri < len(_dbevalRows10.Rows); _ri++ {
 							_XFlat11 := tclRowFlatPairs(_dbevalRows10.Columns, _dbevalRows10.Rows[_ri])
 							_ = _XFlat11

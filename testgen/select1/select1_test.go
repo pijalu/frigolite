@@ -2034,6 +2034,7 @@ func Test_select1(t *testing.T) {
 		if _dbevalRows0.Error == nil {
 			db.BeginActiveStatement()
 			_r_arr = strings.Join(_dbevalRows0.Columns, " ")
+			vtab.TclVarSet("r", "*", _r_arr)
 			for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
 				_rFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
 				_ = _rFlat1
@@ -2059,6 +2060,7 @@ func Test_select1(t *testing.T) {
 		if _dbevalRows2.Error == nil {
 			db.BeginActiveStatement()
 			_r_arr = strings.Join(_dbevalRows2.Columns, " ")
+			vtab.TclVarSet("r", "*", _r_arr)
 			for _ri := 0; _ri < len(_dbevalRows2.Rows); _ri++ {
 				_rFlat3 := tclRowFlatPairs(_dbevalRows2.Columns, _dbevalRows2.Rows[_ri])
 				_ = _rFlat3
@@ -2084,6 +2086,7 @@ func Test_select1(t *testing.T) {
 		if _dbevalRows4.Error == nil {
 			db.BeginActiveStatement()
 			_r_arr = strings.Join(_dbevalRows4.Columns, " ")
+			vtab.TclVarSet("r", "*", _r_arr)
 			for _ri := 0; _ri < len(_dbevalRows4.Rows); _ri++ {
 				_rFlat5 := tclRowFlatPairs(_dbevalRows4.Columns, _dbevalRows4.Rows[_ri])
 				_ = _rFlat5
@@ -2109,6 +2112,7 @@ func Test_select1(t *testing.T) {
 		if _dbevalRows6.Error == nil {
 			db.BeginActiveStatement()
 			_r_arr = strings.Join(_dbevalRows6.Columns, " ")
+			vtab.TclVarSet("r", "*", _r_arr)
 			for _ri := 0; _ri < len(_dbevalRows6.Rows); _ri++ {
 				_rFlat7 := tclRowFlatPairs(_dbevalRows6.Columns, _dbevalRows6.Rows[_ri])
 				_ = _rFlat7

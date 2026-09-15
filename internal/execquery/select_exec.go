@@ -3,6 +3,7 @@ package execquery
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -131,6 +132,11 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 		depth := len(e.cteScopes)
 		for i := range s.CTEs {
 			s.CTEs[i].ScopeDepth = depth
+		}
+		if os.Getenv("DBG_CTE") != "" {
+			for _, c := range s.CTEs {
+				fmt.Fprintf(os.Stderr, "DBG push %s depth=%d\n", c.Name, depth)
+			}
 		}
 		e.cteScopes = append(e.cteScopes, s.CTEs)
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
