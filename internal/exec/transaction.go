@@ -265,25 +265,44 @@ func (e *Engine) beginLockError(stmt sql.Stmt, exclusive bool) error {
 	if e.lockStyle == LockStyleNone {
 		return nil
 	}
+	// BEGIN EXCLUSIVE maps to C's PagerBegin(exFlag=true): the RESERVED
+	// acquire (blocked by another writer or EXCLUSIVE holder) fails WITHOUT
+	// the busy handler; the EXCLUSIVE upgrade (blocked by readers) retries
+	// through it (pager.c sqlite3PagerSetBusyHandler transition table).
+	for count := 0; ; count++ {
+		err, invoke := e.beginLockCheck(stmt, exclusive)
+		if err == nil {
+			return nil
+		}
+		if !invoke || !e.busyRetry(count) {
+			return err
+		}
+	}
+}
+
+// beginLockCheck performs one pass of the BEGIN IMMEDIATE/EXCLUSIVE lock
+// matrix; invoke reports whether the busy handler may retry this failure
+// (only the reader-blocked EXCLUSIVE upgrade qualifies).
+func (e *Engine) beginLockCheck(stmt sql.Stmt, exclusive bool) (err error, invoke bool) {
 	walMode := e.stmtWALMode(stmt, "main")
 	for _, k := range e.allLockKeys() {
 		if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
 			if lockreg.Global.ConnLockedByOther(k, e.connID) {
-				return fmt.Errorf("database is locked")
+				return fmt.Errorf("database is locked"), false
 			}
 			continue
 		}
 		if _, ok := lockreg.Global.ExclusiveLockedByOther(k, e.connID); ok {
-			return fmt.Errorf("database is locked")
+			return fmt.Errorf("database is locked"), false
 		}
 		if lockreg.Global.WriteTxByOther(k, e.connID) {
-			return fmt.Errorf("database is locked")
+			return fmt.Errorf("database is locked"), false
 		}
 		if exclusive && !walMode && lockreg.Global.ReadTxByOther(k, e.connID) {
-			return fmt.Errorf("database is locked")
+			return fmt.Errorf("database is locked"), true
 		}
 	}
-	return nil
+	return nil, false
 }
 
 // --- ROLLBACK ---

@@ -67,6 +67,15 @@ func bodyEndsWithValueBuiltin(bodyCmds [][]tcl.RawWord) bool {
 	if valueReturningBuiltins[last[0].Text] {
 		return true
 	}
+	// `db trace` / `db profile` / `db trace_v2` with no arguments return the
+	// registered callback name (tclsqlite.c getter forms; trace-1.2/1.5,
+	// trace3-2.1).
+	if last[0].Text == "db" && len(last) == 2 {
+		switch last[1].Text {
+		case "trace", "profile", "trace_v2":
+			return true
+		}
+	}
 	// A bare user-proc call whose body is a table fingerprint
 	// (exclusive2.test's t1sig) leaves its "COUNT MD5HEX" value in _r.
 	if body, ok := globalProcBodies[last[0].Text]; ok && userProcEmitterFor(last[0].Text, body) == "table_sig" {

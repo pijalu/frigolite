@@ -209,6 +209,14 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		tp.processDBRollbackHook(rest)
 	case "update_hook":
 		tp.processDBUpdateHook(rest)
+	case "trace":
+		tp.processNamedDBTraceProfile("db", rest, "trace")
+	case "profile":
+		tp.processNamedDBTraceProfile("db", rest, "profile")
+	case "trace_v2":
+		tp.processNamedDBTraceV2("db", rest)
+	case "busy":
+		tp.processNamedDBBusy("db", rest)
 	case "complete":
 		// db complete {SQL} — sqlite3_complete test: returns 1 when the SQL
 		// ends in a complete statement (semicolon outside strings/comments,

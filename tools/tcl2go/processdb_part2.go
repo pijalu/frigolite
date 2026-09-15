@@ -675,9 +675,16 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 		tp.emitLine("_r = strconv.FormatInt(%s.TotalChanges(), 10)", goName)
 	case "transaction":
 		tp.processNamedDBTransaction(goName, rest)
-	case "cache", "create_function",
-		"trace", "busy":
+	case "cache", "create_function":
 		// no-op: infrastructure
+	case "trace":
+		tp.processNamedDBTraceProfile(goName, rest, "trace")
+	case "profile":
+		tp.processNamedDBTraceProfile(goName, rest, "profile")
+	case "trace_v2":
+		tp.processNamedDBTraceV2(goName, rest)
+	case "busy":
+		tp.processNamedDBBusy(goName, rest)
 	case "collate":
 		tp.processNamedDBCollate(goName, rest)
 	case "collation_needed":

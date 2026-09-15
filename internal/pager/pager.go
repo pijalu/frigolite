@@ -302,7 +302,15 @@ func (p *Pager) Restore(s *PagerState) {
 	// image is malformed" (incrvacuum3 tn3: BEGIN / incremental_vacuum
 	// / ROLLBACK). pager.c restores page 1's before-image (which
 	// carries the header) from the journal; write it here.
-	if p.file != nil && s.header != nil && len(s.header) >= HeaderSize {
+	// The header is only written when the database file has actually been
+	// materialized (fileSize > 0). A transaction that never flushed — the
+	// engine's read transaction on a zero-byte database — must end with the
+	// file still absent (pager.c lazy creation: sqlite3PagerOpen leaves an
+	// empty database untouched until the first page is actually written;
+	// journal2.test 2.1 asserts no journal/file events from open+rollback
+	// alone). Writing the snapshot header unconditionally materialized a
+	// 100-byte empty database behind a concurrent writer's transaction.
+	if p.file != nil && s.header != nil && len(s.header) >= HeaderSize && p.fileSize > 0 {
 		if _, err := p.file.WriteAt(s.header[:HeaderSize], 0); err != nil {
 			_ = err
 		}

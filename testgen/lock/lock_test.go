@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -443,6 +444,10 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = strconv.Itoa(count)
+		return false
+		})
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -507,6 +512,11 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -534,6 +544,11 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 		r = db2.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
@@ -572,6 +587,11 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -731,6 +751,11 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-4.3"
 		// proc definition (not transpiled)
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
