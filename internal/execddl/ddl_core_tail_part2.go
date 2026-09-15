@@ -332,6 +332,13 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	drops := e.collectBtreeRootDrops(ctx, entry)
 	e.dropTableCascade(ctx, entry)
 	e.markDropTableFKDirty(entry, ctx)
+	// A dropped table's FK-dirty entry is stale: its root page returns to the
+	// freelist and may be REUSED by a later CREATE, so re-validating the
+	// dropped table at statement end/COMMIT would decode a different table's
+	// rows as its own ("FOREIGN KEY constraint failed" on unrelated
+	// statements). Remove only the dropped table's entry — the child entries
+	// the drop just marked (orphaned references) stay.
+	e.ctx.RemoveFKDirtyTable(entry, ctx)
 	// Remove from schema — by TYPE so a TRIGGER named the same as the table
 	// survives (SQLite keeps tables and triggers in separate namespaces;
 	// DROP TABLE t1 must not drop a trigger named t1).

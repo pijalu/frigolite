@@ -102,7 +102,7 @@ func (c *ConstraintEnforcer) fkParentDelete(parentTable *schema.Entry, parentCol
 		if depth > maxDepth {
 			return &Result{}
 		}
-		return c.fkParentActionRec(entry, colDefs, row, nil, true, 0, true, true, rec, depth)
+		return c.fkParentActionRec(entry, colDefs, row, nil, true, 0, true, true, rec, depth, nil)
 	}
 	return rec(parentTable, parentColDefs, oldRow, 0)
 }
@@ -119,7 +119,7 @@ func (c *ConstraintEnforcer) fkParentDeleteReplace(parentTable *schema.Entry, pa
 		if depth > maxDepth {
 			return &Result{}
 		}
-		return c.fkParentActionRec(entry, colDefs, row, nil, true, 0, true, true, rec, depth)
+		return c.fkParentActionRec(entry, colDefs, row, nil, true, 0, true, true, rec, depth, nil)
 	}
 	return rec(parentTable, parentColDefs, oldRow, 0)
 }
@@ -143,7 +143,15 @@ func (c *ConstraintEnforcer) fkParentUpdate(parentTable *schema.Entry, parentCol
 	// after the statement completes — AFTER triggers may repair the children
 	// by cascading the new parent key, e_fkey-42.3). The statement-end check
 	// runs via execPostFK's CheckDeferredFK on the parent-dirty children.
-	return c.fkParentAction(parentTable, parentColDefs, oldRow, newRow, false, skipRowID, true, true)
+	const maxDepth = 1000
+	var rec fkUpdateRec
+	rec = func(entry *schema.Entry, colDefs []sql.ColumnDef, oldR, newR RowMap, depth int) *Result {
+		if depth > maxDepth {
+			return &Result{}
+		}
+		return c.fkParentActionRec(entry, colDefs, oldR, newR, false, 0, true, true, nil, depth, rec)
+	}
+	return c.fkParentActionRec(parentTable, parentColDefs, oldRow, newRow, false, skipRowID, true, true, nil, 0, rec)
 }
 
 // fkParentAction is the shared implementation for parent DELETE/UPDATE FK
@@ -152,7 +160,7 @@ func (c *ConstraintEnforcer) fkParentUpdate(parentTable *schema.Entry, parentCol
 // INSERT OR REPLACE, whose implicit delete may be followed by a re-insert of
 // the same key; the constraint is then checked after the new row is written).
 func (c *ConstraintEnforcer) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64, checkTriggerReinsert, deferNoAction bool) *Result {
-	return c.fkParentActionRec(parentTable, parentColDefs, oldRow, newRow, isDelete, skipRowID, checkTriggerReinsert, deferNoAction, nil, 0)
+	return c.fkParentActionRec(parentTable, parentColDefs, oldRow, newRow, isDelete, skipRowID, checkTriggerReinsert, deferNoAction, nil, 0, nil)
 }
 
 // fkParentActionRec is fkParentAction with a recursive CASCADE callback
@@ -177,6 +185,11 @@ type fkChildMatch struct {
 	rowID  int64
 	values []interface{}
 }
+
+// fkUpdateRec recurses FK parent-UPDATE actions through CASCADE chains: a
+// cascaded child UPDATE is itself a parent update for the tables that
+// reference the child (without_rowid3-3.1.3: ab -> cd -> ef).
+type fkUpdateRec func(entry *schema.Entry, colDefs []sql.ColumnDef, oldRow, newRow RowMap, depth int) *Result
 
 // fkCascadeDelete deletes a matched child row as the CASCADE ON DELETE
 // action, firing before/after delete triggers and recursing into deeper FK
@@ -213,9 +226,81 @@ func (c *ConstraintEnforcer) fkCascadeDelete(m fkChildMatch, childEntry *schema.
 	return nil
 }
 
+// fkWriteChildRow rewrites one child row after an FK action (CASCADE / SET
+// NULL / SET DEFAULT). WITHOUT ROWID child tables must be written as
+// CellIndexLeaf cells with PK-first storage-order payloads: a TableLeaf cell
+// in a WR index btree reads back as "database disk image is malformed"
+// (without_rowid3-3.1.x: UPDATE ab SET a=5 cascades into cd WITHOUT rowid).
+func (c *ConstraintEnforcer) fkWriteChildRow(childEntry *schema.Entry, childColDefs []sql.ColumnDef, tree *btree.BTree, rowID int64, vals []interface{}) *Result {
+	newRecord, err := storage.EncodeRecord(vals)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	cellType := storage.CellTableLeaf
+	if execdml.HasWithoutRowidKeyword(strings.ToUpper(childEntry.SQL)) {
+		order := execdml.WithoutRowidStorageOrder(childEntry.SQL, childColDefs)
+		newRecord, err = storage.EncodeRecord(execdml.ReorderToStorage(vals, order))
+		if err != nil {
+			return &Result{Error: err}
+		}
+		cellType = storage.CellIndexLeaf
+	}
+	newCell := &storage.Cell{Type: cellType, RowID: rowID, Payload: newRecord}
+	if err := tree.InsertCell(newCell); err != nil {
+		return &Result{Error: err}
+	}
+	c.ctx.BumpRowIDCache(c.ctx.TablePager(childEntry.Name), childEntry.RootPage, rowID)
+	c.ctx.BumpTotalChanges(1)
+	return nil
+}
+
+// fkCheckChildChecks enforces the child table's column- and table-level CHECK
+// constraints against a CASCADE's new row values. SQLite performs the child
+// UPDATE in full, so a violated CHECK propagates as a statement error
+// (without_rowid3-3.1.3: the cascade sets ef.e=5 against CHECK(e!=5)).
+func (c *ConstraintEnforcer) fkCheckChildChecks(childEntry *schema.Entry, childColDefs []sql.ColumnDef, vals []interface{}) *Result {
+	row := execdml.BuildRowMapFromValues(vals, childColDefs, 0)
+	for i := range childColDefs {
+		cd := &childColDefs[i]
+		if cd.Check == nil {
+			continue
+		}
+		v, err := c.ctx.EvalExpr(cd.Check, row)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if v != nil && !execexpr.ToBool(v) {
+			return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", execdml.CheckConstraintFailureText(childEntry.SQL, cd.Name, cd.Check))}
+		}
+	}
+	return c.fkCheckTableLevelChecks(childEntry, row)
+}
+
+// fkCheckTableLevelChecks evaluates a table's table-level CHECK constraints
+// against one row.
+func (c *ConstraintEnforcer) fkCheckTableLevelChecks(childEntry *schema.Entry, row RowMap) *Result {
+	for _, tc := range c.ctx.TableConstraints(childEntry.Name, childEntry.SQL) {
+		if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+			continue
+		}
+		v, err := c.ctx.EvalExpr(tc.Expr, row)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if v != nil && !execexpr.ToBool(v) {
+			name := tc.Name
+			if name == "" {
+				name = sql.ExprString(tc.Expr)
+			}
+			return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", name)}
+		}
+	}
+	return nil
+}
+
 // fkCascadeUpdate propagates the parent's new key values to a matched child
 // row as the CASCADE ON UPDATE action.
-func (c *ConstraintEnforcer) fkCascadeUpdate(m fkChildMatch, ref FKRefAction, childEntry *schema.Entry, childIdxs, parentIdxs []int, newRow RowMap, parentColDefs []sql.ColumnDef, tree *btree.BTree) *Result {
+func (c *ConstraintEnforcer) fkCascadeUpdate(m fkChildMatch, ref FKRefAction, childEntry *schema.Entry, childColDefs []sql.ColumnDef, childIdxs, parentIdxs []int, newRow RowMap, parentColDefs []sql.ColumnDef, tree *btree.BTree, updRec fkUpdateRec, depth int) *Result {
 	vals := make([]interface{}, len(m.values))
 	copy(vals, m.values)
 	for i, cidx := range childIdxs {
@@ -231,21 +316,24 @@ func (c *ConstraintEnforcer) fkCascadeUpdate(m fkChildMatch, ref FKRefAction, ch
 		return &Result{Error: err}
 	}
 	c.ctx.InvalidateRowIDCache(c.ctx.TablePager(childEntry.Name), childEntry.RootPage)
-	newRecord, err := storage.EncodeRecord(vals)
-	if err != nil {
-		return &Result{Error: err}
+	if res := c.fkCheckChildChecks(childEntry, childColDefs, vals); res != nil {
+		return res
 	}
-	newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: m.rowID, Payload: newRecord}
-	if err := tree.InsertCell(newCell); err != nil {
-		return &Result{Error: err}
+	if res := c.fkWriteChildRow(childEntry, childColDefs, tree, m.rowID, vals); res != nil {
+		return res
 	}
-	c.ctx.BumpRowIDCache(c.ctx.TablePager(childEntry.Name), childEntry.RootPage, m.rowID)
-	c.ctx.BumpTotalChanges(1)
+	// The cascaded child UPDATE is itself a parent update for the tables
+	// that reference the child (ab -> cd -> ef chains).
+	if updRec != nil {
+		oldChildRow := execdml.BuildRowMapFromValues(m.values, childColDefs, m.rowID)
+		newChildRow := execdml.BuildRowMapFromValues(vals, childColDefs, m.rowID)
+		return updRec(childEntry, childColDefs, oldChildRow, newChildRow, depth+1)
+	}
 	return nil
 }
 
 // fkSetNull sets the child FK columns to NULL as the SET NULL action.
-func (c *ConstraintEnforcer) fkSetNull(m fkChildMatch, childEntry *schema.Entry, childIdxs []int, tree *btree.BTree) *Result {
+func (c *ConstraintEnforcer) fkSetNull(m fkChildMatch, childEntry *schema.Entry, childColDefs []sql.ColumnDef, childIdxs []int, tree *btree.BTree) *Result {
 	vals := make([]interface{}, len(m.values))
 	copy(vals, m.values)
 	for _, cidx := range childIdxs {
@@ -259,17 +347,7 @@ func (c *ConstraintEnforcer) fkSetNull(m fkChildMatch, childEntry *schema.Entry,
 		return &Result{Error: err}
 	}
 	c.ctx.InvalidateRowIDCache(c.ctx.TablePager(childEntry.Name), childEntry.RootPage)
-	newRecord, err := storage.EncodeRecord(vals)
-	if err != nil {
-		return &Result{Error: err}
-	}
-	newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: m.rowID, Payload: newRecord}
-	if err := tree.InsertCell(newCell); err != nil {
-		return &Result{Error: err}
-	}
-	c.ctx.BumpRowIDCache(c.ctx.TablePager(childEntry.Name), childEntry.RootPage, m.rowID)
-	c.ctx.BumpTotalChanges(1)
-	return nil
+	return c.fkWriteChildRow(childEntry, childColDefs, tree, m.rowID, vals)
 }
 
 // fkSetDefault sets the child FK columns to their declared DEFAULT values as
@@ -294,17 +372,7 @@ func (c *ConstraintEnforcer) fkSetDefault(m fkChildMatch, childEntry *schema.Ent
 		return &Result{Error: err}
 	}
 	c.ctx.InvalidateRowIDCache(c.ctx.TablePager(childEntry.Name), childEntry.RootPage)
-	newRecord, err := storage.EncodeRecord(vals)
-	if err != nil {
-		return &Result{Error: err}
-	}
-	newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: m.rowID, Payload: newRecord}
-	if err := tree.InsertCell(newCell); err != nil {
-		return &Result{Error: err}
-	}
-	c.ctx.BumpRowIDCache(c.ctx.TablePager(childEntry.Name), childEntry.RootPage, m.rowID)
-	c.ctx.BumpTotalChanges(1)
-	return nil
+	return c.fkWriteChildRow(childEntry, childColDefs, tree, m.rowID, vals)
 }
 
 // unwrapRowValue extracts the raw value from a ColumnValue or CollatedValue
@@ -631,6 +699,21 @@ func (c *ConstraintEnforcer) markFKParentDirty(entry *schema.Entry, ctx *Databas
 func (c *ConstraintEnforcer) resetFKDirty() {
 	c.fkDirty = nil
 	c.fkParentDirty = nil
+}
+
+// removeFKDirtyTable drops ONE table's entry from the deferred-FK dirty set.
+// Called when the table is DROPPED: its b-tree root returns to the freelist
+// and may be reused by a later CREATE, so re-validating the dropped table
+// would decode a different table's rows as its own and report phantom
+// "FOREIGN KEY constraint failed" on unrelated statements. Child entries the
+// drop marked (orphaned references) are kept.
+func (c *ConstraintEnforcer) removeFKDirtyTable(entry *schema.Entry, ctx *DatabaseContext) {
+	if entry == nil {
+		return
+	}
+	key := fkDirtyKey{ctx: ctx, name: entry.Name}
+	delete(c.fkDirty, key)
+	delete(c.fkParentDirty, key)
 }
 
 // checkDeferredFK re-validates the FK relationships of every table modified in

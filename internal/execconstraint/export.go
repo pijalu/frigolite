@@ -134,3 +134,10 @@ func (c *ConstraintEnforcer) ResetFKDirty() {
 func (c *ConstraintEnforcer) CheckDeferredFK(onlyImmediate bool) error {
 	return c.checkDeferredFK(onlyImmediate)
 }
+
+// RemoveFKDirtyTable drops ONE dropped table's entry from the deferred-FK
+// dirty set: after DROP TABLE the entry's root page may be reused by a later
+// CREATE, and re-validating it would decode a different table's rows.
+func (c *ConstraintEnforcer) RemoveFKDirtyTable(entry *schema.Entry, ctx *DatabaseContext) {
+	c.removeFKDirtyTable(entry, ctx)
+}

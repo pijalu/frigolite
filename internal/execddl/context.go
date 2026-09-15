@@ -156,6 +156,12 @@ type DDLContext interface {
 	// locked" (src/vdbe.c OP_Destroy).
 	ActiveReadStatements() int
 	MarkDropTableFKDirty(entry *schema.Entry, ctx *DatabaseContext)
+	// RemoveFKDirtyTable drops the DROPPED table's own entry from the
+	// deferred-FK dirty set: its root page may be reused by a later CREATE,
+	// and re-validating it would decode a different table's rows as its own
+	// (phantom "FOREIGN KEY constraint failed"). Child entries the drop
+	// marked stay.
+	RemoveFKDirtyTable(entry *schema.Entry, ctx *DatabaseContext)
 	ValidateFKDefinitions(tableName string, colDefs []sql.ColumnDef, createSQL string) error
 	// DropUnionVtabInstance disconnects and evicts the cached
 	// unionvtab/swarmvtab instance of a dropped virtual table
