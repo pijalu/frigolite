@@ -150,6 +150,7 @@ func Test_func(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(tclExprWith("$isutf16?\"8 4 14 16 8\":\"4 2 7 8 4\"", map[string]string{"isutf16": isutf16}))
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -218,6 +219,7 @@ func Test_func(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(tclExprWith("(1+($isutf16!=0))*5", map[string]string{"isutf16": isutf16}))
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -243,6 +245,7 @@ func Test_func(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(tclExprWith("(1+($isutf16!=0))*3", map[string]string{"isutf16": isutf16}))
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1827,6 +1830,7 @@ func Test_func(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(i)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -1861,6 +1865,7 @@ func Test_func(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(i)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -1885,6 +1890,7 @@ func Test_func(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(i)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

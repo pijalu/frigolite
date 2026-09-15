@@ -500,9 +500,15 @@ func (e *DDLExecutor) checkTriggerColRefs(entry *schema.Entry) error {
 	for _, c := range onTableCols {
 		onColMap[strings.ToUpper(c.Name)] = true
 	}
+	// Unqualified columns in a trigger body also resolve against the tables
+	// the body itself references (SQLite name resolution walks the full
+	// FROM/INSERT/UPDATE/DELETE scope of each trigger statement): a trigger
+	// ON t1 whose body deletes from vtab t2 resolves t2's "id" column there
+	// (alter.test alter-17.100).
+	bodyColMap := e.triggerBodyTableColumns(entry)
 	// Check each column reference
 	for _, ref := range colRefs {
-		if err := e.validateTriggerColRef(entry, ref, onColMap); err != nil {
+		if err := e.validateTriggerColRef(entry, ref, onColMap, bodyColMap); err != nil {
 			return err
 		}
 	}
@@ -515,10 +521,28 @@ func (e *DDLExecutor) checkTriggerColRefs(entry *schema.Entry) error {
 	return nil
 }
 
+// triggerBodyTableColumns returns the uppercase column names of every table
+// (including virtual tables) referenced by a trigger's body SQL. Tables that
+// do not resolve contribute nothing.
+func (e *DDLExecutor) triggerBodyTableColumns(entry *schema.Entry) map[string]bool {
+	cols := make(map[string]bool)
+	for _, ref := range findTableRefsInTrigger(entry.SQL) {
+		te, _, terr := e.ctx.FindTable(ref)
+		if terr != nil || te == nil {
+			continue
+		}
+		for _, c := range e.ctx.ParseColumnDefs(te.Name, te.SQL) {
+			cols[strings.ToUpper(c.Name)] = true
+		}
+	}
+	return cols
+}
+
 // validateTriggerColRef validates one column reference in a trigger body
-// against the ON table's columns, skipping pseudo-columns (NEW/OLD),
-// qualified references, SQL keywords, and empty names.
-func (e *DDLExecutor) validateTriggerColRef(entry *schema.Entry, ref *sql.ColumnRef, onColMap map[string]bool) error {
+// against the ON table's columns and the columns of the tables its body
+// references, skipping pseudo-columns (NEW/OLD), qualified references, SQL
+// keywords, and empty names.
+func (e *DDLExecutor) validateTriggerColRef(entry *schema.Entry, ref *sql.ColumnRef, onColMap, bodyColMap map[string]bool) error {
 	upperName := strings.ToUpper(ref.Name)
 	// Skip special pseudo-columns and keywords
 	if ref.Table != "" {
@@ -539,8 +563,9 @@ func (e *DDLExecutor) validateTriggerColRef(entry *schema.Entry, ref *sql.Column
 	if ref.Name == "" {
 		return nil
 	}
-	// Unqualified column reference - check against ON table's columns
-	if !onColMap[upperName] {
+	// Unqualified column reference - check against ON table's columns and
+	// the body's own table columns
+	if !onColMap[upperName] && !bodyColMap[upperName] {
 		// A reference that resolves through a VIEW over the renamed table is
 		// broken BY the rename (SQLite: "after rename"); a direct missing
 		// column is a pre-existing break (plain wording).

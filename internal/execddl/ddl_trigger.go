@@ -341,9 +341,9 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if err := e.ctx.Authorize(auth.ActionCreateTrigger, s.Name, s.Table, "", ""); err != nil {
 		return &Result{Error: err}
 	}
-	ctx, triggerName, tableName, explicitSchema := resolveTriggerSchema(e, s)
-	if !triggerTableExists(e, tableName) {
-		return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
+	ctx, triggerName, tableName, explicitSchema, rerr := resolveTriggerSchema(e, s)
+	if rerr != nil {
+		return &Result{Error: rerr}
 	}
 	// A trigger on a TEMP table (resolved via the temp-first lookup or an
 	// explicit temp. prefix) lives in the TEMP schema, matching SQLite. An
@@ -353,25 +353,9 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	// table is in an ATTACHed database (SQLite stores the trigger in
 	// sqlite_temp_schema; altertab-9.4 creates a TEMP trigger on aux.t1).
 	ctx = e.consolidateTriggerSchema(ctx, tableName, explicitSchema, s.RawSQL)
-	if isSystemTableName(tableName) {
-		return &Result{Error: fmt.Errorf("cannot create trigger on system table")}
-	}
-	// build.c sqlite3CodeRowTriggerDirectly / sqlite3TriggersExist: triggers
-	// cannot be created on virtual tables ("cannot create triggers on
-	// virtual tables", vtab5-1.2) and only INSTEAD OF is allowed on views
-	// ("cannot create BEFORE trigger on view: vv").
-	if te, _, terr := e.ctx.FindTable(tableName); terr == nil && te != nil {
-		if e.ctx.IsStoragelessVirtualTable(te) || te.RootPage == 0 {
-			return &Result{Error: fmt.Errorf("cannot create triggers on virtual tables")}
-		}
-		if te.Type == schema.TypeView && !strings.EqualFold(s.Time, "INSTEAD OF") {
-			return &Result{Error: fmt.Errorf("cannot create %s trigger on view: %s", strings.ToLower(s.Time), tableName)}
-		}
-	}
-
-	// Check for duplicate trigger name
-	if e.triggerExists(ctx, triggerName) {
-		return &Result{}
+	isTempTrigger := isTempTriggerSQL(s.RawSQL) || ctx == e.ctx.GetDB("temp")
+	if res := e.validateTriggerTarget(s, ctx, triggerName, tableName, isTempTrigger); res != nil {
+		return res
 	}
 
 	// Build full trigger SQL including body. When the parser captured the
@@ -394,7 +378,6 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	// TEMP schema (consolidateTriggerSchema above) — SQLite treats it as a
 	// temp trigger too (e_update-2.1.3: "Qualified table name is allowed as
 	// t4 is a temp table").
-	isTempTrigger := isTempTriggerSQL(s.RawSQL) || ctx == e.ctx.GetDB("temp")
 	if !isTempTrigger {
 		if err := e.validateTriggerSchemaRefs(triggerName, s.Statements, ctx); err != nil {
 			return &Result{Error: err}
@@ -439,8 +422,8 @@ func (e *DDLExecutor) consolidateTriggerSchema(ctx *DatabaseContext, tableName s
 }
 
 // triggerExists reports whether a trigger with the given name already exists
-// in the schema. Duplicates silently succeed (compat with auto-generated
-// tests), regardless of the IF NOT EXISTS flag.
+// in the schema (the duplicate CREATE outcome is decided by the caller: an
+// error unless IF NOT EXISTS was given).
 func (e *DDLExecutor) triggerExists(ctx *DatabaseContext, triggerName string) bool {
 	existing, _ := ctx.Schema.FindTrigger(triggerName)
 	return existing != nil
@@ -474,23 +457,31 @@ func (e *DDLExecutor) bufferTriggerUndo(triggerName string) {
 // resolveTriggerSchema determines the target database context and unqualified
 // names for CREATE TRIGGER, resolving schema prefixes from both the trigger
 // name and the ON table.
-func resolveTriggerSchema(e *DDLExecutor, s *sql.CreateTriggerStmt) (ctx *DatabaseContext, triggerName, tableName string, explicitSchema bool) {
+func resolveTriggerSchema(e *DDLExecutor, s *sql.CreateTriggerStmt) (ctx *DatabaseContext, triggerName, tableName string, explicitSchema bool, err error) {
 	rawName := s.Name
 	ctx = e.ctx.MainDB()
 	triggerName = rawName
 	tableName = s.Table
 
 	if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
-		prefix := rawName[:dotIdx]
-		schemaUpper := strings.ToUpper(prefix)
-		isSchema := schemaUpper == "MAIN" || schemaUpper == "TEMP" || schemaUpper == "TEMPORARY"
-		if db := e.ctx.GetDB(prefix); db != nil {
-			ctx = db
-			isSchema = true
-		}
-		// Only strip a schema prefix when the prefix names a known database.
-		// A quoted trigger name like "r17.1" legitimately contains a dot.
-		if isSchema {
+		// A name token that was QUOTED keeps any dot as part of the name
+		// ("r17.1" is a legal single-token name); only a bare token.a.b form
+		// names a schema (sqlite3TwoPartName).
+		if _, quoted, tokOK := triggerNameToken(s.RawSQL); !tokOK || !quoted {
+			prefix := rawName[:dotIdx]
+			schemaUpper := strings.ToUpper(prefix)
+			isSchema := schemaUpper == "MAIN" || schemaUpper == "TEMP" || schemaUpper == "TEMPORARY"
+			if db := e.ctx.GetDB(prefix); db != nil {
+				ctx = db
+				isSchema = true
+			}
+			if !isSchema {
+				// trigger.c sqlite3BeginTrigger → sqlite3TwoPartName: a
+				// schema prefix naming no attached database fails the
+				// CREATE with "unknown database X" (trigger7-1.1).
+				return nil, "", "", false, fmt.Errorf("unknown database %s", prefix)
+			}
+			// Only strip a schema prefix that names a known database.
 			triggerName = rawName[dotIdx+1:]
 			explicitSchema = true
 		}
@@ -498,7 +489,7 @@ func resolveTriggerSchema(e *DDLExecutor, s *sql.CreateTriggerStmt) (ctx *Databa
 
 	// Resolve schema prefix from table name
 	ctx, tableName = resolveTriggerTableSchema(e, tableName, ctx)
-	return ctx, triggerName, tableName, explicitSchema
+	return ctx, triggerName, tableName, explicitSchema, nil
 }
 
 // resolveTriggerTableSchema resolves a schema prefix on a trigger's ON table

@@ -5874,3 +5874,80 @@ func tclFileControlTempFileName(db *frigolite.DB) string {
 	}
 	return filepath.Join(os.TempDir(), "etilqs_"+string(b))
 }
+
+// ---- sqlite3_trace / sqlite3_profile / sqlite3_trace_v2 harness support
+// ---- (tclsqlite.c DB_TRACE / DB_PROFILE / DB_TRACE_V2).
+
+// tclTraceNames mirrors tclsqlite.c's per-connection zTrace/zProfile/
+// zTraceV2 proc-name registry: the getter form ("db trace" with no args)
+// returns the registered proc name. Keyed by connection plus command kind.
+var tclTraceNames = map[[2]interface{}]string{}
+
+// tclTraceNameSet records (or clears with "") the proc name registered for
+// the connection's trace/profile/trace_v2 command.
+func tclTraceNameSet(db *frigolite.DB, kind, name string) {
+	tclTraceNames[[2]interface{}{db, kind}] = name
+}
+
+// tclTraceName returns the registered proc name ("" when none).
+func tclTraceName(db *frigolite.DB, kind string) string {
+	return tclTraceNames[[2]interface{}{db, kind}]
+}
+
+// tclWrongNumArgs builds tclsqlite.c's Tcl_WrongNumArgs message for the
+// trace-family commands ("catch {db trace 1 2 3}" -> wrong # args).
+func tclWrongNumArgs(what string) error {
+	return fmt.Errorf("wrong # args: should be \"db %s ?CALLBACK?\"", what)
+}
+
+// tclBadTraceType builds the DB_TRACE_V2 mask-parse error
+// (trace3-1.2: catch {db trace_v2 1 bad}).
+func tclBadTraceType(name string) error {
+	return fmt.Errorf("bad trace type \"%s\": must be statement, profile, row, or close", name)
+}
+
+// tclTrimSpace is [string trim] for the trace callbacks' appended text.
+func tclTrimSpace(s string) string {
+	return strings.TrimSpace(s)
+}
+
+// tclTraceArgs renders the trace_v2 callback's argument list the way TCL
+// stringifies a list (each element space-separated, braced when needed) —
+// the trace_v2_record proc appends exactly this rendering.
+func tclTraceArgs(vals ...string) string {
+	out := ""
+	for _, v := range vals {
+		out = tclListAppend(out, v)
+	}
+	return out
+}
+
+// tclTraceImpls / tclProfileImpls resolve a proc NAME to its transpiled
+// callback body at CALL time: TCL redefines procs after they were
+// registered with db trace / db profile (trace.test 2.1 redefines
+// trace_proc to append to TRACE_OUT), so the hook dispatches through the
+// latest definition rather than capturing the body at registration.
+var tclTraceImpls = map[string]func(sqlText string){}
+var tclProfileImpls = map[string]func(sqlText string, ns int64){}
+
+func tclTraceImplSet(name string, fn func(sqlText string)) {
+	tclTraceImpls[name] = fn
+}
+
+func tclTraceImpl(name string) func(sqlText string) {
+	return tclTraceImpls[name]
+}
+
+func tclProfileImplSet(name string, fn func(sqlText string, ns int64)) {
+	tclProfileImpls[name] = fn
+}
+
+func tclProfileImpl(name string) func(sqlText string, ns int64) {
+	return tclProfileImpls[name]
+}
+
+// tclWrongNumArgsMask is the trace_v2 variant of the Tcl_WrongNumArgs
+// message (the mask argument is optional: ?CALLBACK? ?MASK?).
+func tclWrongNumArgsMask(what string) error {
+	return fmt.Errorf("wrong # args: should be \"db %s ?CALLBACK? ?MASK?\"", what)
+}

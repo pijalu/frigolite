@@ -435,6 +435,7 @@ func Test_fts4merge(t *testing.T) {
 						}
 						got := flatten(r)
 						want := tclListFlatten(expect)
+						got = tclListFlattenCollapse(got)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -461,6 +462,7 @@ func Test_fts4merge(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten("0 {0 1 2 3 4 5}                     1 0")
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

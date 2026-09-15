@@ -6,6 +6,8 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // Cursor provides row-by-row access to virtual table data.
@@ -280,8 +282,17 @@ func (v *generateSeriesVTab) HiddenColumns() map[int]bool {
 }
 
 // SetHiddenConstraint absorbs one WHERE equality binding on a hidden column
-// (series.c xFilter argv parity).
+// (series.c xFilter argv parity). A NULL binding renders no rows — series.c
+// xFilter skips the whole series when any constraint argument is NULL
+// (ticket fac496b61722daf2), it does not error.
 func (v *generateSeriesVTab) SetHiddenConstraint(col string, val interface{}) error {
+	// Constraint values arrive wrapped in ColumnValue when evaluated from
+	// expressions; unwrap so a NULL binding is recognized.
+	val = util.UnwrapColumnValue(val)
+	if val == nil {
+		v.empty = true
+		return nil
+	}
 	n, err := setInt64(val)
 	if err != nil {
 		return fmt.Errorf("generate_series: unusable %s constraint value", col)

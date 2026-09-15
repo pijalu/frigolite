@@ -333,6 +333,7 @@ func Test_nulls1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(res1)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -351,6 +352,7 @@ func Test_nulls1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(res2)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -431,6 +433,7 @@ func Test_nulls1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

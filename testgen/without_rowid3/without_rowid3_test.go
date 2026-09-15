@@ -720,11 +720,7 @@ func Test_without_rowid3(t *testing.T) {
 					// without_rowid3-2-test 64 1 INSERT INTO leaf VALUES('a', 1) (unsupported command, not transpiled)
 					// without_rowid3-2-test 65 1 INSERT INTO leaf VALUES('b', 2) (unsupported command, not transpiled)
 					// without_rowid3-2-test 66 1 INSERT INTO leaf VALUES('c', 1) (unsupported command, not transpiled)
-					{ // do_test "without_rowid3-2-test-67"
-						_res = db.Exec("INSERT INTO node SELECT parent, 3 FROM leaf")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: node.nodeid") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: node.nodeid", resErrString(_res), "INSERT INTO node SELECT parent, 3 FROM leaf")
-						}
+					{ // "without_rowid3-2-test-67" — skipped: SAVEPOINT/ROLLBACK TO scripts dropped by transpiler: table state diverged, TCL rolled the INSERT back (no-side-effects)
 					}
 					// without_rowid3-2-test 68 0 COMMIT FKV (unsupported command, not transpiled)
 					// without_rowid3-2-test 69 1 INSERT INTO node VALUES(1, NULL) (unsupported command, not transpiled)
@@ -2085,19 +2081,9 @@ func Test_without_rowid3(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 							}
 						}
-						{ // do_test "without_rowid3-15.1.6"
-							_res = db.Exec("BEGIN")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-							}
-							// execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLB...} (unsupported command, not transpiled)
+						{ // "without_rowid3-15.1.6" — skipped: dropped execsqlS ROLLBACK leaves this BEGIN's transaction open, breaking every later statement (no-side-effects)
 						}
-						{ // do_test "without_rowid3-15.1.7"
-							_res = db.Exec(" \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
-							}
-							// execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLB...} (unsupported command, not transpiled)
+						{ // "without_rowid3-15.1.7" — skipped: transaction-state cascade of the dropped 15.1.6 ROLLBACK; TCL rolled the DELETE back (no-side-effects)
 						}
 						// foreach {tn zSchema} "1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }"
 						_items6 := tclSplitList("1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }")

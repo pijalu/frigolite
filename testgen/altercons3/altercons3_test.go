@@ -178,6 +178,7 @@ func Test_altercons3(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(after)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

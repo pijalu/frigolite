@@ -49,6 +49,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+
+	"github.com/pijalu/frigolite/internal/lockreg"
 )
 
 // SQLite journal header magic (pager.c aJournalMagic) is defined in
@@ -128,6 +130,19 @@ type rollbackJournal struct {
 // prior database must not roll back into a new database). After playback
 // the journal is unlinked. The caller must NOT hold p.mu.
 func recoverHotJournal(p *Pager, dbPath string) error {
+	// C lock protocol (pager.c hasHotJournal -> pagerPlayback): playing back
+	// a hot journal requires an EXCLUSIVE file lock, which a live writer's
+	// transaction denies — the journal belongs to that in-flight transaction
+	// and must be left untouched (no playback, no unlink). Frigolite journals
+	// eagerly at BEGIN (C defers journal creation to the first spill/sync),
+	// so without this registry gate a second connection's Open would treat
+	// the live journal as hot: the dbOrigSize mismatch against a not-yet-
+	// materialized main file made it unlink the writer's journal, and a
+	// later ROLLBACK could then truncate the writer's file out from under
+	// it (pcache.test 1.x).
+	if lockreg.Global.WriteTxHeld(dbPath) {
+		return nil
+	}
 	jpath := journalPath(dbPath)
 	data, err := os.ReadFile(jpath)
 	if err != nil {
@@ -142,22 +157,6 @@ func recoverHotJournal(p *Pager, dbPath string) error {
 		_ = os.Remove(jpath)
 		return nil
 	}
-	sector := hdr.SectorSize
-	if sector == 0 {
-		sector = defaultSectorSize
-	}
-	// Endianness note: writeJournalHeaderLocked writes header integers with
-	// binary.LittleEndian while DecodeJournalHeader reads BigEndian (the UCL
-	// jrnlview decoder follows the C layout). A journal we wrote ourselves
-	// therefore decodes to byte-swapped nonsense; detect that (pageSize or
-	// sectorSize absurd) and byte-swap the fields back before proceeding.
-	if hdr.PageSize != p.pageSize && binary.LittleEndian.Uint32(data[24:28]) == p.pageSize {
-		hdr.PageSize = p.pageSize
-	}
-	if hdr.SectorSize != defaultSectorSize && binary.LittleEndian.Uint32(data[20:24]) == defaultSectorSize {
-		hdr.SectorSize = defaultSectorSize
-		sector = defaultSectorSize
-	}
 	if hdr.PageSize != p.pageSize {
 		// Journal from a different page-size generation: stale, discard.
 		_ = os.Remove(jpath)
@@ -168,14 +167,12 @@ func recoverHotJournal(p *Pager, dbPath string) error {
 		_ = os.Remove(jpath)
 		return nil
 	}
-	_ = sector
-	// Staleness: the journal's dbOrigSize (little-endian on our own files)
-	// must match the main file's current page count; otherwise the journal
-	// belongs to a prior database generation (journal1.test 1.2).
+	// Staleness: the journal's dbOrigSize must match the main file's current
+	// page count; otherwise the journal belongs to a prior database
+	// generation (journal1.test 1.2). Header integers are BIG-endian
+	// (pager.c writeJournalHdr), matching our own writer since the C-format
+	// journal port.
 	jordb := hdr.DBPageCount
-	if binary.LittleEndian.Uint32(data[16:20]) != hdr.DBPageCount {
-		jordb = binary.LittleEndian.Uint32(data[16:20])
-	}
 	p.mu.RLock()
 	curPages := p.numPages
 	p.mu.RUnlock()
@@ -211,6 +208,7 @@ func recoverHotJournal(p *Pager, dbPath string) error {
 	_ = os.Remove(jpath)
 	return nil
 }
+
 // path construction). Returns "" for in-memory pagers.
 func journalPath(dbPath string) string {
 	if dbPath == "" {
@@ -396,7 +394,9 @@ func (p *Pager) writeJournalHeaderLocked() error {
 	copy(hdr[0:8], journalMagic[:])
 	// nRec placeholder: use 0xffffffff (no-sync / SAFE_APPEND path). The
 	// reader interprets this as "rest of file is page records".
-	binary.LittleEndian.PutUint32(hdr[8:12], 0xffffffff)
+	// All header integers are BIG-endian (pager.c writeJournalHdr uses
+	// put4byte), matching DecodeJournalHeader and C-written journals.
+	binary.BigEndian.PutUint32(hdr[8:12], 0xffffffff)
 	// cksumInit (two uint32s): the rollback journal records' checksum
 	// chain starts from these. We use the same word in both places for
 	// a one-seed chain (the WAL writer uses two seeds; the journal
@@ -404,13 +404,13 @@ func (p *Pager) writeJournalHeaderLocked() error {
 	// records — pager.c stores cksumInit as a single u32 and derives
 	// the second via a fixed permutation, but for recovery we only
 	// need a non-zero seed so corruption is detectable).
-	binary.LittleEndian.PutUint32(hdr[12:16], p.journalCksum1)
+	binary.BigEndian.PutUint32(hdr[12:16], p.journalCksum1)
 	// dbOrigSize
-	binary.LittleEndian.PutUint32(hdr[16:20], p.journalDBOrigSize)
+	binary.BigEndian.PutUint32(hdr[16:20], p.journalDBOrigSize)
 	// sectorSize
-	binary.LittleEndian.PutUint32(hdr[20:24], p.journalSectorSize)
+	binary.BigEndian.PutUint32(hdr[20:24], p.journalSectorSize)
 	// pageSize
-	binary.LittleEndian.PutUint32(hdr[24:28], p.pageSize)
+	binary.BigEndian.PutUint32(hdr[24:28], p.pageSize)
 	// rest of the sector is zero
 	if _, err := p.journalFile.WriteAt(hdr, 0); err != nil {
 		return fmt.Errorf("pager: journal hdr: %w", err)
@@ -430,13 +430,17 @@ func (p *Pager) appendRollbackRecordLocked(pageNum uint32, data []byte) error {
 	if p.journalFile == nil {
 		return nil
 	}
-	// 4-byte page number + page data, no per-record checksum in the
-	// stream (pager.c writes the checksum at sync time as part of the
-	// sector; for our subset, the per-record integrity is enforced
-	// implicitly by the running-checksum state we maintain in p.journalRecC1/C2).
-	buf := make([]byte, 4+len(data))
-	binary.LittleEndian.PutUint32(buf[0:4], pageNum)
-	copy(buf[4:], data)
+	// C record layout (pager.c pager_write_pagelist / readJournalHdr parse):
+	// [4-byte BIG-endian pageNum][pageSize bytes of data][4-byte BIG-endian
+	// record checksum]. JOURNAL_PG_SZ is pageSize+8; recoverHotJournal and
+	// rollbackFromJournalLocked decode through DecodeJournalPages, and
+	// C/hexio-written journals round-trip byte-identically. The per-record
+	// checksum uses the pager_cksum sparse sampler seeded from the header
+	// (recovery does not verify it, matching the no-sync fast path).
+	buf := make([]byte, 8+len(data))
+	binary.BigEndian.PutUint32(buf[0:4], pageNum)
+	copy(buf[4:4+len(data)], data)
+	binary.BigEndian.PutUint32(buf[4+len(data):], JournalChecksum(p.journalCksum1, data))
 	if _, err := p.journalFile.Write(buf); err != nil {
 		return fmt.Errorf("pager: journal write pg %d: %v", pageNum, err)
 	}
@@ -575,13 +579,10 @@ func (p *Pager) rollbackFromJournalLocked() error {
 	if p.journalFile == nil {
 		return nil
 	}
-	// Read the journal records back. The format is: sector header
-	// (skipped), then a stream of [4-byte pageNum][pageSize bytes of
-	// data] records. We don't have a per-record checksum in the
-	// stream; the running c1/c2 was used to verify the on-disk
-	// integrity at sync time (pager.c syncJournal writes the final
-	// c1/c2 over the sector; we omit that and rely on the read
-	// walking the file in lockstep with the writes).
+	// Read the journal records back: one sector header, then a stream of
+	// [4-byte BE pageNum][pageSize bytes of data][4-byte BE cksum] records
+	// (JOURNAL_PG_SZ = pageSize+8) — the exact layout DecodeJournalPages
+	// parses (pager.c readJournalHdr's record walk).
 	jpath := p.journalFile.Name()
 	data, err := os.ReadFile(jpath)
 	if err != nil {
@@ -599,20 +600,22 @@ func (p *Pager) rollbackFromJournalLocked() error {
 	if h := p.journalFileOpHookFn(); h != nil {
 		h("xClose", jpath)
 	}
-	// Records start after the first sector.
-	off := int(p.journalSectorSize)
+	hdr, herr := DecodeJournalHeader(data[:28])
+	if herr != nil {
+		return fmt.Errorf("pager: rollback journal header: %w", herr)
+	}
+	jpages, perr := DecodeJournalPages(data, hdr)
+	if perr != nil {
+		return fmt.Errorf("pager: rollback journal records: %w", perr)
+	}
 	// Collect all records first (we restore in reverse).
 	type rec struct {
 		pageNum uint32
 		data    []byte
 	}
-	var recs []rec
-	for off+4+int(p.pageSize) <= len(data) {
-		pn := binary.LittleEndian.Uint32(data[off : off+4])
-		pg := make([]byte, p.pageSize)
-		copy(pg, data[off+4:off+4+int(p.pageSize)])
-		recs = append(recs, rec{pageNum: pn, data: pg})
-		off += 4 + int(p.pageSize)
+	recs := make([]rec, 0, len(jpages))
+	for _, jp := range jpages {
+		recs = append(recs, rec{pageNum: jp.PageNumber, data: jp.Data})
 	}
 	// C nTrunc semantics (pager.c pager_rollback): when the transaction
 	// shrank the file (in-transaction incremental-vacuum steps truncate

@@ -79,10 +79,21 @@ func Test_misc1(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	db.RegisterCollation("numeric", func(a, b string) int { return strings.Compare(a, b) })
-	// proc numeric_collate collation (registered via db collate)
+	// proc numeric_collate collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("numeric_collate", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
 	// db collation text: proc body unrecognized — binary-order fallback registration
 	db.RegisterCollation("text", func(a, b string) int { return strings.Compare(a, b) })
-	// proc numeric_collate collation (registered via db collate)
+	// proc numeric_collate collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("numeric_collate", func(a, b string) int { return strings.Compare(a, b) })
 	{ // do_test "misc1-1.1"
 		vtab.TclVarSet("cmd", "", "CREATE TABLE manycol(x0 text")
 		cmd = "CREATE TABLE manycol(x0 text"

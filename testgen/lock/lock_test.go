@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -220,6 +221,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows0.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows0.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
 				_qvFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
 				_ = _qvFlat1
@@ -246,6 +248,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows3.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows3.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows3.Rows); _ri++ {
 				_qvFlat4 := tclRowFlatPairs(_dbevalRows3.Columns, _dbevalRows3.Rows[_ri])
 				_ = _qvFlat4
@@ -272,6 +275,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows6.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows6.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows6.Rows); _ri++ {
 				_qvFlat7 := tclRowFlatPairs(_dbevalRows6.Columns, _dbevalRows6.Rows[_ri])
 				_ = _qvFlat7
@@ -316,6 +320,7 @@ func Test_lock(t *testing.T) {
 		if _dbevalRows8.Error == nil {
 			db.BeginActiveStatement()
 			_qv_arr = strings.Join(_dbevalRows8.Columns, " ")
+			vtab.TclVarSet("qv", "*", _qv_arr)
 			for _ri := 0; _ri < len(_dbevalRows8.Rows); _ri++ {
 				_qvFlat9 := tclRowFlatPairs(_dbevalRows8.Columns, _dbevalRows8.Rows[_ri])
 				_ = _qvFlat9
@@ -355,6 +360,7 @@ func Test_lock(t *testing.T) {
 			if _dbevalRows0.Error == nil {
 				db.BeginActiveStatement()
 				_qv_arr = strings.Join(_dbevalRows0.Columns, " ")
+				vtab.TclVarSet("qv", "*", _qv_arr)
 				for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
 					_qvFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
 					_ = _qvFlat1
@@ -438,6 +444,10 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = strconv.Itoa(count)
+		return false
+		})
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -502,6 +512,11 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -529,6 +544,11 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 		r = db2.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
@@ -567,6 +587,11 @@ func Test_lock(t *testing.T) {
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -726,6 +751,11 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-4.3"
 		// proc definition (not transpiled)
+		db2.SetBusyHandler(func(count int) bool {
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
+		})
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block

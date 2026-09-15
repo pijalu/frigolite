@@ -116,6 +116,7 @@ func Test_fts3first(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(res)
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -128,6 +129,7 @@ func Test_fts3first(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(rev)
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -160,6 +162,7 @@ func Test_fts3first(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(res)
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -172,6 +175,7 @@ func Test_fts3first(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(rev)
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -197,6 +201,7 @@ func Test_fts3first(t *testing.T) {
 						}
 						got := flatten(r)
 						want := tclListFlatten(res)
+						got = tclListFlattenCollapse(got)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -209,6 +214,7 @@ func Test_fts3first(t *testing.T) {
 						}
 						got := flatten(r)
 						want := tclListFlatten(rev)
+						got = tclListFlattenCollapse(got)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

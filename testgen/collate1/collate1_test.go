@@ -90,7 +90,21 @@ func Test_collate1(t *testing.T) {
 	if bisHex { return 1 }
 	return strings.Compare(a, b)
 })
-	// proc hex_collate collation (registered via db collate)
+	// proc hex_collate collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("hex_collate", func(a, b string) int {
+	aisHex, _ := regexp.MatchString("^(0x|)[1234567890abcdefABCDEF]+$", a)
+	bisHex, _ := regexp.MatchString("^(0x|)[1234567890abcdefABCDEF]+$", b)
+	if aisHex && bisHex {
+		av, _ := strconv.ParseInt(strings.TrimPrefix(a, "0x"), 16, 64)
+		bv, _ := strconv.ParseInt(strings.TrimPrefix(b, "0x"), 16, 64)
+		if av < bv { return -1 }
+		if av > bv { return 1 }
+		return 0
+	}
+	if aisHex { return -1 }
+	if bisHex { return 1 }
+	return strings.Compare(a, b)
+})
 	db.RegisterFunction("hex", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	db.RegisterCollation("numeric", func(a, b string) int {
 	if a == b { return 0 }
@@ -102,7 +116,17 @@ func Test_collate1(t *testing.T) {
 	}
 	return strings.Compare(a, b)
 })
-	// proc numeric_collate collation (registered via db collate)
+	// proc numeric_collate collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("numeric_collate", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
 	{ // do_test "collate1-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate1t1(c1, c2);\n    INSERT INTO collate1t1 VALUES(45, hex(45));\n    INSERT INTO collate1t1 VALUES(NULL, NULL);\n    INSERT INTO collate1t1 VALUES(281, hex(281));\n  ")
 		if _res.Error != nil {

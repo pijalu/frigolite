@@ -67,7 +67,7 @@ func (c *ConstraintEnforcer) fkChildRefsForEntry(ctx *DatabaseContext, ent *sche
 // fkParentActionRec is fkParentAction with a recursive CASCADE callback
 // (cascadeRec, depth) used when a CASCADE delete removes a row that is itself
 // a parent. The existing public entry points pass nil.
-func (c *ConstraintEnforcer) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64, checkTriggerReinsert, deferNoAction bool, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int) *Result {
+func (c *ConstraintEnforcer) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64, checkTriggerReinsert, deferNoAction bool, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int, updRec fkUpdateRec) *Result {
 	if !c.ctx.ForeignKeys() {
 		return &Result{}
 	}
@@ -82,7 +82,7 @@ func (c *ConstraintEnforcer) fkParentActionRec(parentTable *schema.Entry, parent
 	parentIndex := execdml.BuildColumnIndex(parentColDefs)
 
 	for _, ref := range refs {
-		if res := c.fkApplyParentRef(ref, parentTable, parentColDefs, oldRow, newRow, isDelete, skipRowID, checkTriggerReinsert, deferNoAction, parentIndex, cascadeRec, depth); res != nil {
+		if res := c.fkApplyParentRef(ref, parentTable, parentColDefs, oldRow, newRow, isDelete, skipRowID, checkTriggerReinsert, deferNoAction, parentIndex, cascadeRec, depth, updRec); res != nil {
 			return res
 		}
 	}
@@ -105,7 +105,7 @@ func (c *ConstraintEnforcer) fkParentCtxFor(parentTable *schema.Entry) *Database
 
 // fkApplyParentRef enforces one child reference's ON DELETE/ON UPDATE action
 // against the parent row being modified. Returns a non-nil Result on failure.
-func (c *ConstraintEnforcer) fkApplyParentRef(ref FKRefAction, parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64, checkTriggerReinsert, deferNoAction bool, parentIndex map[string]int, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int) *Result {
+func (c *ConstraintEnforcer) fkApplyParentRef(ref FKRefAction, parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64, checkTriggerReinsert, deferNoAction bool, parentIndex map[string]int, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int, updRec fkUpdateRec) *Result {
 	action := ref.OnDelete
 	if !isDelete {
 		action = ref.OnUpdate
@@ -154,7 +154,7 @@ func (c *ConstraintEnforcer) fkApplyParentRef(ref FKRefAction, parentTable *sche
 	// the FK action at the point of the delete (before AFTER triggers), so
 	// the re-insert does NOT suppress RESTRICT/NO ACTION errors. This does
 	// not apply when the table itself is being dropped (fkParentDropTable).
-	return c.fkParentRefAction(ref, action, matches, childEntry, childColDefs, childIdxs, parentIdxs, oldVals, newRow, oldRow, parentColDefs, isDelete, deferNoAction, tree, cascadeRec, depth)
+	return c.fkParentRefAction(ref, action, matches, childEntry, childColDefs, childIdxs, parentIdxs, oldVals, newRow, oldRow, parentColDefs, isDelete, deferNoAction, tree, cascadeRec, depth, updRec)
 }
 
 // applyParentAffinity converts the old parent key values to the parent column
@@ -425,7 +425,7 @@ func fkChildRowMatchesParent(c *ConstraintEnforcer, rec *storage.Record, childId
 // fkParentRefAction applies one foreign-key ON action (RESTRICT / NO ACTION,
 // CASCADE, SET NULL, SET DEFAULT) to the matched child rows. Returns a
 // non-nil Result when the action failed.
-func (c *ConstraintEnforcer) fkParentRefAction(ref FKRefAction, action string, matches []fkChildMatch, childEntry *schema.Entry, childColDefs []sql.ColumnDef, childIdxs, parentIdxs []int, oldVals []interface{}, newRow, oldRow RowMap, parentColDefs []sql.ColumnDef, isDelete, deferNoAction bool, tree *btree.BTree, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int) *Result {
+func (c *ConstraintEnforcer) fkParentRefAction(ref FKRefAction, action string, matches []fkChildMatch, childEntry *schema.Entry, childColDefs []sql.ColumnDef, childIdxs, parentIdxs []int, oldVals []interface{}, newRow, oldRow RowMap, parentColDefs []sql.ColumnDef, isDelete, deferNoAction bool, tree *btree.BTree, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int, updRec fkUpdateRec) *Result {
 	switch action {
 	case "RESTRICT":
 		// RESTRICT is always immediate — it cannot be deferred (SQLite
@@ -433,18 +433,18 @@ func (c *ConstraintEnforcer) fkParentRefAction(ref FKRefAction, action string, m
 		// even inside a deferred constraint). The deferNoAction flag only
 		// defers NO ACTION (REPLACE's implicit delete, statement-end
 		// checks).
-		return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed [SITE 0]")}
 	case "", "NO ACTION":
 		// Default (NO ACTION) rejects the parent operation. For REPLACE's
 		// implicit delete the error is deferred: the new row may restore the
 		// key, and the statement-end/COMMIT check decides.
 		if !deferNoAction {
-			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed [SITE1]")}
 		}
 	case "CASCADE":
-		return c.fkCascadeMatches(ref, matches, childEntry, childColDefs, childIdxs, parentIdxs, newRow, parentColDefs, isDelete, tree, cascadeRec, depth)
+		return c.fkCascadeMatches(ref, matches, childEntry, childColDefs, childIdxs, parentIdxs, newRow, parentColDefs, isDelete, tree, cascadeRec, depth, updRec)
 	case "SET NULL":
-		return c.fkSetNullMatches(matches, childEntry, childIdxs, tree)
+		return c.fkSetNullMatches(matches, childEntry, childColDefs, childIdxs, tree)
 	case "SET DEFAULT":
 		return c.fkSetDefaultMatches(matches, childEntry, childIdxs, childColDefs, tree)
 	}
@@ -453,14 +453,14 @@ func (c *ConstraintEnforcer) fkParentRefAction(ref FKRefAction, action string, m
 
 // fkCascadeMatches applies CASCADE to every matched child row (recursive delete
 // or cascaded update).
-func (c *ConstraintEnforcer) fkCascadeMatches(ref FKRefAction, matches []fkChildMatch, childEntry *schema.Entry, childColDefs []sql.ColumnDef, childIdxs, parentIdxs []int, newRow RowMap, parentColDefs []sql.ColumnDef, isDelete bool, tree *btree.BTree, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int) *Result {
+func (c *ConstraintEnforcer) fkCascadeMatches(ref FKRefAction, matches []fkChildMatch, childEntry *schema.Entry, childColDefs []sql.ColumnDef, childIdxs, parentIdxs []int, newRow RowMap, parentColDefs []sql.ColumnDef, isDelete bool, tree *btree.BTree, cascadeRec func(entry *schema.Entry, colDefs []sql.ColumnDef, row RowMap, depth int) *Result, depth int, updRec fkUpdateRec) *Result {
 	for _, m := range matches {
 		if isDelete {
 			if res := c.fkCascadeDelete(m, childEntry, childColDefs, tree, cascadeRec, depth); res != nil {
 				return res
 			}
 		} else {
-			if res := c.fkCascadeUpdate(m, ref, childEntry, childIdxs, parentIdxs, newRow, parentColDefs, tree); res != nil {
+			if res := c.fkCascadeUpdate(m, ref, childEntry, childColDefs, childIdxs, parentIdxs, newRow, parentColDefs, tree, updRec, depth); res != nil {
 				return res
 			}
 		}
@@ -469,9 +469,9 @@ func (c *ConstraintEnforcer) fkCascadeMatches(ref FKRefAction, matches []fkChild
 }
 
 // fkSetNullMatches sets every matched child row's FK columns to NULL.
-func (c *ConstraintEnforcer) fkSetNullMatches(matches []fkChildMatch, childEntry *schema.Entry, childIdxs []int, tree *btree.BTree) *Result {
+func (c *ConstraintEnforcer) fkSetNullMatches(matches []fkChildMatch, childEntry *schema.Entry, childColDefs []sql.ColumnDef, childIdxs []int, tree *btree.BTree) *Result {
 	for _, m := range matches {
-		if res := c.fkSetNull(m, childEntry, childIdxs, tree); res != nil {
+		if res := c.fkSetNull(m, childEntry, childColDefs, childIdxs, tree); res != nil {
 			return res
 		}
 	}
@@ -883,7 +883,7 @@ func (c *ConstraintEnforcer) checkForeignKeyViolations(tableEntry *schema.Entry,
 			continue
 		}
 		if !c.fkParentRowExistsForValues(parentCtx, parentEntry, excludeRowID, fk.ParentRef, tableEntry.Name, parentIdx, childKey, parentDefs) {
-			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed [SITE2]")}
 		}
 	}
 	return &Result{}

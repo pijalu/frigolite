@@ -199,3 +199,9 @@ func (e *Engine) MarkDropTableFKDirty(entry *schema.Entry, ctx *DatabaseContext)
 		}
 	}
 }
+
+// RemoveFKDirtyTable drops the dropped table's own entry from the deferred-FK
+// dirty set (see execddl.Context.RemoveFKDirtyTable).
+func (e *Engine) RemoveFKDirtyTable(entry *schema.Entry, ctx *DatabaseContext) {
+	e.constraints.RemoveFKDirtyTable(entry, ctx)
+}

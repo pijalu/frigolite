@@ -377,7 +377,8 @@ func Test_vacuum2(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	// proc cmp collation (registered via db collate)
+	// proc cmp collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("cmp", func(a, b string) int { return -strings.Compare(a, b) })
 	{ // "6.2"
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {

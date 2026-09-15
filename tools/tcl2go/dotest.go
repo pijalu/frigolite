@@ -408,6 +408,7 @@ func (tp *transpiler) runDoTestBody(bodyCmds [][]tcl.RawWord) *preparedState {
 		rangeListFuncs:      tp.rangeListFuncs,
 		collateDtorVars:     tp.collateDtorVars,
 		collateGoFuncs:      tp.collateGoFuncs,
+		collateEmittedProcs: tp.collateEmittedProcs,
 		procBodies:          tp.procBodies,
 		testPrefix:          tp.testPrefix,
 		queryVars:           tp.queryVars,
@@ -1195,7 +1196,11 @@ func (tp *transpiler) emitSetVarResultCheck(nameExpr, expectedExpr, setVar strin
 	// regexp (inverted) match, not literal equality — intarray-1.1b compares
 	// the registered intarray handle ("0 X5") against /0 [0-9A-Z]+/.
 	if isTCLRegexPattern(expectedExpr) {
-		tp.emitLine("got := tclListFlatten(%s)", setVar)
+		// TCL regexes run against the RAW set result: `set ::stmtlist(record)`
+		// renders a list of sublists BRACED ("{19 {SELECT ...}}") and the C
+		// patterns match those braces (trace3-3.x/4.x/5.x) — do not flatten
+		// away the quoting level for pattern comparisons.
+		tp.emitLine("got := %s", setVar)
 		inner := regexPatternInner(expectedExpr)
 		negated := regexPatternNegated(expectedExpr)
 		if strings.HasPrefix(inner, "*") {

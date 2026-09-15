@@ -297,6 +297,7 @@ func Test_returning1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -598,6 +599,7 @@ func Test_returning1(t *testing.T) {
 		if _dbevalRows0.Error == nil {
 			db.BeginActiveStatement()
 			_cname_arr = strings.Join(_dbevalRows0.Columns, " ")
+			vtab.TclVarSet("cname", "*", _cname_arr)
 			for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
 				_cnameFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
 				_ = _cnameFlat1
@@ -617,6 +619,7 @@ func Test_returning1(t *testing.T) {
 		if _dbevalRows2.Error == nil {
 			db.BeginActiveStatement()
 			_cname_arr = strings.Join(_dbevalRows2.Columns, " ")
+			vtab.TclVarSet("cname", "*", _cname_arr)
 			for _ri := 0; _ri < len(_dbevalRows2.Rows); _ri++ {
 				_cnameFlat3 := tclRowFlatPairs(_dbevalRows2.Columns, _dbevalRows2.Rows[_ri])
 				_ = _cnameFlat3
@@ -636,6 +639,7 @@ func Test_returning1(t *testing.T) {
 		if _dbevalRows4.Error == nil {
 			db.BeginActiveStatement()
 			_cname_arr = strings.Join(_dbevalRows4.Columns, " ")
+			vtab.TclVarSet("cname", "*", _cname_arr)
 			for _ri := 0; _ri < len(_dbevalRows4.Rows); _ri++ {
 				_cnameFlat5 := tclRowFlatPairs(_dbevalRows4.Columns, _dbevalRows4.Rows[_ri])
 				_ = _cnameFlat5
@@ -655,6 +659,7 @@ func Test_returning1(t *testing.T) {
 		if _dbevalRows6.Error == nil {
 			db.BeginActiveStatement()
 			_cname_arr = strings.Join(_dbevalRows6.Columns, " ")
+			vtab.TclVarSet("cname", "*", _cname_arr)
 			for _ri := 0; _ri < len(_dbevalRows6.Rows); _ri++ {
 				_cnameFlat7 := tclRowFlatPairs(_dbevalRows6.Columns, _dbevalRows6.Rows[_ri])
 				_ = _cnameFlat7
@@ -688,6 +693,7 @@ func Test_returning1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -921,6 +927,7 @@ func Test_returning1(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -933,6 +940,7 @@ func Test_returning1(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

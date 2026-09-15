@@ -26,6 +26,14 @@ func (e *DDLExecutor) validateAddColumnConstraints(tableEntry *schema.Entry, col
 		//lint:ignore ST1005 SQLite capitalizes this exact message.
 		return &Result{Error: fmt.Errorf("Cannot add a UNIQUE column")}
 	}
+	// SQLite: "Cannot add a REFERENCES column with non-NULL default value" —
+	// a column with a REFERENCES clause may not have a non-NULL constant
+	// default (the FK would be ambiguous for existing rows). alter.c checks
+	// this BEFORE the constant-default validation (with1-style order:
+	// without_rowid3-13.x hits it with DEFAULT CURRENT_TIME).
+	if res := e.validateAddColumnRefDefault(newCol); res != nil {
+		return res
+	}
 	// SQLite: "Cannot add a column with non-constant default" (alter.c):
 	// the DEFAULT of an added column must be a compile-time constant.
 	// alter3-2.6 rejects DEFAULT CURRENT_TIME (parsed as a ColumnRef
@@ -34,12 +42,6 @@ func (e *DDLExecutor) validateAddColumnConstraints(tableEntry *schema.Entry, col
 	if !isConstantDefaultExpr(newCol.Default) {
 		//lint:ignore ST1005 SQLite capitalizes this exact message.
 		return &Result{Error: fmt.Errorf("Cannot add a column with non-constant default")}
-	}
-	// SQLite: "Cannot add a REFERENCES column with non-NULL default value" —
-	// a column with a REFERENCES clause may not have a non-NULL constant
-	// default (the FK would be ambiguous for existing rows).
-	if res := e.validateAddColumnRefDefault(newCol); res != nil {
-		return res
 	}
 	// STRICT tables: a DEFAULT whose value is incompatible with the declared
 	// column type is rejected when the table already has rows (SQLite:
@@ -84,15 +86,25 @@ func (e *DDLExecutor) validateAddColumnConstraints(tableEntry *schema.Entry, col
 // default value (the FK would be ambiguous for existing rows). DEFAULT NULL is
 // allowed.
 func (e *DDLExecutor) validateAddColumnRefDefault(newCol sql.ColumnDef) *Result {
-	if newCol.References == "" || !e.ctx.ForeignKeys() || newCol.Default == nil {
+	if newCol.References == "" || !e.ctx.ForeignKeys() {
 		return nil
 	}
-	defVal, derr := e.evalColumnExpr(newCol)
-	if derr != nil || defVal == nil {
+	// alter.c: pDflt is zeroed when the default is a literal NULL, so the
+	// check is purely syntactic — any default expression other than a
+	// literal NULL (including non-constant ones like CURRENT_TIME, which are
+	// rejected later by the constant-default check) triggers the error.
+	if newCol.Default == nil {
 		return nil
 	}
-	if s, ok := defVal.(string); ok && strings.EqualFold(strings.Trim(s, `'"`), "NULL") {
-		return nil // NULL literal
+	// Literal NULL: pDflt zeroed in alter.c. The parser represents it as
+	// NullLit (or a NULL keyword ColumnRef in some spellings).
+	switch d := newCol.Default.(type) {
+	case *sql.NullLit:
+		return nil
+	case *sql.ColumnRef:
+		if d != nil && strings.EqualFold(d.Name, "NULL") {
+			return nil
+		}
 	}
 	//lint:ignore ST1005 SQLite error message is capitalized ("Cannot add...")
 	return &Result{Error: fmt.Errorf("Cannot add a REFERENCES column with non-NULL default value")}
@@ -329,6 +341,11 @@ func (e *DDLExecutor) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	tableName := s.Table
 	tableEntry, ctx, err := e.ctx.FindTable(tableName)
 	if err != nil {
+		// ALTER TABLE resolves views (sqlite3LocateTableItem); ADD COLUMN on
+		// one reports the dedicated alter.c message.
+		if _, _, vErr := e.ctx.FindView(tableName); vErr == nil {
+			return &Result{Error: fmt.Errorf("Cannot add a column to a view")}
+		}
 		return &Result{Error: err}
 	}
 
@@ -336,6 +353,12 @@ func (e *DDLExecutor) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	// virtual table reports "virtual tables may not be altered").
 	if e.isVirtualTable(tableEntry) {
 		return &Result{Error: fmt.Errorf("virtual tables may not be altered")}
+	}
+
+	// alter.c sqlite3AlterBeginAddColumn: isAlterableTable runs after the
+	// virtual/view checks and echoes the canonical schema name.
+	if isProtectedSystemTable(tableEntry.Name) {
+		return &Result{Error: fmt.Errorf("table %s may not be altered", tableEntry.Name)}
 	}
 
 	// ALTER TABLE ... ADD [CONSTRAINT nm] CHECK(expr): append a table-level
@@ -435,11 +458,20 @@ func validateStrictAddColumn(tableEntry *schema.Entry, colDef sql.ColumnDef) *Re
 // commitAlterTableEntry replaces a modified table entry in its schema manager
 // and invalidates the engine's table cache. Returns a non-nil Result when the
 // entry cannot be persisted.
+//
+// alter.c edits the stored CREATE SQL row IN PLACE (sqlite3AlterFinishAddColumn
+// and the constraint forms rewrite the sqlite_schema row, keeping its rowid),
+// so the in-place update is preferred: a remove+re-add moves the table to the
+// END of sqlite_master, which reorders a later VACUUM/backup DDL replay until
+// a trigger can be replayed before its own table ("no such table", alter3 7.x
+// with a temp trigger surviving an ADD COLUMN).
 func (e *DDLExecutor) commitAlterTableEntry(tableName string, schemaMgr *schema.Manager, tableEntry *schema.Entry) *Result {
 	e.ctx.DeleteTableCache(tableName)
-	_ = schemaMgr.RemoveEntry(tableEntry.Name)
-	if err := schemaMgr.AddEntry(tableEntry); err != nil {
-		return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+	if err := schemaMgr.UpdateEntryFull(tableEntry.Name, tableEntry.Name, tableEntry.SQL); err != nil {
+		_ = schemaMgr.RemoveEntry(tableEntry.Name)
+		if err := schemaMgr.AddEntry(tableEntry); err != nil {
+			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+		}
 	}
 	// Verify the entry was re-added.
 	if _, err := schemaMgr.FindTable(tableEntry.Name); err != nil {

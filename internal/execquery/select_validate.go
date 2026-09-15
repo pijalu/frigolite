@@ -698,12 +698,36 @@ func (e *SelectEngine) validateMatchingTrigger(t *schema.Entry, event string) er
 	}
 	for _, bodyStmt := range trig.Statements {
 		if sel, ok := bodyStmt.(*sql.SelectStmt); ok {
-			if err := e.validateSelectExprs(sel); err != nil {
+			if err := e.validateTriggerBodySelect(sel); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// validateTriggerBodySelect validates one trigger-body SELECT at
+// firing-statement preflight (SQLite compiles trigger subprograms with the
+// firing statement — trigger.c codeRowTrigger). A FROM-less body SELECT has
+// no source to resolve columns against: SQLite's resolver rejects any
+// (non-NEW/OLD) reference when it codes the program, before the statement
+// runs (triggerB-2.1: "no such column: wen.x" preempts the firing
+// statement's own constraint failures).
+func (e *SelectEngine) validateTriggerBodySelect(sel *sql.SelectStmt) error {
+	if err := e.validateSelectExprs(sel); err != nil {
+		return err
+	}
+	if isFromLessSelect(sel) {
+		return e.validateNoFromColumnRefsInTriggerBody(sel)
+	}
+	return nil
+}
+
+// isFromLessSelect reports whether a SELECT has no FROM clause (no table,
+// subquery, or table-valued function source, and no joins).
+func isFromLessSelect(s *sql.SelectStmt) bool {
+	return s.From.Name == "" && s.From.Subquery == nil && !s.From.IsTabFunc &&
+		len(s.Joins) == 0 && s.Union == nil
 }
 
 // findTriggerStmt finds the first CreateTriggerStmt in a parsed statement list.
@@ -743,11 +767,42 @@ func (e *SelectEngine) validateNoFromColumnRefs(s *sql.SelectStmt) error {
 	return v.err
 }
 
+// validateNoFromColumnRefsInTriggerBody validates a trigger-body FROM-less
+// SELECT at firing-statement preflight (SQLite compiles trigger subprograms
+// as part of the firing statement — trigger.c codeRowTrigger — so an
+// unrecognized name fails the statement before any row effect, triggerB-2.1).
+// Qualified NEW./OLD. references are exempt: at preflight the trigger rows do
+// not exist yet, but SQLite resolves the prefixes against the subject table.
+func (e *SelectEngine) validateNoFromColumnRefsInTriggerBody(s *sql.SelectStmt) error {
+	v := &noFromRefValidator{engine: e, allowNewOld: true}
+	for _, col := range s.Columns {
+		v.checkExpr(col.Expr)
+	}
+	aliasNames := make(map[string]bool)
+	for _, col := range s.Columns {
+		if col.As != "" {
+			aliasNames[strings.ToLower(col.As)] = true
+		}
+	}
+	v.checkWhere(s.Where, aliasNames)
+	return v.err
+}
+
 // noFromRefValidator carries the first error found while checking column
 // references in a FROM-less SELECT.
 type noFromRefValidator struct {
 	engine *SelectEngine
 	err    error
+	// allowNewOld exempts qualified NEW./OLD. references regardless of the
+	// trigger row being set (preflight-time body validation runs before any
+	// NEW/OLD row exists).
+	allowNewOld bool
+}
+
+// isTriggerRowPrefix reports whether a column reference's table qualifier is
+// NEW or OLD (case-insensitive).
+func isTriggerRowPrefix(table string) bool {
+	return strings.EqualFold(table, "new") || strings.EqualFold(table, "old")
 }
 
 // checkExpr walks expr looking for invalid column references.
@@ -767,6 +822,9 @@ func (v *noFromRefValidator) visitRef(e2 sql.Expr) {
 	if !ok {
 		return
 	}
+	if v.allowNewOld && isTriggerRowPrefix(ref.Table) {
+		return
+	}
 	v.err = v.engine.checkNoFromRef(ref)
 }
 
@@ -784,6 +842,9 @@ func (v *noFromRefValidator) checkWhere(where sql.Expr, aliasNames map[string]bo
 			return
 		}
 		if aliasNames[strings.ToLower(ref.Name)] {
+			return
+		}
+		if v.allowNewOld && isTriggerRowPrefix(ref.Table) {
 			return
 		}
 		v.err = v.engine.checkNoFromRef(ref)

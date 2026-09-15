@@ -480,7 +480,10 @@ func rule327(ruleNo int, p *Parser) interface{} {
 
 // Rule 328: range_or_rows ::= RANGE|ROWS|GROUPS
 func rule328(ruleNo int, p *Parser) interface{} {
-	return getString(getRHS(p, ruleNo, 1))
+	// SQLite's grammar selects the frame type by TOKEN TYPE (TK_ROWS etc.),
+	// which is case-insensitive; normalize the keyword text so downstream
+	// switch statements see the canonical uppercase form.
+	return strings.ToUpper(getString(getRHS(p, ruleNo, 1)))
 
 }
 
@@ -510,7 +513,9 @@ func rule332(ruleNo int, p *Parser) interface{} {
 // Rule 333: frame_bound ::= expr PRECEDING|FOLLOWING
 func rule333(ruleNo int, p *Parser) interface{} {
 	expr := getExpr(getRHS(p, ruleNo, 1))
-	dir := getString(getRHS(p, ruleNo, 2))
+	// PRECEDING/FOLLOWING are keyword tokens (case-insensitive in SQLite's
+	// grammar); normalize the direction text to the canonical form.
+	dir := strings.ToUpper(getString(getRHS(p, ruleNo, 2)))
 	return &sql.FrameBound{Kind: dir, Expr: expr}
 
 }
@@ -549,7 +554,8 @@ func rule338(ruleNo int, p *Parser) interface{} {
 
 // Rule 339: frame_exclude ::= GROUP|TIES
 func rule339(ruleNo int, p *Parser) interface{} {
-	return getString(getRHS(p, ruleNo, 1))
+	// Keyword tokens are case-insensitive; normalize (see rule 328).
+	return strings.ToUpper(getString(getRHS(p, ruleNo, 1)))
 
 }
 

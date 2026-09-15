@@ -147,6 +147,7 @@ func Test_cache(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten(i)
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -171,6 +172,7 @@ func Test_cache(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten(i)
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -201,6 +203,7 @@ func Test_cache(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten(i)
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -225,6 +228,7 @@ func Test_cache(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten(i)
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

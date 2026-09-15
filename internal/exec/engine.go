@@ -108,6 +108,15 @@ type Engine struct {
 	// can register it via SetAutovacuumPagesCallback.
 	autovacPagesCallback func(schema string, fileSize, nFree, pageSize uint32) uint32
 
+	// triggersSuppressed disables trigger firing for DML executed through
+	// this engine. The logical backup/VACUUM rebuild sets it while it replays
+	// schema DDL and copies rows: SQLite's VACUUM is a page-level copy
+	// (vacuum.c sqlite3BtreeCopyFile) that never runs trigger programs, so a
+	// trigger's side effects must not fire mid-rebuild (an AFTER INSERT
+	// trigger inserting into a table the rebuild has not recreated yet would
+	// fail the rebuild, alter3 7.x).
+	triggersSuppressed bool
+
 	// Multi-database support
 	databases map[string]*DatabaseContext // schema_name -> context (upper-cased key)
 	dbList    []*DatabaseContext          // attached databases in ATTACH order (main first)
@@ -192,6 +201,29 @@ type Engine struct {
 	// walHook holds the sqlite3_wal_hook callback (fires after each WAL
 	// commit with (frames appended, frames checkpointed)).
 	walHook func(nLog, nCkpt int) int
+	// busyHandler holds the sqlite3_busy_handler callback (invoked between
+	// lock retries; true = retry the attempt, false = return busy).
+	busyHandler func(count int) bool
+	// traceHook / profileHook / traceV2Hook hold the sqlite3_trace,
+	// sqlite3_profile, and sqlite3_trace_v2 callbacks. traceMask is the
+	// trace_v2 event mask; traceNextID numbers statement executions and
+	// traceCurID is the id of the statement currently executing (the ROW
+	// event id).
+	traceHook     func(sql string)
+	profileHook   func(sql string, ns int64)
+	traceV2Hook   func(event int, id int64, text string)
+	traceMask     int
+	traceNextID   int64
+	traceCurID    int64
+	// traceInternal suppresses trace/profile events while the engine runs
+	// its own internal statements (VACUUM's logical copy executes
+	// SELECT/INSERT on the user connection; the C library's internal vdbe
+	// programs never invoke the user's trace callback).
+	traceInternal bool
+	// busyTimeoutMs holds the PRAGMA busy_timeout / sqlite3_busy_timeout
+	// value in milliseconds; with no custom handler it drives the
+	// sqliteDefaultBusyCallback sleep-retry loop.
+	busyTimeoutMs int
 	// returning holds RETURNING evaluation state.
 	returning returningState
 	// testState holds the backing state for test-only SQL functions.
@@ -1036,6 +1068,10 @@ func NewEngine(pg *pager.Pager) *Engine {
 	}
 	e.expr = execexpr.New(e)
 	e.selectEngine = execquery.NewSelectEngine(e)
+	// Function implementations that render BLOB values as text must decode
+	// those bytes per the database encoding (OP_Column tags disk blobs with
+	// the header encoding; windowC-2.x).
+	e.funcs.SetEncoding(e.encoding)
 	e.dml = execdml.NewDMLExecutor(e)
 	e.ddl = execddl.NewDDLExecutor(e)
 	e.constraints = execconstraint.New(e)

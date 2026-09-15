@@ -63,7 +63,8 @@ func Test_collate6(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	db.RegisterCollation("NOCASE", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
-	// proc nocase_collate collation (registered via db collate)
+	// proc nocase_collate collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("nocase_collate", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 	{ // do_test "collate6-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate6log(a, b);\n    CREATE TABLE collate6tab(a COLLATE NOCASE, b COLLATE BINARY);\n  ")
 		if _res.Error != nil {

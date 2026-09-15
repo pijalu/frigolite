@@ -209,6 +209,14 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		tp.processDBRollbackHook(rest)
 	case "update_hook":
 		tp.processDBUpdateHook(rest)
+	case "trace":
+		tp.processNamedDBTraceProfile("db", rest, "trace")
+	case "profile":
+		tp.processNamedDBTraceProfile("db", rest, "profile")
+	case "trace_v2":
+		tp.processNamedDBTraceV2("db", rest)
+	case "busy":
+		tp.processNamedDBBusy("db", rest)
 	case "complete":
 		// db complete {SQL} — sqlite3_complete test: returns 1 when the SQL
 		// ends in a complete statement (semicolon outside strings/comments,
@@ -602,6 +610,11 @@ func (tp *transpiler) processDBEval(rest []tcl.RawWord) {
 						tp.vars = append(tp.vars, arrStar)
 					}
 					tp.emitLine("%s = strings.Join(r.Columns, \" \")", arrStar)
+					// TCL's db eval sets A(*) to the column list; sync the
+					// tclvar registry so a later `set A(*)` reads it even
+					// when the read goes through the registry store
+					// (with1-17.2).
+					tp.emitLine("vtab.TclVarSet(%q, \"*\", %s)", arrName, arrStar)
 					tp.emitLine("_res = &frigolite.Result{Columns: r.Columns, Rows: r.Rows}")
 					return
 				}
@@ -1027,6 +1040,12 @@ func (tp *transpiler) emitFormatFunction(name, procName string) bool {
 // emitRegisteredFunction emits a RegisterFunction call for a recognized
 // test-suite proc pattern. Returns true when a pattern matched.
 func (tp *transpiler) emitRegisteredFunction(name, procName string, rest []tcl.RawWord) bool {
+	// Recorder proc: `proc trigfunc {args} { set ::TRIGGER $args }` becomes a
+	// scalar SQL function replacing the Go variable with the TCL rendering of
+	// its arguments (alter.test alter-3.1.x/3.3.x trigger probes).
+	if tp.emitRecorderFunctionIfMatched(name, procName) {
+		return true
+	}
 	if tp.emitSleeperFunction(name, procName) {
 		return true
 	}
@@ -1368,6 +1387,10 @@ func (tp *transpiler) emitDBEvalArrayRows(arrName string, rest []tcl.RawWord) {
 	tp.emitLine("db.BeginActiveStatement()")
 	arrStarAssign := tclVarToGo(arrName + "(*)")
 	tp.emitLine("%s = strings.Join(%s.Columns, \" \")", arrStarAssign, rowsVar)
+	// TCL's db eval sets A(*) to the column list; sync the tclvar registry
+	// so a later `set A(*)` reads it even when the read goes through the
+	// registry store (with1-17.2).
+	tp.emitLine("vtab.TclVarSet(%q, \"*\", %s)", arrName, arrStarAssign)
 	tp.emitLine("for _ri := 0; _ri < len(%s.Rows); _ri++ {", rowsVar)
 	tp.indent++
 	tp.emitLine("%s := tclRowFlatPairs(%s.Columns, %s.Rows[_ri])", flatVar, rowsVar, rowsVar)
@@ -1404,13 +1427,14 @@ func (tp *transpiler) emitDBEvalArrayRows(arrName string, rest []tcl.RawWord) {
 		queryVars:    tp.queryVars,
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		collateGoFuncs:   tp.collateGoFuncs,
+		collateGoFuncs:      tp.collateGoFuncs,
+		collateEmittedProcs: tp.collateEmittedProcs,
 		procBodies:          tp.procBodies,
-		preparedState:    tp.preparedState,
-		varConstValues:   tp.varConstValues,
-		sqlVarValues:     tp.sqlVarValues,
-		foreachLitValues: tp.foreachLitValues,
-		rowFlatVars:      tp.rowFlatVars,
+		preparedState:       tp.preparedState,
+		varConstValues:      tp.varConstValues,
+		sqlVarValues:        tp.sqlVarValues,
+		foreachLitValues:    tp.foreachLitValues,
+		rowFlatVars:         tp.rowFlatVars,
 	}
 	bodyTP.processCommands(parseCommands(bodyText))
 	tp.varCount = bodyTP.varCount
@@ -1440,4 +1464,31 @@ func (tp *transpiler) emitIncrRetFunction(name, procName string, rest []tcl.RawW
 	tp.emitLine("\treturn int64(%d), nil", info.Ret)
 	tp.emitLine("}, %d, %d)", arityLo, arityHi)
 	return true
+}
+
+// emitRecorderFunctionIfMatched emits the recorder closure when procName is
+// a recognized `proc P {args} { set ::V $args }` kind. Returns false when not
+// a match (the caller keeps scanning other kinds).
+func (tp *transpiler) emitRecorderFunctionIfMatched(name, procName string) bool {
+	goVar, ok := tp.recorderFuncs[procName]
+	if !ok || name == "" {
+		return false
+	}
+	tp.emitRecorderFunction(name, goVar)
+	return true
+}
+
+// emitRecorderFunction emits a scalar SQL function that replaces the named
+// Go variable with the TCL list rendering of its arguments on every call
+// (`proc trigfunc {args} { set ::TRIGGER $args }`, alter.test).
+func (tp *transpiler) emitRecorderFunction(name, goVar string) {
+	tp.emitLine("// db function %s: replaces %s with the TCL rendering of its args", name, goVar)
+	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+	tp.emitLine("\tparts := make([]string, 0, len(args))")
+	tp.emitLine("\tfor _, a := range args {")
+	tp.emitLine("\t\tparts = append(parts, tclListElem(tclStr(a)))")
+	tp.emitLine("\t}")
+	tp.emitLine("\t%s = tclList(parts)", goVar)
+	tp.emitLine("\treturn nil, nil")
+	tp.emitLine("}, 0, -1)")
 }

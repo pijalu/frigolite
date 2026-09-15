@@ -44,8 +44,30 @@ func ViewDeclaredColumns(viewSQL string) []string {
 	return cols
 }
 
+// pinViewOwningSchema pins unqualified body resolution to the view's owning
+// database (sqlite3FixSelect schema-fixes view bodies at CREATE) and returns
+// a restore func. TEMP views are left unpinned: their bodies may reference
+// any schema (attach.c fixSelectCb bTemp).
+func (e *SelectEngine) pinViewOwningSchema(entry *schema.Entry) (restore func()) {
+	prevPin := e.schemaPin
+	if _, viewCtx, err := e.ctx.FindView(entry.Name); err == nil && viewCtx != nil && !viewCtx.IsTemp {
+		e.schemaPin = viewCtx
+	}
+	return func() { e.schemaPin = prevPin }
+}
+
 // execSelectView executes a SELECT on a view by expanding its stored definition.
 func (e *SelectEngine) execSelectView(entry *schema.Entry) *Result {
+	// The view body is schema-fixed to its owning database at CREATE time
+	// (sqlite3FixSelect): unqualified body names resolve in the view's own
+	// schema and a not-found error carries the schema qualifier (build.c
+	// sqlite3LocateTable; trigger4-3.3 — UPDATE on a view whose body table
+	// was dropped reports "no such table: main.test2"). Expansion sites that
+	// arrive without a pin set (the DML INSTEAD-OF paths UPDATE/DELETE on a
+	// view) pin the owning schema here. TEMP views are exempt: their bodies
+	// may reference any schema (attach.c fixSelectCb bTemp).
+	restorePin := e.pinViewOwningSchema(entry)
+	defer restorePin()
 	// entry.SQL contains "CREATE VIEW name AS SELECT ..."
 	sqlStr := entry.SQL
 	// Find " AS " after "CREATE VIEW name"
