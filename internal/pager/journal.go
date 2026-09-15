@@ -49,6 +49,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+
+	"github.com/pijalu/frigolite/internal/lockreg"
 )
 
 // SQLite journal header magic (pager.c aJournalMagic) is defined in
@@ -128,6 +130,19 @@ type rollbackJournal struct {
 // prior database must not roll back into a new database). After playback
 // the journal is unlinked. The caller must NOT hold p.mu.
 func recoverHotJournal(p *Pager, dbPath string) error {
+	// C lock protocol (pager.c hasHotJournal -> pagerPlayback): playing back
+	// a hot journal requires an EXCLUSIVE file lock, which a live writer's
+	// transaction denies — the journal belongs to that in-flight transaction
+	// and must be left untouched (no playback, no unlink). Frigolite journals
+	// eagerly at BEGIN (C defers journal creation to the first spill/sync),
+	// so without this registry gate a second connection's Open would treat
+	// the live journal as hot: the dbOrigSize mismatch against a not-yet-
+	// materialized main file made it unlink the writer's journal, and a
+	// later ROLLBACK could then truncate the writer's file out from under
+	// it (pcache.test 1.x).
+	if lockreg.Global.WriteTxHeld(dbPath) {
+		return nil
+	}
 	jpath := journalPath(dbPath)
 	data, err := os.ReadFile(jpath)
 	if err != nil {
@@ -211,6 +226,7 @@ func recoverHotJournal(p *Pager, dbPath string) error {
 	_ = os.Remove(jpath)
 	return nil
 }
+
 // path construction). Returns "" for in-memory pagers.
 func journalPath(dbPath string) string {
 	if dbPath == "" {

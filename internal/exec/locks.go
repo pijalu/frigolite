@@ -622,20 +622,32 @@ func lockAccessForStmt(stmt sql.Stmt) (write bool, schemaName string) {
 	case *sql.DropTableStmt:
 		return true, stmtSchema(s.Name)
 	case *sql.PragmaStmt:
-		// PRAGMA setter (Value != "") takes a write lock on its target schema:
-		// pragma.c emits OP_Transaction before persisting the value, so a
-		// setter must check the cross-conn lock. A bare getter (Value == "")
-		// reads the in-memory flag and takes no lock. incrvacuum-12.2 expects
-		// "database is locked" when PRAGMA auto_vacuum=2 is issued while
-		// another connection holds BEGIN EXCLUSIVE on the same file.
+		// Only pragma setters that open a write transaction in C take the
+		// cross-conn write lock. pragma.c emits OP_Transaction(p2=1) for the
+		// header cookies (PragTyp_HEADER_VALUE: schema_version/user_version/
+		// application_id, setCookie op list) and for auto_vacuum=1|2 (setMeta6
+		// op list); the journal_mode switch drives the pager's exclusive-lock
+		// path. All other setters (cache_size, mmap_size, busy_timeout,
+		// cache_spill, secure_delete, ...) are connection-local in-memory
+		// settings (sqlite3BtreeSetCacheSize & co. never touch the file) and
+		// take no lock — pcache-1.5 sets cache_size on db2 while db holds a
+		// write transaction. A bare getter (Value == "") reads the in-memory
+		// flag and takes no lock. incrvacuum-12.2 expects "database is
+		// locked" when PRAGMA auto_vacuum=2 is issued while another
+		// connection holds BEGIN EXCLUSIVE on the same file.
 		if s.Value == "" {
 			return false, ""
 		}
-		schema := s.Schema
-		if schema == "" {
-			schema = "main"
+		switch strings.ToLower(s.Name) {
+		case "schema_version", "user_version", "application_id",
+			"auto_vacuum", "journal_mode":
+			schema := s.Schema
+			if schema == "" {
+				schema = "main"
+			}
+			return true, schema
 		}
-		return true, schema
+		return false, ""
 	default:
 		return false, ""
 	}
