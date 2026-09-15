@@ -290,13 +290,34 @@ func (e *SelectEngine) execRecursiveCTEPath(s *sql.SelectStmt, cte *sql.CTEDef) 
 // (leftmost) member's width, skipping the check when the width cannot be
 // determined statically (mutual recursion cycle).
 func (e *SelectEngine) checkCTEColumnCount(cte *sql.CTEDef) error {
-	// The compound width error fires during code generation, ahead of the
-	// declared-column check (select4-11.16: "INSERT INTO t2(rowid)
-	// VALUES(2) UNION SELECT 3,4" names the UNION, not the column count).
+	// The body's own (nested) WITH scope must be active during the width
+	// checks: compound-member star expansion resolves inner CTE names
+	// (with1 17.1: "WITH x(a) AS (WITH y(b) AS (SELECT 10) SELECT 9 UNION
+	// ALL SELECT * FROM y) SELECT * FROM x" — arm 2's "SELECT * FROM y" is
+	// width-validated before the body statement itself pushes y).
+	if cte.Select != nil && len(cte.Select.CTEs) > 0 {
+		depth := len(e.cteScopes)
+		for i := range cte.Select.CTEs {
+			cte.Select.CTEs[i].ScopeDepth = depth
+		}
+		e.cteScopes = append(e.cteScopes, cte.Select.CTEs)
+		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
+	}
+	// SQLite's withExpand checks the declared column list against the
+	// leftmost (anchor) member's width BEFORE the compound arity check
+	// (with1 5.6.4/5.6.5): "WITH i(x) AS (SELECT 1,2 UNION ALL SELECT 1)"
+	// reports "table i has 2 values for 1 columns" while
+	// "WITH i(x) AS (SELECT 1 UNION ALL SELECT 1,2)" reports the compound
+	// arity error.
+	anchorCols, aerr := e.cteAnchorColumnCount(cte.Select)
+	if aerr == nil && anchorCols != len(cte.Columns) {
+		return fmt.Errorf("table %s has %d values for %d columns", cte.Name, anchorCols, len(cte.Columns))
+	}
+	// The compound width check fires for bodies whose anchor width matches
+	// the declared list (select4-11.16 class).
 	if err := e.validateCompoundColumnCounts(cte.Select); err != nil {
 		return err
 	}
-	anchorCols, aerr := e.cteAnchorColumnCount(cte.Select)
 	if aerr == errUndeterminedCTEWidth {
 		// Mutual recursion cycle: skip the width check; the execution-time
 		// circular reference fires later.
@@ -304,9 +325,6 @@ func (e *SelectEngine) checkCTEColumnCount(cte *sql.CTEDef) error {
 	}
 	if aerr != nil {
 		return aerr
-	}
-	if anchorCols != len(cte.Columns) {
-		return fmt.Errorf("table %s has %d values for %d columns", cte.Name, anchorCols, len(cte.Columns))
 	}
 	return nil
 }

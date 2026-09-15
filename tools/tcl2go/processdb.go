@@ -602,6 +602,11 @@ func (tp *transpiler) processDBEval(rest []tcl.RawWord) {
 						tp.vars = append(tp.vars, arrStar)
 					}
 					tp.emitLine("%s = strings.Join(r.Columns, \" \")", arrStar)
+					// TCL's db eval sets A(*) to the column list; sync the
+					// tclvar registry so a later `set A(*)` reads it even
+					// when the read goes through the registry store
+					// (with1-17.2).
+					tp.emitLine("vtab.TclVarSet(%q, \"*\", %s)", arrName, arrStar)
 					tp.emitLine("_res = &frigolite.Result{Columns: r.Columns, Rows: r.Rows}")
 					return
 				}
@@ -1374,6 +1379,10 @@ func (tp *transpiler) emitDBEvalArrayRows(arrName string, rest []tcl.RawWord) {
 	tp.emitLine("db.BeginActiveStatement()")
 	arrStarAssign := tclVarToGo(arrName + "(*)")
 	tp.emitLine("%s = strings.Join(%s.Columns, \" \")", arrStarAssign, rowsVar)
+	// TCL's db eval sets A(*) to the column list; sync the tclvar registry
+	// so a later `set A(*)` reads it even when the read goes through the
+	// registry store (with1-17.2).
+	tp.emitLine("vtab.TclVarSet(%q, \"*\", %s)", arrName, arrStarAssign)
 	tp.emitLine("for _ri := 0; _ri < len(%s.Rows); _ri++ {", rowsVar)
 	tp.indent++
 	tp.emitLine("%s := tclRowFlatPairs(%s.Columns, %s.Rows[_ri])", flatVar, rowsVar, rowsVar)
@@ -1410,13 +1419,14 @@ func (tp *transpiler) emitDBEvalArrayRows(arrName string, rest []tcl.RawWord) {
 		queryVars:    tp.queryVars,
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		collateGoFuncs:   tp.collateGoFuncs,
+		collateGoFuncs:      tp.collateGoFuncs,
+		collateEmittedProcs: tp.collateEmittedProcs,
 		procBodies:          tp.procBodies,
-		preparedState:    tp.preparedState,
-		varConstValues:   tp.varConstValues,
-		sqlVarValues:     tp.sqlVarValues,
-		foreachLitValues: tp.foreachLitValues,
-		rowFlatVars:      tp.rowFlatVars,
+		preparedState:       tp.preparedState,
+		varConstValues:      tp.varConstValues,
+		sqlVarValues:        tp.sqlVarValues,
+		foreachLitValues:    tp.foreachLitValues,
+		rowFlatVars:         tp.rowFlatVars,
 	}
 	bodyTP.processCommands(parseCommands(bodyText))
 	tp.varCount = bodyTP.varCount

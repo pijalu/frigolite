@@ -143,9 +143,10 @@ func (tp *transpiler) processDBCollate(rest []tcl.RawWord) {
 	}
 	collName := strings.TrimSpace(rest[0].Text)
 	collWord := rest[0]
+	procArg := ""
 	var goFn string
 	if len(rest) >= 2 {
-		procArg := strings.TrimSpace(rest[1].Text)
+		procArg = strings.TrimPrefix(strings.TrimSpace(rest[1].Text), "::")
 		// Inline forms: {string compare} / "string compare" /
 		// [list string compare -nocase].
 		if f := collationProcGo(procArg); f != "" {
@@ -156,6 +157,11 @@ func (tp *transpiler) processDBCollate(rest []tcl.RawWord) {
 	}
 	if goFn != "" && collName != "" {
 		tp.emitLine("db.RegisterCollation(%s, %s)", tp.goStringLiteral(collWord), goFn)
+		// Track the collation PROC that backs this registration so a later
+		// `proc PROC` redefinition re-registers (TCL late binding).
+		if procArg != "" {
+			tp.collateEmittedProcs[procArg] = "db"
+		}
 	} else if collName != "" {
 		// Unrecognized proc body: binary-order fallback registration (see
 		// processNamedDBCollate — the NAME must exist for CREATE-time
@@ -465,10 +471,11 @@ func (tp *transpiler) transpileHookBody(body, kind string) {
 		queryVars:    tp.queryVars,
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		collateGoFuncs: tp.collateGoFuncs,
-		procBodies:     tp.procBodies,
-		preparedState:  tp.preparedState,
-		varConstValues: tp.varConstValues,
+		collateGoFuncs:      tp.collateGoFuncs,
+		collateEmittedProcs: tp.collateEmittedProcs,
+		procBodies:          tp.procBodies,
+		preparedState:       tp.preparedState,
+		varConstValues:      tp.varConstValues,
 	}
 	hookTP.processCommands(parseCommands(body))
 	tp.varCount = hookTP.varCount
@@ -576,14 +583,15 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 		queryVars:    tp.queryVars,
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		collateGoFuncs: tp.collateGoFuncs,
-		procBodies:     tp.procBodies,
-		rollbackFlag:   rbFlag,
-		interruptFlag:  intFlag,
-		catchMode:      tp.catchMode,
-		inDBEvalCb:     true,
-		preparedState:  tp.preparedState,
-		varConstValues: tp.varConstValues,
+		collateGoFuncs:      tp.collateGoFuncs,
+		collateEmittedProcs: tp.collateEmittedProcs,
+		procBodies:          tp.procBodies,
+		rollbackFlag:        rbFlag,
+		interruptFlag:       intFlag,
+		catchMode:           tp.catchMode,
+		inDBEvalCb:          true,
+		preparedState:       tp.preparedState,
+		varConstValues:      tp.varConstValues,
 	}
 	bodyTP.processCommands(parseCommands(rest[1].Text))
 	tp.varCount = bodyTP.varCount

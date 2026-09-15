@@ -43,6 +43,7 @@ func (tp *transpiler) runSubBody(args []tcl.RawWord, idx int) bool {
 		rangeListFuncs:      tp.rangeListFuncs,
 		collateDtorVars:     tp.collateDtorVars,
 		collateGoFuncs:      tp.collateGoFuncs,
+		collateEmittedProcs: tp.collateEmittedProcs,
 		procBodies:          tp.procBodies,
 		queryVars:           tp.queryVars,
 		dbAliases:           tp.dbAliases,
@@ -1297,6 +1298,15 @@ func (tp *transpiler) registerCollateProc(name, goFn string) bool {
 		tp.collateGoFuncs = make(map[string]string)
 	}
 	tp.collateGoFuncs[name] = goFn
+	// TCL resolves a `db collate NAME PROC` binding through PROC at every
+	// collation call, so redefining an already-registered collation proc
+	// re-points the comparison from that point on (windowE.test 1.3
+	// redefines custom between two queries). Emit a fresh registration.
+	if dbVar := tp.collateEmittedProcs[name]; dbVar != "" {
+		tp.emitLine("// proc %s collation redefined — re-register (TCL late binding)", name)
+		tp.emitLine("%s.RegisterCollation(%q, %s)", dbVar, name, goFn)
+		return true
+	}
 	tp.emitLine("// proc %s collation (registered via db collate)", name)
 	return true
 }

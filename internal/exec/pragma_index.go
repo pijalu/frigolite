@@ -48,8 +48,11 @@ func (e *Engine) assignPragmaEncoding(ctx *DatabaseContext, value string) *Resul
 	default:
 		return &Result{Error: fmt.Errorf("unsupported encoding: %s", value)}
 	}
+	// Keep the function registry's blob→text decoding in sync (windowC-2.x).
+	e.funcs.SetEncoding(e.encoding)
 	if dh := e.headerFor(ctx); dh != nil && dh.TextEncoding != 0 && dh.TextEncoding != encNum && !e.schemaIsEmpty(ctx) {
 		e.encoding = encodingName(dh.TextEncoding)
+		e.funcs.SetEncoding(e.encoding)
 	} else if err := e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
 		h.TextEncoding = encNum
 	}); err != nil {

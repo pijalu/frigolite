@@ -191,3 +191,13 @@ func (e *DMLExecutor) PlanOrIndexScan(where sql.Expr, tableName string, colDefs 
 func (e *DMLExecutor) ExecSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, branches []orBranchPlan) *Result {
 	return e.execSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches)
 }
+
+// CheckConstraintFailureText renders a CHECK constraint's verbatim expression
+// text the way SQLite reports it in "CHECK constraint failed: <text>"
+// (the CREATE TABLE spelling, not the re-rendered AST form). Exposed for the
+// FK constraint enforcer, which enforces child-table CHECK constraints when
+// an ON UPDATE CASCADE rewrites child rows.
+func CheckConstraintFailureText(createSQL, colName string, check sql.Expr) string {
+	var e DMLExecutor
+	return e.checkConstraintText(createSQL, colName, check)
+}

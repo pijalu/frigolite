@@ -465,12 +465,26 @@ func (e *DMLExecutor) applyIgnoredUpdateRow(tree *btree.BTree, tableName string,
 		}
 	}
 	// Check conflicts against the live table state; skip on conflict.
-	conflict, err := e.updateRowConflictsWithTable(tree, ch, colDefs, colIndex, uniqueCols, idxColsList)
-	if err != nil {
-		return false, &Result{Error: err}
-	}
-	if conflict {
-		return true, nil
+	// WITHOUT ROWID tables use the WR-aware checker: every WR cell shares
+	// the synthetic RowID 0, so the rowid-based self-exclusion inside
+	// updateRowConflictsWithTable would skip EVERY cell — including the
+	// conflicting one — and a conflicting row was updated instead of
+	// ignored (without_rowid4-2.x: OR IGNORE inside a trigger cascade).
+	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+	if len(wrOrder) > 0 {
+		// OR IGNORE skips the row on any constraint violation, so a
+		// conflict result (res.Error) means: leave the row unchanged.
+		if res := e.checkLiveTableConflictsWR(tree, nil, ch, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
+			return true, nil
+		}
+	} else {
+		conflict, err := e.updateRowConflictsWithTable(tree, ch, colDefs, colIndex, uniqueCols, idxColsList)
+		if err != nil {
+			return false, &Result{Error: err}
+		}
+		if conflict {
+			return true, nil
+		}
 	}
 	// OR IGNORE also skips rows whose NEW values violate a NOT NULL, CHECK,
 	// or FOREIGN KEY constraint (SQLite's OR IGNORE applies to every

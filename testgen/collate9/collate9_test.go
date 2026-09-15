@@ -163,7 +163,8 @@ func Test_collate9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      REINDEX \"reverse sort\"\n    ")
 		}
 	}
-	// proc reverse_sort collation (registered via db collate)
+	// proc reverse_sort collation redefined — re-register (TCL late binding)
+	db.RegisterCollation("reverse_sort", func(a, b string) int { return strings.Compare(a, b) })
 	{ // do_test "collate9-4.2"
 		// expr "ok" eq [execsql { PRAGMA integrity_check }] (not evaluated)
 	}
