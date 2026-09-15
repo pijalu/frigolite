@@ -108,6 +108,15 @@ type Engine struct {
 	// can register it via SetAutovacuumPagesCallback.
 	autovacPagesCallback func(schema string, fileSize, nFree, pageSize uint32) uint32
 
+	// triggersSuppressed disables trigger firing for DML executed through
+	// this engine. The logical backup/VACUUM rebuild sets it while it replays
+	// schema DDL and copies rows: SQLite's VACUUM is a page-level copy
+	// (vacuum.c sqlite3BtreeCopyFile) that never runs trigger programs, so a
+	// trigger's side effects must not fire mid-rebuild (an AFTER INSERT
+	// trigger inserting into a table the rebuild has not recreated yet would
+	// fail the rebuild, alter3 7.x).
+	triggersSuppressed bool
+
 	// Multi-database support
 	databases map[string]*DatabaseContext // schema_name -> context (upper-cased key)
 	dbList    []*DatabaseContext          // attached databases in ATTACH order (main first)

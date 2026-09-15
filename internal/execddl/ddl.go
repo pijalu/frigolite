@@ -419,15 +419,6 @@ func (e *DDLExecutor) validateGeneratedColumns(s *sql.CreateTableStmt) *Result {
 		return &Result{Error: fmt.Errorf("generated column loop on %q", loopCol)}
 	}
 
-	// Subqueries are prohibited in generated columns (resolve.c NC_GenCol).
-	for i := range s.Columns {
-		if s.Columns[i].Generated != nil {
-			if err := validateGeneratedExpr(s.Columns[i].Generated); err != nil {
-				return &Result{Error: err}
-			}
-		}
-	}
-
 	// The go-lemon grammar accumulates trailing identifiers into the type name
 	// (typename ::= typename ID), so a generated column's Type may include
 	// "GENERATED ALWAYS" / "AS" text (e.g. "int generated always"). SQLite's

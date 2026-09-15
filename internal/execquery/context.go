@@ -234,6 +234,8 @@ type SelectEngine struct {
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)
 	resolvingViews    map[string]bool          // tracks views currently being resolved (circular reference detection)
+	viewRefCounts     map[string]int           // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
+	viewRefDepth      int                      // >0 while a top-level SELECT using view reference counting is executing
 	schemaPin         *DatabaseContext         // view-body name resolution pin
 	expandingTempView bool                     // expanding a TEMP-schema view body
 	expandingView     bool                     // expanding any view body
@@ -405,6 +407,14 @@ var (
 
 // ExecSelect executes a SELECT statement and returns its result.
 func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
+	// View reference counting (select.c Table.nTabRef) accumulates across the
+	// WHOLE statement expansion — including every UNION branch — and resets
+	// when the next top-level statement starts.
+	if e.viewRefDepth == 0 {
+		e.viewRefCounts = nil
+	}
+	e.viewRefDepth++
+	defer func() { e.viewRefDepth-- }()
 	res := e.execSelect(s)
 	// The result-width flag (buildColumnNames) must fire on every return
 	// path: finalizeSelectResult is bypassed when the FROM clause itself

@@ -803,6 +803,12 @@ func (e *DMLExecutor) triggerOwningCtx(t *schema.Entry) *DatabaseContext {
 
 // fireTriggers fires triggers matching the given event and timing for the table.
 func (e *DMLExecutor) fireTriggers(tableName, event, timing string, newRow, oldRow RowMap) *Result {
+	// Engine-wide suppression (logical backup/VACUUM rebuild): the copy
+	// replays DDL and rows without running trigger programs, matching
+	// SQLite's page-level vacuum.c copy.
+	if e.ctx.TriggersSuppressed() {
+		return &Result{}
+	}
 	// Resolve the table's context first (the trigger lookup needs it).
 	tableCtx := e.triggerTableContext(tableName)
 

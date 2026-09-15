@@ -35,9 +35,9 @@ func (e *DDLExecutor) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	if res := e.validateReservedName(newName); res != nil {
 		return res
 	}
-	entry, entryCtx, err := e.ctx.FindTable(oldName)
-	if err != nil {
-		return &Result{Error: err}
+	entry, entryCtx, res := e.findAlterRenameTarget(oldName, newName)
+	if res != nil {
+		return res
 	}
 	if res := e.checkRenameTarget(oldName, newName, entry, entryCtx); res != nil {
 		return res
@@ -61,6 +61,10 @@ func (e *DDLExecutor) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	if res := e.renameTableEntrySQL(entryCtx, entry, oldName, newName); res != nil {
 		return res
 	}
+	// alter.c order: schema rewrite before xRename (see below).
+	if !e.ctx.WritableSchema() {
+		e.renameUpdateRelatedEntries(entry.Name, newName)
+	}
 	if ftsMod := e.getFTSModuleForTable(oldName); ftsMod != nil {
 		ftsMod.RenameTable(oldName, newName)
 		e.renameFTSShadowTables(entryCtx, oldName, newName)
@@ -77,10 +81,45 @@ func (e *DDLExecutor) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	}
 	e.updateRenameCaches(oldName, newName)
 	e.renameSQLiteSequence(oldName, newName)
-	if !e.ctx.WritableSchema() {
-		e.renameUpdateRelatedEntries(entry.Name, newName)
-	}
 	return &Result{}
+}
+
+// findAlterRenameTarget resolves the RENAME target: a plain table when found,
+// otherwise the view path (SQLite's ALTER TABLE resolves views too) with the
+// table-name-collision and reserved-new-name checks in alter.c order. A nil
+// Result with a nil entry means the object does not exist (res carries the
+// "no such table" error).
+func (e *DDLExecutor) findAlterRenameTarget(oldName, newName string) (*schema.Entry, *DatabaseContext, *Result) {
+	entry, entryCtx, err := e.ctx.FindTable(oldName)
+	if err == nil {
+		return entry, entryCtx, nil
+	}
+	// A view target passes the new-name collision check and is then rejected
+	// with its own message (alter.c IsView check).
+	if res := e.alterViewRenameTarget(oldName, newName); res != nil {
+		return nil, nil, res
+	}
+	return nil, nil, &Result{Error: err}
+}
+
+// alterViewRenameTarget rejects an ALTER TABLE RENAME whose target resolves
+// to a view, mirroring alter.c sqlite3AlterRenameTable's ordering: the
+// new-name collision check runs first ("there is already another table or
+// index with this name"), then the reserved-new-name check, then the IsView
+// rejection ("view %s may not be altered"). Returns nil when oldName does
+// not resolve to a view.
+func (e *DDLExecutor) alterViewRenameTarget(oldName, newName string) *Result {
+	viewEntry, viewCtx, vErr := e.ctx.FindView(oldName)
+	if vErr != nil {
+		return nil
+	}
+	if res := e.checkRenameTarget(oldName, newName, viewEntry, viewCtx); res != nil {
+		return res
+	}
+	if res := e.validateReservedName(newName); res != nil {
+		return res
+	}
+	return &Result{Error: fmt.Errorf("view %s may not be altered", viewEntry.Name)}
 }
 
 // checkRenameTarget rejects renames to an unavailable virtual-table module or
