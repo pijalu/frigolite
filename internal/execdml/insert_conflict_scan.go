@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) (int64, []interface{}, int, bool) {
+func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, createSQL string) (int64, []interface{}, int, bool) {
 	uniqueCols := collectUniqueColsWithPK(colDefs, colIndex, values)
 
 	// Check table-level composite PRIMARY KEY / UNIQUE constraints for
@@ -48,7 +48,7 @@ func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, col
 		return 0, nil, -1, false
 	}
 
-	return scanForConflict(cursor, uniqueCols, values, colDefs)
+	return e.scanForConflict(cursor, uniqueCols, values, colDefs, createSQL)
 }
 
 // uniqueScanTree builds the btree used by UNIQUE/PRIMARY KEY conflict scans,
