@@ -1,6 +1,17 @@
 package main
 
 var skipTestsMoreTail = map[string]string{
+	// Pairs-pager cluster (2026-09-15): pcache2-1.2/1.3 assert the global
+	// SQLITE_STATUS_PAGECACHE_USED counter over the sqlite3_config_pagecache
+	// (6000,100) slot allocator (lindex ... 1 = highwater: 2 then 4 slots).
+	// The pure-Go engine has no fixed-slot pagecache allocator; the counter
+	// is an allocator instrumentation mirror, same N-A class as
+	// memsubsys1/memsubsys2. Engine-visible contract (cache_size setter on a
+	// fresh db, SELECT from sqlite_master, two independent connections)
+	// pinned natively in frigolite_pcache2_pin_test.go.
+	"pcache2-1.2": "SQLITE_STATUS_PAGECACHE_USED global C pagecache-allocator slot count N-A (no-side-effects)",
+	"pcache2-1.3": "SQLITE_STATUS_PAGECACHE_USED global C pagecache-allocator slot count N-A (no-side-effects)",
+
 	"func-32.100": "C test-harness test_frombind() not registered N-A (no-side-effects)",
 	"func-32.110": "C test-harness test_frombind() not registered N-A (no-side-effects)",
 	"func-32.120": "C test-harness test_frombind() not registered N-A (no-side-effects)",
