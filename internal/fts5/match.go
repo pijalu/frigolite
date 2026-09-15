@@ -21,6 +21,12 @@ type matchCacheKey struct {
 // MatchRowids evaluates a MATCH query and returns the matching rowids. col
 // restricts the match to one user column (-1 for the whole table).
 func (t *Table) MatchRowids(query string, col int) (map[int64]bool, error) {
+	if t.tokErr != nil {
+		// Phrase evaluation tokenizes the query with the table's tokenizer:
+		// a deferred constructor failure surfaces here first
+		// (sqlite3Fts5Tokenize's lazy LoadTokenizer; fts5tokenizer 10.2).
+		return nil, t.tokErr
+	}
 	if strings.HasPrefix(query, "*") {
 		// A special query ('*reads'/'*id'): one row carrying the special
 		// value as its rowid (fts5SpecialMatch).

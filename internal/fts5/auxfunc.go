@@ -95,7 +95,7 @@ func (aq *AuxQuery) RowCount() int64 { return int64(aq.t.ix.NumDocs()) }
 // terms (xTokenize).
 func (aq *AuxQuery) TokenizeText(text string) []string {
 	var out []string
-	for _, tok := range aq.t.tok.Tokenize(text) {
+	for _, tok := range aq.t.tokenizeFor(text) {
 		out = append(out, tok.Term)
 	}
 	return out

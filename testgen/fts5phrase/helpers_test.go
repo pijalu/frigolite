@@ -1976,14 +1976,33 @@ func tclPagerCacheSize(db *frigolite.DB) int {
 }
 
 // tclCatchsqlMatches checks a catchsql result against a TCL do_test expected
-// list of the form "{count message}" (e.g. "1 {FOREIGN KEY constraint failed}"
-// or "0 {}"). count "0" means the statement must succeed; count "1" means it
-// must fail with an error whose text contains message (the braced message). A
-// message wrapped in slashes (/re/) is matched as a regular expression.
+// value. tester.tcl routes do_catchsql_test through do_test, which supports
+// two expected-value families:
+//
+//   - "/PATTERN/" (negated: "~/PATTERN/"): PATTERN is a regular expression
+//     applied to the STRING of the whole catchsql result — "0 {rows}" on
+//     success, "1 {msg}" on failure (e.g. fts5first's
+//     "/1 {fts5: syntax error near .*}/"). The form is detected on the RAW
+//     string BEFORE any brace handling so a pattern whose text ends with "}"
+//     keeps its trailing "/" delimiter, and exactly one "/" is stripped from
+//     each end (mirroring tester.tcl's [string range $expected 1 end-1]).
+//   - "{count message}" (e.g. "1 {FOREIGN KEY constraint failed}" or "0 {}"):
+//     count "0" requires success; count "1" requires an error whose text
+//     contains message (the message is unwrapped by TCL lindex semantics —
+//     exactly one brace pair).
 func tclCatchsqlMatches(res *frigolite.Result, expected string) bool {
 	e := strings.TrimSpace(expected)
 	if e == "" {
 		return res.Error == nil
+	}
+	// Slash-wrapped regex form: detect on the raw string, before splitting the
+	// count token or trimming braces, so "/1 {fts5: syntax error near .*}/"
+	// keeps its trailing "/" (a braces-first Trim hides it behind the "}").
+	if len(e) >= 2 && strings.HasPrefix(e, "/") && strings.HasSuffix(e, "/") {
+		return tclCatchsqlRegexMatches(res, e[1:len(e)-1], false)
+	}
+	if len(e) >= 4 && strings.HasPrefix(e, "~/") && strings.HasSuffix(e, "/") {
+		return tclCatchsqlRegexMatches(res, e[2:len(e)-1], true)
 	}
 	sp := strings.Index(e, " ")
 	count := e
@@ -1991,16 +2010,12 @@ func tclCatchsqlMatches(res *frigolite.Result, expected string) bool {
 	if sp >= 0 {
 		count = e[:sp]
 		msg = strings.TrimSpace(e[sp+1:])
-		msg = strings.Trim(msg, "{}")
-		msg = strings.TrimSpace(msg)
-	}
-	// A slash-wrapped expected form (/1 .*failed.*/) uses the count in the
-	// leading /N and a regex message.
-	isRegex := false
-	if strings.HasPrefix(count, "/") && strings.HasSuffix(msg, "/") {
-		count = strings.TrimPrefix(count, "/")
-		msg = strings.TrimSuffix(msg, "/")
-		isRegex = true
+		// TCL lindex unwraps exactly one quoting level: strip ONE brace pair,
+		// not every leading/trailing brace (a regex text ending in "}" would
+		// be corrupted by an unconditional Trim).
+		if len(msg) >= 2 && strings.HasPrefix(msg, "{") && strings.HasSuffix(msg, "}") {
+			msg = strings.TrimSpace(msg[1 : len(msg)-1])
+		}
 	}
 	switch count {
 	case "0":
@@ -2009,13 +2024,33 @@ func tclCatchsqlMatches(res *frigolite.Result, expected string) bool {
 		if res.Error == nil {
 			return false
 		}
-		if isRegex {
-			ok, _ := regexp.MatchString(msg, res.Error.Error())
-			return ok
-		}
 		return strings.Contains(res.Error.Error(), msg)
 	}
 	return false
+}
+
+// tclCatchsqlRegexMatches applies a tester.tcl do_test regex expected value to
+// the stringified whole catchsql result (tclCatchsqlString: "0 {rows}" or
+// "1 {msg}"), mirroring tester.tcl's [regexp $re $result] branch: a pattern
+// beginning with "*" is treated as a glob, "#" stands for a run of numeric
+// characters, and TCL's "\y" word-boundary escape becomes Go's "\b". negated
+// inverts the match (tester.tcl's "~/PATTERN/" form).
+func tclCatchsqlRegexMatches(res *frigolite.Result, pattern string, negated bool) bool {
+	got := tclCatchsqlString(res)
+	if strings.HasPrefix(pattern, "*") {
+		// tester.tcl: a leading * makes the expected value a glob, not a regex.
+		if globMatch(got, pattern) {
+			return !negated
+		}
+		return negated
+	}
+	pattern = strings.ReplaceAll(pattern, "#", "[-0-9.]+")
+	pattern = strings.ReplaceAll(pattern, "\\y", "\\b")
+	ok, _ := regexp.MatchString(pattern, got)
+	if negated {
+		return !ok
+	}
+	return ok
 }
 
 // tclCatchsqlString renders a *frigolite.Result in TCL's catchsql command
@@ -5838,4 +5873,81 @@ func tclFileControlTempFileName(db *frigolite.DB) string {
 		b[i] = chars[int(b[i])%len(chars)]
 	}
 	return filepath.Join(os.TempDir(), "etilqs_"+string(b))
+}
+
+// ---- sqlite3_trace / sqlite3_profile / sqlite3_trace_v2 harness support
+// ---- (tclsqlite.c DB_TRACE / DB_PROFILE / DB_TRACE_V2).
+
+// tclTraceNames mirrors tclsqlite.c's per-connection zTrace/zProfile/
+// zTraceV2 proc-name registry: the getter form ("db trace" with no args)
+// returns the registered proc name. Keyed by connection plus command kind.
+var tclTraceNames = map[[2]interface{}]string{}
+
+// tclTraceNameSet records (or clears with "") the proc name registered for
+// the connection's trace/profile/trace_v2 command.
+func tclTraceNameSet(db *frigolite.DB, kind, name string) {
+	tclTraceNames[[2]interface{}{db, kind}] = name
+}
+
+// tclTraceName returns the registered proc name ("" when none).
+func tclTraceName(db *frigolite.DB, kind string) string {
+	return tclTraceNames[[2]interface{}{db, kind}]
+}
+
+// tclWrongNumArgs builds tclsqlite.c's Tcl_WrongNumArgs message for the
+// trace-family commands ("catch {db trace 1 2 3}" -> wrong # args).
+func tclWrongNumArgs(what string) error {
+	return fmt.Errorf("wrong # args: should be \"db %s ?CALLBACK?\"", what)
+}
+
+// tclBadTraceType builds the DB_TRACE_V2 mask-parse error
+// (trace3-1.2: catch {db trace_v2 1 bad}).
+func tclBadTraceType(name string) error {
+	return fmt.Errorf("bad trace type \"%s\": must be statement, profile, row, or close", name)
+}
+
+// tclTrimSpace is [string trim] for the trace callbacks' appended text.
+func tclTrimSpace(s string) string {
+	return strings.TrimSpace(s)
+}
+
+// tclTraceArgs renders the trace_v2 callback's argument list the way TCL
+// stringifies a list (each element space-separated, braced when needed) —
+// the trace_v2_record proc appends exactly this rendering.
+func tclTraceArgs(vals ...string) string {
+	out := ""
+	for _, v := range vals {
+		out = tclListAppend(out, v)
+	}
+	return out
+}
+
+// tclTraceImpls / tclProfileImpls resolve a proc NAME to its transpiled
+// callback body at CALL time: TCL redefines procs after they were
+// registered with db trace / db profile (trace.test 2.1 redefines
+// trace_proc to append to TRACE_OUT), so the hook dispatches through the
+// latest definition rather than capturing the body at registration.
+var tclTraceImpls = map[string]func(sqlText string){}
+var tclProfileImpls = map[string]func(sqlText string, ns int64){}
+
+func tclTraceImplSet(name string, fn func(sqlText string)) {
+	tclTraceImpls[name] = fn
+}
+
+func tclTraceImpl(name string) func(sqlText string) {
+	return tclTraceImpls[name]
+}
+
+func tclProfileImplSet(name string, fn func(sqlText string, ns int64)) {
+	tclProfileImpls[name] = fn
+}
+
+func tclProfileImpl(name string) func(sqlText string, ns int64) {
+	return tclProfileImpls[name]
+}
+
+// tclWrongNumArgsMask is the trace_v2 variant of the Tcl_WrongNumArgs
+// message (the mask argument is optional: ?CALLBACK? ?MASK?).
+func tclWrongNumArgsMask(what string) error {
+	return fmt.Errorf("wrong # args: should be \"db %s ?CALLBACK? ?MASK?\"", what)
 }

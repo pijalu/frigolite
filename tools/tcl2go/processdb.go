@@ -768,6 +768,21 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 		tp.emitLine("}, 1, -1)")
 		return
 	}
+	// `db func pmatch pmatch` (fts5phrase.test:81) — the substring-probe
+	// oracle UDF: proc pmatch {col expr} { return [expr {[string first
+	// $expr $col]>=0}] }. Its WHERE clauses generate the expected rowids
+	// for the phrase-query comparison loop.
+	if strings.EqualFold(name, "pmatch") && strings.EqualFold(procName, "pmatch") {
+		tp.emitLine("// db func pmatch pmatch (fts5phrase.test substring-probe oracle UDF)")
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 2 || args[0] == nil || args[1] == nil { return int64(0), nil }")
+		tp.emitLine("\tcol := function.ValueText(args[0])")
+		tp.emitLine("\texpr := function.ValueText(args[1])")
+		tp.emitLine("\tif strings.Contains(col, expr) { return int64(1), nil }")
+		tp.emitLine("\treturn int64(0), nil")
+		tp.emitLine("}, 0, -1)")
+		return
+	}
 	// `db func f1 f1` / `db func f2 f2` (tkt3718.test) — the proc body
 	// recursively runs SQL via `db eval` or raises an error. Detect the
 	// tkt3718 proc body shapes and emit the equivalent Go UDF.

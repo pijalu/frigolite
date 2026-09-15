@@ -769,8 +769,12 @@ func hasGeneratedCols(colDefs []sql.ColumnDef) bool {
 
 // scanForConflict iterates through all rows and looks for a value match
 // on any of the given UNIQUE column indices. It returns the conflicting row's
-// rowid, its values, and the column index that conflicted.
-func scanForConflict(cursor *btree.Cursor, uniqueCols []int, values []interface{}, colDefs []sql.ColumnDef) (int64, []interface{}, int, bool) {
+// rowid, its values, and the column index that conflicted. createSQL drives
+// the WITHOUT ROWID storage-order → declared-order record remap (a no-op for
+// rowid tables): without it a PK-not-first WITHOUT ROWID record's shuffled
+// slots are compared against declared-order UNIQUE indices and conflicts are
+// missed (conflict3.test 4.3).
+func (e *DMLExecutor) scanForConflict(cursor *btree.Cursor, uniqueCols []int, values []interface{}, colDefs []sql.ColumnDef, createSQL string) (int64, []interface{}, int, bool) {
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil || cell == nil {
@@ -782,6 +786,9 @@ func scanForConflict(cursor *btree.Cursor, uniqueCols []int, values []interface{
 			break
 		}
 
+		// WITHOUT ROWID records are stored PK-first: permute the values back
+		// to declared order so the UNIQUE column indices line up.
+		e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
 		// Rowid-alias convention: the IPK column reads back NULL from the
 		// record (NullIPKAliasForWrite); its value IS the rowid. Without the
 		// substitution an inserted row with an explicit IPK value never
@@ -845,6 +852,9 @@ func (e *DMLExecutor) scanAllUniqueConflicts(tableEntry *schema.Entry, colDefs [
 		if err != nil || rec == nil {
 			break
 		}
+		// WITHOUT ROWID records are stored PK-first: permute back to declared
+		// order before the declared-index conflict comparison.
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 		// Rowid-alias convention: the IPK column is stored NULL in the
 		// record (NullIPKAliasForWrite) and its value IS the rowid, so the
 		// UNIQUE/PK comparison must read the rowid for that slot — otherwise

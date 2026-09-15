@@ -21,6 +21,7 @@ type transpiler struct {
 	dbVar               string
 	t                   string
 	varCount            int
+	fdmSeq              int // foreach_detail_mode counter (unique Go loop-var suffixes)
 	vars                []string
 	currentTestFile     string                  // TCL test file base name (e.g. "fts4aa"), for wantOverrides lookup
 	catchMode           bool                    // true when transpiling inside a catch {} block

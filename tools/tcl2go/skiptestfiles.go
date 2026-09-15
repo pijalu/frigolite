@@ -403,6 +403,12 @@ var skipTestFiles = map[string]string{
 	"rtreedoc2":    "N-A register_box_geom wraps a TCL-script callback (invokeTclGeomCb) — untranspilable (evidence frigolite_rtree_query2_test.go: qcircle/Qcircle contracts green in-package)",
 	"rtreedoc3":    "N-A register_box_query untranspiled — the generated input never registers qbox (C fails identically on that input); RtreeQueryInfo observability anchored by frigolite_rtree_query2_test.go TestNativeRtreeQuery2InfoState",
 	"fts5unicode2": "RUNAWAY — unbounded temp growth (~9G/min) in the current engine; must never run casually (evidence frigolite_fts5_test.go sessions 2026-09-13); triage the loop before un-skipping",
+
+	// P6.FTS5 RESUME (2026-09-15): TCL-proc tokenizer / oracle-UDF harness
+	// classes (fts5_tcl.c test-harness extension, unregistrable in pure Go).
+	"fts5locale":      "N/A: all sections build tables with tokenize=tcl registered by sqlite3_fts5_create_tokenizer -v2 (a V2 locale-aware TCL-proc tokenizer, fts5locale.test:58-88, fts5_tcl.c harness API); the engine's fts5_locale()/locale=1 config and error contracts are pinned by fts5blob 3.x ('fts5_locale() requires locale=1') (no-side-effects)",
+	"fts5origintext2": "N/A: every section runs under the 'origintext' tokenizer registered by sqlite3_fts5_register_origintext (fts5_tcl.c:1521 test-harness extension emitting origin-marker tokens, unregistrable in the pure-Go port); the tokenendata/origin-token storage contracts are additionally the mirror-storage divergence class (2004/2004 assertion failures all originate in that tokenizer)",
+	"fts5origintext5": "N/A: same sqlite3_fts5_register_origintext harness class as fts5origintext2 (fts5_tcl.c:1521); its 40 failures are all origintext-tokenizer sections",
 	"rtreefuzz001": "N-A database_may_be_corrupt stale matchers + untranspilable corruption fixtures (evidence frigolite_rtreeA_J_8_native_test.go + frigolite_geopoly_test.go + frigolite_rtree_query2_test.go; :2447's {/1 .*corrupt.*/} is stale on current C builds — python3 sqlite3 3.53.4 errors 'malformed' on the same c3.db; :6006/:6012 geopoly assertions GREEN with the T30 geopoly module)",
 
 	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages

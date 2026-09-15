@@ -112,6 +112,28 @@ func dequoteFirstArg(s string) string {
 	return s
 }
 
+// rankValue returns the unwrapped value of the hidden rank column.
+func rankValue(t5 *fts5.Table, values []interface{}) interface{} {
+	_, rankVal := fts5HiddenValues(t5, values)
+	return util.UnwrapColumnValue(rankVal)
+}
+
+// fts5SpecialCommandArgs builds the argument vector of one special-insert
+// directive: most commands take their value from the rank slot (C's
+// apVal[2+nCol]); 'delete' reads apVal[1] — the explicit rowid — and
+// apVal[2..] — the supplied user column values (fts5SpecialDelete).
+func fts5SpecialCommandArgs(cmd string, userVals []interface{}, rankVal interface{}, fixedRowID *int64) []interface{} {
+	if fixedRowID != nil && strings.EqualFold(cmd, "delete") {
+		args := make([]interface{}, 0, len(userVals)+1)
+		args = append(args, *fixedRowID)
+		for _, uv := range userVals {
+			args = append(args, util.UnwrapColumnValue(uv))
+		}
+		return args
+	}
+	return []interface{}{rankVal}
+}
+
 // insertFTS5Row routes one INSERT row to an fts5 table (fts5UpdateMethod's
 // insert + special-insert paths). values is indexed by the fts5 colDefs order
 // (user columns, then the hidden table-name and rank columns).
@@ -123,13 +145,7 @@ func (e *DMLExecutor) insertFTS5Row(t5 *fts5.Table, tableEntry *schema.Entry, va
 	if cmdVal != nil {
 		cmd := util.UnwrapColumnValue(cmdVal)
 		if s, ok := cmd.(string); ok {
-			_, rankVal := fts5HiddenValues(t5, values)
-			// fts5SpecialDelete reads apVal[1] — the explicit rowid —
-			// before the rank slot the other commands use.
-			cmdArgs := []interface{}{util.UnwrapColumnValue(rankVal)}
-			if fixedRowID != nil && strings.EqualFold(s, "delete") {
-				cmdArgs = []interface{}{*fixedRowID, util.UnwrapColumnValue(rankVal)}
-			}
+			cmdArgs := fts5SpecialCommandArgs(s, userVals, rankValue(t5, values), fixedRowID)
 			handled, err := t5.SpecialCommand(s, cmdArgs)
 			if err != nil {
 				return &Result{Error: err}
@@ -141,6 +157,15 @@ func (e *DMLExecutor) insertFTS5Row(t5 *fts5.Table, tableEntry *schema.Entry, va
 			// An unknown directive reaches fts5ConfigSetValue's badkey path:
 			// C's generic SQLITE_ERROR.
 			return &Result{Error: fmt.Errorf("SQL logic error")}
+		}
+	}
+	// It is an error to write an fts5_locale() value to a table without the
+	// locale=1 option (fts5_main.c:2005-2020, SQLITE_MISMATCH).
+	if !t5.Config().Locale {
+		for _, v := range userVals {
+			if fts5.IsLocaleValue(util.UnwrapColumnValue(v)) {
+				return &Result{Error: fmt.Errorf("fts5_locale() requires locale=1")}
+			}
 		}
 	}
 	// Resolve the rowid: explicit, or auto-allocated (max existing + 1).
@@ -347,6 +372,11 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			v, verr := e.ctx.EvalExpr(a.Value, evalMap)
 			if verr != nil {
 				return &Result{Error: verr}
+			}
+			// Writing an fts5_locale() value to a locale-less table is an
+			// error (fts5_main.c:2005-2020; the check spans UPDATE values).
+			if !t5.Config().Locale && fts5.IsLocaleValue(util.UnwrapColumnValue(v)) {
+				return &Result{Error: fmt.Errorf("fts5_locale() requires locale=1")}
 			}
 			newVals[idx] = v
 			changed = true

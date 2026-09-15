@@ -597,7 +597,7 @@ func (aq *AuxQuery) Highlight(rowid int64, iCol int, zOpen, zClose string) (inte
 	}
 	p.iter = coalesceInstances(aq.RowInstances(rowid), aq, iCol)
 	p.iterNext()
-	for _, tok := range t.tok.Tokenize(text) {
+	for _, tok := range t.tokenizeFor(text) {
 		p.token(tok.Start, tok.End)
 	}
 	if p.bOpen {
@@ -694,7 +694,7 @@ func (aq *AuxQuery) Snippet(rowid int64, iCol int, zOpen, zClose, zEllips string
 		nDocsize := t.columnTokenCount(rowid, i)
 		var firsts []int
 		if text, ok, err := t.columnText(rowid, i); err == nil && ok {
-			firsts = sentenceStarts(text, t.tok.Tokenize(text))
+			firsts = sentenceStarts(text, t.tokenizeFor(text))
 		}
 		for _, in := range insts {
 			if in.Col != i {
@@ -765,7 +765,7 @@ func (aq *AuxQuery) Snippet(rowid int64, iCol int, zOpen, zClose, zEllips string
 	for p.iStart >= 0 && p.iStart < iBestStart {
 		p.iterNext()
 	}
-	for _, tok := range t.tok.Tokenize(text) {
+	for _, tok := range t.tokenizeFor(text) {
 		p.token(tok.Start, tok.End)
 	}
 	if p.bOpen {

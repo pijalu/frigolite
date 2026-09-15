@@ -340,6 +340,16 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		return `"0"`
 	}
 
+	// [detail_is_none] / [detail_is_col] / [detail_is_full] — fts5_common.tcl
+	// predicates over the foreach_detail_mode loop variable (rendered as the
+	// generated _fdmModeN Go var). Resolved to a runtime "1"/"0" so they
+	// compose both as bare conditions and inside ==0 numeric comparisons.
+	switch cmdName {
+	case "detail_is_none", "detail_is_col", "detail_is_full":
+		mode := strings.TrimPrefix(cmdName, "detail_is_")
+		return fmt.Sprintf("tclBool01(_fdmMode%d == %q)", tp.fdmSeq, mode)
+	}
+
 	// [sqlite3_fts5_tokenize DB TOKENIZER TEXT] — the fts5_tcl.c test bridge
 	// (f5tTokenize): returns the flat TCL list "token start end ..." for TEXT
 	// tokenized through TOKENIZER (a TCL list of spec words). The generated

@@ -336,7 +336,10 @@ func newPorterTokenizer(args []string) (Tokenizer, error) {
 	// remove_diacritics 1").
 	base, err := NewTokenizer(args)
 	if err != nil {
-		return nil, err
+		// A failed base-tokenizer create surfaces through
+		// sqlite3Fts5LoadTokenizer as the generic constructor error, never
+		// the locate error (fts5tokenizer 1.1: 'porter nosuch').
+		return nil, tokenizerArgError()
 	}
 	return porterTokenizer{base: base}, nil
 }

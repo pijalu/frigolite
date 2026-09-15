@@ -153,6 +153,10 @@ func (e *Engine) registerFTSModules() {
 	// (fts5_expr.c); the functions raise C's arity messages themselves.
 	e.funcs.Register("fts5_isalnum", fts5.IsAlnumFunc, 0, -1)
 	e.funcs.Register("fts5_fold", fts5.FoldFunc, 0, -1)
+	// fts5_locale: fts5_main.c fts5LocaleFunc — tags a value with a locale
+	// for locale=1 tables; writing one to a locale-less table is an error
+	// enforced by the fts5 insert/update path (fts5_main.c:2005).
+	e.funcs.Register("fts5_locale", fts5.LocaleFunc, 2, 2)
 }
 
 // resolveFTS5VocabTarget resolves an fts5vocab module's target table: the
@@ -174,6 +178,18 @@ func (e *Engine) resolveFTS5VocabTarget(dbName, tbl string) (*fts5.Table, string
 		modName := ""
 		if m, _, isVtab := vtabModuleFromSQL(entry.SQL); isVtab {
 			modName = m
+		}
+		// findTable rehydrates the fts5 instance (ensureFTSForTable) — a
+		// table whose reopen-time tokenizer resolution was deferred loads
+		// its index here, so re-check the map before falling back to the
+		// schema-only answer (fts5tokenizer 10.9/10.10).
+		if t, ok := e.fts5Tables[tbl]; ok {
+			return t, "fts5", true
+		}
+		for n, t := range e.fts5Tables {
+			if strings.EqualFold(n, tbl) {
+				return t, "fts5", true
+			}
 		}
 		return nil, modName, true
 	}

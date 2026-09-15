@@ -198,6 +198,15 @@ func (ix *InvertedIndex) termDocCount(term string) int {
 // NumDocs returns the indexed document count.
 func (ix *InvertedIndex) NumDocs() int { return len(ix.docs) }
 
+// ColTotal returns the total token count of column col across all documents
+// (p->aTotalSize[col] analog).
+func (ix *InvertedIndex) ColTotal(col int) int64 {
+	if col < len(ix.nTokensPerCol) {
+		return ix.nTokensPerCol[col]
+	}
+	return 0
+}
+
 // Snapshot returns a deep copy of the index for statement rollback.
 func (ix *InvertedIndex) Snapshot() *InvertedIndex {
 	cp := NewInvertedIndex(len(ix.nTokensPerCol))

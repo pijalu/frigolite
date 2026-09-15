@@ -6,6 +6,7 @@ package fts5phrase
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strings"
@@ -82,7 +83,14 @@ func Test_fts5phrase(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	db.RegisterFunction("pmatch", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func pmatch pmatch (fts5phrase.test substring-probe oracle UDF)
+	db.RegisterFunction("pmatch", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 || args[0] == nil || args[1] == nil { return int64(0), nil }
+		col := function.ValueText(args[0])
+		expr := function.ValueText(args[1])
+		if strings.Contains(col, expr) { return int64(1), nil }
+		return int64(0), nil
+	}, 0, -1)
 	// foreach {tn cols tokens} "1 a         \"c c\"\n  2 b         \"c c\"\n  3 c         \"c c\"\n  4 {a b c}   \"c c\"\n  5 {a b c}   \"b h\"\n  6 {a b}     \"b h\"\n  7 {a c}     \"b h\"\n  8 {c a}     \"b h\"\n  9 {c}       \"i e\"\n  10 {b}      \"i e\"\n  11 {a}      \"i e\""
 	_items0 := tclSplitList("1 a         \"c c\"\n  2 b         \"c c\"\n  3 c         \"c c\"\n  4 {a b c}   \"c c\"\n  5 {a b c}   \"b h\"\n  6 {a b}     \"b h\"\n  7 {a c}     \"b h\"\n  8 {c a}     \"b h\"\n  9 {c}       \"i e\"\n  10 {b}      \"i e\"\n  11 {a}      \"i e\"")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -114,6 +122,7 @@ func Test_fts5phrase(t *testing.T) {
 					}
 					got := flatten(r)
 					want := tclListFlatten(res)
+					got = tclListFlattenCollapse(got)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
