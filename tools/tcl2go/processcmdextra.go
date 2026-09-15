@@ -805,6 +805,20 @@ func (tp *transpiler) processProc(args []tcl.RawWord) {
 		tp.procBodies = make(map[string]string)
 	}
 	globalProcBodies[name] = body
+	// A proc whose body appends [string trim $cmd] to a global list is a
+	// trace/profile callback candidate (trace.test's trace_proc/
+	// profile_proc): publish the transpiled body so `db trace <name>` hooks
+	// resolve the LATEST definition at call time (TCL redefinition
+	// semantics — trace.test 2.1 redefines trace_proc after registering).
+	if goVar := traceAppendTarget(body); goVar != "" {
+		tp.emitLine("tclTraceImplSet(%q, func(sqlText string) {", name)
+		tp.emitLine("%s = tclListAppend(%s, tclTrimSpace(sqlText))", goVar, goVar)
+		tp.emitLine("})")
+		tp.emitLine("tclProfileImplSet(%q, func(sqlText string, ns int64) {", name)
+		tp.emitLine("_ = ns")
+		tp.emitLine("%s = tclListAppend(%s, tclTrimSpace(sqlText))", goVar, goVar)
+		tp.emitLine("})")
+	}
 	if prev, ok := tp.procBodies[name]; !ok || prev != body {
 		tp.procBodies[name] = body
 	}
@@ -963,7 +977,7 @@ func (tp *transpiler) processNamedDBBusy(goName string, rest []tcl.RawWord) {
 	}
 	tclVar := strings.TrimPrefix(parts[0], "::")
 	param := strings.TrimPrefix(parts[1], "$")
-	goVar := tclGoVarName(tclVar)
+	goVar := tclVarToGo(tclVar)
 	aborts := false
 	if len(stmts) == 2 {
 		cond := stmts[1]
@@ -1017,6 +1031,231 @@ func (tp *transpiler) processNamedDBBusy(goName string, rest []tcl.RawWord) {
 	tp.emitLine("})")
 }
 
+// processNamedDBTraceProfile handles `dbN trace <proc>` and
+// `dbN profile <proc>` — the TCL bindings of sqlite3_trace and
+// sqlite3_profile (tclsqlite.c DB_TRACE / DB_PROFILE). The getter form
+// returns the registered proc name; a single "{}" clears; two or more
+// arguments raise tclsqlite.c's Tcl_WrongNumArgs error (trace-1.1 /
+// trace-3.1). Registration recognizes the suite's callback bodies — a
+// single `lappend ::VAR [string trim $cmd]` statement (trace_proc /
+// profile_proc append the trimmed statement text) or the `global VAR` +
+// `lappend VAR [string trim $sql]` pair — and emits a Go closure appending
+// the statement text to the generated test's Go variable.
+func (tp *transpiler) processNamedDBTraceProfile(goName string, rest []tcl.RawWord, kind string) {
+	if len(rest) == 0 {
+		tp.emitLine("_r = tclTraceName(%s, %q) // lindex result", goName, kind)
+		return
+	}
+	if len(rest) > 1 {
+		if tp.catchMode {
+			tp.emitLine("_catchErr = tclWrongNumArgs(%q)", kind)
+		} else {
+			tp.emitLine("// %s.%s (wrong # args)", goName, kind)
+		}
+		return
+	}
+	name := strings.TrimSpace(rest[0].Text)
+	if name == "" || name == "{}" {
+		tp.emitLine("tclTraceNameSet(%s, %q, \"\")", goName, kind)
+		if kind == "profile" {
+			tp.emitLine("%s.SetProfileHook(nil)", goName)
+		} else {
+			tp.emitLine("%s.SetTraceHook(nil)", goName)
+		}
+		return
+	}
+	body := globalProcBodies[name]
+	if body == "" {
+		if tp.procBodies != nil {
+			body = tp.procBodies[name]
+		}
+	}
+	goVar := traceAppendTarget(body)
+	if goVar == "" {
+		tp.emitLine("// %s.%s %s (proc body not recognized, not transpiled)", goName, kind, name)
+		return
+	}
+	tp.emitLine("tclTraceNameSet(%s, %q, %q)", goName, kind, name)
+	// The hook resolves the proc body at call time (TCL redefinition
+	// semantics: trace.test 2.1 redefines trace_proc AFTER registering it).
+	if kind == "profile" {
+		tp.emitLine("%s.SetProfileHook(func(sqlText string, ns int64) {", goName)
+		tp.emitLine("if impl := tclProfileImpl(%q); impl != nil {", name)
+		tp.emitLine("impl(sqlText, ns)")
+		tp.emitLine("}")
+	} else {
+		tp.emitLine("%s.SetTraceHook(func(sqlText string) {", goName)
+		tp.emitLine("if impl := tclTraceImpl(%q); impl != nil {", name)
+		tp.emitLine("impl(sqlText)")
+		tp.emitLine("}")
+	}
+	tp.emitLine("})")
+	_ = goVar
+}
+
+// traceAppendTarget recognizes the trace/profile callback bodies used by
+// trace.test: `lappend ::VAR [string trim $cmd]` (optionally preceded by a
+// `global VAR` statement) and returns the generated Go variable name, or ""
+// when the body does not match.
+func traceAppendTarget(body string) string {
+	if body == "" {
+		return ""
+	}
+	stmts := splitProcBodyStmts(body)
+	if len(stmts) == 0 || len(stmts) > 2 {
+		return ""
+	}
+	lapp := stmts[len(stmts)-1]
+	globalStmt := ""
+	if len(stmts) == 2 {
+		globalStmt = stmts[0]
+		if !strings.HasPrefix(globalStmt, "global ") {
+			return ""
+		}
+		globalVar := strings.TrimSpace(strings.TrimPrefix(globalStmt, "global "))
+		if !strings.HasPrefix(lapp, "lappend "+globalVar+" ") {
+			return ""
+		}
+	}
+	goVar := ""
+	if strings.HasPrefix(lapp, "lappend ::") {
+		rest1 := strings.TrimSpace(strings.TrimPrefix(lapp, "lappend ::"))
+		varName, expr, ok := splitFirstWord(rest1)
+		if ok && strings.HasPrefix(expr, "[string trim $") && strings.HasSuffix(expr, "]") {
+			goVar = strings.TrimPrefix(varName, "::")
+		}
+	} else if globalStmt != "" {
+		globalVar := strings.TrimSpace(strings.TrimPrefix(globalStmt, "global "))
+		rest1 := strings.TrimSpace(strings.TrimPrefix(lapp, "lappend "+globalVar+" "))
+		if strings.HasPrefix(rest1, "[string trim $") && strings.HasSuffix(rest1, "]") {
+			goVar = globalVar
+		}
+	}
+	if goVar == "" {
+		return ""
+	}
+	return tclVarToGo(goVar)
+}
+
+// splitFirstWord splits "word rest-of-line" into (word, rest).
+func splitFirstWord(s string) (word, rest string, ok bool) {
+	i := strings.IndexAny(s, " \t")
+	if i < 0 {
+		return s, "", true
+	}
+	return s[:i], strings.TrimSpace(s[i+1:]), true
+}
+
+// processNamedDBTraceV2 handles `dbN trace_v2 <proc> ?MASK?` — the TCL
+// binding of sqlite3_trace_v2 (tclsqlite.c DB_TRACE_V2). The mask defaults
+// to SQLITE_TRACE_STMT (the "legacy" default); mask lists accept the names
+// statement/profile/row/close and their numeric values; an unknown word
+// raises the bad-trace-type error (trace3-1.2). The recognized callback
+// body is `lappend ::VAR [string trim $args]` — the proc appends the TCL
+// rendering of its argument list, which the emitted closure builds per
+// event (statement: id+SQL, profile: id+nanoseconds, row/close: id).
+func (tp *transpiler) processNamedDBTraceV2(goName string, rest []tcl.RawWord) {
+	if len(rest) == 0 {
+		tp.emitLine("_r = tclTraceName(%s, \"trace_v2\") // lindex result", goName)
+		return
+	}
+	name := strings.TrimSpace(rest[0].Text)
+	mask := exec_trace_stmt
+	if len(rest) > 1 {
+		mask = 0
+		for _, tok := range strings.Fields(rest[1].Text) {
+			switch tok {
+			case "statement":
+				mask |= exec_trace_stmt
+			case "profile":
+				mask |= exec_trace_profile
+			case "row":
+				mask |= exec_trace_row
+			case "close":
+				mask |= exec_trace_close
+			case "1":
+				mask |= exec_trace_stmt
+			case "2":
+				mask |= exec_trace_profile
+			case "4":
+				mask |= exec_trace_row
+			case "8":
+				mask |= exec_trace_close
+			default:
+				if tp.catchMode {
+					tp.emitLine("_catchErr = tclBadTraceType(%q)", tok)
+				} else {
+					tp.emitLine("// %s.trace_v2 (bad trace type %q)", goName, tok)
+				}
+				return
+			}
+		}
+	}
+	if name == "" || name == "{}" {
+		tp.emitLine("tclTraceNameSet(%s, \"trace_v2\", \"\")", goName)
+		tp.emitLine("%s.SetTraceV2Hook(nil, 0)", goName)
+		return
+	}
+	body := globalProcBodies[name]
+	if body == "" {
+		if tp.procBodies != nil {
+			body = tp.procBodies[name]
+		}
+	}
+	if len(rest) > 2 {
+		if tp.catchMode {
+			tp.emitLine("_catchErr = tclWrongNumArgsMask(\"trace_v2\")")
+		} else {
+			tp.emitLine("// %s.trace_v2 (wrong # args)", goName)
+		}
+		return
+	}
+	tp.emitLine("tclTraceNameSet(%s, \"trace_v2\", %q)", goName, name)
+	goVar := traceV2AppendTarget(body)
+	if goVar == "" {
+		tp.emitLine("// %s.trace_v2 %s (proc body not recognized, not transpiled)", goName, name)
+		return
+	}
+	tp.emitLine("%s.SetTraceV2Hook(func(event int, id int64, text string) {", goName)
+	tp.emitLine("idStr := strconv.FormatInt(id, 10)")
+	tp.emitLine("switch event {")
+	tp.emitLine("case frigolite.TraceStmt:")
+	tp.emitLine("%s = tclListAppend(%s, tclTraceArgs(idStr, text))", goVar, goVar)
+	tp.emitLine("case frigolite.TraceProfile:")
+	tp.emitLine("%s = tclListAppend(%s, tclTraceArgs(idStr, text))", goVar, goVar)
+	tp.emitLine("case frigolite.TraceRow:")
+	tp.emitLine("%s = tclListAppend(%s, tclTraceArgs(idStr))", goVar, goVar)
+	tp.emitLine("case frigolite.TraceClose:")
+	tp.emitLine("%s = tclListAppend(%s, tclTraceArgs(idStr))", goVar, goVar)
+	tp.emitLine("}")
+	tp.emitLine("}, %d)", mask)
+}
+
+// traceV2AppendTarget recognizes the trace_v2 callback body
+// `lappend ::VAR [string trim $args]` and returns the generated Go
+// variable name ("" when unrecognized).
+func traceV2AppendTarget(body string) string {
+	stmts := splitProcBodyStmts(body)
+	if len(stmts) == 0 {
+		return ""
+	}
+	lapp := stmts[0]
+	if !strings.HasPrefix(lapp, "lappend ::") {
+		return ""
+	}
+	rest1 := strings.TrimSpace(strings.TrimPrefix(lapp, "lappend ::"))
+	varName, expr, _ := splitFirstWord(rest1)
+	if strings.HasPrefix(expr, "[string trim $") && strings.HasSuffix(expr, "]") {
+		return tclVarToGo(strings.TrimPrefix(varName, "::"))
+	}
+	return ""
+}
+
+const exec_trace_stmt = 1
+const exec_trace_profile = 2
+const exec_trace_row = 4
+const exec_trace_close = 8
+
 // splitProcBodyStmts splits a proc body into top-level statements
 // (newline- or semicolon-separated, trimmed; empty pieces dropped).
 func splitProcBodyStmts(body string) []string {
@@ -1033,12 +1272,7 @@ func splitProcBodyStmts(body string) []string {
 	return out
 }
 
-// tclGoVarName maps a TCL variable name to the generated Go identifier
-// (the transpiler names test locals after the TCL variable, minus any
-// leading :: namespace marker).
-func tclGoVarName(name string) string {
-	return strings.TrimPrefix(name, "::")
-}
+
 
 // registerProcKinds tries each simple proc kind (constant, counter, predicate,
 // join, collation) in order and registers the first match. Returns true when a

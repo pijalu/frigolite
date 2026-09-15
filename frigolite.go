@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/exec"
@@ -527,6 +528,44 @@ func (db *DB) SetAutovacuumPagesCallback(fn func(schema string, fileSize, nFree,
 	}
 }
 
+// sqlite3_trace_v2 event masks (sqlite.h), re-exported for the trace_v2
+// hooks.
+const (
+	TraceStmt    = exec.TraceStmt
+	TraceProfile = exec.TraceProfile
+	TraceRow     = exec.TraceRow
+	TraceClose   = exec.TraceClose
+)
+
+// SetTraceHook registers the legacy sqlite3_trace callback: it fires when a
+// statement first begins running, with the statement text as prepared. A nil
+// callback clears the hook.
+func (db *DB) SetTraceHook(fn func(sql string)) {
+	if db == nil {
+		return
+	}
+	db.engine.SetTraceHook(fn)
+}
+
+// SetProfileHook registers the sqlite3_profile callback: it fires when a
+// statement finishes with the statement text and elapsed nanoseconds. A nil
+// callback clears the hook.
+func (db *DB) SetProfileHook(fn func(sql string, ns int64)) {
+	if db == nil {
+		return
+	}
+	db.engine.SetProfileHook(fn)
+}
+
+// SetTraceV2Hook registers the sqlite3_trace_v2 callback with an event mask
+// (TraceStmt|TraceProfile|TraceRow|TraceClose). A nil callback clears it.
+func (db *DB) SetTraceV2Hook(fn func(event int, id int64, text string), mask int) {
+	if db == nil {
+		return
+	}
+	db.engine.SetTraceV2Hook(fn, mask)
+}
+
 // SetBusyHandler registers the connection's busy handler
 // (sqlite3_busy_handler). The callback receives the number of previous
 // invocations for the current locked event and returns true to retry the
@@ -939,6 +978,11 @@ func (db *DB) Close() error {
 	if db == nil {
 		return nil
 	}
+	// SQLITE_TRACE_CLOSE fires before the connection is torn down
+	// (sqlite3_trace_v2; trace3-11.x).
+	if db.engine != nil {
+		db.engine.FireTraceClose()
+	}
 	// An active backup or open blob handle using this connection blocks close
 	// (sqlite3_close returns SQLITE_BUSY "unable to close due to unfinalized
 	// statements or unfinished backups"). The connection is being torn down:
@@ -1054,10 +1098,20 @@ func (db *DB) Exec(sqlStr string) *Result {
 		return &Result{Error: err}
 	}
 
+	texts := splitSQLStatements(sqlStr)
 	var lastResult *exec.Result
-	for _, stmt := range stmts {
+	for si, stmt := range stmts {
+		stmtText := ""
+		if si < len(texts) {
+			stmtText = texts[si]
+		}
+		t0 := time.Now()
+		db.engine.BeginStmtTrace(stmtText)
 		if vs, ok := stmt.(*sql.VacuumStmt); ok {
+			db.engine.SetTraceInternal(true)
 			res := db.execVacuumStmt(vs)
+			db.engine.SetTraceInternal(false)
+			db.engine.EndStmtTrace(stmtText, time.Since(t0).Nanoseconds())
 			if res.Error != nil {
 				db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
 				return execResult(res)
@@ -1066,6 +1120,10 @@ func (db *DB) Exec(sqlStr string) *Result {
 			continue
 		}
 		res := db.engine.Exec(stmt)
+		for ri := 0; ri < len(res.Rows); ri++ {
+			db.engine.FireTraceRow()
+		}
+		db.engine.EndStmtTrace(stmtText, time.Since(t0).Nanoseconds())
 		if res.Error != nil {
 			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
 			return execResult(res)
@@ -1120,9 +1178,19 @@ func (db *DB) Query(sqlStr string) *Result {
 
 	var allRows [][]interface{}
 	var allColumns []string
-	for _, stmt := range stmts {
+	texts := splitSQLStatements(sqlStr)
+	for si, stmt := range stmts {
+		stmtText := ""
+		if si < len(texts) {
+			stmtText = texts[si]
+		}
+		t0 := time.Now()
+		db.engine.BeginStmtTrace(stmtText)
 		if vs, ok := stmt.(*sql.VacuumStmt); ok {
+			db.engine.SetTraceInternal(true)
 			res := db.execVacuumStmt(vs)
+			db.engine.SetTraceInternal(false)
+			db.engine.EndStmtTrace(stmtText, time.Since(t0).Nanoseconds())
 			if res.Error != nil {
 				db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
 				r := execResult(res)
@@ -1136,6 +1204,10 @@ func (db *DB) Query(sqlStr string) *Result {
 			continue
 		}
 		res := db.engine.Exec(stmt)
+		for ri := 0; ri < len(res.Rows); ri++ {
+			db.engine.FireTraceRow()
+		}
+		db.engine.EndStmtTrace(stmtText, time.Since(t0).Nanoseconds())
 		if res.Error != nil {
 			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
 			r := execResult(res)
@@ -1288,4 +1360,30 @@ func lockFamilyErrorCode(msg string) (string, bool) {
 		return "SQLITE_CANTOPEN", true
 	}
 	return "", false
+}
+
+// splitSQLStatements cuts a SQL script into per-statement raw texts at
+// top-level semicolons. The cut is token-aware (sqlite3_prepare's walk):
+// semicolons inside string literals, blob literals, bracket identifiers, or
+// comments never split, so each chunk is exactly the text of one statement
+// including its trailing semicolon (sqlite3_stmt_sql semantics for the
+// trace/profile hooks).
+func splitSQLStatements(sqlStr string) []string {
+	tok := sql.NewTokenizer(sqlStr)
+	var texts []string
+	start := 0
+	for {
+		t := tok.Next()
+		switch t.Type {
+		case sql.TokenEOF, sql.TokenError:
+			if tail := sqlStr[start:]; strings.TrimSpace(tail) != "" {
+				texts = append(texts, tail)
+			}
+			return texts
+		case sql.TokenSemicolon:
+			text := sqlStr[start : t.Pos+len(t.Value)]
+			texts = append(texts, strings.TrimLeft(text, " \t\n\r\v\f"))
+			start = t.Pos + len(t.Value)
+		}
+	}
 }

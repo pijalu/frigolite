@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -132,4 +133,94 @@ func busyDefaultDelay(count int) (delay, prior int) {
 		return delays[count], totals[count]
 	}
 	return delays[n-1], totals[n-1] + delays[n-1]*(count-(n-1))
+}
+
+// sqlite3_trace_v2 event masks (sqlite.h).
+const (
+	TraceStmt    = 1
+	TraceProfile = 2
+	TraceRow     = 4
+	TraceClose   = 8
+)
+
+// SetTraceHook registers the legacy sqlite3_trace callback: it fires when a
+// statement first begins running, with the statement text as prepared
+// (sqlite3_stmt_sql semantics, trailing semicolon included). A nil callback
+// clears the hook.
+func (e *Engine) SetTraceHook(fn func(sql string)) {
+	e.traceHook = fn
+}
+
+// SetProfileHook registers the sqlite3_profile callback: it fires when a
+// statement finishes, with the statement text and the elapsed nanoseconds.
+// A nil callback clears the hook.
+func (e *Engine) SetProfileHook(fn func(sql string, ns int64)) {
+	e.profileHook = fn
+}
+
+// SetTraceV2Hook registers the sqlite3_trace_v2 callback. The event is one
+// of TraceStmt/TraceProfile/TraceRow/TraceClose; id is the statement id
+// (connection id for TraceClose) and text is the statement SQL for
+// TraceStmt, the elapsed nanoseconds rendering for TraceProfile, and empty
+// otherwise. Only events in mask fire (a zero mask disables all events).
+func (e *Engine) SetTraceV2Hook(fn func(event int, id int64, text string), mask int) {
+	e.traceV2Hook = fn
+	e.traceMask = mask
+}
+
+// BeginStmtTrace fires the legacy trace hook and the v2 STMT event for a
+// statement about to run and returns the statement id used by the matching
+// EndStmtTrace/FireTraceRow calls.
+func (e *Engine) BeginStmtTrace(sqlText string) int64 {
+	if e.traceInternal {
+		return 0
+	}
+	e.traceNextID++
+	e.traceCurID = e.traceNextID
+	if e.traceHook != nil {
+		e.traceHook(sqlText)
+	}
+	if e.traceV2Hook != nil && e.traceMask&TraceStmt != 0 {
+		e.traceV2Hook(TraceStmt, e.traceCurID, sqlText)
+	}
+	return e.traceCurID
+}
+
+// EndStmtTrace fires the profile hook and the v2 PROFILE event after a
+// statement ran.
+func (e *Engine) EndStmtTrace(sqlText string, ns int64) {
+	if e.traceInternal {
+		return
+	}
+	if e.profileHook != nil {
+		e.profileHook(sqlText, ns)
+	}
+	if e.traceV2Hook != nil && e.traceMask&TraceProfile != 0 {
+		e.traceV2Hook(TraceProfile, e.traceCurID, strconv.FormatInt(ns, 10))
+	}
+}
+
+// FireTraceRow fires the v2 ROW event for a produced result row.
+// SetTraceInternal toggles suppression of trace/profile events while the
+// engine runs internal statements (VACUUM's logical copy on the user
+// connection — C's internal vdbe programs never fire the user trace
+// callback).
+func (e *Engine) SetTraceInternal(on bool) {
+	e.traceInternal = on
+}
+
+func (e *Engine) FireTraceRow() {
+	if e.traceInternal {
+		return
+	}
+	if e.traceV2Hook != nil && e.traceMask&TraceRow != 0 {
+		e.traceV2Hook(TraceRow, e.traceCurID, "")
+	}
+}
+
+// FireTraceClose fires the v2 CLOSE event for the connection.
+func (e *Engine) FireTraceClose() {
+	if e.traceV2Hook != nil && e.traceMask&TraceClose != 0 {
+		e.traceV2Hook(TraceClose, e.connID, "")
+	}
 }

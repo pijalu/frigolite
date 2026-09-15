@@ -5,18 +5,16 @@
 package lock
 
 import (
-	"github.com/pijalu/frigolite"
-	"github.com/pijalu/frigolite/internal/vtab"
-	"os"
-	"strconv"
-	"strings"
-	"testing"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
+"testing"
 )
 
 func Test_lock(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatal(err)
-	}
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -28,11 +26,11 @@ func Test_lock(t *testing.T) {
 	var msg string
 	var _r string
 	var _berr error
-	_ = _berr            // suppress unused warning
-	_ = msg              // suppress unused warning
-	_ = _res             // suppress unused warning
-	_ = r                // suppress unused warning
-	_ = _r               // suppress unused warning
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -86,9 +84,7 @@ func Test_lock(t *testing.T) {
 		os.MkdirAll("tempdir/t1/t2", 0755)
 		db2, err = frigolite.Open("./tempdir/../tempdir/t1/.//t2/../../..//test.db")
 		tclConnRegister("db2", db2)
-		if err != nil {
-			t.Fatal(err)
-		}
+		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("dummy", "", "")
 		dummy = ""
 		_ = dummy // suppress unused warning
@@ -284,14 +280,12 @@ func Test_lock(t *testing.T) {
 					switch _dbevalRows6.Columns[_ci] {
 					}
 				}
-				_ = _r  // suppress unused warning
-				_ = msg // suppress unused warning
-				{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+				{ // catch block
 					var _catchErr error
 					_res = db.Exec("UPDATE t2 SET x=y, y=x")
-					if _res.Error != nil {
-						_catchErr = _res.Error
-					}
+					if _res.Error != nil { _catchErr = _res.Error }
 					if _catchErr != nil {
 						_r = "1"
 						msg = _catchErr.Error()
@@ -330,14 +324,12 @@ func Test_lock(t *testing.T) {
 					switch _dbevalRows8.Columns[_ci] {
 					}
 				}
-				_ = _r  // suppress unused warning
-				_ = msg // suppress unused warning
-				{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+				{ // catch block
 					var _catchErr error
 					_res = db.Exec("SELECT a FROM t1")
-					if _res.Error != nil {
-						_catchErr = _res.Error
-					}
+					if _res.Error != nil { _catchErr = _res.Error }
 					if _catchErr != nil {
 						_r = "1"
 						msg = _catchErr.Error()
@@ -371,14 +363,12 @@ func Test_lock(t *testing.T) {
 						switch _dbevalRows0.Columns[_ci] {
 						}
 					}
-					_ = _r  // suppress unused warning
-					_ = msg // suppress unused warning
-					{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+					{ // catch block
 						var _catchErr error
 						_res = db2.Exec("SELECT a FROM t1")
-						if _res.Error != nil {
-							_catchErr = _res.Error
-						}
+						if _res.Error != nil { _catchErr = _res.Error }
 						if _catchErr != nil {
 							_r = "1"
 							msg = _catchErr.Error()
@@ -399,9 +389,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
-	if _res.Error != nil {
-		t.Errorf("integrity check: %v", _res.Error)
-	}
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "lock-2.1"
 		_res = db.Exec("BEGIN TRANSACTION")
 		if _res.Error != nil {
@@ -415,14 +403,12 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-		_ = _r  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db2.Exec("UPDATE t1 SET a = 0 WHERE 0")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
 				msg = _catchErr.Error()
@@ -452,19 +438,17 @@ func Test_lock(t *testing.T) {
 		// proc definition (not transpiled)
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
-		_ = callback_value  // suppress unused warning
+		_ = callback_value // suppress unused warning
 		db2.SetBusyHandler(func(count int) bool {
-			callback_value = strconv.Itoa(count)
-			return false
+		callback_value = strconv.Itoa(count)
+		return false
 		})
-		_ = _r  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
 				msg = _catchErr.Error()
@@ -484,19 +468,17 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-2.3.2"
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
-		_ = callback_value  // suppress unused warning
+		_ = callback_value // suppress unused warning
 		r = db2.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
-		_ = _r  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
 				msg = _catchErr.Error()
@@ -518,30 +500,24 @@ func Test_lock(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		_r = ""
 		_res = db2.Exec("ROLLBACK")
-		if _res.Error != nil {
-			_catchErr = _res.Error
-		}
+		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "lock-2.4.1"
 		// proc definition (not transpiled)
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
-		_ = callback_value  // suppress unused warning
+		_ = callback_value // suppress unused warning
 		db2.SetBusyHandler(func(count int) bool {
-			callback_value = tclListAppend(callback_value, strconv.Itoa(count))
-			if count > 4 {
-				return false
-			}
-			return true
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
 		})
-		_ = _r  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
 				msg = _catchErr.Error()
@@ -562,26 +538,22 @@ func Test_lock(t *testing.T) {
 		// proc definition (not transpiled)
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
-		_ = callback_value  // suppress unused warning
+		_ = callback_value // suppress unused warning
 		db2.SetBusyHandler(func(count int) bool {
-			callback_value = tclListAppend(callback_value, strconv.Itoa(count))
-			if count > 4 {
-				return false
-			}
-			return true
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
 		})
 		r = db2.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
-		_ = _r  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
 				msg = _catchErr.Error()
@@ -603,30 +575,24 @@ func Test_lock(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		_r = ""
 		_res = db2.Exec("ROLLBACK")
-		if _res.Error != nil {
-			_catchErr = _res.Error
-		}
+		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "lock-2.5"
 		// proc definition (not transpiled)
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
-		_ = callback_value  // suppress unused warning
+		_ = callback_value // suppress unused warning
 		db2.SetBusyHandler(func(count int) bool {
-			callback_value = tclListAppend(callback_value, strconv.Itoa(count))
-			if count > 4 {
-				return false
-			}
-			return true
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
 		})
-		_ = _r  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			r = db2.Query("SELECT * FROM t1")
-			if r.Error != nil {
-				_catchErr = r.Error
-			}
+			if r.Error != nil { _catchErr = r.Error }
 			if _catchErr != nil {
 				_r = "1"
 				msg = _catchErr.Error()
@@ -662,9 +628,7 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-2.8b"
 		_res = db2.Exec("PRAGMA busy_timeout")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v", _res.Error)
-		}
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock-2.9"
 		// db2.timeout (db command)
@@ -675,19 +639,13 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-2.9b"
 		_res = db2.Exec("PRAGMA busy_timeout")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v", _res.Error)
-		}
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	_res = db.Exec("PRAGMA integrity_check")
-	if _res.Error != nil {
-		t.Errorf("integrity check: %v", _res.Error)
-	}
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "lock-2.11"
 		_res = db2.Exec("PRAGMA busy_timeout(400)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v", _res.Error)
-		}
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
@@ -701,15 +659,11 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-2.11b"
 		_res = db2.Exec("PRAGMA busy_timeout")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v", _res.Error)
-		}
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock-2.12"
 		_res = db2.Exec("PRAGMA busy_timeout(0)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v", _res.Error)
-		}
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -717,27 +671,21 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-2.12b"
 		_res = db2.Exec("PRAGMA busy_timeout")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v", _res.Error)
-		}
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	_res = db.Exec("PRAGMA integrity_check")
-	if _res.Error != nil {
-		t.Errorf("integrity check: %v", _res.Error)
-	}
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "lock-3.1"
 		_res = db.Exec("BEGIN TRANSACTION")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-		_ = _r  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = _r // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db.Exec("BEGIN TRANSACTION")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
 				msg = _catchErr.Error()
@@ -758,44 +706,34 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
-	if _res.Error != nil {
-		t.Errorf("integrity check: %v", _res.Error)
-	}
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "lock-4.1"
-		if db2 != nil {
-			db2.Close()
-		}
+		if db2 != nil { db2.Close() }
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
 			_res = db.Exec("ROLLBACK")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("BEGIN")
 		_res = db.Exec("UPDATE t1 SET a=0 WHERE 0")
 		db2, err = frigolite.Open("./test.db")
 		tclConnRegister("db2", db2)
-		if err != nil {
-			t.Fatal(err)
-		}
+		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("UPDATE t1 SET a=0")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-4.2"
 		vtab.TclVarSet("callback_value", "", "")
 		callback_value = "" // TCL namespace variable
-		_ = callback_value  // suppress unused warning
-		_ = rc              // suppress unused warning
-		_ = msg             // suppress unused warning
-		{                   // catch block
+		_ = callback_value // suppress unused warning
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db2.Exec("UPDATE t1 SET a=0")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -809,20 +747,16 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-4.3"
 		// proc definition (not transpiled)
 		db2.SetBusyHandler(func(count int) bool {
-			callback_value = tclListAppend(callback_value, strconv.Itoa(count))
-			if count > 4 {
-				return false
-			}
-			return true
+		callback_value = tclListAppend(callback_value, strconv.Itoa(count))
+		if count > 4 { return false }
+		return true
 		})
-		_ = rc  // suppress unused warning
-		_ = msg // suppress unused warning
-		{       // catch block
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
 			var _catchErr error
 			_res = db2.Exec("UPDATE t1 SET a=0")
-			if _res.Error != nil {
-				_catchErr = _res.Error
-			}
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -944,7 +878,7 @@ func Test_lock(t *testing.T) {
 	vtab.TclVarSet("temp_status", "", "unknown")
 	temp_status = "unknown"
 	_ = temp_status // suppress unused warning
-	{               // "lock-7.1" (prepare-step internals; SQL side effects only)
+	{ // "lock-7.1" (prepare-step internals; SQL side effects only)
 		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
 		tclPrepareStep(db, "SELECT * FROM sqlite_master", "STMT")
 		TAIL = tclSqlTail("SELECT * FROM sqlite_master")
