@@ -894,4 +894,13 @@ var skipTestsMoreTail = map[string]string{
 	// stay as documented remaining failures.
 	// fts5simple 14.4 / 23.2: physical-storage statistics the mirror-storage
 	// model cannot reproduce (portplan/NA_EVIDENCE.md §P6.FTS5).
+
+	// tkt2565-1.X: asserts the C test-harness counter sqlite_open_file_count
+	// (tester.tcl open-file bookkeeping maintained by the test VFS shim)
+	// drops to 0 after `catch { db close }` — pure harness instrumentation,
+	// not engine-visible (AGENTS.md supersession policy names this variable
+	// explicitly). The test body is an io_error injection rig
+	// (sqlite_io_error_pending/persist), which pure Go does not emulate; the
+	// loop's do_tests assert nothing beyond commit success (no-side-effects).
+	"tkt2565-1.X": "sqlite_open_file_count is a C-harness open-file counter, not engine-visible (no-side-effects)",
 }

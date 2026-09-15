@@ -144,18 +144,7 @@ func Test_tkt2565(t *testing.T) {
 			}
 		}
 	}
-	{ // do_test "tkt2565-1.X"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			_r = ""
-			db.Close()
-		}
-		got := tclListFlatten(sqlite_open_file_count)
-		want := tclListFlatten("0")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tkt2565-1.X")
-		}
+	{ // "tkt2565-1.X" — skipped: sqlite_open_file_count is a C-harness open-file counter, not engine-visible (no-side-effects)
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_alt_pcache 0 (unsupported command, not transpiled)

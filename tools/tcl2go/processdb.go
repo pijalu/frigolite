@@ -822,6 +822,11 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 		tp.emitLine("}, 2, 2)")
 		return
 	}
+	// `db function tcl eval` — SQL function backed by the TCL *eval*
+	// built-in command (tkt3992-2.3); see emitTclEvalCommandUDF.
+	if tp.emitTclEvalCommandUDF(name, procName) {
+		return
+	}
 	if tp.emitRegisteredFunction(name, procName, rest) {
 		return
 	}
@@ -906,6 +911,38 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 		}
 	}
 	tp.emitDBVarFunc(rest)
+}
+
+// emitTclEvalCommandUDF emits the RegisterFunction for `db function tcl
+// eval` (tkt3992-2.3) — the SQL function `tcl` is backed by the TCL *eval*
+// built-in command: `tcl('set res', <value>)` concatenates its arguments
+// and evaluates "set res <value>", i.e. the scalar variable res receives
+// the second argument. The generated code only depends on that
+// `set VAR VALUE` shape; wire each pre-scanned variable (genTclEvalSetVars,
+// see scanTclEvalSetVars) into the closure. Returns true when emitted.
+func (tp *transpiler) emitTclEvalCommandUDF(name, procName string) bool {
+	if !strings.EqualFold(name, "tcl") || !strings.EqualFold(procName, "eval") || len(genTclEvalSetVars) == 0 {
+		return false
+	}
+	tp.emitLine("// db function tcl eval (TCL eval-command UDF: tcl('set VAR', value) sets VAR)")
+	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+	tp.emitLine("\tif len(args) >= 2 {")
+	tp.emitLine("\t\tparts := make([]string, 0, len(args))")
+	tp.emitLine("\t\tfor _, a := range args { parts = append(parts, tclStr(a)) }")
+	tp.emitLine("\t\tf := strings.Fields(strings.Join(parts, \" \"))")
+	tp.emitLine("\t\tif len(f) == 3 && f[0] == \"set\" {")
+	tp.emitLine("\t\t\tswitch f[1] {")
+	for _, v := range genTclEvalSetVars {
+		tp.emitLine("\t\t\tcase %q:", v)
+		tp.emitLine("\t\t\t\t%s = f[2]", v)
+		tp.emitLine("\t\t\t\tvtab.TclVarSet(%q, \"\", f[2])", v)
+	}
+	tp.emitLine("\t\t\t}")
+	tp.emitLine("\t\t}")
+	tp.emitLine("\t}")
+	tp.emitLine("\treturn nil, nil")
+	tp.emitLine("}, 0, -1)")
+	return true
 }
 
 // procNameFromRest finds the TCL proc name in `db func NAME [-deterministic]

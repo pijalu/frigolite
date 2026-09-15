@@ -49,12 +49,72 @@ import (
 var genBlobUsedChannels map[string]bool
 var genBlobVarNames map[string]bool
 
+// genTclEvalSetVars holds the scalar variables set through SQL function
+// calls routed to the TCL eval command (`db function tcl eval` +
+// `tcl('set VAR', <value>)` — the only corpus instance is tkt3992-2.3).
+// Pre-scanned from the raw file source because the registration site
+// precedes the trigger SQL that contains the calls.
+var genTclEvalSetVars []string
+
+// scanTclEvalSetVars scans TCL source for SQL `tcl('set VAR', ...)`
+// invocations (single- or double-quoted first argument of exactly two
+// words "set VAR") and returns the unique variable names in order.
+func scanTclEvalSetVars(src string) []string {
+	var out []string
+	seen := map[string]bool{}
+	for i := 0; i < len(src); {
+		arg, next, ok := scanNextTclSetArg(src, i)
+		if !ok {
+			return out
+		}
+		i = next
+		if fields := strings.Fields(arg); len(fields) == 2 && fields[0] == "set" && !seen[fields[1]] {
+			seen[fields[1]] = true
+			out = append(out, fields[1])
+		}
+	}
+	return out
+}
+
+// isTclIdentByte reports whether c is a TCL identifier character.
+func isTclIdentByte(c byte) bool {
+	return c == '_' || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+// scanNextTclSetArg finds the next `tcl('...')` call site at or after from
+// in src and returns its quoted first argument. ok is false when no further
+// call exists; next is the offset to resume scanning from.
+func scanNextTclSetArg(src string, from int) (arg string, next int, ok bool) {
+	for i := from; i+4 <= len(src); {
+		j := strings.Index(src[i:], "tcl(")
+		if j < 0 {
+			return "", len(src), false
+		}
+		i += j
+		if i > 0 && isTclIdentByte(src[i-1]) { // not a word boundary (e.g. fts3tcl()
+			i += 4
+			continue
+		}
+		i += 4
+		if i >= len(src) || (src[i] != '\'' && src[i] != '"') {
+			continue
+		}
+		end := strings.IndexByte(src[i+1:], src[i])
+		if end < 0 {
+			return "", len(src), false
+		}
+		return src[i+1 : i+1+end], i + end + 1, true
+	}
+	return "", len(src), false
+}
+
 func generateTestFile(base string, src string, testDir string) (filename string, content []byte) {
 	genCurrentTestFile = base
 	genBlobUsedChannels = make(map[string]bool)
 	genBlobVarNames = make(map[string]bool)
 	genFTSBuildPreamble = nil
 	genFTS5TokenizePreamble = nil
+	genTclEvalSetVars = scanTclEvalSetVars(src)
 	resetPreparedState()
 	pkg := groupName(base)
 	outFile := fmt.Sprintf("testgen/%s/%s_test.go", pkg, base)
