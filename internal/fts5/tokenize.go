@@ -341,11 +341,13 @@ func newPorterTokenizer(args []string) (Tokenizer, error) {
 	return porterTokenizer{base: base}, nil
 }
 
-// Tokenize stems each base token (fts5PorterTokenize).
+// Tokenize stems each base token (fts5PorterTokenize) with the fts5 porter
+// variant (internal porterStem — it deviates from the classic FTS3/4
+// algorithm; see porter.go).
 func (t porterTokenizer) Tokenize(text string) []Token {
 	tokens := t.base.Tokenize(text)
 	for i := range tokens {
-		tokens[i].Term = fts.PorterStem(tokens[i].Term)
+		tokens[i].Term = porterStem(tokens[i].Term)
 	}
 	return tokens
 }
@@ -396,73 +398,86 @@ func newTrigramTokenizer(args []string) (Tokenizer, error) {
 	return t, nil
 }
 
-// foldText case-folds (and optionally diacritic-folds) the whole input
-// (fts5TriTokenize's zFold buffer).
-func (t *trigramTokenizer) foldText(text string) string {
-	if !t.bFold && t.iFoldParam == 0 {
-		return text
+// foldChar folds one codepoint the way fts5TriTokenize does: case-fold when
+// bFold, then diacritic-fold; a folded result of 0 means the character is
+// dropped entirely (removed diacritic).
+func (t *trigramTokenizer) foldChar(r rune) rune {
+	iCode := r
+	if t.bFold {
+		iCode = unicode.ToLower(iCode)
 	}
-	var sb strings.Builder
-	for i := 0; i < len(text); {
-		r, size := decodeRune(text[i:])
-		if t.bFold {
-			r = unicode.ToLower(r)
-		}
-		if t.iFoldParam != 0 {
-			if out := fts.Unicode61Fold(int(r), t.iFoldParam); out != 0 {
-				r = rune(out)
-			}
-		}
-		sb.WriteRune(r)
-		i += size
+	if t.iFoldParam != 0 {
+		iCode = rune(fts.Unicode61Fold(int(iCode), t.iFoldParam))
 	}
-	return sb.String()
+	return iCode
 }
 
-// Tokenize emits one token per 3-rune window (fts5TriTokenize). The token
-// spans are byte offsets into the ORIGINAL text (C reports offsets into the
-// folded buffer, which coincide only for ASCII; the engine's snippets compare
-// against the original column text).
+// nextFolded reads the next retained character starting at input offset zIn,
+// folding and skipping characters that fold to nothing (removed diacritics).
+// It returns the folded codepoint (0 at end of input), the new input offset,
+// and — via *off — the original offset recorded just before the final read
+// (fts5TriTokenize's iNext / aStart semantics).
+func (t *trigramTokenizer) nextFolded(text string, zIn int, off *int) (rune, int) {
+	for {
+		*off = zIn
+		if zIn >= len(text) {
+			return 0, zIn
+		}
+		r, size := decodeRune(text[zIn:])
+		zIn += size
+		iCode := t.foldChar(r)
+		if iCode != 0 {
+			return iCode, zIn
+		}
+	}
+}
+
+// Tokenize ports fts5TriTokenize: a sliding window of three characters over
+// the input. Characters that fold to nothing (removed diacritics) are
+// skipped — they never enter a trigram — but the reported token span runs in
+// ORIGINAL text bytes from the window's first character to the start of the
+// character following the window (or EOF), so a diacritic trailing the
+// window's last character IS inside the span (fts5trigram2 3.2:
+// '\u0303(abc\u0303)' for text '\u0303abc\u0303').
 func (t *trigramTokenizer) Tokenize(text string) []Token {
-	folded := t.foldText(text)
 	var tokens []Token
-	// Map folded rune index -> original byte offsets so spans stay usable.
-	origStart := make([]int, 0, utf8.RuneCountInString(folded)+1)
-	origEnd := make([]int, 0, utf8.RuneCountInString(folded)+1)
-	fi, oi := 0, 0
-	for fi < len(folded) {
-		_, fsize := decodeRune(folded[fi:])
-		_, osize := decodeRune(text[oi:])
-		origStart = append(origStart, oi)
-		oi += osize
-		origEnd = append(origEnd, oi)
-		fi += fsize
+	var aBuf []byte   // folded characters of the current trigram window
+	var aStart [3]int // original byte offset of each window character
+	zIn := 0
+
+	// Populate aBuf with the characters for the first trigram.
+	for ii := 0; ii < 3; ii++ {
+		var off int
+		iCode, nz := t.nextFolded(text, zIn, &off)
+		zIn = nz
+		if iCode == 0 {
+			return tokens
+		}
+		aStart[ii] = off
+		aBuf = appendRune(aBuf, iCode)
 	}
-	nRunes := len(origStart)
-	for i := 0; i+3 <= nRunes; i++ {
-		tokens = append(tokens, Token{
-			Term:  runeSlice(folded, i, i+3),
-			Start: origStart[i],
-			End:   origEnd[i+2],
-		})
+
+	for {
+		// Read characters up to the next retained one, then pass the
+		// current trigram back to fts5.
+		var off int
+		iCode, nz := t.nextFolded(text, zIn, &off)
+		tokens = append(tokens, Token{Term: string(aBuf), Start: aStart[0], End: off})
+		if iCode == 0 {
+			return tokens
+		}
+		zIn = nz
+
+		// Remove the first character from aBuf, append iCode, and slide
+		// the aStart window.
+		_, sz := decodeRune(string(aBuf))
+		aBuf = append(aBuf[:0], aBuf[sz:]...)
+		aBuf = appendRune(aBuf, iCode)
+		aStart[0], aStart[1], aStart[2] = aStart[1], aStart[2], off
 	}
-	return tokens
 }
 
-// runeSlice returns the substring spanned by runes [a, b) of s.
-func runeSlice(s string, a, b int) string {
-	ra := 0
-	i := 0
-	for i < len(s) && ra < a {
-		_, size := decodeRune(s[i:])
-		i += size
-		ra++
-	}
-	start := i
-	for i < len(s) && ra < b {
-		_, size := decodeRune(s[i:])
-		i += size
-		ra++
-	}
-	return s[start:i]
+// appendRune appends r to b as UTF-8.
+func appendRune(b []byte, r rune) []byte {
+	return utf8.AppendRune(b, r)
 }

@@ -5,6 +5,7 @@
 package fts5trigram
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -528,7 +529,12 @@ func Test_fts5trigram(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t4 USING fts5(y, tokenize=trigram);\n")
 								}
 							}
-							// sqlite3_fts5_register_str db (unsupported command, not transpiled)
+							// sqlite3_fts5_register_str (fts5_tcl.c str() UDF)
+							db.RegisterFunction("str", func(args []interface{}) (interface{}, error) {
+								if len(args) != 1 { return nil, fmt.Errorf("wrong number of arguments to function str()") }
+								if args[0] == nil { return nil, nil }
+								return tclStr(args[0]), nil
+							}, 1, 1)
 							{ // "11.1"
 								_res = db.Exec("\n  INSERT INTO t4 VALUES( str('') );\n")
 								if _res.Error != nil {

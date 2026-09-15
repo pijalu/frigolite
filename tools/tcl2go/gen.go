@@ -54,6 +54,7 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 	genBlobUsedChannels = make(map[string]bool)
 	genBlobVarNames = make(map[string]bool)
 	genFTSBuildPreamble = nil
+	genFTS5TokenizePreamble = nil
 	resetPreparedState()
 	pkg := groupName(base)
 	outFile := fmt.Sprintf("testgen/%s/%s_test.go", pkg, base)
@@ -294,6 +295,9 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 	if genFTSBuildPreamble != nil {
 		importSrc += genFTSBuildPreamble.String()
 	}
+	if genFTS5TokenizePreamble != nil {
+		importSrc += genFTS5TokenizePreamble.String()
+	}
 	imports := detectImports(importSrc)
 
 	// Build the full Go source with only needed imports
@@ -333,6 +337,16 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 	// inside a do_test/foreach body whose sub-transpiler is discarded).
 	if genFTSBuildPreamble != nil && genFTSBuildPreamble.Len() > 0 {
 		sb.WriteString(genFTSBuildPreamble.String())
+		sb.WriteString("\n")
+	}
+
+	// Package-level sqlite3_fts5_tokenize bridge (fts5TclTokenize helper),
+	// emitted before the test function like the fts3 data loaders.
+	// genFTS5TokenizePreamble is a package-level var shared by every bodyTP
+	// copy, so it is read here directly (the tokenize call may appear only
+	// inside a do_test/foreach body whose sub-transpiler is discarded).
+	if genFTS5TokenizePreamble != nil && genFTS5TokenizePreamble.Len() > 0 {
+		sb.WriteString(genFTS5TokenizePreamble.String())
 		sb.WriteString("\n")
 	}
 
@@ -759,6 +773,12 @@ func detectImports(code string) []string {
 	// Authorizer tests emit auth.Authorizer types (db authorizer ::auth).
 	if hasPackageRef(code, "auth") {
 		needed["github.com/pijalu/frigolite/internal/auth"] = true
+	}
+	// The sqlite3_fts5_tokenize bridge (fts5TclTokenize helper) uses the
+	// engine's fts5 tokenizer registry. Gated on the preamble so SQL text
+	// that merely mentions fts5 does not pull the import in.
+	if genFTS5TokenizePreamble != nil && hasPackageRef(code, "fts5") {
+		needed["github.com/pijalu/frigolite/internal/fts5"] = true
 	}
 
 	for _, imp := range allStandardImports {

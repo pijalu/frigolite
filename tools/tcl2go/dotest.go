@@ -102,6 +102,13 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		return
 	}
 
+	// A single `execsql SQL` body whose SQL is a query (fts5simple 11.2/11.3:
+	// `do_test 11.3 { execsql "SELECT ..." } {2}`): the do_test value is the
+	// flattened query result, so compare it with the expected value.
+	if tp.emitDoTestExecsqlCommandBody(nameExpr, expectedExpr, bodyCmds, args) {
+		return
+	}
+
 	// A single `<fixtureProc> args...` body where the proc has a runtime Go
 	// implementation (vtabH 3.1: `sort_files [execsql {...}] true`): the
 	// proc's result is the do_test value; run it and compare.
@@ -161,6 +168,36 @@ func (tp *transpiler) emitDoTestCatchsqlBody(nameExpr, expectedExpr string, body
 	// `execsql SQL db2` (bodyCmds[0][1:] = [SQL, conn]).
 	dbConn := tp.resolveSQLConnection(bodyCmds[0][1:])
 	tp.emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr, synth, dbConn)
+	tp.indent--
+	tp.emitLine("}")
+	return true
+}
+
+// emitDoTestExecsqlCommandBody handles a do_test whose body is a single `execsql
+// SQL` command whose SQL ends with a query (fts5simple 11.2/11.3:
+// `do_test 11.3 { execsql "SELECT rowid FROM t4('d\x1A')" } {2}`). TCL's
+// do_test compares the flattened result rows with the expected value, so the
+// same comparison as do_execsql_test is emitted. Returns true when handled.
+// Non-query bodies keep the generic exec-only lowering.
+func (tp *transpiler) emitDoTestExecsqlCommandBody(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, args []tcl.RawWord) bool {
+	if len(bodyCmds) != 1 || len(bodyCmds[0]) < 2 || bodyCmds[0][0].Text != "execsql" {
+		return false
+	}
+	sqlWord := bodyCmds[0][1]
+	if !bodySQLContainsQuery(sqlWord.Text) {
+		return false
+	}
+	sqlExpr := tp.collectSQLExpression([]tcl.RawWord{sqlWord})
+	dbConn := tp.resolveSQLConnection(bodyCmds[0][1:])
+	tp.emitLine("{ // do_test %s", nameExpr)
+	tp.indent++
+	synth := []tcl.RawWord{{Text: sqlWord.Text, Braced: true}, {Text: sqlWord.Text, Braced: true}}
+	if len(args) >= 3 {
+		synth = append(synth, args[2])
+	} else {
+		synth = append(synth, tcl.RawWord{Text: "{}", Braced: true})
+	}
+	tp.emitExpectedQueryResult(dbConn, sqlExpr, expectedExpr, synth)
 	tp.indent--
 	tp.emitLine("}")
 	return true

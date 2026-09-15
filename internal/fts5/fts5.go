@@ -473,6 +473,11 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		// Index maintenance directives with no SQL-observable effect at this
 		// storage granularity; integrity-check on a healthy index is a no-op.
 		return true, nil
+	case "flush":
+		// sqlite3Fts5FlushToDisk: write any pending in-memory index data to
+		// the shadow tables now (the engine otherwise flushes at statement
+		// boundaries).
+		return true, t.FlushShadowIfDirty()
 	}
 	return false, nil
 }

@@ -76,7 +76,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "(abcu0303)defghijklm"+" "+"(au0303bu0303cu0303)defghijklm"
+		want := "(abc̃)defghijklm"+" "+"(ãb̃c̃)defghijklm"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -88,7 +88,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "a(bcu0303de)fghijklm"+" "+"au0303(bu0303cu0303de)fghijklm"
+		want := "a(bc̃de)fghijklm"+" "+"ã(b̃c̃de)fghijklm"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -100,7 +100,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "ab(cu0303def)ghijklm"+" "+"au0303bu0303(cu0303def)ghijklm"
+		want := "ab(c̃def)ghijklm"+" "+"ãb̃(c̃def)ghijklm"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -112,7 +112,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "abcu0303(def)ghijklm"+" "+"au0303bu0303cu0303(def)ghijklm"
+		want := "abc̃(def)ghijklm"+" "+"ãb̃c̃(def)ghijklm"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -142,7 +142,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "(u00E3bc)def"
+		want := "(ãbc)def"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -154,7 +154,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "(bu00E3c)def"
+		want := "(bãc)def"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -166,7 +166,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "(bcu00E3)def"
+		want := "(bcã)def"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -178,7 +178,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "(u00E3bc)def"
+		want := "(ãbc)def"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -202,7 +202,7 @@ func Test_fts5trigram2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "u0303(abcu0303)"
+		want := "̃(abc̃)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

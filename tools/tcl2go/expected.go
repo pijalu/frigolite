@@ -116,7 +116,17 @@ func normalizeExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
 	// row value like CHECK (c!="null")). Only brace-delimited lists are
 	// flattened — bare multi-field words (e.g. "1 4 9") keep their existing
 	// handling to minimize churn.
+	//
+	// EXCEPT when unwrapSingleBraceGroup already unwrapped a spanning
+	// single-element list: the content is then the verbatim cell value and
+	// its inner braces are DATA quoting TCL preserves (fts5ac 2.1's
+	// `{{AND [nearset -- {a}] [nearset -- {b}]}}` — the value really does
+	// contain `{a}`). Flattening here would strip those data braces one
+	// level too many; emit the unwrapped content pre-flattened (verbatim).
 	if strings.Contains(text, "{") {
+		if unwrapped {
+			return tcl.RawWord{Text: text, Braced: true}, true
+		}
 		if flat, ok := flattenBraceList(text); ok {
 			return tcl.RawWord{Text: flat, Braced: true}, true
 		}

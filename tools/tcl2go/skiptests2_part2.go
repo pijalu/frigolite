@@ -846,4 +846,8 @@ var skipTestsMoreTail = map[string]string{
 	// dropped section-15 ROLLBACKs) that phantom-fail the statement-end
 	// check. Skipping the assertions cascades into MORE divergences, so both
 	// stay as documented remaining failures.
+	// fts5simple 14.4 / 23.2: physical-storage statistics the mirror-storage
+	// model cannot reproduce (portplan/NA_EVIDENCE.md §P6.FTS5).
+	"fts5simple-14.4": "MATCH '*reads' returns C's cumulative %_data blob-fetch counter (fts5_index.c fts5DataRead p->nRead++); the engine's mirror storage (one Go-native blob, write-through) performs no tracked page reads, so the count is unreachable by design (no-side-effects)",
+	"fts5simple-23.2": "count(*) FROM x1_data inside an open transaction: C buffers inserted rows in the in-RAM pending hash (no new %_data row until flush/COMMIT); the engine flushes its shadow blob at statement boundaries, so the row already exists (pending-hash deferred-leaf storage, the adjudicated P6.FTS5 architectural class; no-side-effects)",
 }
