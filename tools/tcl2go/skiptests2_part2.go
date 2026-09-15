@@ -846,4 +846,13 @@ var skipTestsMoreTail = map[string]string{
 	// dropped section-15 ROLLBACKs) that phantom-fail the statement-end
 	// check. Skipping the assertions cascades into MORE divergences, so both
 	// stay as documented remaining failures.
+
+	// tkt2565-1.X: asserts the C test-harness counter sqlite_open_file_count
+	// (tester.tcl open-file bookkeeping maintained by the test VFS shim)
+	// drops to 0 after `catch { db close }` — pure harness instrumentation,
+	// not engine-visible (AGENTS.md supersession policy names this variable
+	// explicitly). The test body is an io_error injection rig
+	// (sqlite_io_error_pending/persist), which pure Go does not emulate; the
+	// loop's do_tests assert nothing beyond commit success (no-side-effects).
+	"tkt2565-1.X": "sqlite_open_file_count is a C-harness open-file counter, not engine-visible (no-side-effects)",
 }

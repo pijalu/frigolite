@@ -6,7 +6,9 @@ package tkt3992
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strings"
 "testing"
 )
 
@@ -89,7 +91,22 @@ func Test_tkt3992(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET a = 'one';\n      SELECT * FROM t1;\n    ")
 		}
 	}
-	db.RegisterFunction("tcl", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db function tcl eval (TCL eval-command UDF: tcl('set VAR', value) sets VAR)
+	db.RegisterFunction("tcl", func(args []interface{}) (interface{}, error) {
+		if len(args) >= 2 {
+			parts := make([]string, 0, len(args))
+			for _, a := range args { parts = append(parts, tclStr(a)) }
+			f := strings.Fields(strings.Join(parts, " "))
+			if len(f) == 3 && f[0] == "set" {
+				switch f[1] {
+				case "res":
+					res = f[2]
+					vtab.TclVarSet("res", "", f[2])
+				}
+			}
+		}
+		return nil, nil
+	}, 0, -1)
 	{ // do_test "tkt3992-2.3"
 		_res = db.Exec("\n      CREATE TABLE t2(a REAL, b REAL, c REAL);\n      INSERT INTO t2 VALUES(1, 2, 3);\n      CREATE TRIGGER tr2 BEFORE UPDATE ON t2 BEGIN\n        SELECT tcl('set res', typeof(new.c));\n      END;\n  \n      UPDATE t2 SET a = 'I';\n    ")
 		if _res.Error != nil {
