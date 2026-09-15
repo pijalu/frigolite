@@ -189,7 +189,7 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 		fmt.Fprintf(os.Stderr, "MCVT name=%s mod=%q args=%q\n", name, modName, modArgs)
 	}
 	if isEchoModule(modName, modArgs) {
-		return e.materializeEchoVTab(entry, modArgs[0])
+		return e.materializeEchoVTabModule(entry, modName, modArgs, opts)
 	}
 	if !isVtab {
 		return nil, nil, nil, nil, false
@@ -254,10 +254,35 @@ var debugClosure = os.Getenv("CL_DBG") != ""
 // isEchoModule reports whether a created virtual table uses the echo module
 // with a source-table argument. The echo module mirrors its underlying source
 // table (SQLite test8.c: echoConnect declares the source table's columns and
-// echoCursor steps through its b-tree); the registered echo stub declares
-// nothing, so materialization reads the source table directly.
+// echoCursor steps through its b-tree).
 func isEchoModule(modName string, modArgs []string) bool {
-	return strings.EqualFold(modName, "echo") && len(modArgs) > 0
+	return strings.EqualFold(modName, "echo")
+}
+
+// firstIndexColumn extracts a CREATE INDEX statement's first key column name
+// (test8.c getIndexArray reads PRAGMA index_info's left-most entry).
+func firstIndexColumn(indexSQL, _ string) string {
+	up := strings.ToUpper(indexSQL)
+	onIdx := strings.Index(up, " ON ")
+	if onIdx < 0 {
+		return ""
+	}
+	rest := indexSQL[onIdx+4:]
+	open := strings.IndexByte(rest, '(')
+	if open < 0 {
+		return ""
+	}
+	list := rest[open+1:]
+	if end := strings.IndexByte(list, ')'); end >= 0 {
+		list = list[:end]
+	}
+	// The first key column is the first whitespace-delimited token of the
+	// list (index columns may carry COLLATE/ASC/DESC suffixes).
+	fields := strings.Fields(strings.TrimSpace(list))
+	if len(fields) == 0 {
+		return ""
+	}
+	return strings.Trim(fields[0], "'\"`")
 }
 
 // createdVTabModuleKind resolves a created (rootpage-0) virtual table's module
@@ -274,6 +299,100 @@ func createdVTabModuleKind(e *Engine, entry *schema.Entry, name string) (modName
 	return modName, modArgs, isVtab, false
 }
 
+// materializeEchoVTabModule runs the echo module's scan-time observable
+// contract before materializing the source table. The echo module must be
+// registered on this connection (register_echo_module / sqlite3_create_module
+// parity): a connection without it reports "no such module: echo" for any
+// reference to the vtab (vtab1-1.10, vtab1.2.6). The xBestIndex call
+// (test8.c echoBestIndex) then observes the planner's constraint set: a
+// constraint claimed despite usable==0 is a malfunction naming the vtab
+// (where.c:4364-4366), and any module error aborts the statement. Row
+// materialization reads the source table (materializeEchoVTab), so argv
+// bindings and omit flags carry no residual effect here — the core
+// re-checks every constraint, which is observationally the echo module's
+// own re-run of the WHERE against the source table.
+func (e *Engine) materializeEchoVTabModule(entry *schema.Entry, modName string, modArgs []string, opts execquery.VtabScanOptions) ([]sql.ColumnDef, [][]interface{}, []int64, error, bool) {
+	if len(modArgs) == 0 {
+		// A source-less echo table cannot be created (the constructor never
+		// declares a schema), so nothing reaches materialization for it.
+		return nil, nil, nil, nil, false
+	}
+	module, found := e.vtabs.Find(modName)
+	if !found {
+		return nil, nil, nil, fmt.Errorf("no such module: %s", modName), true
+	}
+	vt, cerr := createVtabModule(module, modArgs, nil)
+	if cerr != nil {
+		return nil, nil, nil, cerr, true
+	}
+	if err := planEchoVTabBestIndex(vt, entry.Name, opts); err != nil {
+		return nil, nil, nil, err, true
+	}
+	return e.materializeEchoVTab(entry, modArgs[0])
+}
+
+// EchoJoinBestIndexPlan implements execquery.SelectContext: it offers the
+// join's effective ON terms to an echo vtab operand's xBestIndex (where.c
+// offers ON + WHERE terms per table). ok is false when name is not an echo
+// vtab; err carries a claimed-unusable-constraint malfunction or module
+// error.
+func (e *Engine) EchoJoinBestIndexPlan(name string, on sql.Expr) (error, bool) {
+	entry, _, err := e.findTable(name)
+	if err != nil || entry == nil || entry.RootPage != 0 {
+		return nil, false
+	}
+	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
+	if !isVtab || !isEchoModule(modName, modArgs) {
+		return nil, false
+	}
+	module, found := e.vtabs.Find(modName)
+	if !found {
+		return fmt.Errorf("no such module: %s", modName), true
+	}
+	vt, cerr := createVtabModule(module, modArgs, nil)
+	if cerr != nil {
+		return cerr, true
+	}
+	return planEchoBestIndexWithWhere(vt, entry.Name, on), true
+}
+
+// planEchoBestIndexWithWhere runs the echo instance's BestIndexPlan over the
+// given constraint expression and validates the plan (validateVtabArgvSlots);
+// the vtab name personalizes the malfunction error.
+func planEchoBestIndexWithWhere(vt vtab.VirtualTable, name string, where sql.Expr) error {
+	pbi, ok := vt.(vtab.PlanBestIndexer)
+	if !ok {
+		return nil
+	}
+	ci, ok := vt.(vtab.ColumnInfo)
+	if !ok || len(ci.Columns()) == 0 {
+		return nil
+	}
+	var fo vtab.FunctionOverloader
+	if f, isFo := vt.(vtab.FunctionOverloader); isFo {
+		fo = f
+	}
+	opts := execquery.VtabScanOptions{Where: where, MaxRows: -1}
+	ii, _, err := execquery.BuildVtabIndexInfoWithInstance(&opts, name, ci.Columns(), fo)
+	if err != nil {
+		return err
+	}
+	if berr := pbi.BestIndexPlan(ii); berr != nil {
+		return berr
+	}
+	if _, _, merr := validateVtabArgvSlots(ii); merr != nil {
+		return fmt.Errorf("%s.xBestIndex malfunction", name)
+	}
+	return nil
+}
+
+// planEchoVTabBestIndex offers the scan's constraints to the echo instance's
+// xBestIndex and validates the returned plan. The vtab name personalizes the
+// malfunction error ("<name>.xBestIndex malfunction", where.c:4366).
+func planEchoVTabBestIndex(vt vtab.VirtualTable, name string, opts execquery.VtabScanOptions) error {
+	return planEchoBestIndexWithWhere(vt, name, opts.Where)
+}
+
 // materializeEchoVTab materializes an echo virtual table by scanning its
 // source table: echoConnect (SQLite test8.c) declares the source table's
 // columns and echoCursor reads the source b-tree rows, rowid included.
@@ -284,6 +403,11 @@ func (e *Engine) materializeEchoVTab(entry *schema.Entry, srcArg string) ([]sql.
 		return nil, nil, nil, nil, false
 	}
 	srcName := strings.Trim(srcArg, "'\"")
+	// Pattern source form (echo('*_base')): the real table is
+	// <this-name><suffix> (test8.c echoConstructor isPattern branch).
+	if strings.HasPrefix(srcName, "*") {
+		srcName = entry.Name + srcName[1:]
+	}
 	srcEntry, ctx, ferr := e.findTable(srcName)
 	if ferr != nil || srcEntry == nil {
 		return nil, nil, nil, fmt.Errorf("no such table: %s", srcName), true

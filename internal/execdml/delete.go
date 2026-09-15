@@ -30,7 +30,25 @@ func BeginInternalShadowWrite() { internalShadowWrite = true }
 // EndInternalShadowWrite clears the marker.
 func EndInternalShadowWrite() { internalShadowWrite = false }
 
+// execDelete wraps the DELETE pipeline with the echo module's error prefix:
+// a DELETE routed through an echo virtual table reports failures from the
+// source write as "echo-vtab-error: %s" (test8.c echoError / xUpdate).
 func (e *DMLExecutor) execDelete(s *sql.DeleteStmt) *Result {
+	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
+		return e.execDeleteInner(s)
+	}
+	e.echoWriteDepth++
+	res := e.execDeleteInner(s)
+	if res.Error != nil {
+		res.Error = e.wrapEchoWriteError(res.Error)
+	}
+	e.echoWriteDepth--
+	return res
+}
+
+// execDeleteInner is execDelete's statement pipeline (the echo write-through
+// wrapper above re-routes its errors).
+func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 	// Echo virtual tables write through to their source table.
 	if srcName, ok := e.ctx.EchoVTabSource(s.Table); ok {
 		s.Table = srcName

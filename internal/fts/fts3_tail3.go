@@ -808,6 +808,11 @@ type FTS3VTab struct {
 	module *FTS3Module
 }
 
+// SchemaDeclared implements vtab.SchemaDeclaredMarker: fts3's constructor
+// always calls sqlite3_declare_vtab, even for an empty-column declaration
+// (CREATE VIRTUAL TABLE t4 USING fts3(), vtab1-22.x).
+func (v *FTS3VTab) SchemaDeclared() bool { return true }
+
 func (v *FTS3VTab) BestIndex(input []byte) ([]byte, error) {
 	return nil, nil
 }

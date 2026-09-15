@@ -238,7 +238,7 @@ func Test_misc7(t *testing.T) {
 		}
 	}
 	{ // do_test "misc7-10"
-		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		db.RegisterEchoModule()
 		r = db.Query("\n      CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;\n    ")
@@ -266,7 +266,7 @@ func Test_misc7(t *testing.T) {
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()
-		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		db.RegisterEchoModule()
 		vtab.TclVarSet("echo_module_cost", "", "2.0e+99")
 		echo_module_cost = "2.0e+99" // TCL namespace variable
 		_ = echo_module_cost // suppress unused warning

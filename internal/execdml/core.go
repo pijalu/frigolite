@@ -63,6 +63,28 @@ type DMLExecutor struct {
 	// the statement's internal shadow-table writes clobber the connection
 	// counter (see lastInsertedFTSRowID).
 	lastFTSDocRowID int64
+
+	// echoWriteDepth counts in-flight echo write-through statements. A
+	// non-zero depth marks every statement error as coming from the source
+	// write the echo module's xUpdate performed, so it reports through the
+	// module's error prefix (test8.c echoError, "echo-vtab-error: %s").
+	echoWriteDepth int
+}
+
+// wrapEchoWriteError applies the echo module's error prefix to a failed
+// write-through statement (test8.c echoError sets
+// pVtab->zErrMsg = "echo-vtab-error: %s"; the core surfaces zErrMsg
+// verbatim, vtab1.12-2). Already-prefixed errors (nested write-through)
+// pass through unchanged.
+func (e *DMLExecutor) wrapEchoWriteError(err error) error {
+	if err == nil || e.echoWriteDepth == 0 {
+		return err
+	}
+	msg := err.Error()
+	if strings.Contains(msg, "echo-vtab-error: ") {
+		return err
+	}
+	return fmt.Errorf("echo-vtab-error: %s", msg)
 }
 
 // NewDMLExecutor builds a DML executor over the given context.

@@ -9,6 +9,7 @@
 package execddl
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -723,14 +724,36 @@ func (e *DDLExecutor) checkTriggerExprSubqueries(trigName string, s *sql.SelectS
 	return nil
 }
 
-// execCreateVirtualTable implements CREATE VIRTUAL TABLE.
+// execCreateVirtualTable implements CREATE VIRTUAL TABLE. The check order
+// mirrors SQLite: reserved-name check and existing-object handling run at
+// prepare/name-resolution time, the module lookup before any authorizer
+// action, and the constructor contract last (vtab.c vtabCallConstructor):
+//
+//	"object name reserved for internal use: <name>"
+//	success no-op                                    (IF NOT EXISTS + exists)
+//	"table <name> already exists"
+//	"no such module: <module>"
+//	authorizer: SQLITE_INSERT sqlite_master, then
+//	            SQLITE_CREATE_VTABLE <name> <module> <db>
+//	"vtable constructor failed: <name>"              (xCreate error, no message)
+//	"vtable constructor did not declare schema: <name>" (no declare_vtab)
 func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
-	// A table of the same name (including a prior virtual table's schema
-	// entry) makes the CREATE fail BEFORE any shadow table is touched
-	// (SQLite raises "table t1 already exists" from the schema insert;
-	// fts3expr-6.1 re-CREATEs t1 in the same session).
+	if res := e.validateReservedName(s.Name); res != nil {
+		return res
+	}
 	ctx0, tableName0 := resolveVTabContext(e, s.Name)
 	if existing, ferr := ctx0.Schema.FindTable(tableName0); ferr == nil && existing != nil {
+		if s.IfNotExists {
+			// IF NOT EXISTS makes an existing object a silent no-op — even a
+			// real table under the same name, and even when the module is
+			// unknown: SQLite resolves the name before the module
+			// (vtab1-1.8.2, oracle-verified).
+			return &Result{}
+		}
+		// A table of the same name (including a prior virtual table's schema
+		// entry) makes the CREATE fail BEFORE any shadow table is touched
+		// (SQLite raises "table t1 already exists" from the schema insert;
+		// fts3expr-6.1 re-CREATEs t1 in the same session).
 		return &Result{Error: fmt.Errorf("table %s already exists", tableName0)}
 	}
 	module, ok := e.ctx.VTables().Find(s.Module)
@@ -760,6 +783,16 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 			return &Result{Error: fmt.Errorf("%s tables must be created in TEMP schema", name)}
 		}
 	}
+	// Authorizer actions (sqlite3AuthCheck at prepare/codegen parity): the
+	// sqlite_schema row insert is authorized first, then the vtab creation
+	// with the module name as arg2 (vtab3-1.2 trace order: SQLITE_INSERT
+	// sqlite_master, SQLITE_CREATE_VTABLE <name> <module> <db>).
+	if err := e.ctx.Authorize(auth.ActionInsert, "sqlite_master", "", ctx0.Name, ""); err != nil {
+		return &Result{Error: err}
+	}
+	if err := e.ctx.Authorize(auth.ActionCreateVTable, tableName0, s.Module, ctx0.Name, ""); err != nil {
+		return &Result{Error: err}
+	}
 	// Module arguments: the parser AST joins argument tokens with spaces
 	// (rule 405), but SQLite hands the module the VERBATIM argument text
 	// (sqlite3VtabArgExtend concatenation). When RawSQL is available, re-split
@@ -771,9 +804,41 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 			createArgs = rargs
 		}
 	}
+	// The constructor receives the vtab's own name (xCreate's argv[2]):
+	// the echo module's '*'-pattern source resolves <name><suffix> during
+	// xCreate (test8.c echoConstructor).
+	if bn, ok := module.(vtab.CreateNameSetter); ok {
+		bn.SetCreateName(tableName0)
+	}
 	vt, err := module.Create(createArgs)
 	if err != nil {
+		// A constructor error WITHOUT a message becomes
+		// "vtable constructor failed: <table>" (vtab.c vtabCallConstructor:
+		// zErr==0 → sqlite3MPrintf "vtable constructor failed: %s"); an
+		// error with a message passes through verbatim (vtab1-1.5.x vs
+		// unionvtab's own diagnostics).
+		var silent *vtab.SilentConstructorError
+		if errors.As(err, &silent) {
+			return &Result{Error: fmt.Errorf("vtable constructor failed: %s", tableName0)}
+		}
 		return &Result{Error: err}
+	}
+	// A constructor that never declared the instance schema fails: SQLite
+	// tracks sqlite3_declare_vtab during xCreate (sCtx.bDeclared) and reports
+	// "vtable constructor did not declare schema: <name>" otherwise
+	// (vtab1-1.3.x: the echo module with zero arguments). Declared columns
+	// imply the declare; a module whose constructor declares even an empty
+	// schema opts in via SchemaDeclaredMarker (fts3()/fts5()).
+	declared := false
+	if ci, ok := vt.(vtab.ColumnInfo); ok && len(ci.Columns()) > 0 {
+		declared = true
+	}
+	if m, ok := vt.(vtab.SchemaDeclaredMarker); ok && m.SchemaDeclared() {
+		declared = true
+	}
+	if !declared {
+		e.disconnectVtabOnCreateFailure(vt)
+		return &Result{Error: fmt.Errorf("vtable constructor did not declare schema: %s", tableName0)}
 	}
 	// The schema entry is written BEFORE the module binds its schema: SQLite
 	// inserts the sqlite_schema row at prepare/codegen time and OP_VCreate

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -12,7 +13,63 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
-func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
+// execInsert executes an INSERT. An echo write-through statement (INSERT
+// INTO <echo vtab>) routes its errors through the echo module's error
+// prefix (test8.c echoError: xUpdate reports the failed source write as
+// "echo-vtab-error: %s", vtab1.12-2).
+func (e *DMLExecutor) execInsert(s *sql.InsertStmt) *Result {
+	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
+		return e.execInsertInner(s)
+	}
+	// A non-integer explicit rowid is rejected before the write-through
+	// reaches the source table (SQLite's OP_MustBeInt runs before xUpdate,
+	// so the error is NOT prefixed by echoError; vtab1-15.4).
+	if res := e.checkEchoExplicitRowid(s); res != nil {
+		return res
+	}
+	e.echoWriteDepth++
+	res := e.execInsertInner(s)
+	if res.Error != nil {
+		res.Error = e.wrapEchoWriteError(res.Error)
+	}
+	e.echoWriteDepth--
+	return res
+}
+
+// checkEchoExplicitRowid rejects a non-integer explicit rowid value on an
+// echo write-through INSERT before the source write (see execInsert).
+func (e *DMLExecutor) checkEchoExplicitRowid(s *sql.InsertStmt) *Result {
+	for _, tuple := range s.Values {
+		if res := e.checkEchoTupleRowid(s.Columns, tuple); res != nil {
+			return res
+		}
+	}
+	return nil
+}
+
+// checkEchoTupleRowid validates one VALUES tuple's explicit rowid value (see
+// checkEchoExplicitRowid).
+func (e *DMLExecutor) checkEchoTupleRowid(columns []string, tuple []sql.Expr) *Result {
+	for i, expr := range tuple {
+		if i >= len(columns) || !execquery.IsRowIDName(columns[i]) {
+			continue
+		}
+		v, err := e.ctx.EvalExpr(expr, nil)
+		if err != nil {
+			return nil // evaluation errors surface unwrapped later
+		}
+		if v != nil {
+			if _, ok := mustBeIntRowid(v); !ok {
+				return &Result{Error: fmt.Errorf("datatype mismatch")}
+			}
+		}
+	}
+	return nil
+}
+
+// execInsertInner is execInsert's statement pipeline (the echo write-through
+// wrapper above re-routes its errors).
+func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	// Generic updatable virtual tables (sqlite_dbpage etc.): INSERT routes to
 	// the module's InsertRow (xUpdate parity).
 	if res, handled := e.execVTabInsert(s); handled {

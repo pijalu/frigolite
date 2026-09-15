@@ -38,6 +38,25 @@ type ColumnTypeInfo interface {
 	ColumnTypes() []string
 }
 
+// SchemaDeclaredMarker is implemented by instances whose constructor invoked
+// sqlite3_declare_vtab — including declarations with zero user columns
+// (fts3.c fts3DeclareVtab with an empty argument list still declares the
+// schema). A constructor whose instance neither reports declared columns nor
+// this marker never called declare_vtab; the core reports
+// "vtable constructor did not declare schema: <name>" (vtab.c
+// vtabCallConstructor's sCtx.bDeclared check).
+type SchemaDeclaredMarker interface {
+	SchemaDeclared() bool
+}
+
+// CreateNameSetter is implemented by modules whose constructor needs the
+// CREATE VIRTUAL TABLE target name before Module.Create runs (test8.c's echo
+// constructor reads argv[2] to resolve a '*'-pattern source table). The DDL
+// executor calls SetCreateName just before xCreate.
+type CreateNameSetter interface {
+	SetCreateName(name string)
+}
+
 // HiddenColumnInfo is implemented by virtual tables whose Columns() includes
 // HIDDEN columns (SQLite vtab HIDDEN columns are not projected by SELECT * or
 // listed by PRAGMA table_info). fts4aux's languageid column is hidden
@@ -172,13 +191,15 @@ func (r *Registry) List() []string {
 	return out
 }
 
-// Register defaults registers built-in virtual table modules.
+// Register defaults registers built-in virtual table modules. The echo test
+// module (test8.c) is deliberately absent: SQLite registers it per connection
+// via register_echo_module, and the tests exercise both the registered and
+// the unregistered state ("no such module: echo").
 func (r *Registry) RegisterDefaults() {
 	r.Register("generate_series", &GenerateSeriesModule{})
 	r.Register("json_each", &JsonEachModule{})
 	r.Register("json_tree", &JsonTreeModule{})
 	r.Register("wholenumber", &WholeNumberModule{})
-	r.Register("echo", &EchoModule{})
 	r.Register("fts3", &NoopModule{ModuleName: "fts3"})
 	r.Register("fts4", &NoopModule{ModuleName: "fts4"})
 	r.Register("fts5", &NoopModule{ModuleName: "fts5"})
@@ -569,48 +590,8 @@ func (c *wholeNumberCursor) Close() error {
 	return nil
 }
 
-// EchoModule is the echo virtual-table module (CREATE VIRTUAL TABLE t USING
-// echo(real_table)). In SQLite's test suite the echo module is a test-only
-// C module that mirrors an underlying real table: its schema comes from the
-// source table's CREATE statement and reads/writes route through to the
-// source. Frigolite implements the echo semantics in the exec layer (the
-// engine resolves the source table and proxies rows/columns), so this module
-// type exists to mark the module as real (not a NoopModule stub): ALTER
-// TABLE ... RENAME and other vtab lifecycle operations treat echo tables as
-// first-class. The Create/Connect methods validate the argument form and
-// return an inert instance; the engine's echoVTabSource/virtualTableRows
-// handle the actual proxying.
-type EchoModule struct{}
-
-type echoVTab struct{}
-
-func (m *EchoModule) Create(args []string) (VirtualTable, error) {
-	return m.Connect(args)
-}
-
-func (m *EchoModule) Connect(args []string) (VirtualTable, error) {
-	return &echoVTab{}, nil
-}
-
-func (v *echoVTab) BestIndex(input []byte) ([]byte, error) {
-	return nil, nil
-}
-
-func (v *echoVTab) Open() (Cursor, error) {
-	return v, nil
-}
-
-func (c *echoVTab) Column(idx int) (interface{}, error) {
-	return nil, nil
-}
-
-func (c *echoVTab) Next() bool {
-	return false
-}
-
-func (c *echoVTab) Close() error {
-	return nil
-}
+// EchoModule is the echo virtual-table module, ported from SQLite's
+// test-only module (src/test8.c); see echo.go.
 
 // NoopModule is a stub virtual table module that returns an error
 // indicating the module is not supported. This allows CREATE VIRTUAL TABLE

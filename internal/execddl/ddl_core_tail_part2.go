@@ -252,13 +252,53 @@ func addAutoIndexEntry(ctx *DatabaseContext, tableName string, seq int) error {
 	return ctx.Schema.AddEntry(idxEntry)
 }
 
-// authorizeDropTable runs the authorizer checks DROP TABLE performs:
-// SQLITE_DROP_TABLE on the table, then SQLITE_DELETE on the table's rows
-// and on sqlite_schema (auth-1.63 denies via SQLITE_DELETE sqlite_master;
+// authorizeDropTableEntry runs the authorizer checks DROP TABLE performs,
+// branching on the target kind. A virtual table takes SQLite's vtab sequence
+// (vtab3-1.3 trace): SQLITE_DELETE sqlite_master, SQLITE_DROP_VTABLE
+// <name> <module> <db>, SQLITE_DELETE <name>, SQLITE_DELETE sqlite_master —
+// every action is checked before any schema mutation, so a DENY at any step
+// leaves the vtab intact (vtab3-1.7.x). An ordinary table runs the legacy
+// sequence: SQLITE_DROP_TABLE on the table, then SQLITE_DELETE on the table's
+// rows and on sqlite_schema (auth-1.63 denies via SQLITE_DELETE sqlite_master;
 // auth-1.65 denies via SQLITE_DELETE t2; auth-1.71/1.73 IGNORE them and
 // the drop is skipped). SQLITE_IGNORE on SQLITE_DROP_TABLE silently skips
 // the drop (auth-1.23.1 returns IGNORE for DROP TABLE and the table
 // survives); DENY errors.
+func (e *DDLExecutor) authorizeDropTableEntry(s *sql.DropTableStmt, entry *schema.Entry, ctx *DatabaseContext) *Result {
+	if entry != nil && ctx != nil && isVtabSchemaEntry(entry) {
+		module, _, perr := parseVTabSQL(entry.SQL)
+		if perr == nil {
+			db := ctx.Name
+			for _, act := range []struct {
+				action auth.Action
+				arg1   string
+				arg2   string
+			}{
+				{auth.ActionDelete, "sqlite_master", ""},
+				{auth.ActionDropVTable, entry.Name, module},
+				{auth.ActionDelete, entry.Name, ""},
+				{auth.ActionDelete, "sqlite_master", ""},
+			} {
+				if res := e.authorizeActionOrSkip(act.action, act.arg1, act.arg2, db, ""); res != nil {
+					return res
+				}
+			}
+			return nil
+		}
+	}
+	return e.authorizeDropTable(s)
+}
+
+// isVtabSchemaEntry reports whether a schema entry is a created virtual table
+// (RootPage 0 and stored SQL naming a module).
+func isVtabSchemaEntry(entry *schema.Entry) bool {
+	if entry == nil || entry.RootPage != 0 {
+		return false
+	}
+	return strings.HasPrefix(strings.ToUpper(strings.TrimSpace(entry.SQL)), "CREATE VIRTUAL TABLE")
+}
+
+
 func (e *DDLExecutor) authorizeDropTable(s *sql.DropTableStmt) *Result {
 	if res := e.authorizeActionOrSkip(auth.ActionDropTable, s.Name, "", "", ""); res != nil {
 		return res
@@ -303,9 +343,6 @@ func (e *DDLExecutor) resolveDropTableTarget(s *sql.DropTableStmt) (*schema.Entr
 // execDropTable implements DROP TABLE.
 func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	e.ctx.InvalidateTableCaches()
-	if res := e.authorizeDropTable(s); res != nil {
-		return res
-	}
 	// Force a fresh schema read so a stale schema cache cannot make the DROP
 	// target a table that is no longer in the btree ("deleted=0").
 	for _, dbCtx := range e.ctx.DBList() {
@@ -313,6 +350,9 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	}
 	entry, ctx, res := e.resolveDropTableTarget(s)
 	if res != nil {
+		return res
+	}
+	if res := e.authorizeDropTableEntry(s, entry, ctx); res != nil {
 		return res
 	}
 	if res := e.dropTableFKChecks(entry, ctx); res != nil {

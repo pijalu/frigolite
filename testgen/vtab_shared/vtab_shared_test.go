@@ -87,7 +87,7 @@ func Test_vtab_shared(t *testing.T) {
 	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "vtab_shared-1.1"
-		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		db.RegisterEchoModule()
 		_res = db.Exec("\n    CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);\n  ")
@@ -139,7 +139,7 @@ func Test_vtab_shared(t *testing.T) {
 				_dbtmp1, err := frigolite.Open("test.db")
 				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
 				_ = _dbtmp1
-				// register_echo_module [sqlite3_connection_pointer $dbClose] (unsupported command, not transpiled)
+				db.RegisterEchoModule()
 				got := tclListFlatten(res)
 				want := tclListFlatten("1 2 3 4 5 6")
 				if got != want {

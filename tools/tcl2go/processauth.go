@@ -74,6 +74,11 @@ func isAuthorizerProcName(name string) bool {
 // standard is 6: code arg1 arg2 arg3 arg4 args).
 func authorizerProcSignature(params string) bool {
 	items := tclCmdWords(params)
+	// A braced parameter list arrives as ONE tclCmdWords element (the braces
+	// are word quoting, not separators): split it into its field names.
+	if len(items) == 1 && strings.Contains(items[0], " ") {
+		items = strings.Fields(items[0])
+	}
 	// The signature is positional: at least 4 params (code arg1 arg2 arg3);
 	// the standard authorizer proc has 5-6 (code arg1 arg2 arg3 arg4 args).
 	return len(items) >= 4
@@ -93,10 +98,22 @@ func authorizerProcBodyTranspilable(body string) bool {
 	// body emission, so they do NOT make the body untranspilable.
 	normalized := regexp.MustCompile(`(?m)^\s*set\s+::[A-Za-z0-9_]+\s*\[list[^\]]*\]\s*$`).ReplaceAllString(body, "")
 	normalized = regexp.MustCompile(`(?m)^\s*set\s+::[A-Za-z0-9_]+\s*\{\}\)?\s*$`).ReplaceAllString(normalized, "")
+	// A recording authorizer body (vtab3.test): lappend to a namespace var,
+	// incr on a counter, and lsearch-based conditions are transpilable via
+	// the harness helpers. Reject only bodies with constructs outside that
+	// subset.
+	normalized = regexp.MustCompile(`(?m)^\s*lappend\s+::?[A-Za-z0-9_]+(\s+\$(::)?[A-Za-z0-9_]+)+\s*$`).
+		ReplaceAllString(normalized, "")
+	normalized = regexp.MustCompile(`(?m)^\s*incr\s+::?[A-Za-z0-9_]+(\s+-?[0-9]+)?\s*$`).
+		ReplaceAllString(normalized, "")
+	normalized = authorizerLsearchCond.ReplaceAllString(normalized, "")
+	normalized = regexp.MustCompile(`(?m)^\s*if \{\$(::)?[A-Za-z0-9_]+\s*==\s*-?[0-9]+\}\s*\{`).
+		ReplaceAllString(normalized, "if {")
 	if strings.Contains(normalized, "lappend") ||
 		strings.Contains(normalized, "regexp") || strings.Contains(normalized, "switch") ||
 		strings.Contains(normalized, "expr") || strings.Contains(normalized, "foreach") ||
-		strings.Contains(normalized, "append ") || strings.Contains(normalized, "global") {
+		strings.Contains(normalized, "append ") || strings.Contains(normalized, "global") ||
+		strings.Contains(normalized, "incr") || strings.Contains(normalized, "lsearch") {
 		return false
 	}
 	// Any remaining `set` (not ::authargs) or `return $var` forms are
@@ -143,9 +160,16 @@ func (tp *transpiler) ensureAuthCurrentDecl() {
 	b.WriteString("}\n\n")
 }
 
+// authorizerLsearchCond matches an `[lsearch $::list $param]>-1`-style
+// condition (the filter check of recording authorizer procs, vtab3.test).
+var authorizerLsearchCond = regexp.MustCompile(
+	`\{?\[lsearch \$(::)?([A-Za-z0-9_]+) \$(::)?([A-Za-z0-9_]+)\]\s*(>=|<=|==|!=|<|>)\s*(-?[0-9]+)\}?`)
+
 // emitAuthorizerBody transpiles the if/elseif/return chain of an authorizer
 // proc body. The body consists of `if {COND} { return SQLITE_X }` blocks
-// (optionally elseif/else) followed by a final `return SQLITE_OK`.
+// (optionally elseif/else) — plus, in recording procs (vtab3.test), lappend
+// and incr statements on namespace variables — followed by a final
+// `return SQLITE_OK`.
 func (tp *transpiler) emitAuthorizerBody(body string) {
 	lines := strings.Split(body, "\n")
 	i := 0
@@ -153,6 +177,37 @@ func (tp *transpiler) emitAuthorizerBody(body string) {
 		line := strings.TrimSpace(lines[i])
 		if line == "" || strings.HasPrefix(line, "set ::") {
 			// Skip blank lines and the callback-log `set ::authargs` lines.
+			i++
+			continue
+		}
+		// lappend ::auth_log $code $arg1 $arg2 $arg3 $arg4 — append the
+		// callback arguments to the recording variable (the generated test
+		// reads the same name as a Go local; the TCL-mirror global stays in
+		// sync for helpers reading through the registry).
+		if m := regexp.MustCompile(`^lappend\s+::?([A-Za-z0-9_]+)((?:\s+\$(::)?[A-Za-z0-9_]+)+)$`).FindStringSubmatch(line); m != nil {
+			varName := tclVarToGo(m[1])
+			var elems []string
+			for _, raw := range regexp.MustCompile(`\$(::)?([A-Za-z0-9_]+)`).FindAllStringSubmatch(m[2], -1) {
+				elems = append(elems, authorizerVarToGo(raw[2]))
+			}
+			if len(elems) > 0 && !containsEmpty(elems) {
+				tp.emitLine("%s = tclListAppend(%s, %s)", varName, varName, strings.Join(elems, ", "))
+				tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", m[1], varName)
+				i++
+				continue
+			}
+		}
+		// incr ::auth_fail -1 — adjust the deny counter (string local).
+		if m := regexp.MustCompile(`^incr\s+::?([A-Za-z0-9_]+)\s+(-?[0-9]+)$`).FindStringSubmatch(line); m != nil {
+			// (authorizerProcBodyTranspilable only admits the matching shapes)
+			tp.emitLine("tclIncrMod(&%s, %s)", tclVarToGo(m[1]), m[2])
+			tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", m[1], tclVarToGo(m[1]))
+			i++
+			continue
+		}
+		if m := regexp.MustCompile(`^incr\s+::?([A-Za-z0-9_]+)$`).FindStringSubmatch(line); m != nil {
+			tp.emitLine("tclIncrMod(&%s, 1)", tclVarToGo(m[1]))
+			tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", m[1], tclVarToGo(m[1]))
 			i++
 			continue
 		}
@@ -280,9 +335,30 @@ func authorizerElseifCond(line string) string {
 
 // authorizerCondToGo converts a TCL authorizer condition like
 // `$code=="SQLITE_INSERT" && $arg1=="t2"` to a Go boolean expression
-// `action.String() == "SQLITE_INSERT" && arg1 == "t2"`. Returns "" for
-// unrecognized conditions.
+// `action.String() == "SQLITE_INSERT" && arg1 == "t2"`. Recording-proc
+// conditions are also recognized: `[lsearch $::list $param]>-1` (the filter
+// check) and `$::var == N` (the deny-counter test, vtab3.test). Returns ""
+// for unrecognized conditions.
 func authorizerCondToGo(cond string) string {
+	// The if-block slicer strips the block's closing brace but keeps the
+	// condition's own quoting: strip a leading "{" and any trailing "}" so
+	// the single-condition forms below match.
+	cond = strings.TrimSpace(cond)
+	cond = strings.TrimPrefix(cond, "{")
+	cond = strings.TrimSpace(cond)
+	cond = strings.TrimSuffix(cond, "}")
+	cond = strings.TrimSpace(cond)
+	// Recording-proc forms first (single-condition bodies).
+	if m := authorizerLsearchCond.FindStringSubmatch(cond); m != nil {
+		listVar := tclVarToGo(m[2])
+		param := authorizerVarToGo(m[4])
+		if param != "" {
+			return fmt.Sprintf("tclLsearch(%s, %s) %s %s", listVar, param, m[5], m[6])
+		}
+	}
+	if m := regexp.MustCompile(`^\$(::)?([A-Za-z0-9_]+)\s*==\s*(-?[0-9]+)$`).FindStringSubmatch(cond); m != nil {
+		return fmt.Sprintf("tclInt(%s) == %s", tclVarToGo(m[2]), m[3])
+	}
 	// Split on && (top-level). TCL && is the only connective used in the
 	// simple auth procs; || is rare (reject it to stay conservative).
 	if strings.Contains(cond, "||") {
@@ -386,6 +462,18 @@ func authorizerBodyEndsWithBareReturn(body string) bool {
 			return !strings.Contains(strings.ToUpper(line), "SQLITE_OK")
 		}
 		return false
+	}
+	return false
+}
+
+
+// containsEmpty reports whether any element is the empty string (an
+// authorizer parameter the emitter could not map).
+func containsEmpty(elems []string) bool {
+	for _, e := range elems {
+		if e == "" {
+			return true
+		}
 	}
 	return false
 }

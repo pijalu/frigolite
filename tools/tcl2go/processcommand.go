@@ -696,6 +696,22 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 		return
 	}
 
+	// register_echo_module [sqlite3_connection_pointer db] / register_echo_module
+	// db — register the echo test module (src/test8.c) on the named connection
+	// (sqlite3_create_module parity). The module is per-connection, so the
+	// vtab lifecycle tests observe both the unregistered state ("no such
+	// module: echo") and the registered state (vtab1-1.x, vtab3, vtab6).
+	if cmdName == "register_echo_module" {
+		conn := tp.dbVar
+		if len(args) >= 1 {
+			if name := connNameFromPointerArg(args[0].Text); name != "" {
+				conn = tclVarToGo(name)
+			}
+		}
+		tp.emitLine("%s.RegisterEchoModule()", conn)
+		return
+	}
+
 	// corrupt_freelist FILE N — corrupt9.test's proc that overwrites the
 	// freelist trunk's leaf entries with duplicates of the first leaf page
 	// number (creating duplicate free-list entries). Emit a call to the
@@ -950,4 +966,24 @@ func (tp *transpiler) processBinaryCommand(args []tcl.RawWord) {
 	}
 	// Fall through for any other binary form.
 	tp.processInfraComment("binary", args)
+}
+
+
+// connNameFromPointerArg extracts the connection name from a
+// register_echo_module argument: either a bare connection name ("db") or a
+// sqlite3_connection_pointer command substitution ("[sqlite3_connection_pointer
+// db2]"). Returns "" when no name can be extracted.
+func connNameFromPointerArg(arg string) string {
+	arg = strings.TrimSpace(arg)
+	arg = strings.TrimPrefix(arg, "[")
+	arg = strings.TrimSuffix(arg, "]")
+	fields := strings.Fields(arg)
+	if len(fields) == 0 {
+		return ""
+	}
+	last := fields[len(fields)-1]
+	if last == "" || strings.ContainsAny(last, "$[]") {
+		return ""
+	}
+	return last
 }

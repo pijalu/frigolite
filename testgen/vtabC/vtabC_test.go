@@ -80,7 +80,7 @@ func Test_vtabC(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		db.RegisterEchoModule()
 		vtab.TclVarSet("tablist", "", "")
 		tablist = ""
 		_ = tablist // suppress unused warning

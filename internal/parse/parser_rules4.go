@@ -255,8 +255,9 @@ func rule304(ruleNo int, p *Parser) interface{} {
 	}
 	module := getString(getRHS(p, ruleNo, 8))
 	return &sql.CreateVirtualTableStmt{
-		Name:   name,
-		Module: module,
+		Name:        name,
+		Module:      module,
+		IfNotExists: getBool(getRHS(p, ruleNo, 4)),
 	}
 
 }

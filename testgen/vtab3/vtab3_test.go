@@ -102,8 +102,20 @@ func Test_vtab3(t *testing.T) {
 	vtab.TclVarSet("auth_filter", "", "SQLITE_READ"+" "+"SQLITE_UPDATE"+" "+"SQLITE_SELECT"+" "+"SQLITE_PRAGMA")
 	auth_filter = "SQLITE_READ"+" "+"SQLITE_UPDATE"+" "+"SQLITE_SELECT"+" "+"SQLITE_PRAGMA" // TCL namespace variable
 	_ = auth_filter // suppress unused warning
-	// authorizer proc auth (complex body, not transpiled)
-	// proc definition (not transpiled)
+	authCurrent = func(action auth.Action, arg1, arg2, arg3, arg4 string) auth.Result {
+		if tclLsearch(auth_filter, action.String()) > -1 {
+			return auth.ResultOK
+		}
+		auth_log = tclListAppend(auth_log, action.String(), arg1, arg2, arg3, arg4)
+		vtab.TclVarSet("auth_log", "", auth_log)
+		tclIncrMod(&auth_fail, -1)
+		vtab.TclVarSet("auth_fail", "", auth_fail)
+		if tclInt(auth_fail) == 0 {
+			return auth.ResultDeny
+		}
+		return auth.ResultOK
+	}
+	_ = authCurrent // authorizer proc auth
 	{ // do_test "vtab3-1.1"
 		_res = db.Exec("\n    CREATE TABLE elephant(\n      name VARCHAR(32), \n      color VARCHAR(16), \n      age INTEGER, \n      UNIQUE(name, color)\n    );\n  ")
 		if _res.Error != nil {
@@ -111,7 +123,7 @@ func Test_vtab3(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab3-1.2"
-		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		db.RegisterEchoModule()
 		db.SetAuthorizer(&authDispatcher{})
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")
 		if _res.Error != nil {

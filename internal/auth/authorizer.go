@@ -13,10 +13,12 @@ const (
 	ActionCreateIndex                 // CREATE INDEX
 	ActionCreateView                  // CREATE VIEW
 	ActionCreateTrigger               // CREATE TRIGGER
+	ActionCreateVTable                // CREATE VIRTUAL TABLE
 	ActionDropTable                   // DROP TABLE
 	ActionDropIndex                   // DROP INDEX
 	ActionDropView                    // DROP VIEW
 	ActionDropTrigger                 // DROP TRIGGER
+	ActionDropVTable                  // DROP VIRTUAL TABLE
 	ActionInsert                      // INSERT
 	ActionUpdate                      // UPDATE
 	ActionDelete                      // DELETE
@@ -36,10 +38,12 @@ var actionNames = map[Action]string{
 	ActionCreateIndex:   "SQLITE_CREATE_INDEX",
 	ActionCreateView:    "SQLITE_CREATE_VIEW",
 	ActionCreateTrigger: "SQLITE_CREATE_TRIGGER",
+	ActionCreateVTable:  "SQLITE_CREATE_VTABLE",
 	ActionDropTable:     "SQLITE_DROP_TABLE",
 	ActionDropIndex:     "SQLITE_DROP_INDEX",
 	ActionDropView:      "SQLITE_DROP_VIEW",
 	ActionDropTrigger:   "SQLITE_DROP_TRIGGER",
+	ActionDropVTable:    "SQLITE_DROP_VTABLE",
 	ActionInsert:        "SQLITE_INSERT",
 	ActionUpdate:        "SQLITE_UPDATE",
 	ActionDelete:        "SQLITE_DELETE",

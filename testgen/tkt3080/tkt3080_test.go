@@ -114,7 +114,7 @@ func Test_tkt3080(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // do_test "tkt3080.10"
 		vtab.TclVarSet("sql", "", "\n       CREATE VIRTUAL TABLE t4 USING echo(t2);\n       INSERT INTO t4 VALUES(123);\n       DROP TABLE t4;\n     ")
 		sql = "\n       CREATE VIRTUAL TABLE t4 USING echo(t2);\n       INSERT INTO t4 VALUES(123);\n       DROP TABLE t4;\n     "

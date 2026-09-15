@@ -448,9 +448,22 @@ func rule124(ruleNo int, p *Parser) interface{} {
 
 }
 
+// joinOpFromKeywords merges the joinop's raw keyword texts into the joinOp,
+// porting select.c sqlite3JoinType's error contract ("unknown join type",
+// vtab6-3.7: INNER OUTER / LEFT BOGUS). On an invalid combination the parse
+// carries the error via SemanticErr and the op degrades to INNER.
+func joinOpFromKeywords(p *Parser, kws ...string) joinOp {
+	kind, err := combineJoinKeywords(kws...)
+	if err != nil {
+		p.SemanticErr = err
+		return joinOp{Kind: "INNER"}
+	}
+	return joinOp{Kind: kind, Outer: true}
+}
+
 // Rule 125: joinop ::= JOIN_KW JOIN
 func rule125(ruleNo int, p *Parser) interface{} {
-	return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1)), Outer: true}
+	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)))
 
 }
 
@@ -459,16 +472,12 @@ func rule125(ruleNo int, p *Parser) interface{} {
 // must be preserved so exec can NULL-fill the correct side (SQLite's
 // sqlite3JoinType ORs JT_NATURAL with the JOIN_KW/nm flags).
 func rule126(ruleNo int, p *Parser) interface{} {
-	kw := joinKind(getRHS(p, ruleNo, 1))
-	nm := joinKind(getRHS(p, ruleNo, 2))
-	return joinOp{Kind: combineNaturalJoin(kw, nm), Outer: true}
+	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)), getString(getRHS(p, ruleNo, 2)))
 
 }
 
 func rule127(ruleNo int, p *Parser) interface{} {
-	kw := joinKind(getRHS(p, ruleNo, 1))
-	nm := joinKind(getRHS(p, ruleNo, 2))
-	return joinOp{Kind: combineNaturalJoin(kw, nm), Outer: true}
+	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)), getString(getRHS(p, ruleNo, 2)))
 
 }
 

@@ -81,7 +81,7 @@ func Test_vtabA(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // do_test "vtabA-1.1"
 		_res = db.Exec(" CREATE TABLE t1(a, b HIDDEN VARCHAR, c INTEGER) ")
 		if _res.Error != nil {
