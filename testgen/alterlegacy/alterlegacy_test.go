@@ -137,7 +137,7 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// register_echo_module db (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // "alterlegacy-2.0" — skipped: echo virtual table module (register_echo_module) not implemented (SQL side effects only)
 		_res = db.Exec("\n    PRAGMA legacy_alter_table = 1;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE eee USING echo('abc');\n    SELECT * FROM eee;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests

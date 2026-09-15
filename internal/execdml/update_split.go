@@ -15,7 +15,25 @@ import (
 // --- UPDATE execution ---
 // --- UPDATE execution ---
 
+// execUpdate wraps the UPDATE pipeline with the echo module's error prefix:
+// an UPDATE routed through an echo virtual table reports failures from the
+// source write as "echo-vtab-error: %s" (test8.c echoError / xUpdate).
 func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
+	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
+		return e.execUpdateInner(s)
+	}
+	e.echoWriteDepth++
+	res := e.execUpdateInner(s)
+	if res.Error != nil {
+		res.Error = e.wrapEchoWriteError(res.Error)
+	}
+	e.echoWriteDepth--
+	return res
+}
+
+// execUpdateInner is execUpdate's statement pipeline (the echo write-through
+// wrapper above re-routes its errors).
+func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	// The UPDATE's WITH clause (CTEs) applies to its FROM tables and SET
 	// expressions, including the view/INSTEAD-OF path. Push the CTEs onto
 	// the scope stack so UPDATE ... FROM input resolves input as a CTE

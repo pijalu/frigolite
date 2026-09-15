@@ -132,6 +132,8 @@ func TestP5VtabEchoProxies(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+	// Echo registers per connection (register_echo_module parity).
+	db.RegisterEchoModule()
 
 	steps := []string{
 		"CREATE TABLE t1(a, b, c);",
@@ -212,6 +214,8 @@ func TestP5VtabEchoHidden(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+	// Echo registers per connection (register_echo_module parity).
+	db.RegisterEchoModule()
 
 	steps := []string{
 		"CREATE TABLE t1(a, b HIDDEN VARCHAR, c INTEGER);",
@@ -268,6 +272,8 @@ func TestP5VtabTempLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+	// Echo registers per connection (register_echo_module parity).
+	db.RegisterEchoModule()
 
 	steps := []string{
 		"CREATE TABLE t1(x);",

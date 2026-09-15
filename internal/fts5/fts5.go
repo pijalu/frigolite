@@ -55,6 +55,11 @@ func (m *Module) Connect(args []string) (vtab.VirtualTable, error) {
 	return &vtabInstance{mod: m, cfg: cfg, tok: tok, tokErr: tokErr}, nil
 }
 
+// SchemaDeclared implements vtab.SchemaDeclaredMarker: fts5's constructor
+// always declares the schema (fts5ConfigParse + declare), even for an empty
+// column list.
+func (v *vtabInstance) SchemaDeclared() bool { return true }
+
 // Bind completes a CREATE: the name-dependent checks run, the shadow family
 // is created and the persistent Table instance is registered (fts5InitVtab's
 // xCreate tail). Called with the resolved schema + table name. Re-binding a

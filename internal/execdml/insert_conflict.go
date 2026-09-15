@@ -89,21 +89,24 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 			if err != nil {
 				return nil, &Result{Error: err}
 			}
-			if v != nil {
-				if iv, ok := util.UnwrapColumnValue(v).(int64); ok {
-					explicitRowID = &iv
-					if execquery.IsRowIDName(col) {
-						rowidAliasVal = &iv
-					} else {
-						docidVal = &iv
-					}
-				} else if isFTS {
-					// FTS docid must be an integer: a non-numeric docid
-					// (REPLACE INTO t(docid, x) VALUES('zero', ...)) is a
-					// datatype mismatch (fts3.c fts3UpdateMethod:
-					// "datatype mismatch").
-					return nil, &Result{Error: fmt.Errorf("datatype mismatch")}
-				}
+			if v == nil {
+				continue // NULL rowid: auto-assign
+			}
+			// The rowid column only accepts integers: apply INTEGER affinity
+			// to the supplied value (sqlite3VdbeMemIntegerify — text '45'
+			// and REAL 7.0 convert, oracle-verified) and report a value that
+			// is still not an integer as a datatype mismatch (vtab1-15.4:
+			// INSERT INTO echo_t1(rowid) VALUES('new rowid'); fts3.c
+			// fts3UpdateMethod reports the same for a bad docid).
+			iv, ok2 := explicitRowidValue(v)
+			if !ok2 {
+				return nil, &Result{Error: fmt.Errorf("datatype mismatch")}
+			}
+			explicitRowID = &iv
+			if execquery.IsRowIDName(col) {
+				rowidAliasVal = &iv
+			} else {
+				docidVal = &iv
 			}
 		}
 	}
@@ -111,6 +114,20 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 		return nil, &Result{Error: fmt.Errorf("SQL logic error")}
 	}
 	return explicitRowID, nil
+}
+
+// explicitRowidValue converts an explicit rowid-column value to the rowid
+// integer: INTEGER affinity applied (sqlite3VdbeMemIntegerify — text '45'
+// and REAL 7.0 convert, oracle-verified), ok=false for a value that is still
+// not an integer (the core reports "datatype mismatch"; fts3.c
+// fts3UpdateMethod reports the same for a bad docid).
+func explicitRowidValue(v interface{}) (int64, bool) {
+	uv := util.UnwrapColumnValue(v)
+	if iv, ok := uv.(int64); ok {
+		return iv, true
+	}
+	iv, ok := util.ApplyColumnAffinity(uv, "INTEGER").(int64)
+	return iv, ok
 }
 
 // replaceRowIDAndDelete computes the REPLACE rowid and deletes conflicting

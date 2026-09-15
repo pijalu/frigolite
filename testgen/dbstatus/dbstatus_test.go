@@ -174,7 +174,7 @@ func Test_dbstatus(t *testing.T) {
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 					_r = ""
-					// register_echo_module db (unsupported command, not transpiled)
+					db.RegisterEchoModule()
 				}
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -312,7 +312,7 @@ func Test_dbstatus(t *testing.T) {
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
 						_r = ""
-						// register_echo_module db (unsupported command, not transpiled)
+						db.RegisterEchoModule()
 					}
 					_res = db.Exec(schema)
 					if _res.Error != nil {

@@ -196,7 +196,7 @@ func Test_count(t *testing.T) {
 	{ // do_test "count-2.13"
 		// uses_op_count {SELECT count(*) FROM t1, t2} (unsupported command, not transpiled)
 	}
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // do_test "count-2.14"
 		_res = db.Exec(" CREATE VIRTUAL TABLE techo USING echo(t1); ")
 		if _res.Error != nil {

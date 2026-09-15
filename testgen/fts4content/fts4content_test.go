@@ -907,7 +907,7 @@ func Test_fts4content(t *testing.T) {
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								tcl_nullvalue = "{}" // fresh connection resets nullvalue
-								// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+								db.RegisterEchoModule()
 								{ // "9.1"
 									_res = db.Exec("\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
 									if _res.Error != nil {

@@ -321,6 +321,13 @@ func (e *SelectEngine) validateJoinOnClauses(s *sql.SelectStmt) error {
 		available:      map[string]bool{},
 		availableCols:  map[string]bool{},
 		hasRightOrFull: joinsHaveRightOrFull(s.Joins),
+		fullTables:     map[string]bool{},
+		correlated:     e.outerRow != nil || len(e.outerRowStack) > 0,
+	}
+	operandNames := map[string]bool{}
+	collectOuterTableNames(s, operandNames)
+	for name := range operandNames {
+		v.fullTables[strings.ToLower(name)] = true
 	}
 	v.initAvailable()
 	return v.validateJoins()
@@ -336,6 +343,18 @@ type joinOnValidator struct {
 	availableCols  map[string]bool
 	leftTables     []tableCols
 	hasRightOrFull bool
+	// fullTables holds every FROM operand name/alias of the SELECT (lower
+	// cased), seen-so-far or not. A qualified ON reference to a name outside
+	// this set has no resolver at any position: SQLite's name resolution
+	// reports "no such column: <table>.<column>" for it (vtab6-3.6:
+	// t3.a with no t3 in the FROM), while a name inside the set but right of
+	// the ON's join is "ON clause references tables to its right"
+	// (select.c:7552).
+	fullTables map[string]bool
+	// correlated is true while the SELECT runs inside a correlated subquery
+	// evaluation: qualified ON references may resolve through the enclosing
+	// scope's row, so prepare-time classification is skipped.
+	correlated bool
 }
 
 // initAvailable seeds the available-table and available-column sets from the
@@ -549,10 +568,78 @@ func (v *joinOnValidator) validateJoins() error {
 			return err
 		}
 		v.trackLeftTables(join, tn)
-		if !v.shouldValidateOn(join) {
-			continue
+		if err := v.validateOnForJoin(join); err != nil {
+			return err
 		}
-		bad := v.engine.validateOnRefs(v.s, join, v.available, v.availableCols, v.hasRightOrFull)
+	}
+	return nil
+}
+
+// classifyQualifiedOnRefs returns the prepare-time error for the first
+// qualified ON reference that fails resolution, or "": a reference to a
+// table right of this join is "ON clause references tables to its right"
+// (select.c:7552), a reference to a table absent from the FROM entirely is
+// "no such column: <table>.<column>" (vtab6-3.6). References joined so far
+// and trigger row aliases pass.
+func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr) string {
+	var bad string
+	walkJoinOnExpr(on, func(e2 sql.Expr) {
+		cr, ok := e2.(*sql.ColumnRef)
+		if !ok || cr.Table == "" {
+			return
+		}
+		// Strip a schema prefix and compare case-insensitively against the
+		// FROM operands (sqlite3 name resolution is case-insensitive).
+		t := strings.ToLower(cr.Table)
+		if dot := strings.LastIndexByte(t, '.'); dot >= 0 {
+			t = t[dot+1:]
+		}
+		switch {
+		case t == "new" || t == "old":
+			// trigger row aliases
+		case v.available[t]:
+			// joined so far
+		case v.fullTables[t]:
+			bad = "ON clause references tables to its right"
+		default:
+			bad = fmt.Sprintf("no such column: %s.%s", cr.Table, cr.Name)
+		}
+	})
+	return bad
+}
+
+// validateOnForJoin validates one join's ON clause. Every ON clause gets the
+// qualified-reference classification (SQLite resolves all ON expressions at
+// prepare time; select.c:7552 "ON clause references tables to its right",
+// vtab6-3.6 "no such column: t3.a" for a table absent from the FROM). The
+// legacy unqualified-reference check keeps its LEFT/RIGHT/FULL gate, and the
+// whole classification is skipped while a correlated subquery's row is on
+// the stack (qualified names may resolve in the enclosing scope).
+func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
+	if join.On == nil {
+		return nil
+	}
+	if v.correlated {
+		if !v.shouldValidateOn(join) {
+			return nil
+		}
+		if bad := v.engine.validateOnRefs(v.s, join, v.available, v.availableCols, v.hasRightOrFull); bad != "" {
+			return fmt.Errorf("ON clause references tables to its right")
+		}
+		return nil
+	}
+	if bad := v.classifyQualifiedOnRefs(join.On); bad != "" {
+		return fmt.Errorf("%s", bad)
+	}
+	// The legacy unqualified-reference and ON-subquery checks keep their
+	// LEFT/RIGHT/FULL gate (validateOnRefs' qualified walk is superseded by
+	// the classification above).
+	if v.shouldValidateOn(join) {
+		var bad string
+		v.engine.validateOnSubqueries(v.s, join, v.available, &bad)
+		if bad == "" {
+			bad = findBadUnqualifiedOnRef(join.On, v.availableCols)
+		}
 		if bad != "" {
 			return fmt.Errorf("ON clause references tables to its right")
 		}

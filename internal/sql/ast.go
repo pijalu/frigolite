@@ -480,6 +480,9 @@ type CreateVirtualTableStmt struct {
 	Name   string
 	Module string
 	Args   []string
+	// IfNotExists records the IF NOT EXISTS clause: an existing object of
+	// the same name makes the statement a silent no-op (vtab1-1.8.2).
+	IfNotExists bool
 	// RawSQL is the original statement text as written by the caller (used
 	// for verbatim sqlite_schema storage; SQLite preserves the exact CREATE
 	// VIRTUAL TABLE text including module argument punctuation).

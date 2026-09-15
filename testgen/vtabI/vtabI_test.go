@@ -83,7 +83,7 @@ func Test_vtabI(t *testing.T) {
 	vtab.TclVarSet("testprefix", "", "vtabI")
 	testprefix = "vtabI"
 	_ = testprefix // suppress unused warning
-	// register_echo_module db (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")
 		if _res.Error != nil {

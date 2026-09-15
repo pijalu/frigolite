@@ -161,6 +161,12 @@ type SelectContext interface {
 	// column names, for prepare-time xBestIndex calls (EQP parity,
 	// wherecode.c). ok is false when name is not a created vtab.
 	VtabPlanInstance(name string) (vt vtab.VirtualTable, columns []string, ok bool)
+	// EchoJoinBestIndexPlan runs the echo module's xBestIndex for a join
+	// operand: the join's effective ON terms are the constraints offered
+	// (where.c offers ON + WHERE terms per table). A claimed unusable
+	// constraint reports "<name>.xBestIndex malfunction". ok is false when
+	// name is not an echo vtab.
+	EchoJoinBestIndexPlan(name string, on sql.Expr) (err error, ok bool)
 	// WithoutRowidVTab reports whether the named created virtual table's
 	// stored schema declares WITHOUT ROWID (rowid references are errors).
 	WithoutRowidVTab(name string) bool

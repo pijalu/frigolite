@@ -64,6 +64,14 @@ func (e *SelectEngine) applyJoin(
 	// NATURAL JOIN / USING: generate effective ON expression.
 	effectiveOn, naturalCols := e.setupJoinEffectiveOn(join, currentDefs, rightDefs, lastTableName, tableName)
 
+	// Echo module xBestIndex for the join operands (see echoJoinBestIndex).
+	if err := e.echoJoinBestIndex(lastTableName, effectiveOn); err != nil {
+		return nil, nil, "", err
+	}
+	if err := e.echoJoinBestIndex(tableName, effectiveOn); err != nil {
+		return nil, nil, "", err
+	}
+
 	// Collect right-side column names for ON-clause validation.
 	addRightDefNames(rightDefs, plainNames)
 	if jt := join.JoinType; joinTypeHas(jt, "LEFT") || joinTypeHas(jt, "RIGHT") {
@@ -102,6 +110,18 @@ func (e *SelectEngine) applyJoin(
 		}
 	}
 	return combinedMaps, combinedDefs, tableName, nil
+}
+
+// echoJoinBestIndex offers the join's effective ON terms to an echo module
+// operand's xBestIndex (test8.c echoBestIndex via the engine): a constraint
+// the module claims despite usable==0 is a malfunction naming the vtab
+// (vtab6-11.4.x). Non-echo operands are skipped.
+func (e *SelectEngine) echoJoinBestIndex(tableName string, effectiveOn sql.Expr) error {
+	err, ok := e.ctx.EchoJoinBestIndexPlan(tableName, effectiveOn)
+	if ok && err != nil {
+		return err
+	}
+	return nil
 }
 
 // setupJoinEffectiveOn returns the effective ON expression and the set of

@@ -61,6 +61,11 @@ func setupDB(t *testing.T) *DB {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
+	// The JSON corpus files converted from TCL tests that use the echo
+	// module ran under testfixture with register_echo_module invoked;
+	// register it here (the module stays unregistered per connection, so
+	// testgen lifecycle tests can exercise the "no such module" state).
+	db.RegisterEchoModule()
 	return db
 }
 

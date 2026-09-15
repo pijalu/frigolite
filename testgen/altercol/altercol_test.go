@@ -577,7 +577,7 @@ func Test_altercol(t *testing.T) {
 				lSchema := _items2[_idx2+3]
 				_ = lSchema // suppress unused warning
 				_ = _idx2
-					// register_echo_module db (unsupported command, not transpiled)
+					db.RegisterEchoModule()
 					// do_rename_column_test 10.$tn $old $new $lSchema (unsupported command, not transpiled)
 				}
 				db.Close()
@@ -587,7 +587,7 @@ func Test_altercol(t *testing.T) {
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
-				// register_echo_module db (unsupported command, not transpiled)
+				db.RegisterEchoModule()
 				{ // "11.0"
 					_res = db.Exec("\n    CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);\n  ")
 					if _res.Error != nil {

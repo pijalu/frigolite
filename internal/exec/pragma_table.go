@@ -723,6 +723,17 @@ func (e *Engine) tableInfoColDefs(tableName string) (colDefs []sql.ColumnDef, fo
 		}
 	}
 	if te, _, err := e.findTable(tableName); err == nil {
+		// A created virtual table whose module is not registered on this
+		// connection is unreachable: SQLite reports "no such module" when
+		// the schema is next required (vtab1.2.6: PRAGMA table_info(t1)
+		// after a reopen with the echo module unregistered).
+		if te.RootPage == 0 {
+			if modName, _, isVtab := vtabModuleFromSQL(te.SQL); isVtab {
+				if _, found := e.vtabs.Find(modName); !found {
+					return nil, false, fmt.Errorf("no such module: %s", modName)
+				}
+			}
+		}
 		return e.parseColumnDefs(te.Name, te.SQL), true, nil
 	}
 	if ve, _, err := e.findView(tableName); err == nil {

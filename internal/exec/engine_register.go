@@ -58,9 +58,72 @@ func newTempContext() *DatabaseContext {
 	return tc
 }
 
+// RegisterEchoModule registers the echo test module (src/test8.c) on this
+// connection — the register_echo_module TCL harness command /
+// sqlite3_create_module(db, "echo", ...) parity. The module resolves its
+// source tables through this connection. Idempotent: a later CREATE
+// VIRTUAL TABLE ... USING echo works after either registration count, and a
+// fresh connection (re-Open) starts unregistered, so "no such module: echo"
+// applies until this is called (vtab1-1.1.x / vtab1.2.6).
+func (e *Engine) RegisterEchoModule() {
+	e.vtabs.Register("echo", vtab.NewEchoModule(engineEchoSource{e: e}))
+}
+
+// engineEchoSource adapts the engine's schema to vtab.EchoSource: it resolves
+// the echo module's source-table columns and leading-index flags against this
+// connection's databases.
+type engineEchoSource struct {
+	e *Engine
+}
+
+// EchoColumnDefs implements vtab.EchoSource: the source table's declared
+// column names and types (test8.c getColumnNames + the declared CREATE
+// statement echoDeclareVtab passes to sqlite3_declare_vtab).
+func (s engineEchoSource) EchoColumnDefs(srcTable string) ([]string, []string, bool) {
+	entry, _, err := s.e.findTable(srcTable)
+	if err != nil || entry == nil {
+		return nil, nil, false
+	}
+	defs := s.e.parseColumnDefs(entry.Name, entry.SQL)
+	names := make([]string, 0, len(defs))
+	types := make([]string, 0, len(defs))
+	for _, cd := range defs {
+		typ, _ := stripHiddenToken(cd.Type)
+		names = append(names, cd.Name)
+		types = append(types, typ)
+	}
+	return names, types, true
+}
+
+// EchoLeadingIndex implements vtab.EchoSource: true when an index on the
+// source table leads with column index col (test8.c getIndexArray: every
+// index contributes its left-most column).
+func (s engineEchoSource) EchoLeadingIndex(srcTable string, col int) bool {
+	entry, _, err := s.e.findTable(srcTable)
+	if err != nil || entry == nil || col < 0 {
+		return false
+	}
+	indexes, ierr := s.e.schema.FindIndexesForTable(entry.Name)
+	if ierr != nil {
+		return false
+	}
+	defs := s.e.parseColumnDefs(entry.Name, entry.SQL)
+	if col >= len(defs) {
+		return false
+	}
+	for _, idx := range indexes {
+		if firstIndexColumn(idx.SQL, entry.Name) == defs[col].Name {
+			return true
+		}
+	}
+	return false
+}
+
 // registerVTabModules registers every built-in virtual table module and its
 // companion SQL functions (SQLite registers these on connection open via
-// extension auto-load; frigolite registers them eagerly).
+// extension auto-load; frigolite registers them eagerly). The echo test
+// module (test8.c) is NOT registered here — SQLite registers it per
+// connection via register_echo_module, and RegisterEchoModule provides that.
 func (e *Engine) registerVTabModules() {
 	e.vtabs.RegisterDefaults()
 	// sqlite_dbpage (src/dbpage.c): raw page access through the pagers of

@@ -15,6 +15,9 @@ func TestSQLiteEchoVtabJoinPin(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+	// The echo module is per-connection registered (register_echo_module
+	// parity); it is not part of the default module set.
+	db.RegisterEchoModule()
 	mustExec := func(sql string) {
 		if r := db.Exec(sql); r.Error != nil {
 			t.Fatalf("exec %s: %v", sql, r.Error)

@@ -154,7 +154,7 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		}
 	}
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // do_test "vtab1-1.3.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor did not declare schema: t1") {
@@ -245,8 +245,8 @@ func Test_vtab1(t *testing.T) {
 	}
 	{ // "vtab1-1.15" — skipped: echo reopen-unregister lifecycle (C test module)
 	}
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	db.RegisterEchoModule()
+	db.RegisterEchoModule()
 	{ // "vtab1-1.16" — skipped: echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)
 	}
 	{ // "vtab1-1.17" — skipped: echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)
@@ -289,7 +289,7 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", resErrString(_res), " PRAGMA table_info(t1); ")
 		}
 	}
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // do_test "vtab1.2.7"
 		r = db.Query(" PRAGMA table_info(t1); ")
 		if r.Error != nil {
@@ -513,7 +513,7 @@ func Test_vtab1(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		db.RegisterEchoModule()
 		vtab.TclVarSet("echo_module", "", "")
 		echo_module = "" // TCL namespace variable
 		_ = echo_module // suppress unused warning
@@ -826,7 +826,7 @@ func Test_vtab1(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		db.RegisterEchoModule()
 		_res = db.Exec("\n    DROP TABLE del;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE del;\n  ")
@@ -1373,7 +1373,7 @@ func Test_vtab1(t *testing.T) {
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// load_static_extension db wholenumber (unsupported command, not transpiled)
 			// load_static_extension db eval (unsupported command, not transpiled)
-			// register_echo_module db (unsupported command, not transpiled)
+			db.RegisterEchoModule()
 			{ // do_test "23.1"
 				_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING wholenumber ")
 				if _res.Error != nil {
@@ -1493,7 +1493,7 @@ func Test_vtab1(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
-			// register_echo_module db (unsupported command, not transpiled)
+			db.RegisterEchoModule()
 			{ // "25.0"
 				_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
 				if _res.Error != nil {

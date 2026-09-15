@@ -248,6 +248,17 @@ func (db *DB) SetAuthorizer(a auth.Authorizer) {
 	}
 }
 
+// RegisterEchoModule registers the echo test module (SQLite src/test8.c) on
+// this connection — the register_echo_module TCL harness command /
+// sqlite3_create_module(db, "echo", ...) parity. CREATE VIRTUAL TABLE ...
+// USING echo fails with "no such module: echo" until this is called, and a
+// fresh connection starts unregistered.
+func (db *DB) RegisterEchoModule() {
+	if db != nil && db.engine != nil {
+		db.engine.RegisterEchoModule()
+	}
+}
+
 // SetPendingByte overrides the PENDING_BYTE lock-byte offset for this
 // database's main pager. Mirrors the SQLite C test harness
 // (sqlite3_test_control_pending_byte from src/test2.c), which lowers the

@@ -228,7 +228,7 @@ func Test_nulls1(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			// register_echo_module db (unsupported command, not transpiled)
+			db.RegisterEchoModule()
 			{ // "4.0"
 				_res = db.Exec("\n    CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);\n    CREATE INDEX i1 ON tx(b);\n    INSERT INTO tx VALUES(1, 1, 1);\n    INSERT INTO tx VALUES(2, NULL, 2);\n    INSERT INTO tx VALUES(3, 3, 3);\n    INSERT INTO tx VALUES(4, NULL, 4);\n    INSERT INTO tx VALUES(5, 5, 5);\n    CREATE VIRTUAL TABLE te USING echo(tx);\n  ")
 				if _res.Error != nil {

@@ -61,7 +61,7 @@ func Test_vtabD(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	db.RegisterEchoModule()
 	{ // do_test "vtabD-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    CREATE VIRTUAL TABLE tv1 USING echo(t1);\n  ")
 		if _res.Error != nil {

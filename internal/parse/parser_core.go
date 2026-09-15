@@ -571,42 +571,84 @@ func joinKind(v interface{}) string {
 	}
 }
 
-// combineNaturalJoin merges a JOIN_KW with an optional nm join-type keyword,
-// mirroring SQLite's sqlite3JoinType bitmask OR: "NATURAL LEFT" keeps both
-// flags, and "LEFT RIGHT" ORs to FULL (JT_LEFT|JT_RIGHT). The result is a
-// normalized join-type string the exec layer understands.
-func combineNaturalJoin(kw, nm string) string {
-	mask := joinKindMask(kw) | joinKindMask(nm)
+// combineJoinKeywords merges the join-type keywords of a joinop into the
+// normalized join-type string the exec layer understands, porting select.c
+// sqlite3JoinType: the keywords OR into a JT_* bitmask, "NATURAL LEFT" keeps
+// both flags, and "LEFT RIGHT" ORs to FULL (JT_LEFT|JT_RIGHT). The SQLite
+// error conditions are preserved verbatim: an unrecognized keyword sets
+// JT_ERROR, (JT_INNER|JT_OUTER) together is contradictory, and JT_OUTER
+// without JT_LEFT/JT_RIGHT ("OUTER JOIN") has no meaning — each reports
+// "unknown join type: <keywords as written>" (select.c:309, vtab6-3.7).
+func combineJoinKeywords(kws ...string) (string, error) {
+	mask, err := joinKeywordMask(kws)
+	if err != nil {
+		return "", err
+	}
+	return normalizedJoinType(mask, kws)
+}
+
+// joinKeywordMask ORs the keyword masks, rejecting unrecognized keywords
+// (select.c's JT_ERROR path).
+func joinKeywordMask(kws []string) (int, error) {
+	mask := 0
+	for _, kw := range kws {
+		if kw == "" {
+			continue
+		}
+		m := joinKindMask(kw)
+		if m == 0 {
+			return 0, fmt.Errorf("unknown join type: %s", strings.Join(nonEmpty(kws), " "))
+		}
+		mask |= m
+	}
+	return mask, nil
+}
+
+// normalizedJoinType validates the JT_* combination and renders the
+// exec-layer join-type string. Invalid combinations mirror select.c:302-308:
+// INNER together with OUTER, or OUTER without LEFT/RIGHT.
+func normalizedJoinType(mask int, kws []string) (string, error) {
+	if mask&(jtInner|jtOuter) == jtInner|jtOuter ||
+		mask&jtOuter != 0 && mask&(jtLeft|jtRight) == 0 {
+		return "", fmt.Errorf("unknown join type: %s", strings.Join(nonEmpty(kws), " "))
+	}
+	natural := naturalPrefix(mask)
 	switch {
 	case mask&(jtLeft|jtRight) == jtLeft|jtRight:
-		// FULL (LEFT|RIGHT), possibly NATURAL
-		if mask&jtNatural != 0 {
-			return "NATURAL FULL"
-		}
-		return "FULL"
+		return natural + "FULL", nil
 	case mask&jtLeft != 0:
-		if mask&jtNatural != 0 {
-			return "NATURAL LEFT"
-		}
-		return "LEFT"
+		return natural + "LEFT", nil
 	case mask&jtRight != 0:
-		if mask&jtNatural != 0 {
-			return "NATURAL RIGHT"
-		}
-		return "RIGHT"
+		return natural + "RIGHT", nil
 	case mask&jtCross != 0:
-		if mask&jtNatural != 0 {
-			return "NATURAL CROSS"
-		}
-		return "CROSS"
+		return natural + "CROSS", nil
 	case mask&jtInner != 0:
-		if mask&jtNatural != 0 {
-			return "NATURAL INNER"
-		}
-		return "INNER"
+		return natural + "INNER", nil
 	default:
-		return kw
+		if len(kws) > 0 {
+			return kws[0], nil
+		}
+		return "", nil
 	}
+}
+
+// naturalPrefix returns "NATURAL " when the NATURAL flag is set.
+func naturalPrefix(mask int) string {
+	if mask&jtNatural != 0 {
+		return "NATURAL "
+	}
+	return ""
+}
+
+// nonEmpty returns the non-empty keywords in order.
+func nonEmpty(kws []string) []string {
+	out := make([]string, 0, len(kws))
+	for _, k := range kws {
+		if k != "" {
+			out = append(out, k)
+		}
+	}
+	return out
 }
 
 // Join-type bitmask constants mirroring SQLite's JT_* flags.
@@ -616,25 +658,28 @@ const (
 	jtNatural             // NATURAL
 	jtLeft                // LEFT
 	jtRight               // RIGHT
+	jtOuter               // OUTER
 )
 
 // joinKindMask maps a join keyword to its bitmask (SQLite's sqlite3JoinType
-// aKeyword[] codes: LEFT|OUTER, RIGHT|OUTER, FULL=LEFT|RIGHT|OUTER,
-// INNER, CROSS=INNER|CROSS, NATURAL).
+// aKeyword[] codes: LEFT, RIGHT, FULL=LEFT|RIGHT|OUTER, INNER,
+// CROSS=INNER|CROSS, NATURAL, OUTER).
 func joinKindMask(kw string) int {
-	switch kw {
+	switch strings.ToUpper(kw) {
 	case "LEFT":
 		return jtLeft
 	case "RIGHT":
 		return jtRight
 	case "FULL":
-		return jtLeft | jtRight
+		return jtLeft | jtRight | jtOuter
 	case "INNER":
 		return jtInner
 	case "CROSS":
 		return jtInner | jtCross
 	case "NATURAL":
 		return jtNatural
+	case "OUTER":
+		return jtOuter
 	default:
 		return 0
 	}

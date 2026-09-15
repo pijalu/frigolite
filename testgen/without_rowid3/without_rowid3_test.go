@@ -2020,7 +2020,7 @@ func Test_without_rowid3(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW v;\n  ")
 							}
 						}
-						// register_echo_module db (unsupported command, not transpiled)
+						db.RegisterEchoModule()
 						{ // do_test "without_rowid3-2.14.4.3"
 							_res = db.Exec(" CREATE VIRTUAL TABLE v USING echo(t1) ")
 							if _res.Error != nil {
