@@ -137,6 +137,7 @@ func Test_thread3(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(nAttempt)
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

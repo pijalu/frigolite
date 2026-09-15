@@ -233,6 +233,7 @@ func Test_subquery2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -245,6 +246,7 @@ func Test_subquery2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -257,6 +259,7 @@ func Test_subquery2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -269,6 +272,7 @@ func Test_subquery2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -281,6 +285,7 @@ func Test_subquery2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -306,6 +311,7 @@ func Test_subquery2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -324,6 +330,7 @@ func Test_subquery2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

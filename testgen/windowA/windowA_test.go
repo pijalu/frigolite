@@ -267,6 +267,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"5"+" "+"E"+" "+"10.26"+" "+"{}"+" "+"4"+" "+"D"+" "+"10.25"+" "+"{}"+" "+"3"+" "+"C"+" "+"8.0"+" "+"ED"+" "+"2"+" "+"B"+" "+"5.55"+" "+"C"+" "+"1"+" "+"A"+" "+"5.4"+" "+"{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

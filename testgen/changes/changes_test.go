@@ -133,6 +133,7 @@ func Test_changes(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(tclExprWith("$nBig+1", map[string]string{"nBig": nBig}))
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

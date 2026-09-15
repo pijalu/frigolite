@@ -796,6 +796,7 @@ func Test_json501(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{{\"label\":\"abc" + e + "xyz\"}}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -808,6 +809,7 @@ func Test_json501(t *testing.T) {
 			}
 			got := flatten(r)
 			want := tclListFlatten("{{\"label\":\"abc" + e + "xyz\"}}")
+			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

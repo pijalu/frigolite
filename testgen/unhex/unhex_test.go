@@ -86,6 +86,7 @@ func Test_unhex(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(hex)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -98,6 +99,7 @@ func Test_unhex(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(hex)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -176,6 +178,7 @@ func Test_unhex(t *testing.T) {
 						}
 						got := flatten(r)
 						want := tclListFlatten(out)
+						got = tclListFlattenCollapse(got)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

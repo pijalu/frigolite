@@ -1340,6 +1340,7 @@ func Test_e_insert(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(data)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

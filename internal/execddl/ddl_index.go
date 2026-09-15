@@ -539,6 +539,13 @@ func schemaPrefixOf(name string) string {
 func (e *DDLExecutor) resolveIndexTable(ctx *DatabaseContext, s *sql.CreateIndexStmt) (*schema.Entry, *DatabaseContext, error) {
 	tableEntry, tableCtx, err := e.ctx.FindTable(s.Table)
 	if err != nil {
+		// build.c sqlite3CreateIndex locates VIEWS too (sqlite3LocateTable
+		// finds any schema object) and then rejects them with "views may not
+		// be indexed" — the lookup must not report "no such table" first
+		// (view.test i1v1).
+		if _, _, vErr := e.ctx.FindView(s.Table); vErr == nil {
+			return nil, nil, fmt.Errorf("views may not be indexed")
+		}
 		return nil, nil, err
 	}
 	// If the index has an explicit schema prefix, the table must be resolved

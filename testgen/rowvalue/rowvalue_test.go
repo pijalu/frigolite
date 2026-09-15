@@ -144,6 +144,7 @@ func Test_rowvalue(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(eq)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -156,6 +157,7 @@ func Test_rowvalue(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(ne)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -168,6 +170,7 @@ func Test_rowvalue(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(is)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -180,6 +183,7 @@ func Test_rowvalue(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(isnot)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -192,6 +196,7 @@ func Test_rowvalue(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(eq)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -204,6 +209,7 @@ func Test_rowvalue(t *testing.T) {
 				}
 				got := flatten(r)
 				want := tclListFlatten(ne)
+				got = tclListFlattenCollapse(got)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -245,6 +251,7 @@ func Test_rowvalue(t *testing.T) {
 							}
 							got := flatten(r)
 							want := tclListFlatten(res)
+							got = tclListFlattenCollapse(got)
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -366,6 +373,7 @@ func Test_rowvalue(t *testing.T) {
 								}
 								got := flatten(r)
 								want := tclListFlatten(res)
+								got = tclListFlattenCollapse(got)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
@@ -389,6 +397,7 @@ func Test_rowvalue(t *testing.T) {
 									}
 									got := flatten(r)
 									want := tclListFlatten(res)
+									got = tclListFlattenCollapse(got)
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -575,6 +584,7 @@ func Test_rowvalue(t *testing.T) {
 											}
 											got := flatten(r)
 											want := tclListFlatten(res)
+											got = tclListFlattenCollapse(got)
 											if got != want {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}

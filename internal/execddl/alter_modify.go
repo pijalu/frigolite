@@ -329,6 +329,11 @@ func (e *DDLExecutor) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	tableName := s.Table
 	tableEntry, ctx, err := e.ctx.FindTable(tableName)
 	if err != nil {
+		// ALTER TABLE resolves views (sqlite3LocateTableItem); ADD COLUMN on
+		// one reports the dedicated alter.c message.
+		if _, _, vErr := e.ctx.FindView(tableName); vErr == nil {
+			return &Result{Error: fmt.Errorf("Cannot add a column to a view")}
+		}
 		return &Result{Error: err}
 	}
 
@@ -336,6 +341,12 @@ func (e *DDLExecutor) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	// virtual table reports "virtual tables may not be altered").
 	if e.isVirtualTable(tableEntry) {
 		return &Result{Error: fmt.Errorf("virtual tables may not be altered")}
+	}
+
+	// alter.c sqlite3AlterBeginAddColumn: isAlterableTable runs after the
+	// virtual/view checks and echoes the canonical schema name.
+	if isProtectedSystemTable(tableEntry.Name) {
+		return &Result{Error: fmt.Errorf("table %s may not be altered", tableEntry.Name)}
 	}
 
 	// ALTER TABLE ... ADD [CONSTRAINT nm] CHECK(expr): append a table-level
@@ -435,11 +446,20 @@ func validateStrictAddColumn(tableEntry *schema.Entry, colDef sql.ColumnDef) *Re
 // commitAlterTableEntry replaces a modified table entry in its schema manager
 // and invalidates the engine's table cache. Returns a non-nil Result when the
 // entry cannot be persisted.
+//
+// alter.c edits the stored CREATE SQL row IN PLACE (sqlite3AlterFinishAddColumn
+// and the constraint forms rewrite the sqlite_schema row, keeping its rowid),
+// so the in-place update is preferred: a remove+re-add moves the table to the
+// END of sqlite_master, which reorders a later VACUUM/backup DDL replay until
+// a trigger can be replayed before its own table ("no such table", alter3 7.x
+// with a temp trigger surviving an ADD COLUMN).
 func (e *DDLExecutor) commitAlterTableEntry(tableName string, schemaMgr *schema.Manager, tableEntry *schema.Entry) *Result {
 	e.ctx.DeleteTableCache(tableName)
-	_ = schemaMgr.RemoveEntry(tableEntry.Name)
-	if err := schemaMgr.AddEntry(tableEntry); err != nil {
-		return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+	if err := schemaMgr.UpdateEntryFull(tableEntry.Name, tableEntry.Name, tableEntry.SQL); err != nil {
+		_ = schemaMgr.RemoveEntry(tableEntry.Name)
+		if err := schemaMgr.AddEntry(tableEntry); err != nil {
+			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+		}
 	}
 	// Verify the entry was re-added.
 	if _, err := schemaMgr.FindTable(tableEntry.Name); err != nil {

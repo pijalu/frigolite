@@ -982,6 +982,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1006,6 +1007,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1018,6 +1020,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1030,6 +1033,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1042,6 +1046,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1054,6 +1059,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1066,6 +1072,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1078,6 +1085,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1090,6 +1098,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1102,6 +1111,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1114,6 +1124,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1126,6 +1137,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1138,6 +1150,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1150,6 +1163,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1162,6 +1176,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1174,6 +1189,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1186,6 +1202,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1198,6 +1215,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1210,6 +1228,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1222,6 +1241,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1234,6 +1254,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1246,6 +1267,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1258,6 +1280,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1270,6 +1293,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1282,6 +1306,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1294,6 +1319,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1306,6 +1332,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1318,6 +1345,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1330,6 +1358,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1342,6 +1371,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1354,6 +1384,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1366,6 +1397,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1378,6 +1410,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1390,6 +1423,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1402,6 +1436,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1414,6 +1449,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1426,6 +1462,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1438,6 +1475,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1450,6 +1488,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1462,6 +1501,7 @@ func Test_tkt_80e031a00f(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

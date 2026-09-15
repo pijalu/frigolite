@@ -62,6 +62,11 @@ type DMLContext interface {
 	// pagers snapshots can be skipped (fts4merge4 automerge: without this,
 	// every %_segments block insert copies the whole growing pager, O(n^2)).
 	InFTSFlush() bool
+	// TriggersSuppressed reports whether trigger firing is currently
+	// disabled engine-wide (the logical backup/VACUUM rebuild replays DDL
+	// and copies rows without running trigger programs, matching SQLite's
+	// page-level vacuum.c copy).
+	TriggersSuppressed() bool
 	Authorize(action auth.Action, arg1, arg2, arg3, arg4 string) error
 
 	// Engine resources.

@@ -390,6 +390,19 @@ func (e *SelectEngine) resolveFromTable(s *sql.SelectStmt) (*schema.Entry, *Data
 	if err == nil {
 		return tableEntry, dbCtx, nil
 	}
+	// select.c selectExpander (ticket d58ccbb3f1b): every FROM-term
+	// reference increments the view's Table.nTabRef; a view expanded more
+	// than 65535 times in one statement aborts name resolution with
+	// "too many references to \"%s\": max 65535" (view3 1.1). The count is
+	// LIVE references: released when the view's own expansion finishes.
+	if e.viewRefCounts == nil {
+		e.viewRefCounts = make(map[string]int)
+	}
+	viewRefKey := strings.ToUpper(s.From.Name)
+	if e.viewRefCounts[viewRefKey] >= 0xffff {
+		return nil, nil, &Result{Error: fmt.Errorf("too many references to %q: max 65535", s.From.Name)}
+	}
+	e.viewRefCounts[viewRefKey]++
 	viewEntry, viewCtx, viewErr := e.ctx.FindView(s.From.Name)
 	if viewErr != nil {
 		// SQLite prefixes a missing table in a main-schema view's body

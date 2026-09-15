@@ -397,6 +397,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(strings.ReplaceAll("\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n", "%perms%", perms))
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -415,6 +416,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(strings.ReplaceAll("\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n", "%perms%", perms))
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -427,6 +429,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := tclListFlatten(strings.ReplaceAll("\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 {} 0\n", "%perms%", perms))
+		got = tclListFlattenCollapse(got)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

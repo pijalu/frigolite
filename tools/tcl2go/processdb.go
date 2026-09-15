@@ -1027,6 +1027,12 @@ func (tp *transpiler) emitFormatFunction(name, procName string) bool {
 // emitRegisteredFunction emits a RegisterFunction call for a recognized
 // test-suite proc pattern. Returns true when a pattern matched.
 func (tp *transpiler) emitRegisteredFunction(name, procName string, rest []tcl.RawWord) bool {
+	// Recorder proc: `proc trigfunc {args} { set ::TRIGGER $args }` becomes a
+	// scalar SQL function replacing the Go variable with the TCL rendering of
+	// its arguments (alter.test alter-3.1.x/3.3.x trigger probes).
+	if tp.emitRecorderFunctionIfMatched(name, procName) {
+		return true
+	}
 	if tp.emitSleeperFunction(name, procName) {
 		return true
 	}
@@ -1440,4 +1446,31 @@ func (tp *transpiler) emitIncrRetFunction(name, procName string, rest []tcl.RawW
 	tp.emitLine("\treturn int64(%d), nil", info.Ret)
 	tp.emitLine("}, %d, %d)", arityLo, arityHi)
 	return true
+}
+
+// emitRecorderFunctionIfMatched emits the recorder closure when procName is
+// a recognized `proc P {args} { set ::V $args }` kind. Returns false when not
+// a match (the caller keeps scanning other kinds).
+func (tp *transpiler) emitRecorderFunctionIfMatched(name, procName string) bool {
+	goVar, ok := tp.recorderFuncs[procName]
+	if !ok || name == "" {
+		return false
+	}
+	tp.emitRecorderFunction(name, goVar)
+	return true
+}
+
+// emitRecorderFunction emits a scalar SQL function that replaces the named
+// Go variable with the TCL list rendering of its arguments on every call
+// (`proc trigfunc {args} { set ::TRIGGER $args }`, alter.test).
+func (tp *transpiler) emitRecorderFunction(name, goVar string) {
+	tp.emitLine("// db function %s: replaces %s with the TCL rendering of its args", name, goVar)
+	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+	tp.emitLine("\tparts := make([]string, 0, len(args))")
+	tp.emitLine("\tfor _, a := range args {")
+	tp.emitLine("\t\tparts = append(parts, tclListElem(tclStr(a)))")
+	tp.emitLine("\t}")
+	tp.emitLine("\t%s = tclList(parts)", goVar)
+	tp.emitLine("\treturn nil, nil")
+	tp.emitLine("}, 0, -1)")
 }

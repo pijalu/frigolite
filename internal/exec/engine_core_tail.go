@@ -422,6 +422,18 @@ func (e *Engine) InFTSFlush() bool {
 	return e.tx.inFTSFlush
 }
 
+// SetTriggersSuppressed turns trigger firing on or off for DML executed
+// through this engine (see the triggersSuppressed field comment).
+func (e *Engine) SetTriggersSuppressed(v bool) {
+	e.triggersSuppressed = v
+}
+
+// TriggersSuppressed reports whether trigger firing is currently suppressed
+// (see SetTriggersSuppressed).
+func (e *Engine) TriggersSuppressed() bool {
+	return e.triggersSuppressed
+}
+
 // execFlushAutocommit applies PRAGMA count_changes and flushes attached
 // database pagers after a successful autocommit statement so a later connection
 // on the attached file sees the writes immediately. Inside an explicit
