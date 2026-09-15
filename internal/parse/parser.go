@@ -288,6 +288,9 @@ func runLALRParse(input string, schemaMode bool, parenSpans []parenRewriteSpan, 
 	if lalrErr != nil {
 		return reducer.stmts, lalrErr
 	}
+	if parser.AppendFromErr != nil {
+		return nil, parser.AppendFromErr
+	}
 	if len(reducer.stmts) == 0 {
 		if reducer.pendingStmt != nil {
 			// No statements were collected via ecmd (no SEMI in input).

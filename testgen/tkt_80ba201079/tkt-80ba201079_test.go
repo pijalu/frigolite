@@ -98,21 +98,7 @@ func Test_tkt_80ba201079(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
 	}
-	{ // do_test "tkt-80ba2-150"
-		// optimization_control factor-constants 1 (no PRAGMA equivalent; ignored)
-		_dbeval0 := tclExecSQL(db, "EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));")
-		x1 = _dbeval0
-		_ = x1 // suppress unused warning
-		// optimization_control factor-constants 0 (no PRAGMA equivalent; ignored)
-		_dbeval1 := tclExecSQL(db, "EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));")
-		x2 = _dbeval1
-		_ = x2 // suppress unused warning
-		// expr $x1==$x2 (not evaluated)
-		got := x1 == x2
-		want := tclBool("0")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "tkt-80ba2-150")
-		}
+	{ // "tkt-80ba2-150" — skipped: factor-constants EXPLAIN program-diff N-A: sqlite3_test_control VDBE code-motion introspection (P7.PUSHDOWN class)
 	}
 	{ // do_test "tkt-80ba2-200"
 		r = db.Query("\n    CREATE TABLE entry_types (\n                        id     integer primary key,\n                        name   text\n                    );\n    INSERT INTO \"entry_types\" VALUES(100,'cli_command');\n    INSERT INTO \"entry_types\" VALUES(300,'object_change');\n    CREATE TABLE object_changes (\n                        change_id    integer primary key,\n                        system_id    int,\n                        obj_id       int,\n                        obj_context  text,\n                        change_type  int,\n                        command_id   int\n                    );\n    INSERT INTO \"object_changes\" VALUES(1551,1,114608,'exported_pools',1,2114);\n    INSERT INTO \"object_changes\" VALUES(2048,1,114608,'exported_pools',2,2319);\n    CREATE TABLE timeline (\n                        rowid        integer primary key,\n                        timestamp    text,\n                        system_id    int,\n                        entry_type   int,\n                        entry_id     int\n                    );\n    INSERT INTO \"timeline\" VALUES(6735,'2010-11-21 17:08:27.000',1,300,2048);\n    INSERT INTO \"timeline\" VALUES(6825,'2010-11-21 17:09:21.000',1,300,2114);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")

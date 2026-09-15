@@ -285,13 +285,14 @@ func selectProjectsPlainColumns(columns []sql.SelectColumn) bool {
 // message format when a term is out of range.
 func validateOrderBy(orderBy []sql.OrderByTerm, numCols int) error {
 	for i, ob := range orderBy {
-		if nl, ok := ob.Expr.(*sql.NumericLit); ok {
-			// Parse the positional reference
-			n, ok := parsePositiveInt(nl.Value)
-			if !ok || n < 1 {
-				continue // not a valid positional reference
-			}
-			if n > numCols {
+		if nl, ok := ob.Expr.(*sql.NumericLit); ok && isDecimalIntegerLiteral(nl.Value) {
+			// The term is an INTEGER literal, so it is a positional
+			// reference: zero or beyond the result width is out of range
+			// (SQLite resolve.c resolveOrderGroupBy: integer ORDER BY terms
+			// with iCol<1 or past the result set error; FLOAT literals are
+			// ordinary expressions and never match here).
+			n, _ := parsePositiveInt(nl.Value)
+			if n < 1 || n > numCols {
 				return fmt.Errorf("%d%s ORDER BY term out of range - should be between 1 and %d",
 					i+1, ordinalSuffix(i+1), numCols)
 			}
@@ -339,6 +340,20 @@ func parsePositiveInt(s string) (int, bool) {
 	return n, n > 0
 }
 
+// isDecimalIntegerLiteral reports whether s is a non-empty run of decimal
+// digits, i.e. an INTEGER token rather than a FLOAT/hex literal.
+func isDecimalIntegerLiteral(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
+}
+
 func ordinalSuffix(n int) string {
 	switch n % 100 {
 	case 11, 12, 13:
@@ -377,27 +392,14 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	}
 	// Pre-evaluate ORDER BY expressions that are not plain unqualified column
 	// references (the comparator would otherwise discard evaluation errors).
-	for _, ob := range orderBy {
-		obExpr := normalizeOrderByExpr(ob.Expr)
-		ref, isRef := stripCollate(obExpr).(*sql.ColumnRef)
-		if isRef && ref.Table == "" && ref.Name != "*" {
-			continue
-		}
-		key := sql.ExprString(ob.Expr)
-		for i := 0; i < n; i++ {
-			if _, ok := rowMaps[i].Get(key); ok {
-				continue
-			}
-			// Output column names are visible inside ORDER BY expressions
-			// (SQLite resolves ORDER BY names against the result set):
-			// filter1-4.2's ORDER BY (h+1.0) resolves the alias h.
-			cm := combinedOutputRowMap(rowMaps[i], result.Columns, result.Rows[i])
-			v, err := e.ctx.EvalExpr(ob.Expr, cm)
-			if err != nil {
-				return err
-			}
-			rowMaps[i][key] = v
-		}
+	// Every evaluation runs BEFORE any result is written back: a stored key
+	// such as "x.b" contains a dot, and a later evaluation seeing it would
+	// classify the row as a join result (RowHasQualifiedKeys), disabling the
+	// scan-table unqualified fallback — the next qualified term (x.c) then
+	// evaluates to NULL and its tie-break is lost (tkt-2a5629202f: ORDER BY
+	// x.b, x.c returned NULL-b ties in scan order instead of c order).
+	if err := e.preEvalOrderByTerms(result, orderBy, rowMaps, n); err != nil {
+		return err
 	}
 	// Sort indices, then reorder both slices in-place
 	indices := make([]int, n)
@@ -427,6 +429,61 @@ func resultColumnIndex(resultCols []string, name string) int {
 		}
 	}
 	return -1
+}
+
+// preEvalTerm buffers one ORDER BY term's pre-evaluated values per row.
+type preEvalTerm struct {
+	key  string
+	vals []interface{}
+	done []bool
+}
+
+// preEvalOrderByTerms evaluates non-plain-column ORDER BY terms for every row
+// up-front and stores the values back under the term's expression key, so the
+// sort comparator reads cached values instead of re-evaluating mid-compare.
+func (e *SelectEngine) preEvalOrderByTerms(result *Result, orderBy []sql.OrderByTerm, rowMaps []RowMap, n int) error {
+	var pending []preEvalTerm
+	for _, ob := range orderBy {
+		obExpr := normalizeOrderByExpr(ob.Expr)
+		ref, isRef := stripCollate(obExpr).(*sql.ColumnRef)
+		if isRef && ref.Table == "" && ref.Name != "*" {
+			continue
+		}
+		term, err := e.preEvalOrderByTerm(result, ob, rowMaps, n)
+		if err != nil {
+			return err
+		}
+		pending = append(pending, term)
+	}
+	for _, term := range pending {
+		for i := 0; i < n; i++ {
+			if term.done[i] {
+				rowMaps[i][term.key] = term.vals[i]
+			}
+		}
+	}
+	return nil
+}
+
+// preEvalOrderByTerm evaluates one ORDER BY term for every not-yet-keyed row.
+// Output column names are visible inside ORDER BY expressions (SQLite resolves
+// ORDER BY names against the result set): filter1-4.2's ORDER BY (h+1.0)
+// resolves the alias h.
+func (e *SelectEngine) preEvalOrderByTerm(result *Result, ob sql.OrderByTerm, rowMaps []RowMap, n int) (preEvalTerm, error) {
+	term := preEvalTerm{key: sql.ExprString(ob.Expr), vals: make([]interface{}, n), done: make([]bool, n)}
+	for i := 0; i < n; i++ {
+		if _, ok := rowMaps[i].Get(term.key); ok {
+			continue
+		}
+		cm := combinedOutputRowMap(rowMaps[i], result.Columns, result.Rows[i])
+		v, err := e.ctx.EvalExpr(ob.Expr, cm)
+		if err != nil {
+			return term, err
+		}
+		term.vals[i] = v
+		term.done[i] = true
+	}
+	return term, nil
 }
 
 // derivedTableBadColumnRef returns the first column reference in a derived

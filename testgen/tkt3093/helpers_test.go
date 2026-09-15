@@ -1976,14 +1976,33 @@ func tclPagerCacheSize(db *frigolite.DB) int {
 }
 
 // tclCatchsqlMatches checks a catchsql result against a TCL do_test expected
-// list of the form "{count message}" (e.g. "1 {FOREIGN KEY constraint failed}"
-// or "0 {}"). count "0" means the statement must succeed; count "1" means it
-// must fail with an error whose text contains message (the braced message). A
-// message wrapped in slashes (/re/) is matched as a regular expression.
+// value. tester.tcl routes do_catchsql_test through do_test, which supports
+// two expected-value families:
+//
+//   - "/PATTERN/" (negated: "~/PATTERN/"): PATTERN is a regular expression
+//     applied to the STRING of the whole catchsql result — "0 {rows}" on
+//     success, "1 {msg}" on failure (e.g. fts5first's
+//     "/1 {fts5: syntax error near .*}/"). The form is detected on the RAW
+//     string BEFORE any brace handling so a pattern whose text ends with "}"
+//     keeps its trailing "/" delimiter, and exactly one "/" is stripped from
+//     each end (mirroring tester.tcl's [string range $expected 1 end-1]).
+//   - "{count message}" (e.g. "1 {FOREIGN KEY constraint failed}" or "0 {}"):
+//     count "0" requires success; count "1" requires an error whose text
+//     contains message (the message is unwrapped by TCL lindex semantics —
+//     exactly one brace pair).
 func tclCatchsqlMatches(res *frigolite.Result, expected string) bool {
 	e := strings.TrimSpace(expected)
 	if e == "" {
 		return res.Error == nil
+	}
+	// Slash-wrapped regex form: detect on the raw string, before splitting the
+	// count token or trimming braces, so "/1 {fts5: syntax error near .*}/"
+	// keeps its trailing "/" (a braces-first Trim hides it behind the "}").
+	if len(e) >= 2 && strings.HasPrefix(e, "/") && strings.HasSuffix(e, "/") {
+		return tclCatchsqlRegexMatches(res, e[1:len(e)-1], false)
+	}
+	if len(e) >= 4 && strings.HasPrefix(e, "~/") && strings.HasSuffix(e, "/") {
+		return tclCatchsqlRegexMatches(res, e[2:len(e)-1], true)
 	}
 	sp := strings.Index(e, " ")
 	count := e
@@ -1991,16 +2010,12 @@ func tclCatchsqlMatches(res *frigolite.Result, expected string) bool {
 	if sp >= 0 {
 		count = e[:sp]
 		msg = strings.TrimSpace(e[sp+1:])
-		msg = strings.Trim(msg, "{}")
-		msg = strings.TrimSpace(msg)
-	}
-	// A slash-wrapped expected form (/1 .*failed.*/) uses the count in the
-	// leading /N and a regex message.
-	isRegex := false
-	if strings.HasPrefix(count, "/") && strings.HasSuffix(msg, "/") {
-		count = strings.TrimPrefix(count, "/")
-		msg = strings.TrimSuffix(msg, "/")
-		isRegex = true
+		// TCL lindex unwraps exactly one quoting level: strip ONE brace pair,
+		// not every leading/trailing brace (a regex text ending in "}" would
+		// be corrupted by an unconditional Trim).
+		if len(msg) >= 2 && strings.HasPrefix(msg, "{") && strings.HasSuffix(msg, "}") {
+			msg = strings.TrimSpace(msg[1 : len(msg)-1])
+		}
 	}
 	switch count {
 	case "0":
@@ -2009,13 +2024,33 @@ func tclCatchsqlMatches(res *frigolite.Result, expected string) bool {
 		if res.Error == nil {
 			return false
 		}
-		if isRegex {
-			ok, _ := regexp.MatchString(msg, res.Error.Error())
-			return ok
-		}
 		return strings.Contains(res.Error.Error(), msg)
 	}
 	return false
+}
+
+// tclCatchsqlRegexMatches applies a tester.tcl do_test regex expected value to
+// the stringified whole catchsql result (tclCatchsqlString: "0 {rows}" or
+// "1 {msg}"), mirroring tester.tcl's [regexp $re $result] branch: a pattern
+// beginning with "*" is treated as a glob, "#" stands for a run of numeric
+// characters, and TCL's "\y" word-boundary escape becomes Go's "\b". negated
+// inverts the match (tester.tcl's "~/PATTERN/" form).
+func tclCatchsqlRegexMatches(res *frigolite.Result, pattern string, negated bool) bool {
+	got := tclCatchsqlString(res)
+	if strings.HasPrefix(pattern, "*") {
+		// tester.tcl: a leading * makes the expected value a glob, not a regex.
+		if globMatch(got, pattern) {
+			return !negated
+		}
+		return negated
+	}
+	pattern = strings.ReplaceAll(pattern, "#", "[-0-9.]+")
+	pattern = strings.ReplaceAll(pattern, "\\y", "\\b")
+	ok, _ := regexp.MatchString(pattern, got)
+	if negated {
+		return !ok
+	}
+	return ok
 }
 
 // tclCatchsqlString renders a *frigolite.Result in TCL's catchsql command

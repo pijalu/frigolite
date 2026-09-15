@@ -260,18 +260,35 @@ func joinIsEmptyNonLeft(e *SelectEngine, join sql.JoinClause) bool {
 
 // materializeSubqueryJoin
 
+// hasOuterRows reports whether the engine is executing inside an enclosing
+// query with rows on the outer-resolution stack (a correlated subquery).
+func (e *SelectEngine) hasOuterRows() bool {
+	return e.outerRow != nil || len(e.outerRows) > 0
+}
+
 // materializeSubqueryJoin builds the right-side row maps and column defs for a
 // derived-table subquery join operand.
 func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, []sql.ColumnDef, string, []int, error) {
-	// A derived table cannot reference tables outside its own FROM (no
-	// correlation). Validate its refs resolve within its scope.
-	if bad := derivedTableBadColumnRef(join.Table.Subquery); bad != "" {
+	// A derived table's refs must resolve within its own scope. When the
+	// subquery runs inside an enclosing query whose rows are on the stack
+	// (a correlated scalar/EXISTS subquery), SQLite allows the derived table
+	// to reference the enclosing tables (tkt-54844eea3f: FROM t1 JOIN
+	// (SELECT DISTINCT t3.c AS p FROM t2) AS x): the whole join re-
+	// materializes once per outer row because the enclosing subquery is
+	// re-executed per row. Without outer rows the reference is a true error.
+	if bad := derivedTableBadColumnRef(join.Table.Subquery); bad != "" && !e.hasOuterRows() {
 		return nil, nil, "", nil, fmt.Errorf("no such column: %s", bad)
 	}
 	// A parenthesized JOIN group is a non-lateral subquery: its expressions
 	// (including TVF arguments) cannot reference the enclosing FROM tables.
+	// A correlated derived table keeps normal outer visibility (its refs are
+	// resolved against the enclosing rows, not the enclosing FROM scope).
+	correlated := false
+	if bad := derivedTableBadColumnRef(join.Table.Subquery); bad != "" {
+		correlated = e.hasOuterRows()
+	}
 	savedDerived := e.derivedScope
-	e.derivedScope = true
+	e.derivedScope = !correlated
 	subqResult := e.execSelect(join.Table.Subquery)
 	e.derivedScope = savedDerived
 	if subqResult.Error != nil {

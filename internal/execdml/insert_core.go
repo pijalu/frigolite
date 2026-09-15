@@ -220,18 +220,49 @@ func (e *DMLExecutor) resolveInsertRowConstraints(tableEntry *schema.Entry, colD
 		// A UNIQUE/PRIMARY KEY conflict on a constraint with ON CONFLICT
 		// REPLACE: delete the conflicting rows and let the insert proceed
 		// (SQLite replaces the old rows with the new one, e_createtable
-		// -4.15/4.16/4.17 t*_re tables).
+		// -4.15/4.16/4.17 t*_re tables). A conflict on ANOTHER unique
+		// constraint with a non-REPLACE algorithm fails the statement and
+		// undoes the deletes (insert.c statement journal; tkt-4a03edc4c8),
+		// so check it BEFORE deleting anything.
 		if e.uniqueReplaceableConflict(err, tableEntry, colDefs) {
-			if res := e.replaceDeleteConflicts(e.ctx.Pager(), tableEntry, colDefs, values, nextRowID); res.Error != nil {
-				return res, false
-			}
-			return nil, true
+			return e.resolveReplaceConflict(tableEntry, colDefs, values, nextRowID, err)
 		}
 		// Column-level ON CONFLICT REPLACE on a NOT NULL column: substitute the
 		// column's DEFAULT value for the NULL and re-validate (SQLite conflate.c
 		// OP_IsNull + ON CONFLICT REPLACE resolution). Without a DEFAULT the
 		// constraint error stands. REPLACE (statement OR) does the same.
 		return e.resolveReplaceNotNullDefaults(tableEntry, colDefs, values, nextRowID, orConflict, err)
+	}
+	return nil, true
+}
+
+// violatedConstraintName extracts the violated column's name from a UNIQUE
+// constraint error ("UNIQUE constraint failed: t1.b" → "b"), or "" when the
+// error names no column.
+func violatedConstraintName(err error) string {
+	if err == nil {
+		return ""
+	}
+	errStr := err.Error()
+	if dot := strings.LastIndex(errStr, "."); dot >= 0 {
+		return errStr[dot+1:]
+	}
+	return ""
+}
+
+// resolveReplaceConflict completes a REPLACE resolution for a conflict on a
+// REPLACE-carrying constraint: a secondary conflict with a non-REPLACE
+// algorithm returns the error (or skips the row for IGNORE) BEFORE any delete
+// (insert.c statement journal); otherwise the conflicting rows are deleted and
+// the row is written. The boolean return means "write the row".
+func (e *DMLExecutor) resolveReplaceConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64, err error) (*Result, bool) {
+	replacedCol := violatedConstraintName(err)
+	if res, skip := e.replaceSecondaryConflictResult(tableEntry, colDefs, buildColumnIndex(colDefs), values, replacedCol); res != nil || skip {
+		// skip mirrors the IGNORE path: drop the row without writing it.
+		return res, false
+	}
+	if res := e.replaceDeleteConflicts(e.ctx.Pager(), tableEntry, colDefs, values, nextRowID); res.Error != nil {
+		return res, false
 	}
 	return nil, true
 }

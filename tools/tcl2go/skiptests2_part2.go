@@ -754,4 +754,13 @@ var skipTestsMoreTail = map[string]string{
 	"vtabJ-162": "array-names runtime introspection loop N-A (transpiler)",
 	"vtabJ-111": "array-names runtime introspection loop N-A (transpiler; native anchor TestNativeTclvarDML)",
 	"vtabJ-152": "array-names runtime introspection loop N-A (transpiler; native anchor TestNativeTclvarDML)",
+
+	// tkt-80ba2-150: verifies the sqlite3_test_control(SQLITE_TESTCTRL_OPTIMIZATIONS)
+	// "factor-constants" hook actually changes the VDBE program by diffing
+	// EXPLAIN output with the flag on/off. Constant-expression factoring is
+	// where.c OP_Once code motion — VDBE program-shape introspection the
+	// pure-Go btree executor does not model (same class as P7.PUSHDOWN
+	// cursorhint). The SQL-visible behavior (rows of tkt-80ba2-1xx/2xx) is
+	// fully covered and green (no-side-effects).
+	"tkt-80ba2-150": "factor-constants EXPLAIN program-diff N-A: sqlite3_test_control VDBE code-motion introspection (P7.PUSHDOWN class)",
 }

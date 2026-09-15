@@ -818,13 +818,7 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 	// leading "/1" (space optional) and trailing "/" and emit a regexp
 	// match over the rendered catchsql result string.
 	if strings.HasPrefix(raw, "/1") && strings.HasSuffix(raw, "/") {
-		pattern := strings.TrimSpace(strings.TrimSuffix(raw, "/"))
-		pattern = strings.TrimSpace(strings.TrimPrefix(pattern, "/"))
-		pattern = strings.ReplaceAll(pattern, `\y`, `\b`)
-		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
-		tp.emitLine("if matched, _ := regexp.MatchString(%q, tclCatchsqlString(_res)); !matched {", pattern)
-		tp.emitLine("\tt.Errorf(\"catchsql result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\\n  sql: %%s\", tclCatchsqlString(_res), %q, %s)", pattern, sqlExpr)
-		tp.emitLine("}")
+		tp.emitCatchsqlRegexComparison(sqlExpr, raw, dbConn)
 		return
 	}
 	if expectSuccess {
@@ -854,6 +848,30 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 	tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 	tp.emitLine("if _res.Error == nil {")
 	tp.emitLine("\tt.Errorf(\"expected error, got none\\n  sql: %%s\", %s)", sqlExpr)
+	tp.emitLine("}")
+}
+
+// emitCatchsqlRegexComparison emits the comparison for a do_catchsql_test
+// expected value of the slash-wrapped regex form "/1 PATTERN/" (raw is the
+// full expected text). The pattern is matched against the STRING of the whole
+// catchsql result (tclCatchsqlString), with the same transformations as the
+// runtime tclCatchsqlRegexMatches helper (tester.tcl's do_test regex branch)
+// so both ends stay consistent: a leading * is a glob, # stands for a numeric
+// run, and TCL's \y word boundary becomes Go's \b.
+func (tp *transpiler) emitCatchsqlRegexComparison(sqlExpr, raw, dbConn string) {
+	pattern := strings.TrimSpace(strings.TrimSuffix(raw, "/"))
+	pattern = strings.TrimSpace(strings.TrimPrefix(pattern, "/"))
+	tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
+	if strings.HasPrefix(pattern, "*") {
+		tp.emitLine("if matched := globMatch(tclCatchsqlString(_res), %q); !matched {", pattern)
+		tp.emitLine("\tt.Errorf(\"catchsql result mismatch\\n  got:  [%%s]\\n  want glob: [%%s]\\n  sql: %%s\", tclCatchsqlString(_res), %q, %s)", pattern, sqlExpr)
+		tp.emitLine("}")
+		return
+	}
+	pattern = strings.ReplaceAll(pattern, "#", "[-0-9.]+")
+	pattern = strings.ReplaceAll(pattern, `\y`, `\b`)
+	tp.emitLine("if matched, _ := regexp.MatchString(%q, tclCatchsqlString(_res)); !matched {", pattern)
+	tp.emitLine("\tt.Errorf(\"catchsql result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\\n  sql: %%s\", tclCatchsqlString(_res), %q, %s)", pattern, sqlExpr)
 	tp.emitLine("}")
 }
 

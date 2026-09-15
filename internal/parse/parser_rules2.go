@@ -313,7 +313,7 @@ func rule113(ruleNo int, p *Parser) interface{} {
 	if schema != "" {
 		tbl = tbl + "." + schema
 	}
-	return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias, Args: args, IsTabFunc: true}, on, using)
+	return acc.appendTableWithOn(p, sql.TableRef{Name: tbl, As: alias, Args: args, IsTabFunc: true}, on, using)
 
 }
 
@@ -324,7 +324,7 @@ func rule114(ruleNo int, p *Parser) interface{} {
 	alias := getString(getRHS(p, ruleNo, 5))
 	on, using := getOnUsing(getRHS(p, ruleNo, 6))
 	ref := sql.TableRef{Subquery: sel, As: alias}
-	return acc.appendTableWithOn(ref, on, using)
+	return acc.appendTableWithOn(p, ref, on, using)
 
 }
 
@@ -360,7 +360,7 @@ func rule115(ruleNo int, p *Parser) interface{} {
 			},
 		}
 		ref := sql.TableRef{Subquery: sub, As: alias}
-		return acc.appendTableWithOn(ref, on, using)
+		return acc.appendTableWithOn(p, ref, on, using)
 	}
 	ref := inner.firstTable()
 	if alias != "" {
@@ -371,7 +371,7 @@ func rule115(ruleNo int, p *Parser) interface{} {
 	// table contributed by the group (SQLite: FROM t1 JOIN (t2 JOIN t3
 	// USING(a)) USING(a) applies the outer USING to the group's first
 	// table t2).
-	acc = acc.appendTableWithOn(ref, on, using)
+	acc = acc.appendTableWithOn(p, ref, on, using)
 	for _, j := range inner.Joins {
 		acc = acc.appendJoin(j)
 	}

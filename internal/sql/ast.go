@@ -198,6 +198,11 @@ type TableRef struct {
 	// INDEXED" is represented as the sentinel ""). The engine validates
 	// that the named index can serve the query.
 	IndexedBy string
+	// EmptyName marks a FROM term whose name is the quoted empty identifier
+	// ("FROM \"\"" — tkt-78e04e52ea's zero-length table name). Name=="" alone
+	// is ambiguous with a FROM-less SELECT; this flag preserves the
+	// distinction for executors that dispatch on the zero value.
+	EmptyName bool
 }
 
 // OrderByTerm represents an ORDER BY term.

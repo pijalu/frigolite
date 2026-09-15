@@ -60,7 +60,7 @@ func ExprString(e Expr) string {
 	if e == nil {
 		return ""
 	}
-	switch e.(type) {
+	switch v := e.(type) {
 	case *NumericLit, *StringLit, *NullLit, *BlobLit:
 		return exprStringLiteral(e)
 	case *ParameterExpr, *ColumnRef:
@@ -71,6 +71,8 @@ func ExprString(e Expr) string {
 		return exprStringNullTest(e)
 	case *Subquery, *ExistsExpr:
 		return exprStringSubquery(e)
+	case *CastExpr:
+		return "CAST(" + ExprString(v.Operand) + " AS " + v.AsType + ")"
 	}
 	return "?"
 }

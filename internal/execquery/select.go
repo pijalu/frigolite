@@ -122,7 +122,9 @@ func BuildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, w
 // is complete.
 func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
 	// Handle SELECT without FROM (e.g., SELECT 1, SELECT CASE...)
-	if s.From.Name == "" && s.From.Subquery == nil && len(s.From.As) == 0 {
+	// EmptyName marks the quoted empty table name ("FROM \"\""), which is a
+	// real FROM term naming the zero-length table (tkt-78e04e52ea).
+	if s.From.Name == "" && !s.From.EmptyName && s.From.Subquery == nil && len(s.From.As) == 0 {
 		return e.execSelectNoFrom(s), true
 	}
 

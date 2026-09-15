@@ -10,6 +10,7 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
@@ -180,15 +181,15 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 	if err != nil || entry == nil || entry.RootPage != 0 {
 		return nil, nil, nil, nil, false
 	}
-	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
-	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
-		return nil, nil, nil, nil, false // FTS keeps its dedicated scan path
-	}
-	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
-		return nil, nil, nil, nil, false // fts5 keeps its dedicated scan path
+	modName, modArgs, isVtab, skip := createdVTabModuleKind(e, entry, name)
+	if skip {
+		return nil, nil, nil, nil, false
 	}
 	if debugClosure {
 		fmt.Fprintf(os.Stderr, "MCVT name=%s mod=%q args=%q\n", name, modName, modArgs)
+	}
+	if isEchoModule(modName, modArgs) {
+		return e.materializeEchoVTab(entry, modArgs[0])
 	}
 	if !isVtab {
 		return nil, nil, nil, nil, false
@@ -249,6 +250,68 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 
 // debugClosure toggles verbose tracing of created-vtab materialization.
 var debugClosure = os.Getenv("CL_DBG") != ""
+
+// isEchoModule reports whether a created virtual table uses the echo module
+// with a source-table argument. The echo module mirrors its underlying source
+// table (SQLite test8.c: echoConnect declares the source table's columns and
+// echoCursor steps through its b-tree); the registered echo stub declares
+// nothing, so materialization reads the source table directly.
+func isEchoModule(modName string, modArgs []string) bool {
+	return strings.EqualFold(modName, "echo") && len(modArgs) > 0
+}
+
+// createdVTabModuleKind resolves a created (rootpage-0) virtual table's module
+// name/arguments. skip=true marks tables that never take the generic vtab
+// materialization path: FTS/fts5 keep their dedicated scan paths.
+func createdVTabModuleKind(e *Engine, entry *schema.Entry, name string) (modName string, modArgs []string, isVtab bool, skip bool) {
+	modName, modArgs, isVtab = vtabModuleFromSQL(entry.SQL)
+	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
+		return modName, modArgs, isVtab, true
+	}
+	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
+		return modName, modArgs, isVtab, true
+	}
+	return modName, modArgs, isVtab, false
+}
+
+// materializeEchoVTab materializes an echo virtual table by scanning its
+// source table: echoConnect (SQLite test8.c) declares the source table's
+// columns and echoCursor reads the source b-tree rows, rowid included.
+// Returns ok=false when the source table or its columns cannot be resolved.
+func (e *Engine) materializeEchoVTab(entry *schema.Entry, srcArg string) ([]sql.ColumnDef, [][]interface{}, []int64, error, bool) {
+	defs := e.echoColumnDefs(entry.Name, srcArg)
+	if len(defs) == 0 {
+		return nil, nil, nil, nil, false
+	}
+	srcName := strings.Trim(srcArg, "'\"")
+	srcEntry, ctx, ferr := e.findTable(srcName)
+	if ferr != nil || srcEntry == nil {
+		return nil, nil, nil, fmt.Errorf("no such table: %s", srcName), true
+	}
+	tree := e.TableBTreePg(ctx.Pager, srcEntry.Name, srcEntry.RootPage, true)
+	cursor, cerr := tree.OpenCursor()
+	if cerr != nil {
+		return nil, nil, nil, cerr, true
+	}
+	var rows [][]interface{}
+	var rowids []int64
+	for {
+		cell, rerr := cursor.ReadCell()
+		if rerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		rows = append(rows, rec.Values)
+		rowids = append(rowids, cell.RowID)
+		if okN, nerr := cursor.Next(); nerr != nil || !okN {
+			break
+		}
+	}
+	return defs, rows, rowids, nil, true
+}
 
 // MaterializeCreatedVTabFunc materializes the table-valued form of a CREATED
 // virtual table (FROM t('x')): the FROM arguments bind to the leftmost

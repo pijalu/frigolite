@@ -64,6 +64,13 @@ type Parser struct {
 	// errors that the grammar accepts but SQLite rejects (e.g. ORDER BY in a
 	// compound-select member before the final SELECT).
 	SemanticErr error
+	// AppendFromErr reports an ON/USING clause on the first FROM term
+	// (SQLite build.c sqlite3SrcListAppendFromTerm: "a JOIN clause is
+	// required before ON/USING"). Unlike SemanticErr it is only reported
+	// when the feed produced no syntax error, matching SQLite where the
+	// LALR reduction carrying ON/USING never runs when the lookahead cannot
+	// follow it (`ON b USING(a)` is a pure syntax error).
+	AppendFromErr error
 	// SchemaMode relaxes semantic checks that SQLite only enforces for
 	// freshly-authored SQL, not when re-parsing stored sqlite_schema text:
 	// e.g. a COLLATE clause or ASC/DESC on a FOREIGN KEY column (eidlist)

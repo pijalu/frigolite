@@ -374,6 +374,124 @@ func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schem
 	return conflicts, len(conflicts) > 0
 }
 
+// replaceSecondaryConflictResult inspects the unique constraints OTHER than
+// the one whose REPLACE-resolved error triggered the replace for conflicts
+// with the new row. SQLite deletes the REPLACE-conflicting rows and re-runs
+// the insert; a conflict on a constraint with a non-REPLACE algorithm then
+// fails the re-run and the statement journal undoes the deletes (insert.c).
+// This pre-check yields the same net effect before any delete happens:
+//   - a conflicting constraint with ON CONFLICT IGNORE skips the row
+//     silently (no deletes, no error);
+//   - a conflicting constraint with FAIL/ABORT/ROLLBACK, no clause, or a
+//     UNIQUE index (always clause-less) reports "UNIQUE constraint failed"
+//     and nothing is deleted (tkt-4a03edc4c8: IPK REPLACE + b UNIQUE FAIL
+//     leaves both original rows in place and errors on t1.b).
+// Only the per-constraint path uses this: a statement-level OR REPLACE
+// overrides the column clauses (verified against sqlite3) and keeps the
+// delete-everything behavior. skip=true tells the caller to drop the row.
+func (e *DMLExecutor) replaceSecondaryConflictResult(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replacedCol string) (*Result, bool) {
+	if res := e.replaceSecondaryIndexConflict(tableEntry, colDefs, colIndex, values); res != nil {
+		return res, false
+	}
+	strictCols, ignoreCols := e.classifyReplaceSecondaryCols(colDefs, values, replacedCol)
+	if len(strictCols) == 0 && len(ignoreCols) == 0 {
+		return nil, false
+	}
+	return e.scanReplaceSecondaryConflict(tableEntry, colDefs, values, strictCols, ignoreCols)
+}
+
+// replaceSecondaryIndexConflict reports a UNIQUE index conflict for the new
+// values. UNIQUE indexes never carry a conflict clause: any conflict on one
+// fails the insert (CREATE UNIQUE INDEX has no ON CONFLICT grammar).
+func (e *DMLExecutor) replaceSecondaryIndexConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) *Result {
+	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
+		if _, _, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok {
+			return &Result{Error: uniqueIndexConflictError(tableEntry, colIndex, def, def.Cols)}
+		}
+	}
+	return nil
+}
+
+// classifyReplaceSecondaryCols partitions the column-level UNIQUE/PRIMARY KEY
+// constraints other than the replaced one by their conflict resolution:
+// strict (FAIL/ABORT/ROLLBACK/no clause → error) vs IGNORE (skip the row
+// silently). REPLACE columns are resolved by the delete pass.
+func (e *DMLExecutor) classifyReplaceSecondaryCols(colDefs []sql.ColumnDef, values []interface{}, replacedCol string) (strictCols, ignoreCols map[int]bool) {
+	strictCols = make(map[int]bool)
+	ignoreCols = make(map[int]bool)
+	for i := range colDefs {
+		if i >= len(values) || values[i] == nil {
+			continue
+		}
+		if strings.EqualFold(colDefs[i].Name, replacedCol) {
+			continue // the replaced constraint itself
+		}
+		if !colDefs[i].Unique && !colDefs[i].PrimaryKey {
+			continue
+		}
+		switch colDefs[i].OnConflict {
+		case "REPLACE":
+			continue // resolved by the delete pass
+		case "IGNORE":
+			ignoreCols[i] = true
+		default:
+			strictCols[i] = true
+		}
+	}
+	return strictCols, ignoreCols
+}
+
+// scanReplaceSecondaryConflict walks the table once looking for a row that
+// conflicts with the new values on a tracked secondary constraint: strict
+// columns produce the UNIQUE error before any delete happens; IGNORE columns
+// skip the row silently (skip=true).
+func (e *DMLExecutor) scanReplaceSecondaryConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, strictCols, ignoreCols map[int]bool) (*Result, bool) {
+	keyer := newConflictKeyer(tableEntry, colDefs)
+	tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil, false
+	}
+	for {
+		cell, cerr := cursor.ReadCell()
+		if cerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		// WITHOUT ROWID cells are PK-first storage order; the scan compares
+		// declared positions, so remap first (as findNextReplaceConflict does).
+		if keyer.wr {
+			e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+		}
+		if res, skip := replaceSecondaryRowConflict(tableEntry, rec.Values, values, colDefs, strictCols, ignoreCols); res != nil || skip {
+			return res, skip
+		}
+		if okN, nerr := cursor.Next(); nerr != nil || !okN {
+			break
+		}
+	}
+	return nil, false
+}
+
+// replaceSecondaryRowConflict tests one existing row against the tracked
+// secondary constraint columns: strict → UNIQUE error result; IGNORE → skip.
+func replaceSecondaryRowConflict(tableEntry *schema.Entry, rowVals, values []interface{}, colDefs []sql.ColumnDef, strictCols, ignoreCols map[int]bool) (*Result, bool) {
+	for i := range strictCols {
+		if hasConflictAt(rowVals, []int{i}, values, colDefs) >= 0 {
+			return &Result{Error: fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[i].Name)}, false
+		}
+	}
+	for i := range ignoreCols {
+		if hasConflictAt(rowVals, []int{i}, values, colDefs) >= 0 {
+			return nil, true
+		}
+	}
+	return nil, false
+}
+
 // findNextReplaceConflict locates one not-yet-seen row conflicting with the
 // new values, checking the explicit rowid, UNIQUE columns, then UNIQUE indexes.
 // UNIQUE columns are checked PER-COLUMN: INSERT OR REPLACE INTO t(a UNIQUE,

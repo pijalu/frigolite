@@ -6379,3 +6379,33 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   entries make tcl2go emit 12-line empty stubs (`func Test_x(t *testing.T)
   {}`). Before trusting an un-skip, check the generated file size / assert
   count. (This is how speed1p's 445s runtime and walshared's FAIL hid.)
+
+## 2026-09-14 (session 4d): tclCatchsqlMatches slash-regex parsing fidelity
+
+- **tester.tcl is the oracle for catchsql expected-value parsing**: do_catchsql_test
+  delegates to do_test, whose regex branch (`regexp {^[~#]?/.*/$} $expected`)
+  detects `/PATTERN/` on the RAW expected string and strips EXACTLY ONE `/` per
+  end (`string range 1 end-1`), matching against the STRING of the whole result.
+  For catchsql that string is `1 {msg}` / `0 {rows}` (rendered by
+  tclCatchsqlString) — NOT the bare error text.
+- **Braces-first Trim hid the regex delimiter**: the old `tclCatchsqlMatches`
+  did `strings.Trim(msg, "{}")` BEFORE `HasSuffix(msg, "/")`, so
+  `/1 {fts5: syntax error near .*}/` lost its trailing `}` and the trailing `/`
+  was no longer at the end — isRegex never fired, count stayed "/1", switch
+  matched nothing → every ok=0 fts5first assertion failed. Rule: detect
+  slash-wrapped regex forms on the raw string BEFORE any brace handling; strip
+  exactly one brace pair (TCL lindex semantics), never Trim a brace cutset.
+- **Regex patterns may legitimately end in `}`** (message text like
+  `syntax error near "}"`, quantifier text) — any parse that trims trailing
+  braces unconditionally is suspect for regex-bearing expected values.
+- **Generation vs runtime split for catchsql regex forms**: literal `/1 .../ `
+  expectations are decided at GENERATION time (normalizeExpectedWord keeps the
+  raw text; emitCatchsqlRegexComparison emits regexp over tclCatchsqlString);
+  variable-held ones (`$res($ok)`) parse at RUNTIME in tclCatchsqlMatches.
+  Both ends must apply the same tester.tcl transformations (leading-`*` glob,
+  `#`→`[-0-9.]+`, `\y`→`\b`) or the same test behaves differently by form.
+- **Proving regression non-existence in testgen**: `git stash` the transpiler
+  fix, regenerate the same packages, run, compare failure sets line-by-line
+  (bind-821, misc8-111/123/129 were byte-identical pre/post). Also: regenerating
+  a package whose emitter only moved code (with2) and diffing the generated
+  test file proves emission is byte-stable.

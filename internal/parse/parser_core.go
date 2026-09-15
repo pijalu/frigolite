@@ -376,8 +376,23 @@ func joinTypeOf(kind string) string {
 
 // appendTableWithOn adds a table, attaching an optional ON condition and/or
 // USING column list to the join clause that links it to the previous table.
-func (a *seltablistAcc) appendTableWithOn(ref sql.TableRef, on sql.Expr, using []string) *seltablistAcc {
+// When this is the FIRST FROM term, ON/USING is an error: SQLite's
+// sqlite3SrcListAppendFromTerm (build.c) reports "a JOIN clause is required
+// before ON/USING" when the appended term has no left-hand source.
+func (a *seltablistAcc) appendTableWithOn(p *Parser, ref sql.TableRef, on sql.Expr, using []string) *seltablistAcc {
 	if !a.HasFirst {
+		// SQLite raises this from sqlite3SrcListAppendFromTerm during the
+		// reduction, but in its LALR tables a rule carrying ON/USING cannot
+		// reduce when the lookahead cannot follow it — `ON b USING(a)` dies
+		// as "near USING: syntax error" first. Defer the message so a syntax
+		// error detected later in the feed still takes precedence.
+		if p != nil && p.AppendFromErr == nil && (on != nil || len(using) > 0) {
+			if on != nil {
+				p.AppendFromErr = fmt.Errorf("a JOIN clause is required before ON")
+			} else {
+				p.AppendFromErr = fmt.Errorf("a JOIN clause is required before USING")
+			}
+		}
 		a.First = ref
 		a.HasFirst = true
 		return a
@@ -436,12 +451,18 @@ func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posI
 		tbl = tbl + "." + schema
 	}
 	ref := sql.TableRef{Name: tbl, As: alias}
+	if tbl == "" {
+		// A quoted empty identifier ("FROM \"\"") names the zero-length
+		// table (tkt-78e04e52ea); mark it so it is not mistaken for a
+		// FROM-less SELECT.
+		ref.EmptyName = true
+	}
 	if posIndexedBy > 0 {
 		if ib, ok := getRHS(p, ruleNo, posIndexedBy).(string); ok && ib != "" && !strings.EqualFold(ib, "NOT INDEXED") {
 			ref.IndexedBy = ib
 		}
 	}
-	return acc.appendTableWithOn(ref, on, using)
+	return acc.appendTableWithOn(p, ref, on, using)
 }
 
 // valuesFromSelect converts a VALUES-select (a SelectStmt with no FROM) into
