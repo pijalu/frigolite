@@ -6409,3 +6409,30 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   (bind-821, misc8-111/123/129 were byte-identical pre/post). Also: regenerating
   a package whose emitter only moved code (with2) and diffing the generated
   test file proves emission is byte-stable.
+- **N/A-skip evidence standard (fleet T24-qrf):** a whole-file N/A skip needs
+  (1) a command census of the original .test proving the tested surface is
+  harness/CLI-only (qrf01.test: 131/136 `db` commands are `db format`; qrf02
+  asserts only on formatter output of EXPLAIN/EQP; qrf03 is screen-width
+  narrowing), (2) proof the C reference source is absent from the pinned tree
+  (SQLITE_QRF_H guard in tclsqlite-ex.c → "QRF not available in this build";
+  no qrf.c/qrf.h anywhere), (3) a note that the engine-visible SQL steps pass
+  (qrf01.json 2.30 hex(c) unicode UPDATE green). Skips must land on BOTH
+  harnesses — tools/tcl2go/skiptestfiles.go (testgen) AND
+  frigolite_harness_test.go unsupportedTestFiles (JSON suite) — or the root
+  suite stays red while testgen is green.
+- **tclconvert db-eval deferral bug (unfixed):** SQL inside
+  `do_test N { db eval {…} }` setup blocks is mis-attributed to a LATER named
+  section, so an intervening do_execsql_test runs without its schema setup
+  (qrf01: t2 created in 5.4, flushed into 7.0 → 6.0 `DELETE FROM t2` errors
+  "no such table"). The engine is correct; the JSON conversion is lossy.
+  Fixing it means regenerating testdata JSONs repo-wide — do it as its own
+  tranche with a full-suite diff.
+- **Upsert DO UPDATE must re-check OTHER unique indexes:** `INSERT …
+  ON CONFLICT(a) DO UPDATE SET c=…` can itself violate a second UNIQUE index
+  (upsert4.test 1.x.5: sqlite3 aborts "UNIQUE constraint failed: t1.c");
+  frigolite's DO UPDATE path resolves only the target-index conflict and
+  misses the new violation (upsert4 red at baseline 2b3353093, pre-existing).
+- **Verifying a pin test discriminates:** `git checkout <fix-commit>~1 -- <file>`
+  the fixed engine file, run the pin test (expect FAIL with the original
+  symptom), then `git checkout <fix-commit> -- <file>` to restore. Cheaper
+  and more direct than a scratch worktree for a single-file engine fix.

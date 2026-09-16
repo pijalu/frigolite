@@ -91,6 +91,22 @@ var unsupportedTestFiles = map[string]string{
 	// to simulate corruption. Not exposed by the pure-Go engine (N/A).
 	"imposter1": "requires SQLITE_TESTCTRL_IMPOSTER test-control C API (N/A)",
 
+	// qrf01 — Query Result Formatter (QRF) presentation suite: 131 of its
+	// 136 `db` commands are `db format` (box/table/list column formatting
+	// with -widths/-linelimit/-wordwrap), the CLI shell's result-rendering
+	// layer. The QRF C source is absent from the pinned SQLite tree (dbQrf
+	// in tclsqlite-ex.c compiles to "QRF not available in this build"
+	// without SQLITE_QRF_H; no qrf.c/qrf.h exists), so there is no
+	// reference implementation to port. The harness failure itself is a
+	// tclconvert artifact, not an engine gap: the file's CREATE TABLE t2
+	// setup lives in do_test 5.4's `db eval {...}` block, which the JSON
+	// converter mis-attributes to the later 7.0 section, so harness test
+	// 6.0 (`DELETE FROM t2`) runs with no such table. Every engine-visible
+	// step in the file (e.g. 2.30 hex(c) unicode UPDATE) passes. Same
+	// CLI-seam class as sqldiff1 / P5.SHELL; mirrors the tcl2go-side skip.
+	// See NA_EVIDENCE qrf.
+	"qrf01": "N/A: db format = shell Query Result Formatter (QRF), CLI-presentation layer; QRF C source unavailable (SQLITE_QRF_H guard); JSON conversion mis-attributes the t2 setup (NA_EVIDENCE qrf)",
+
 	// FTS3/4/5 — full-text search engine not implemented (shadow table architecture)
 	"fts3aux1":       "fts4aux virtual table not implemented",
 	"fts3aux2":       "fts4aux virtual table not implemented",
