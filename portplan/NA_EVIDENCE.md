@@ -1925,3 +1925,21 @@ Skip-map note: 21 entries added (6 fault N-A + 10 superseded-with-pin +
 5 harness N-A); no entries removed; the tools/status floor (>= 260) only
 grows. Regenerated via `go run ./tools/tcl2go/ -testdir
 ../sqlite/ext/fts5/test <name>.test`; all 21 packages run green as stubs.
+
+## func3 xDestroy counters (2026-09-16, FULL-SUITE-DRIFT.T24-pairs-querya)
+
+- func3-2.2 / func3-3.2 / func3-4.2 — assert the
+  `sqlite3_create_function_v2` xDestroy callback counter (`destroyed` TCL
+  var) after re-registering f3 (2.2), after `db close` (3.2), and after a
+  rejected xFunc+xStep registration (4.2). The destroy callback is C-API
+  only: the pure-Go API (`DB.RegisterFunc`/`RegisterAggregateFunc`) has no
+  destructor parameter, so the count observes the binding layer, not the
+  engine (no-side-effects). Skipping 3.2 also drops its `db close` side
+  effect, so the following `sqlite3 db test.db` reopen is transpiled
+  side-effect-only (engine-visible contract unaffected: f3 is never queried
+  after that point — 4.1's registration attempt is misuse-rejected, 5.x uses
+  likelihood/min only). Engine-visible contract pinned natively in
+  frigolite_func_pin_test.go (TestFunc3ReregisterReplacesUDF: re-registering
+  a UDF replaces the old registration; the new implementation answers the
+  next query). Generated via tcl2go `db collation_needed` factory shape +
+  skip map; testgen/func3 green.

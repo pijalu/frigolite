@@ -738,6 +738,17 @@ func (db *DB) RegisterCollation(name string, fn func(a, b string) int) {
 	}
 }
 
+// RegisterCollationNeeded sets the collation-needed callback for this
+// database connection (sqlite3_collation_needed). It is invoked whenever a
+// statement references a collation sequence that is not registered; the
+// callback typically registers the missing collation via RegisterCollation,
+// after which the referencing statement succeeds. A nil fn clears the hook.
+func (db *DB) RegisterCollationNeeded(fn func(name string)) {
+	if db != nil && db.engine != nil {
+		db.engine.RegisterCollationNeeded(fn)
+	}
+}
+
 // UnregisterCollation removes a registered custom collation sequence
 // (sqlite_delete_collation). It reports whether a collation was removed.
 func (db *DB) UnregisterCollation(name string) bool {

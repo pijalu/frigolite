@@ -946,4 +946,17 @@ var skipTestsMoreTail = map[string]string{
 	// (sqlite_io_error_pending/persist), which pure Go does not emulate; the
 	// loop's do_tests assert nothing beyond commit success (no-side-effects).
 	"tkt2565-1.X": "sqlite_open_file_count is a C-harness open-file counter, not engine-visible (no-side-effects)",
+
+	// func3-2.2 / 3.2 / 4.2: assert the sqlite3_create_function_v2
+	// xDestroy callback counter (`destroyed` TCL var) after re-registering
+	// f3, after db close, and after a failed xFunc+xStep registration. The
+	// destroy callback is C-API-only — the pure-Go API
+	// (DB.RegisterFunc/RegisterAggregateFunc) has no destructor parameter,
+	// so the count observes the binding layer, not the engine
+	// (no-side-effects). Engine-visible contract (re-registering a UDF
+	// replaces the old one; the new registration answers the next query) is
+	// pinned natively in frigolite_func3_pin_test.go.
+	"func3-2.2": "sqlite3_create_function_v2 xDestroy callback counter is C-API-only N-A (no-side-effects)",
+	"func3-3.2": "sqlite3_create_function_v2 xDestroy callback counter is C-API-only N-A (no-side-effects)",
+	"func3-4.2": "sqlite3_create_function_v2 xDestroy callback counter is C-API-only N-A (no-side-effects)",
 }

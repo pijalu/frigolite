@@ -217,6 +217,8 @@ func Test_collate3(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
+		// db collation_needed needed: body registers the collation directly
+		db.RegisterCollation("caseless", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
 	}
@@ -465,7 +467,7 @@ func Test_collate3(t *testing.T) {
 	}
 	{ // "collate3-4.8.2" (prepare-step internals; SQL side effects only)
 		db.Close()
-		_r = tclLIndex("0", "0") // lindex result
+		_r = tclLIndex(func() string { _ = func() string { db, err = frigolite.Open("test.db"); if err != nil { t.Fatal(err) }; return "" }(); return "0" }(), "0") // lindex result
 	}
 	{ // do_test "collate3-4.8.3"
 		_res = db.Exec("\n    DROP TABLE collate3t1;\n  ")
@@ -529,6 +531,17 @@ func Test_collate3(t *testing.T) {
 		cfact_cnt = "0" // TCL namespace variable
 		_ = cfact_cnt // suppress unused warning
 		// proc definition (not transpiled)
+		// db collation_needed cfact: callback registers the requested collation (sqlite3_collation_needed)
+		db.RegisterCollationNeeded(func(nm string) {
+			db.RegisterCollation(nm, func(a, b string) int { return strings.Compare(a, b) })
+			// incr ::cfact_cnt 1
+			{
+				_n, _err := strconv.Atoi(cfact_cnt)
+				if _err == nil {
+					cfact_cnt = strconv.Itoa(_n + 1)
+				}
+			}
+		})
 	}
 	{ // do_test "collate3-5.2"
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
@@ -581,6 +594,17 @@ func Test_collate3(t *testing.T) {
 		cfact_cnt = "0" // TCL namespace variable
 		_ = cfact_cnt // suppress unused warning
 		// proc definition (not transpiled)
+		// db collation_needed cfact: callback registers the requested collation (sqlite3_collation_needed)
+		db.RegisterCollationNeeded(func(nm string) {
+			db.RegisterCollation(nm, func(a, b string) int { return strings.Compare(a, b) })
+			// incr ::cfact_cnt 1
+			{
+				_n, _err := strconv.Atoi(cfact_cnt)
+				if _err == nil {
+					cfact_cnt = strconv.Itoa(_n + 1)
+				}
+			}
+		})
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1;\n  ")
 		_ = _res // catchsql
 	}

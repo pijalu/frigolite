@@ -99,6 +99,15 @@ type Engine struct {
 	// not stored here.
 	collations map[string]func(a, b string) int
 
+	// collationsNeeded is the optional user callback invoked when a statement
+	// references a collation sequence that is not registered
+	// (sqlite3_collation_needed's xCollNeeded). The callback receives the
+	// missing collation's name (in the engine's canonical upper-case form is
+	// NOT applied — SQLite passes the name verbatim) and typically registers
+	// it via RegisterCollation; the lookup then retries (callback.c
+	// sqlite3GetCollSeq: find → callCollNeeded → find again).
+	collationsNeeded func(name string)
+
 	// autovacPagesCallback is the optional user callback fired by
 	// AutoVacuumCommit before each batch (P8.INCRVACUUM phase 4,
 	// sqlite3_autovacuum_pages). Signature:
@@ -806,6 +815,19 @@ func (e *Engine) UnregisterCollation(name string) bool {
 	return ok
 }
 
+// RegisterCollationNeeded sets the collation-needed callback
+// (sqlite3_collation_needed). It is invoked when a statement resolves a
+// collation sequence that is not registered for this connection; the callback
+// typically registers the missing collation via RegisterCollation, after
+// which the original lookup retries (callback.c sqlite3GetCollSeq). A nil fn
+// clears the hook.
+func (e *Engine) RegisterCollationNeeded(fn func(name string)) {
+	if e == nil {
+		return
+	}
+	e.collationsNeeded = fn
+}
+
 // lookupCollation returns a registered custom collation function for name
 // (case-insensitive), or nil if name is not registered.
 func (e *Engine) lookupCollation(name string) func(a, b string) int {
@@ -849,10 +871,20 @@ func (e *Engine) CompareValuesCollate(a, b interface{}, collation string) int {
 }
 
 // LookupCollation returns a registered custom collation function for name
-// (case-insensitive), or nil if name is not registered. Exported for the
-// expression evaluator's COLLATE operator.
+// (case-insensitive), or nil if name is not registered. When a
+// collation-needed callback is set (RegisterCollationNeeded), a miss invokes
+// it and retries once — callback.c sqlite3GetCollSeq: find → callCollNeeded →
+// find again → "no such collation sequence". Exported for the expression
+// evaluator's COLLATE operator and the compile-time collation validators.
 func (e *Engine) LookupCollation(name string) func(a, b string) int {
-	return e.lookupCollation(name)
+	if f := e.lookupCollation(name); f != nil {
+		return f
+	}
+	if e.collationsNeeded != nil {
+		e.collationsNeeded(name)
+		return e.lookupCollation(name)
+	}
+	return nil
 }
 
 // authorize checks whether an operation is allowed by the authorizer.

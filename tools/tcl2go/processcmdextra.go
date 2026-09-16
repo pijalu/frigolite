@@ -805,6 +805,13 @@ func (tp *transpiler) processProc(args []tcl.RawWord) {
 	if tp.procBodies == nil {
 		tp.procBodies = make(map[string]string)
 	}
+	// Track each proc's parameter list so hook handlers (e.g.
+	// `db collation_needed cfact` with a dynamic `$nm` collation name) can
+	// name the emitted Go closure parameter after the TCL parameter.
+	if tp.procParams == nil {
+		tp.procParams = make(map[string]string)
+	}
+	tp.procParams[name] = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(args[1].Text), "{"), "}"))
 	globalProcBodies[name] = body
 	// A proc whose body appends [string trim $cmd] to a global list is a
 	// trace/profile callback candidate (trace.test's trace_proc/

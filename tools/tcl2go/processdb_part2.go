@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
@@ -847,12 +848,22 @@ func (tp *transpiler) processNamedDBCollate(goName string, rest []tcl.RawWord) {
 }
 
 // processNamedDBCollationNeeded handles `dbN collation_needed PROC`: the TCL
-// callback registers a collation the engine reports as missing. When the
-// proc body is a single `dbN collate NAME PROC2` command with a recognized
-// PROC2, emit the registration directly — the engine asks for the collation
-// at the next statement, and registering it up front is observationally
-// equivalent (reindex-3.2: the hook registers c1 so 3.3's full REINDEX
-// fails on c2, not c1).
+// callback registers a collation the engine reports as missing. Two body
+// shapes are transpiled:
+//
+//   - a single `dbN collate NAME PROC2` command with a recognized PROC2 and
+//     a STATIC name: emit the registration directly — the engine asks for
+//     the collation at the next statement, and registering it up front is
+//     observationally equivalent (reindex-3.2: the hook registers c1 so
+//     3.3's full REINDEX fails on c2, not c1);
+//   - the collation-factory shape (collate3-5.1): the proc takes one
+//     parameter, its body registers `$param` via `dbN collate $param PROC2`,
+//     and may run simple bookkeeping like `incr ::counter`. Emit a
+//     RegisterCollationNeeded closure named after the TCL parameter; the
+//     engine invokes it at the first statement referencing the unknown
+//     collation and the in-callback registration makes that statement
+//     succeed (callback.c sqlite3GetCollSeq → callCollNeeded → re-lookup),
+//     so the counter observes exactly one callback per connection.
 func (tp *transpiler) processNamedDBCollationNeeded(goName string, rest []tcl.RawWord) {
 	if len(rest) < 1 {
 		tp.emitLine("// %s collation_needed (query)", goName)
@@ -861,34 +872,216 @@ func (tp *transpiler) processNamedDBCollationNeeded(goName string, rest []tcl.Ra
 	procName := strings.TrimPrefix(strings.TrimSpace(rest[0].Text), "::")
 	body, ok := tp.procBodies[procName]
 	if ok {
-		if cmds := tcl.ParseCommands(body); len(cmds) == 1 && len(cmds[0]) >= 3 {
-			// Body shape 1: `collate NAME PROC2`; shape 2: `dbN collate NAME
-			// PROC2` (the reindex.test need_collate hook). Both register the
-			// collation on the connection owning the hook.
-			words := cmds[0]
-			if words[0].Text == "collate" {
-				words = words[1:]
-			} else if len(words) >= 2 && words[1].Text == "collate" {
-				words = words[2:]
-			} else {
-				words = nil
-			}
-			if len(words) >= 2 {
-				collWord := words[0]
-				procArg := strings.TrimSpace(words[1].Text)
-				goFn := collationProcGo(procArg)
-				if goFn == "" {
-					goFn = tp.collateGoFuncs[procArg]
-				}
-				if goFn != "" {
-					tp.emitLine("// %s collation_needed %s: body registers the collation directly", goName, procName)
-					tp.emitLine("%s.RegisterCollation(%s, %s)", goName, tp.goStringLiteral(collWord), goFn)
-					return
-				}
-			}
+		cmds := tcl.ParseCommands(body)
+		if tp.emitStaticDBCollationNeeded(goName, procName, cmds) {
+			return
+		}
+		if tp.transpileDynamicCollationNeeded(goName, procName, cmds) {
+			return
 		}
 	}
 	tp.emitLine("// %s collation_needed %s (proc not transpiled)", goName, procName)
+}
+
+// emitStaticDBCollationNeeded handles the static hook shape: the proc body is
+// a single `collate NAME PROC2` (or `dbN collate NAME PROC2`) registering one
+// fixed collation with a recognized comparator (reindex.test's need_collate
+// hook). Both register the collation on the connection owning the hook.
+// Reports whether the shape was emitted.
+func (tp *transpiler) emitStaticDBCollationNeeded(goName, procName string, cmds [][]tcl.RawWord) bool {
+	if len(cmds) != 1 || len(cmds[0]) < 3 {
+		return false
+	}
+	words := cmds[0]
+	if words[0].Text == "collate" {
+		words = words[1:]
+	} else if len(words) >= 2 && words[1].Text == "collate" {
+		words = words[2:]
+	} else {
+		words = nil
+	}
+	if len(words) < 2 {
+		return false
+	}
+	procArg := strings.TrimSpace(words[1].Text)
+	goFn := collationProcGo(procArg)
+	if goFn == "" {
+		goFn = tp.collateGoFuncs[procArg]
+	}
+	if goFn == "" {
+		return false
+	}
+	tp.emitLine("// %s collation_needed %s: body registers the collation directly", goName, procName)
+	tp.emitLine("%s.RegisterCollation(%s, %s)", goName, tp.goStringLiteral(words[0]), goFn)
+	return true
+}
+
+// collationFactoryBody holds the parsed parts of a collation-factory proc
+// body (collate3-5.1 shape): the Go comparator registered for the requested
+// name and any `incr ::VAR` bookkeeping commands.
+type collationFactoryBody struct {
+	paramGo    string
+	registerFn string
+	incrs      []collationIncr
+}
+
+// collationIncr is one `incr ::VAR [N]` bookkeeping command.
+type collationIncr struct {
+	goName string
+	by     string
+}
+
+// transpileDynamicCollationNeeded emits the collation-factory callback shape:
+// a proc of one parameter whose body registers `$param` with a recognized
+// collation comparator and may run `incr ::VAR` bookkeeping. Reports whether
+// the body was fully transpiled.
+func (tp *transpiler) transpileDynamicCollationNeeded(goName, procName string, cmds [][]tcl.RawWord) bool {
+	if len(cmds) == 0 {
+		return false
+	}
+	body, ok := tp.parseCollationNeededFactory(procName, cmds)
+	if !ok {
+		return false
+	}
+	tp.emitCollationNeededFactory(goName, procName, body)
+	return true
+}
+
+// collationNeededParam validates the factory proc's single-parameter shape
+// and returns the TCL parameter word ("$nm") plus its Go identifier.
+func (tp *transpiler) collationNeededParam(procName string) (paramWord, paramGo string, ok bool) {
+	param, ok := tp.procParams[procName]
+	if !ok || param == "" || strings.Contains(param, " ") {
+		return "", "", false
+	}
+	paramGo = tclVarToGo(param)
+	if !isValidGoIdent(paramGo) {
+		return "", "", false
+	}
+	return "$" + param, paramGo, true
+}
+
+// collationNeededCollateArg recognizes a `collate $param PROC2` (or
+// `dbN collate $param PROC2`) registration command and returns PROC2.
+func collationNeededCollateArg(paramWord string, cmd []tcl.RawWord) (string, bool) {
+	words := cmd
+	if len(words) > 0 && words[0].Text == "collate" {
+		words = words[1:]
+	} else if len(words) >= 2 && words[1].Text == "collate" && strings.HasPrefix(words[0].Text, "db") {
+		words = words[2:]
+	}
+	if len(words) >= 2 && words[0].Text == paramWord {
+		return strings.TrimSpace(words[1].Text), true
+	}
+	return "", false
+}
+
+// collationNeededIncrArg parses `incr ::VAR [N]` bookkeeping (collate3-5.3's
+// cfact_cnt: the count proves the factory fired once per connection).
+func collationNeededIncrArg(cmd []tcl.RawWord) (goVar, by string, matched bool) {
+	if len(cmd) < 2 || cmd[0].Text != "incr" {
+		return "", "", false
+	}
+	by = "1"
+	if len(cmd) >= 3 {
+		n, err := strconv.Atoi(strings.TrimSpace(cmd[2].Text))
+		if err != nil {
+			return "", "", false
+		}
+		by = strconv.Itoa(n)
+	}
+	return tclVarToGo(cmd[1].Text), by, true
+}
+
+// parseCollationNeededFactory validates that cmds is exactly the factory body
+// shape (one $param registration plus optional incr bookkeeping) and returns
+// its parts.
+func (tp *transpiler) parseCollationNeededFactory(procName string, cmds [][]tcl.RawWord) (collationFactoryBody, bool) {
+	paramWord, paramGo, ok := tp.collationNeededParam(procName)
+	if !ok {
+		return collationFactoryBody{}, false
+	}
+	var body collationFactoryBody
+	body.paramGo = paramGo
+	for _, cmd := range cmds {
+		if len(cmd) == 0 {
+			continue
+		}
+		if procArg, matched := collationNeededCollateArg(paramWord, cmd); matched {
+			if !tp.addCollationNeededRegistration(&body, procArg) {
+				return collationFactoryBody{}, false
+			}
+			continue
+		}
+		if !tp.addCollationNeededIncr(&body, cmd) {
+			return collationFactoryBody{}, false
+		}
+	}
+	if body.registerFn == "" {
+		return collationFactoryBody{}, false
+	}
+	return body, true
+}
+
+// addCollationNeededRegistration merges the $param registration command into
+// body. It fails when PROC2 has no recognized comparator or a registration
+// was already seen (at most one per factory body).
+func (tp *transpiler) addCollationNeededRegistration(body *collationFactoryBody, procArg string) bool {
+	goFn := collationProcGo(procArg)
+	if goFn == "" {
+		goFn = tp.collateGoFuncs[procArg]
+	}
+	if goFn == "" || body.registerFn != "" {
+		return false
+	}
+	body.registerFn = goFn
+	return true
+}
+
+// addCollationNeededIncr appends one `incr ::VAR [N]` bookkeeping command to
+// body. It fails when cmd is not an incr of that shape or VAR is not a valid
+// Go identifier.
+func (tp *transpiler) addCollationNeededIncr(body *collationFactoryBody, cmd []tcl.RawWord) bool {
+	goVar, by, matched := collationNeededIncrArg(cmd)
+	if !matched || !isValidGoIdent(goVar) {
+		return false
+	}
+	body.incrs = append(body.incrs, collationIncr{goName: goVar, by: by})
+	return true
+}
+
+// emitCollationNeededFactory emits the RegisterCollationNeeded closure for a
+// parsed factory body.
+func (tp *transpiler) emitCollationNeededFactory(goName, procName string, body collationFactoryBody) {
+	tp.emitLine("// %s collation_needed %s: callback registers the requested collation (sqlite3_collation_needed)", goName, procName)
+	tp.emitLine("%s.RegisterCollationNeeded(func(%s string) {", goName, body.paramGo)
+	tp.indent++
+	tp.emitLine("%s.RegisterCollation(%s, %s)", goName, body.paramGo, body.registerFn)
+	for _, incr := range body.incrs {
+		tp.emitCollationNeededIncr(incr)
+	}
+	tp.indent--
+	tp.emitLine("})")
+}
+
+// emitCollationNeededIncr emits one `incr ::VAR [N]` bookkeeping command
+// inside the factory closure.
+func (tp *transpiler) emitCollationNeededIncr(incr collationIncr) {
+	if !tp.isVarDeclared(incr.goName) {
+		tp.emitLine("var %s = \"0\"", incr.goName)
+		tp.vars = append(tp.vars, incr.goName)
+	}
+	tp.emitLine("// incr ::%s %s", incr.goName, incr.by)
+	tp.emitLine("{")
+	tp.indent++
+	tp.emitLine("_n, _err := strconv.Atoi(%s)", incr.goName)
+	tp.emitLine("if _err == nil {")
+	tp.indent++
+	tp.emitLine("%s = strconv.Itoa(_n + %s)", incr.goName, incr.by)
+	tp.indent--
+	tp.emitLine("}")
+	tp.indent--
+	tp.emitLine("}")
 }
 
 // processNamedDBProgress handles `dbN progress N fn`.

@@ -78,6 +78,7 @@ type transpiler struct {
 	commitHookBodies    map[string]string       // TCL proc name → body for commit_hook/rollback_hook/update_cb/preupdate_cb procs
 	seenProcs           map[string]string       // TCL proc name → body last seen by processProc (redefinition detection)
 	procBodies          map[string]string       // every TCL proc body, for later registration sites (preupdate hooks)
+	procParams          map[string]string       // TCL proc name → parameter-list inner text, for hook closures needing the parameter name
 	inlineProcs         map[string]string       // zero-parameter procs transpiled inline at call sites
 	inlineProcParams    map[string]string       // inline proc name → RAW parameter word (for default binding)
 	rowFlatVars         map[string]string       // db-eval array var -> Go expression with the current row's flattened key/value pairs

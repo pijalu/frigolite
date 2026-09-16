@@ -894,6 +894,24 @@ func (tp *transpiler) cmdExprCatch(cmdName, cmdText string, args []string) strin
 			return `"1"`
 		}
 	}
+	// A caught reopen — `lindex [catch {sqlite3 db test.db}] 0` (collate3-4.8.2)
+	// — must still reopen the connection: the catch only wraps the rc, the
+	// sqlite3 command is the observable side effect. Delegate to the sqlite3
+	// reopen expression and report rc 0 (open success). TCL's real catch
+	// returns 1 on failure, but a failed reopen is fatal in the generated
+	// tests anyway (t.Fatal), mirroring the direct-emission shape.
+	if len(args) >= 1 {
+		if cmds := tcl.ParseCommands(strings.TrimPrefix(strings.TrimSuffix(strings.TrimSpace(args[0]), "}"), "{")); len(cmds) == 1 && len(cmds[0]) >= 3 && cmds[0][0].Text == "sqlite3" {
+			sqliteArgs := make([]string, 0, len(cmds[0])-1)
+			for _, w := range cmds[0][1:] {
+				sqliteArgs = append(sqliteArgs, w.Text)
+			}
+			reopen := tp.cmdExprSqlite3("sqlite3", strings.Join(sqliteArgs, " "), sqliteArgs)
+			if strings.HasSuffix(reopen, "}()") {
+				return fmt.Sprintf("func() string { _ = %s; return \"0\" }()", reopen)
+			}
+		}
+	}
 	// Simplified: catch just returns "0" (no error)
 	return `"0"`
 }
