@@ -195,7 +195,9 @@ func (l *tclLexer) readBareWord() (int, interface{}) {
 			// Backslash escape: include both backslash and next char as
 			// literal word text (matches hand-written parser). Note: unlike
 			// the top-level lexer loop, a backslash-newline inside a word is
-			// preserved, not treated as a line continuation.
+			// preserved, not treated as a line continuation — corpus parity
+			// with handWrittenParseCommands, which slices the raw span
+			// (alter.test's "[list \\\n  table ...]" words retain the pair).
 			wordBuf = append(wordBuf, c)
 			l.pos++
 			if l.pos < len(l.src) {

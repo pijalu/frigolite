@@ -88,15 +88,7 @@ func Test_update(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-1.1")
 		}
 	}
-	{ // do_test "update-2.1"
-		v = "0"
-		_ = v // suppress unused warning
-		v = tclListAppend(v, msg)
-		got := tclListFlatten(v)
-		want := tclListFlatten("1 table sqlite_master may not be modified")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-2.1")
-		}
+	{ // "update-2.1" — skipped: OMIT_FLAG_PRAGMAS-build expectation (writable_schema=on must NOT enable sqlite_master writes) + bracket-continuation body the transpiler cannot parse; default-build oracle matches frigolite (no-side-effects)
 	}
 	{ // do_test "update-3.1"
 		_res = db.Exec("CREATE TABLE test1(f1 int,f2 int)")
@@ -221,6 +213,12 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 ORDER BY f1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 ORDER BY f1")
+			return
+		}
+		got := flatten(r)
+		want := "1 6 2 12 3 24 4 48 5 96 6 192 7 384 8 768 9 1536 10 3072"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-3.7"
@@ -237,6 +235,12 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 ORDER BY f1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 ORDER BY f1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2 4 3 8 4 16 5 32 6 192 7 384 8 768 9 1536 10 3072"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-3.9"
@@ -249,6 +253,12 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 ORDER BY f1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 ORDER BY f1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 256 9 512 10 1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-3.11"
@@ -261,6 +271,12 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 ORDER BY F1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 ORDER BY F1")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 4 2 8 3 16 4 32 5 64 6 128 7 256 8 512 9 1024 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-3.13"
@@ -277,6 +293,12 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 ORDER BY F1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 ORDER BY F1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 256 9 512 10 1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-4.0"
@@ -343,12 +365,24 @@ func Test_update(t *testing.T) {
 		r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-4.7"
 		r = db.Query("\n    PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 64 7 128 8 88 8 256 8 888 9 512 10 1024 77 128 777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.0"
@@ -405,18 +439,36 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "78 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.4.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "778 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.4.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 128 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.5"
@@ -429,66 +481,134 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "6 64 8 88 8 128 8 256 8 888 9 512 10 1024 78 128 777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.5.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "78 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.5.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.5.4"
 		r = db.Query("SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.5.5"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 128 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.6"
 		r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.6.1"
 		r = db.Query("\n    PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 64 7 128 8 88 8 256 8 888 9 512 10 1024 77 128 777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.6.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "77 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.6.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.6.4"
 		r = db.Query("SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-5.6.5"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	r = db.Query("PRAGMA synchronous=FULL")
@@ -523,18 +643,37 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 89 8 257 8 889"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.1.2"
 		r = db.Query("SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 89"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.1.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.2"
@@ -561,18 +700,37 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.3.2"
 		r = db.Query("SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.3.3"
 		r = db.Query("SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.4"
@@ -589,18 +747,36 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "78 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.4.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "778 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.4.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 128 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.5"
@@ -617,24 +793,49 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "78 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.5.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.5.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.5.4"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 128 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.6"
@@ -651,24 +852,49 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "77 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.6.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.6.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-6.6.4"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.0"
@@ -699,18 +925,37 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 89 8 257 8 889"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.1.2"
 		r = db.Query("SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 89"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.1.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.2"
@@ -737,18 +982,37 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.3.2"
 		r = db.Query("SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.3.3"
 		r = db.Query("SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.4"
@@ -765,18 +1029,36 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "78 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.4.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "778 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.4.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 128 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.5"
@@ -793,24 +1075,49 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "78 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.5.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.5.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.5.4"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 128 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.6"
@@ -827,24 +1134,49 @@ func Test_update(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "77 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.6.2"
 		r = db.Query("SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.6.3"
 		r = db.Query("SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "777 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-7.6.4"
 		r = db.Query("SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2")
+			return
+		}
+		got := flatten(r)
+		want := "8 88 8 256 8 888"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-9.1"
@@ -939,6 +1271,12 @@ func Test_update(t *testing.T) {
 		r = db.Query("\n    DROP TABLE test1;\n    CREATE TABLE t1(\n       a integer primary key,\n       b UNIQUE, \n       c, d,\n       e, f,\n       UNIQUE(c,d)\n    );\n    INSERT INTO t1 VALUES(1,2,3,4,5,6);\n    INSERT INTO t1 VALUES(2,3,4,4,6,7);\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE test1;\n    CREATE TABLE t1(\n       a integer primary key,\n       b UNIQUE, \n       c, d,\n       e, f,\n       UNIQUE(c,d)\n    );\n    INSERT INTO t1 VALUES(1,2,3,4,5,6);\n    INSERT INTO t1 VALUES(2,3,4,4,6,7);\n    SELECT * FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 2 3 4 4 6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-10.2"
@@ -999,24 +1337,48 @@ func Test_update(t *testing.T) {
 		r = db.Query("\n      UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 14 3 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-11.2"
 		r = db.Query("\n      UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 15 2 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-11.3"
 		r = db.Query("\n      UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 16 2 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-11.4"
 		r = db.Query("\n      UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 16 2 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1025,36 +1387,72 @@ func Test_update(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 SELECT a+2 FROM t2;\n    INSERT INTO t2 SELECT a+4 FROM t2;\n    INSERT INTO t2 SELECT a+8 FROM t2;\n    INSERT INTO t2 SELECT a+16 FROM t2;\n    INSERT INTO t2 SELECT a+32 FROM t2;\n    INSERT INTO t2 SELECT a+64 FROM t2;\n    INSERT INTO t2 SELECT a+128 FROM t2;\n    INSERT INTO t2 SELECT a+256 FROM t2;\n    INSERT INTO t2 SELECT a+512 FROM t2;\n    INSERT INTO t2 SELECT a+1024 FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 SELECT a+2 FROM t2;\n    INSERT INTO t2 SELECT a+4 FROM t2;\n    INSERT INTO t2 SELECT a+8 FROM t2;\n    INSERT INTO t2 SELECT a+16 FROM t2;\n    INSERT INTO t2 SELECT a+32 FROM t2;\n    INSERT INTO t2 SELECT a+64 FROM t2;\n    INSERT INTO t2 SELECT a+128 FROM t2;\n    INSERT INTO t2 SELECT a+256 FROM t2;\n    INSERT INTO t2 SELECT a+512 FROM t2;\n    INSERT INTO t2 SELECT a+1024 FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-13.2"
 		r = db.Query("\n    SELECT count(*) FROM t2 WHERE a=rowid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t2 WHERE a=rowid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-13.3"
 		r = db.Query("\n    UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-13.3"
 		r = db.Query("\n    UPDATE t2 SET rowid=rowid+10000;\n    UPDATE t2 SET rowid=rowid-9999;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t2 SET rowid=rowid+10000;\n    UPDATE t2 SET rowid=rowid-9999;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-13.4"
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "16384"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-13.5"
 		r = db.Query("\n    UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "16384"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

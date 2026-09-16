@@ -287,8 +287,8 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColIndicesWithPK(colDefs, values)
 	if len(uniqueCols) > 0 {
-		rowID, _, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
-		if found && (!haveExclude || rowID != excludeRowID) {
+		rowID, vals, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
+		if found && (!haveExclude || !e.foundRowIsExcluded(tableEntry, colDefs, values, vals, rowID, excludeRowID)) {
 			if conflictIdx >= 0 && conflictIdx < len(colDefs) {
 				return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[conflictIdx].Name)
 			}
@@ -303,24 +303,77 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 	// Check table-level composite PRIMARY KEY / UNIQUE constraints
 	// (e.g. PRIMARY KEY(a,b) or UNIQUE(a,b)). Each group is a set of column
 	// indices that must be unique TOGETHER, not individually.
+	excludeCell := e.conflictRowExcluder(tableEntry, colDefs, values, excludeRowID, haveExclude)
 	for _, group := range e.compositeUniqueGroups(tableEntry.Name, tableEntry.SQL, colDefs) {
-		if err := e.checkCompositeUniqueExcluding(tableEntry, colDefs, values, group, excludeRowID, haveExclude); err != nil {
+		if err := e.checkCompositeUniqueExcluding(tableEntry, colDefs, values, group, excludeCell); err != nil {
 			return err
 		}
 	}
 
 	// Check UNIQUE indexes (CREATE UNIQUE INDEX ... ON t(c1, c2)).
 	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
-		if err := e.checkUniqueIndexExcluding(tableEntry, colDefs, values, def, excludeRowID, haveExclude); err != nil {
+		if err := e.checkUniqueIndexExcluding(tableEntry, colDefs, values, def, excludeCell); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// checkCompositeUniqueExcluding is checkCompositeUnique with an optional rowid
-// to exclude from the conflict scan.
-func (e *DMLExecutor) checkCompositeUniqueExcluding(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, group []int, excludeRowID int64, haveExclude bool) error {
+// foundRowIsExcluded reports whether the row found by a UNIQUE conflict scan
+// is the excluded row (the row being updated itself). Rowid tables compare
+// rowids; WITHOUT ROWID tables compare declared-PK values — every WR cell
+// shares the synthetic RowID 0, so a rowid comparison would classify any
+// conflict as the row itself and swallow real violations (upsert4 DO UPDATE).
+// vals is the found row's declared-order values (conflict scans remap WR
+// records before returning).
+func (e *DMLExecutor) foundRowIsExcluded(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values, vals []interface{}, rowID, excludeRowID int64) bool {
+	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		return rowID == excludeRowID
+	}
+	pkIdx := WRPKIndices(tableEntry.SQL, colDefs)
+	if len(pkIdx) == 0 {
+		return rowID == excludeRowID
+	}
+	for _, ci := range pkIdx {
+		var have, want interface{}
+		if ci < len(vals) {
+			have = vals[ci]
+		}
+		if ci < len(values) {
+			want = values[ci]
+		}
+		if !wrValuesEqual(have, want, colDefs[ci]) {
+			return false
+		}
+	}
+	return true
+}
+
+// conflictRowExcluder builds the identity predicate used by conflict scans to
+// skip the excluded row. Rowid tables exclude by rowid; WITHOUT ROWID tables
+// exclude by declared-PK value match (their cells all share synthetic RowID 0,
+// so rowid exclusion would skip every candidate row).
+func (e *DMLExecutor) conflictRowExcluder(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, excludeRowID int64, haveExclude bool) func(rec *storage.Record, cell *storage.Cell) bool {
+	if !haveExclude {
+		return func(*storage.Record, *storage.Cell) bool { return false }
+	}
+	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		return func(_ *storage.Record, cell *storage.Cell) bool { return cell.RowID == excludeRowID }
+	}
+	order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs)
+	pkIdx := WRPKIndices(tableEntry.SQL, colDefs)
+	if len(order) != len(colDefs) || len(pkIdx) == 0 {
+		return func(_ *storage.Record, cell *storage.Cell) bool { return cell.RowID == excludeRowID }
+	}
+	key := wrPkKeyFromDeclared(values, pkIdx)
+	return func(_ *storage.Record, cell *storage.Cell) bool {
+		return WRCellMatchesPKKeys(cell, [][]interface{}{key}, order, pkIdx, colDefs)
+	}
+}
+
+// checkCompositeUniqueExcluding is checkCompositeUnique with an exclusion
+// predicate that skips the row being updated during the conflict scan.
+func (e *DMLExecutor) checkCompositeUniqueExcluding(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, group []int, excludeCell func(rec *storage.Record, cell *storage.Cell) bool) error {
 	// Skip if any group value is NULL (composite key with NULL is never a conflict)
 	for _, idx := range group {
 		if idx >= len(values) || values[idx] == nil {
@@ -328,7 +381,7 @@ func (e *DMLExecutor) checkCompositeUniqueExcluding(tableEntry *schema.Entry, co
 		}
 	}
 	cell, _, err := e.scanTableForMatch(tableEntry, func(rec *storage.Record, cell *storage.Cell) bool {
-		if haveExclude && cell.RowID == excludeRowID {
+		if excludeCell(rec, cell) {
 			return false
 		}
 		return e.allMatch(colDefs, rec.Values, group, values)

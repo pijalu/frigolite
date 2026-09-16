@@ -1144,13 +1144,13 @@ func traceAppendTarget(body string) string {
 	if strings.HasPrefix(lapp, "lappend ::") {
 		rest1 := strings.TrimSpace(strings.TrimPrefix(lapp, "lappend ::"))
 		varName, expr, ok := splitFirstWord(rest1)
-		if ok && strings.HasPrefix(expr, "[string trim $") && strings.HasSuffix(expr, "]") {
+		if ok && traceAppendedText(expr) {
 			goVar = strings.TrimPrefix(varName, "::")
 		}
 	} else if globalStmt != "" {
 		globalVar := strings.TrimSpace(strings.TrimPrefix(globalStmt, "global "))
 		rest1 := strings.TrimSpace(strings.TrimPrefix(lapp, "lappend "+globalVar+" "))
-		if strings.HasPrefix(rest1, "[string trim $") && strings.HasSuffix(rest1, "]") {
+		if traceAppendedText(rest1) {
 			goVar = globalVar
 		}
 	}
@@ -1158,6 +1158,14 @@ func traceAppendTarget(body string) string {
 		return ""
 	}
 	return tclVarToGo(goVar)
+}
+
+// traceAppendedText reports whether the appended argument of a trace-callback
+// lappend is the traced SQL text: either the raw "$txt" variable or a
+// "[string trim $VAR]" application over it (trace.test's trace_proc bodies
+// use both shapes).
+func traceAppendedText(expr string) bool {
+	return expr == "$txt" || (strings.HasPrefix(expr, "[string trim $") && strings.HasSuffix(expr, "]"))
 }
 
 // splitFirstWord splits "word rest-of-line" into (word, rest).

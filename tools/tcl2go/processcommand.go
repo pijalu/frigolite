@@ -69,6 +69,12 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"execsql":        func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
 		"execsql_intout": func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
 		"execsql2":       func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
+		// execsqlS (fkey2.test / without_rowid3.test): plain execsql whose
+		// result is the search/found count CONCATENATED with the rows — the
+		// count half is a C-internal VDBE statistic the engine does not
+		// expose, so the SQL runs for its side effects and the comparison is
+		// dropped (the count expectation is unassertable).
+		"execsqlS": func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
 		"stepsql":        (*transpiler).processStepsql,
 		"sql":            (*transpiler).processSQLVar,
 		"catchsql":       func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "catch") },
@@ -438,15 +444,6 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 // equivalent (source, finish_test, namespace, etc.).
 func noopTclCommand(tp *transpiler, args []tcl.RawWord) {}
 
-// recoverProcNames are TCL proc names whose hardcoded in-process handlers
-// take precedence over file-local proc bodies (see processCommand).
-var recoverProcNames = map[string]bool{
-	"recover_with_opts": true,
-	"do_recover_test":   true,
-	"compare_result":    true,
-	"compare_dbs":       true,
-}
-
 // processCommand dispatches a single TCL command to its Go emitter.
 func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	if len(words) == 0 {
@@ -470,10 +467,12 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	// truncate_node (unrelated to incrblob4's), which previously hijacked
 	// the incrblob4 fillers and corrupted the fixture.
 	if _, isRecover := recoverProcNames[cmdName]; !isRecover {
-		if body, ok := globalProcBodies[cmdName]; ok {
-			if em := userProcEmitterFor(cmdName, body); em != "" {
-				tp.emitUserProc(em, goArgWords(args))
-				return
+		if _, isSideEffect := sideEffectOnlyProcs[cmdName]; !isSideEffect {
+			if body, ok := globalProcBodies[cmdName]; ok {
+				if em := userProcEmitterFor(cmdName, body); em != "" {
+					tp.emitUserProc(em, goArgWords(args))
+					return
+				}
 			}
 		}
 	}

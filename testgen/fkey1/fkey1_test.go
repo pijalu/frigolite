@@ -94,24 +94,52 @@ func Test_fkey1(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(tclConcat("0 0 t5 e c {NO ACTION} {NO ACTION} NONE", "1 0 t5 d {} {NO ACTION} {NO ACTION} NONE"))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey1-3.2"
 		r = db.Query("\n    CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(tclConcat("0 0 t5 d a {NO ACTION} {NO ACTION} NONE", "0 1 t5 e b {NO ACTION} {NO ACTION} NONE"))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey1-3.3"
 		r = db.Query("\n    CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(tclConcat("0 0 t5 d {} {SET NULL} CASCADE NONE", "0 1 t5 e {} {SET NULL} CASCADE NONE"))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey1-3.4"
 		r = db.Query("\n    CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(tclConcat("0 0 t5 d {} {SET DEFAULT} CASCADE NONE", "0 1 t5 e {} {SET DEFAULT} CASCADE NONE"))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "fkey1-3.5" (prepare-step internals; SQL side effects only)
@@ -165,8 +193,21 @@ func Test_fkey1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", resErrString(_res), "\n  INSERT OR REPLACE INTO t11 VALUES (2, 3);\n")
 		}
 	}
+	tclTraceImplSet("sqltrace", func(sqlText string) {
+	traceoutput = tclListAppend(traceoutput, tclTrimSpace(sqlText))
+	})
+	tclProfileImplSet("sqltrace", func(sqlText string, ns int64) {
+	_ = ns
+	traceoutput = tclListAppend(traceoutput, tclTrimSpace(sqlText))
+	})
 	// proc definition (not transpiled)
 	{ // do_test "fkey1-5.2.1"
+		tclTraceNameSet(db, "trace", "sqltrace")
+		db.SetTraceHook(func(sqlText string) {
+		if impl := tclTraceImpl("sqltrace"); impl != nil {
+		impl(sqlText)
+		}
+		})
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -233,6 +274,13 @@ func Test_fkey1(t *testing.T) {
 		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c AS(1),d, FOREIGN KEY(c,d,b,a,b,d,b,c) REFERENCES t0);\n  PRAGMA foreign_key_check;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c AS(1),d, FOREIGN KEY(c,d,b,a,b,d,b,c) REFERENCES t0);\n  PRAGMA foreign_key_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -246,6 +294,13 @@ func Test_fkey1(t *testing.T) {
 		r = db.Query("\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

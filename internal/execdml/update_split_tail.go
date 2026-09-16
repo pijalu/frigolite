@@ -164,9 +164,15 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 	}
 
 	// Set the current scan table so table-qualified column references
-	// ("t1.a") in the WHERE clause resolve to the row map.
+	// ("t1.a") in the WHERE clause resolve to the row map. With a target
+	// alias ("UPDATE t1 AS xyz"), the alias is the effective qualifier —
+	// SQLite binds xyz.a and rejects t1.a (update.test 11.3/11.4).
 	prevScan := e.ctx.CurrentScanTable()
-	e.ctx.SetCurrentScanTable(tableName)
+	scanName := tableName
+	if strings.TrimSpace(s.Alias) != "" {
+		scanName = strings.TrimSpace(s.Alias)
+	}
+	e.ctx.SetCurrentScanTable(scanName)
 	defer func() { e.ctx.SetCurrentScanTable(prevScan) }()
 
 	var changes []updateChange

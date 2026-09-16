@@ -169,6 +169,9 @@ func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	if res := e.prepareUpdate(s, tableEntry, colDefs); res != nil {
 		return res
 	}
+	if res := e.prepareUpdateTriggers(tableEntry); res != nil {
+		return res
+	}
 
 	colIndex := buildColumnIndex(colDefs)
 
@@ -258,8 +261,25 @@ func (e *DMLExecutor) pushUpdateSetColumns(s *sql.UpdateStmt) func() {
 	return func() { e.updateSetColumns = prev }
 }
 
-// prepareUpdate validates an UPDATE's RETURNING clause.
+// prepareUpdate validates an UPDATE's RETURNING clause and resolves the SET
+// target columns. SQLite resolves assignment targets at prepare time
+// (update.c sqlite3Update's column lookup), so an unknown column raises
+// "no such column: X" even when no row matches the WHERE clause
+// (update.test 9.1).
 func (e *DMLExecutor) prepareUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	colIndex := buildColumnIndex(colDefs)
+	hasRowidColumn := execquery.RowHasRowIDColumn(colDefs)
+	for _, a := range s.Assignments {
+		if _, ok := colIndex[strings.ToLower(a.Column)]; ok {
+			continue
+		}
+		// SET rowid/_rowid_/oid moves the cell's rowid (only when the table
+		// does not declare a column shadowing that name).
+		if execquery.IsRowIDName(a.Column) && !hasRowidColumn {
+			continue
+		}
+		return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
+	}
 	if s.HasReturning {
 		if err := e.validateReturning(s.Returning, colDefs, tableEntry.Name); err != nil {
 			return &Result{Error: err}

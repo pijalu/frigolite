@@ -338,20 +338,7 @@ func (e *Engine) execRollbackOnError(stmt sql.Stmt, res *Result, snaps []pagerSn
 	if res == nil {
 		return nil
 	}
-	isOrFail := false
-	if is, ok := stmt.(*sql.InsertStmt); ok && is.OrFail {
-		isOrFail = true
-	}
-	if u, ok := stmt.(*sql.UpdateStmt); ok && strings.EqualFold(u.OnConflict, "FAIL") {
-		isOrFail = true
-	}
-	isOrRollback := false
-	if u, ok := stmt.(*sql.UpdateStmt); ok && strings.EqualFold(u.OnConflict, "ROLLBACK") {
-		isOrRollback = true
-	}
-	if is, ok := stmt.(*sql.InsertStmt); ok && strings.EqualFold(is.OrConflict, "ROLLBACK") {
-		isOrRollback = true
-	}
+	isOrFail, isOrRollback := stmtConflictClass(stmt, res)
 	// SQLite forces a full transaction rollback (sqlite3RollbackAll +
 	// autoCommit=1) for the "special" errors SQLITE_INTERRUPT / SQLITE_FULL /
 	// SQLITE_IOERR / SQLITE_NOMEM when the statement is not read-only
@@ -389,6 +376,41 @@ func (e *Engine) execRollbackOnError(stmt sql.Stmt, res *Result, snaps []pagerSn
 		res.LastInsertRowID = 0
 	}
 	return res
+}
+
+// stmtConflictClass classifies a failed DML statement's explicit ON CONFLICT
+// clause: orFail (INSERT OR FAIL / UPDATE OR FAIL keeps rows written before
+// the conflict) and orRollback (OR ROLLBACK aborts the whole transaction).
+//
+// FOREIGN KEY violations always halt with OE_Abort regardless of the
+// statement's OR ROLLBACK clause: fkey.c hardcodes the conflict action for
+// every sqlite3HaltConstraint it emits (src/fkey.c:449, src/fkey.c:775), and
+// vdbeaux.c maps OE_Abort to a STATEMENT-scope savepoint rollback
+// (src/vdbeaux.c:3441-3444) — the transaction survives. An "INSERT OR
+// ROLLBACK INTO cc VALUES(...)" that violates the child FK therefore leaves
+// an explicit BEGIN usable: the following COMMIT commits the rows inserted
+// earlier in that transaction (fkey2-20.2.3/20.2.4, and the same shape in
+// fkey2-17.1.6/17.1.7).
+func stmtConflictClass(stmt sql.Stmt, res *Result) (orFail, orRollback bool) {
+	isFKError := res != nil && res.Error != nil &&
+		strings.Contains(res.Error.Error(), "FOREIGN KEY constraint failed")
+	if is, ok := stmt.(*sql.InsertStmt); ok {
+		if is.OrFail {
+			orFail = true
+		}
+		if strings.EqualFold(is.OrConflict, "ROLLBACK") && !isFKError {
+			orRollback = true
+		}
+	}
+	if u, ok := stmt.(*sql.UpdateStmt); ok {
+		if strings.EqualFold(u.OnConflict, "FAIL") {
+			orFail = true
+		}
+		if strings.EqualFold(u.OnConflict, "ROLLBACK") && !isFKError {
+			orRollback = true
+		}
+	}
+	return orFail, orRollback
 }
 
 // execTrackChanges updates the CHANGES() / TOTAL_CHANGES() / LAST_INSERT_ROWID()

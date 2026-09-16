@@ -1350,6 +1350,17 @@ func tclConcat(args ...string) string {
 	for _, a := range args {
 		out = append(out, tclSplitList(a)...)
 	}
+	// An empty element keeps TCL's {} rendering through concat ([concat
+	// {1 t5 d {} x}] is the list whose 4th element is empty, displayed
+	// as {}): tclSplitList yields "" for it, and joining "" back would
+	// DROP the element after whitespace collapsing (fkey1-3.1's
+	// foreign_key_list "to" column is NULL -> the expected list has {}
+	// there).
+	for i, e := range out {
+		if e == "" {
+			out[i] = "{}"
+		}
+	}
 	return strings.Join(out, " ")
 }
 

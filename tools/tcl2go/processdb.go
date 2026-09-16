@@ -1544,3 +1544,23 @@ func (tp *transpiler) emitRecorderFunction(name, goVar string) {
 	tp.emitLine("\treturn nil, nil")
 	tp.emitLine("}, 0, -1)")
 }
+
+// recoverProcNames are TCL proc names whose hardcoded in-process handlers
+// take precedence over file-local proc bodies (see processCommand).
+var recoverProcNames = map[string]bool{
+	"recover_with_opts": true,
+	"do_recover_test":   true,
+	"compare_result":    true,
+	"compare_dbs":       true,
+}
+
+// sideEffectOnlyProcs are TCL procs whose bodies read C-internal counters
+// (::sqlite_search_count / ::sqlite_found_count — VDBE scan/found stats the
+// engine does not expose) wrapped around plain SQL execution. The hardcoded
+// handler runs the SQL for its TRANSACTIONAL side effects (BEGIN/ROLLBACK
+// bookkeeping the surrounding tests depend on) and drops only the count part
+// of the expected value; file-local proc bodies must not shadow it (same
+// precedence rule as recoverProcNames).
+var sideEffectOnlyProcs = map[string]bool{
+	"execsqlS": true,
+}

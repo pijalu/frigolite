@@ -26,6 +26,11 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 	tree := e.tableBTreeForDML(tableEntry, rootPage)
 	var changesMade int64
 
+	// The target alias is the effective qualifier for the deferred SET
+	// expressions evaluated below (match collectUpdateChanges' scan-table
+	// setup: "UPDATE t1 AS xyz SET xyz.e=..." must resolve xyz.e).
+	defer e.pushUpdateScanTable(s, tableName)()
+
 	for i := range changes {
 		ch := &changes[i]
 		// Evaluate the SET expressions per-row (deferred in the collection
@@ -60,6 +65,19 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 		}
 	}
 	return &Result{Changes: changesMade}
+}
+
+// pushUpdateScanTable installs the UPDATE target's effective scan-table
+// qualifier — the alias when present, the table name otherwise — and returns
+// the restore func (same defer pattern as pushUpdateSetColumns).
+func (e *DMLExecutor) pushUpdateScanTable(s *sql.UpdateStmt, tableName string) func() {
+	scanName := tableName
+	if alias := strings.TrimSpace(s.Alias); alias != "" {
+		scanName = alias
+	}
+	prevScan := e.ctx.CurrentScanTable()
+	e.ctx.SetCurrentScanTable(scanName)
+	return func() { e.ctx.SetCurrentScanTable(prevScan) }
 }
 
 // applyTriggeredUpdateRow applies one change under the trigger-per-row path:

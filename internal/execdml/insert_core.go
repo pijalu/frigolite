@@ -585,9 +585,10 @@ func (e *DMLExecutor) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs 
 // NULL values never conflict (SQL UNIQUE allows multiple NULLs).
 // parseWhereExpr parses a standalone expression string into a sql.Expr.
 // checkUniqueIndexExcluding scans the table for a row whose values match the
-// new row on all columns of a UNIQUE index, optionally excluding a rowid.
-// Returns a SQLite-style error on conflict. NULL values never conflict.
-func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef, excludeRowID int64, haveExclude bool) error {
+// new row on all columns of a UNIQUE index, skipping the row being updated
+// (excludeCell). Returns a SQLite-style error on conflict. NULL values never
+// conflict.
+func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef, excludeCell func(rc *storage.Record, cl *storage.Cell) bool) error {
 	colIndex := buildColumnIndex(colDefs)
 	// The new row must itself satisfy the partial-index predicate to be in
 	// the index; otherwise it cannot conflict via this index.
@@ -605,7 +606,7 @@ func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDef
 		key[i] = kv
 	}
 	cell, _, _ := e.scanTableForMatch(tableEntry, func(rc *storage.Record, cl *storage.Cell) bool {
-		if haveExclude && cl.RowID == excludeRowID {
+		if excludeCell(rc, cl) {
 			return false
 		}
 		return e.rowMatchesIndexKey(rc, cl, colDefs, colIndex, idxCols, key, def)

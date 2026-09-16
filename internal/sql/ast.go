@@ -549,6 +549,14 @@ type AlterTableStmt struct {
 	// NewConstraint carries the table-level constraint added by
 	// ALTER TABLE ... ADD [CONSTRAINT nm] CHECK(expr).
 	NewConstraint *TableConstraint
+
+	// RawSQL is the original ALTER TABLE statement text as written by the
+	// caller. ADD COLUMN splices the raw column-definition substring (the
+	// tokens after ADD [COLUMN]) into the stored CREATE TABLE SQL, matching
+	// alter.c sqlite3AlterFinishAddColumn's verbatim pColDef span; without
+	// it the added column is re-rendered from the AST, losing the user's
+	// constraint-clause order and spacing in sqlite_schema.sql.
+	RawSQL string
 }
 
 func (s *AlterTableStmt) stmt() {}

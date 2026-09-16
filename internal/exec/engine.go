@@ -215,6 +215,9 @@ type Engine struct {
 	traceMask     int
 	traceNextID   int64
 	traceCurID    int64
+	// traceCurSQL is the SQL text of the statement currently executing
+	// (set by BeginStmtTrace); FK-action sub-program traces report it.
+	traceCurSQL string
 	// traceInternal suppresses trace/profile events while the engine runs
 	// its own internal statements (VACUUM's logical copy executes
 	// SELECT/INSERT on the user connection; the C library's internal vdbe

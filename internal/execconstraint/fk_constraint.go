@@ -81,6 +81,11 @@ func (c *ConstraintEnforcer) fkParentActionRec(parentTable *schema.Entry, parent
 	}
 	parentIndex := execdml.BuildColumnIndex(parentColDefs)
 
+	// FK actions run as per-row trigger programs in SQLite; each program
+	// invocation fires the trace callback with the top-level statement SQL
+	// (fkey1-5.2.1). One fire per parent-row action entry, matching one
+	// program per row.
+	c.ctx.FireFKProgramTrace()
 	for _, ref := range refs {
 		if res := c.fkApplyParentRef(ref, parentTable, parentColDefs, oldRow, newRow, isDelete, skipRowID, checkTriggerReinsert, deferNoAction, parentIndex, cascadeRec, depth, updRec); res != nil {
 			return res
@@ -974,11 +979,15 @@ func (c *ConstraintEnforcer) fkParentRowExists(cursor *btree.Cursor, parentEntry
 	// skipped.
 	selfRef := strings.EqualFold(parentRef, tableName) && !execdml.HasWithoutRowidKeyword(strings.ToUpper(parentEntry.SQL))
 	ex := fkRowExcluder{selfRef: selfRef, rowID: excludeRowID}
+	// parentDefs is the per-FK-column subset (parallel to childKey/parentIdx);
+	// the record-body adaptations below need the FULL declared column list so
+	// slots align with rec.Values positions.
+	fullDefs := c.ctx.ParseColumnDefs(parentEntry.Name, parentEntry.SQL)
 	return fkScanCells(cursor, ex, func(cell *storage.Cell, rec *storage.Record) bool {
-		remapWRRecord(c, parentEntry, parentDefs, rec)
+		remapWRRecord(c, parentEntry, fullDefs, rec)
 		// Rowid-alias convention: the parent's IPK column reads back NULL
 		// from the record; its value IS the rowid.
-		fillRowidAliasSlots(parentDefs, rec, cell.RowID)
+		fillRowidAliasSlots(fullDefs, rec, cell.RowID)
 		return fkParentRecordMatches(c, rec, parentIdx, childKey, parentDefs)
 	})
 }
