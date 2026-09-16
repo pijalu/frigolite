@@ -1922,6 +1922,23 @@ func tclDbOne(db *frigolite.DB, sql string) string {
 	}
 }
 
+// tclDropAllIndexes implements tester.tcl's drop_all_indexes proc: drop
+// every explicitly created index (sqlite_master type='index' whose sql starts
+// with "create" — auto-indexes carry a NULL sql) so a test loop can re-create
+// indexes from the same starting schema (rowvalue3/rowvalue4).
+func tclDropAllIndexes(db *frigolite.DB) {
+	r := db.Query("SELECT name FROM sqlite_master WHERE type='index' AND sql LIKE 'create%%'")
+	if r.Error != nil {
+		return
+	}
+	for _, row := range r.Rows {
+		if len(row) == 0 || row[0] == nil {
+			continue
+		}
+		db.Exec("DROP INDEX " + tclStr(row[0]))
+	}
+}
+
 // tclMakeCorruptFile reimplements zipfile2.test's make_corrupt_file proc: it
 // writes a crafted archive whose central directory claims a 60000-byte entry
 // name and a 60000-byte extra field, with the local file header at offset 200

@@ -131,7 +131,7 @@ func Test_rowvalue4(t *testing.T) {
 				idx := _items2[_idx2+1]
 				_ = idx // suppress unused warning
 				_ = _idx2
-					// drop_all_indexes (unsupported command, not transpiled)
+					tclDropAllIndexes(db)
 					_res = db.Exec(idx)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)

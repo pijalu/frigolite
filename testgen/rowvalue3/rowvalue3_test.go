@@ -187,7 +187,7 @@ func Test_rowvalue3(t *testing.T) {
 				idx := _items2[_idx2+1]
 				_ = idx // suppress unused warning
 				_ = _idx2
-					// drop_all_indexes (unsupported command, not transpiled)
+					tclDropAllIndexes(db)
 					// foreach {tn2 sql res} "1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }"
 					_items3 := tclSplitList("1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
@@ -220,7 +220,7 @@ func Test_rowvalue3(t *testing.T) {
 						idx := _items4[_idx4+1]
 						_ = idx // suppress unused warning
 						_ = _idx4
-							// drop_all_indexes (unsupported command, not transpiled)
+							tclDropAllIndexes(db)
 							_res = db.Exec(idx)
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)

@@ -127,6 +127,17 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 			tp.emitLine("_r = %s // file_pages result", _rExpr)
 		},
 
+		// drop_all_indexes (tester.tcl proc, {{db db}} default): drop every
+		// explicitly created index so a loop body's CREATE INDEX re-runs from
+		// the same schema (rowvalue3/rowvalue4 index-permutation loops).
+		"drop_all_indexes": func(tp *transpiler, args []tcl.RawWord) {
+			dbName := "db"
+			if len(args) >= 1 {
+				dbName = args[0].Text
+			}
+			tp.emitLine("tclDropAllIndexes(%s)", tp.dbArgGo(dbName))
+		},
+
 		// String / list operations
 		"append":   (*transpiler).processStringAppend,
 		"lappend":  (*transpiler).processListAppend,

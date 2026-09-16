@@ -113,6 +113,23 @@ var skipTestFiles = map[string]string{
 	// TCL-implemented C-ABI modules.
 	"rowvalue5": "TCL-implemented virtual table (register_tcl_module) N-A",
 
+	// qrf01/qrf02/qrf03: every do_test drives the "db format" TCL command
+	// (tclsqlite-ex.c dbQrf) — the Query Result Formatter (QRF), the CLI
+	// shell's result-presentation layer (box/table/markdown/column/insert/
+	// json/line/quote/eqp/explain styles with -text/-blob/-esc/-wrap/align
+	// options), not the SQL engine. The QRF C implementation is not available
+	// in the pinned SQLite tree: dbQrf compiles to "QRF not available in this
+	// build" without SQLITE_QRF_H, and no qrf.c/qrf.h exists in src/ or ext/,
+	// so there is no reference source to port (NO SIMPLIFY forbids a
+	// byte-guessed reimplementation; /usr/bin/sqlite3 is a behavior-only
+	// oracle). Engine visibility is unaffected: the transpiled tests feed the
+	// literal text "db format ..." to db.Query, which correctly errors; the
+	// SQL setups (do_execsql_test) pass. Same CLI-seam class as sqldiff1 /
+	// P5.SHELL. See NA_EVIDENCE qrf.
+	"qrf01": "N/A: db format = shell Query Result Formatter (QRF), CLI-presentation layer; QRF C source unavailable (SQLITE_QRF_H guard), no SQL surface (NA_EVIDENCE qrf)",
+	"qrf02": "N/A: db format = shell Query Result Formatter (QRF), EXPLAIN/EQP rendering; QRF C source unavailable (SQLITE_QRF_H guard), no SQL surface (NA_EVIDENCE qrf)",
+	"qrf03": "N/A: db format = shell Query Result Formatter (QRF), style/screenwidth narrowing; QRF C source unavailable (SQLITE_QRF_H guard), no SQL surface (NA_EVIDENCE qrf)",
+
 	// tkt2409: cache-spill during INSERT inside a transaction with a
 	// simulated read lock (read_lock_db / sqlite3_errcode test-harness C
 	// functions) asserting SQLITE_IOERR_BLOCKED/SQLITE_BUSY semantics.

@@ -195,8 +195,24 @@ func setKeywordIdx(toks []sql.Token, j int, sp stmtSpan) (int, bool) {
 // setlist entry: depth 0, followed by EQ, inside an UPDATE's SET clause (not
 // WHERE), and not already recorded via a preceding SET keyword.
 func parenSetAfterClose(toks []sql.Token, j int, sp stmtSpan, inUpdate, inWhere bool, d int) bool {
-	return inUpdate && !inWhere && d == 0 && j+1 < sp.end && toks[j+1].Type == sql.TokenEq &&
-		!precededBySet(toks, j, sp)
+	if !inUpdate || inWhere || d != 0 || j+1 >= sp.end || toks[j+1].Type != sql.TokenEq {
+		return false
+	}
+	// The SET ( form (SET (c,d)=...) records the same group through its SET
+	// keyword, so skip this closing-paren form only when THIS group's own
+	// opening paren is directly preceded by SET. (An earlier setlist entry's
+	// SET ( must not suppress later entries — rowvalue 16.4 rewrites
+	// SET (c,d)=(...), (e,b)=(...), whose second group follows a comma.)
+	lp, ok := findMatchingOpen(toks, j)
+	if !ok {
+		return false
+	}
+	return lp == 0 || !isSetKeywordToken(toks[lp-1])
+}
+
+// isSetKeywordToken reports whether the token is the SET keyword.
+func isSetKeywordToken(t sql.Token) bool {
+	return t.Type == sql.TokenKeyword && strings.EqualFold(t.Value, "SET")
 }
 
 // setParenScanner tracks the state needed to find paren-set setlist entries
@@ -270,27 +286,6 @@ func findUpdateParenSets(toks []sql.Token, sp stmtSpan) []int {
 		s.record(j)
 	}
 	return s.setIdxs
-}
-
-// precededBySet reports whether the paren group ending at token j is preceded
-// by a SET ( form (SET (c,d)=...), in which case the SET keyword was already
-// recorded and the closing-paren form must not be recorded again.
-func precededBySet(toks []sql.Token, j int, sp stmtSpan) bool {
-	dd := 0
-	for k := j; k >= 0; k-- {
-		if toks[k].Type == sql.TokenLParen {
-			dd++
-		}
-		if toks[k].Type == sql.TokenRParen {
-			dd--
-		}
-		if dd == 0 && toks[k].Type == sql.TokenKeyword &&
-			strings.EqualFold(toks[k].Value, "SET") &&
-			k+1 < sp.end && toks[k+1].Type == sql.TokenLParen {
-			return true
-		}
-	}
-	return false
 }
 
 // parenSetBounds normalizes a setIdx (SET keyword, LParen, or RParen) to the
