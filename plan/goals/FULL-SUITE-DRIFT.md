@@ -1739,3 +1739,88 @@ listed):
 
 Next-tranche order (value per effort): tkt singles → pairs → trigger →
 select/misc pre-squash grind → corrupt/fts3 corrupt classes.
+
+## T24 tranche (2026-09-15/16): parallel fleet sweep of the 2026-09-14 cluster index
+
+Executed as 12 disjoint worktree agents (memory-disciplined: `-p 2`, no
+corpus-wide runs) merged sequentially into main; conflicts union-resolved in
+the skip maps and `gen.go`; the insert_conflict.go dual implementation
+(vtab's explicitRowidValue vs fts5's mustBeIntRowid) resolved in favor of
+mustBeIntRowid (superset semantics, both clusters' oracle cases green).
+
+T23 (pre-fleet, commit 28b1892d4): tkt_hash cluster green — tkt-4a03edc4c8
+(REPLACE secondary-conflict pre-checks, insert.c statement-journal
+semantics), tkt-2a5629202f (ORDER BY qualified-term pre-eval tie-breaks),
+tkt-78e04e52ea (quoted empty table name FROM ""), tkt-54844eea3f (correlated
+derived), tkt-80ba201079 (INTEGER-only positional ORDER BY; assertion 150 =
+factor-constants EXPLAIN diff, VDBE introspection N-A) + echo vtab source
+materialization + session-4d catchsql slash-regex fidelity (1219-package
+regen).
+
+Fleet flips (all clusters verified green on the merged union; 41/41 cluster
+packages re-run green):
+- conflict2 (already green via T23) + conflict3 15→0 (multi-row VALUES
+  KeepPriorRowsOnError, WR remap in conflict scans, UPDATE OR REPLACE
+  delete-trigger gating on recursive_triggers, vanished-WR-target probe) —
+  fleet/conflict 5b9b3c773
+- vtab1 14→0, vtab3 2→0, vtab6 5→0 (faithful test8.c echo port:
+  constructor contract, echo-vtab-error wrap, authorizer actions, join-type
+  validation, xBestIndex malfunction) — fleet/vtab af9090613
+- trigger1 6→0, trigger4 1→0, trigger7 1→0, triggerB 2→0 (trigger.c
+  CREATE validations, schema-pinned not-found errors, firing-statement
+  body preflight) — fleet/trigger 5840184f5
+- tkt2565/2822/3121/3935/3992 green (2 real fixes: db-function-tcl-eval
+  transpiler emission; sqlite_open_file_count harness N-A) —
+  fleet/tkt-singles c99dbc875
+- alter 17→0, alter3 2→0, altertab2 2→0(+6 exposed→0), altertab3 1→0,
+  view 1→0 ("views may not be indexed"), view3 1→0 (nTabRef cap,
+  d58ccbb3f1b) — fleet/pairs-ddl d0fa1f00a/0b5d90e7f
+- fkey1 1→0, fkey2 30→0, update 7→0, update2 1→0, upsert4 2→0 (prepare-time
+  SET-target resolution, OR ROLLBACK statement-scope FK, WR DO UPDATE
+  secondary-UNIQUE via declared-PK exclusion, FK-program trace hook,
+  rowid-move semantics, ADD COLUMN raw-span splicing) — fleet/pairs-dml
+  e2157df36
+- collate3/4 + func3/4 green (collation-needed hook, unique-index key
+  collation, -2^63 INTEGER-affinity boundary) — fleet/pairs-querya
+  d6b9cca22
+- windowC 2→0, windowE 4→0, with1 2→0, with2 1→0, without_rowid3 12→1,
+  without_rowid4 7→4 (UTF-16 blob text rendering, frame keyword
+  normalization, sum() overflow deferral, classic-agg OVER rejection, CTE
+  anchor-first width, WR FK writes + CASCADE recursion) — fleet/pairs-queryb
+  ca196b7a3/2f627c906/eaff971d8
+- lock 2→0, lock5 1→0, pcache 6→0, pcache2 skips+pin, trace 10→0, trace3
+  15→0 (+evidence skips) (pragma write-lock classification, hot-journal
+  lockreg gate, C-format journal port, busy-handler transition table,
+  trace_v2 hooks) — fleet/pairs-pager (5 commits)
+- qrf01-3 (QRF CLI formatter N-A + harness parity) + rowvalue/3/4 green
+  (multi-clause paren-set UPDATE parser fix) — fleet/qrf-rowvalue
+  418e7b0bd/028a89656
+- P6.FTS5: 107→127/144 (20 flips: porter/trigram ports, fts5_locale,
+  secure-delete version bump, special-delete, tokenizer lazy-load,
+  fts5blob/connect/tokenizer/simple3/fuzz1/phrase + 3 package-level
+  TCL-harness N-As) — fleet/fts5 81a082f14/a4228555b/f4e5fd309; all 17
+  remaining reds adjudicated (9 architectural + 8 slow/PERF)
+- fts4langid already green at HEAD (stale handover); fts4merge4 NOT closed —
+  blocked by a REAL internal/btree corruption bug (see below) —
+  fleet/fts-residue 832176d96
+
+NEW BLOCKER (bedrock, from the fts-residue agent): internal/btree
+delete/insert churn with overflow-sized cells corrupts free-space
+accounting — `deleteCellOnPage` (internal/btree/btree_tail.go:532) never
+frees cell overflow chains; oracle integrity_check on the engine's file
+reports "free space corruption", "2nd reference to page N", never-used
+pages. This blocks fts4merge4 2.2.3.2/2.2.4.1/2.2.4.2 (level-1 drain) and
+potentially any overflow-heavy delete workload. Minimal repro: delete/
+insert churn with >1024B blob rows at page_size 1024. Validated prototype
+merge-side fixes (REPLACE into %_segments, SeedHierarchyLayer chain
+restore, error propagation) preserved in the commit message + /tmp patch;
+they must land AFTER the btree fix.
+
+Memory-leak investigation (user report): engine probe (open/close cycles,
+WAL, 60k trigger churn, echo scans, parse churn) shows NO leak — growth is
+exactly page-cache data (plain churn 10B/row; trigger churn 20B/iter = 2
+rows/iter × 10B); all other workloads ≤37B/iter noise; probe peak RSS
+22.5MB; root suite peak 85MB. The fleet memory exhaustion was operational:
+`go test -tags testgen ./testgen/...` spawns up to GOMAXPROCS package
+binaries × concurrent agents. Fleet protocol v2 caps `-p 2` + named
+packages only.

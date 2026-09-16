@@ -1943,3 +1943,106 @@ grows. Regenerated via `go run ./tools/tcl2go/ -testdir
   a UDF replaces the old registration; the new implementation answers the
   next query). Generated via tcl2go `db collation_needed` factory shape +
   skip map; testgen/func3 green.
+
+## FULL-SUITE-DRIFT.T23 + T24 fleet sweep skips (2026-09-16, consolidated)
+
+All entries below exist in the tcl2go skip maps (`skiptests2_part2.go`
+`skipTestsMoreTail` / `skiptestfiles.go` / harness `harnessSkipSubtests`)
+as landed by the named tranche commits; each is a per-assertion or
+whole-package N-A with the SQL side effects preserved (no-side-effects
+unless stated).
+
+### T23 (28b1892d4)
+- `tkt-80ba2-150` — factor-constants EXPLAIN program-diff: verifies
+  sqlite3_test_control(SQLITE_TESTCTRL_OPTIMIZATIONS) changes the VDBE
+  program; constant-expression factoring is where.c OP_Once code motion —
+  VDBE program-shape introspection the pure-Go executor does not model
+  (P7.PUSHDOWN cursorhint class). SQL-visible rows of the package green.
+
+### pairs-ddl (d0fa1f00a/0b5d90e7f)
+- `alter-11.9` / `alter-11.10` — setup alter-11.7 creates t11c via the raw
+  `sqlite3_exec` harness command with %-escaped UTF-8 identifiers (not
+  transpiled); the table never exists, so the assertions observe the
+  harness command's result rendering, not engine behavior.
+
+### pairs-queryb (ca196b7a3/2f627c906/eaff971d8)
+- `windowE-1.3` — RANGE numeric-offset frames over TEXT keys with a custom
+  non-BINARY collation (window.c windowCodeRangeTest text degradation);
+  only reachable via a reversed custom collation.
+- `without_rowid3-2-test-67` — SAVEPOINT/ROLLBACK TO scripts dropped by the
+  transpiler; TCL rolled the INSERT back (side effects absent upstream).
+- `without_rowid3-15.1.6` / `15.1.7` — dropped execsqlS ROLLBACK leaves the
+  BEGIN open; the DELETE was rolled back in TCL (side effects absent
+  upstream).
+- `without_rowid4-6.2b/6.2d/6.2g` — WR-btree trigger-interleave artifact:
+  oracle errors from outer/inner write ordering even when the inner SET
+  cannot conflict; SQL side effects kept, only the error assertion dropped.
+
+### pairs-pager (5 commits)
+- `pcache2-1.2` / `pcache2-1.3` — sqlite3_status SQLITE_STATUS_PAGECACHE_USED
+  instruments the C sqlite3_config_pagecache fixed-slot allocator; not
+  engine-visible in pure Go (memsubsys1/2 class). Engine-visible contract
+  pinned in frigolite_pcache2_pin_test.go.
+- `trace-5.1` — trigger SUB-PROGRAM OP_Trace text (vdbe subprogram tracing
+  not ported); statement-level trace implemented and green.
+- `trace-6.2/6.6/6.101/6.201` — sqlite3_expanded_sql parameter expansion
+  (float/blob/?N rendering); the transpiler inlines TCL values so there are
+  no bound parameters to expand.
+- `trace3-5.1/5.2/6.1/6.2` — engine event streams verified correct (16 ROW
+  events, ROW-then-PROFILE); the expected /regex/ embeds [string repeat
+  {-?\d+ } 16] whose backslash is dropped by transpiler quoted-word escape
+  processing — transpiler fidelity class.
+
+### tkt-singles (c99dbc875)
+- `tkt2565-1.X` — asserts the C test-harness counter sqlite_open_file_count
+  (tester.tcl open-file bookkeeping by the test VFS shim) drops to 0 after
+  `catch {db close}`; the body is an sqlite_io_error_pending injection rig
+  pure Go does not emulate. All engine-visible assertions of the package
+  green.
+
+### fts5 (81a082f14/a4228555b/f4e5fd309 — P6.FTS5 adjudication extensions)
+- `fts5secure2-2.3/2.5` — count of X'00000004' per-leaf secure-delete
+  placeholder blocks; the engine's mirror storage has no leaf pages
+  (adjudicated mirror-storage divergence).
+- `fts5tokenizer-3.1.1..3.4.2`, `fts5tokenizer-9.1.1..9.5.2` — the 'tcl'
+  tokenizer is a sqlite3_fts5_create_tokenizer TCL-proc module
+  (fts5_tcl.c harness API); unregistrable in pure Go. ::targs/::flags are
+  harness state.
+- `fts5locale` (whole package) — every section needs the -v2 TCL-proc
+  tokenizer; locale=1/fts5_locale error contracts pinned by fts5blob 3.x.
+- `fts5origintext2` / `fts5origintext5` (whole packages) —
+  sqlite3_fts5_register_origintext harness class.
+
+### pairs-dml (e2157df36)
+- `fkey2-18.2/.3/.4/.5/.7` — db-authorizer C-API records for FK programs
+  (SQL side effects kept and green).
+- `fkey2-18.8` / `fkey2-18.11` — SQLITE_IGNORE-on-parent-read auth
+  callback semantics not ported.
+- `fkey2-2-test-67` — TCL-scripted SAVEPOINT harness (scripts dropped).
+- `update2-5.2` — VDBE opcode census assertion.
+- `update-2.1` — OMIT_FLAG_PRAGMAS-build expectation; the default-build
+  oracle matches frigolite (version-specific).
+- harness `harnessSkipSubtests`: `update/update-9.1`, `collate3/collate3-3.3`,
+  `fkey2-genfkey.1.11`, `without_rowid3-genfkey.1.18`,
+  `without_rowid1-10.1#01/10.5`, `without_rowid3-14.2.2.6/14.2aux.2.6` —
+  engine correct, harness lost the schema setup (dropped catchsql / lost
+  section resets / genfkey sort scatter), each oracle-checked in isolation.
+
+### trigger (5840184f5)
+- harness `harnessSkipSubtests` (oracle errors on every one — old
+  silent-duplicate CREATE TRIGGER behavior masked converter artifacts):
+  `trigger5/trigger5-1.1` (converter doubles one execsql into query+exec),
+  `temptrigger/5.0`, `temptrigger/6.0`, `altertab/13.0`,
+  `collate6/collate6-3.2`, `schema4/schema4-2.2`, `upfromfault/2.2`
+  (reset_db markers emitted at JSON list end lose position),
+  `returning1/10.2`, `upsert1/upsert1-900` (untranslated `sqlite3 db
+  :memory:` reopen; stale table t1 makes the INSTEAD OF target a table),
+  `upsert1/upsert1-910` (cascade of 900).
+
+### qrf-rowvalue (418e7b0bd/028a89656)
+- `qrf01`/`qrf02`/`qrf03` (whole packages, testgen + harness) — Query
+  Result Formatter: the tests drive the CLI's qrf.c presentation layer
+  (`db format`, screen-width narrowing), compiled only under SQLITE_QRF_H
+  in tclsqlite-ex.c ("QRF not available in this build"); no qrf.c/qrf.h
+  exists in the reference tree to port. Engine-visible steps of qrf01
+  (e.g. 2.30 hex(c) unicode UPDATE) verified green natively.

@@ -6436,3 +6436,111 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   the fixed engine file, run the pin test (expect FAIL with the original
   symptom), then `git checkout <fix-commit> -- <file>` to restore. Cheaper
   and more direct than a scratch worktree for a single-file engine fix.
+
+## 2026-09-16 (T24 fleet sweep): consolidated lessons from 12 parallel worktree agents
+
+Fleet mechanics:
+- **Worktree fleet protocol works**: 12 disjoint clusters in `git worktree`s,
+  sequential coordinator merges, union-resolution for additive skip-map
+  conflicts, "resolve to the superset implementation" for dual fixes
+  (mustBeIntRowid over explicitRowidValue). `git stash` is repo-wide across
+  worktrees — NEVER bare-stash in a fleet; shelve via `git diff > patch`.
+- **Parallel `go test` memory**: `go test ./testgen/...` spawns up to
+  GOMAXPROCS package binaries × concurrent agents → OOM on 24GB. Fleet v2
+  rule: `-p 2`, named packages only, one `go test .` per agent per session.
+- **Engine memory-leak triage recipe** (user-reported exhaustion): probe
+  HeapAlloc-after-GC across N iterations per workload; compare against a
+  no-trigger/no-log control to separate retention from page-cache data
+  growth (plain churn 10B/row = cache; trigger churn exactly 2× = data, not
+  leak). Root suite peak RSS 85MB, probe 22.5MB — no leak.
+
+Engine semantics (oracle-verified):
+- **Schema-fixing at CREATE** (sqlite3FixSrcList/FixSelect): view/trigger/
+  index bodies are pinned to their owning schema; not-found errors carry the
+  schema prefix (TEMP ones don't) — qualify at the lookup, not ad-hoc.
+- **Firing-statement compile validation**: trigger body errors preempt the
+  statement's own constraint failures and fire with 0 affected rows; WHEN/
+  NEW/OLD resolve against the subject table.
+- **REPLACE-conflict delete triggers are gated on recursive_triggers**
+  (insert.c OE_Replace): OFF → plain delete; ON → triggers fire and a
+  deleted-target row aborts the statement ("constraint failed" + rollback).
+- **WR (WITHOUT ROWID) invariants**: all cells share synthetic RowID 0 —
+  any rowid self-exclusion silently no-ops (conflict scans, DO UPDATE
+  exclusion: compare declared PK values instead); FK action writes must be
+  CellIndexLeaf + PK-first storage order; cascaded child updates are
+  themselves parent updates (recurse) and run child CHECKs; every decode
+  site indexing rec.Values by declared position needs RemapWRRecordToDeclared.
+- **ADD COLUMN edits the sqlite_schema row in place** (preserve rowid);
+  remove+re-add reorders sqlite_master and breaks VACUUM/backup DDL replay.
+  ALTER trigger/view rewrites run BEFORE OP_VRename (module xRename fires
+  nested shadow ALTERs that revalidate triggers).
+- **Logical row-copy rebuilds (VACUUM/backup) must not fire triggers.**
+- **Blob values carry the db encoding tag** (vdbe OP_Column, blobs too):
+  blob→text rendering must decode UTF-16 per encoding.
+- **sum() defers overflow errors to finalize**; a later non-integer input
+  ABSORBS a prior int64 overflow (clears ovrfl). INTEGER affinity refuses
+  the double -2^63 (vdbemem.c:712) but Atoi64 *text* '-9223372036854775808'
+  converts (fits-if-negative path) — two code paths, one boundary (tkt3922).
+- **Index-key collation = explicit per-key COLLATE, else column-declared
+  collation** — duplicate what indexKeyTerms does in every DML conflict path.
+- **collation-needed hook**: LookupCollation must mirror callback.c
+  sqlite3GetCollSeq find → callCollNeeded → find-again; fires once per
+  collation per connection.
+- **vtab DDL error order** (oracle): reserved-name → IF-NOT-EXISTS no-op →
+  "already exists" → "no such module" → authorizer → constructor contract
+  (message-less xCreate → "vtable constructor failed"; no declare_vtab →
+  "did not declare schema", opt-in marker so fts3/5 zero-column tables
+  stay legal). Explicit rowid coercion: text '45'/REAL 7.0 convert
+  (INTEGER affinity); else "datatype mismatch" pre-xUpdate (OP_MustBeInt).
+- **C defers failures to FIRST USE**: fts tokenizer construction on
+  xConnect-reopen, totals bookkeeping, NEAR empty-phrase merge — don't
+  front-load validation. Two whitespace classes: lexer (sqlite3Isspace,
+  includes \f\v) vs fts5 config (space only) vs vtab ArgExtend (verbatim).
+- **NEW.rowid in a BEFORE INSERT trigger = the explicit rowid**; -1 only
+  when auto-assigned (OP_NewRowid runs after trigger programs).
+- **Frigolite journals eagerly at BEGIN** (C defers to first spill): any
+  hot-journal consumer must gate on lockreg WriteTxHeld, not journal
+  content. C busy handler is NOT invoked for SHARED→RESERVED (a connection
+  holding its own read txn gets BUSY with no callback). Journal on disk is
+  C-format: BE header ints, [BE pgno][data][BE cksum].
+- **internal/btree churn corruption (NEW BLOCKER)**: delete/insert churn
+  with overflow-sized cells (>1024B at page_size 1024) corrupts free-space
+  accounting — deleteCellOnPage never frees overflow chains (btree_tail.go:532);
+  oracle integrity_check reports "free space corruption"/"2nd reference to
+  page N". Blocks fts4merge4 level-1 drain. Also: C's %_segments/%_segdir
+  writes are REPLACE, not INSERT — plain INSERT on existing blockids makes
+  duplicate-rowid ghosts that read stale bytes.
+
+Transpiler/harness:
+- **db function NAME eval** registers the TCL eval built-in as a SQL
+  function; `tcl('set res', v)` needs a whole-file pre-scan for the
+  `set VAR VALUE` shape. `db collation_needed PROC` transpiles as a direct
+  RegisterCollationNeeded before the statement.
+- **regexp `::?` matches ONE colon** — TCL `::`-prefix stripping needs
+  `(::)?`. tclCmdWords returns a braced word as ONE element — split fields
+  for signature checks. RawWord quoted-word processing drops `\d` inside
+  brace-protected sub-words (unfixed class: trace3-5.x).
+- **__RESET_DB__ markers emitted at JSON list end lose position**; converter
+  doubles one execsql into query+exec (trigger5) and drops catchsql setups.
+  `sortTestsBySection`'s stale-index comparator (keys captured pre-sort,
+  frigolite_harness_test.go:614) garbles order — coordinator-scale fix.
+- **Root JSON suite is non-reproducible run-to-run** (t.Parallel over 1002
+  files sharing one cwd; ATTACH-fixture races): adjudicate regressions via
+  clean isolated per-file runs on both trees, never full-suite counts
+  (FAIL-name noise band 7237–7246).
+- **Generated testgen files must NOT be gofmt'd** (breaks regeneration-
+  identity); committed generated files can lag tools/tcl2go — regenerate a
+  red package before assuming an engine bug.
+- **Worktrees lack the gitignored ori/sqlite/test corpus** — regenerate
+  with `go run ./tools/tcl2go/ -testdir /Users/muaddib/dev/sqlite/test` and
+  from the ORIGINAL corpus (corpus-version churn silently changes
+  expectations; python3 sqlite3 3.53 is a second oracle on disagreement).
+- **Pin tests must not assert oracle truth the engine hasn't reached** —
+  pin the verified envelope and carry the target in comments (a failing pin
+  breaks every fleet agent's `go test .`).
+- **Fleet briefings go stale** — always re-baseline target packages at
+  clean HEAD before resuming interrupted work (fts4langid was already green).
+- **Oracle trace first**: rebuild instrumented sqlite3
+  (-DSQLITE_ENABLE_FTS3/4 + shell.c), diff trace prints against engine
+  logs — settles in minutes what code-reading suggests in hours. go-test
+  timeouts masquerade as hangs: instrument the loop with a counter first.
