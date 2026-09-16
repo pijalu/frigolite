@@ -542,6 +542,8 @@ func setStatementRawSQL(s sql.Stmt, stmtText string, stmtStart int, parenSpans [
 	raw = strings.TrimSpace(raw)
 	if ct, ok := s.(*sql.CreateTableStmt); ok {
 		ct.RawSQL = raw
+	} else if at, ok := s.(*sql.AlterTableStmt); ok {
+		at.RawSQL = raw
 	} else if tr, ok := s.(*sql.CreateTriggerStmt); ok {
 		tr.RawSQL = raw
 	} else if vw, ok := s.(*sql.CreateViewStmt); ok {

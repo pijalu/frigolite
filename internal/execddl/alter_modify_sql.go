@@ -218,3 +218,115 @@ func skipParenGroup(s string, i int) int {
 	}
 	return len(s)
 }
+
+// alterColumnDefText extracts the verbatim column-definition text of an
+// ALTER TABLE ... ADD [COLUMN] statement: the substring from the start of
+// the column-name token to the end of the statement (alter.c's pColDef
+// token span, which sqlite3AlterFinishAddColumn splices into the stored
+// CREATE TABLE SQL). Returns "" when the raw statement text is absent or
+// the column name cannot be located (e.g. the statement was quoted
+// differently); the caller then falls back to the AST rendering.
+func alterColumnDefText(rawSQL, colName string) string {
+	rawSQL = strings.TrimSpace(rawSQL)
+	if rawSQL == "" || colName == "" {
+		return ""
+	}
+	// Scan rawSQL for word-boundary tokens; find the ADD [COLUMN] that
+	// precedes the column-name token. Quoted identifiers ('x', "x", [x],
+	// `x`) are single tokens whose unquoted form participates in the
+	// fold comparison, so a table named "add" cannot hijack the match.
+	toks := ddlSQLTokens(rawSQL)
+	for i := 0; i < len(toks); i++ {
+		if !strings.EqualFold(toks[i].text, "ADD") || toks[i].quoted {
+			continue
+		}
+		j := i + 1
+		if j < len(toks) && strings.EqualFold(toks[j].text, "COLUMN") && !toks[j].quoted {
+			j++
+		}
+		if j < len(toks) && ddlIdentFold(toks[j]) == ddlIdentFold(ddlToken{text: colName}) {
+			return strings.TrimSpace(rawSQL[toks[j].start:])
+		}
+	}
+	return ""
+}
+
+// ddlToken is one lexical token of an ALTER statement's raw text.
+type ddlToken struct {
+	text   string // unquoted token text
+	quoted bool   // identifier arrived in quotes ('x', "x", [x], `x`)
+	start  int    // byte offset of the token's first character in the source
+}
+
+// ddlIdentFold returns the case-folded comparison form of a token (quotes
+// already stripped by the scanner).
+func ddlIdentFold(t ddlToken) string { return strings.ToLower(t.text) }
+
+// ddlSQLTokens tokenizes SQL for the ALTER ADD span scan: whitespace
+// separators; '...', "...", [...], `...` quoted identifiers (single token,
+// doubled quote escapes); everything else splits on punctuation/whitespace
+// boundaries. Token text keeps its case (comparison folds separately).
+func ddlSQLTokens(s string) []ddlToken {
+	var toks []ddlToken
+	for i := 0; i < len(s); {
+		switch c := s[i]; {
+		case c == ' ' || c == '\t' || c == '\n' || c == '\r':
+			i++
+		case c == '\'' || c == '"' || c == '`' || c == '[':
+			tok, next := ddlQuotedToken(s, i)
+			toks = append(toks, tok)
+			i = next
+		case isDDLWordChar(c):
+			tok, next := ddlWordToken(s, i)
+			toks = append(toks, tok)
+			i = next
+		default:
+			// Punctuation splits tokens; record single-char tokens so
+			// surrounding identifiers stay separate.
+			toks = append(toks, ddlToken{text: string(c), start: i})
+			i++
+		}
+	}
+	return toks
+}
+
+// ddlQuotedToken scans one quoted identifier ('x', "x", `x`, [x]; doubled
+// quote escapes everywhere but [..], whose close is unambiguous) starting at
+// its opening quote byte i. An unterminated quote consumes to end of input.
+// Returns the token and the byte offset just past its closing quote.
+func ddlQuotedToken(s string, i int) (ddlToken, int) {
+	end := s[i]
+	if end == '[' {
+		end = ']'
+	}
+	j := i + 1
+	for j < len(s) {
+		if s[j] == end {
+			if end != ']' && j+1 < len(s) && s[j+1] == end {
+				j += 2 // doubled-quote escape
+				continue
+			}
+			break
+		}
+		j++
+	}
+	if j >= len(s) {
+		j = len(s) - 1
+	}
+	return ddlToken{text: s[i+1 : j], quoted: true, start: i}, j + 1
+}
+
+// ddlWordToken scans one unquoted identifier/number token starting at i.
+// Returns the token and the byte offset just past its last character.
+func ddlWordToken(s string, i int) (ddlToken, int) {
+	j := i
+	for j < len(s) && isDDLWordChar(s[j]) {
+		j++
+	}
+	return ddlToken{text: s[i:j], start: i}, j
+}
+
+// isDDLWordChar reports whether c continues an unquoted identifier.
+func isDDLWordChar(c byte) bool {
+	return c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c >= 0x80
+}

@@ -79,6 +79,12 @@ type ConstraintContext interface {
 	// (sqlite3_total_changes). FK actions (CASCADE/SET NULL/SET DEFAULT)
 	// modify rows directly and must report them.
 	BumpTotalChanges(n int64)
+
+	// FireFKProgramTrace fires the trace callback for one FK-action trigger
+	// sub-program invocation (SQLite runs FK ON DELETE/ON UPDATE actions as
+	// trigger programs, and the trace callback fires for every program run,
+	// reporting the top-level statement SQL — fkey1-5.2.1).
+	FireFKProgramTrace()
 }
 
 // ConstraintEnforcer owns FOREIGN KEY enforcement state and methods. It

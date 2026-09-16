@@ -20,15 +20,11 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 
 	// A change that re-keys its row (SET rowid=...) must not land on an
-	// existing rowid — SQLite raises "UNIQUE constraint failed:
-	// t5b.rowid" (conflict-12.5: UPDATE t5b SET rowid=rowid+1 moves rowid
-	// 1 onto 2). Checked even for tables with no UNIQUE constraints, so it
-	// sits BEFORE the no-constraints early return.
-	for i := range changes {
-		c := changes[i]
-		if c.newRowID != nil && *c.newRowID != c.rowID && e.rowIDExists(tableEntry.Name, tableEntry.RootPage, *c.newRowID) {
-			return &Result{Error: e.rowIDConflictError(tableEntry, colDefs)}
-		}
+	// unavailable rowid — SQLite raises "UNIQUE constraint failed:
+	// t5b.rowid" (conflict-12.5). Checked even for tables with no UNIQUE
+	// constraints, so it sits BEFORE the no-constraints early return.
+	if i := e.rowidMoveConflict(tableEntry, changes); i >= 0 {
+		return &Result{Error: e.rowIDConflictError(tableEntry, colDefs)}
 	}
 
 	if len(uniqueCols) == 0 && len(idxColsList) == 0 && len(wrOrder) == 0 {
@@ -46,6 +42,45 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 		}
 	}
 	return &Result{}
+}
+
+// rowidMoveConflict reports the index of the first re-keying change
+// (SET rowid=...) whose target rowid is unavailable, or -1 when every target
+// is free. SQLite applies changes row by row in scan order, checking each new
+// rowid against the LIVE table: a slot vacated by an earlier change of
+// the same statement is free (update.test 13.3's "SET rowid=rowid-1" shifts
+// 1..N down without conflict), while a slot still held by a later row is a
+// conflict (conflict-12.5). Mirror that: a target occupied by an earlier
+// change's OLD rowid is already vacated, but a target an earlier change
+// already moved onto conflicts.
+func (e *DMLExecutor) rowidMoveConflict(tableEntry *schema.Entry, changes []updateChange) int {
+	for i := range changes {
+		c := changes[i]
+		if c.newRowID == nil || *c.newRowID == c.rowID {
+			continue
+		}
+		movedOnto, vacated := earlierRowidTargetState(changes, i, *c.newRowID)
+		if movedOnto || (!vacated && e.rowIDExists(tableEntry.Name, tableEntry.RootPage, *c.newRowID)) {
+			return i
+		}
+	}
+	return -1
+}
+
+// earlierRowidTargetState scans changes[:before] for what happened at
+// target: movedOnto reports whether an earlier change already re-keyed onto
+// it; vacated reports whether an earlier change's OLD rowid held it (that
+// slot is free for a later change of the same statement).
+func earlierRowidTargetState(changes []updateChange, before int, target int64) (movedOnto, vacated bool) {
+	for j := 0; j < before; j++ {
+		if changes[j].newRowID != nil && *changes[j].newRowID == target {
+			movedOnto = true
+		}
+		if changes[j].rowID == target {
+			vacated = true
+		}
+	}
+	return movedOnto, vacated
 }
 
 // checkEarlierChanges checks one change's NEW values against the NEW values

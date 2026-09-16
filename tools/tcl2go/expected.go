@@ -89,9 +89,11 @@ func normalizeExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
 	// name) normalizes to the raw `"""` value that flatten() produces.
 	text, changed := unescapeExpectedText(text)
 	if text == "" {
-		// An empty braced expected value means an empty result set; the
-		// generated want should be the empty string, not the raw whitespace.
-		return tcl.RawWord{Text: "", Braced: true}, false
+		// An empty braced expected value is the empty TCL list; the harness
+		// flatten() renders an empty query result as "{}" (TCL renders an
+		// empty list as {}), so the generated want must be "{}" — an empty
+		// string would never match (update.test 5.5.3, fkey2 15.x).
+		return tcl.RawWord{Text: "{}", Braced: true}, false
 	}
 	// Unwrap TCL list-rendering braces for a single-element list. A `{}` with
 	// empty inner content is NOT rendering braces: it is how TCL db eval

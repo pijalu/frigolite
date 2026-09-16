@@ -265,37 +265,90 @@ func (e *DMLExecutor) triggerWhenPasses(t *schema.Entry) (bool, error) {
 	// table's columns when the firing statement is prepared — an unknown
 	// column errors "no such column: NAME" (insert3-131, update-9.14: the
 	// WHEN expression evaluates per firing row via the NEW./OLD. row).
-	if te, _, terr := e.ctx.FindTable(t.TblName); terr == nil && te != nil {
-		colDefs := e.ctx.ParseColumnDefs(te.Name, te.SQL)
-		lookup := make(map[string]bool, len(colDefs))
-		for _, cd := range colDefs {
-			lookup[strings.ToLower(cd.Name)] = true
-		}
-		var bad string
-		execquery.WalkExprFull(whenExpr, func(n sql.Expr) {
-			if bad != "" {
-				return
-			}
-			ref, ok := n.(*sql.ColumnRef)
-			if !ok {
-				return
-			}
-			if ref.Table != "" && !strings.EqualFold(ref.Table, "new") && !strings.EqualFold(ref.Table, "old") {
-				return // some other qualifier: its own resolution scope
-			}
-			if !lookup[strings.ToLower(ref.Name)] {
-				bad = ref.Name
-			}
-		})
-		if bad != "" {
-			return false, fmt.Errorf("no such column: %s", bad)
-		}
+	if err := e.resolveTriggerWhenColumns(t); err != nil {
+		return false, err
 	}
 	val, err := e.ctx.EvalExpr(whenExpr, nil)
 	if err != nil {
 		return false, err
 	}
 	return val != nil && execexpr.ToBool(val), nil
+}
+
+// resolveTriggerWhenColumns resolves a trigger's WHEN clause against its
+// subject table's columns (SQLite resolve.c resolveTriggerStep at trigger
+// program code time): an unknown column errors "no such column: NAME". A
+// trigger without a WHEN clause, or whose subject table cannot be resolved,
+// passes (the latter is reported by the schema-load validation instead).
+func (e *DMLExecutor) resolveTriggerWhenColumns(t *schema.Entry) error {
+	whenExpr := e.parseTriggerWhen(t.SQL)
+	if whenExpr == nil {
+		return nil
+	}
+	te, _, terr := e.ctx.FindTable(t.TblName)
+	if terr != nil || te == nil {
+		return nil
+	}
+	colDefs := e.ctx.ParseColumnDefs(te.Name, te.SQL)
+	lookup := make(map[string]bool, len(colDefs))
+	for _, cd := range colDefs {
+		lookup[strings.ToLower(cd.Name)] = true
+	}
+	var bad string
+	execquery.WalkExprFull(whenExpr, func(n sql.Expr) {
+		if bad != "" {
+			return
+		}
+		ref, ok := n.(*sql.ColumnRef)
+		if !ok {
+			return
+		}
+		if ref.Table != "" && !strings.EqualFold(ref.Table, "new") && !strings.EqualFold(ref.Table, "old") {
+			return // some other qualifier: its own resolution scope
+		}
+		if !lookup[strings.ToLower(ref.Name)] {
+			bad = ref.Name
+		}
+	})
+	if bad != "" {
+		return fmt.Errorf("no such column: %s", bad)
+	}
+	return nil
+}
+
+// prepareUpdateTriggers resolves the WHEN clauses of the target table's
+// UPDATE triggers. SQLite codes the UPDATE statement's trigger programs at
+// prepare time (sqlite3CodeRowTriggerProgram), so a WHEN clause referencing
+// an unknown column errors "no such column: NAME" even when no row matches
+// the WHERE clause (update.test 14.2/14.4).
+func (e *DMLExecutor) prepareUpdateTriggers(tableEntry *schema.Entry) *Result {
+	if e.ctx.TriggersSuppressed() || !e.hasTriggersForTable(tableEntry.Name) {
+		return nil
+	}
+	tableCtx := e.triggerTableContext(tableEntry.Name)
+	var triggers []*schema.Entry
+	if ts, err := tableCtx.Schema.FindTriggersForTable(tableEntry.Name); err == nil {
+		triggers = append(triggers, ts...)
+	}
+	triggers = e.appendTempTriggers(tableCtx, tableEntry.Name, triggers)
+	for _, t := range triggers {
+		declTiming, declEvent := parseTriggerHeader(t.SQL)
+		if declTiming == "" {
+			declTiming = "BEFORE"
+		}
+		if declEvent != "UPDATE" {
+			continue
+		}
+		// OF-column selectivity is a code-time decision too: a trigger whose
+		// OF list misses the statement's SET columns is not coded.
+		if !e.triggerMatchesUpdateOf(t) {
+			continue
+		}
+		if err := e.resolveTriggerWhenColumns(t); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return nil
 }
 
 // parseTriggerBody extracts and parses the statements between a trigger's BEGIN

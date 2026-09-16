@@ -1269,3 +1269,65 @@ func (tp *transpiler) emitExecsqlQueryResultCheck(nameExpr, expectedExpr string)
 }
 
 // emitDBEvalQueryResultCheck emits a comparison of a db-eval-query body.
+
+// emitSkippedDoTestSideEffects handles a do_test whose body contains
+// `dbN eval {SQL}` or plain `execsql {SQL}` commands: emit the SQL side
+// effects (CREATE/INSERT/DROP) for later tests while dropping the
+// assertions (catchsql, lappend, etc. — a catchsql body is the "expect
+// error" form, so its SQL is deliberately not run). Returns true when at
+// least one SQL-running command was found.
+func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []tcl.RawWord) bool {
+	if len(args) < 2 {
+		return false
+	}
+	bodyCmds := tp.parseBracedBody(args, 1)
+
+	// Collect the SQL-running commands (the DDL/DML side effects).
+	type sideEffect struct{ connVar, sqlExpr string }
+	var effects []sideEffect
+	for _, cmd := range bodyCmds {
+		connVar, sqlExpr, ok := tp.sqlSideEffectCmd(cmd)
+		if !ok {
+			continue
+		}
+		effects = append(effects, sideEffect{connVar, sqlExpr})
+	}
+	if len(effects) == 0 {
+		return false
+	}
+	nameExpr := tp.goStringLiteral(tcl.RawWord{Text: name})
+	tp.emitLine("{ // %s — skipped: %s (SQL side effects only)", nameExpr, reason)
+	tp.indent++
+	for _, eff := range effects {
+		tp.emitLine("_res = %s.Exec(%s)", eff.connVar, eff.sqlExpr)
+		tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
+	}
+	tp.indent--
+	tp.emitLine("}")
+	return true
+}
+
+// sqlSideEffectCmd classifies one body command as a SQL side effect,
+// reporting the connection variable and the SQL expression. Recognizes
+// `dbN eval {SQL}` and plain `execsql {SQL}` (resolved through the
+// alias/connection map, so `execsql {SQL} db2` lands on db2).
+func (tp *transpiler) sqlSideEffectCmd(cmd []tcl.RawWord) (connVar, sqlExpr string, ok bool) {
+	isDBEval := len(cmd) >= 3 && strings.HasPrefix(cmd[0].Text, "db") && cmd[1].Text == "eval"
+	isExecsql := len(cmd) >= 2 && cmd[0].Text == "execsql"
+	if !isDBEval && !isExecsql {
+		return "", "", false
+	}
+	sqlIdx := 2
+	connVar = cmd[0].Text
+	if isExecsql {
+		sqlIdx = 1
+		connVar = tp.dbVar
+		if conn := tp.resolveSQLConnection(cmd); conn != tp.dbVar {
+			connVar = conn
+		}
+	}
+	if len(cmd) <= sqlIdx {
+		return "", "", false
+	}
+	return connVar, tp.collectSQLExpression(cmd[sqlIdx : sqlIdx+1]), true
+}

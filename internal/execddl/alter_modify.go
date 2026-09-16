@@ -366,7 +366,7 @@ func (e *DDLExecutor) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	if s.NewConstraint != nil {
 		return e.addTableConstraint(tableName, tableEntry, ctx, s.NewConstraint)
 	}
-	return e.addTableColumn(tableName, tableEntry, ctx, s.ColDef)
+	return e.addTableColumn(tableName, tableEntry, ctx, s.ColDef, alterColumnDefText(s.RawSQL, s.ColDef.Name))
 }
 
 // addTableConstraint appends a table-level constraint to the stored CREATE
@@ -389,8 +389,10 @@ func (e *DDLExecutor) addTableConstraint(tableName string, tableEntry *schema.En
 }
 
 // addTableColumn appends a column definition to the stored CREATE TABLE SQL
-// after validating its constraints against existing rows.
-func (e *DDLExecutor) addTableColumn(tableName string, tableEntry *schema.Entry, ctx *DatabaseContext, colDef sql.ColumnDef) *Result {
+// after validating its constraints against existing rows. rawColText is the
+// verbatim column-definition substring of the ALTER statement ("" falls back
+// to the AST rendering).
+func (e *DDLExecutor) addTableColumn(tableName string, tableEntry *schema.Entry, ctx *DatabaseContext, colDef sql.ColumnDef, rawColText string) *Result {
 	if colDef.Name == "" {
 		return &Result{}
 	}
@@ -414,8 +416,13 @@ func (e *DDLExecutor) addTableColumn(tableName string, tableEntry *schema.Entry,
 	colDefs = append(colDefs, colDef)
 	e.ctx.ColCache()[tableName] = colDefs
 
-	// Update the stored CREATE TABLE SQL to include the new column.
-	newSQL := addColumnToCreateTableSQL(tableEntry.SQL, colDef)
+	// Update the stored CREATE TABLE SQL to include the new column. The
+	// raw column-definition text (the tokens after ADD [COLUMN]) is
+	// preferred: alter.c sqlite3AlterFinishAddColumn splices the user's
+	// pColDef token span verbatim, preserving constraint-clause order and
+	// spacing ("ADD COLUMN e REFERENCES t1 DEFAULT NULL" must store
+	// "e REFERENCES t1 DEFAULT NULL", not a canonical re-rendering).
+	newSQL := addColumnToCreateTableSQL(tableEntry.SQL, colDef, rawColText)
 	if newSQL == "" || newSQL == tableEntry.SQL {
 		return &Result{}
 	}
@@ -859,7 +866,9 @@ func addConstraintToCreateTableSQL(origSQL string, tc *sql.TableConstraint) stri
 }
 
 // addColumnToCreateTableSQL adds a new column definition to a CREATE TABLE SQL string.
-func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef) string {
+// rawColText (when non-empty) is the verbatim column-definition substring of
+// the ALTER statement; the AST serialization is only a fallback.
+func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef, rawColText string) string {
 	upper := strings.ToUpper(strings.TrimSpace(origSQL))
 	if !strings.HasPrefix(upper, "CREATE TABLE") && !strings.HasPrefix(upper, "CREATE TEMP TABLE") && !strings.HasPrefix(upper, "CREATE TEMPORARY TABLE") {
 		return ""
@@ -870,9 +879,12 @@ func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef) string {
 	}
 
 	// Build the column definition text.
-	var colBuf strings.Builder
-	formatColumnDef(&colBuf, colDef)
-	colText := colBuf.String()
+	colText := strings.TrimSpace(rawColText)
+	if colText == "" {
+		var colBuf strings.Builder
+		formatColumnDef(&colBuf, colDef)
+		colText = colBuf.String()
+	}
 	if colText == "" {
 		return origSQL
 	}

@@ -177,6 +177,7 @@ func (e *Engine) BeginStmtTrace(sqlText string) int64 {
 	}
 	e.traceNextID++
 	e.traceCurID = e.traceNextID
+	e.traceCurSQL = sqlText
 	if e.traceHook != nil {
 		e.traceHook(sqlText)
 	}
@@ -184,6 +185,19 @@ func (e *Engine) BeginStmtTrace(sqlText string) int64 {
 		e.traceV2Hook(TraceStmt, e.traceCurID, sqlText)
 	}
 	return e.traceCurID
+}
+
+// FireFKProgramTrace fires the legacy trace hook for one FK-action trigger
+// sub-program invocation (fkey.c runs FK ON DELETE/ON UPDATE actions as
+// per-row trigger programs; sqlite3VdbeExec's OP_Trace fires the trace
+// callback for every program run, with nVdbeExec>1 sub-programs reporting
+// the top-level statement SQL). No-op when no hook is registered, while
+// internal statements run, or outside a traced statement.
+func (e *Engine) FireFKProgramTrace() {
+	if e.traceInternal || e.traceHook == nil || e.traceCurSQL == "" {
+		return
+	}
+	e.traceHook(e.traceCurSQL)
 }
 
 // EndStmtTrace fires the profile hook and the v2 PROFILE event after a

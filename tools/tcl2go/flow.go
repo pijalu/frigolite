@@ -492,43 +492,6 @@ func (tp *transpiler) emitSkippedTestSideEffects(cmdName string, args []tcl.RawW
 	tp.emitLine("}")
 }
 
-// emitSkippedDoTestSideEffects handles a do_test whose body contains
-// `dbN eval {SQL}` commands: emit the SQL side effects (CREATE/INSERT/DROP)
-// for later tests while dropping the assertions (catchsql, lappend, etc.).
-// Returns true when at least one dbN eval command was found.
-func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []tcl.RawWord) bool {
-	if len(args) < 2 {
-		return false
-	}
-	bodyCmds := tp.parseBracedBody(args, 1)
-
-	// Collect all dbN eval {SQL} commands (the DDL/DML side effects).
-	type sideEffect struct{ connVar, sqlExpr string }
-	var effects []sideEffect
-	for _, cmd := range bodyCmds {
-		if len(cmd) < 3 || !strings.HasPrefix(cmd[0].Text, "db") || cmd[1].Text != "eval" {
-			continue
-		}
-		effects = append(effects, sideEffect{
-			connVar: cmd[0].Text,
-			sqlExpr: tp.collectSQLExpression(cmd[2:3]),
-		})
-	}
-	if len(effects) == 0 {
-		return false
-	}
-	nameExpr := tp.goStringLiteral(tcl.RawWord{Text: name})
-	tp.emitLine("{ // %s — skipped: %s (SQL side effects only)", nameExpr, reason)
-	tp.indent++
-	for _, eff := range effects {
-		tp.emitLine("_res = %s.Exec(%s)", eff.connVar, eff.sqlExpr)
-		tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
-	}
-	tp.indent--
-	tp.emitLine("}")
-	return true
-}
-
 // unsupportedSQL reports a reason string when sql uses a construct the
 // engine does not support (window functions), or "" when the SQL is
 // transpilable. Tests using these constructs are emitted as no-op skips so
