@@ -635,11 +635,14 @@ func parseInt(s string) (int64, error) {
 		// Try float then truncate. Reject out-of-int64-range values (Go's
 		// float→int64 conversion saturates, but SQLite's affinity leaves
 		// them REAL: '-9223372036854775809' stores as real -9.223e18).
+		// The lower bound is inclusive: the double nearest -2^63 may round
+		// up from an overflow magnitude (util.c sqlite3Atoi64 returns
+		// overflow for it and applyNumericAffinity keeps the value REAL).
 		f, err2 := strconv.ParseFloat(s, 64)
 		if err2 != nil {
 			return 0, err
 		}
-		if f >= 9.223372036854776e18 || f < -9.223372036854776e18 {
+		if f >= 9.223372036854776e18 || f <= -9.223372036854776e18 {
 			return 0, fmt.Errorf("out of int64 range")
 		}
 		return int64(f), nil
@@ -739,8 +742,12 @@ func applyIntAffinity(val interface{}) interface{} {
 		// conversion saturates (2^63 → MaxInt64), so a range check must guard
 		// it: values >= 2^63 stay REAL, matching SQLite's sqlite3VdbeIntValue
 		// (e.g. INTEGER DEFAULT -(-9223372036854775808) evaluates to real
-		// 9.22337203685478e+18, not a wrapped integer).
-		if v == math.Trunc(v) && v >= -9.223372036854776e18 && v < 9.223372036854776e18 {
+		// 9.22337203685478e+18, not a wrapped integer). The lower bound is
+		// STRICT: vdbeaux.c sqlite3VdbeIntegerAffinity refuses ix ==
+		// SMALLEST_INT64 (doubleToInt64's comment) — the double -2^63 is
+		// indistinguishable from a rounded-up overflow, so it stays REAL
+		// (func4-3.18: tointeger('-9223372036854775809') must read NULL).
+		if v == math.Trunc(v) && v > -9.223372036854776e18 && v < 9.223372036854776e18 {
 			return int64(v)
 		}
 		return v
@@ -750,7 +757,7 @@ func applyIntAffinity(val interface{}) interface{} {
 			return i
 		}
 		if f, err := parseFloat(t); err == nil {
-			if f == math.Trunc(f) && f >= -9.223372036854776e18 && f < 9.223372036854776e18 {
+			if f == math.Trunc(f) && f > -9.223372036854776e18 && f < 9.223372036854776e18 {
 				return int64(f)
 			}
 			// Out of int64 range or non-integral: SQLite stores the REAL

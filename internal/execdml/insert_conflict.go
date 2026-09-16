@@ -557,7 +557,18 @@ func (e *DMLExecutor) rowMatchesIndexKey(rc *storage.Record, cl *storage.Cell, c
 		if cd != nil {
 			typ = cd.Type
 		}
-		if e.ctx.CompareValuesWithCollate(util.ApplyColumnAffinity(kv, typ), util.ApplyColumnAffinity(key[i], typ)) != 0 {
+		// Index-key collation (build.c sqlite3CreateIndex): the key's
+		// explicit COLLATE wins; a plain column key falls back to the
+		// column's declared collation (BINARY when neither). Without this,
+		// `CREATE UNIQUE INDEX i ON t(a COLLATE NOCASE)` misses 'ABC' vs
+		// 'abc' (collate4-3.11).
+		coll := ""
+		if i < len(def.KeyColl) && def.KeyColl[i] != "" {
+			coll = def.KeyColl[i]
+		} else if cd != nil {
+			coll = cd.Collate
+		}
+		if e.ctx.CompareValuesCollate(util.ApplyColumnAffinity(kv, typ), util.ApplyColumnAffinity(key[i], typ), coll) != 0 {
 			return false
 		}
 	}

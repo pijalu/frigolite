@@ -187,6 +187,11 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		tp.processDBFunction(rest)
 	case "collate":
 		tp.processDBCollate(rest)
+	case "collation_needed":
+		// The collation-factory hook (collate3-5.x): transpile the named proc
+		// into a RegisterCollationNeeded registration (or a direct
+		// RegisterCollation for the static-name shape).
+		tp.processNamedDBCollationNeeded("db", rest)
 	case "deserialize":
 		tp.processDBDeserialize(rest)
 	case "serialize":
