@@ -671,13 +671,22 @@ func lockAccessForStmt(stmt sql.Stmt) (write bool, schemaName string) {
 			return false, ""
 		}
 		switch strings.ToLower(s.Name) {
-		case "schema_version", "user_version", "application_id",
-			"auto_vacuum", "journal_mode":
+		case "schema_version", "user_version", "application_id", "auto_vacuum":
 			schema := s.Schema
 			if schema == "" {
 				schema = "main"
 			}
 			return true, schema
+		case "journal_mode":
+			// pager.c sqlite3PagerSetJournalMode: a rollback↔rollback mode
+			// change takes NO file lock at all — the pager records the mode
+			// and defers any journal-file disposition (tkt-fc62af4523:
+			// persist→delete must succeed while another connection's hot
+			// journal is outstanding). Only WAL-involving changes drive the
+			// exclusive-lock path, enforced inside Engine.JournalMode
+			// (journalModeChangeLockError), which knows both the old and new
+			// modes — this classifier does not.
+			return false, ""
 		}
 		return false, ""
 	default:

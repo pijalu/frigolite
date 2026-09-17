@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/execpragma"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/lockreg"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -90,6 +91,15 @@ func (e *Engine) JournalMode(schema, value string) *execpragma.Result {
 	}
 	if value != "" {
 		m := strings.ToLower(strings.TrimSpace(value))
+		// pager.c sqlite3PagerSetJournalMode: a WAL-involving mode change
+		// (to or from WAL) opens/closes the WAL via the exclusive-lock path;
+		// any other connection's lock blocks it. Rollback↔rollback changes
+		// take no lock (tkt-fc62af4523.3).
+		if m == "wal" || strings.EqualFold(ctx.Pager.JournalMode(), "wal") {
+			if err := e.journalModeChangeLockError(schema); err != nil {
+				return &execpragma.Result{Error: err}
+			}
+		}
 		if e.InTransaction() && ctx.Pager.HasDirtyPages() {
 			// Defer the switch until the transaction ends (pager.c
 			// pendingJournalMode / btreeEndTransaction). When the pager
@@ -997,4 +1007,23 @@ func parseSafetyLevel(value string) int64 {
 		return 2
 	}
 	return 1
+}
+
+// journalModeChangeLockError reports "database is locked" when a WAL-involving
+// journal-mode change cannot acquire the exclusive file lock because another
+// connection holds any lock on the file (pager.c sqlite3PagerSetJournalMode's
+// sqlite3PagerOpenWal / pagerCloseWal exclusive-lock path).
+func (e *Engine) journalModeChangeLockError(schema string) error {
+	switch e.lockStyle {
+	case LockStyleNone:
+		return nil
+	}
+	key := e.LockKeyForDB(schema)
+	if key == "" {
+		return nil
+	}
+	if lockreg.Global.ConnLockedByOther(key, e.connID) {
+		return fmt.Errorf("database is locked")
+	}
+	return nil
 }
