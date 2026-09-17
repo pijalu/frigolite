@@ -6589,3 +6589,41 @@ Transpiler/harness:
   it the SQL side effects still run — use side-effect-preserving reasons
   when later tests depend on the skipped body's SQL (savepoint-5.3.2.1's
   SAVEPOINT def).
+
+## FULL-SUITE-DRIFT.T26-tkt2 lessons (2026-09-17)
+
+- **ON-clause validation name sets must be case-insensitive AND dual-form.**
+  SQLite name resolution folds case (sqlite3StrICmp) and matches schema-qualified
+  operands (main.t4) by either the full name or the bare table name. Key every
+  validator table-name set lower-cased, register schema-qualified operands in
+  BOTH forms, and look up with a schema-stripped lower-cased qualifier
+  (execquery addLowerTableNames / onQualifierKey). Symptom of the gap: false
+  "ON clause references tables to its right" / "no such column: main.t4.a".
+- **The ON right-reference error is outer-join only.** select.c:7524 attaches
+  the checker to EP_OuterON joins, or inner-join ON when the query contains a
+  RIGHT/FULL join (hasRightJoin/JT_LTORJ). An INNER-join ON may reference
+  tables to its right (join8-13000); an absent qualifier is still "no such
+  column" at any join type (vtab6-3.6).
+- **Aggregate ownership = resolve.c:1332's context walk.** The first enclosing
+  SELECT whose SrcList the WHOLE aggregate expression (args + FILTER + ORDER
+  BY) references owns it: pure-outer aggregates step the OUTER rows and make
+  the outer query an aggregate query (aggnested-1.1); aggregates touching an
+  inner column step the inner rows with the first-outer-row fallback
+  (filter1-6.1 COUNT(a) FILTER(WHERE x)). resolve.c:1960: aggregates are
+  allowed in a subquery's WHERE only when that subquery is itself an aggregate
+  query (result-set aggregate or GROUP BY), and then only when the aggregate
+  references no inner-scope column (aggnested-3.11 WHERE value2=max(value1)).
+- **journal_mode rollback-to-rollback takes NO cross-connection lock**
+  (pager.c sqlite3PagerSetJournalMode): only WAL-involving transitions drive
+  the exclusive-lock path. Classify the pragma as lock-free and enforce locks
+  inside the setter where old+new modes are known (tkt-fc62af4523).
+- **tcl2go proc-body lexer artifact:** a proc body with nested braced words
+  (`catch {db eval {...}}`) is stored with one trailing `}` dropped. Use
+  balanced-brace scanning that tolerates one unclosed open (stripOneBraced).
+  Literal `db eval {SQL}` / `catch {db eval {SQL}}` procs must emit UDFs that
+  really call db.Exec — the engine already supports re-entrant Exec from a
+  UDF, and a nested OR-ROLLBACK surfaces as "abort due to ROLLBACK" at the
+  outermost statement via tx.rollbackAborted (tkt-f777251dc7a).
+- **SQLITE_TESTCTRL_LOCALTIME_FAULT:** mode 1 = fault on, hook cleared
+  (osLocaltime always fails); mode 2 = alternate localtime hook (date.test);
+  mode 0 = clear both (main.c:4469-4476). Engine: function.SetLocaltimeFault.
