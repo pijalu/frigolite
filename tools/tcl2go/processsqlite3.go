@@ -439,6 +439,15 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 		rawExpr = tp.buildStringExpr(args[2].Text)
 	}
 	_ = sql
+	if tp.catchMode {
+		// sqlite3_bind_* raises a TCL error (empty message) when the C API
+		// call does not return SQLITE_OK — including SQLITE_RANGE and the
+		// post-step SQLITE_MISUSE (bind-10.8.1: binding after the program
+		// started fails; test1.c test_bind returns TCL_ERROR on rc!=OK).
+		tp.emitLine("if _r = tclBindStmt(%s, %q, %d, %q, %s, %s); _r != %q && _r != \"\" { _catchErr = fmt.Errorf(\"\") }",
+			conn, stmtVar, idx, kind, rawExpr, nlenExpr, "SQLITE_OK")
+		return
+	}
 	tp.emitLine("_r = tclBindStmt(%s, %q, %d, %q, %s, %s)", conn, stmtVar, idx, kind, rawExpr, nlenExpr)
 }
 
