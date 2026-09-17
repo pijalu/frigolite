@@ -280,18 +280,40 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 	if fn.Type == function.TypeAggregate {
 		restoreAggArg = ev.ctx.EnterAuxAggArg()
 	}
-	args, err := ev.evalFuncArgs(f, row)
+	// f(*) — SQLite's grammar (parse.y `expr ::= idj LP STAR RP`) builds a
+	// function call with ZERO arguments (sqlite3ExprFunction(pParse, 0, ...)):
+	// the star is not an argument expression. COUNT() is registered for 0..1
+	// arguments so count(*) keeps working; any other function now fails arity
+	// validation exactly like SQLite ("wrong number of arguments to function
+	// length()", func-1.1), instead of evaluating "*" as a string.
+	var args []interface{}
+	if isStarArgList(f.Args) {
+		args = []interface{}{}
+	} else {
+		var err error
+		args, err = ev.evalFuncArgs(f, row)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if restoreAggArg != nil {
 		restoreAggArg()
-	}
-	if err != nil {
-		return nil, err
 	}
 	if err := validateFuncArgs(fn, f, args); err != nil {
 		return nil, err
 	}
 
 	return ev.evalFuncCallDispatched(fn, f, upper, args)
+}
+
+// isStarArgList reports whether the argument list is SQLite's lone "*" marker
+// (parser rule191/rule194: Args == [ColumnRef{Name: "*"}], no qualifier).
+func isStarArgList(args []sql.Expr) bool {
+	if len(args) != 1 {
+		return false
+	}
+	ref, ok := args[0].(*sql.ColumnRef)
+	return ok && ref.Name == "*" && ref.Table == ""
 }
 
 // evalFuncCallDispatched evaluates a function call after argument evaluation:

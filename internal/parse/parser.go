@@ -127,9 +127,20 @@ func emptyInputResult(input string, savepointStmts []sql.Stmt) (stmts []sql.Stmt
 // ";" would be swallowed by the comment (skipLineComment runs to EOF) and
 // the grammar would never see its SEMI terminator.
 func ensureTrailingSemicolon(input string) string {
+	// tokenize.c CC_SLASH: a block-comment opener with nothing at all after
+	// the '*' — the input ends EXACTLY in "/*" — is NOT a comment: the '/'
+	// is a TK_SLASH token and the parser reports `near "*": syntax error`
+	// (tokenize-2.1). With trailing whitespace SQLite still treats it as a
+	// comment (tokenize-2.2), so the un-trimmed tail decides.
+	endsWithCommentOpener := strings.HasSuffix(input, "/*")
 	input = strings.TrimRight(input, " \t\r\n")
 	if input != "" && input[len(input)-1] != ';' {
-		input += "\n;"
+		// Appending "\n;" after a trailing "/*" would turn it into a
+		// comment; leave the input unterminated and let the parser fail at
+		// the star instead.
+		if !endsWithCommentOpener {
+			input += "\n;"
+		}
 	}
 	return input
 }

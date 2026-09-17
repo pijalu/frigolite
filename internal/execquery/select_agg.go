@@ -751,7 +751,14 @@ func (e *SelectEngine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (inter
 			return nil, err
 		}
 	}
-	result, _ := agg.Final()
+	// sumFinalize raises "integer overflow" from Final when an int64
+	// overflow was never absorbed by a later non-integer input (func-37.x):
+	// a Final error must propagate like a Step error, not collapse to NULL.
+	result, ferr := agg.Final()
+	if ferr != nil {
+		e.aggPendingErr = ferr
+		return nil, ferr
+	}
 	return result, nil
 }
 
@@ -766,9 +773,16 @@ func (e *SelectEngine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []RowMap) 
 	uniqueRows := e.dedupeAggRows(v, rowMaps)
 	uniqueRows = e.sortRowMapsByOrderBy(v.OrderBy, uniqueRows)
 	for _, row := range uniqueRows {
-		agg.Step(e.evalAggCallArgs(v, row))
+		if err := agg.Step(e.evalAggCallArgs(v, row)); err != nil {
+			e.aggPendingErr = err
+			return nil
+		}
 	}
-	result, _ := agg.Final()
+	result, ferr := agg.Final()
+	if ferr != nil {
+		e.aggPendingErr = ferr
+		return nil
+	}
 	return result
 }
 

@@ -201,10 +201,25 @@ func (r *Registry) registerDefaults() {
 	//   percentile_cont(Y,P) P in [0,1], continuous
 	//   percentile_disc(Y,P) P in [0,1], discrete
 	//   median(Y)            == percentile(Y,50)
-	r.register(&Func{Name: "PERCENTILE", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }})
-	r.register(&Func{Name: "PERCENTILE_CONT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, false) }})
-	r.register(&Func{Name: "PERCENTILE_DISC", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(true, false) }})
-	r.register(&Func{Name: "MEDIAN", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }})
+	// Exact arity (percentile.c registers each with a fixed nArg), so a
+	// 1-argument percentile() fails arity validation like SQLite:
+	// "wrong number of arguments to function percentile()".
+	r.register(&Func{Name: "PERCENTILE", Type: TypeAggregate, MinArgs: 2, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }})
+	r.register(&Func{Name: "PERCENTILE_CONT", Type: TypeAggregate, MinArgs: 2, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, false) }})
+	r.register(&Func{Name: "PERCENTILE_DISC", Type: TypeAggregate, MinArgs: 2, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(true, false) }})
+	r.register(&Func{Name: "MEDIAN", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator {
+		// median(Y) == percentile(Y,50); errors name "median()"
+		// (percentile.c's separate median registration).
+		p := newPercentileAgg(false, true).(*percentileAgg)
+		p.name = "median()"
+		return p
+	}})
+	// match/2 pins sqlite3_overload_function("match", 2) (main.c
+	// sqlite3InvalidFunction): the FTS modules overload match() for name
+	// resolution and the overload's implementation always errors. With a
+	// non-2 argument count the call fails arity validation instead
+	// ("wrong number of arguments to function match()", func-4.x).
+	r.register(&Func{Name: "MATCH", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnMATCH})
 
 	// Scalar functions
 	r.register(&Func{Name: "ABS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnABS})
@@ -217,7 +232,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "RTRIM", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnRTRIM})
 	r.register(&Func{Name: "SUBSTR", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSUBSTR})
 	r.register(&Func{Name: "IFNULL", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnIFNULL})
-	r.register(&Func{Name: "COALESCE", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCOALESCE})
+	r.register(&Func{Name: "COALESCE", Type: TypeScalar, MinArgs: 2, MaxArgs: -1, ScalarFn: fnCOALESCE})
 	r.register(&Func{Name: "ROUND", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnROUND})
 	r.register(&Func{Name: "RANDOM", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnRANDOM})
 	r.register(&Func{Name: "RANDOMBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnRANDOMBLOB})
@@ -456,6 +471,13 @@ func fnCOALESCE(args []interface{}) (interface{}, error) {
 		}
 	}
 	return nil, nil
+}
+
+// fnMATCH pins the match/2 overload installed by the FTS modules
+// (sqlite3_overload_function, main.c sqlite3InvalidFunction): outside an FTS
+// context the function always fails with the context error (func-4.x).
+func fnMATCH(args []interface{}) (interface{}, error) {
+	return nil, fmt.Errorf("unable to use function MATCH in the requested context")
 }
 
 // fnTestZeroblob is the TCL test-harness test_zeroblob(N): like zeroblob but

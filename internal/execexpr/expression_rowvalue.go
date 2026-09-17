@@ -409,7 +409,11 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 	// restrict the match to ("" for a whole-table match).
 	ftsTable, tableName, columnName, ok := ev.matchFTSLookup(v, row)
 	if !ok {
-		return int64(0), nil
+		// No FTS table in context: SQLite compiles MATCH to the match/2
+		// overload (sqlite3_overload_function → sqlite3InvalidFunction),
+		// which always fails outside an FTS context (func-4.3/4.4:
+		// SELECT 'abc' MATCH 'xyz').
+		return nil, fmt.Errorf("unable to use function MATCH in the requested context")
 	}
 
 	// Get the rowid from the current row. In a single-table FTS SELECT the
