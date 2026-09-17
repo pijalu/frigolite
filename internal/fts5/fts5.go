@@ -240,6 +240,10 @@ type Table struct {
 	// shadowDirty records pending %_data blob writes (flushed at the
 	// statement boundary by FlushShadowIfDirty).
 	shadowDirty bool
+	// pendingSecureUpgrade records a secure delete made while the format
+	// version is still 4; the engine applies the 'version'=5 write at the
+	// flush point (xSavepoint / COMMIT) or drops it on rollback.
+	pendingSecureUpgrade bool
 	// maxRowid tracks the largest allocated rowid for auto rowid allocation.
 	maxRowid int64
 	// tokErr defers a failed tokenizer resolution on REOPEN: C constructs
@@ -378,14 +382,16 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 		return false, nil
 	}
 	defer t.bumpVersion()
-	// First secure delete upgrades the format: persist 'version'=5
-	// (fts5_index.c fts5DoSecureDeleteEntry's one-time REPLACE INTO %_config
-	// when iVersion!=FTS5_CURRENT_VERSION_SECUREDELETE).
+	// A secure delete requests the one-time format upgrade (fts5_index.c
+	// fts5FlushSecureDelete's REPLACE INTO %_config when
+	// iVersion!=FTS5_CURRENT_VERSION_SECUREDELETE). The write itself is
+	// deferred to the flush point — xSavepoint flush, or COMMIT for the
+	// deletes still pending at commit — so a savepoint-scoped DELETE
+	// (fts5version 2.1-2.3) never observes the upgrade before it is
+	// committed. The engine applies/drops the request via
+	// ApplySecureUpgrade/DiscardSecureUpgrade.
 	if t.cfg.SecureDelete && t.cfg.FormatVersion != 5 {
-		if err := t.storeConfigValue("version", 5); err != nil {
-			return true, err
-		}
-		t.cfg.FormatVersion = 5
+		t.pendingSecureUpgrade = true
 	}
 	delete(t.contentValues, rowid)
 	if err := t.deleteContentRow(rowid); err != nil {
@@ -408,6 +414,30 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 // %_data id=11 blob (the pending-terms state; C flushes pending terms at
 // sync points, i.e. statement ends).
 func (t *Table) markShadowDirty() { t.shadowDirty = true }
+
+// ApplySecureUpgrade persists the deferred secure-delete format upgrade:
+// REPLACE 'version'=5 into %_config (fts5FlushSecureDelete's one-time
+// REPLACE, run at the flush point). No-op when no secure delete is pending
+// or the version already reflects the upgrade.
+func (t *Table) ApplySecureUpgrade() error {
+	if !t.pendingSecureUpgrade {
+		return nil
+	}
+	t.pendingSecureUpgrade = false
+	if !t.cfg.SecureDelete || t.cfg.FormatVersion == 5 {
+		return nil
+	}
+	if err := t.storeConfigValue("version", 5); err != nil {
+		return err
+	}
+	t.cfg.FormatVersion = 5
+	return nil
+}
+
+// DiscardSecureUpgrade drops a pending secure-delete upgrade request: the
+// deletes that requested it were rolled back (fts5RollbackToMethod /
+// sqlite3Fts5StorageRollback discard the pending data).
+func (t *Table) DiscardSecureUpgrade() { t.pendingSecureUpgrade = false }
 
 // FlushShadowIfDirty persists the index blob when the index changed since
 // the last flush (sqlite3Fts5StorageSync at the statement boundary).
@@ -618,6 +648,17 @@ func (t *Table) rebuild() error {
 	}
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
 	t.maxRowid = 0
+	// Rebuild reinitializes the index at the current file format
+	// (fts5StorageRebuild: REPLACE 'version'=FTS5_CURRENT_VERSION), so a
+	// secure-delete-upgraded table rebuilds back to version 4
+	// (fts5version 1.11 second block).
+	if t.cfg.FormatVersion != 4 {
+		if err := t.storeConfigValue("version", 4); err != nil {
+			return err
+		}
+		t.cfg.FormatVersion = 4
+		t.pendingSecureUpgrade = false
+	}
 	for _, d := range docs {
 		cols, err := t.tokenizeValues(d.values)
 		if err != nil {
