@@ -82,6 +82,7 @@ func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
 	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
 		searchName = name[dotIdx+1:]
 	}
+	m.forgetSessionEntry(searchName, schemaType)
 
 	tree := btree.NewSchemaBTree(m.pager)
 	_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
