@@ -306,6 +306,7 @@ func (ev *Evaluator) evalLikeWithEscape(v *sql.BinaryOp, left, right interface{}
 	if v.HasEscape && len([]rune(v.Escape)) != 1 {
 		return nil, fmt.Errorf("ESCAPE expression must be a single character")
 	}
+	bumpLikeCallCount()
 	var result bool
 	if ev.ctx.CaseSensitiveLike() {
 		result = likeValuesWithEscapeCS(left, right, v.Escape)
@@ -420,6 +421,27 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 	// restrict the match to ("" for a whole-table match).
 	ftsTable, tableName, columnName, ok := ev.matchFTSLookup(v, row)
 	if !ok {
+		// Outside FTS tables the MATCH operator calls the registered
+		// match(RIGHT, LEFT) scalar function, the same argument order as
+		// like() (like.test 2.3/2.4: `db function match -argcount 2
+		// test_match` with x MATCH 'abc*' runs string match over the row
+		// value). With no registration SQLite errors; the harness always
+		// registers one before relying on MATCH.
+		if fn, found := ev.ctx.Functions().Find("match"); found && fn.ScalarFn != nil {
+			left, lerr := ev.evalExprWithCollation(v.Left, row)
+			if lerr != nil {
+				return nil, lerr
+			}
+			right, rerr := ev.evalExprWithCollation(v.Right, row)
+			if rerr != nil {
+				return nil, rerr
+			}
+			out, ferr := fn.ScalarFn([]interface{}{right, left})
+			if ferr != nil {
+				return nil, ferr
+			}
+			return boolToInt(out != nil && ToBool(out)), nil
+		}
 		return int64(0), nil
 	}
 
@@ -831,13 +853,17 @@ var binaryOpDispatch = map[string]binaryOpFn{
 	"LIKE":     func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalLikeOp(l, r, false), nil },
 	"NOT LIKE": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalLikeOp(l, r, true), nil },
 	"GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
+		bumpLikeCallCount()
 		res := globValues(l, r)
 		if res {
 			ev.probeOperatorOverload("GLOB", r, l)
 		}
 		return boolToInt(res), nil
 	},
-	"NOT GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return boolToInt(!globValues(l, r)), nil },
+	"NOT GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
+		bumpLikeCallCount()
+		return boolToInt(!globValues(l, r)), nil
+	},
 	"REGEXP": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
 		res, err := ev.evalRegexpOp(l, r, false)
 		if err == nil && res == int64(1) {
@@ -898,6 +924,7 @@ func (ev *Evaluator) evalInequalityOp(left, right interface{}) interface{} {
 // evalLikeOp evaluates LIKE / NOT LIKE with the engine's case-sensitivity
 // setting.
 func (ev *Evaluator) evalLikeOp(left, right interface{}, negated bool) interface{} {
+	bumpLikeCallCount()
 	var result bool
 	if ev.ctx.CaseSensitiveLike() {
 		result = likeValuesCaseSensitive(left, right)
@@ -934,6 +961,7 @@ func (ev *Evaluator) probeOperatorOverload(op string, pattern, value interface{}
 // operator form is string LIKE pattern; the function form is pattern, string).
 // The escape must be a single character (SQLite runtime error otherwise).
 func (ev *Evaluator) evalLikeFunction(args []interface{}) (interface{}, error) {
+	bumpLikeCallCount()
 	if len(args) == 3 && args[2] != nil {
 		esc, ok := util.UnwrapColumnValue(args[2]).(string)
 		if !ok || len([]rune(esc)) != 1 {

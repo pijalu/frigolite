@@ -725,6 +725,38 @@ func (tp *transpiler) processDBTransaction(rest []tcl.RawWord) {
 	tp.indent = bodyTP.indent
 }
 
+// isStringMatchBody reports whether a proc body is a single
+// `string match $a $b` command (like.test's test_match), the TCL-glob
+// MATCH overload shape.
+func isStringMatchBody(body string) bool {
+	b := strings.TrimSpace(body)
+	if strings.HasPrefix(b, "{") && strings.HasSuffix(b, "}") {
+		b = strings.TrimSpace(b[1 : len(b)-1])
+	}
+	if strings.HasPrefix(strings.ToLower(b), "return ") {
+		b = strings.TrimSpace(b[len("return "):])
+	}
+	// Allow both a bare command and a bracket-command word:
+	// `[string match $a $b]`.
+	if strings.HasPrefix(b, "[") && strings.HasSuffix(b, "]") {
+		b = strings.TrimSpace(b[1 : len(b)-1])
+	}
+	cmds := tcl.ParseCommands(b)
+	if len(cmds) != 1 {
+		return false
+	}
+	w := cmds[0]
+	if len(w) < 3 || w[0].Text != "string" || w[1].Text != "match" {
+		return false
+	}
+	for _, a := range w[2:] {
+		if !strings.HasPrefix(a.Text, "$") {
+			return false
+		}
+	}
+	return true
+}
+
 // processDBFunction handles `db function NAME procName` / `db func NAME
 // procName` — register a scalar SQL function whose behavior is a TCL proc.
 func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
@@ -749,6 +781,21 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 	// and wherelimit2.test's log (lappend ::log {*}$args). The generated UDF
 	// updates the SAME Go variable the assertions read back.
 	if tp.emitTclVarUDFFromProc(name, procName) {
+		return
+	}
+	// `db function match -argcount 2 test_match` — like.test's MATCH
+	// overload whose proc body is a single `string match $a $b` command
+	// (TCL glob): emit a real glob-based closure instead of a nil stub so
+	// the MATCH operator filters rows (like-2.3/2.4).
+	if body, ok := globalProcBodies[procName]; ok && isStringMatchBody(body) {
+		tp.emitLine("// db function %s %s (TCL string match UDF: anchored glob of args[1] against args[0])", name, procName)
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 2 { return nil, nil }")
+		tp.emitLine("\tpat := function.ValueText(args[0])")
+		tp.emitLine("\tstr := function.ValueText(args[1])")
+		tp.emitLine("\tif tclStringMatch(pat, str) { return int64(1), nil }")
+		tp.emitLine("\treturn int64(0), nil")
+		tp.emitLine("}, 2, 2)")
 		return
 	}
 	// `db function execsql execsql` — the test-harness's execsql command

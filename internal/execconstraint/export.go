@@ -62,6 +62,94 @@ func (c *ConstraintEnforcer) CheckForeignKeyViolations(tableEntry *schema.Entry,
 	return c.checkForeignKeyViolations(tableEntry, colDefs, values, excludeRowID)
 }
 
+// ValidateDMLTableFKs resolves the foreign-key relationships of the table a
+// pending INSERT/UPDATE/DELETE targets before any row is read — fk.c's
+// sqlite3FkCheck runs during statement compilation, so a broken FK fails the
+// statement even when no row is ever touched (e_fkey-20.x: an UPDATE of an
+// empty child table must still report "no such table: main.X"; a DELETE on a
+// parent whose child's parent-key cannot be located reports
+// "foreign key mismatch"). Both directions are checked: this table as a CHILD
+// (its own FKs must resolve to a parent table + locatable parent key) and
+// this table as a PARENT (each child FK referencing it must be able to locate
+// the parent key). Only active when PRAGMA foreign_keys is ON. entry/ownCtx
+// resolve the table in the schema that owns it. singleRowInsert mirrors
+// pParse->isMultiWrite==0: inserting single rows into a parent cannot cause
+// or fix an immediate FK violation, so fkey.c skips the parent-key location
+// (and its mismatch error) for non-deferred child FKs in that case
+// (e_fkey-19.2's INSERT INTO parent must succeed despite broken child4).
+func (c *ConstraintEnforcer) ValidateDMLTableFKs(entry *schema.Entry, ownCtx *DatabaseContext, singleRowInsert bool) *Result {
+	if entry == nil || !c.ctx.ForeignKeys() {
+		return nil
+	}
+	if ownCtx == nil {
+		ownCtx = c.ctx.CurrentDMLCtx()
+	}
+	if ownCtx == nil {
+		// Fall back to the main schema, mirroring fkResolveParent's default.
+		_, ownCtx, _ = c.ctx.FindTable(entry.Name)
+	}
+	if ownCtx == nil {
+		return nil
+	}
+	// Child side: the table's own FKs must resolve (fkLookupParent).
+	colDefs := c.ctx.ParseColumnDefs(entry.Name, entry.SQL)
+	for _, fk := range c.TableFKConstraints(entry, colDefs) {
+		if _, _, _, _, errRes := c.fkResolveParentForCheck(entry, fk, ownCtx); errRes != nil {
+			return errRes
+		}
+	}
+	// Parent side: every child FK referencing this table must locate this
+	// table's parent key (fkScanChildren).
+	if res := c.validateChildrenParentKeys(entry, ownCtx, singleRowInsert); res != nil {
+		return res
+	}
+	return nil
+}
+
+// validateChildrenParentKeys checks, for every table whose FK references the
+// given parent, that the FK's parent key can be located on the parent: an
+// explicit parent column must exist, the parent key cardinality must match
+// the child key, and the parent key must be the PK or a qualifying UNIQUE
+// index (sqlite3FkLocateIndex). Otherwise the child's mismatch error is
+// reported, naming the child table and the parent reference as written.
+func (c *ConstraintEnforcer) validateChildrenParentKeys(entry *schema.Entry, ownCtx *DatabaseContext, singleRowInsert bool) *Result {
+	parentColDefs := c.ctx.ParseColumnDefs(entry.Name, entry.SQL)
+	for _, ctx2 := range c.ctx.Databases() {
+		entries, err := ctx2.Schema.GetEntries(schema.TypeTable)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entries {
+			if !strings.Contains(strings.ToUpper(ent.SQL), "REFERENCES") {
+				continue
+			}
+			childColDefs := c.ctx.ParseColumnDefs(ent.Name, ent.SQL)
+			for _, fk := range c.TableFKConstraints(ent, childColDefs) {
+				pEntry, pCtx, rerr := c.fkResolveParent(ctx2, fk.ParentRef)
+				if rerr != nil || pCtx != ownCtx || !strings.EqualFold(pEntry.Name, entry.Name) {
+					continue
+				}
+				// fkey.c: inserting a single row into a parent table cannot
+				// cause (or fix) an immediate FK violation — the parent-key
+				// location (and mismatch error) is skipped for non-deferred
+				// child FKs when DeferFKs is off (e_fkey-19.2 vs 20.6).
+				if singleRowInsert && !fk.Deferred && !c.ctx.DeferForeignKeys() {
+					continue
+				}
+				pCols := fk.ParentCols
+				if len(pCols) == 0 {
+					pCols = c.fkParentPKColumns(entry, parentColDefs)
+				}
+				if len(pCols) == len(fk.ChildCols) && c.fkParentKeyValid(ownCtx, entry, parentColDefs, pCols) {
+					continue
+				}
+				return &Result{Error: fmt.Errorf("foreign key mismatch - %q referencing %q", ent.Name, fk.ParentRef)}
+			}
+		}
+	}
+	return nil
+}
+
 // FkParentDelete enforces FOREIGN KEY actions when a parent row is deleted:
 // RESTRICT/NO ACTION children cause an error; CASCADE children are deleted
 // (recursively, since a cascaded child may itself be a parent); SET NULL /

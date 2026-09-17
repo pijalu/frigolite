@@ -1741,6 +1741,53 @@ func (tp *transpiler) processInfraComment(cmdName string, args []tcl.RawWord) {
 	}
 }
 
+// processQueryPlan handles like.test's queryplan proc: it executes the SQL
+// (the engine's LIKE/GLOB call counter observes that execution - like-3.x's
+// count assertions are only meaningful when the query actually runs) and
+// derives plan info via EXPLAIN QUERY PLAN plus sqlite_sort_count. The
+// plan/sorter introspection half is test infrastructure and stays dropped;
+// the SQL side effect is emitted.
+func (tp *transpiler) processQueryPlan(args []tcl.RawWord) {
+	for _, w := range args {
+		inner := bracedBody(w)
+		if inner != "" {
+			tp.emitLine("_ = db.Query(%s)", strconv.Quote(inner))
+			return
+		}
+	}
+	tp.processInfraComment("queryplan", args)
+}
+
+// bracedBody returns a braced RawWord's inner text (braces stripped, outer
+// whitespace trimmed), or "" when the word is not a braced block. Handles
+// both word representations: Text including the braces and the Braced flag
+// with the braces already stripped.
+func bracedBody(w tcl.RawWord) string {
+	if w.Braced {
+		return strings.TrimSpace(w.Text)
+	}
+	text := w.Text
+	if !strings.HasPrefix(text, "{") || !strings.HasSuffix(text, "}") {
+		return ""
+	}
+	return strings.TrimSpace(text[1 : len(text)-1])
+}
+
+// processExecHex handles test1.c's sqlite3_exec_hex command: it decodes percent-H-H
+// sequences to raw bytes, executes the SQL, and returns "<rc> <column names
+// and row values>" (exec_printf_cb prepends the column names to the values).
+// The statement-position form discards the result; the expression-position
+// form ([sqlite3_exec_hex db SQL], like-9.3.1) captures it via cmdExpr.
+func (tp *transpiler) processExecHex(args []tcl.RawWord) {
+	if len(args) >= 2 {
+		if inner := bracedBody(args[len(args)-1]); inner != "" {
+			tp.emitLine("_ = tclExecHex(%s, %s)", tp.dbVar, strconv.Quote(inner))
+			return
+		}
+	}
+	tp.processInfraComment("sqlite3_exec_hex", args)
+}
+
 // processExprTest handles expression testing procs (test_expr, do_like_test,
 // do_realnum_test, ...). These need table setup, so they emit a comment —
 // EXCEPT do_realnum_test bodies that exercise prepared-statement binds or a

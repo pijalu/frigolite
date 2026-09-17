@@ -60,9 +60,36 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		return &Result{Error: fmt.Errorf("unknown database %s", schemaPrefixOf(s.Name))}
 	}
 
+	// build.c sqlite3CheckObjectName: the "sqlite_" prefix is reserved for
+	// internal objects in every namespace, including indexes
+	// ("object name reserved for internal use: sqlite_i1", index.test 7.x).
+	if res := e.validateReservedName(indexName); res != nil {
+		return res
+	}
+
 	tableEntry, tableCtx, err := e.resolveIndexTable(ctx, s)
 	if err != nil {
 		return &Result{Error: err}
+	}
+
+	// build.c sqlite3CreateIndex: a TEMP-schema index cannot index a table
+	// that lives in another schema ("cannot create a TEMP index on non-TEMP
+	// table \"t6\"", index.test 12.x). It must fire before any schema
+	// entry is written: the failed CREATE must not register the index.
+	// The engine's FindTable resolves unqualified names temp-first with a
+	// main fallback, so the resolved tableCtx is not evidence that the table
+	// lives in temp: query the temp schema STRICTLY (build.c compares the
+	// table's own schema with the index's iDb==1).
+	if ctx.IsTemp {
+		inTemp := false
+		if tc := e.ctx.GetDB("temp"); tc != nil {
+			if _, terr := tc.Schema.FindTable(s.Table); terr == nil {
+				inTemp = true
+			}
+		}
+		if !inTemp {
+			return &Result{Error: fmt.Errorf("cannot create a TEMP index on non-TEMP table %q", tableEntry.Name)}
+		}
 	}
 
 	// SQLite refuses to index tables whose names begin with "sqlite_"
@@ -98,6 +125,13 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		if existing, _ := ctx.Schema.FindIndex(indexName); existing != nil {
 			return &Result{Error: fmt.Errorf("index %s already exists", indexName)}
 		}
+	}
+
+	// build.c sqlite3CreateIndex: an index name must not collide with a
+	// table name in the same schema ("there is already a table named
+	// test1", index.test 6.2).
+	if _, terr := ctx.Schema.FindTable(indexName); terr == nil {
+		return &Result{Error: fmt.Errorf("there is already a table named %s", indexName)}
 	}
 
 	if res := e.validateIndexExpressions(s, colDefs); res != nil {
@@ -545,6 +579,11 @@ func (e *DDLExecutor) resolveIndexTable(ctx *DatabaseContext, s *sql.CreateIndex
 		// (view.test i1v1).
 		if _, _, vErr := e.ctx.FindView(s.Table); vErr == nil {
 			return nil, nil, fmt.Errorf("views may not be indexed")
+		}
+		// build.c sqlite3LocateTableItem reports the schema-qualified name
+		// ("no such table: main.test1", index.test 2.1).
+		if !strings.Contains(s.Table, ".") && ctx != nil && ctx.Name != "" {
+			return nil, nil, fmt.Errorf("no such table: %s.%s", ctx.Name, s.Table)
 		}
 		return nil, nil, err
 	}

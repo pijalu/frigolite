@@ -18,6 +18,15 @@ import (
 // prefix (test8.c echoError: xUpdate reports the failed source write as
 // "echo-vtab-error: %s", vtab1.12-2).
 func (e *DMLExecutor) execInsert(s *sql.InsertStmt) *Result {
+	// resolve.c: a VALUES tuple has no source row, so any column reference
+	// in it is a prepare-time "no such column" error (bare or
+	// table-qualified alike; trigger NEW./OLD. rows excepted). Subqueries
+	// keep their own scope and are not descended into (insert-14.x:
+	// INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1, t3.a, 6) reports
+	// "no such column: t3.a").
+	if res := e.validateInsertValuesExprs(s); res != nil {
+		return res
+	}
 	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
 		return e.execInsertInner(s)
 	}

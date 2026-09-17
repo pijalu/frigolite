@@ -24,6 +24,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/exec"
+	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/recover"
@@ -423,6 +424,19 @@ func (db *DB) Status(name string) (current, highwater int64) {
 	}
 	return 0, 0
 }
+
+// LikeCallCount reports the number of LIKE/GLOB comparisons the engine has
+// evaluated since the last reset (func.c sqlite3_like_count under
+// SQLITE_TEST, linked to tester.tcl's sqlite_like_count variable). The LIKE
+// optimization replaces a prefix LIKE with an index range scan and removes
+// the per-row invocation entirely, so the counter observes the optimization
+// the same way SQLite's does (like.test 3.x: 12 calls without the
+// optimization, 0 calls with it).
+func (db *DB) LikeCallCount() int64 { return execexpr.LikeCallCount() }
+
+// ResetLikeCallCount zeroes the LIKE/GLOB invocation counter
+// (tester.tcl: set sqlite_like_count 0).
+func (db *DB) ResetLikeCallCount() { execexpr.ResetLikeCallCount() }
 
 // PagerCacheSize reports the number of pages currently held in the pager
 // cache (test3.c btree_pager_stats "page" field; cache.test pager_cache_size).

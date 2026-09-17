@@ -21,6 +21,12 @@ func (e *DDLExecutor) execCreateView(s *sql.CreateViewStmt) *Result {
 	if err := e.ctx.Authorize(auth.ActionCreateView, s.Name, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
+	// build.c sqlite3CheckObjectName: the "sqlite_" prefix is reserved in
+	// every namespace, including views ("object name reserved for internal
+	// use: sqlite_v1", index.test 7.x).
+	if res := e.validateReservedName(strings.TrimSpace(s.Name)); res != nil {
+		return res
+	}
 	ctx, viewName := resolveViewContext(e, s)
 	// SQLite validates a view body at CREATE time: it must not contain bound
 	// parameters ("parameters are not allowed in views") and — for a non-temp

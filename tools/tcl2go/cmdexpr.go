@@ -356,6 +356,15 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	// tokenized through TOKENIZER (a TCL list of spec words). The generated
 	// fts5TclTokenize helper (emitted on demand) routes the request through
 	// the engine's own tokenizer registry (internal/fts5).
+	// [sqlite3_exec_hex DB SQL] - test1.c's sqlite3_exec_hex: decodes percent-H-H
+	// to raw bytes, executes SQL, returns "<rc> <column names and values>"
+	// (like-9.3.1 reads the result for a LIKE with a raw 0x78/0x25 pattern).
+	if cmdName == "sqlite3_exec_hex" && len(rest) >= 2 {
+		sql := strings.TrimSpace(rest[len(rest)-1])
+		sql = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(sql, "{"), "}"))
+		return fmt.Sprintf("tclExecHex(%s, %q)", tp.dbVar, sql)
+	}
+
 	if cmdName == "sqlite3_fts5_tokenize" && len(rest) >= 3 {
 		useFTS5Tokenize()
 		spec := tp.buildStringExpr(rest[len(rest)-2])

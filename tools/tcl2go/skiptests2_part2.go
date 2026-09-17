@@ -1109,4 +1109,18 @@ var skipTestsMoreTail = map[string]string{
 	"fts3corrupt4-38.1": "oracle-divergent: engine reports the oracle's named schema error (t2 - invalid rootpage), test expects success",
 	"fts3corrupt4-38.2": "oracle-divergent: engine reports the oracle's named schema error (t2 - invalid rootpage), test expects generic malformed",
 	"fts3corrupt4-52.1": "oracle-divergent: engine reports the oracle's named schema error (t1_content - invalid rootpage), test expects generic malformed",
+	// FULL-SUITE-DRIFT.T26-dml: mid-scan DML visibility. The TCL `db eval`
+	// body modifies the table being scanned (delete-9.2/9.3/9.5: DELETE FROM
+	// t5/t6 at r==2; delete2-2.2: DELETE FROM t1 per row); SQLite's recorded
+	// wants encode sqlite3_step cursor re-validation quirks (a half-cleared
+	// outer row renders as {}). The materializing Go harness snapshots rows
+	// before the body runs, so the post-DELETE iterations cannot observe the
+	// modification — the same sqlite3_step cursor-model artifact adjudicated
+	// N-A for fts5restart 4.x and rtree8 (no-side-effects; the DELETE
+	// statements themselves and post-statement state are asserted by the
+	// sibling tests and by frigolite_dml_t26_pin_test.go).
+	"delete-9.2":  "N-A mid-scan DELETE visibility — sqlite3_step cursor-model artifact unobservable through the materializing Go API (no-side-effects)",
+	"delete-9.3":  "N-A mid-scan DELETE visibility — sqlite3_step cursor-model artifact unobservable through the materializing Go API (no-side-effects)",
+	"delete-9.5":  "N-A mid-scan DELETE visibility — sqlite3_step cursor-model artifact unobservable through the materializing Go API (no-side-effects)",
+	"delete2-2.2": "N-A mid-scan DELETE visibility — sqlite3_step cursor-model artifact unobservable through the materializing Go API (no-side-effects)",
 }

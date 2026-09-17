@@ -6711,7 +6711,6 @@ Transpiler/harness:
   template fix reaches only regenerated packages; regen exactly the
   tranche's package list (a full 1219-file regen re-asserts stale packages
   corpus-wide and is a separate adjudication tranche).
-=======
 
 ## FULL-SUITE-DRIFT.T26-harness (2026-09-17) — JSON-harness fidelity: converter + comparator
 
@@ -6777,3 +6776,44 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   better; whole-file unsupportedTestFiles entries only for genuinely untranslatable
   machinery (user collations, dynamic authorizer procs, TCL-proc-defined vtab
   modules) with pointers to the green testgen/native pins.
+=======
+
+## FULL-SUITE-DRIFT.T26-dml (2026-09-17) — DML/index residue family
+
+- **fkey.c zero-Result trap**: execconstraint's FK recursion helpers return
+  a ZERO-VALUE `&Result{}` for success; any caller checking `res != nil`
+  treats that success as failure. The manifestation was ON UPDATE CASCADE
+  updating only the FIRST matching child (fkCascadeUpdate returned the
+  updRec chain result directly; fkCascadeMatches' loop aborted). Rule:
+  recursion boundaries normalize to nil on success, callers check
+  `res.Error != nil` (see fk.go fkCascadeUpdate).
+- **fk.c mismatch rules worth remembering** (sqlite3FkCheck/
+  sqlite3FkLocateIndex): (1) prepare-time, row-independent — a broken FK
+  fails an empty-table UPDATE and a parent DELETE; (2) parent-side checks
+  are SKIPPED for single-row VALUES inserts into the parent (fkey.c
+  isMultiWrite); (3) a UNIQUE index serves a parent key only if every key's
+  explicit COLLATE equals the parent column's declared collation;
+  (4) RESTRICT fires at the row-delete point, BEFORE the row's AFTER
+  triggers — an AFTER trigger that repairs children must not mask RESTRICT.
+- **PRAGMA case_sensitive_like is PragFlg_NoColumns**: the no-argument
+  getter returns NO row (unlike most flag pragmas). Multi-statement batches
+  ("PRAGMA case_sensitive_like; SELECT ...") must not leak a pragma row.
+- **sqlite_like_count = db.LikeCallCount()/ResetLikeCallCount()**: the
+  LIKE/GLOB invocation counter is engine-level (likeFunc invocations, one
+  per row when the like-opt does not apply). The transpiler now maps
+  `set sqlite_like_count 0` → reset and reads → tclLikeCount(db).
+- **The like-opt elision REQUIRES index ranges**: dropping the LIKE
+  conjunct from the scan filter without enforcing the prefix range returns
+  wrong rows (every row passes). The like.c optimization is range-scan +
+  elision TOGETHER; it belongs to the select-core scan, and its detection
+  half (collectLikeRef/likeIndexCompatible) already lives in explain.go.
+- **C-linked TCL counters in testgen**: `set X 0`/`set X` pairs for
+  engine counters should be handled via setHarnessPinnedVar (write → engine
+  reset) + emitSetVarResultCheck (read → engine counter), not Go shadow
+  variables.
+- **tclExprWith now folds TCL expr math functions** (log/sqrt/pow/min/...);
+  the template runs inside fmt.Sprintf — never use backticks or unescaped %
+  in template code/comments (breaks the raw string / vet's printf check).
+- **template drift is normal**: testgen packages are regenerated on demand;
+  regenerating a package pulls ALL current template changes. Re-run the
+  package after regen; don't assume old failures persist unchanged.

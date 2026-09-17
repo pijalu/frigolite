@@ -323,11 +323,17 @@ func (c *ConstraintEnforcer) fkCascadeUpdate(m fkChildMatch, ref FKRefAction, ch
 		return res
 	}
 	// The cascaded child UPDATE is itself a parent update for the tables
-	// that reference the child (ab -> cd -> ef chains).
+	// that reference the child (ab -> cd -> ef chains). The recursion
+	// reports success as a zero-value Result — normalize it to nil so the
+	// fkCascadeMatches loop (whose res != nil check separates failure from
+	// success) continues with the remaining matched children (fkey8-7.4:
+	// two children referencing one parent must BOTH cascade).
 	if updRec != nil {
 		oldChildRow := execdml.BuildRowMapFromValues(m.values, childColDefs, m.rowID)
 		newChildRow := execdml.BuildRowMapFromValues(vals, childColDefs, m.rowID)
-		return updRec(childEntry, childColDefs, oldChildRow, newChildRow, depth+1)
+		if res := updRec(childEntry, childColDefs, oldChildRow, newChildRow, depth+1); res.Error != nil {
+			return res
+		}
 	}
 	return nil
 }
@@ -555,29 +561,31 @@ func fkSameColumnSet(a, b []string) bool {
 }
 
 // fkIndexPlainCols parses an index key column list. It returns the plain
-// column names and false when any key is an expression or uses an explicit
-// non-default COLLATE (expression keys and non-default collations make the
-// index unusable as an FK parent key, matching fkey.c's checks).
-func fkIndexPlainCols(colText string) ([]string, bool) {
-	var cols []string
+// column names, each key's explicit collation ("" when none), and false when
+// any key is an expression (expression keys make the index unusable as an FK
+// parent key, matching fkey.c's checks). The caller compares each key's
+// explicit collation against the referenced parent column's declared default
+// collation: fkey.c sqlite3FkLocateIndex requires the index collation to
+// equal the column's own collation, so a UNIQUE index on (b COLLATE nocase)
+// cannot serve a parent key over a BINARY-default column and vice versa
+// (e_fkey-19.x/20.x: child4/child5/child6 mismatch, c4/c5 mismatch).
+func fkIndexPlainCols(colText string) ([]string, []string, bool) {
+	var cols, colls []string
 	for _, part := range execdml.SplitIndexCols(colText) {
 		name := strings.TrimSpace(part)
 		if name == "" {
-			return nil, false
+			return nil, nil, false
 		}
 		upper := strings.ToUpper(name)
 		// Expression keys are not usable.
 		if strings.ContainsAny(name, "()") {
-			return nil, false
+			return nil, nil, false
 		}
-		// Explicit COLLATE must be the column's default (BINARY) to qualify;
-		// any other explicit collation disqualifies the index. We only
-		// recognize COLLATE BINARY / no COLLATE as usable.
+		// Record the explicit COLLATE (if any) for the caller's comparison
+		// against the parent column's default collation.
+		coll := ""
 		if ci := strings.Index(upper, " COLLATE"); ci >= 0 {
-			coll := strings.TrimSpace(name[ci+len(" COLLATE"):])
-			if !strings.EqualFold(coll, "BINARY") {
-				return nil, false
-			}
+			coll = strings.TrimSpace(name[ci+len(" COLLATE"):])
 			name = strings.TrimSpace(name[:ci])
 		}
 		// Strip ASC/DESC.
@@ -587,11 +595,12 @@ func fkIndexPlainCols(colText string) ([]string, bool) {
 			name = strings.TrimSpace(name[:ai])
 		}
 		if name == "" {
-			return nil, false
+			return nil, nil, false
 		}
 		cols = append(cols, name)
+		colls = append(colls, coll)
 	}
-	return cols, true
+	return cols, colls, true
 }
 
 // FKViolation is one row of PRAGMA foreign_key_check output: the child table,

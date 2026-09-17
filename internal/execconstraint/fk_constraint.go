@@ -145,9 +145,6 @@ func (c *ConstraintEnforcer) fkApplyParentRef(ref FKRefAction, parentTable *sche
 	}
 	// Apply the parent column's affinity to the old values for matching.
 	applyParentAffinity(oldVals, parentColDefs, parentIdxs)
-	// Find matching child rows: every child FK column equals its old parent
-	// key value. Use the child's own schema pager (a child in an attached
-	// database lives on the attached pager, not main's).
 	ex := c.fkBuildRowExcluder(ref, childEntry, parentTable, oldRow, skipRowID)
 	tree := c.fkChildTree(ref, childEntry)
 	matches := c.fkFindChildMatches(tree, childEntry, parentTable, ex, childIdxs, oldVals, parentColDefs, parentIdxs)
@@ -571,7 +568,10 @@ func (c *ConstraintEnforcer) fkTableUniqueConstraints(parentEntry *schema.Entry,
 }
 
 // fkParentKeyUniqueIndexes reports whether a full UNIQUE index (non-partial,
-// plain columns, default collation) matches the parent key columns.
+// plain columns) matches the parent key columns, with every key's collation
+// equal to the parent column's declared default collation (fkey.c
+// sqlite3FkLocateIndex; e_fkey-19.x: an index on (f COLLATE nocase) cannot
+// serve a parent key over the BINARY-default column f).
 func (c *ConstraintEnforcer) fkParentKeyUniqueIndexes(parentCtx *DatabaseContext, parentEntry *schema.Entry, parentCols []string) bool {
 	entries, err := parentCtx.Schema.GetEntries(schema.TypeIndex)
 	if err != nil {
@@ -592,11 +592,32 @@ func (c *ConstraintEnforcer) fkParentKeyUniqueIndexes(parentCtx *DatabaseContext
 		if colText == "" {
 			continue
 		}
-		cols, ok := fkIndexPlainCols(colText)
+		cols, colls, ok := fkIndexPlainCols(colText)
 		if !ok {
 			continue
 		}
-		if fkSameColumnSet(cols, parentCols) {
+		if !fkSameColumnSet(cols, parentCols) {
+			continue
+		}
+		// Each index key's collation must equal the referenced column's
+		// default collation (an index without an explicit COLLATE uses the
+		// column's default, so only explicit mismatches disqualify it).
+		parentColDefs := c.ctx.ParseColumnDefs(parentEntry.Name, parentEntry.SQL)
+		disqualified := false
+		for i, col := range cols {
+			var defColl string
+			for _, cd := range parentColDefs {
+				if strings.EqualFold(cd.Name, col) {
+					defColl = cd.Collate
+					break
+				}
+			}
+			if colls[i] != "" && !strings.EqualFold(colls[i], defColl) {
+				disqualified = true
+				break
+			}
+		}
+		if !disqualified {
 			return true
 		}
 	}

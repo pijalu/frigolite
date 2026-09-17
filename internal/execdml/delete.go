@@ -464,16 +464,30 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 			}
 			deleted++
 			rowsToKeep = append(rowsToKeep, row)
+			// FK actions run at the row-delete point, BEFORE this row's
+			// AFTER triggers (fk.c: the FK action subprogram sits between
+			// OP_Delete and the after-trigger program). RESTRICT must fire
+			// here: an AFTER trigger repairing the child rows (e_fkey-42.5:
+			// UPDATE child SET c = NULL) must not mask the RESTRICT error.
+			if e.ctx.ForeignKeys() {
+				if res := e.ctx.FkParentDelete(tableEntry, colDefs, row); res.Error != nil {
+					e.ctx.RestorePager(dbCtx.Pager, snap)
+					e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
+					return res
+				}
+			}
 			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(row)); trigResult.Error != nil {
 				return trigResult
 			}
 		}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
-	// Enforce FOREIGN KEY actions against the post-trigger state. On a
-	// RESTRICT/NO ACTION error the whole statement is rolled back. Only rows
-	// that were actually deleted (survived BEFORE triggers) get FK actions.
-	if e.ctx.ForeignKeys() {
+	// Enforce FOREIGN KEY actions for the no-trigger batch path: the rows were
+	// deleted in one pass, so their FK actions run after the batch (each row's
+	// FK action runs at the row-delete point in the trigger path above — RESTRICT
+	// must fire before AFTER triggers can repair the children, e_fkey-42.5).
+	// On a RESTRICT/NO ACTION error the whole statement is rolled back.
+	if e.ctx.ForeignKeys() && !e.hasTriggersForTable(tableEntry.Name) {
 		for _, row := range rowsToKeep {
 			if res := e.ctx.FkParentDelete(tableEntry, colDefs, row); res.Error != nil {
 				e.ctx.RestorePager(dbCtx.Pager, snap)

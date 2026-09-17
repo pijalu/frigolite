@@ -148,7 +148,48 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 			return &Result{Error: err}
 		}
 	}
+	// fk.c sqlite3FkCheck runs at statement compilation: an FK whose parent
+	// table or parent key cannot be located fails an INSERT/UPDATE/DELETE
+	// regardless of the rows involved (e_fkey-20.x: an UPDATE of an empty
+	// child reports "no such table: main.X"; a parent DELETE reports the
+	// child's "foreign key mismatch").
+	if res := e.validateDMLFKPrepare(stmt); res != nil {
+		return res
+	}
 	return nil
+}
+
+// validateDMLFKPrepare resolves the FK relationships of an INSERT/UPDATE/
+// DELETE's target table at prepare time (delegating to the constraint
+// enforcer). Non-DML statements and unknown tables (which error elsewhere)
+// pass through. singleRowInsert marks a VALUES-tuple INSERT (no SELECT/
+// VALUES-chain source): fkey.c skips the parent-side key location for those
+// because inserting single rows into a parent cannot cause or fix an
+// immediate FK violation.
+func (e *Engine) validateDMLFKPrepare(stmt sql.Stmt) *Result {
+	var table string
+	singleRowInsert := false
+	switch s := stmt.(type) {
+	case *sql.InsertStmt:
+		table = s.Table
+		// A single-tuple VALUES insert (or DEFAULT VALUES: no tuples and no
+		// SELECT) writes one row without a multi-write co-routine;
+		// multi-row VALUES and INSERT...SELECT are multi-write
+		// (fkey.c pParse->isMultiWrite).
+		singleRowInsert = len(s.Values) == 1 || (len(s.Values) == 0 && s.Select == nil)
+	case *sql.UpdateStmt:
+		table = s.Table
+	case *sql.DeleteStmt:
+		table = s.Table
+	}
+	if table == "" {
+		return nil
+	}
+	entry, ctx, err := e.FindTable(table)
+	if err != nil {
+		return nil
+	}
+	return e.constraints.ValidateDMLTableFKs(entry, ctx, singleRowInsert)
 }
 
 // shouldDeferRaiseCheck reports whether a statement's RAISE() check is deferred
