@@ -671,7 +671,7 @@ func isCurrentTimeKeyword(name string) bool {
 // Rule 38: ccons ::= NOT NULL onconf
 func rule38(ruleNo int, p *Parser) interface{} {
 	cd := sql.ColumnDef{NotNull: true}
-	cd.OnConflict = getString(getRHS(p, ruleNo, 3))
+	cd.OnConflict = strings.ToUpper(getString(getRHS(p, ruleNo, 3)))
 	return cd
 
 }
@@ -679,7 +679,7 @@ func rule38(ruleNo int, p *Parser) interface{} {
 // Rule 39: ccons ::= PRIMARY KEY sortorder onconf autoinc
 func rule39(ruleNo int, p *Parser) interface{} {
 	cd := sql.ColumnDef{PrimaryKey: true}
-	cd.OnConflict = getString(getRHS(p, ruleNo, 4))
+	cd.OnConflict = strings.ToUpper(getString(getRHS(p, ruleNo, 4)))
 	// sortorder reduces to a string (rules 138-140: "DESC" for descending,
 	// "ASC" or "" otherwise). A raw DESC token may appear in partial
 	// parse states; either form means PRIMARY KEY DESC.
@@ -698,7 +698,7 @@ func rule39(ruleNo int, p *Parser) interface{} {
 
 func rule40(ruleNo int, p *Parser) interface{} {
 	cd := sql.ColumnDef{Unique: true}
-	cd.OnConflict = getString(getRHS(p, ruleNo, 2))
+	cd.OnConflict = strings.ToUpper(getString(getRHS(p, ruleNo, 2)))
 	return cd
 
 }
@@ -869,7 +869,7 @@ func rule68(ruleNo int, p *Parser) interface{} {
 	return sql.TableConstraint{
 		Type:       sql.ConstraintPrimaryKey,
 		Columns:    indexColumnsFromSortlist(getRHS(p, ruleNo, 4)),
-		OnConflict: getString(getRHS(p, ruleNo, 6)),
+		OnConflict: strings.ToUpper(getString(getRHS(p, ruleNo, 6))),
 	}
 
 }
@@ -884,7 +884,7 @@ func rule69(ruleNo int, p *Parser) interface{} {
 	return sql.TableConstraint{
 		Type:       sql.ConstraintUnique,
 		Columns:    indexColumnsFromSortlist(getRHS(p, ruleNo, 3)),
-		OnConflict: getString(getRHS(p, ruleNo, 5)),
+		OnConflict: strings.ToUpper(getString(getRHS(p, ruleNo, 5))),
 	}
 
 }
