@@ -656,8 +656,19 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	if err := e.validateWindowFunctions(s); err != nil {
 		return err
 	}
-	if err := e.validateGroupByExprs(s); err != nil {
+	if err := e.validateGroupByExprs(s, nil); err != nil {
 		return err
+	}
+	// LIMIT/OFFSET expressions are name-resolved at prepare time like other
+	// clauses: a subquery naming a missing table fails the statement
+	// ("no such table: blah", misc5-3.2), it is not silently un-evaluable.
+	for _, limExpr := range []sql.Expr{s.Limit, s.Offset} {
+		if limExpr == nil {
+			continue
+		}
+		if err := e.validateExprSubqueries(limExpr); err != nil {
+			return err
+		}
 	}
 	if err := e.validateHavingExprs(s); err != nil {
 		return err
@@ -811,9 +822,17 @@ func (e *SelectEngine) validateFilterClause(expr sql.Expr) error {
 
 // validateGroupByExprs rejects aggregate functions inside GROUP BY
 // expressions. SQLite: "aggregate functions are not allowed in the GROUP BY
-// clause".
-func (e *SelectEngine) validateGroupByExprs(s *sql.SelectStmt) error {
+// clause". Numeric ordinals resolve to their SELECT-column expressions
+// first (resolve.c maps GROUP BY N to the Nth result column before the
+// no-aggregate check), so "GROUP BY 1, 2" over a list holding max(Value)
+// is rejected too (misc4-4.1/4.2).
+func (e *SelectEngine) validateGroupByExprs(s *sql.SelectStmt, colDefs []sql.ColumnDef) error {
 	for _, gb := range s.GroupBy {
+		if nested := FindAggregateInExpr(gb); nested != "" {
+			return fmt.Errorf("aggregate functions are not allowed in the GROUP BY clause")
+		}
+	}
+	for _, gb := range resolveGroupByOrdinals(s, colDefs) {
 		if nested := FindAggregateInExpr(gb); nested != "" {
 			return fmt.Errorf("aggregate functions are not allowed in the GROUP BY clause")
 		}

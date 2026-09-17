@@ -451,6 +451,7 @@ func (e *SelectEngine) execSelectCorrelatedAgg(s *sql.SelectStmt, allRowMaps []R
 		// NTILE(1) OVER()) FROM t0 with t0 empty → one row 0.
 		emptyRow := RowMap{}
 		prevOuterRows := e.outerRows
+		prevOuterRow := e.outerRow
 		e.outerRows = []RowMap{emptyRow}
 		e.outerRow = emptyRow
 		outRow, err := e.buildOutputRow(s.Columns, colDefs, emptyRow)
@@ -458,11 +459,13 @@ func (e *SelectEngine) execSelectCorrelatedAgg(s *sql.SelectStmt, allRowMaps []R
 			return &Result{Error: err}
 		}
 		e.outerRows = prevOuterRows
+		e.outerRow = prevOuterRow
 		columns := e.buildColumnNames(s.Columns, colDefs, s)
 		result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 		return e.finalizeSelectResult(result, s, []RowMap{emptyRow})
 	}
 	prevOuterRows := e.outerRows
+	prevOuterRow := e.outerRow
 	e.outerRows = allRowMaps
 	e.outerRow = allRowMaps[0] // provide first row for non-aggregate column refs
 	outRow, err := e.buildOutputRow(s.Columns, colDefs, allRowMaps[0])
@@ -470,6 +473,7 @@ func (e *SelectEngine) execSelectCorrelatedAgg(s *sql.SelectStmt, allRowMaps []R
 		return &Result{Error: err}
 	}
 	e.outerRows = prevOuterRows
+	e.outerRow = prevOuterRow
 	columns := e.buildColumnNames(s.Columns, colDefs, s)
 	result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 	return e.finalizeSelectResult(result, s, allRowMaps)

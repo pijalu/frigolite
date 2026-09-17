@@ -34,14 +34,17 @@ func (e *SelectEngine) distinctRows(rows [][]interface{}, rowMaps []RowMap, coll
 	}
 	if idxCols := e.coveringIndexForDistinct(s); len(idxCols) > 0 {
 		reorderByIndexCols(newRows, newMaps, idxCols)
+	} else {
+		// No covering index: SQLite materializes the DISTINCT key set in a
+		// temp b-tree keyed by the output columns, so rows emerge in key
+		// order, not table-scan order (distinct-2.3: {A B C a b c}).
+		e.sortDistinctRows(newRows, newMaps, colls)
 	}
 	return newRows, newMaps
 }
 
 // sortDistinctRows sorts DISTINCT rows by their result columns (like the temp
 // b-tree SQLite uses when no covering index exists).
-//
-//lint:ignore U1000 retained for callers that need explicit DISTINCT sorting.
 func (e *SelectEngine) sortDistinctRows(rows [][]interface{}, maps []RowMap, colls []string) {
 	type pair struct {
 		row []interface{}

@@ -750,9 +750,14 @@ func findTriggerStmt(stmts []sql.Stmt) *sql.CreateTriggerStmt {
 func (e *SelectEngine) validateNoFromColumnRefs(s *sql.SelectStmt) error {
 	v := &noFromRefValidator{engine: e}
 	for _, col := range s.Columns {
-		// A bare * or alias.* in a FROM-less SELECT is an error: SQLite has
-		// no table to expand it against ("no tables specified").
+		// A bare * or alias.* in a FROM-less SELECT is an error. SQLite
+		// distinguishes the two: a bare "*" has no result set to expand
+		// ("no tables specified", misc1-8.1), while "t1.*" names a table
+		// that is not in scope ("no such table: t1", misc1-8.2).
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+			if ref.Table != "" {
+				return fmt.Errorf("no such table: %s", ref.Table)
+			}
 			return fmt.Errorf("no tables specified")
 		}
 		v.checkExpr(col.Expr)

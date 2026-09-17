@@ -176,11 +176,43 @@ func (c ambiguousRefChecker) checkClauses(s *sql.SelectStmt) error {
 		return err
 	}
 	for _, ob := range s.OrderBy {
+		// resolve.c resolveOrderGroupBy: a bare ORDER BY identifier that
+		// matches a result-column alias is SUBSTITUTED with the aliased
+		// expression before source-column resolution (COLLATE wrappers are
+		// skipped for the match, sqlite3ExprSkipCollate). The alias wins even
+		// when the same name is an ambiguous source column
+		// (resolver01-1.1/2.1: SELECT 1 AS y FROM t1, t2 ORDER BY y).
+		if orderByTermIsAlias(ob.Expr, s.Columns) {
+			continue
+		}
 		if err := c.checkExpr(ob.Expr); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// orderByTermIsAlias reports whether the ORDER BY term — after skipping
+// COLLATE wrappers — is a bare unqualified identifier that matches a
+// result-column alias of the SELECT.
+func orderByTermIsAlias(expr sql.Expr, cols []sql.SelectColumn) bool {
+	for {
+		bin, ok := expr.(*sql.BinaryOp)
+		if !ok || !strings.EqualFold(bin.Operator, "COLLATE") {
+			break
+		}
+		expr = bin.Left
+	}
+	ref, ok := expr.(*sql.ColumnRef)
+	if !ok || ref.Table != "" || ref.Name == "*" {
+		return false
+	}
+	for _, col := range cols {
+		if col.As != "" && strings.EqualFold(col.As, ref.Name) {
+			return true
+		}
+	}
+	return false
 }
 
 // columnExprs extracts the expression slice from a SELECT's output columns.
