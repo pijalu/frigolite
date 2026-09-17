@@ -417,6 +417,7 @@ type txState struct {
 	// outer statement's rollback does not cover, so they skip the O(pages)
 	// pager snapshot entirely — the dominant cost of per-row FTS builds.
 	inFTSFlush bool
+	internalWrites int
 }
 
 // progressState holds the progress-handler state (db progress N fn).

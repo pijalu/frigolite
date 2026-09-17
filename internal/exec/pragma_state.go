@@ -449,9 +449,8 @@ func (e *Engine) CompileOptions() []string {
 }
 
 // DatabaseList implements PRAGMA database_list: one row per attached database
-// in attachment order (main first), matching SQLite's output. SQLite always
-// reserves seq 1 for the temp database (whether or not it has been opened),
-// so attached databases start at seq 2.
+// in attachment order (main first), matching SQLite's output. The temp row
+// (seq 1) appears only once the temp btree has been materialized.
 func (e *Engine) DatabaseList() *execpragma.Result {
 	var rows [][]interface{}
 	seq := int64(0)
@@ -460,17 +459,18 @@ func (e *Engine) DatabaseList() *execpragma.Result {
 	// not, so iterating it would reorder rows non-deterministically).
 	rows = append(rows, []interface{}{seq, "main", e.mainDB.FilePath})
 	seq++
-	// Temp database at seq 1 — always present in SQLite's database_list.
-	tempPath := ""
-	for _, ctx := range e.dbList {
-		upper := strings.ToUpper(ctx.Name)
-		if upper == "TEMP" || upper == "TEMPORARY" {
-			tempPath = ctx.FilePath
-			break
+	// Temp database at seq 1 — listed only once its btree is materialized:
+	// pragma.c PragTyp_DATABASE_LIST skips aDb[i].pBt==0 entries, and the
+	// temp btree opens lazily on first temp-schema use (attach4-1.2.1).
+	if e.tempBtreeOpen {
+		for _, ctx := range e.dbList {
+			if u := strings.ToUpper(ctx.Name); u == "TEMP" || u == "TEMPORARY" {
+				rows = append(rows, []interface{}{seq, "temp", ctx.FilePath})
+				seq++
+				break
+			}
 		}
 	}
-	rows = append(rows, []interface{}{seq, "temp", tempPath})
-	seq++
 	for _, ctx := range e.dbList {
 		upper := strings.ToUpper(ctx.Name)
 		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {

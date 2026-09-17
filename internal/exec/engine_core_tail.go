@@ -436,7 +436,9 @@ func (e *Engine) execTrackChanges(res *Result, isDML bool) {
 	}
 	if isDML {
 		e.lastChanges = res.Changes
-		e.totalChanges += res.Changes
+		if e.tx.internalWrites == 0 {
+			e.totalChanges += res.Changes
+		}
 	}
 	// LAST_INSERT_ROWID() reflects the last rowid written by any DML, including
 	// negative docids (an FTS or explicit-rowid insert with rowid -22 sets

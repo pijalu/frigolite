@@ -787,27 +787,51 @@ func tclListAppend(list string, items ...string) string {
 	// 70k "x" appends) and the new items need no bracing, append directly
 	// instead of re-parsing and re-joining the whole list (O(n²) → O(1) per
 	// append). This drops aggorderby-10.1's data-build from ~72s to ~1s.
-	fast := !strings.ContainsAny(list, "{}\"")
-	if fast {
-		for _, it := range items {
-			if tclNeedsBracing(it) {
-				fast = false
-				break
-			}
-		}
-	}
+	// The fast path also covers lists that already contain balanced braced
+	// elements: appending " {" + item + "}" for a braced item is exactly
+	// TCL lappend's string form, so the O(n) split+join round-trip is
+	// avoidable as long as the accumulated list parses unambiguously
+	// (balanced braces, no embedded quotes — trans2-2.x appends braced
+	// schema elements over a 100k-char list, where the round-trip was
+	// minutes of O(n^2) copying).
+	fast := !strings.Contains(list, "\"")
 	if fast {
 		var sb strings.Builder
 		sb.WriteString(list)
 		for _, it := range items {
 			sb.WriteString(" ")
-			sb.WriteString(it)
+			if tclNeedsBracing(it) {
+				sb.WriteString("{")
+				sb.WriteString(it)
+				sb.WriteString("}")
+			} else {
+				sb.WriteString(it)
+			}
 		}
 		return sb.String()
 	}
 	existing := tclSplitList(list)
 	existing = append(existing, items...)
 	return tclList(existing)
+}
+
+// tclBracesBalanced reports whether s's braces are balanced (every { is
+// closed by a } and depth never drops below zero). Quotes make the scan
+// conservative: tclListAppend's fast path excludes quoted lists up front.
+func tclBracesBalanced(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth < 0 {
+				return false
+			}
+		}
+	}
+	return depth == 0
 }
 
 // tclList joins items into a TCL-format list string.

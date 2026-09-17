@@ -59,6 +59,57 @@ in goal handovers / plan notes, not here. Review and summarize this file at
 the start of each goal session to limit context impact; remove or
 consolidate stale points.
 
+## T26-SINGLES discoveries (2026-09-18)
+
+- **Stale has-triggers flag after DROP TABLE.** dropTableCascade removed the
+  table's triggers but not the cached has-triggers flag, routing later DML on
+  a recreated same-name trigger-less table through applyUpdateWithTriggers,
+  whose post-trigger row re-read (readCurrentRowValues) matches WITHOUT ROWID
+  rows by synthetic rowid 0 (first cell!) and merges SET columns over raw
+  PK-first storage values - corrupting rows and phantom-failing statement-end
+  FK checks. Fixed both ends: cache reset on DROP, and a WR-aware re-read
+  (readCurrentRowValuesWR: OLD-PK match + declared-order decode).
+
+- **Recursive-CTE join fast path reads res.rowMaps, which some execSelect
+  paths leave empty while res.Rows is filled.** An empty probe hash stalled
+  the recursion at its anchor row (closure01-1.1-cte got "1 0"). Rule: when a
+  Result is consumed for its row maps, fall back to
+  rebuildRowMapsFromRows(res.Rows, res.Columns).
+
+- **tclListAppend/tclList round-trips are O(n^2) for lappend-in-loop chains.**
+  The generated tclListAppend fast path now splices braced items too
+  (" {item}" is exactly TCL lappend's string form), gated only on no
+  embedded quote. trans2-2.x went from >10min (100k-char chain) to minutes.
+
+- **[list {*}BRACED] expansion**: tcl2go processList now splices the braced
+  word's inner elements when the preceding element is the braced star (RawWord
+  Text for a braced word EXCLUDES the braces - `{*}` parses as Text "*").
+
+- **sqlite3_set_errmsg** (main.c) is a real C API: sets the connection error
+  code/message; NULL handle reports SQLITE_MISUSE. DB.SetErrMsg + numeric
+  code-name mapping added; tcl2go emits it statement-side and expression-side.
+
+- **TCL list-element quoting in rendered cells**: a cell value containing
+  balanced braces renders with one extra bracing level ({"b":9} -> {{"b":9}}).
+  tclRenderCell (and the transpiled json102/json501 want literals) must honor
+  this or literal-form expectations mismatch. Split-transcribed wants
+  (tclSplitList strips one level) need the opposite normalization
+  (tclListFlatten on want + tclListFlattenCollapse on got).
+
+- **total_changes excludes schema-maintenance DML**: ANALYZE (sqlite_stat1
+  writes) and VACUUM (logical copy) run nested SQL DML on the user connection;
+  gate them with txState.internalWrites so execTrackChanges skips the
+  accumulation (e_totalchanges-2.3). VACUUM is intercepted in the ROOT package
+  (frigolite_vacuum.go), not execDispatch - it never appears in engine
+  dispatch traces.
+
+- **PRAGMA database_list lists temp only when materialized** (pragma.c skips
+  aDb[i].pBt==0); gate the temp row on tempBtreeOpen (attach4-1.2.1).
+
+- **Quality gate hard limit (1000 lines)**: files AT 999-1000 are one comment
+  away from failing. Before adding to processcommand.go / pragma_state.go /
+  engine.go, check wc -l and relocate new handlers to a sub-1000 sibling.
+
 ## Debugging methodology
 
 - **Verify disagreement claims with a direct UT before theorizing.** When two

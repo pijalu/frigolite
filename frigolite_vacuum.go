@@ -65,6 +65,11 @@ func (db *DB) execVacuumStmt(vs *sql.VacuumStmt) *exec.Result {
 	if vs.Into != "" {
 		return db.vacuumInto(schema, vs.Into)
 	}
+	// The rebuild's logical copy executes SELECT/INSERT statements on the
+	// user connection; SQLite's internal VACUUM programs never touch
+	// db->nTotalChange, so window off the copy from the change counter.
+	end := db.engine.BeginInternalWrites()
+	defer end()
 	return db.vacuumRebuild(schema)
 }
 

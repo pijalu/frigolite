@@ -5,6 +5,7 @@
 package bind
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -805,7 +806,13 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_r = tclBindStmt(db, "VM", 1, "int", "1", -1)
+			// sqlite3_bind_* raises a TCL error (empty message) when the C
+			// API call does not return SQLITE_OK — here the post-step
+			// SQLITE_MISUSE (bind-10.8.1; test1.c test_bind). Mirrors the
+			// fixed tcl2go catch-mode processBind emission.
+			if _r = tclBindStmt(db, "VM", 1, "int", "1", -1); _r != "SQLITE_OK" && _r != "" {
+				_catchErr = fmt.Errorf("")
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
