@@ -445,6 +445,19 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 			// require this deferral.
 			pr.pageSize = DefaultPageSize
 			pr.headerCorrupt = true
+		} else if !validHeaderPageSize(hdr.PageSize) {
+			// Header parses (magic intact) but the page-size field is not a
+			// power of two in [512, 65536]. SQLite's lockBtree
+			// (btree.c:3405-3411) rejects such a page 1 with SQLITE_NOTADB on
+			// first use — adopting it here would e.g. make([]byte, 0) for a
+			// zeroed field and crash before the check ever runs (corruptC-3
+			// pokes single bytes into offsets 16-17). Same deferral as the
+			// parse-error branch: Open stays non-failing, the first statement
+			// surfaces "file is not a database" (verified against the
+			// /usr/bin/sqlite3 oracle: invalid page size → error 26 on first
+			// use).
+			pr.pageSize = DefaultPageSize
+			pr.headerCorrupt = true
 		} else {
 			pr.pageSize = hdr.PageSize
 			pr.header = make([]byte, HeaderSize)
@@ -698,6 +711,16 @@ func (p *Pager) UsableSize() uint32 { return p.pageSize - p.reserved }
 // succeed on an image with a corrupt freelist pointer so integrity_check
 // can REPORT the corruption (pragma6-1.2 loads a DB whose header trunk is
 // 12255232; integrity_check returns the freelist message as a row).
+// validHeaderPageSize mirrors lockBtree's page-size field check
+// (btree.c: `((pageSize-1)&pageSize)!=0 || pageSize>SQLITE_MAX_PAGE_SIZE ||
+// pageSize<=256` → SQLITE_NOTADB): the decoded field must be a power of two
+// in [512, 65536] (storage.ParseHeader already maps the on-file value 1 to
+// 65536). Used by openPager to defer obviously-bogus page sizes to the first
+// statement instead of sizing internal buffers with them.
+func validHeaderPageSize(ps uint32) bool {
+	return ps >= 512 && ps <= 65536 && (ps&(ps-1)) == 0
+}
+
 // validateLockBtreeHeader mirrors btree.c lockBtree's page-1 header checks
 // (SQLITE_NOTADB surface as "file is not a database"): magic prefix,
 // payload fractions at offsets 21-23 (must be 64/32/32), page size at
@@ -1404,6 +1427,17 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 	} else if p.file != nil {
 		off := int64(pageNum-1) * int64(p.pageSize)
 		_, err := p.file.ReadAt(pg.Data, off)
+		if err == io.EOF {
+			// A short final page (file size not a multiple of the page size,
+			// e.g. a deserialized/hexio-crafted image truncated mid-page) is
+			// not a read error: SQLite's pager zero-fills the remainder
+			// (pager.c sqlite3PagerGet's short-read memset). The corruption
+			// detection happens in the btree/schema layers on the resulting
+			// content, not in the I/O layer. io.EOF here means "fewer bytes
+			// than requested", which ReadAt may deliver together with a
+			// partial fill; pg.Data already holds what was read.
+			err = nil
+		}
 		if err != nil {
 			return nil, fmt.Errorf("pager: read page %d: %w", pageNum, err)
 		}

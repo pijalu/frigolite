@@ -127,6 +127,14 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 	if err := e.validateLoadedTriggers(); err != nil {
 		return &Result{Error: err}
 	}
+	// sqlite3InitCallback row validation (rootpage within the page count,
+	// stored CREATE text parses, no duplicate index rootpage): corrupt
+	// schema rows report "malformed database schema (NAME) - detail" — or
+	// the generic SQLITE_CORRUPT when writable_schema is ON — at prepare
+	// time (corruptL-6.1/7.1, corruptN-3.1).
+	if err := e.validateLoadedSchema(stmt); err != nil {
+		return &Result{Error: err}
+	}
 	// Stored schema validation is performed by schema-loading operations; do
 	// not mask ordinary SELECT semantic errors during statement preflight.
 	// DML statements validate their embedded subquery arity (INSERT/UPDATE/
