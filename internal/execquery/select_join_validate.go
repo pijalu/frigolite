@@ -91,224 +91,6 @@ func collectOuterTableNames(s *sql.SelectStmt, out map[string]bool) {
 	}
 }
 
-// validateAmbiguousColumnRefs rejects unqualified column references that are
-// ambiguous across the joined tables (SQLite: "ambiguous column name: X" at
-// prepare time). Every table contributes its declared columns plus the
-// implicit rowid/_rowid_/oid columns; a bare reference naming a column that
-// exists in more than one joined table is ambiguous. Qualified references
-// (t.col), TRUE/FALSE literals, and output-column aliases are exempt.
-func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
-	names := map[string]bool{}
-	collectOuterTableNames(s, names)
-	if len(names) == 0 {
-		return nil
-	}
-	mergedCols := map[string]bool{}
-	e.collectJoinMergedColumns(s, names, mergedCols)
-	colInTables := e.buildAmbiguousColMap(names)
-	// Derived-table operands (subquery FROM/JOIN) contribute an implicit
-	// rowid/_rowid_/oid to the ambiguity map even though they have no real
-	// table to resolve — a bare rowid over two derived tables is ambiguous
-	// (misc8-3.0: "ambiguous column name: rowid").
-	for _, ref := range derivedTableRefs(s) {
-		for _, r := range []string{"rowid", "_rowid_", "oid"} {
-			colInTables[r] = append(colInTables[r], ref)
-		}
-	}
-	checker := ambiguousRefChecker{
-		colInTables: colInTables,
-		mergedCols:  mergedCols,
-		names:       names,
-		hasDerived:  selectHasSubqueryOperand(s),
-	}
-	return checker.checkClauses(s)
-}
-
-// derivedTableRefs returns the alias (or name) of every FROM/JOIN operand that
-// is a subquery (derived table).
-func derivedTableRefs(s *sql.SelectStmt) []string {
-	var out []string
-	if s.From.Subquery != nil {
-		ref := s.From.Name
-		if s.From.As != "" {
-			ref = s.From.As
-		}
-		if ref != "" {
-			out = append(out, ref)
-		}
-	}
-	for _, j := range s.Joins {
-		if j.Table.Subquery != nil {
-			ref := j.Table.Name
-			if j.Table.As != "" {
-				ref = j.Table.As
-			}
-			if ref != "" {
-				out = append(out, ref)
-			}
-		}
-	}
-	return out
-}
-
-// ambiguousRefChecker carries the precomputed column/table data needed to test
-// individual column references for ambiguity.
-type ambiguousRefChecker struct {
-	colInTables map[string][]string
-	mergedCols  map[string]bool
-	names       map[string]bool
-	hasDerived  bool
-}
-
-// checkClauses applies the ambiguity check to every clause in a SELECT that can
-// reference columns (output columns, WHERE, GROUP BY, HAVING, ORDER BY).
-func (c ambiguousRefChecker) checkClauses(s *sql.SelectStmt) error {
-	if err := c.checkExprList(columnExprs(s.Columns)); err != nil {
-		return err
-	}
-	if err := c.checkExpr(s.Where); err != nil {
-		return err
-	}
-	if err := c.checkExprList(s.GroupBy); err != nil {
-		return err
-	}
-	if err := c.checkExpr(s.Having); err != nil {
-		return err
-	}
-	for _, ob := range s.OrderBy {
-		if err := c.checkExpr(ob.Expr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// columnExprs extracts the expression slice from a SELECT's output columns.
-func columnExprs(cols []sql.SelectColumn) []sql.Expr {
-	var exprs []sql.Expr
-	for _, col := range cols {
-		exprs = append(exprs, col.Expr)
-	}
-	return exprs
-}
-
-// checkExprList applies the ambiguity check to a list of expressions.
-func (c ambiguousRefChecker) checkExprList(exprs []sql.Expr) error {
-	for _, expr := range exprs {
-		if err := c.checkExpr(expr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// checkExpr walks a single expression and returns the first ambiguity error.
-func (c ambiguousRefChecker) checkExpr(expr sql.Expr) error {
-	if expr == nil {
-		return nil
-	}
-	var checkErr error
-	WalkExprFull(expr, func(e2 sql.Expr) {
-		if checkErr != nil {
-			return
-		}
-		ref, ok := e2.(*sql.ColumnRef)
-		if !ok || ref.Name == "*" {
-			return
-		}
-		checkErr = c.checkColumnRef(ref)
-	})
-	return checkErr
-}
-
-// checkColumnRef tests a single column reference for ambiguity or unknown
-// qualifier.
-func (c ambiguousRefChecker) checkColumnRef(ref *sql.ColumnRef) error {
-	if ref.Table != "" {
-		return c.checkQualifiedRef(ref)
-	}
-	if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
-		return nil
-	}
-	l := strings.ToLower(ref.Name)
-	if c.mergedCols[l] {
-		return nil
-	}
-	if len(c.colInTables[l]) > 1 {
-		return fmt.Errorf("ambiguous column name: %s", ref.Name)
-	}
-	return nil
-}
-
-// checkQualifiedRef validates that a qualified reference (t.col) names a
-// visible table. When a derived table is present in the FROM/JOIN operands,
-// the qualifier may name a table inside the derived table (resolved at
-// execution), so the check is skipped. NEW/OLD trigger references are exempt.
-func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
-	if c.hasDerived {
-		return nil
-	}
-	q := ref.Table
-	if dot := strings.Index(q, "."); dot >= 0 {
-		q = q[dot+1:]
-	}
-	if strings.EqualFold(q, "new") || strings.EqualFold(q, "old") {
-		return nil
-	}
-	for tn := range c.names {
-		if strings.EqualFold(tn, q) {
-			return nil
-		}
-	}
-	return fmt.Errorf("no such column: %s.%s", ref.Table, ref.Name)
-}
-
-// selectHasSubqueryOperand reports whether a SELECT's FROM or JOIN operands
-// include a subquery (derived table).
-func selectHasSubqueryOperand(s *sql.SelectStmt) bool {
-	if s.From.Subquery != nil {
-		return true
-	}
-	for _, j := range s.Joins {
-		if j.Table.Subquery != nil {
-			return true
-		}
-	}
-	return false
-}
-
-// buildAmbiguousColMap builds a map from lowercased column name to the list of
-// table names that contain it. Each table contributes its declared columns
-// plus the implicit rowid/_rowid_/oid pseudo-columns (unless WITHOUT ROWID).
-func (e *SelectEngine) buildAmbiguousColMap(names map[string]bool) map[string][]string {
-	colInTables := map[string][]string{}
-	for tn := range names {
-		cols, err := e.tableColumnNames(tn)
-		if err != nil {
-			// A table we cannot resolve (e.g. a CTE reference) — skip; the
-			// execution path reports the missing table.
-			continue
-		}
-		for _, c := range cols {
-			l := strings.ToLower(c)
-			colInTables[l] = append(colInTables[l], tn)
-		}
-		e.addRowidCols(colInTables, tn)
-	}
-	return colInTables
-}
-
-// addRowidCols adds the implicit rowid/_rowid_/oid columns for a table, unless
-// it is declared WITHOUT ROWID (such tables have no rowid pseudo-column).
-func (e *SelectEngine) addRowidCols(colInTables map[string][]string, tn string) {
-	te, _, terr := e.ctx.FindTable(tn)
-	if terr != nil || !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
-		for _, r := range []string{"rowid", "_rowid_", "oid"} {
-			colInTables[r] = append(colInTables[r], tn)
-		}
-	}
-}
-
 // validateJoinOnClauses checks that each join's ON clause only references
 // tables that have already been joined (to its left). SQLite raises
 // "ON clause references tables to its right" otherwise. OUTER joins always
@@ -391,7 +173,7 @@ func (v *joinOnValidator) addFromTable() {
 	if tn == "" {
 		return
 	}
-	v.available[tn] = true
+	v.addAvailableName(tn)
 	v.addFromColumns()
 	v.addLeftTable(tn)
 }
@@ -575,32 +357,65 @@ func (v *joinOnValidator) validateJoins() error {
 	return nil
 }
 
+// addLowerKeys merges the keys of src into dst, lower-cased, so lookups
+// against dst are case-insensitive like SQLite name resolution.
+func addLowerKeys(src, dst map[string]bool) {
+	for k := range src {
+		dst[strings.ToLower(k)] = true
+	}
+}
+
+// addLowerTableNames merges FROM-operand names into a table-name lookup set:
+// each name is keyed lower-cased, and a schema-qualified name (main.t4) is
+// additionally keyed by its bare table name, since SQLite matches column
+// qualifiers against either form.
+func addLowerTableNames(src, dst map[string]bool) {
+	for k := range src {
+		lk := strings.ToLower(k)
+		dst[lk] = true
+		if dot := strings.LastIndexByte(lk, '.'); dot >= 0 {
+			dst[lk[dot+1:]] = true
+		}
+	}
+}
+
+// addAvailableName registers a FROM operand name in the available-table set
+// (see addLowerTableNames for the keying rules).
+func (v *joinOnValidator) addAvailableName(tn string) {
+	if tn == "" {
+		return
+	}
+	addLowerTableNames(map[string]bool{tn: true}, v.available)
+}
+
 // classifyQualifiedOnRefs returns the prepare-time error for the first
-// qualified ON reference that fails resolution, or "": a reference to a
-// table right of this join is "ON clause references tables to its right"
-// (select.c:7552), a reference to a table absent from the FROM entirely is
-// "no such column: <table>.<column>" (vtab6-3.6). References joined so far
-// and trigger row aliases pass.
-func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr) string {
+// qualified ON reference that fails resolution, or "". A reference to a table
+// right of this join yields "ON clause references tables to its right"
+// (select.c:7552) only when strict is set: SQLite attaches the checker to
+// outer-join ON clauses (EP_OuterON) and to inner-join ON clauses solely when
+// the query contains a RIGHT or FULL join forcing left-to-right processing
+// (EP_InnerON + hasRightJoin, select.c:7524). A reference to a table absent
+// from the FROM entirely is always "no such column: <table>.<column>"
+// (vtab6-3.6). References joined so far and trigger row aliases pass.
+func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr, strict bool) string {
 	var bad string
 	walkJoinOnExpr(on, func(e2 sql.Expr) {
 		cr, ok := e2.(*sql.ColumnRef)
 		if !ok || cr.Table == "" {
 			return
 		}
-		// Strip a schema prefix and compare case-insensitively against the
-		// FROM operands (sqlite3 name resolution is case-insensitive).
-		t := strings.ToLower(cr.Table)
-		if dot := strings.LastIndexByte(t, '.'); dot >= 0 {
-			t = t[dot+1:]
-		}
+		// Compare case-insensitively against the FROM operands (sqlite3 name
+		// resolution is case-insensitive).
+		t := onQualifierKey(cr)
 		switch {
 		case t == "new" || t == "old":
 			// trigger row aliases
 		case v.available[t]:
 			// joined so far
 		case v.fullTables[t]:
-			bad = "ON clause references tables to its right"
+			if strict {
+				bad = "ON clause references tables to its right"
+			}
 		default:
 			bad = fmt.Sprintf("no such column: %s.%s", cr.Table, cr.Name)
 		}
@@ -628,7 +443,7 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 		}
 		return nil
 	}
-	if bad := v.classifyQualifiedOnRefs(join.On); bad != "" {
+	if bad := v.classifyQualifiedOnRefs(join.On, v.shouldValidateOn(join)); bad != "" {
 		return fmt.Errorf("%s", bad)
 	}
 	// The legacy unqualified-reference and ON-subquery checks keep their
@@ -652,11 +467,13 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 // clause validation.
 func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn string) {
 	if tn != "" {
-		v.available[tn] = true
+		v.addAvailableName(tn)
 		v.engine.collectJoinTableCols(v.s, join, tn, v.availableCols)
 	}
 	if join.Table.Subquery != nil {
-		collectFromTableNames(join.Table.Subquery, v.available)
+		subNames := map[string]bool{}
+		collectFromTableNames(join.Table.Subquery, subNames)
+		addLowerTableNames(subNames, v.available)
 		collectSubqueryOnCols(join.Table.Subquery, v.availableCols)
 		v.engine.addSubqueryFromCols(join.Table.Subquery, v.availableCols)
 		// VALUES-derived tables expose column1..columnN columns (SQLite: a
@@ -861,7 +678,7 @@ func (e *SelectEngine) mergeLeftTables(join sql.JoinClause, tn string, leftTable
 func (e *SelectEngine) validateOnRefs(s *sql.SelectStmt, join sql.JoinClause, available, availableCols map[string]bool, hasRightOrFull bool) string {
 	var bad string
 	walkJoinOnExpr(join.On, func(e2 sql.Expr) {
-		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[cr.Table] {
+		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[onQualifierKey(cr)] {
 			bad = cr.Table
 		}
 	})
@@ -922,8 +739,10 @@ func SubquerySelect(expr sql.Expr) *sql.SelectStmt {
 // (WHERE, ON clauses) that reference tables outside the subquery's own FROM
 // scope or the outer available tables.
 func (e *SelectEngine) checkSubqueryLocalRefs(sel *sql.SelectStmt, available map[string]bool, bad *string) {
+	localSrc := map[string]bool{}
+	collectFromTableNames(sel, localSrc)
 	local := map[string]bool{}
-	collectFromTableNames(sel, local)
+	addLowerTableNames(localSrc, local)
 	walkSelectJoinExprs(sel, func(e3 sql.Expr) {
 		rejectUnresolvedTableRef(e3, local, available, bad)
 	})
@@ -938,7 +757,7 @@ func (e *SelectEngine) checkSubqueryJoinOnRefs(sel *sql.SelectStmt, available ma
 		j := &sel.Joins[i]
 		jn := joinTableName(*j)
 		if jn != "" {
-			subAvail[jn] = true
+			addLowerTableNames(map[string]bool{jn: true}, subAvail)
 		}
 		if j.On == nil {
 			continue
@@ -950,27 +769,32 @@ func (e *SelectEngine) checkSubqueryJoinOnRefs(sel *sql.SelectStmt, available ma
 }
 
 // collectSubAvail builds the set of table names available at the start of a
-// subquery's join chain (the base FROM table, by name and alias).
+// subquery's join chain (the base FROM table, by name and alias), keyed
+// lower-cased for case-insensitive lookups.
 func collectSubAvail(sel *sql.SelectStmt) map[string]bool {
 	subAvail := map[string]bool{}
 	if sel.From.Name != "" {
-		subAvail[sel.From.Name] = true
+		names := map[string]bool{sel.From.Name: true}
 		if sel.From.As != "" {
-			subAvail[sel.From.As] = true
+			names[sel.From.As] = true
 		}
+		addLowerTableNames(names, subAvail)
 	}
 	return subAvail
 }
 
 // rejectUnresolvedTableRef sets *bad to the table name of a column reference
 // that is not found in the local or available sets (used inside ON-clause
-// validation walkers).
+// validation walkers). Lookups are case-insensitive: the sets are keyed
+// lower-cased and the reference's qualifier is schema-stripped and lower-cased
+// before the check.
 func rejectUnresolvedTableRef(expr sql.Expr, local, available map[string]bool, bad *string) {
 	cr, ok := expr.(*sql.ColumnRef)
 	if !ok || cr.Table == "" {
 		return
 	}
-	if local[cr.Table] || available[cr.Table] {
+	t := onQualifierKey(cr)
+	if local[t] || available[t] {
 		return
 	}
 	*bad = cr.Table

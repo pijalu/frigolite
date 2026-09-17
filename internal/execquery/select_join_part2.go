@@ -217,3 +217,14 @@ func addSelectColumnsToSet(set map[string]bool, columns []sql.SelectColumn) {
 		}
 	}
 }
+
+// onQualifierKey returns the name-set lookup key for a qualified column
+// reference: the schema prefix is stripped and the qualifier lower-cased,
+// mirroring SQLite's case-insensitive name resolution (sqlite3StrICmp).
+func onQualifierKey(cr *sql.ColumnRef) string {
+	t := strings.ToLower(cr.Table)
+	if dot := strings.LastIndexByte(t, '.'); dot >= 0 {
+		t = t[dot+1:]
+	}
+	return t
+}
