@@ -207,11 +207,21 @@ func (tp *transpiler) processCapturePragma(args []tcl.RawWord) {
 func (tp *transpiler) processSqlite3TestControl(args []tcl.RawWord) {
 	if len(args) >= 2 && args[0].Text == "SQLITE_TESTCTRL_LOCALTIME_FAULT" {
 		mode := strings.TrimSpace(args[1].Text)
-		if mode == "2" {
+		switch mode {
+		case "1":
+			// main.c:4469: bLocaltimeFault=1, xAltLocaltime cleared —
+			// osLocaltime always fails ("local time unavailable",
+			// tkt-bd484a090c 2.1/2.2).
+			tp.emitLine("function.SetLocaltimeFault(true)")
+		case "2":
+			// main.c:4471: bLocaltimeFault=2 installs the alternate
+			// localtime implementation (date.test's even/odd day hook).
 			tp.emitLine("function.SetLocaltimeHook(tclTestLocaltime)")
-		} else if mode == "0" {
+		case "0":
+			// main.c:4475: fault cleared and xAltLocaltime reset to nil.
+			tp.emitLine("function.SetLocaltimeFault(false)")
 			tp.emitLine("function.SetLocaltimeHook(nil)")
-		} else {
+		default:
 			tp.emitLine("// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT %s (unsupported mode)", mode)
 		}
 		return

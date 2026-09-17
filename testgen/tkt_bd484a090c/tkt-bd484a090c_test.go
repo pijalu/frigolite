@@ -75,7 +75,7 @@ func Test_tkt_bd484a090c(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT datetime('now', 'utc') ")
 		}
 	}
-	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1 (unsupported mode)
+	function.SetLocaltimeFault(true)
 	{ // do_test "2.1"
 		_res = db.Exec(" SELECT datetime('now', 'localtime') ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "local time unavailable") {
@@ -88,5 +88,6 @@ func Test_tkt_bd484a090c(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "local time unavailable", resErrString(_res), " SELECT datetime('2000-01-01', 'utc') ")
 		}
 	}
+	function.SetLocaltimeFault(false)
 	function.SetLocaltimeHook(nil)
 }

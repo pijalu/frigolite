@@ -204,6 +204,9 @@ func (p *dateTime) toLocaltime() error {
 			return fmt.Errorf("local time unavailable")
 		}
 		tm = time.Unix(localSec, 0).UTC()
+	} else if getLocaltimeFault() {
+		// osLocaltime with bLocaltimeFault set and no xAltLocaltime: fail.
+		return fmt.Errorf("local time unavailable")
 	} else {
 		tm = time.Unix(t, 0).In(time.Local)
 	}
@@ -803,6 +806,12 @@ var (
 	stmtTime    time.Time
 	localtimeMu sync.RWMutex
 	localtimeFn func(unixSec int64) (int64, error)
+	// localtimeFault mirrors sqlite3GlobalConfig.bLocaltimeFault
+	// (SQLITE_TESTCTRL_LOCALTIME_FAULT, main.c:4469): when set and no
+	// alternate localtime hook is installed, every localtime conversion
+	// fails (date.c osLocaltime returns 1) and the date/time functions
+	// report "local time unavailable".
+	localtimeFault bool
 )
 
 // SetNowFunc replaces the clock used by 'now' (nil restores the system
@@ -866,6 +875,22 @@ func getLocaltimeHook() func(unixSec int64) (int64, error) {
 	localtimeMu.RLock()
 	defer localtimeMu.RUnlock()
 	return localtimeFn
+}
+
+// SetLocaltimeFault installs the SQLITE_TESTCTRL_LOCALTIME_FAULT test
+// control: value true makes every localtime conversion fail ("local time
+// unavailable") unless an alternate localtime hook is installed, mirroring
+// date.c osLocaltime (bLocaltimeFault with xAltLocaltime==0 returns 1).
+func SetLocaltimeFault(v bool) {
+	localtimeMu.Lock()
+	defer localtimeMu.Unlock()
+	localtimeFault = v
+}
+
+func getLocaltimeFault() bool {
+	localtimeMu.RLock()
+	defer localtimeMu.RUnlock()
+	return localtimeFault
 }
 
 // --- Pure-context mechanism ---

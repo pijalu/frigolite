@@ -1015,6 +1015,26 @@ func (tp *transpiler) emitMiscRecurseSQLUDF(name, procName string) bool {
 	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
 		body = strings.TrimSpace(body[1 : len(body)-1])
 	}
+	// Generic literal-SQL db-eval proc: the body is exactly
+	// `catch {db eval {SQL}}` or `db eval {SQL}` with a literal SQL string
+	// (no $vars, single statement). The UDF executes the SQL on the same
+	// connection re-entrantly: TCL's catch swallows the error
+	// (tkt-f777251dc7a's force_rollback: INSERT OR ROLLBACK mid-statement
+	// aborts the enclosing statement with "abort due to ROLLBACK"), while
+	// the bare form propagates it (tkt-f777251dc7a's ins: INSERT INTO t3
+	// from a SELECT scan).
+	if sqlText, swallow, ok := literalDBEvalProcBody(body); ok {
+		tp.emitLine("// db func %s %s (literal-SQL db-eval UDF%s)", name, procName, map[bool]string{true: ", catch form", false: ""}[swallow])
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		if swallow {
+			tp.emitLine("\t%s.Exec(%q)", tp.dbVar, sqlText)
+		} else {
+			tp.emitLine("\tif r := %s.Exec(%q); r.Error != nil { return nil, r.Error }", tp.dbVar, sqlText)
+		}
+		tp.emitLine("\treturn nil, nil")
+		tp.emitLine("}, 0, -1)")
+		return true
+	}
 	// f2 shape: ... if {$a == "three"} { error "Three!!" } ... return $a
 	if strings.EqualFold(name, "f2") && strings.EqualFold(procName, "f2") &&
 		strings.Contains(body, `error "Three!!"`) && strings.Contains(body, "return $a") {
@@ -1568,4 +1588,60 @@ var recoverProcNames = map[string]bool{
 // precedence rule as recoverProcNames).
 var sideEffectOnlyProcs = map[string]bool{
 	"execsqlS": true,
+}
+
+// stripOneBraced strips one balanced {...} layer from the start of s and
+// returns the content. A proc body stored via raw word text can be missing
+// its final closing brace (lexer artifact on nested braced words —
+// tkt-f777251dc7a's `catch {db eval {...}}` stored with one trailing "}"),
+// so a single unclosed open brace is tolerated as the word's terminator.
+func stripOneBraced(s string) (string, bool) {
+	if len(s) == 0 || s[0] != '{' {
+		return "", false
+	}
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return s[1:i], true
+			}
+		}
+	}
+	if depth == 1 {
+		return s[1:], true
+	}
+	return "", false
+}
+
+// literalDBEvalProcBody recognizes a TCL proc body whose entire content is a
+// single `db eval {SQL}` command, optionally wrapped in `catch {...}`, where
+// SQL is a literal script (no variable references). It returns the SQL text,
+// whether the call was error-swallowing (catch), and whether the body matched.
+func literalDBEvalProcBody(body string) (sqlText string, swallow bool, ok bool) {
+	body = strings.TrimSpace(body)
+	if body == "catch" || strings.HasPrefix(body, "catch ") {
+		swallow = true
+		inner, ok2 := stripOneBraced(strings.TrimSpace(body[len("catch"):]))
+		if !ok2 {
+			return "", false, false
+		}
+		body = strings.TrimSpace(inner)
+	}
+	if !strings.HasPrefix(strings.ToLower(body), "db eval ") {
+		return "", false, false
+	}
+	rest := strings.TrimSpace(body[len("db eval "):])
+	inner, ok2 := stripOneBraced(rest)
+	if !ok2 {
+		return "", false, false
+	}
+	sqlText = strings.TrimSpace(inner)
+	if sqlText == "" || strings.Contains(sqlText, "$") {
+		return "", false, false
+	}
+	return sqlText, swallow, true
 }
