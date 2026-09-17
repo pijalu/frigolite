@@ -1824,3 +1824,17 @@ rows/iter × 10B); all other workloads ≤37B/iter noise; probe peak RSS
 `go test -tags testgen ./testgen/...` spawns up to GOMAXPROCS package
 binaries × concurrent agents. Fleet protocol v2 caps `-p 2` + named
 packages only.
+
+### T24 close run (2026-09-17)
+Census stamp 2026-09-16T22:43:11Z (-concurrency 3), ledger re-seeded, all
+20 timeout-suspects serially adjudicated (-timeout 900s): 10 slow-but-green
+→ pass (avtrans 158s, fts3b 91s, fts3defer 65s, fts4check 136s,
+fts5bigpl 70s, intarray 55s, rtreeH 146s, speed1p 487s, tkt_d11f09d36e
+125s, vtabH 130s); 10 confirmed fail in already-adjudicated classes
+(fts4merge, fts4merge4 = FTS-RESIDUE/btree blocker; fts5aj, fts5bigid,
+fts5contentless2, fts5delete, fts5merge, fts5optimize, fts5prefix =
+P6.FTS5/P9.PERF slow class; trans2 genuine red). Final: 950 pass / 126
+fail / 287 skip of 1363, 0 timeout-suspects, `tools/status --check` PASS.
+Note: the first census attempt's cache was clobbered by pointing `-out` at
+last_run.json — the run writes the cache itself; `-out` is for the report
+only (lesson recorded).
