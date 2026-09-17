@@ -6544,3 +6544,45 @@ Transpiler/harness:
   (-DSQLITE_ENABLE_FTS3/4 + shell.c), diff trace prints against engine
   logs — settles in minutes what code-reading suggests in hours. go-test
   timeouts masquerade as hangs: instrument the loop with a counter first.
+
+## 2026-09-17 (T26-corrupt): hexio corruption-family lessons
+
+- **openPager must never adopt unvalidated header fields**: a crafted
+  page-size field (power-of-two/512..65536 check, btree.c lockBtree) must
+  defer like a parse error (headerCorrupt) — `make([]byte, ps)` panics
+  before ValidateHeader ever runs. First statement then reports
+  "file is not a database" (oracle-verified error 26).
+- **Schema-load row validation lives at preflight, per statement** (port of
+  prepare.c sqlite3InitCallback): rootpage > page count → "malformed
+  database schema (NAME) - invalid rootpage"; unparseable CREATE text →
+  named parser error; duplicate index rootpage among same-table indexes →
+  invalid rootpage (build.c:4389, NOT gated by bExtraSchemaChecks). PRAGMA
+  statements skip the check (C does not read the schema preparing a
+  PRAGMA) — otherwise `PRAGMA writable_schema=ON` batches abort before the
+  flag flips. With writable_schema ON every violation becomes the GENERIC
+  "database disk image is malformed" (corruptSchema SQLITE_WriteSchema
+  branch) — verified with `sqlite3 -bail` (the default CLI CONTINUES after
+  a failed first statement, silently masking the error and faking
+  "success" for later statements — always bail-mode the oracle when
+  adjudicating).
+- **integrity_check findings are capped at 100** (pragma.c
+  SQLITE_INTEGRITY_CHECK_ERROR_MAX): uncapped "Page N: never used" scans
+  multiply into minutes on sparse hexio images (a write far past EOF makes
+  FilePageCount millions). C parity + performance in one line.
+- **Freelist leaf beyond EOF grows the page count** (pager dbSize growth on
+  write); corruptF's root-from-freelist at page 6 then passes rootpage
+  validation. Pager partial final page reads zero-fill (pager.c) — do not
+  error EOF.
+- **Known write-path bug (btree-writes goal)**: frigolite's balance/split
+  never re-parents ptrmap entries (btree.c:8780/8950/9028 ptrmapPut have
+  no counterpart), so autovacuum relocation later fails "parent does not
+  reference child" on pristine DBs (corruptB-3.1.1). Also error-free page
+  allocation is needed to surface freelist-pop corruption (corruptL-5.x) —
+  AllocatePage returns *Page only.
+- **tcl2go drift**: regenerating a stale generated file pulls the CURRENT
+  helper/emitter semantics — testgen/corrupt's catchsql `set x {}`
+  pattern now renders want="{}" (normalizeExpectedWord's empty-brace rule
+  for update/fkey2) against got="" — 7 assertions flip per 1005-iteration
+  loop. When a stale package needs one skip, hand-patch the generated file
+  to the exact post-skip shape instead of regenerating through drifted
+  emitters, and note the drift for the next full-regeneration tranche.

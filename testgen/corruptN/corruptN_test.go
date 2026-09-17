@@ -1175,11 +1175,7 @@ func Test_corruptN(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		{ // "4.2"
-			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
-			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
-			}
+		{ // "corruptN-4.2" — skipped: oracle-divergent: oracle 3.51 rejects swapped autoindex rootpages (generic corrupt), test targets a tolerant version and expects success
 		}
 	}
 	db.Close()
@@ -1202,11 +1198,7 @@ func Test_corruptN(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(b) VALUES(zeroblob(300)),(zeroblob(300)),(zeroblob(300)),(zeroblob(300));\n  CREATE TABLE t2(a);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN DELETE FROM t2; END;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET rootpage=3 WHERE rowid=2;\n  PRAGMA writable_schema=RESET;\n  INSERT INTO t2 VALUES('active'),('boomer'),('atom'),('atomic'),\n         ('alpha channel backup abandon test aback boomer atom alpha active');\n")
 		}
 	}
-	{ // "6.1"
-		_res = db.Exec("\n  UPDATE t1 SET b=zeroblob(299);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  UPDATE t1 SET b=zeroblob(299);\n")
-		}
+	{ // "corruptN-6.1" — skipped: oracle-divergent: oracle 6.0 setup fails malformed on 3.51 before 6.1 can run; version-specific (no-side-effects)
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -1221,11 +1213,7 @@ func Test_corruptN(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- Make \"t1\" a large table. Large enough that the children of the root\n  -- node are interior nodes.\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<500\n  )\n  INSERT INTO t1 SELECT zeroblob(300) FROM s;\n  \n  CREATE TABLE t2(y);\n  CREATE TRIGGER tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t2;\n  END;\n  \n  -- Set the root of table t2 to 137 - the leftmost child of the root of t1.\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_schema SET rootpage = 137 WHERE name='t2';\n  PRAGMA writable_schema = RESET;\n")
 		}
 	}
-	{ // "6.3"
-		_res = db.Exec("\n  -- Run an UPDATE on t1 that will hit a child of page 136. Have the trigger\n  -- clear page 136 and its children. Assert fails.\n  UPDATE t1 SET x='hello world' WHERE rowid=1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  -- Run an UPDATE on t1 that will hit a child of page 136. Have the trigger\n  -- clear page 136 and its children. Assert fails.\n  UPDATE t1 SET x='hello world' WHERE rowid=1;\n")
-		}
+	{ // "corruptN-6.3" — skipped: oracle-divergent: oracle 3.51 executes the UPDATE successfully (upstream assert fixed); version-specific (no-side-effects)
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -1240,28 +1228,10 @@ func Test_corruptN(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  CREATE TABLE p1(x PRIMARY KEY);\n  CREATE TABLE c1(y);\n\n  PRAGMA schema_version = 0;\n  PRAGMA writable_schema = RESET;\n\n  INSERT INTO c1 VALUES(1000);\n  ROLLBACK;\n")
 		}
 	}
-	{ // "7.1"
-		r = db.Query("\n  PRAGMA table_info = p1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA table_info = p1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 x {} 0 {} 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "corruptN-7.1" — skipped: oracle-divergent: rolled-back p1 no longer in schema on 3.51 (table_info empty), test expects the stale-cache row (no-side-effects)
 	}
-	{ // "7.2"
-		_res = db.Exec("\n  SELECT * FROM p1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM p1;\n")
-		}
+	{ // "corruptN-7.2" — skipped: oracle-divergent: SELECT reports no such table: p1 on 3.51, test expects stale-root malformed (no-side-effects)
 	}
-	{ // "7.3"
-		_res = db.Exec("\n  PRAGMA integrity_check\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  PRAGMA integrity_check\n")
-		}
+	{ // "corruptN-7.3" — skipped: oracle-divergent: integrity_check is ok on 3.51, test expects malformed (no-side-effects)
 	}
 }
