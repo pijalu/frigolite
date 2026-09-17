@@ -6544,3 +6544,32 @@ Transpiler/harness:
   (-DSQLITE_ENABLE_FTS3/4 + shell.c), diff trace prints against engine
   logs — settles in minutes what code-reading suggests in hours. go-test
   timeouts masquerade as hangs: instrument the loop with a counter first.
+- **Regenerating a testgen package re-emits it with the CURRENT generator**
+  — stale files (last regenerated before later transpiler commits) gain
+  NEWLY-ASSERTED comparisons on regen; a package's failure count can rise
+  even when every fix is correct. Adjudicate per-assertion (skip with
+  evidence), never per-count.
+- **Stash juggling on a shared worktree can import another agent's WIP** —
+  blind `git stash pop >/dev/null` restored e_fts3 work into my tree
+  (expression_eval/fts/query/select.go +72 lines). After ANY stash cycle,
+  `git status` and diff the unexpected files; commit ONLY explicit paths
+  (never `git add -A` after a stash cycle).
+- **sqlite3JoinType consumes ALL keyword slots before validating** and the
+  grammar's 3-keyword joinop rule must pass every slot to it — error
+  messages name every keyword as written ("INNER OUTER CROSS"); a
+  short-circuiting port loses tokens after the first bad one.
+- **Correlated-aggregate promotion**: an aggregate is outer-promotable only
+  if args AND FILTER reference zero inner columns (three classifier sites
+  must agree); promoted aggregates step the OUTER rows; the nested-aggregate
+  misuse names the INNER (promoted) function, not the enclosing one.
+- **normalizeCorruptionError rewrites any message containing "out of range"**
+  into "database disk image is malformed" — new prepare-time range errors
+  need an exemption or they surface as corruption.
+- **The quality gate's file scan follows the script's own repo root** —
+  running another worktree's tools/quality_gate.sh from a base worktree
+  still scans the script's tree; compare hard violations with a manual
+  find|wc -l loop on both checkouts.
+- **helpers_test.go is a per-package COPY generated at regen time** — a
+  template fix reaches only regenerated packages; regen exactly the
+  tranche's package list (a full 1219-file regen re-asserts stale packages
+  corpus-wide and is a separate adjudication tranche).
