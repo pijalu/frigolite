@@ -311,23 +311,6 @@ func (e *SelectEngine) validateSubqueryInnerSelect(subq *sql.Subquery) error {
 	return e.validateSelectExprs(subq.Select)
 }
 
-// nestedSubqueryPromotedAgg returns the name of an aggregate inside a FROM
-// subquery of the given SELECT that references columns outside that inner
-// level's own FROM (a promoted aggregate), or "".
-func (e *SelectEngine) nestedSubqueryPromotedAgg(s *sql.SelectStmt) string {
-	for cur := s; cur != nil; cur = cur.Union {
-		if cur.From.Subquery != nil {
-			if name := e.subqueryOuterAggRef(cur.From.Subquery); name != "" {
-				return name
-			}
-			if name := e.nestedSubqueryPromotedAgg(cur.From.Subquery); name != "" {
-				return name
-			}
-		}
-	}
-	return ""
-}
-
 // validateSubqueryNode validates a scalar subquery's column count and nested
 // SELECT.
 func (e *SelectEngine) validateSubqueryNode(v *sql.Subquery, rowValueOK bool) error {

@@ -644,16 +644,6 @@ func (e *Engine) SetForeignKeys(b bool) { e.settings.foreignKeys = b }
 // ColumnLimit reports the SQLITE_LIMIT_COLUMN setting.
 func (e *Engine) ColumnLimit() int { return e.settings.columnLimit }
 
-// CompoundSelectLimit reports the SQLITE_LIMIT_COMPOUND_SELECT setting
-// (sqlite3_limit's default of 500 caps UNION/INTERSECT/EXCEPT chains).
-func (e *Engine) CompoundSelectLimit() int {
-	n := e.settings.compoundSelectLimit
-	if n <= 0 {
-		n = 500
-	}
-	return n
-}
-
 // LengthLimit reports the SQLITE_LIMIT_LENGTH setting.
 func (e *Engine) LengthLimit() int { return e.settings.lengthLimit }
 
@@ -985,26 +975,4 @@ func (e *Engine) Synchronous(schema, value string) *execpragma.Result {
 		lvl = 3 // default safety_level: FULL+1 → getter reports 2
 	}
 	return &execpragma.Result{Rows: [][]interface{}{{lvl - 1}}}
-}
-
-// parseSafetyLevel mirrors pragma.c getSafetyLevel:72 (dflt=1): a numeric
-// value is taken verbatim; the recognized words map through the
-// "onoffalseyestruextrafull" table; anything else is NORMAL (1). The
-// caller applies the (v+1)&3 mask.
-func parseSafetyLevel(value string) int64 {
-	v := strings.TrimSpace(value)
-	if n, err := strconv.Atoi(v); err == nil {
-		return int64(n)
-	}
-	switch strings.ToLower(v) {
-	case "on", "yes", "true":
-		return 1
-	case "no", "off", "false":
-		return 0
-	case "extra":
-		return 3
-	case "full":
-		return 2
-	}
-	return 1
 }
