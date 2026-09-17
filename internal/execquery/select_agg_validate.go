@@ -662,6 +662,12 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	if err := e.validateGroupByExprs(s); err != nil {
 		return err
 	}
+	if err := e.validateClauseFunctions(s.GroupBy); err != nil {
+		return err
+	}
+	if err := e.validateClauseFunctions([]sql.Expr{s.Having}); err != nil {
+		return err
+	}
 	if err := e.validateHavingExprs(s); err != nil {
 		return err
 	}
@@ -947,6 +953,35 @@ func (e *SelectEngine) validateGroupByExprs(s *sql.SelectStmt) error {
 	for _, gb := range s.GroupBy {
 		if nested := FindAggregateInExpr(gb); nested != "" {
 			return fmt.Errorf("aggregate functions are not allowed in the GROUP BY clause")
+		}
+	}
+	return nil
+}
+
+// validateClauseFunctions rejects GROUP BY/HAVING terms that call an unknown
+// function. The group-key evaluation swallows evaluation errors (a term that
+// errors groups by NULL) and a HAVING reference to an unknown function
+// otherwise slips past prepare, so the SQLite prepare-time name resolution
+// ("no such function: z", select5-2.2/2.4) must happen up front. Window
+// functions (OVER) are validated elsewhere.
+func (e *SelectEngine) validateClauseFunctions(clauses []sql.Expr) error {
+	for _, expr := range clauses {
+		if expr == nil {
+			continue
+		}
+		unknown := ""
+		WalkExprFull(expr, func(n sql.Expr) {
+			if unknown != "" {
+				return
+			}
+			if fn, ok := n.(*sql.FuncCall); ok && fn.Over == nil {
+				if _, found := e.ctx.Functions().Find(fn.Name); !found {
+					unknown = fn.Name
+				}
+			}
+		})
+		if unknown != "" {
+			return fmt.Errorf("no such function: %s", unknown)
 		}
 	}
 	return nil

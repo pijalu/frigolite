@@ -695,7 +695,14 @@ func (v *joinOnValidator) validateJoins() error {
 // (select.c:7552), a reference to a table absent from the FROM entirely is
 // "no such column: <table>.<column>" (vtab6-3.6). References joined so far
 // and trigger row aliases pass.
-func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr) string {
+//
+// The right-reference restriction applies only when this ON's join processes
+// its operand outer-join-style (LEFT/RIGHT/FULL) or the query contains a
+// RIGHT/FULL join (JT_LTORJ: every operand left of a RIGHT JOIN is
+// restricted — build.c sqlite3SrcListShiftJoinType). The ON of a plain
+// INNER/CROSS join may reference tables to its right
+// (forum 687b0bf563a1d4f1, join8-13000).
+func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr, allowRightRefs bool) string {
 	var bad string
 	walkJoinOnExpr(on, func(e2 sql.Expr) {
 		cr, ok := e2.(*sql.ColumnRef)
@@ -703,18 +710,23 @@ func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr) string {
 			return
 		}
 		// Strip a schema prefix and compare case-insensitively against the
-		// FROM operands (sqlite3 name resolution is case-insensitive).
+		// FROM operands (sqlite3 name resolution is case-insensitive). A
+		// schema-qualified OPERAND ("FROM main.t4 JOIN aux1.t4 ...") also
+		// registers its raw name, so match both spellings (selectD-2.4).
 		t := strings.ToLower(cr.Table)
+		raw := t
 		if dot := strings.LastIndexByte(t, '.'); dot >= 0 {
 			t = t[dot+1:]
 		}
 		switch {
 		case t == "new" || t == "old":
 			// trigger row aliases
-		case v.available[t]:
+		case v.available[t] || v.available[raw]:
 			// joined so far
-		case v.fullTables[t]:
-			bad = "ON clause references tables to its right"
+		case v.fullTables[t] || v.fullTables[raw]:
+			if !allowRightRefs {
+				bad = "ON clause references tables to its right"
+			}
 		default:
 			bad = fmt.Sprintf("no such column: %s.%s", cr.Table, cr.Name)
 		}
@@ -742,7 +754,7 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 		}
 		return nil
 	}
-	if bad := v.classifyQualifiedOnRefs(join.On); bad != "" {
+	if bad := v.classifyQualifiedOnRefs(join.On, !v.shouldValidateOn(join)); bad != "" {
 		return fmt.Errorf("%s", bad)
 	}
 	// The legacy unqualified-reference and ON-subquery checks keep their

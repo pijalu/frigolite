@@ -580,16 +580,24 @@ func joinKind(v interface{}) string {
 // without JT_LEFT/JT_RIGHT ("OUTER JOIN") has no meaning — each reports
 // "unknown join type: <keywords as written>" (select.c:309, vtab6-3.7).
 func combineJoinKeywords(kws ...string) (string, error) {
-	mask, err := joinKeywordMask(kws)
-	if err != nil {
-		return "", err
+	mask, errFlag := joinKeywordMask(kws)
+	// select.c sqlite3JoinType consumes ALL keyword tokens BEFORE validating:
+	// the error condition checks the final mask (INNER with OUTER, OUTER
+	// without LEFT/RIGHT) OR the JT_ERROR flag from an unrecognized keyword,
+	// and the message always names every keyword slot as written —
+	// "INNER OUTER CROSS" and "NATURAL AWK SED" name all three (join-1.2.x).
+	if errFlag ||
+		mask&(jtInner|jtOuter) == jtInner|jtOuter ||
+		mask&jtOuter != 0 && mask&(jtLeft|jtRight) == 0 {
+		return "", fmt.Errorf("unknown join type: %s", strings.Join(nonEmpty(kws), " "))
 	}
 	return normalizedJoinType(mask, kws)
 }
 
-// joinKeywordMask ORs the keyword masks, rejecting unrecognized keywords
-// (select.c's JT_ERROR path).
-func joinKeywordMask(kws []string) (int, error) {
+// joinKeywordMask ORs the keyword masks. An unrecognized keyword sets the
+// error flag and stops mask accumulation (select.c sets JT_ERROR and breaks)
+// but the remaining tokens still render in the error message.
+func joinKeywordMask(kws []string) (int, bool) {
 	mask := 0
 	for _, kw := range kws {
 		if kw == "" {
@@ -597,11 +605,11 @@ func joinKeywordMask(kws []string) (int, error) {
 		}
 		m := joinKindMask(kw)
 		if m == 0 {
-			return 0, fmt.Errorf("unknown join type: %s", strings.Join(nonEmpty(kws), " "))
+			return mask, true
 		}
 		mask |= m
 	}
-	return mask, nil
+	return mask, false
 }
 
 // normalizedJoinType validates the JT_* combination and renders the

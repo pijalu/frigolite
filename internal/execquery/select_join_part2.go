@@ -19,7 +19,17 @@ func (e *SelectEngine) collectJoinMergedColumns(s *sql.SelectStmt, names map[str
 		return
 	}
 	var leftColSets [][]string
-	addLeft := func(tn string) {
+	// Operands resolve by their REAL table (an alias names no schema table):
+	// "t1 AS t2 NATURAL RIGHT JOIN t1 AS t3" merges t1's columns on both
+	// sides (join8-6000), so the NATURAL comparison must see them.
+	operandTable := func(name, as string) string {
+		if as != "" {
+			return name
+		}
+		return name
+	}
+	addLeft := func(name, as string) {
+		tn := operandTable(name, as)
 		if tn == "" {
 			return
 		}
@@ -27,12 +37,12 @@ func (e *SelectEngine) collectJoinMergedColumns(s *sql.SelectStmt, names map[str
 			leftColSets = append(leftColSets, cols)
 		}
 	}
-	addLeft(aliasOrName(s.From.Name, s.From.As))
+	addLeft(s.From.Name, s.From.As)
 	for _, join := range s.Joins {
-		tn := aliasOrName(join.Table.Name, join.Table.As)
+		tn := operandTable(join.Table.Name, join.Table.As)
 		rightCols, err := e.tableColumnNames(tn)
 		if err != nil {
-			addLeft(tn)
+			addLeft(join.Table.Name, join.Table.As)
 			continue
 		}
 		if len(join.Using) > 0 {
