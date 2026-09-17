@@ -602,6 +602,13 @@ func Test_indexexpr1(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1400(x TEXT);\n  CREATE INDEX t1400x ON t1400(1);  -- Index on a constant\n  SELECT 1 IN (SELECT 2) FROM t1400;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1400(x TEXT);\n  CREATE INDEX t1400x ON t1400(1);  -- Index on a constant\n  SELECT 1 IN (SELECT 2) FROM t1400;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "indexexpr1-1410"
@@ -686,6 +693,13 @@ func Test_indexexpr1(t *testing.T) {
 		r = db.Query("\n  SELECT b FROM t1 WHERE lower(a)='01234' ORDER BY +b;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b FROM t1 WHERE lower(a)='01234' ORDER BY +b;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "indexexpr1-1700"

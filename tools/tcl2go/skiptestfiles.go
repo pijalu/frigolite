@@ -864,4 +864,16 @@ var skipTestFiles = map[string]string{
 	"fts5secure6":    "N-A harness (the progress-handler proc is untranspilable and stubbed always-interrupt, so every statement fails \"interrupted\"; the file pins C progress-handler call COUNTS — instrumentation with no SQL surface; the underlying interrupt-consistency contract is pinned natively in frigolite_fts5interrupt_test.go; portplan/NA_EVIDENCE.md §P6.FTS5)",
 	"fts5tokenizer2": "Genuine N/A (fts5_tcl.c dynamic tokenizer registration sqlite3_fts5_create_tokenizer — the 'tst' tokenizer is implemented in TCL; no engine tokenizer-registration seam; portplan/NA_EVIDENCE.md §P6.FTS5)",
 	"fts5tokenizer3": "Genuine N/A (fts5_tcl.c dynamic tokenizer registration sqlite3_fts5_create_tokenizer -parent/-v2 — 'lowercase'/'split_on_dot' tokenizers implemented in TCL; no engine tokenizer-registration seam; portplan/NA_EVIDENCE.md §P6.FTS5)",
+
+	// (d) N/A harness — FULL-SUITE-DRIFT.T26-dml: C-library initialization
+	// fault injection. init.test's entire residue (init-1.1..1.4) drives
+	// test_init.c's init_wrapper_install (SQLITE_MUTEX/SQLITE_MEM/pcache
+	// init overrides) through the C-API commands sqlite3_initialize /
+	// sqlite3_shutdown / init_wrapper_query / init_wrapper_clear /
+	// init_wrapper_uninstall — every assertion body is one of those
+	// untranspiled commands, and the assertions only observe which C
+	// subsystems started. The pure-Go engine has no C initialization state
+	// machine to inject faults into (no engine-visible SQL contract; the
+	// generated test has zero db.Query/db.Exec calls).
+	"init": "N-A harness (sqlite3_initialize/sqlite3_shutdown + test_init.c init_wrapper fault injection — SQLITE_MUTEX/mem/pcache init overrides; every assertion body is an untranspiled C-API command and the wants observe C init state, no SQL surface in the pure-Go engine)",
 }

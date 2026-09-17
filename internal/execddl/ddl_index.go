@@ -60,9 +60,36 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		return &Result{Error: fmt.Errorf("unknown database %s", schemaPrefixOf(s.Name))}
 	}
 
+	// build.c sqlite3CheckObjectName: the "sqlite_" prefix is reserved for
+	// internal objects in every namespace, including indexes
+	// ("object name reserved for internal use: sqlite_i1", index.test 7.x).
+	if res := e.validateReservedName(indexName); res != nil {
+		return res
+	}
+
 	tableEntry, tableCtx, err := e.resolveIndexTable(ctx, s)
 	if err != nil {
 		return &Result{Error: err}
+	}
+
+	// build.c sqlite3CreateIndex: a TEMP-schema index cannot index a table
+	// that lives in another schema ("cannot create a TEMP index on non-TEMP
+	// table \"t6\"", index.test 12.x). It must fire before any schema
+	// entry is written: the failed CREATE must not register the index.
+	// The engine's FindTable resolves unqualified names temp-first with a
+	// main fallback, so the resolved tableCtx is not evidence that the table
+	// lives in temp: query the temp schema STRICTLY (build.c compares the
+	// table's own schema with the index's iDb==1).
+	if ctx.IsTemp {
+		inTemp := false
+		if tc := e.ctx.GetDB("temp"); tc != nil {
+			if _, terr := tc.Schema.FindTable(s.Table); terr == nil {
+				inTemp = true
+			}
+		}
+		if !inTemp {
+			return &Result{Error: fmt.Errorf("cannot create a TEMP index on non-TEMP table %q", tableEntry.Name)}
+		}
 	}
 
 	// SQLite refuses to index tables whose names begin with "sqlite_"
@@ -98,6 +125,13 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		if existing, _ := ctx.Schema.FindIndex(indexName); existing != nil {
 			return &Result{Error: fmt.Errorf("index %s already exists", indexName)}
 		}
+	}
+
+	// build.c sqlite3CreateIndex: an index name must not collide with a
+	// table name in the same schema ("there is already a table named
+	// test1", index.test 6.2).
+	if _, terr := ctx.Schema.FindTable(indexName); terr == nil {
+		return &Result{Error: fmt.Errorf("there is already a table named %s", indexName)}
 	}
 
 	if res := e.validateIndexExpressions(s, colDefs); res != nil {
@@ -546,6 +580,11 @@ func (e *DDLExecutor) resolveIndexTable(ctx *DatabaseContext, s *sql.CreateIndex
 		if _, _, vErr := e.ctx.FindView(s.Table); vErr == nil {
 			return nil, nil, fmt.Errorf("views may not be indexed")
 		}
+		// build.c sqlite3LocateTableItem reports the schema-qualified name
+		// ("no such table: main.test1", index.test 2.1).
+		if !strings.Contains(s.Table, ".") && ctx != nil && ctx.Name != "" {
+			return nil, nil, fmt.Errorf("no such table: %s.%s", ctx.Name, s.Table)
+		}
 		return nil, nil, err
 	}
 	// If the index has an explicit schema prefix, the table must be resolved
@@ -587,7 +626,7 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 	// functions, and other prohibited constructs in index expressions
 	// (build.c sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction).
 	for _, term := range s.Terms {
-		if err := validateIndexColumnRefs(term.Expr, colDefs); err != nil {
+		if err := e.validateIndexColumnRefs(term.Expr, colDefs); err != nil {
 			return &Result{Error: err}
 		}
 		if err := validateIndexKeyExpr(term.Expr); err != nil {
@@ -595,7 +634,7 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 		}
 	}
 	if s.Where != nil {
-		if err := validateIndexColumnRefs(s.Where, colDefs); err != nil {
+		if err := e.validateIndexColumnRefs(s.Where, colDefs); err != nil {
 			return &Result{Error: err}
 		}
 	}
@@ -730,10 +769,11 @@ func (e *DDLExecutor) indexKeyForCreate(row RowMap, colDefs []sql.ColumnDef, key
 // term or partial-index WHERE clause against the table's column definitions
 // (build.c: "no such column: x"; index7-1.5 — an unresolved column must fail
 // the CREATE INDEX, not leak the index entry).
-func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef) error {
+func (e *DDLExecutor) validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef) error {
 	if len(colDefs) == 0 || expr == nil {
 		return nil
 	}
+	dqs := e.dqsAllowedDDL()
 	var err error
 	execquery.WalkExprFull(expr, func(n sql.Expr) {
 		if err != nil {
@@ -757,6 +797,14 @@ func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef) error {
 			if strings.EqualFold(cd.Name, ref.Name) {
 				return
 			}
+		}
+		// DQS (resolve.c areDoubleQuotedStringsEnabled): an unresolvable
+		// double-quoted identifier is a string literal when DQS is enabled
+		// for DDL — the legacy default the corpus runs with
+		// (indexexpr1-2100: CREATE INDEX x1 ON t1( \"y\" )). Unquoted
+		// names stay hard errors.
+		if ref.Quoted && dqs {
+			return
 		}
 		err = fmt.Errorf("no such column: %s", ref.Name)
 	})

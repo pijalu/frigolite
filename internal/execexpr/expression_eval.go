@@ -159,6 +159,16 @@ func (ev *Evaluator) evalUnqualifiedColumnRef(v *sql.ColumnRef, row Row) (interf
 	if val, ok := ev.rowLookupUnqualified(v.Name, row); ok {
 		return val, nil
 	}
+	// The unquoted keywords TRUE/FALSE are boolean literals (TK_TRUEFALSE,
+	// SQLite 3.23+). The expression grammar leaves them as bare ColumnRefs,
+	// so resolve them here when no column of that name exists
+	// (index.test 23.1: INSERT ... VALUES (FALSE)).
+	if !v.Quoted && isBooleanLiteralName(v.Name) {
+		if strings.EqualFold(v.Name, "TRUE") {
+			return int64(1), nil
+		}
+		return int64(0), nil
+	}
 	// Output-column aliases: when the name is not a table column, SQLite
 	// resolves an unqualified reference to the SELECT-list alias expression
 	// (e.g. "SELECT a AS x ... WHERE x>3" → WHERE evaluates the expression a).
@@ -186,6 +196,12 @@ func (ev *Evaluator) evalUnqualifiedColumnRef(v *sql.ColumnRef, row Row) (interf
 		return nil, fmt.Errorf("no such column: \"%s\" - should this be a string literal in single-quotes?", v.Name)
 	}
 	return nil, nil
+}
+
+// isBooleanLiteralName reports whether a bare identifier is one of the
+// boolean-literal keywords TRUE/FALSE (case-insensitive).
+func isBooleanLiteralName(name string) bool {
+	return strings.EqualFold(name, "TRUE") || strings.EqualFold(name, "FALSE")
 }
 
 // evalInListOperand evaluates an IN list against a pre-evaluated operand.
@@ -310,6 +326,7 @@ func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, 
 			return ev.evalLikeFunction(args)
 		}
 		if strings.EqualFold(f.Name, "GLOB") && len(args) == 2 {
+			bumpLikeCallCount()
 			return boolToInt(globValues(args[0], args[1])), nil
 		}
 		if strings.EqualFold(f.Name, "REGEXP") && len(args) == 2 {

@@ -1825,6 +1825,7 @@ rows/iter × 10B); all other workloads ≤37B/iter noise; probe peak RSS
 binaries × concurrent agents. Fleet protocol v2 caps `-p 2` + named
 packages only.
 
+
 ### T24 close run (2026-09-17)
 Census stamp 2026-09-16T22:43:11Z (-concurrency 3), ledger re-seeded, all
 20 timeout-suspects serially adjudicated (-timeout 900s): 10 slow-but-green
@@ -1838,3 +1839,76 @@ fail / 287 skip of 1363, 0 timeout-suspects, `tools/status --check` PASS.
 Note: the first census attempt's cache was clobbered by pointing `-out` at
 last_run.json — the run writes the cache itself; `-out` is for the report
 only (lesson recorded).
+
+### T26-dml tranche (2026-09-17): DML/index residue family — 12 testgen packages
+
+Goal: flip insert, delete2, delete_pkg, like, limit, in3, index, indexedby,
+indexexpr1, init, e_fkey, fkey8. Baseline 183 failing assertions.
+
+FIXED (engine, oracle-verified against the sqlite3 corpus run):
+
+- in3 (101→0). (a) tclExprWith gained TCL expr math functions
+  (log/sqrt/pow/...; foldTclMathFuncs) — int(log($i)/log(2)) no longer leaks
+  raw text into SQL. (b) Subquery FROM relations now resolve at prepare time
+  (validateFromRelations hooked into validateSubqueryInnerSelect): an empty
+  target table no longer hides a missing table in a WHERE IN-subquery
+  (in3-5.2).
+- e_fkey (25→0) + fkey8 (1→0). (a) ON UPDATE CASCADE loop bug: the cascade
+  recursion returned a zero-value Result that the per-child loop treated as
+  failure, ending after the first child — normalize to nil and continue
+  (fkey8-7.4: both children of one parent cascade; e_fkey-48.2). (b)
+  ValidateDMLTableFKs: fk.c sqlite3FkCheck parity — child-side FKs resolve at
+  prepare ("no such table: main.X") and parent-side children locate the
+  parent key ("foreign key mismatch - child referencing parent"), with the
+  fkey.c single-row-VALUES skip for the parent-side check. (c) fkParentKey
+  collation rule: a UNIQUE index cannot serve a parent key when its explicit
+  COLLATE differs from the column's declared collation (e_fkey-19.x/20.x
+  child4/5, c4/c5). (d) DELETE FK actions moved to the row-delete point in
+  the trigger path — RESTRICT fires before AFTER triggers can repair the
+  children (e_fkey-42.5).
+- insert (1→0): validateInsertValuesExprs — a VALUES tuple has no source row;
+  any column reference is a prepare-time "no such column" (insert-14.x).
+- index (8→0): reserved sqlite_ names for INDEX/VIEW/TRIGGER; index-name vs
+  table-name collision ("there is already a table named"); TEMP index on a
+  non-TEMP table (checked strictly against the temp schema, before any
+  registration — index-21.x); schema-qualified "no such table: main.X" for
+  CREATE INDEX; conflicting ON CONFLICT clauses (normalizeConflictAction
+  tolerates the parser's stray text); unquoted TRUE/FALSE resolve as boolean
+  literals in index key refs and INSERT VALUES (index-23.1).
+- indexedby (1→0): INDEXED BY against a VIEW reports "no such index"
+  (indexedby-6.4).
+- limit (4→0): LIMIT/OFFSET expressions resolve at prepare time — column
+  refs are "no such column", builtin arity mismatches error (limit-12.x).
+- indexexpr1 (1→0 on its own failure): expression-index UNIQUE keys unwrap
+  the CollatedValue wrapper before comparison — comparing wrapper structs
+  made ANY second row of an expression index conflict (indexexpr1-4.x).
+- like (22→13): sqlite3_like_count instrumentation (db.LikeCallCount /
+  ResetLikeCallCount, incremented at every LIKE/GLOB evaluation site);
+  tcl2go emits counter reads/writes for the TCL-linked variable; queryplan
+  and sqlite3_exec_hex are now transpiled (exec_hex decodes %HH and returns
+  rc + column names + rows); the string-match MATCH overload is emitted as a
+  real UDF and the MATCH operator consults a registered match/2 function
+  outside FTS.
+
+SKIPPED with evidence (tools/tcl2go skip maps):
+
+- init (whole file): N-A harness — sqlite3_initialize/shutdown +
+  test_init.c init_wrapper fault injection; every assertion body is an
+  untranspiled C-API command observing C init state; zero SQL surface.
+- delete-9.2/9.3/9.5, delete2-2.2: N-A mid-scan DML visibility —
+  sqlite3_step cursor re-validation artifact unobservable through the
+  materializing Go API (same adjudication as fts5restart 4.x / rtree8).
+- indexexpr1-2100/2110: DQS legacy double-quoted-string fallback enabled in
+  the corpus run; frigolite implements the strict SQLITE_DQS=0 contract.
+
+RESIDUE (engine gap — like-opt scan, SELECT-core owner):
+
+- like 13 assertions (3.6/3.8/3.10/3.20/3.22/3.24/3.3.100.cnt/3.3.105/
+  3.3.106/4.2/5.4/5.14/9.5.1) need like.c's range synthesis: when the
+  like-opt applies, the like() call is ELIDED and the INDEX RANGE enforces
+  the prefix. The detection + counter now exist
+  (collectLikeRef / db.LikeCallCount()); what is missing is index range
+  scanning in the single-table scan — eliding without enforcing the range
+  breaks result correctness (verified: `x LIKE 'x%'` then returns every
+  row). Contract and reproduction are pinned in
+  frigolite_dml_t26_pin_test.go TestSQLiteLikeCallCounterPin.

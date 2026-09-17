@@ -308,6 +308,13 @@ func (e *SelectEngine) validateSubqueryInnerSelect(subq *sql.Subquery) error {
 		e.cteScopes = append(e.cteScopes, subq.Select.CTEs)
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
+	// resolve.c resolves the subquery's FROM relations at prepare time —
+	// before any row of the enclosing statement is read (in3-5.2: a DELETE
+	// with an empty target must still report "no such table: Folder" from
+	// its WHERE IN-subquery).
+	if err := e.validateFromRelations(subq.Select); err != nil {
+		return err
+	}
 	return e.validateSelectExprs(subq.Select)
 }
 
@@ -880,6 +887,7 @@ func (e *SelectEngine) checkNoFromRef(ref *sql.ColumnRef) error {
 	if ref.Quoted {
 		return nil
 	}
+
 	return fmt.Errorf("no such column: %s", ref.Name)
 }
 

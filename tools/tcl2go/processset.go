@@ -358,6 +358,17 @@ func (tp *transpiler) setHarnessPinnedVar(goName string, rest []tcl.RawWord) boo
 		tp.emitLine("db.SetInterruptCount(tclInt(sqlite_interrupt_count))")
 		tp.emitLine("_ = sqlite_interrupt_count // suppress unused warning")
 		return true
+	case "sqlite_like_count":
+		// sqlite_like_count is the engine's LIKE/GLOB invocation counter
+		// (func.c sqlite3_like_count, TCL-linked in tester.tcl): writes
+		// reset the counter, and reads (emitSetVarResultCheck) come from
+		// the engine, so the LIKE optimization is observable exactly as in
+		// SQLite (like.test 3.x).
+		valExpr := tp.buildStringExpr(rest[0].Text)
+		tp.emitLine("sqlite_like_count = %s", valExpr)
+		tp.emitLine("db.ResetLikeCallCount()")
+		tp.emitLine("_ = sqlite_like_count // suppress unused warning")
+		return true
 	}
 	return false
 }

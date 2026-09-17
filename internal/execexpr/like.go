@@ -4,10 +4,30 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/value"
 )
+
+// likeCallCount mirrors func.c's SQLITE_TEST sqlite3_like_count: the number
+// of times the built-in LIKE/GLOB comparison runs. The LIKE optimization
+// (an index range scan replacing a prefix LIKE) removes the per-row
+// invocation entirely, so the counter observes the optimization exactly the
+// way SQLite's linked TCL variable sqlite_like_count does (like.test 3.x:
+// 12 calls without the optimization, 0 calls with it).
+var likeCallCount int64
+
+// LikeCallCount reports the number of LIKE/GLOB comparisons evaluated since
+// the last reset (func.c sqlite3_like_count under SQLITE_TEST).
+func LikeCallCount() int64 { return atomic.LoadInt64(&likeCallCount) }
+
+// ResetLikeCallCount zeroes the LIKE/GLOB invocation counter
+// (tester.tcl: set sqlite_like_count 0).
+func ResetLikeCallCount() { atomic.StoreInt64(&likeCallCount, 0) }
+
+// bumpLikeCallCount records one LIKE/GLOB invocation.
+func bumpLikeCallCount() { atomic.AddInt64(&likeCallCount, 1) }
 
 func likeValues(str, pattern interface{}) bool {
 	s := util.SQLiteValueString(unwrapCollatedValue(str))

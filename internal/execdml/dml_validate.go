@@ -14,6 +14,15 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
+// isLiteralOrDQSRef reports whether a bare column reference is actually a
+// boolean literal (unquoted TRUE/FALSE, which the parser keeps as
+// ColumnRefs) or a double-quoted identifier the DQS_DML evaluator may turn
+// into a string literal — both are exempt from prepare-time column lookup.
+func isLiteralOrDQSRef(v *sql.ColumnRef) bool {
+	return v.Table == "" && (strings.EqualFold(v.Name, "true") ||
+		strings.EqualFold(v.Name, "false") || v.Quoted)
+}
+
 // buildDMLColumnLookup returns a case-insensitive lookup of the target
 // table's columns, plus the rowid pseudo-aliases when the table is a rowid
 // table (a WITHOUT ROWID table has no rowid/_rowid_/oid).
@@ -87,6 +96,14 @@ func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.Column
 					}
 					return
 				}
+				// Unquoted TRUE/FALSE are boolean literals (parser keeps
+				// them as ColumnRefs); a double-quoted identifier falls to
+				// the DQS_DML evaluator, which converts it to a string
+				// literal when the legacy DQS setting is on
+				// (indexexpr1-2110: WHERE (SELECT 'y') GLOB "y").
+				if isLiteralOrDQSRef(v) {
+					return
+				}
 				if !lookup[strings.ToLower(v.Name)] {
 					err = fmt.Errorf("no such column: %s", v.Name)
 				}
@@ -112,6 +129,56 @@ func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.Column
 	// DML WHERE clauses).
 	if err := e.validateDMLComparisonCollations(colDefs, exprs); err != nil {
 		return &Result{Error: err}
+	}
+	return nil
+}
+
+// validateInsertValuesExprs rejects column references inside INSERT VALUES
+// tuples: a VALUES row has no source row to read columns from (resolve.c
+// reports "no such column: X" for bare and qualified references alike).
+// Trigger-body NEW./OLD. row references stay valid, and subqueries (with
+// their own scope) are not descended into.
+func (e *DMLExecutor) validateInsertValuesExprs(s *sql.InsertStmt) *Result {
+	for _, tuple := range s.Values {
+		for _, ex := range tuple {
+			if ex == nil {
+				continue
+			}
+			var bad string
+			execquery.WalkExprFull(ex, func(n sql.Expr) {
+				if bad != "" {
+					return
+				}
+				switch v := n.(type) {
+				case *sql.Subquery, *sql.ExistsExpr:
+					return
+				case *sql.ColumnRef:
+					if strings.EqualFold(v.Table, "new") || strings.EqualFold(v.Table, "old") {
+						return
+					}
+					if v.Table == "" && (strings.EqualFold(v.Name, "true") || strings.EqualFold(v.Name, "false")) {
+						return
+					}
+					// DQS (resolve.c): a double-quoted identifier that fails
+					// column resolution becomes a string literal when DQS_DML
+					// is enabled (the legacy default). The evaluator owns the
+					// final decision, so the prepare pass tolerates quoted
+					// refs it cannot resolve (indexexpr1-2110: WHERE
+					// (SELECT 'y') GLOB "y").
+					if v.Quoted {
+						return
+					}
+					if v.Table != "" {
+						bad = v.Table + "." + v.Name
+						return
+					}
+					bad = v.Name
+				}
+			})
+			if bad != "" {
+				return &Result{Error: fmt.Errorf("no such column: %s", bad)}
+			}
+		}
 	}
 	return nil
 }

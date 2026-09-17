@@ -1192,6 +1192,13 @@ func (tp *transpiler) emitCatchsqlResultCheck(nameExpr, expectedExpr string) {
 // C-API tail pointer and the TCL braced expected may differ in leading/trailing
 // whitespace.
 func (tp *transpiler) emitSetVarResultCheck(nameExpr, expectedExpr, setVar string) {
+	// sqlite_like_count reads come from the engine's LIKE/GLOB invocation
+	// counter (func.c sqlite3_like_count, TCL-linked in tester.tcl), not the
+	// Go shadow variable — the counter observes the LIKE optimization
+	// (like.test 3.x: 12 calls without it, 0 with the index range scan).
+	if setVar == "sqlite_like_count" {
+		setVar = "tclLikeCount(db)"
+	}
 	// TCL do_test treats a /pattern/ (or ~/pattern/) expected value as a
 	// regexp (inverted) match, not literal equality — intarray-1.1b compares
 	// the registered intarray handle ("0 X5") against /0 [0-9A-Z]+/.

@@ -168,18 +168,36 @@ func Test_in3(t *testing.T) {
 		r = db.Query("\n    SELECT rowid \n    FROM t1 \n    WHERE rowid IN (SELECT rowid FROM t1 WHERE rowid IN (1, 2));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid \n    FROM t1 \n    WHERE rowid IN (SELECT rowid FROM t1 WHERE rowid IN (1, 2));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in3-2.3"
 		r = db.Query("\n    select rowid from t1 where rowid IN (-1,2,4)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select rowid from t1 where rowid IN (-1,2,4)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in3-2.4"
 		r = db.Query("\n    SELECT rowid FROM t1 WHERE rowid IN \n       (select rowid from t1 where rowid IN (-1,2,4))\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE rowid IN \n       (select rowid from t1 where rowid IN (-1,2,4))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in3-3.1"
