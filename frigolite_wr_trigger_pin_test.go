@@ -1,6 +1,9 @@
 package frigolite
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 // Pin tests for the WITHOUT ROWID trigger-path class (FULL-SUITE-DRIFT.T26):
 //  1. DROP TABLE (with triggers) followed by CREATE TABLE of the same name
@@ -102,5 +105,40 @@ func TestPin_WRTriggerMergeDeclaredOrder(t *testing.T) {
 		if got[i].(int64) != w {
 			t.Fatalf("pk-update column %d: want %d, got %v (row %v)", i, w, got[i], got)
 		}
+	}
+}
+
+// TestPin_RecursiveCTEJoinFastPath covers the recursive-CTE fast path where
+// the recursive table is the RIGHT operand of a join ("FROM t1 JOIN below ON
+// t1.y = below.id"). The base-table probe hash must materialize from the
+// base scan's Rows when rowMaps is empty — an empty hash stalled the
+// recursion at the anchor row (closure01-1.1-cte).
+func TestPin_RecursiveCTEJoinFastPath(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec(`CREATE TABLE t1(x INTEGER PRIMARY KEY, y INTEGER);
+		INSERT INTO t1 VALUES(1, NULL),(2,1),(3,1),(4,2),(5,2),(6,3),(7,3);`); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	r := db.Query(`WITH RECURSIVE below(id,depth) AS (
+		VALUES(1,0) UNION ALL
+		SELECT t1.x, below.depth+1 FROM t1 JOIN below ON t1.y = below.id
+	) SELECT id, depth FROM below ORDER BY id`)
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	want := "1 0 2 1 3 1 4 2 5 2 6 2 7 2"
+	var sb []byte
+	for _, row := range r.Rows {
+		for _, v := range row {
+			sb = append(sb, []byte(fmt.Sprintf("%v", v))...)
+			sb = append(sb, ' ')
+		}
+	}
+	if got := string(sb[:len(sb)-1]); got != want {
+		t.Fatalf("recursive CTE stalled: got [%s], want [%s]", got, want)
 	}
 }

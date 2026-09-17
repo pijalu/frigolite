@@ -164,10 +164,17 @@ func (tp *transpiler) processPuts(args []tcl.RawWord) {
 		// by the emitted `fileChannelSeek["fd"] = int64(tclAtoi(...))`)
 		// carries the correct offset. Default offset 0 matches TCL's
 		// "no seek => write at start" semantics.
+		// TCL advances a write channel's position past each written
+		// record, so emit the advance after every puts — sequential puts
+		// append instead of overwriting at the same offset (csv01-7.x:
+		// `puts $fd "a,b"` then `puts -nonewline $fd "abcd,$T"` builds a
+		// two-line file).
 		if nonewline {
 			tp.emitLine("tclChannelAppendAt(%s, %s, fileChannelSeek[%q])", dest, msgExpr, chName)
+			tp.emitLine("fileChannelSeek[%q] += int64(len(%s))", chName, msgExpr)
 		} else {
 			tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", fileChannelSeek[%q])", dest, msgExpr, chName)
+			tp.emitLine("fileChannelSeek[%q] += int64(len(%s+\"\\n\"))", chName, msgExpr)
 		}
 		return
 	}
