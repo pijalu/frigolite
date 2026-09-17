@@ -92,6 +92,10 @@ type SelectContext interface {
 	// CREATE TABLE column counts and ORDER BY/GROUP BY term counts).
 	ColumnLimit() int
 
+	// CompoundSelectLimit returns the runtime SQLITE_LIMIT_COMPOUND_SELECT
+	// value (the maximum number of terms in a compound SELECT chain).
+	CompoundSelectLimit() int
+
 	// SkipScanEnabled reports whether the skip-scan query optimization is on.
 	// Mirrors SQLite's SQLITE_SkipScan optimization_control bit. Used by the
 	// query planner's skip-scan detection.

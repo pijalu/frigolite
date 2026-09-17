@@ -110,7 +110,20 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 // name sanitizer.
 func wholeTclVarRef(s string) bool {
 	i := 0
-	for i < len(s) && isVarChar(s[i]) {
+	for i < len(s) {
+		c := s[i]
+		if c == ':' {
+			// ':' counts only as the '::' namespace separator; a LONE
+			// trailing colon is a literal (select2-1.1: "$f1:").
+			if i+1 < len(s) && s[i+1] == ':' {
+				i += 2
+				continue
+			}
+			return false
+		}
+		if !isVarChar(c) {
+			break
+		}
 		i++
 	}
 	if i == len(s) {
@@ -265,10 +278,12 @@ func (tp *transpiler) processIncr(args []tcl.RawWord) {
 	tp.emitLine("// incr %s %s", goName, amount)
 	tp.emitLine("{")
 	tp.indent++
+	// TCL `incr` on a variable holding "" (an accumulator declared but not
+	// yet set — orderby1-8.3's `incr res $a` inside a db-eval loop) starts
+	// from 0, mirroring the map-backed path below.
 	tp.emitLine("_n, _err := strconv.Atoi(%s)", goName)
-	tp.emitLine("if _err == nil {")
-	tp.emitLine("\t%s = strconv.Itoa(_n + %s)", goName, amountInt)
-	tp.emitLine("}")
+	tp.emitLine("if _err != nil { _n = 0 }")
+	tp.emitLine("%s = strconv.Itoa(_n + %s)", goName, amountInt)
 	tp.indent--
 	tp.emitLine("}")
 }

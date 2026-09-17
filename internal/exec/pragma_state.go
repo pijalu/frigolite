@@ -644,6 +644,16 @@ func (e *Engine) SetForeignKeys(b bool) { e.settings.foreignKeys = b }
 // ColumnLimit reports the SQLITE_LIMIT_COLUMN setting.
 func (e *Engine) ColumnLimit() int { return e.settings.columnLimit }
 
+// CompoundSelectLimit reports the SQLITE_LIMIT_COMPOUND_SELECT setting
+// (sqlite3_limit's default of 500 caps UNION/INTERSECT/EXCEPT chains).
+func (e *Engine) CompoundSelectLimit() int {
+	n := e.settings.compoundSelectLimit
+	if n <= 0 {
+		n = 500
+	}
+	return n
+}
+
 // LengthLimit reports the SQLITE_LIMIT_LENGTH setting.
 func (e *Engine) LengthLimit() int { return e.settings.lengthLimit }
 

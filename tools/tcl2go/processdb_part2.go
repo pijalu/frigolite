@@ -787,6 +787,11 @@ func (tp *transpiler) processNamedDBFunction(goName string, rest []tcl.RawWord) 
 	if procName == "" {
 		return
 	}
+	// A TCL proc whose body accumulates into a global variable (counter /
+	// log) — same class as processDBFunction's variable-UDF handling.
+	if tp.emitTclVarUDFFromProc(name, procName) {
+		return
+	}
 	if pred, ok := tp.predFuncs[procName]; ok && name != "" {
 		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", goName, name)
 		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")

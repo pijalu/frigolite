@@ -628,6 +628,19 @@ func (e *SelectEngine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDe
 			outRow = winResult.Rows[0]
 		}
 	}
+	// A HAVING clause without GROUP BY still filters the single aggregate
+	// row (SQLite resolves it as a one-group aggregate query — select3-3.1:
+	// "SELECT log, count(*) FROM t1 HAVING log>=4" emits no row when the
+	// predicate fails on the group's representative row).
+	if s.Having != nil {
+		match, herr := e.evalHaving(s.Having, rowMaps)
+		if herr != nil {
+			return &Result{Error: herr}
+		}
+		if !match {
+			return &Result{Columns: columns, Rows: nil}
+		}
+	}
 	return e.finalizeSelectResult(&Result{Columns: columns, Rows: [][]interface{}{outRow}}, s, nil)
 }
 

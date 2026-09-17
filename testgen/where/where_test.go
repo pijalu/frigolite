@@ -112,9 +112,8 @@ func Test_where(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n      INSERT INTO t2 SELECT 101-w, x, (SELECT max(y) FROM t1)+1-y, y FROM t1;\n    ")

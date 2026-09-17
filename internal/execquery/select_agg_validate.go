@@ -725,7 +725,27 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	// collations must be registered (build.c sqlite3LocateCollSeq; a
 	// close/reopen without re-registering a schema collation fails these
 	// with "no such collation sequence: NAME" — collate3-2.x).
-	return e.validateSchemaCollations(s)
+	if err := e.validateSchemaCollations(s); err != nil {
+		return err
+	}
+	return e.validateCompoundTermLimit(s)
+}
+
+// validateCompoundTermLimit enforces SQLITE_LIMIT_COMPOUND_SELECT (default
+// 500): a compound chain with more terms errors "too many terms in compound
+// SELECT" at prepare (select7-1.x's 501-term UNION ALL probe).
+func (e *SelectEngine) validateCompoundTermLimit(s *sql.SelectStmt) error {
+	if s.Union == nil {
+		return nil
+	}
+	n := 1
+	for cur := s.Union; cur != nil; cur = cur.Union {
+		n++
+	}
+	if limit := e.ctx.CompoundSelectLimit(); limit > 0 && n > limit {
+		return fmt.Errorf("too many terms in compound SELECT")
+	}
+	return nil
 }
 
 // checkOrderByAggMisuse rejects aggregate functions in ORDER BY when the SELECT
