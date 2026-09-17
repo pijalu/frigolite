@@ -810,6 +810,33 @@ func (db *DB) SetLastErr(msg, code string) {
 	db.engine.SetLastErr(msg, code)
 }
 
+// SetErrMsg implements sqlite3_set_errmsg: set the connection's error code
+// and message so a later sqlite3_errmsg returns msg (main.c sqlite3_set_errmsg
+// — "intended to be called by outside extensions"). A nil handle reports
+// SQLITE_MISUSE; any other handle accepts the message and reports SQLITE_OK.
+func (db *DB) SetErrMsg(errcode int, msg string) string {
+	if db == nil || db.engine == nil {
+		return "SQLITE_MISUSE"
+	}
+	db.engine.SetLastErr(msg, sqliteResultCodeName(errcode))
+	return "SQLITE_OK"
+}
+
+// sqliteResultCodeName maps the small set of numeric result codes the C-API
+// tests pass to sqlite3_set_errmsg onto their SQLITE_* names (rescode.h:
+// SQLITE_OK=0, SQLITE_ERROR=1, SQLITE_MISUSE=21); unknown codes report the
+// generic SQLITE_ERROR.
+func sqliteResultCodeName(code int) string {
+	switch code {
+	case 0:
+		return "SQLITE_OK"
+	case 21:
+		return "SQLITE_MISUSE"
+	default:
+		return "SQLITE_ERROR"
+	}
+}
+
 // LastErrCode returns the last error code recorded on this connection (for
 // sqlite3_errcode), e.g. "SQLITE_ERROR".
 func (db *DB) LastErrCode() string {

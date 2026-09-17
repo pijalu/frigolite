@@ -345,6 +345,24 @@ func cmdExprErrcode(tp *transpiler, cmdName, cmdText string, args []string) stri
 	return fmt.Sprintf("%s.LastErrCode()", tp.dbArgGo(args[0]))
 }
 
+// sqlite3SetErrmsgExpr renders `[sqlite3_set_errmsg DB CODE MSG]` as a call
+// to DB.SetErrMsg (main.c sqlite3_set_errmsg); a NULL handle ("") reports
+// SQLITE_MISUSE without a call.
+func sqlite3SetErrmsgExpr(tp *transpiler, cmdName, cmdText string, args []string) string {
+	if len(args) < 3 {
+		return `"SQLITE_MISUSE"`
+	}
+	conn := tp.dbArgGo(args[0])
+	if conn == "" {
+		return `"SQLITE_MISUSE"`
+	}
+	msgExpr := args[2]
+	if !strings.HasPrefix(msgExpr, `"`) {
+		msgExpr = fmt.Sprintf("%q", msgExpr)
+	}
+	return fmt.Sprintf("%s.SetErrMsg(%s, %s)", conn, strings.TrimSpace(args[1]), msgExpr)
+}
+
 // cmdExprFileSize renders `[file size PATH]` as a Go string expression (the
 // file size in bytes, or "0" when missing).
 func cmdExprFileSize(tp *transpiler, cmdName, cmdText string, args []string) string {

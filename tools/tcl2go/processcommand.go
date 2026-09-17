@@ -756,6 +756,22 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 		return
 	}
 
+	// sqlite3_set_errmsg DB CODE MSG — main.c sqlite3_set_errmsg: set the
+	// connection's error code/message so sqlite3_errmsg reports msg
+	// (misuse-6.x). A NULL handle ("") reports SQLITE_MISUSE.
+	if cmdName == "sqlite3_set_errmsg" {
+		if len(args) >= 3 {
+			conn := strings.TrimPrefix(args[0].Text, "$")
+			msgExpr := tp.buildStringExpr(args[2].Text)
+			if conn == "" || conn == `""` {
+				tp.emitLine(`_r = "SQLITE_MISUSE"`)
+			} else {
+				tp.emitLine("_r = %s.SetErrMsg(%s, %s)", tclVarToGo(conn), strings.TrimSpace(args[1].Text), msgExpr)
+			}
+			return
+		}
+	}
+
 	// Unsupported command — emit as comment to avoid test failures
 	if len(args) > 0 {
 		tp.emitLine("// %s %s (unsupported command, not transpiled)", cmdName, sanitizeTCLComment(describeArgsShort(args)))

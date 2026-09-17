@@ -199,7 +199,12 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")
 		}
 	}
-	_list2 := tclList([]string{"*", "\n  1b22\n  1b22c333\n  22c333dddd4444 \n  333dddd4444e55555 \n  4444e55555f666666\n  55555f666666gggggggggg7777777 \n  666666gggggggggg7777777\n"})
+	// [list {*}{
+	//   1b22
+	//   ...
+	// }] — the {*} expansion operator splices the braced multi-line list's
+	// inner elements (fixed tcl2go processList handling).
+	_list2 := tclList([]string{"1b22", "1b22c333", "22c333dddd4444", "333dddd4444e55555", "4444e55555f666666", "55555f666666gggggggggg7777777", "666666gggggggggg7777777"})
 	_ = _list2
 	_r = _list2
 	queryres = _r

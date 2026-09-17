@@ -675,7 +675,24 @@ func (tp *transpiler) processList(args []tcl.RawWord) {
 	}
 	var items []string
 	colmetaFound := false
-	for _, a := range args {
+	for ai := 0; ai < len(args); ai++ {
+		a := args[ai]
+		// `{*}` followed by a braced word is TCL's expansion operator: the
+		// braced word's inner elements splice into the list (windowfault.test
+		// 13.x: set queryres [list {*}{
+		//   1b22
+		//   ...
+		// }]). Skip the {*} and splice the next argument's inner elements.
+		if a.Braced && a.Text == "*" && ai+1 < len(args) && args[ai+1].Braced {
+			inner := strings.TrimSpace(args[ai+1].Text)
+			inner = strings.TrimPrefix(inner, "{")
+			inner = strings.TrimSuffix(inner, "}")
+			for _, e := range strings.Fields(inner) {
+				items = append(items, tp.goStringLiteral(tcl.RawWord{Text: e, Braced: false, Quoted: false}))
+			}
+			ai++
+			continue
+		}
 		// A trailing lone backslash is a line-continuation remnant, not a
 		// list element: `set v [list \ ... \ ]` ends with backslash-newline
 		// before `]`, which TCL folds away (trigger2 tbl_definitions).
