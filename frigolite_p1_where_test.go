@@ -178,8 +178,38 @@ func TestP1WhereLike(t *testing.T) {
 		"SELECT count(*) FROM t WHERE a LIKE '_bc'",
 		"SELECT count(*) FROM t WHERE a LIKE 'a_c'",
 		"SELECT count(*) FROM t WHERE a LIKE 'a\\_c' ESCAPE '\\'",
+		"SELECT count(*) FROM t WHERE a NOT LIKE 'a%'",
+		"SELECT count(*) FROM t WHERE a NOT LIKE 'a\\_c' ESCAPE '\\'",
+		"SELECT count(*) FROM t WHERE a NOT LIKE 'x_%' ESCAPE '#'",
 		"SELECT count(*) FROM t WHERE a GLOB 'a*'",
 		"SELECT count(*) FROM t WHERE a GLOB 'A*'",
+	} {
+		got := queryRows(t, db, q)
+		want := oracle(t, q, setup)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("%s:\n got  %#v\n want %#v", q, got, want)
+		}
+	}
+}
+
+// TestP1WhereNotLikeEscape pins the negated LIKE operator with an ESCAPE
+// clause: `a NOT LIKE p ESCAPE e` must evaluate the escaped match and then
+// invert it. FULL-SUITE-DRIFT.T26-harness found `x NOT LIKE y ESCAPE z`
+// evaluating as a positive LIKE (the parse rule attaching the ESCAPE clause
+// dropped the NOT, inverting the observable result).
+func TestP1WhereNotLikeEscape(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	setup := `
+		CREATE TABLE t(a TEXT);
+		INSERT INTO t VALUES('abc'),('a_c'),('xy_z'),('xyz');
+	`
+	runSQL(t, db, setup)
+	for _, q := range []string{
+		"SELECT count(*) FROM t WHERE a NOT LIKE 'a\\_%' ESCAPE '\\'",
+		"SELECT count(*) FROM t WHERE a NOT LIKE 'a_%' ESCAPE '\\'",
+		"SELECT count(*) FROM t WHERE a LIKE 'a\\_%' ESCAPE '\\'",
+		"SELECT count(*) FROM t WHERE a NOT LIKE 'xy|_z' ESCAPE '|'",
 	} {
 		got := queryRows(t, db, q)
 		want := oracle(t, q, setup)
