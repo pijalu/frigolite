@@ -460,17 +460,23 @@ func (e *Engine) DatabaseList() *execpragma.Result {
 	// not, so iterating it would reorder rows non-deterministically).
 	rows = append(rows, []interface{}{seq, "main", e.mainDB.FilePath})
 	seq++
-	// Temp database at seq 1 — always present in SQLite's database_list.
-	tempPath := ""
-	for _, ctx := range e.dbList {
-		upper := strings.ToUpper(ctx.Name)
-		if upper == "TEMP" || upper == "TEMPORARY" {
-			tempPath = ctx.FilePath
-			break
+	// Temp database at seq 1 — listed only when the temp btree has been
+	// materialized. pragma.c PragTyp_DATABASE_LIST skips every db whose
+	// aDb[i].pBt is NULL, and the temp btree is created lazily on first
+	// temp-schema use (attach4-1.2.1: a fresh connection listing only
+	// main + attached files, no temp row).
+	if e.tempBtreeOpen {
+		tempPath := ""
+		for _, ctx := range e.dbList {
+			upper := strings.ToUpper(ctx.Name)
+			if upper == "TEMP" || upper == "TEMPORARY" {
+				tempPath = ctx.FilePath
+				break
+			}
 		}
+		rows = append(rows, []interface{}{seq, "temp", tempPath})
+		seq++
 	}
-	rows = append(rows, []interface{}{seq, "temp", tempPath})
-	seq++
 	for _, ctx := range e.dbList {
 		upper := strings.ToUpper(ctx.Name)
 		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
