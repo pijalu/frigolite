@@ -3,16 +3,16 @@ package execdml
 
 import (
 	"fmt"
-	"math"
-	"strconv"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"math"
 	"os"
 	"runtime/debug"
+	"strconv"
 	"strings"
 )
 
@@ -240,7 +240,11 @@ func buildBeforeTriggerRow(colDefs []sql.ColumnDef, values []interface{}, ipkWas
 	}
 	// new.rowid/_rowid_/oid: the explicit rowid when supplied, -1 otherwise.
 	// The aliases are visible even when an IPK column carries the value.
-	if !withoutRowid {
+	// A table that DECLARES columns named rowid/_rowid_/oid shadows the
+	// pseudo-rowid: triggerD-1.2 (new.rowid must read the declared column's
+	// value 100, not the unassigned pseudo-rowid -1) — same rule as the
+	// other trigger-row builders (RowHasRowIDColumn).
+	if !withoutRowid && !execquery.RowHasRowIDColumn(colDefs) {
 		rowidVal := int64(-1)
 		if explicitRowID != nil {
 			rowidVal = *explicitRowID

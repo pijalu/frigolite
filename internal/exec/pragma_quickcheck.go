@@ -3,9 +3,11 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -212,6 +214,14 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 	}
 	if msg := e.checkFreelistCount(emit); msg != "" {
 		emit(msg)
+	}
+	// Index key shape vs the stored CREATE INDEX definition (corruptL-19.4:
+	// an index whose SQL was narrowed through writable_schema while its
+	// btree still holds the old-width keys). SQLite's integrity check reads
+	// every index entry through the index's column count and aborts with
+	// SQLITE_CORRUPT on a field-count mismatch.
+	if err := e.checkIndexKeyShape(); err != nil {
+		return &Result{Error: err}
 	}
 	e.quickCheckTables(arg, emit)
 
@@ -825,4 +835,123 @@ func (e *Engine) checkFreelistCount(emit func(string)) string {
 		return fmt.Sprintf("*** in database main ***\nFreelist: size is %d but should be %d", consumed, headerCount)
 	}
 	return ""
+}
+
+// checkIndexKeyShape verifies that each explicit index's b-tree key width
+// matches its stored CREATE INDEX definition: a rowid-table index record
+// holds index-column-count + 1 values (the trailing rowid). A mismatch means
+// the schema's index SQL was rewritten (writable_schema) while the b-tree
+// still stores the old-width keys — SQLite's integrity check trips
+// SQLITE_CORRUPT ("database disk image is malformed") when it reads such an
+// entry through the narrowed definition (corruptL-19.4, oracle-verified:
+// index i1 redefined from an expression to (b,c,d) makes integrity_check
+// fail while the underlying data is untouched).
+func (e *Engine) checkIndexKeyShape() error {
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil || ctx.Schema == nil {
+			continue
+		}
+		// Table SQL -> rowid table? WITHOUT ROWID index records use the
+		// PK-first layout with no trailing rowid; keep the check scoped to
+		// rowid tables where the width rule is exact.
+		rowidTable := func(tblName string) bool {
+			te, err := ctx.Schema.FindTable(tblName)
+			if err != nil || te == nil {
+				return false
+			}
+			return !hasWithoutRowidKeyword(strings.ToUpper(te.SQL))
+		}
+		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			return err
+		}
+		for _, ent := range entries {
+			if ent.SQL == "" || ent.RootPage <= 1 {
+				continue
+			}
+			stmts, perr := parse.ParseSQL(ent.SQL)
+			if perr != nil || len(stmts) == 0 {
+				continue
+			}
+			ci, ok := stmts[0].(*sql.CreateIndexStmt)
+			if !ok {
+				continue
+			}
+			// Expression targets (memo->>'y') are dropped from the parsed
+			// Columns list, so the parsed count can undercount the stored
+			// key width. Only indexes whose every source target parsed as a
+			// plain column have an exact width rule (corruptL-19.4's
+			// narrowed (b, c, d) definition keeps the check; json102's
+			// (a3, a1, memo->>'y') does not).
+			if indexColumnTermCount(ent.SQL) != len(ci.Columns) {
+				continue
+			}
+			if !rowidTable(ent.TblName) {
+				continue
+			}
+			want := len(ci.Columns) + 1
+			tree := btree.NewBTree(ctx.Pager, ent.RootPage, false)
+			cursor, err := tree.OpenCursor()
+			if err != nil {
+				continue
+			}
+			cell, err := cursor.ReadCell()
+			if err != nil {
+				// Empty index (cursor at end) or unreadable page: the
+				// structural pass covers page damage; an empty index has no
+				// entries to mismatch.
+				continue
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				continue
+			}
+			if len(rec.Values) != want {
+				return fmt.Errorf("database disk image is malformed")
+			}
+		}
+	}
+	return nil
+}
+
+// indexColumnTermCount counts the top-level comma-separated terms inside
+// the column list of a CREATE INDEX statement's raw SQL text: the terms
+// between the '(' that follows the table name and the matching ')'.
+// Returns 0 when the shape cannot be recognized. Used to detect expression
+// targets, which the parser drops from CreateIndexStmt.Columns.
+func indexColumnTermCount(sqlText string) int {
+	open := strings.Index(sqlText, "(")
+	if open < 0 {
+		return 0
+	}
+	close := strings.LastIndex(sqlText, ")")
+	if close <= open {
+		return 0
+	}
+	inner := sqlText[open+1 : close]
+	depth := 0
+	terms := 1
+	inQuote := byte(0)
+	for i := 0; i < len(inner); i++ {
+		c := inner[i]
+		if inQuote != 0 {
+			if c == inQuote {
+				inQuote = 0
+			}
+			continue
+		}
+		switch c {
+		case '\'', '"', '`':
+			inQuote = c
+		case '(', '[':
+			depth++
+		case ')', ']':
+			depth--
+		case ',':
+			if depth == 0 {
+				terms++
+			}
+		}
+	}
+	return terms
 }

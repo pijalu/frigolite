@@ -176,6 +176,19 @@ type Engine struct {
 	fts5Snapshots []fts5Snap
 	// settings groups the PRAGMA/config flags and limits.
 	settings engineSettings
+	// schemaParseOK memoizes whether a stored sqlite_schema SQL text parses
+	// (validateLoadedSchema). The text of a row uniquely determines parse
+	// validity, so entries are never invalidated (per connection).
+	schemaParseOK map[string]error
+	// schemaParseMu guards schemaParseOK (preflight can run concurrently
+	// for statements on shared connections).
+	schemaParseMu sync.Mutex
+	// schemaValidated records the (schema cookie, page count) fingerprint
+	// each database context last passed validateLoadedSchema at: SQLite
+	// validates rows once per schema LOAD (cookie change / reopen), and
+	// writable_schema row edits must not trip per-statement re-checks
+	// (misc4-7.1 keeps serving a stale in-memory schema).
+	schemaValidated map[*DatabaseContext]uint64
 	// caches groups the per-table and statement caches.
 	caches tableCaches
 	// lockingMode tracks this connection's file-locking model as set by
@@ -218,12 +231,12 @@ type Engine struct {
 	// trace_v2 event mask; traceNextID numbers statement executions and
 	// traceCurID is the id of the statement currently executing (the ROW
 	// event id).
-	traceHook     func(sql string)
-	profileHook   func(sql string, ns int64)
-	traceV2Hook   func(event int, id int64, text string)
-	traceMask     int
-	traceNextID   int64
-	traceCurID    int64
+	traceHook   func(sql string)
+	profileHook func(sql string, ns int64)
+	traceV2Hook func(event int, id int64, text string)
+	traceMask   int
+	traceNextID int64
+	traceCurID  int64
 	// traceCurSQL is the SQL text of the statement currently executing
 	// (set by BeginStmtTrace); FK-action sub-program traces report it.
 	traceCurSQL string
@@ -371,6 +384,13 @@ type txState struct {
 	txFTSnapshots   []ftsSnap                    // FTS in-memory index snapshots at BEGIN (for ROLLBACK undo)
 	txFTS5Snapshots []fts5Snap                   // fts5 in-memory state snapshots at BEGIN
 	savepointStack  []savepointEntry             // nested SAVEPOINT stack
+	// reservedDbs remembers every attached database that held a write
+	// (RESERVED) pager lock at any point in the open transaction. C's pager
+	// keeps the WRITER lock across a ROLLBACK TO (only a full COMMIT /
+	// ROLLBACK releases it), so PRAGMA lock_status reports "reserved" for a
+	// db whose pages a savepoint rollback already restored
+	// (savepoint-10.2.5→10.2.8).
+	reservedDbs map[string]bool
 	// execDepth counts nested Exec calls (triggers, the eval() extension).
 	// rollbackAborted is set when a nested statement runs ROLLBACK that
 	// undoes schema changes, which aborts the enclosing statement with "abort

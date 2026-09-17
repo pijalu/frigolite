@@ -587,8 +587,9 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 	// functions (random(), julianday('now',...)), subqueries, window
 	// functions, and other prohibited constructs in index expressions
 	// (build.c sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction).
+	allowDQS := e.dqsAllowedDDL()
 	for _, term := range s.Terms {
-		if err := validateIndexColumnRefs(term.Expr, colDefs); err != nil {
+		if err := validateIndexColumnRefs(term.Expr, colDefs, allowDQS); err != nil {
 			return &Result{Error: err}
 		}
 		if err := validateIndexKeyExpr(term.Expr); err != nil {
@@ -596,7 +597,7 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 		}
 	}
 	if s.Where != nil {
-		if err := validateIndexColumnRefs(s.Where, colDefs); err != nil {
+		if err := validateIndexColumnRefs(s.Where, colDefs, allowDQS); err != nil {
 			return &Result{Error: err}
 		}
 	}
@@ -730,8 +731,11 @@ func (e *DDLExecutor) indexKeyForCreate(row RowMap, colDefs []sql.ColumnDef, key
 // validateIndexColumnRefs resolves every column reference in an index key
 // term or partial-index WHERE clause against the table's column definitions
 // (build.c: "no such column: x"; index7-1.5 — an unresolved column must fail
-// the CREATE INDEX, not leak the index entry).
-func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef) error {
+// the CREATE INDEX, not leak the index entry). allowDQS mirrors resolve.c's
+// areDoubleQuotedStringsEnabled: with DQS enabled, a double-quoted identifier
+// that matches no column becomes a string literal instead of an error
+// (alterqf/altermalloc3: index keys like one+"two"+"four").
+func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef, allowDQS bool) error {
 	if len(colDefs) == 0 || expr == nil {
 		return nil
 	}
@@ -758,6 +762,12 @@ func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef) error {
 			if strings.EqualFold(cd.Name, ref.Name) {
 				return
 			}
+		}
+		// DQS: an unmatched double-quoted identifier evaluates as a string
+		// literal (the evaluator's Quoted fallback), so it does not fail
+		// resolution.
+		if ref.Quoted && allowDQS {
+			return
 		}
 		err = fmt.Errorf("no such column: %s", ref.Name)
 	})

@@ -6544,3 +6544,93 @@ Transpiler/harness:
   (-DSQLITE_ENABLE_FTS3/4 + shell.c), diff trace prints against engine
   logs — settles in minutes what code-reading suggests in hours. go-test
   timeouts masquerade as hangs: instrument the loop with a counter first.
+<<<<<<< HEAD
+- **FULL-SUITE-DRIFT.T26-alter engine facts (2026-09-17).** (1) A ROLLBACK
+  cancels every savepoint — leaving the savepoint stack alive made a later
+  RELEASE of a pre-ROLLBACK savepoint keep an implicit transaction open
+  ("cannot start a transaction within a transaction", savepoint-4.2).
+  (2) A table that DECLARES columns named rowid/_rowid_/oid shadows the
+  pseudo-rowid for name resolution, but the DELETE machinery must address
+  cells by the TRUE btree rowid — delete.go now stashes it under a reserved
+  RowMap key (rowTrueRowID) because installRowidAliases declines to set
+  row["rowid"] for such tables (rowid-4.2: DELETE FROM left rows behind).
+  (3) build.c sqlite3AddPrimaryKey: a TABLE-level PRIMARY KEY over exactly
+  one INTEGER column (exact type, not DESC) is a rowid alias — promoted
+  post-parse (internal/parse/promote_pk.go, PKPromoted flag keeps the
+  more-than-one-PK counter honest); AUTOINCREMENT rides along
+  (autoinc-7.1). (4) validateSequenceTable: sqlite_sequence must declare
+  exactly TWO columns (insert.c autoIncBegin pSeqTab->nCol!=2 →
+  SQLITE_CORRUPT_SEQUENCE, autoinc-12.5) but any 2-column spelling works —
+  read/write is positional (12.6/12.7). (5) DROP TABLE deletes the dropped
+  table's sqlite_sequence rows (build.c:3411) — newly exposed when the
+  improved transpiler started emitting the 3.x assertions. (6) SET NOT NULL
+  over an IPK column never violates (record slot is NULL; rowid carries the
+  value) and its violation message is "NOT NULL constraint failed: <col>"
+  with SQLITE_CONSTRAINT (errorCode now maps the constraint family to
+  SQLITE_CONSTRAINT — no engine path returned it before).
+- **Authorizer arg order (oracle)**: SQLITE_ALTER_TABLE is (zDb, zTab[, zCol
+  for DROP]); SQLITE_SAVEPOINT is ("BEGIN"/"RELEASE"/"ROLLBACK", name) —
+  dispatched BEFORE the savepoint executes. With ActionSavepoint appended to
+  internal/auth (values stable: append at end of the iota block).
+- **DQS in CREATE INDEX**: validateIndexColumnRefs must skip unmatched
+  QUOTED refs when dqsAllowedDDL() (resolve.c converts them to string
+  literals; the evaluator's Quoted fallback renders them at index-maintain
+  time). The fancy "should this be a string literal" error stays for the
+  DQS-off path (validateDQSExpr).
+- **Transpiler**: multi-file `forcedelete test.db test.db2 test.db3` used to
+  drop everything after the first path (stale ATTACH files re-attach with
+  old rows → e_resolve 2.1.3+ "duplicated" rows). processFileDelete now
+  loops. `[ifcapable tempdb {list ...} else {list ...}]` do_test EXPECTED
+  values fold at transpile time (foldIfcapableExpected) — the regenerated
+  autoinc previously embedded the raw TCL script as the want string.
+  Regenerating a package with the CURRENT tool may newly EMIT assertions
+  the committed file dropped (autoinc-3.x, rowid-4.2, autoinc-7.1 were
+  assertion-free before) — budget for newly-exposed engine gaps after any
+  regeneration. skipTestReason "(no-side-effects)" no-ops the body; WITHOUT
+  it the SQL side effects still run — use side-effect-preserving reasons
+  when later tests depend on the skipped body's SQL (savepoint-5.3.2.1's
+  SAVEPOINT def).
+=======
+
+## 2026-09-17 (T26-corrupt): hexio corruption-family lessons
+
+- **openPager must never adopt unvalidated header fields**: a crafted
+  page-size field (power-of-two/512..65536 check, btree.c lockBtree) must
+  defer like a parse error (headerCorrupt) — `make([]byte, ps)` panics
+  before ValidateHeader ever runs. First statement then reports
+  "file is not a database" (oracle-verified error 26).
+- **Schema-load row validation lives at preflight, per statement** (port of
+  prepare.c sqlite3InitCallback): rootpage > page count → "malformed
+  database schema (NAME) - invalid rootpage"; unparseable CREATE text →
+  named parser error; duplicate index rootpage among same-table indexes →
+  invalid rootpage (build.c:4389, NOT gated by bExtraSchemaChecks). PRAGMA
+  statements skip the check (C does not read the schema preparing a
+  PRAGMA) — otherwise `PRAGMA writable_schema=ON` batches abort before the
+  flag flips. With writable_schema ON every violation becomes the GENERIC
+  "database disk image is malformed" (corruptSchema SQLITE_WriteSchema
+  branch) — verified with `sqlite3 -bail` (the default CLI CONTINUES after
+  a failed first statement, silently masking the error and faking
+  "success" for later statements — always bail-mode the oracle when
+  adjudicating).
+- **integrity_check findings are capped at 100** (pragma.c
+  SQLITE_INTEGRITY_CHECK_ERROR_MAX): uncapped "Page N: never used" scans
+  multiply into minutes on sparse hexio images (a write far past EOF makes
+  FilePageCount millions). C parity + performance in one line.
+- **Freelist leaf beyond EOF grows the page count** (pager dbSize growth on
+  write); corruptF's root-from-freelist at page 6 then passes rootpage
+  validation. Pager partial final page reads zero-fill (pager.c) — do not
+  error EOF.
+- **Known write-path bug (btree-writes goal)**: frigolite's balance/split
+  never re-parents ptrmap entries (btree.c:8780/8950/9028 ptrmapPut have
+  no counterpart), so autovacuum relocation later fails "parent does not
+  reference child" on pristine DBs (corruptB-3.1.1). Also error-free page
+  allocation is needed to surface freelist-pop corruption (corruptL-5.x) —
+  AllocatePage returns *Page only.
+- **tcl2go drift**: regenerating a stale generated file pulls the CURRENT
+  helper/emitter semantics — testgen/corrupt's catchsql `set x {}`
+  pattern now renders want="{}" (normalizeExpectedWord's empty-brace rule
+  for update/fkey2) against got="" — 7 assertions flip per 1005-iteration
+  loop. When a stale package needs one skip, hand-patch the generated file
+  to the exact post-skip shape instead of regenerating through drifted
+  emitters, and note the drift for the next full-regeneration tranche.
+>>>>>>> fleet/corrupt-hexio

@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -117,6 +118,53 @@ func ifcapableGuardFires(guard string) bool {
 	unsupported := unsupportedCapabilities[strings.ToLower(name)]
 	// Plain X fires when supported (!unsupported); negated fires when unsupported.
 	return unsupported == neg
+}
+
+// foldIfcapableExpected statically folds an `[ifcapable GUARD {BODY}
+// [else {BODY}]]` do_test expected value: it selects the braced body the
+// guard selects at runtime and renders its `list a b c` script as the static
+// expected text (autoinc-2.70/2.71: the sqlite_sequence contents differ only
+// for a !tempdb build). Returns ok=false for elseif chains, variable bodies,
+// and anything that is not a plain `list ...` rendering.
+func foldIfcapableExpected(fields []string) (string, bool) {
+	if len(fields) < 3 || fields[0] != "ifcapable" {
+		return "", false
+	}
+	fires := ifcapableGuardFires(fields[1])
+	rest := fields[2:]
+	for i := 0; i < len(rest); i++ {
+		w := rest[i]
+		switch w {
+		case "elseif":
+			// A runtime guard we cannot evaluate statically.
+			return "", false
+		case "else":
+			if i+1 >= len(rest) {
+				return "", false
+			}
+			if !fires {
+				return renderListBody(rest[i+1])
+			}
+			i++
+		default:
+			if fires {
+				return renderListBody(w)
+			}
+		}
+	}
+	// No branch selected: TCL if with a false condition and no else yields "".
+	return `""`, true
+}
+
+// renderListBody renders a selected ifcapable body — a braced `list a b c`
+// script — as a quoted Go string of its list elements. Non-list bodies are
+// not folded.
+func renderListBody(body string) (string, bool) {
+	text := strings.TrimSpace(body)
+	if !strings.HasPrefix(text, "list ") {
+		return "", false
+	}
+	return strconv.Quote(strings.TrimSpace(strings.TrimPrefix(text, "list "))), true
 }
 
 // tclCmdWords tokenizes a TCL command line (the text inside a [ ... ]

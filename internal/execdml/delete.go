@@ -96,7 +96,7 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 		baseName := tableEntry.Name[:len(tableEntry.Name)-len("_content")]
 		if ft, ok := e.ctx.FTSTables()[baseName]; ok && ft.ContentTable() == "" && !ft.Contentless() {
 			for _, rm := range deletedRows {
-				if rid, ok := util.UnwrapColumnValue(rm["rowid"]).(int64); ok {
+				if rid, ok := rowTrueRowID(rm); ok {
 					ft.RecordCorruptContentDocID(rid)
 				}
 			}
@@ -124,8 +124,8 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 	// Re-sort by rowid so trigger logging (OLD.a order) matches SQLite.
 	if len(s.OrderBy) > 0 {
 		sort.SliceStable(deletedRows, func(i, j int) bool {
-			ri, _ := util.UnwrapColumnValue(deletedRows[i]["rowid"]).(int64)
-			rj, _ := util.UnwrapColumnValue(deletedRows[j]["rowid"]).(int64)
+			ri, _ := rowTrueRowID(deletedRows[i])
+			rj, _ := rowTrueRowID(deletedRows[j])
 			return ri < rj
 		})
 	}
@@ -296,6 +296,24 @@ func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *Dat
 	return tableEntry, dbCtx, colDefs, tree, nil, prevDMLCtx
 }
 
+// trueRowidKey is the reserved RowMap key carrying the row's TRUE btree
+// rowid. It is never a SQL-resolvable name (identifiers cannot contain NUL),
+// so a table that DECLARES a column named rowid/_rowid_/oid keeps expression
+// resolution on its declared column (the shadow rule) while the delete
+// machinery still addresses cells by the real rowid (rowid-4.2: DELETE FROM
+// t2 with t2(rowid int, ...) must remove every row).
+const trueRowidKey = "\x00trueRowid"
+
+// rowTrueRowID returns the row's true btree rowid: the reserved key when the
+// scan recorded it, else the legacy "rowid" slot.
+func rowTrueRowID(row RowMap) (int64, bool) {
+	if v, ok := row[trueRowidKey]; ok {
+		return util.UnwrapColumnValue(v).(int64), true
+	}
+	id, ok := util.UnwrapColumnValue(row["rowid"]).(int64)
+	return id, ok
+}
+
 // collectDeleteRows scans a table b-tree and returns the rows matching the
 // DELETE's WHERE clause (in rowid order), for trigger firing and RETURNING.
 // WITHOUT ROWID tables store PK-first index cells, so each decoded record is
@@ -304,7 +322,7 @@ func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, ta
 	var deletedRows []RowMap
 	cursor, err := tree.OpenCursor()
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	for {
 		// SQLITE_TEST interrupt countdown: one op per row examined
@@ -322,6 +340,10 @@ func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, ta
 		}
 		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
+		// The true btree rowid: a declared rowid-named column shadows the
+		// "rowid" name for expression resolution, so the delete machinery
+		// reads it from the reserved key instead (see trueRowidKey).
+		row[trueRowidKey] = cell.RowID
 		match, err := e.rowMatchesWhere(s.Where, row)
 		if err != nil {
 			return deletedRows, err
@@ -371,7 +393,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 		declaredRows := make([][]interface{}, 0, len(deletedRows))
 		rowIDs := make(map[int64]bool, len(deletedRows))
 		for _, row := range deletedRows {
-			if rowID, ok := util.UnwrapColumnValue(row["rowid"]).(int64); ok {
+			if rowID, ok := rowTrueRowID(row); ok {
 				rowIDs[rowID] = true
 			}
 			declaredRows = append(declaredRows, e.rowMapColumnValues(row, colDefs))
@@ -388,7 +410,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 			return &Result{Error: err}
 		}
 		for _, row := range deletedRows {
-			rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
+			rowID, _ := rowTrueRowID(row)
 			oldVals := e.rowMapColumnValues(row, colDefs)
 			delRowID := rowID
 			if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
@@ -410,7 +432,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 		}
 	} else {
 		for _, row := range deletedRows {
-			rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
+			rowID, _ := rowTrueRowID(row)
 			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(row)); trigResult.Error != nil {
 				if trigResult.Error == errRaiseIgnore {
 					continue
@@ -468,7 +490,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 func (e *DMLExecutor) execDeleteReturning(s *sql.DeleteStmt, tableEntry *schema.Entry, tree *btree.BTree, colDefs []sql.ColumnDef, deletedRows []RowMap) *Result {
 	var returningRows [][]interface{}
 	for _, row := range deletedRows {
-		rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
+		rowID, _ := rowTrueRowID(row)
 		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(row)); trigResult.Error != nil {
 			if trigResult.Error == errRaiseIgnore {
 				continue

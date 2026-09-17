@@ -869,6 +869,7 @@ func rule68(ruleNo int, p *Parser) interface{} {
 	return sql.TableConstraint{
 		Type:       sql.ConstraintPrimaryKey,
 		Columns:    indexColumnsFromSortlist(getRHS(p, ruleNo, 4)),
+		AutoInc:    getBool(getRHS(p, ruleNo, 5)),
 		OnConflict: getString(getRHS(p, ruleNo, 6)),
 	}
 

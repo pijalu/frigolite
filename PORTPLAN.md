@@ -65,33 +65,24 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
 
 ---
 
-## 2. Current State (checkpoint 2026-09-11)
+## 2. Current State (checkpoint 2026-09-16)
 
-- **Live full-suite baseline (2026-09-14, `tools/status` close run
-  stamp 2026-09-14T20:29:05Z: 1,363 testgen packages — 1,219 main corpus +
-  144 fts5; census at 60s/pkg + §5g-6 serial adjudication of all 31
-  long-duration packages recorded in the ledger):
-  887 PASS (65.1%), 216 FAIL, 260 SKIPPED, 0 timeout-suspects** — ledger
-  re-seeded at the P7.WAL-G7 + P9.PERF close; `tools/status --check` PASS.
-  Supersedes the 2026-09-11 769/207/243-of-1219 baseline. Movement vs it:
-  +45 fail→pass (drift tranches T7-T28 + the 2026-09-14 regression
-  tranches: pager2 numPages hang, reindex/altertab/orderby5 collation
-  class, index3 COLLATE-ASC, vacuum2 VACUUM collation transfer, fts4upfrom
-  fts5 UPDATE..FROM, backup5 tclPrepareStep, fts3sort set-read-form), the
-  fts5 corpus joined the census (69 pass), and the fts4opt perf/hang red
-  resolved (serial 17.9s). Supersedes the
-  2026-09-07 710/255/254 baseline cited below. Known reds against the
-  fresh baseline: `autovacuum` (2.4.5), `pragma2` (page_size=16384 +
-  cache_spill "file is not a database"), `attach2`, `trigger2` +
-  `without_rowid4` (db-eval multi-column accumulation, T4 triage in
-  plan/goals/FULL-SUITE-DRIFT.md), `fts4merge4`, `corrupt`/`corruptC`/
-  `corruptF`/`corruptL`/`corruptN` (P8.CORRUPT residue, FULL-SUITE-DRIFT
-  scope), `aggnested`/`aggorderby`/`alter`/`func_pkg` (drift tranches).
-  Greens since the 09-07 baseline: `attach`, `reindex`, `bloom1`,
-  `minmax`/`minmax2`, `cacheflush`/`subjournal`, `check`, `fts3defer`,
-  `fts4opt`, `rtreecheck`, `filectrl`, `aggerror`, `count` (serial PASS in
-  the 09-11 run; work recorded in post-T4.11 commits, T-log backfill
-  pending per goal plan below).
+- **Live full-suite baseline (2026-09-16/17, census stamp 2026-09-16T22:43:11Z,
+  concurrency 3 + §5g-6 serial adjudication of all 20 timeout-suspects
+  (-timeout 900s; 10 slow-but-green → pass, 10 confirmed fail in
+  adjudicated classes), ledger re-seeded + `tools/status --check` PASS:
+  950 PASS (69.7%), 126 FAIL, 287 SKIPPED, 0 timeout-suspects** of 1,363
+  testgen packages. Movement vs
+  the 2026-09-14 baseline (887/216/260): **+53 pass, −100 fail, +27 skip**
+  via the T23 tkt_hash tranche + the T24 12-agent fleet sweep of the
+  cluster index (conflict3, vtab1/3/6, trigger1/4/7/B, tkt-singles,
+  alter/alter3/altertab2/3, view/view3, fkey1/2, update/update2,
+  upsert4/5, collate3/4, func3/4, windowC/E, with1/2, lock/lock5, pcache,
+  trace/trace3, qrf01-3, rowvalue3/4 — see FULL-SUITE-DRIFT.md T24 log)
+  and the P6.FTS5 residue tranche (107→127/144; 17 reds adjudicated
+  architectural/slow/harness N-A). New bedrock blocker discovered:
+  internal/btree overflow-churn corruption (`deleteCellOnPage` never frees
+  overflow chains; blocks fts4merge4) — fleet/btree fix goal active.
 - **DRIFT ALERT (2026-09-03)**: the per-goal ✅ marks in §4 are
   *point-in-time goal-closure claims* — each goal's "no regression" gate only
   re-runs its own verify command, so transpiler regenerations and engine
