@@ -581,3 +581,13 @@ func (e *Engine) fts5DiscardSecureUpgrades() {
 		}
 	}
 }
+
+// BeginInternalWrites marks the engine as executing schema-maintenance
+// statements (VACUUM's logical copy): DML executed inside this window does
+// not accumulate into sqlite3_total_changes — the C library's internal vdbe
+// programs never touch db->nTotalChange (e_totalchanges-2.3). The returned
+// function ends the window and must be called by the caller.
+func (e *Engine) BeginInternalWrites() (end func()) {
+	e.tx.internalWrites++
+	return func() { e.tx.internalWrites-- }
+}
