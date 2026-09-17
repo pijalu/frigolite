@@ -101,13 +101,27 @@ func (t *BTree) relocateRootSplit(splits []leafSplitResult) error {
 		seps = append(seps, s.medianKey)
 	}
 	children = append(children, tail.PageNum)
-	// The rotation above moved cell content (and their overflow chains)
-	// between the child pages: every child's cells now live one slot over.
-	// Re-parent each chain's first overflow to its new owner page
-	// (ptrmapPutOvflPtr after balance, btree.c:8025/8783).
+	// The rotation above moved page content (and everything it references)
+	// between the child slots: S1 now holds the old root's children (when
+	// the split node was an interior page), and each later slot holds the
+	// previous segment's content. Every moved page's references must be
+	// re-pointed at their new owner in the pointer map (btree.c
+	// balance_deeper's ptrmapPut over every moved cell's child,
+	// src/btree.c:9028, plus ptrmapPutOvflPtr for overflow chains at
+	// 8783/8025) — setChildPtrmaps covers both: btree children of
+	// relocated interior pages and the overflow chains of relocated leaf
+	// cells. Without the interior re-pointing, autovacuum's AllocateRootPage
+	// relocation later reads a STALE parent for a relocated occupant
+	// ("parent N does not reference child M", corruptB-3.1.1).
 	for _, ch := range children {
-		if err := t.reparentPageOverflowChains(ch); err != nil {
-			return err
+		if t.ptrmapEnabled() {
+			cpg, err := t.pager.ReadPage(ch)
+			if err != nil {
+				return err
+			}
+			if err := t.setChildPtrmaps(cpg, ch); err != nil {
+				return err
+			}
 		}
 	}
 	return t.writeInteriorRootAt(t.rootPage, children, seps)

@@ -6618,12 +6618,16 @@ Transpiler/harness:
   write); corruptF's root-from-freelist at page 6 then passes rootpage
   validation. Pager partial final page reads zero-fill (pager.c) — do not
   error EOF.
-- **Known write-path bug (btree-writes goal)**: frigolite's balance/split
-  never re-parents ptrmap entries (btree.c:8780/8950/9028 ptrmapPut have
-  no counterpart), so autovacuum relocation later fails "parent does not
-  reference child" on pristine DBs (corruptB-3.1.1). Also error-free page
-  allocation is needed to surface freelist-pop corruption (corruptL-5.x) —
-  AllocatePage returns *Page only.
+- **T25 FIXED the balance ptrmap gap (2026-09-17)**: the stale entry came
+  from relocateRootSplit's segment ROTATION — when an interior root split,
+  S1 inherited the old root's children wholesale but only overflow chains
+  were re-parented, so PTRMAP_BTREE entries kept pointing at the root
+  ("AllocateRootPage: relocate occupant 4 -> 1042: parent 3 does not
+  reference child 4", corruptB-3.1.1). Fix: setChildPtrmaps(child, child)
+  for every rotated child (btree children of interiors + overflow chains
+  of leaves — one helper for both). Still open: error-free page allocation
+  hides freelist-pop corruption (corruptL-5.x) — AllocatePage returns
+  *Page only.
 - **tcl2go drift**: regenerating a stale generated file pulls the CURRENT
   helper/emitter semantics — testgen/corrupt's catchsql `set x {}`
   pattern now renders want="{}" (normalizeExpectedWord's empty-brace rule
