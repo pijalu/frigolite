@@ -298,7 +298,6 @@ func isVtabSchemaEntry(entry *schema.Entry) bool {
 	return strings.HasPrefix(strings.ToUpper(strings.TrimSpace(entry.SQL)), "CREATE VIRTUAL TABLE")
 }
 
-
 func (e *DDLExecutor) authorizeDropTable(s *sql.DropTableStmt) *Result {
 	if res := e.authorizeActionOrSkip(auth.ActionDropTable, s.Name, "", "", ""); res != nil {
 		return res
@@ -370,6 +369,10 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	// the compaction in dropBtreeRoot must still resolve the owner of the
 	// current largest root from the schema.
 	drops := e.collectBtreeRootDrops(ctx, entry)
+	// build.c sqlite3DropTable: remove the dropped table's sqlite_sequence
+	// rows BEFORE the btree destroy ("in case the sqlite_sequence table
+	// needs to move as a result of the drop" — auto-vacuum).
+	e.dropTableSequenceEntries(entry, ctx)
 	e.dropTableCascade(ctx, entry)
 	e.markDropTableFKDirty(entry, ctx)
 	// A dropped table's FK-dirty entry is stale: its root page returns to the
@@ -639,6 +642,83 @@ func (e *DDLExecutor) dropTableCleanup(entry *schema.Entry, ctx *DatabaseContext
 	e.dropFTSState(ctx, entry.Name)
 	e.dropVtabModuleState(ctx, entry)
 	return nil
+}
+
+// dropTableSequenceEntries removes the dropped table's sqlite_sequence rows
+// (build.c sqlite3DropTable: "DELETE FROM %Q.sqlite_sequence WHERE name=%Q",
+// guarded by TF_Autoincrement). Only a table whose CREATE declares
+// AUTOINCREMENT owns sequence rows; the guard keeps plain DROPs from
+// touching the sequence table. A WITHOUT ROWID sqlite_sequence (planted via
+// writable_schema) is name-keyed: delete matching index cells.
+func (e *DDLExecutor) dropTableSequenceEntries(entry *schema.Entry, ctx *DatabaseContext) {
+	if entry == nil || ctx == nil ||
+		!strings.Contains(strings.ToUpper(entry.SQL), "AUTOINCREMENT") {
+		return
+	}
+	schemaMgr := ctx.Schema
+	if schemaMgr == nil {
+		schemaMgr = e.ctx.Schema()
+	}
+	seqEntry, err := schemaMgr.FindTable("sqlite_sequence")
+	if err != nil || isSyntheticSequence(seqEntry) {
+		return
+	}
+	tree := e.ctx.TableBTreePg(ctx.Pager, seqEntry.Name, seqEntry.RootPage, true)
+	if tree == nil {
+		return
+	}
+	if strings.Contains(strings.ToUpper(seqEntry.SQL), "WITHOUT ROWID") {
+		// Index-leaf cells share synthetic RowID 0: match by decoded name.
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return
+		}
+		var toDelete []string
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
+				break
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err == nil && rec != nil && len(rec.Values) > 0 {
+				if name, ok := rec.Values[0].(string); ok && strings.EqualFold(name, entry.Name) {
+					toDelete = append(toDelete, string(cell.Payload))
+				}
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+		for _, payload := range toDelete {
+			_, _ = tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+				return string(c.Payload) == payload
+			})
+		}
+		return
+	}
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return
+	}
+	var toDelete []int64
+	for {
+		cell, rec, ok := readSequenceRow(cursor)
+		if !ok {
+			break
+		}
+		if sequenceRowNameMatches(rec, entry.Name) {
+			toDelete = append(toDelete, cell.RowID)
+		}
+		if !advanceSequenceCursor(cursor) {
+			break
+		}
+	}
+	for _, rowID := range toDelete {
+		_, _ = tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+			return c.RowID == rowID
+		})
+	}
 }
 
 // dropFTSState tears down FTS module state and the backing-store shadow

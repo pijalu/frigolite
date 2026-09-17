@@ -338,6 +338,10 @@ type TableConstraint struct {
 	Name    string          // optional constraint name
 	Expr    Expr            // for CHECK: the check expression
 	Columns []IndexedColumn // for PRIMARY KEY/UNIQUE: indexed columns with options
+	// AutoInc is the optional AUTOINCREMENT marker of a table-level
+	// PRIMARY KEY (tcons ::= PRIMARY KEY LP sortlist autoinc RP onconf);
+	// legal only on a single-column INTEGER PRIMARY KEY.
+	AutoInc bool
 	// OnConflict is the optional ON CONFLICT resolution for the constraint
 	// (e.g. "IGNORE", "REPLACE", "ABORT", "FAIL", "ROLLBACK").
 	OnConflict string
@@ -371,12 +375,17 @@ func (s *CreateTableStmt) stmt() {}
 
 // ColumnDef represents a column definition in CREATE TABLE.
 type ColumnDef struct {
-	Name           string
-	Type           string
-	NotNull        bool
-	PrimaryKey     bool
-	PKDesc         bool // PRIMARY KEY DESC (INTEGER PRIMARY KEY DESC is NOT a rowid alias)
-	AutoInc        bool
+	Name       string
+	Type       string
+	NotNull    bool
+	PrimaryKey bool
+	PKDesc     bool // PRIMARY KEY DESC (INTEGER PRIMARY KEY DESC is NOT a rowid alias)
+	AutoInc    bool
+	// PKPromoted marks a PrimaryKey flag that came from the TABLE-level
+	// `PRIMARY KEY(col)` spelling (promoted post-parse so the rowid-alias
+	// rule sees the same shape); the more-than-one-PK check must not count
+	// it as a second declaration.
+	PKPromoted     bool
 	Unique         bool
 	OnConflict     string // optional: REPLACE, ABORT, FAIL, ROLLBACK, IGNORE
 	Collate        string

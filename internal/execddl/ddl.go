@@ -532,10 +532,12 @@ func (e *DDLExecutor) validateTableKeyConstraints(s *sql.CreateTableStmt) *Resul
 	// one primary key" (build.c sqlite3AddPrimaryKey). Column-level PKs are
 	// each a single-column PK; a table-level PRIMARY KEY(...) is another.
 	// The go-lemon parser folds repeated column-level PRIMARY KEY keywords
-	// into col.PrimaryKey (no duplicate error), so count both forms.
+	// into col.PrimaryKey (no duplicate error), so count both forms. A
+	// PKPromoted column IS the table-level declaration (promoted post-parse
+	// for the rowid-alias rule) — count it once via its constraint.
 	pkCount := 0
 	for _, col := range s.Columns {
-		if col.PrimaryKey {
+		if col.PrimaryKey && !col.PKPromoted {
 			pkCount++
 		}
 	}

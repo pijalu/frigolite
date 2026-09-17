@@ -1348,11 +1348,17 @@ func (db *DB) errorCode(err error) string {
 	case strings.Contains(msg, "out of memory"):
 		return "SQLITE_NOMEM"
 	case strings.Contains(msg, "no such table"), strings.Contains(msg, "no such column"),
-		strings.Contains(msg, "syntax error"), strings.Contains(msg, "near "),
-		strings.Contains(msg, "constraint"), strings.Contains(msg, "UNIQUE"),
+		strings.Contains(msg, "syntax error"), strings.Contains(msg, "near "):
+		return "SQLITE_ERROR"
+	case strings.Contains(msg, "constraint"), strings.Contains(msg, "UNIQUE"),
 		strings.Contains(msg, "NOT NULL"), strings.Contains(msg, "CHECK"),
 		strings.Contains(msg, "FOREIGN KEY"), strings.Contains(msg, "PRIMARY KEY"):
-		return "SQLITE_ERROR"
+		// Constraint violations report SQLITE_CONSTRAINT (sqlite3_errcode
+		// after a NOT NULL/UNIQUE/CHECK/FK failure: vdbe.c OP_Halt carries
+		// P2=SQLITE_CONSTRAINT; the commit-hook abort in vdbe.c reports the
+		// bare "constraint failed" message with the same code).
+		// altercons-5.2.2 asserts the code via the TCL errorcode fixture.
+		return "SQLITE_CONSTRAINT"
 	case strings.Contains(msg, "too big"), strings.Contains(msg, "string or blob too big"):
 		// vdbemem.c SQLITE_TOOBIG: "string or blob too big" from sqlite3_bind_*
 		// for a value whose byte length exceeds SQLITE_LIMIT_LENGTH
