@@ -6,7 +6,6 @@ package btree
 import (
 	"encoding/binary"
 	"fmt"
-	"os"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -1337,27 +1336,6 @@ func (t *BTree) findChildPageForInsert(pg *pager.Page, page *storage.BTreePage, 
 // addInteriorCell adds a new cell to an interior page.
 func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChild uint32, key uint64, rightChild uint32) error {
 	coff := contentOffset(pg.PageNum)
-	if os.Getenv("BT_DBG") != "" {
-		fmt.Printf("[ADDI] parent=%d count=%d left=%d key=%d right=%d cc0=%d fragfree=%d\n", pg.PageNum, page.CellCount, leftChild, key, rightChild, int(page.CellContent), page.FragFree)
-		defer func() {
-			if pg.PageNum == 781 {
-				co := coff
-				cc := int(binary.BigEndian.Uint16(pg.Data[co+5 : co+7]))
-				n := int(binary.BigEndian.Uint16(pg.Data[co+3 : co+5]))
-				line := fmt.Sprintf("[ADDI] done parent=%d ccNow=%d(count=%d) tail:", pg.PageNum, cc, n)
-				for j := n - 4; j < n; j++ {
-					if j < 0 {
-						continue
-					}
-					o := int(binary.BigEndian.Uint16(pg.Data[co+12+2*j : co+12+2*j+2]))
-					lc := binary.BigEndian.Uint32(pg.Data[o : o+4])
-					k, _ := util.GetVarint(pg.Data[o+4:])
-					line += fmt.Sprintf(" [%d]off=%d{L=%d,K=%d}", j, o, lc, k)
-				}
-				fmt.Println(line)
-			}
-		}()
-	}
 	cellData := t.encodeInteriorCell(leftChild, key)
 	ptroff := cellPtrOffset(page.PageType)
 
@@ -1366,7 +1344,9 @@ func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChi
 	cellContentEnd := int(page.CellContent)
 	var cellStart int
 	if cellContentEnd == 0 {
-		cellStart = int(t.pageSize) - len(cellData) - int(page.FragFree)
+		// Fresh (zero-initialized) page: cells pack from the usable end
+		// (zeroPage convention), not the raw page end.
+		cellStart = int(t.usableSize) - len(cellData) - int(page.FragFree)
 	} else {
 		cellStart = cellContentEnd - len(cellData)
 	}

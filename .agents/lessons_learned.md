@@ -6544,7 +6544,6 @@ Transpiler/harness:
   (-DSQLITE_ENABLE_FTS3/4 + shell.c), diff trace prints against engine
   logs — settles in minutes what code-reading suggests in hours. go-test
   timeouts masquerade as hangs: instrument the loop with a counter first.
-<<<<<<< HEAD
 - **FULL-SUITE-DRIFT.T26-alter engine facts (2026-09-17).** (1) A ROLLBACK
   cancels every savepoint — leaving the savepoint stack alive made a later
   RELEASE of a pre-ROLLBACK savepoint keep an implicit transaction open
@@ -6590,7 +6589,6 @@ Transpiler/harness:
   it the SQL side effects still run — use side-effect-preserving reasons
   when later tests depend on the skipped body's SQL (savepoint-5.3.2.1's
   SAVEPOINT def).
-=======
 
 ## 2026-09-17 (T26-corrupt): hexio corruption-family lessons
 
@@ -6633,4 +6631,37 @@ Transpiler/harness:
   loop. When a stale package needs one skip, hand-patch the generated file
   to the exact post-skip shape instead of regenerating through drifted
   emitters, and note the drift for the next full-regeneration tranche.
->>>>>>> fleet/corrupt-hexio
+
+## 2026-09-17 (T25-btree): overflow-cell churn corruption lessons
+
+- **integrity_check coverage rule (btree.c:11004-11064)**: the implied
+  first heap entry covers [0, contentOffset-1] — the gap BELOW the cell
+  content start is legal free space; only untracked holes WITHIN the
+  content area (between live cells) count as nFrag and must equal
+  header byte 7. A page of contiguous cells packed from usableSize with
+  freeblock=0/nFrag=0 is a valid SQLite page state (post-defragmentPage),
+  so eager compaction on delete is format-exact even though C defers it.
+- **Interior divider removal must defragment** (removeInteriorCellRange):
+  leaving dropped dividers' bytes in place reads as "Fragmentation of N
+  bytes reported as 0" on the oracle (churn repro: 570-byte hole on an
+  interior page, 6-byte hole on the root). Interior cells are 4-byte
+  child + varint key, nothing to free to the freelist — repack instead.
+- **Overflow chains must be freed on EVERY cell clear** (clearCell →
+  freePageChain): read each page's next pointer BEFORE freeing (freeing
+  overwrites bytes 0-4 with freelist metadata). Paths: rowid-delete,
+  bulk predicate delete, index-entry delete, UPDATE/OR REPLACE overwrite
+  (deleteCellOnPage).
+- **Freelist pops can return STALE CACHED buffers** (grabPageLocked
+  hands back p.pages[pgno] unzeroed) — every page (re)writer must reset
+  freeblock + cellcount + content + frag explicitly (writeLeafHalf,
+  createInteriorRoot, zeroPageAsLeafTable, defragmentInterior...).
+- **storage.CellPointer(data, X, i) reads at X+8+2i** (header delta
+  baked in). Mixing direct indexing with a `cellPtrOffset-8` base (or
+  vice versa) silently writes cell pointers into the page header
+  (balanceQuick's dead-code bug, fixed).
+- **Oracle PRAGMA integrity_check on the ENGINE-WRITTEN file is the
+  churn oracle**; the engine's own integrity_check is too lenient to
+  catch fragmentation drift (it passed while the oracle failed).
+- bigrow-1.3/2.2 testgen failures are a transpiler rendering artifact
+  (trailing space before the final "]" in the want string), identical on
+  main — not an engine bug.

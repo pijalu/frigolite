@@ -192,7 +192,11 @@ func (t *BTree) balanceQuick(pPage, pParent *pager.Page, pSpace []byte) (*balanc
 	}
 	copy(pParent.Data[dividerStart:dividerStart+dividerSize], pSpace[:dividerSize])
 	// Cell pointer array: insert at position parentPage.CellCount.
-	ptrBase := parentCo + cellPtrOffset(parentPage.PageType) - 8
+	// cellPtrOffset is the header-relative array base; the raw buffer
+	// slot for cell i is parentCo + cellPtrOffset + i*2 (storage.CellPointer
+	// adds the 8-byte header delta internally — here the slot is written
+	// directly, so the delta is explicit).
+	ptrBase := parentCo + cellPtrOffset(parentPage.PageType)
 	binary.BigEndian.PutUint16(pParent.Data[ptrBase+int(parentPage.CellCount)*2:ptrBase+int(parentPage.CellCount)*2+2], uint16(dividerStart))
 	// Update parent header: cell count, cell content pointer.
 	newCount := parentPage.CellCount + 1
