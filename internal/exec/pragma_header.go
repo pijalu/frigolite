@@ -564,6 +564,14 @@ func (e *Engine) lockStatusFor(ctx *DatabaseContext) string {
 		}
 		return "reserved"
 	}
+	// A database the transaction wrote EARLIER keeps its WRITER lock even if
+	// a savepoint rollback has since restored its pages (pager.c: only
+	// COMMIT / full ROLLBACK clears WRITER_RESERVED; savepoint undo leaves
+	// the lock) — savepoint-10.2.8 expects aux1/aux2 "reserved" after
+	// ROLLBACK TO.
+	if e.tx.inTransaction && e.tx.reservedDbs != nil && e.tx.reservedDbs[strings.ToUpper(ctx.Name)] {
+		return "reserved"
+	}
 	if !e.tx.inTransaction && dirty {
 		// A write outside an explicit transaction (autocommit) holds an
 		// exclusive lock until the statement's implicit commit flushes.

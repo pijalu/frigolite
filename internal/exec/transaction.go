@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/lockreg"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -46,6 +47,7 @@ func (e *Engine) execCommit() *Result {
 	e.tx.ddlBuffer = nil
 	e.tx.txSnapshots = nil
 	e.tx.txFTSnapshots = nil
+	e.clearReservedDbs()
 	e.dml.ClearTxnWrittenFiles()
 	// Flush pending FTS3 segments (SQLite's FTS3 flushes the pending-terms
 	// hash at COMMIT, writing one segment per transaction). Mark the flush so
@@ -340,6 +342,14 @@ func (e *Engine) execRollback() *Result {
 	// COMMIT leaves the connection PENDING; ROLLBACK releases it so another
 	// writer can proceed).
 	e.releaseSharedTx()
+	// ROLLBACK cancels EVERY savepoint opened in the transaction
+	// (lang_savepoint.html: "the transaction is rolled back and all
+	// savepoints are cancelled"). A stale stack made a later RELEASE of a
+	// pre-ROLLBACK savepoint find idx>0 (startsTransaction false) and leave
+	// an implicit transaction open, so the next BEGIN failed with "cannot
+	// start a transaction within a transaction" (savepoint-4.2).
+	e.tx.savepointStack = nil
+	e.clearReservedDbs()
 	// Undo all DDL operations that were performed during the transaction
 	for i := len(e.tx.ddlBuffer) - 1; i >= 0; i-- {
 		e.tx.ddlBuffer[i]()
@@ -392,7 +402,47 @@ type savepointEntry struct {
 
 // --- SAVEPOINT / RELEASE / ROLLBACK TO ---
 
+// noteReservedDbs records every attached database whose pager currently holds
+// dirty pages (i.e. took the WRITER/RESERVED lock) as locked-for-the-
+// transaction. A later savepoint rollback may clean the pages, but C's pager
+// keeps the lock until COMMIT / full ROLLBACK (see txState.reservedDbs).
+func (e *Engine) noteReservedDbs() {
+	marked := false
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil || !ctx.Pager.HasDirtyPages() {
+			continue
+		}
+		if e.tx.reservedDbs == nil {
+			e.tx.reservedDbs = make(map[string]bool)
+		}
+		key := strings.ToUpper(ctx.Name)
+		if !e.tx.reservedDbs[key] {
+			e.tx.reservedDbs[key] = true
+			marked = true
+		}
+	}
+	_ = marked
+}
+
+// clearReservedDbs releases the per-transaction RESERVED marks (COMMIT /
+// full ROLLBACK; pager.c clears the WRITER state when the transaction ends).
+func (e *Engine) clearReservedDbs() {
+	e.tx.reservedDbs = nil
+}
+
 func (e *Engine) execSavepoint(s *sql.SavepointStmt) *Result {
+	// The authorizer sees SQLITE_SAVEPOINT with the operation name and the
+	// savepoint name BEFORE the statement executes (build.c sqlite3Savepoint:
+	// sqlite3AuthCheck(pParse, SQLITE_SAVEPOINT, az[op], zName, 0) with
+	// az = {"BEGIN", "RELEASE", "ROLLBACK"}; savepoint-9.1..9.3). DENY fails
+	// the statement with "not authorized" and no savepoint work happens.
+	ops := map[string]string{"SAVEPOINT": "BEGIN", "RELEASE": "RELEASE", "ROLLBACK": "ROLLBACK"}
+	op, ok := ops[strings.ToUpper(s.Type)]
+	if ok {
+		if err := e.Authorize(auth.ActionSavepoint, op, s.Name, "", ""); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	switch strings.ToUpper(s.Type) {
 	case "SAVEPOINT":
 		return e.execSavepointCreate(s)
@@ -472,6 +522,7 @@ func (e *Engine) execSavepointRelease(s *sql.SavepointStmt) *Result {
 		e.constraints.ResetFKDirty()
 		e.tx.ddlBuffer = nil
 		e.tx.txSnapshots = nil
+		e.clearReservedDbs()
 		for _, dbCtx := range e.dbList {
 			if dbCtx != nil && dbCtx.Pager != nil {
 				if err := dbCtx.Pager.FlushWithContext(false); err != nil {

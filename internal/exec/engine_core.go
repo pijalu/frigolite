@@ -819,6 +819,14 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	res = e.execPostFK(stmt, res, isDML)
 	res = e.execRollbackOnError(stmt, res, snaps, isDML)
 	e.execTrackChanges(res, isDML)
+	if e.tx.inTransaction {
+		// vdbe.c OP_Transaction: a statement inside an open transaction
+		// holds the WRITER lock on every database it wrote for the LIFE of
+		// the transaction — pager locks survive a savepoint ROLLBACK TO
+		// (only COMMIT / full ROLLBACK releases them). Remember the dbs so
+		// PRAGMA lock_status keeps reporting "reserved".
+		e.noteReservedDbs()
+	}
 	if res := e.execFlushAutocommit(stmt, res, isDML); res != nil {
 		// A commit-hook abort (sqlite3_commit_hook returning nonzero) fails
 		// the statement and rolls back its changes (SQLite rolls the implicit
