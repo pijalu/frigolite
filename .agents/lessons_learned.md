@@ -6544,3 +6544,68 @@ Transpiler/harness:
   (-DSQLITE_ENABLE_FTS3/4 + shell.c), diff trace prints against engine
   logs — settles in minutes what code-reading suggests in hours. go-test
   timeouts masquerade as hangs: instrument the loop with a counter first.
+
+## FULL-SUITE-DRIFT.T26-harness (2026-09-17) — JSON-harness fidelity: converter + comparator
+
+The testdata/*.json corpus predates the Go `tools/tclconvert` rewrite (old python
+converter). The four diagnosed false-red classes were verified and fixed; 88 files
+regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
+
+- **The Go tclconvert had silently regressed vs the old python converter.** It lacked:
+  testprefix (tester.tcl `fix_testname` — prefix only when the do_test name STARTS
+  WITH A DIGIT), `ifcapable` body execution (capabilities mapped 1/0 by !-negation;
+  the body is the LAST braced word — the capability expr itself may be braced),
+  `drop_all_tables`, `sqlite3 db :memory:` reopen (→ reset marker; also file reopen
+  after forcedelete/file delete), `string map` real substitution (was identity!),
+  proc optional args `{name default}`, `if {$cond} continue` (unbraced body words),
+  and `&&`/`||` (parseBitAnd/parseBitOr consumed the first char of `&&`/`||` —
+  "unexpected character '&'" aborted whole files). Any ONE of these silently lost
+  sections (e.g. `string map`-built FkeySimpleSchema) or whole files.
+- **sortTestsBySection stale-index comparator**: `sort.SliceStable(tests, func(i,j)
+  { keys[i]... })` compares PRECOMPUTED keys by ORIGINAL index — after the first
+  swap the pairing is garbage. Fix: sort an index permutation. ALSO: sorting is only
+  needed for LEGACY (unordered) JSON; new converter output is faithful TCL execution
+  order — mark it `"ordered": true` in the JSON and skip the sort, otherwise the key
+  sort hoists setup groups ([0] keys) to the file front and destroys loop-local state.
+- **JSON contract addition**: `ordered` (bool) in TestFileData. Legacy files keep the
+  scramble-repair sort (permutation + setup/marker key inheritance from the FOLLOWING
+  test + alpha-leading names like `fkey2-genfkey.1.11` sorting after numeric sections
+  via a sentinel; interior alpha components like `2-test-67` are skipped).
+- **catchsql semantics split**: catchsql/do_catchsql_test steps are type "catch"
+  (rc-prefixed expectations: `1 {msg}` error / `0 {result}` success); plain do_test
+  results NEVER carry rc — the old harness heuristic "exec expect starts with 1 =
+  expected error" produced false reds on result lists like "1 2 3" (fixed: exec steps
+  need a literal `1 {...}` braced-message form). Statements wrapped in TCL
+  `catch { execsql ... }` are captured as tolerant catch steps (errors allowed).
+- **expr $var substitution must bind ATOMS**: textual `$res` substitution inside
+  braced expr conditions garbles list values (`$res == "0 {}"` with
+  $res="1 {FK failed}" parses as `1 == 0` → TRUE). Values containing whitespace or
+  braces are wrapped as double-quoted expr literals (substituteExprAtoms/exprAtom).
+- **TCL parser details that matter**: backslash-newline continuation inside quoted
+  words; quoted list elements must EXCLUDE the closing quote (readListQuoted leaked
+  `"` into SQL); `do_test name body $var` unbraced expectations must be substituted;
+  cmdSQL re-evaluation must pass localVars (proc-scope $vars vanished from quoted
+  SQL); contiguous-run grouping (never global name-merge — loop iterations are
+  distinct tests; Go t.Run auto-suffixes duplicates `#01`).
+- **`drop_all_tables` must NOT be translated as a reset**: tester.tcl drops
+  tables+views in main/temp/attached with FKs off and RESTORES the FK flag — a reset
+  also detaches aux databases and resets pragmas (broke 14.2aux/14.1aux blocks and
+  FK state for whole files). The harness now executes a `__DROP_ALL_TABLES__` marker
+  with the faithful semantics (attachments and pragma state survive).
+- **Engine bugs found & fixed while triaging (minimally, oracle-verified)**:
+  (1) `x NOT LIKE y ESCAPE z` evaluated as POSITIVE LIKE — parse rule 207 dropped
+  the NOT when attaching the ESCAPE clause, and evalBinaryOpDispatched only handled
+  the positive operator (internal/parse/parser_rules3.go rule207 +
+  internal/execexpr/expression_rowvalue.go evalLikeWithEscape). (2) nothing else —
+  the rest of the residual reds are genuine engine gaps (deferred FK enforcement,
+  ALTER ADD COLUMN REFERENCES+DEFAULT state sensitivity, sqlite_rename_parent/
+  test_rename_parent C test functions, `db func` test scalars) or old-JSON legacy
+  files kept deliberately (KEEP-OLD set: 8_3_names aggerror alter2 attach attach2
+  auth auth2 e_update e_walhook pragma4 trigger2 triggerC where7).
+- **Regeneration policy**: regenerate per-file with
+  `go run ./tools/tclconvert/ -testdir <ori>/sqlite/test -outdir <dir> <file.test ...>`;
+  install only files whose regenerated JSON is faithful and better than legacy.
+  Compare per-file new-harness fail counts (regenerated vs HEAD JSON) and keep the
+  better; whole-file unsupportedTestFiles entries only for genuinely untranslatable
+  machinery (user collations, dynamic authorizer procs, TCL-proc-defined vtab
+  modules) with pointers to the green testgen/native pins.

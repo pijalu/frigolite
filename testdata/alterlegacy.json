@@ -1,9 +1,10 @@
 {
   "file": "alterlegacy.test",
   "name": "alterlegacy",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "alterlegacy-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "alterlegacy-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "alterlegacy-1.2",
       "steps": [
         {
           "type": "catch",
@@ -32,12 +33,27 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "alterlegacy-1.3",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(c, d);\n  ALTER TABLE t3 RENAME TO t3new;\n  DROP TABLE t3new;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master",
+          "expect": "\n  {CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b\u003e0}\n"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-1.3",
+      "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE t2 RENAME TO t2new;",
@@ -46,13 +62,8 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "alterlegacy-1.4",
       "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master",
-          "expect": "\n  {CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b\u003e0}\n"
-        },
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master",
@@ -61,7 +72,45 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE eee USING echo('abc');\n    SELECT * FROM eee;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE eee RENAME TO fff;\n    SELECT * FROM fff;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE fff RENAME TO ggg;",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-3.0",
       "steps": [
         {
           "type": "exec",
@@ -70,7 +119,7 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "alterlegacy-3.1.1",
       "steps": [
         {
           "type": "query",
@@ -80,7 +129,7 @@
       ]
     },
     {
-      "name": "3.1.2a",
+      "name": "alterlegacy-3.1.2a",
       "steps": [
         {
           "type": "exec",
@@ -89,7 +138,7 @@
       ]
     },
     {
-      "name": "3.1.2b",
+      "name": "alterlegacy-3.1.2b",
       "steps": [
         {
           "type": "catch",
@@ -99,7 +148,7 @@
       ]
     },
     {
-      "name": "3.1.3",
+      "name": "alterlegacy-3.1.3",
       "steps": [
         {
           "type": "query",
@@ -109,7 +158,7 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "alterlegacy-3.2.1",
       "steps": [
         {
           "type": "catch",
@@ -119,7 +168,7 @@
       ]
     },
     {
-      "name": "3.2.2",
+      "name": "alterlegacy-3.2.2",
       "steps": [
         {
           "type": "query",
@@ -129,7 +178,7 @@
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "alterlegacy-3.3.1",
       "steps": [
         {
           "type": "catch",
@@ -139,7 +188,7 @@
       ]
     },
     {
-      "name": "3.3.2",
+      "name": "alterlegacy-3.3.2",
       "steps": [
         {
           "type": "query",
@@ -149,7 +198,11 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-4.0",
       "steps": [
         {
           "type": "exec",
@@ -158,7 +211,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "alterlegacy-4.1",
       "steps": [
         {
           "type": "exec",
@@ -167,7 +220,7 @@
       ]
     },
     {
-      "name": "4.1a",
+      "name": "alterlegacy-4.1a",
       "steps": [
         {
           "type": "catch",
@@ -177,7 +230,7 @@
       ]
     },
     {
-      "name": "4.1b",
+      "name": "alterlegacy-4.1b",
       "steps": [
         {
           "type": "exec",
@@ -186,7 +239,7 @@
       ]
     },
     {
-      "name": "4.1c",
+      "name": "alterlegacy-4.1c",
       "steps": [
         {
           "type": "catch",
@@ -196,16 +249,21 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "alterlegacy-4.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1'"
+          "sql": "SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1'",
+          "expect": "[[:space:]][[:space:]]*"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-5.0",
       "steps": [
         {
           "type": "query",
@@ -215,7 +273,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "alterlegacy-5.1",
       "steps": [
         {
           "type": "exec",
@@ -224,7 +282,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "alterlegacy-5.2",
       "steps": [
         {
           "type": "query",
@@ -234,7 +292,7 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "alterlegacy-5.3",
       "steps": [
         {
           "type": "exec",
@@ -243,7 +301,7 @@
       ]
     },
     {
-      "name": "5.4",
+      "name": "alterlegacy-5.4",
       "steps": [
         {
           "type": "catch",
@@ -253,7 +311,7 @@
       ]
     },
     {
-      "name": "5.5",
+      "name": "alterlegacy-5.5",
       "steps": [
         {
           "type": "query",
@@ -263,7 +321,7 @@
       ]
     },
     {
-      "name": "5.6",
+      "name": "alterlegacy-5.6",
       "steps": [
         {
           "type": "exec",
@@ -272,7 +330,7 @@
       ]
     },
     {
-      "name": "5.7",
+      "name": "alterlegacy-5.7",
       "steps": [
         {
           "type": "catch",
@@ -282,7 +340,39 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "alterlegacy-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(tcl_command);"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'",
+          "expect": "{CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)}"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-8.1",
       "steps": [
         {
           "type": "exec",
@@ -291,7 +381,7 @@
       ]
     },
     {
-      "name": "8.2",
+      "name": "alterlegacy-8.2",
       "steps": [
         {
           "type": "exec",
@@ -305,7 +395,11 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-9.0",
       "steps": [
         {
           "type": "exec",
@@ -314,7 +408,7 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "alterlegacy-9.1",
       "steps": [
         {
           "type": "exec",
@@ -323,7 +417,7 @@
       ]
     },
     {
-      "name": "9.1b",
+      "name": "alterlegacy-9.1b",
       "steps": [
         {
           "type": "exec",
@@ -332,7 +426,7 @@
       ]
     },
     {
-      "name": "9.2",
+      "name": "alterlegacy-9.2",
       "steps": [
         {
           "type": "exec",
@@ -341,7 +435,7 @@
       ]
     },
     {
-      "name": "9.3",
+      "name": "alterlegacy-9.3",
       "steps": [
         {
           "type": "exec",
@@ -350,7 +444,7 @@
       ]
     },
     {
-      "name": "9.4",
+      "name": "alterlegacy-9.4",
       "steps": [
         {
           "type": "exec",
@@ -359,7 +453,7 @@
       ]
     },
     {
-      "name": "9.5",
+      "name": "alterlegacy-9.5",
       "steps": [
         {
           "type": "exec",
@@ -368,7 +462,7 @@
       ]
     },
     {
-      "name": "9.6",
+      "name": "alterlegacy-9.6",
       "steps": [
         {
           "type": "query",
@@ -378,7 +472,43 @@
       ]
     },
     {
-      "name": "11.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ggg;",
+          "expect": "a b c"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-11.0",
       "steps": [
         {
           "type": "exec",
@@ -387,7 +517,7 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "alterlegacy-11.1",
       "steps": [
         {
           "type": "exec",
@@ -396,7 +526,7 @@
       ]
     },
     {
-      "name": "11.3",
+      "name": "alterlegacy-11.3",
       "steps": [
         {
           "type": "query",
@@ -406,7 +536,7 @@
       ]
     },
     {
-      "name": "11.4",
+      "name": "alterlegacy-11.4",
       "steps": [
         {
           "type": "query",
@@ -416,7 +546,7 @@
       ]
     },
     {
-      "name": "11.5",
+      "name": "alterlegacy-11.5",
       "steps": [
         {
           "type": "query",
@@ -426,7 +556,7 @@
       ]
     },
     {
-      "name": "11.6",
+      "name": "alterlegacy-11.6",
       "steps": [
         {
           "type": "exec",
@@ -435,7 +565,11 @@
       ]
     },
     {
-      "name": "12.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-12.0",
       "steps": [
         {
           "type": "exec",
@@ -444,7 +578,7 @@
       ]
     },
     {
-      "name": "12.1",
+      "name": "alterlegacy-12.1",
       "steps": [
         {
           "type": "exec",
@@ -453,7 +587,7 @@
       ]
     },
     {
-      "name": "12.2",
+      "name": "alterlegacy-12.2",
       "steps": [
         {
           "type": "query",
@@ -463,7 +597,60 @@
       ]
     },
     {
-      "name": "14.5",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-14.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE mytable SET geom = X'1234'"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE mytable RENAME TO mytable_renamed;"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-14.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tr2 AFTER INSERT ON mytable_renamed BEGIN\n      DELETE FROM rt WHERE id=(SELECT min(id) FROM rt);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-14.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE mytable_renamed RENAME TO mytable2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterlegacy-14.5",
       "steps": [
         {
           "type": "exec",
@@ -472,7 +659,7 @@
       ]
     },
     {
-      "name": "14.6",
+      "name": "alterlegacy-14.6",
       "steps": [
         {
           "type": "exec",

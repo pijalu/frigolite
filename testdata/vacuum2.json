@@ -1,25 +1,8 @@
 {
   "file": "vacuum2.test",
   "name": "vacuum2",
+  "ordered": true,
   "tests": [
-    {
-      "name": "vacuum2-5.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 SELECT a+1, randomblob(500) FROM t1;      -- 2\n  INSERT INTO t1 SELECT a+2, randomblob(500) FROM t1;      -- 4 \n  INSERT INTO t1 SELECT a+4, randomblob(500) FROM t1;      -- 8 \n  INSERT INTO t1 SELECT a+8, randomblob(500) FROM t1;      -- 16"
-        }
-      ]
-    },
-    {
-      "name": "6.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(x PRIMARY KEY COLLATE cmp, y) WITHOUT ROWID;\n  CREATE INDEX t6y ON t6(y);\n  INSERT INTO t6 VALUES('i', 'one');\n  INSERT INTO t6 VALUES('ii', 'one');\n  INSERT INTO t6 VALUES('iii', 'one');"
-        }
-      ]
-    },
     {
       "name": "vacuum2-1.1",
       "steps": [
@@ -34,7 +17,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);"
+          "sql": "CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);",
+          "expect": "6"
         }
       ]
     },
@@ -43,7 +27,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "VACUUM"
+          "sql": "VACUUM",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "pragma page_size"
         }
       ]
     },
@@ -52,7 +46,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');"
+          "sql": "INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');",
+          "expect": "3"
         }
       ]
     },
@@ -61,7 +56,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=FULL;\n      VACUUM;"
+          "sql": "PRAGMA auto_vacuum=FULL;\n      VACUUM;",
+          "expect": "4"
         }
       ]
     },
@@ -69,7 +65,7 @@
       "name": "vacuum2-3.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
         }
@@ -79,7 +75,7 @@
       "name": "vacuum2-3.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
         }
@@ -90,7 +86,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=NONE;\n    VACUUM;"
+          "sql": "PRAGMA auto_vacuum=NONE;\n    VACUUM;",
+          "expect": "3"
         }
       ]
     },
@@ -98,7 +95,7 @@
       "name": "vacuum2-3.16",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
         }
@@ -108,17 +105,21 @@
       "name": "vacuum2-3.17",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
         }
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "vacuum2-4.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma auto_vacuum=1;\n      create table t(a, b);\n      insert into t values(1, 2);\n      insert into t values(1, 2);\n      pragma auto_vacuum=0;\n      vacuum;\n      pragma auto_vacuum;",
           "expect": "0"
         }
@@ -128,7 +129,7 @@
       "name": "vacuum2-4.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma auto_vacuum=1;\n      vacuum;\n      pragma auto_vacuum;",
           "expect": "1"
         }
@@ -138,7 +139,7 @@
       "name": "vacuum2-4.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma integrity_check",
           "expect": "ok"
         }
@@ -148,7 +149,7 @@
       "name": "vacuum2-4.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma auto_vacuum;",
           "expect": "1"
         }
@@ -158,7 +159,7 @@
       "name": "vacuum2-4.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma auto_vacuum=2;\n      vacuum;\n      pragma auto_vacuum;",
           "expect": "2"
         }
@@ -168,7 +169,7 @@
       "name": "vacuum2-4.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma integrity_check",
           "expect": "ok"
         }
@@ -178,109 +179,70 @@
       "name": "vacuum2-4.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma auto_vacuum;",
           "expect": "2"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "vacuum2-5.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    DROP TABLE t1;\n    VACUUM;"
-        },
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 SELECT a+1, randomblob(500) FROM t1;      -- 2\n  INSERT INTO t1 SELECT a+2, randomblob(500) FROM t1;      -- 4 \n  INSERT INTO t1 SELECT a+4, randomblob(500) FROM t1;      -- 8 \n  INSERT INTO t1 SELECT a+8, randomblob(500) FROM t1;      -- 16"
+        }
+      ]
+    },
+    {
+      "name": "vacuum2-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1",
+          "expect": "1 {cannot VACUUM - SQL statements in progress}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum2-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1, 2, 3",
+          "expect": "1 {cannot VACUUM - SQL statements in progress}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum2-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 WHERE a\u003c=10",
+          "expect": "1 2 3 4 5 6 7 8 9 10 {1 {cannot VACUUM - SQL statements in progress}}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum2-6.0",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);"
-        },
+          "sql": "CREATE TABLE t6(x PRIMARY KEY COLLATE cmp, y) WITHOUT ROWID;\n  CREATE INDEX t6y ON t6(y);\n  INSERT INTO t6 VALUES('i', 'one');\n  INSERT INTO t6 VALUES('ii', 'one');\n  INSERT INTO t6 VALUES('iii', 'one');"
+        }
+      ]
+    },
+    {
+      "name": "vacuum2-6.2",
+      "steps": [
         {
           "type": "exec",
           "sql": "VACUUM"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum=FULL;\n      VACUUM;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum=NONE;\n    VACUUM;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma auto_vacuum=1;\n      create table t(a, b);\n      insert into t values(1, 2);\n      insert into t values(1, 2);\n      pragma auto_vacuum=0;\n      vacuum;\n      pragma auto_vacuum;"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma auto_vacuum=1;\n      vacuum;\n      pragma auto_vacuum;"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma auto_vacuum;"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma auto_vacuum=2;\n      vacuum;\n      pragma auto_vacuum;"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma auto_vacuum;"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma page_size"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1, 2, 3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 WHERE a<=10"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

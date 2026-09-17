@@ -1,6 +1,7 @@
 {
   "file": "auth3.test",
   "name": "auth3",
+  "ordered": true,
   "tests": [
     {
       "name": "auth3-1.1",
@@ -84,6 +85,16 @@
           "type": "exec",
           "sql": "DELETE FROM t1;",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "auth3-3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMPORARY TABLE TempTable (\n        key TEXT NOT NULL ON CONFLICT FAIL UNIQUE ON CONFLICT REPLACE,\n        value TEXT NOT NULL ON CONFLICT FAIL);\n    ALTER TABLE TempTable RENAME TO DoNotRead;\n    SELECT name FROM temp.sqlite_master;",
+          "expect": "DoNotRead sqlite_autoindex_DoNotRead_1"
         }
       ]
     }

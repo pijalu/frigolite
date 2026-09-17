@@ -1,6 +1,7 @@
 {
   "file": "aggnested.test",
   "name": "aggnested",
+  "ordered": true,
   "tests": [
     {
       "name": "aggnested-1.1",
@@ -16,7 +17,7 @@
       "name": "aggnested-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT\n     (SELECT string_agg(a1,'x') || '-' || string_agg(b1,'y') FROM t2)\n    FROM t1;",
           "expect": "1x2x3-4y5"
         }
@@ -26,7 +27,7 @@
       "name": "aggnested-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT (SELECT string_agg(b1,a1) FROM t2) FROM t1;",
           "expect": "415 425 435"
         }
@@ -36,11 +37,15 @@
       "name": "aggnested-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT (SELECT group_concat(a1,b1) FROM t2) FROM t1;",
           "expect": "151 252 353"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "aggnested-3.0",
@@ -66,7 +71,7 @@
       "name": "aggnested-3.1-rj",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS other RIGHT JOIN t1 AS curr\n       GROUP BY curr.id1);",
           "expect": "1 1"
         }
@@ -106,7 +111,7 @@
       "name": "aggnested-3.12",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=value1)\n      FROM t1\n     GROUP BY id1;",
           "expect": "12 2 34 4"
         }
@@ -116,7 +121,7 @@
       "name": "aggnested-3.13",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1;",
           "expect": "12 2 11 0 34 4"
         }
@@ -126,7 +131,7 @@
       "name": "aggnested-3.14",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     WHERE value1 IN (SELECT max(value1) FROM t1 GROUP BY id1);",
           "expect": "12 2 34 4"
         }
@@ -146,7 +151,7 @@
       "name": "aggnested-3.16",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT max(value1), (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     GROUP BY id1;",
           "expect": "12 2 34 4"
         }
@@ -193,7 +198,11 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "aggnested-5.0",
       "steps": [
         {
           "type": "exec",
@@ -202,7 +211,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "aggnested-5.1",
       "steps": [
         {
           "type": "query",
@@ -212,7 +221,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "aggnested-5.2",
       "steps": [
         {
           "type": "query",
@@ -222,7 +231,7 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "aggnested-5.3",
       "steps": [
         {
           "type": "exec",
@@ -231,7 +240,7 @@
       ]
     },
     {
-      "name": "5.4",
+      "name": "aggnested-5.4",
       "steps": [
         {
           "type": "query",
@@ -241,7 +250,7 @@
       ]
     },
     {
-      "name": "5.5",
+      "name": "aggnested-5.5",
       "steps": [
         {
           "type": "query",
@@ -250,7 +259,11 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "aggnested-6.0",
       "steps": [
         {
           "type": "exec",
@@ -259,7 +272,7 @@
       ]
     },
     {
-      "name": "6.1.1",
+      "name": "aggnested-6.1.1",
       "steps": [
         {
           "type": "query",
@@ -269,7 +282,7 @@
       ]
     },
     {
-      "name": "6.1.2",
+      "name": "aggnested-6.1.2",
       "steps": [
         {
           "type": "query",
@@ -279,7 +292,7 @@
       ]
     },
     {
-      "name": "6.2.0",
+      "name": "aggnested-6.2.0",
       "steps": [
         {
           "type": "exec",
@@ -288,7 +301,7 @@
       ]
     },
     {
-      "name": "6.2.1",
+      "name": "aggnested-6.2.1",
       "steps": [
         {
           "type": "query",
@@ -298,7 +311,7 @@
       ]
     },
     {
-      "name": "6.2.2",
+      "name": "aggnested-6.2.2",
       "steps": [
         {
           "type": "query",
@@ -308,7 +321,11 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "aggnested-7.0",
       "steps": [
         {
           "type": "exec",
@@ -317,7 +334,7 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "aggnested-7.1",
       "steps": [
         {
           "type": "query",
@@ -327,7 +344,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "aggnested-7.2",
       "steps": [
         {
           "type": "query",
@@ -337,7 +354,7 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "aggnested-8.0",
       "steps": [
         {
           "type": "query",
@@ -347,7 +364,7 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "aggnested-8.1",
       "steps": [
         {
           "type": "query",
@@ -357,7 +374,7 @@
       ]
     },
     {
-      "name": "8.2",
+      "name": "aggnested-8.2",
       "steps": [
         {
           "type": "query",
@@ -367,7 +384,11 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "aggnested-9.1",
       "steps": [
         {
           "type": "query",
@@ -377,7 +398,7 @@
       ]
     },
     {
-      "name": "9.2",
+      "name": "aggnested-9.2",
       "steps": [
         {
           "type": "query",
@@ -387,7 +408,7 @@
       ]
     },
     {
-      "name": "9.3",
+      "name": "aggnested-9.3",
       "steps": [
         {
           "type": "query",
@@ -397,7 +418,7 @@
       ]
     },
     {
-      "name": "9.4",
+      "name": "aggnested-9.4",
       "steps": [
         {
           "type": "query",
@@ -407,7 +428,7 @@
       ]
     },
     {
-      "name": "9.5",
+      "name": "aggnested-9.5",
       "steps": [
         {
           "type": "query",
@@ -417,7 +438,7 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "aggnested-10.1",
       "steps": [
         {
           "type": "catch",
@@ -427,7 +448,7 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "aggnested-11.1",
       "steps": [
         {
           "type": "exec",
@@ -436,7 +457,7 @@
       ]
     },
     {
-      "name": "11.2",
+      "name": "aggnested-11.2",
       "steps": [
         {
           "type": "catch",
@@ -446,7 +467,7 @@
       ]
     },
     {
-      "name": "11.3",
+      "name": "aggnested-11.3",
       "steps": [
         {
           "type": "catch",
