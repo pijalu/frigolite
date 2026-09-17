@@ -305,11 +305,9 @@ func (t *BTree) writeSingleCellAtEnd(pg *pager.Page, cell []byte) error {
 	// each subsequent cell pointer at a lower address. For nCell=1
 	// the cell goes at usableSize-len(cell).
 	usableStart := int(t.usableSize)
-	// SQLite reserves the last 4 bytes of the page for the
-	// right-child pointer (a leaf page's "right child" is used by
-	// overflow chains). Use the bytes just before that reserved
-	// area.
-	cellStart := usableStart - 4 - len(cell)
+	// Cells pack from the usable end (zeroPage convention; a leaf page
+	// carries no right-child pointer).
+	cellStart := usableStart - len(cell)
 	if cellStart < coff+8+2*int(page.CellCount)+2 {
 		return fmt.Errorf("btree: writeSingleCellAtEnd: cell too large for page")
 	}

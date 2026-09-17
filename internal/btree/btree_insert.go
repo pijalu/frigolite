@@ -341,7 +341,7 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 		}
 	}
 
-	if leafHasRoom(pg, page, cellData, coff, t.pageSize) {
+	if leafHasRoom(pg, page, cellData, coff, t.usableSize) {
 		// There is room — insert directly.
 		if err := t.writeLeafCell(pg, page, newCell, cellData, coff); err != nil {
 			return nil, err
@@ -359,7 +359,7 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 	// page_size=1024). SQLite keeps the formula-mandated local size and
 	// reconciles through balance_deeper (src/btree.c:9010) — the root's
 	// content moves to a fresh child leaf and the root becomes interior.
-	if parentPgno == 0 && !leafCellsFit([][]byte{cellData}, coff, int(t.pageSize)) {
+	if parentPgno == 0 && !leafCellsFit([][]byte{cellData}, coff, int(t.usableSize)) {
 		return t.balanceDeeperRootLeaf(pg, page, newCell, cellData, coff)
 	}
 	if page.CellCount == 0 {
@@ -683,8 +683,10 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 	cellContentEnd := int(page.CellContent)
 	var cellStart int
 	if cellContentEnd == 0 {
-		// Reserve 4 bytes at page end for chain pointer
-		cellStart = int(t.pageSize) - 4 - len(cellData) - int(page.FragFree)
+		// Fresh (zero-initialized) page: the first cell ends at the usable
+		// end (zeroPage sets the content pointer to usableSize; btree.c
+		// packs cells from cbrk=usableSize with no page-end reservation).
+		cellStart = int(t.usableSize) - len(cellData) - int(page.FragFree)
 	} else {
 		cellStart = cellContentEnd - len(cellData)
 	}
@@ -767,7 +769,7 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 	for _, c := range cells {
 		if len(cur) > 0 {
 			probe := append(append([]splitEntry{}, cur...), c)
-			if !leafCellsFit(cellDatas(probe), coff, int(t.pageSize)) {
+			if !leafCellsFit(cellDatas(probe), coff, int(t.usableSize)) {
 				flush()
 			}
 		}
@@ -784,13 +786,13 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 	}
 
 	// Write the first partition to the original leaf.
-	if err := writeLeafHalf(pg, coff, partitions[0], int(t.pageSize)); err != nil {
+	if err := writeLeafHalf(pg, coff, partitions[0], int(t.usableSize)); err != nil {
 		return nil, err
 	}
-	// Pre-allocate every new page, then write each partition and set the
-	// right-sibling chain pointers between consecutive pages (a chain pointer
-	// must reference the page that actually holds the next partition; a
-	// leaked allocation would make the cursor follow an unwritten page).
+	// Pre-allocate every new page, then write each partition. There is no
+	// right-sibling chain pointer: btree pages carry no page-end trailer
+	// (cells pack from usableSize) and traversal follows the parent's
+	// child pointers.
 	nNew := len(partitions) - 1
 	newPages := make([]*pager.Page, 0, nNew)
 	for i := 0; i < nNew; i++ {
@@ -800,11 +802,6 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 		}
 		newPages = append(newPages, np)
 	}
-	// The original leaf's right-sibling chain must point to the first new
-	// page (a full scan follows the chain from the leftmost leaf).
-	if nNew > 0 {
-		binary.BigEndian.PutUint32(pg.Data[int(t.pageSize)-4:int(t.pageSize)], newPages[0].PageNum)
-	}
 	if err := t.pager.WritePage(pg); err != nil {
 		return nil, err
 	}
@@ -813,7 +810,7 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 		newPg := newPages[pi-1]
 		newCoff := contentOffset(newPg.PageNum)
 		newPg.Data[newCoff] = pg.Data[coff] // same page type
-		if err := writeLeafHalf(newPg, newCoff, partitions[pi], int(t.pageSize)); err != nil {
+		if err := writeLeafHalf(newPg, newCoff, partitions[pi], int(t.usableSize)); err != nil {
 			return nil, err
 		}
 		// Cells that moved to this new page take their overflow chains with
@@ -829,14 +826,8 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 				}
 			}
 		}
-		// Right-sibling chain pointer (last 4 bytes): the next partition's
-		// page, or 0 for the last new page.
-		chainOff := int(t.pageSize) - 4
-		if pi < len(partitions)-1 {
-			binary.BigEndian.PutUint32(newPg.Data[chainOff:chainOff+4], newPages[pi].PageNum)
-		} else {
-			binary.BigEndian.PutUint32(newPg.Data[chainOff:chainOff+4], 0)
-		}
+		// No page-end chain pointer (btree.c pages carry no trailer): the
+		// cell content area runs to usableSize.
 		if err := t.pager.WritePage(newPg); err != nil {
 			return nil, err
 		}
@@ -939,12 +930,10 @@ func bubbleSortSplitCells(cells []splitEntry, greater func(a, b splitEntry) bool
 
 // writeLeafHalf writes a slice of split entries to a leaf page starting at
 // the given content offset, appending cells from the end of the usable area
-// downward, and updates the page header's cell count and content end. The
-// last 4 bytes are reserved for the right-sibling chain pointer (the caller
-// writes it after this returns).
-func writeLeafHalf(pg *pager.Page, coff int, half []splitEntry, pageSize int) error {
+// downward, and updates the page header's cell count and content end.
+func writeLeafHalf(pg *pager.Page, coff int, half []splitEntry, usableSize int) error {
 	var count uint16
-	end := pageSize - 4 // leaves reserve the 4-byte chain pointer at the end
+	end := usableSize // cells pack from the usable end (zeroPage convention)
 	for i := range half {
 		d := half[i].cellData
 		start := end - len(d)
@@ -957,8 +946,15 @@ func writeLeafHalf(pg *pager.Page, coff int, half []splitEntry, pageSize int) er
 		count++
 		end = start
 	}
+	// Full header rewrite (zeroPage parity): the page may be a cached
+	// buffer from an earlier incarnation (freed leaf/overflow/trunk page
+	// handed out again by the freelist pop), so freeblock and fragmentation
+	// must be reset explicitly — stale bytes there read as free-space
+	// corruption ("Fragmentation of N bytes reported as M").
+	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0)  // first freeblock
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], count)
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(end))
+	pg.Data[coff+7] = 0 // fragmented free bytes
 	return nil
 }
 
@@ -972,15 +968,14 @@ func cellDatas(cells []splitEntry) [][]byte {
 }
 
 // leafCellsFit reports whether the given cell byte slices fit in a leaf page
-// with the given content offset, leaving room for the cell pointer array and
-// the 4-byte right-sibling chain pointer at the page end.
-func leafCellsFit(cells [][]byte, coff, pageSize int) bool {
+// with the given content offset, leaving room for the cell pointer array.
+func leafCellsFit(cells [][]byte, coff, usableSize int) bool {
 	total := 0
 	for _, d := range cells {
 		total += len(d)
 	}
 	ptrEnd := coff + storage.CellPointerOffset + len(cells)*2 + 2
-	contentEnd := pageSize - 4 // reserve the 4-byte right-sibling chain pointer
+	contentEnd := usableSize // cells pack from the usable end (no page-end trailer)
 	return contentEnd-total >= ptrEnd
 }
 
@@ -1007,11 +1002,15 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 
 	// One cell: {leftChild, medianKey}
 	cellData := t.encodeInteriorCell(leftChild, medianKey)
-	cellStart := int(t.pageSize) - len(cellData)
+	cellStart := int(t.usableSize) - len(cellData)
 	copy(rootPg.Data[cellStart:], cellData)
+	// Full header rewrite: the allocated root may be a cached buffer from
+	// an earlier incarnation — freeblock and fragmentation must be reset.
+	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+1:rootCoff+3], 0) // first freeblock
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+cellPtrOffset(rootPg.Data[rootCoff]):], uint16(cellStart))
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+3:rootCoff+5], 1)
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+5:rootCoff+7], uint16(cellStart))
+	rootPg.Data[rootCoff+7] = 0 // fragmented free bytes
 	binary.BigEndian.PutUint32(rootPg.Data[rootCoff+8:rootCoff+12], rightChild) // rightmostPtr
 
 	if err := t.pager.WritePage(rootPg); err != nil {
@@ -1180,6 +1179,12 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 		return 0, 0, err
 	}
 	newCoff := contentOffset(newPg.PageNum)
+	// The allocated page may be a cached buffer from an earlier incarnation:
+	// zero it before rewriting (zeroPage parity) so freeblock/fragmentation
+	// and stale cell bytes never survive.
+	for i := newCoff; i < int(t.pageSize); i++ {
+		newPg.Data[i] = 0
+	}
 	newPg.Data[newCoff] = page.PageType // same interior type
 
 	// Clear original interior page content (except page type)

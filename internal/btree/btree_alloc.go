@@ -16,6 +16,8 @@
 package btree
 
 import (
+	"encoding/binary"
+
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -141,6 +143,26 @@ func (t *BTree) freePageWithPtrmap(pgno uint32) error {
 	}
 	if t.ptrmapEnabled() {
 		return t.pager.WritePtrmap(pgno, storage.PtrmapFreelist, 0)
+	}
+	return nil
+}
+
+// freeOverflowChain walks an overflow-page chain from its first page and
+// returns every page to the freelist (btree.c clearCell → freePageChain,
+// src/btree.c:6893: each page's next pointer is read BEFORE the page is
+// freed, since freeing overwrites the first bytes with freelist metadata).
+func (t *BTree) freeOverflowChain(first uint32) error {
+	pn := first
+	for pn != 0 {
+		np, err := t.pager.ReadPage(pn)
+		if err != nil || np == nil {
+			break
+		}
+		next := binary.BigEndian.Uint32(np.Data[0:4])
+		if err := t.freePageWithPtrmap(pn); err != nil {
+			return err
+		}
+		pn = next
 	}
 	return nil
 }

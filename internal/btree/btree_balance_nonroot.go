@@ -452,7 +452,15 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 
 // removeInteriorCellRange removes count divider cells starting at index
 // start from an interior page, shifting subsequent cell pointers down.
-// Equivalent to SQLite's dropCell in a loop (src/btree.c dropCell).
+// Equivalent to SQLite's dropCell in a loop (src/btree.c dropCell). The
+// dropped cells' bytes are deliberately left in place (untracked dead space
+// inside the content area): interior cells in this engine are 4-byte
+// left-child + varint key with no overflow chain, so nothing is leaked to
+// the freelist, and compacting here would move cell bytes under concurrent
+// readers of the cached page buffer (the pointer-array shift this performs
+// degrades gracefully — a torn read yields a skipped child — while moved
+// bytes read as hard garbage). insertInteriorDividerAt reclaims the dead
+// space via defragmentInterior when the page next needs room.
 func (t *BTree) removeInteriorCellRange(pg *pager.Page, page *storage.BTreePage, start, count int) error {
 	if count <= 0 {
 		return nil
@@ -553,7 +561,8 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 	ptrBase := coff + cellPtrOffset(page.PageType)
 	cnt := int(page.CellCount)
 	// Interior cell layout: 4-byte left-child + varint key — the varint
-	// length determines the on-page cell size.
+	// length determines the on-page cell size (uniform for table and index
+	// interiors in this engine; dividers carry no payload/overflow).
 	sizes := make([]int, cnt)
 	data := make([][]byte, cnt)
 	for i := 0; i < cnt; i++ {
@@ -566,7 +575,7 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 		sizes[i] = sz
 		data[i] = append([]byte(nil), pg.Data[off:off+sz]...)
 	}
-	start := int(t.pageSize)
+	start := int(t.usableSize)
 	for i := 0; i < cnt; i++ {
 		start -= sizes[i]
 		copy(pg.Data[start:start+sizes[i]], data[i])

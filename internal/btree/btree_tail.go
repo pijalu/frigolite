@@ -477,22 +477,17 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 	for _, di := range deletedIdx {
 		dcell := &decoded[di]
 		if dcell.Overflow != 0 {
-			pn := dcell.Overflow
-			for pn != 0 {
-				np, _ := t.pager.ReadPage(pn)
-				if np == nil {
-					break
-				}
-				next := binary.BigEndian.Uint32(np.Data[0:4])
-				_ = t.freePageWithPtrmap(pn)
-				pn = next
+			if err := t.freeOverflowChain(dcell.Overflow); err != nil {
+				return deleted, err
 			}
 		}
 	}
 	// Rewrite the surviving cells contiguously from the end of the usable
 	// area (cells grow downward; the first cell occupies the highest
-	// addresses, pageSize-4 for the reserved chain pointer).
-	start := int(t.pageSize) - 4
+	// addresses, ending at usableSize — btree.c defragmentPage packs from
+	// cbrk=usableSize, src/btree.c:2205; no bytes are reserved at the page
+	// end, so the flushed image leaves no untracked tail).
+	start := int(t.usableSize)
 	newPtrs := make([]uint16, len(keep))
 	for pos, ci := range keep {
 		start -= len(encoded[ci])
@@ -512,9 +507,10 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
 	if len(newPtrs) == 0 {
 		// The page became empty: SQLite sets the cell content pointer to the
-		// page's usable end for empty leaves (free-space accounting).
-		page.CellContent = uint16(t.pageSize)
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.pageSize))
+		// page's usable end for empty leaves (zeroPage: put2byte(&data[hdr+5],
+		// pBt->usableSize)).
+		page.CellContent = uint16(t.usableSize)
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.usableSize))
 		pg.Data[coff+7] = 0
 	} else {
 		page.CellContent = uint16(start)
@@ -528,13 +524,32 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 }
 
 // deleteCellOnPage removes the cell at cellIdx from the given leaf page,
-// shifting the pointer array down and updating the cell count.
+// shifting the pointer array down and updating the cell count. The cell's
+// overflow-page chain is returned to the freelist first — btree.c
+// dropCell → sqlite3BtreeClearCell → clearCell → freePageChain
+// (src/btree.c:7237/6893): an overwritten or deleted cell's chain is
+// exclusively owned by that cell, so leaking it permanently orphans the
+// pages ("Page N is never used") and breaks freelist/vacuum accounting.
 func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellIdx int) error {
 	coff := contentOffset(pg.PageNum)
 	if cellIdx < 0 || cellIdx >= int(page.CellCount) {
 		return fmt.Errorf("btree: cell index %d out of range (count %d)", cellIdx, page.CellCount)
 	}
+	// Free the removed cell's overflow chain (clearCell parity). Decode
+	// before any pointer shift so the cell's bytes are still in place.
+	var cellType storage.CellType
+	if page.PageType == storage.PageTypeLeafTable {
+		cellType = storage.CellTableLeaf
+	} else {
+		cellType = storage.CellIndexLeaf
+	}
 	ptrBase := coff + storage.CellPointerOffset
+	delOff := int(storage.CellPointer(pg.Data, coff, cellIdx, int(t.pageSize)))
+	if delCell, derr := storage.DecodeCell(pg.Data, delOff, cellType, int(t.usableSize)); derr == nil && delCell.Overflow != 0 {
+		if err := t.freeOverflowChain(delCell.Overflow); err != nil {
+			return err
+		}
+	}
 	for i := cellIdx; i < int(page.CellCount)-1; i++ {
 		src := ptrBase + (i+1)*2
 		dst := ptrBase + i*2
@@ -552,8 +567,8 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 		// consistent; an empty page whose content pointer is 0 looks like a
 		// crash-written page — "free space corruption"). Reset it to the
 		// usable size so the next insert treats it as fresh.
-		page.CellContent = uint16(t.pageSize)
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.pageSize))
+		page.CellContent = uint16(t.usableSize)
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.usableSize))
 		pg.Data[coff+7] = 0 // fragmented free bytes
 	} else {
 		// Compact the remaining cells down so the deleted cell's bytes are
@@ -584,10 +599,10 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 			cells[i] = cellRef{data: storage.EncodeCell(c)}
 		}
 		// Rewrite cells contiguously: the first cell (index 0) ends at
-		// pageSize-4 (reserved chain pointer). Each subsequent cell is placed
-		// immediately after the previous one's start... cells grow downward,
-		// so cell 0 occupies the highest addresses. Compute each cell's start.
-		start := int(t.pageSize) - 4
+		// usableSize (cells grow downward — defragmentPage packs from
+		// cbrk=usableSize, no page-end reservation). Compute each cell's
+		// start.
+		start := int(t.usableSize)
 		for i := 0; i < len(cells); i++ {
 			start -= len(cells[i].data)
 			copy(pg.Data[start:start+len(cells[i].data)], cells[i].data)
