@@ -195,13 +195,26 @@ type minMaxAggregate struct {
 // and descending into nested expressions. Returns nil when the result set has
 // no min/max aggregate.
 func (e *SelectEngine) lastMinMaxAggregate(columns []sql.SelectColumn) *minMaxAggregate {
-	var last *minMaxAggregate
+	var last, lastFiltered *minMaxAggregate
 	for _, col := range columns {
 		if mm := lastMinMaxInExpr(col.Expr, e.ctx.Functions()); mm != nil {
-			last = mm
+			if mm.filter == nil {
+				last = mm
+			} else {
+				lastFiltered = mm
+			}
 		}
 	}
-	return last
+	// An UNFILTERED min/max takes priority: its row is the source row for
+	// bare columns even when a FILTERED min/max appears later in the list
+	// (filter1-7.1: max(a), max(a) FILTER (WHERE b<12345), b — the bare b
+	// comes from the unfiltered max row, not the filtered aggregate's
+	// empty-row fallback). The last filtered aggregate is the fallback only
+	// when no unfiltered one exists (filter1-3.3).
+	if last != nil {
+		return last
+	}
+	return lastFiltered
 }
 
 // minMaxSourceRow evaluates a single-argument MIN/MAX aggregate's argument

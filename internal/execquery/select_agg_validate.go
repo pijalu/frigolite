@@ -171,6 +171,13 @@ func (e *SelectEngine) aggExprRefsOnlyOuter(expr sql.Expr, inner map[string]bool
 		}
 		reg, found := e.ctx.Functions().Find(fn.Name)
 		if found && reg.Type == function.TypeAggregate {
+			// A FILTER bound to the subquery's own rows keeps the aggregate
+			// inner-evaluated: the query is a per-row correlated-aggregate
+			// subquery, NOT an outer aggregate collapse (filter1-6.1:
+			// COUNT(a) FILTER(WHERE x) with x inner evaluates per outer row).
+			if fn.Filter != nil && exprHasColRefInMap(fn.Filter, inner) {
+				return false
+			}
 			refsOuter := false
 			refsInner := false
 			for _, a := range fn.Args {
@@ -386,6 +393,12 @@ func (e *SelectEngine) aggColumnArgsRefInner(col sql.SelectColumn, colNames map[
 		if exprHasColRefInMap(ob.Expr, colNames) {
 			return true
 		}
+	}
+	// A FILTER referencing a FROM-table column binds the aggregate to the
+	// inner rows even when the arguments are outer-only (filter1-6.1:
+	// COUNT(a) FILTER(WHERE x) with x in the FROM table).
+	if fn.Filter != nil && exprHasColRefInMap(fn.Filter, colNames) {
+		return true
 	}
 	return false
 }

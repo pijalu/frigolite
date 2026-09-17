@@ -616,14 +616,20 @@ func (e *SelectEngine) resolveOrderByRowValues(name string, obExpr sql.Expr, row
 	rowName := name
 	if resolvedName != "" {
 		// The name is an alias; the value comes from the aliased column's
-		// position in the output row.
-		rowName = resolvedName
+		// position in the output row. When the alias itself is an output
+		// column, that position WINS and the source-column row-map lookup is
+		// skipped: a compound's rebuilt row maps are keyed by output names,
+		// so a resolved source name (c62) reads the wrong column and ties a
+		// sort that must move rows (selectH-2.1: ORDER BY b over arms
+		// "c62 AS b" / "c61 AS b").
 		if pos := resultColumnIndex(resultCols, name); pos >= 0 && pos < len(rows[i]) {
 			left = rows[i][pos]
+			if pos < len(rows[j]) {
+				right = rows[j][pos]
+			}
+			return left, right
 		}
-		if pos := resultColumnIndex(resultCols, name); pos >= 0 && pos < len(rows[j]) {
-			right = rows[j][pos]
-		}
+		rowName = resolvedName
 	}
 	if lm, ok := rowMaps[i].Get(rowName); ok {
 		left = lm
