@@ -126,6 +126,8 @@ func Test_e_resolve(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db2")
+	os.Remove("test.db3")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -186,6 +188,8 @@ func Test_e_resolve(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db2")
+	os.Remove("test.db3")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -288,6 +292,7 @@ func Test_e_resolve(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("file.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

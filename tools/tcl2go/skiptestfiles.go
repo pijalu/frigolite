@@ -426,7 +426,7 @@ var skipTestFiles = map[string]string{
 	"fts5locale":      "N/A: all sections build tables with tokenize=tcl registered by sqlite3_fts5_create_tokenizer -v2 (a V2 locale-aware TCL-proc tokenizer, fts5locale.test:58-88, fts5_tcl.c harness API); the engine's fts5_locale()/locale=1 config and error contracts are pinned by fts5blob 3.x ('fts5_locale() requires locale=1') (no-side-effects)",
 	"fts5origintext2": "N/A: every section runs under the 'origintext' tokenizer registered by sqlite3_fts5_register_origintext (fts5_tcl.c:1521 test-harness extension emitting origin-marker tokens, unregistrable in the pure-Go port); the tokenendata/origin-token storage contracts are additionally the mirror-storage divergence class (2004/2004 assertion failures all originate in that tokenizer)",
 	"fts5origintext5": "N/A: same sqlite3_fts5_register_origintext harness class as fts5origintext2 (fts5_tcl.c:1521); its 40 failures are all origintext-tokenizer sections",
-	"rtreefuzz001": "N-A database_may_be_corrupt stale matchers + untranspilable corruption fixtures (evidence frigolite_rtreeA_J_8_native_test.go + frigolite_geopoly_test.go + frigolite_rtree_query2_test.go; :2447's {/1 .*corrupt.*/} is stale on current C builds — python3 sqlite3 3.53.4 errors 'malformed' on the same c3.db; :6006/:6012 geopoly assertions GREEN with the T30 geopoly module)",
+	"rtreefuzz001":    "N-A database_may_be_corrupt stale matchers + untranspilable corruption fixtures (evidence frigolite_rtreeA_J_8_native_test.go + frigolite_geopoly_test.go + frigolite_rtree_query2_test.go; :2447's {/1 .*corrupt.*/} is stale on current C builds — python3 sqlite3 3.53.4 errors 'malformed' on the same c3.db; :6006/:6012 geopoly assertions GREEN with the T30 geopoly module)",
 
 	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
 	// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.
@@ -656,6 +656,16 @@ var skipTestFiles = map[string]string{
 	"swarmvtab":  "superseded by native Go port (frigolite_swarm_contract_test.go)",
 	"swarmvtab2": "superseded by native Go port (frigolite_swarmvtab2_test.go)",
 	"swarmvtab3": "superseded by native Go port (frigolite_swarmvtab3_test.go)",
+
+	// Superseded by native Go port (AGENTS.md "Pure-Go supersession",
+	// FULL-SUITE-DRIFT.T26-alter): every alterauth.test assertion flows
+	// through the xAuth fixture proc + `db auth xAuth` registration, which
+	// the transpiler emits only as "// proc definition (not transpiled)" —
+	// the generated test can never observe (or deny through) the authorizer.
+	// The engine dispatches SQLITE_ALTER_TABLE (dbName, tableName) for every
+	// ALTER form and fails DENY with "not authorized": pinned natively in
+	// frigolite_alterauth_pin_test.go (TestSQLiteAlterAuthPin).
+	"alterauth": "superseded by native Go port (frigolite_alterauth_pin_test.go) — db auth fixture untranspilable",
 
 	// Superseded by native Go ports (AGENTS.md "Pure-Go supersession"): these
 	// depend on C-API / query-planner introspection modules (sqlite_stmt

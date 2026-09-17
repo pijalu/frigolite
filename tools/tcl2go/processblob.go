@@ -27,6 +27,17 @@ func (tp *transpiler) expectedStringExpr(w tcl.RawWord) (string, bool) {
 	if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") {
 		cmdText := strings.TrimSuffix(strings.TrimPrefix(text, "["), "]")
 		fields := tclCmdWords(cmdText)
+		// [ifcapable GUARD {BODY} [else {BODY}]] — a capability-selected
+		// expected value folds at transpile time (autoinc-2.70/2.71: the
+		// sqlite_sequence contents differ only for a !tempdb build). The
+		// chosen body is a `list a b c` script whose rendering is the
+		// static word list. Unknown/elseif forms are not folded.
+		if len(fields) >= 3 && fields[0] == "ifcapable" {
+			if expr, ok := foldIfcapableExpected(fields); ok {
+				return expr, true
+			}
+			return "", false
+		}
 		if len(fields) >= 1 && globalUserProcs[fields[0]] {
 			callArgs := make([]string, 0, len(fields)-1)
 			for _, a := range fields[1:] {

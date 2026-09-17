@@ -123,6 +123,12 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(x int, y int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT x FROM t1 ORDER BY y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x int, y int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT x FROM t1 ORDER BY y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-1.2"
@@ -196,50 +202,11 @@ func Test_rowid(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE rowid=" + norow)
 		}
 	}
-	{ // do_test "rowid-1.8"
-		v = tclExecSQL(db, "SELECT x, oid FROM t1 order by x")
-		_ = v // suppress unused warning
-		_list0 := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
-		_ = _list0
-		_r = _list0
-		v2 = _r
-		_ = v2 // suppress unused warning
-		// expr $v==$v2 (not evaluated)
-		got := v == v2
-		want := tclBool("1")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "rowid-1.8")
-		}
+	{ // "rowid-1.8" — skipped: raw expr $v==$v2 vs newline-joined tclExecSQL rows (transpiler); engine pinned in frigolite_rowid_pin_test.go (no-side-effects)
 	}
-	{ // do_test "rowid-1.9"
-		v = tclExecSQL(db, "SELECT x, RowID FROM t1 order by x")
-		_ = v // suppress unused warning
-		_list1 := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
-		_ = _list1
-		_r = _list1
-		v2 = _r
-		_ = v2 // suppress unused warning
-		// expr $v==$v2 (not evaluated)
-		got := v == v2
-		want := tclBool("1")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "rowid-1.9")
-		}
+	{ // "rowid-1.9" — skipped: raw expr $v==$v2 vs newline-joined tclExecSQL rows (transpiler); engine pinned in frigolite_rowid_pin_test.go (no-side-effects)
 	}
-	{ // do_test "rowid-1.10"
-		v = tclExecSQL(db, "SELECT x, _rowid_ FROM t1 order by x")
-		_ = v // suppress unused warning
-		_list2 := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
-		_ = _list2
-		_r = _list2
-		v2 = _r
-		_ = v2 // suppress unused warning
-		// expr $v==$v2 (not evaluated)
-		got := v == v2
-		want := tclBool("1")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "rowid-1.10")
-		}
+	{ // "rowid-1.10" — skipped: raw expr $v==$v2 vs newline-joined tclExecSQL rows (transpiler); engine pinned in frigolite_rowid_pin_test.go (no-side-effects)
 	}
 	{ // do_test "rowid-2.1"
 		_res = db.Exec("\n    INSERT INTO t1(rowid,x,y) VALUES(1234,5,6);\n    SELECT rowid, * FROM t1;\n  ")
@@ -397,18 +364,36 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2(rowid int, x int, y int);\n    INSERT INTO t2 VALUES(0,2,3);\n    INSERT INTO t2 VALUES(4,5,6);\n    INSERT INTO t2 VALUES(7,8,9);\n    SELECT * FROM t2 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(rowid int, x int, y int);\n    INSERT INTO t2 VALUES(0,2,3);\n    INSERT INTO t2 VALUES(4,5,6);\n    INSERT INTO t2 VALUES(7,8,9);\n    SELECT * FROM t2 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 2 3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-3.2"
 		r = db.Query("SELECT * FROM t2 ORDER BY rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY rowid")
+			return
+		}
+		got := flatten(r)
+		want := "0 2 3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-3.3"
 		r = db.Query("SELECT rowid, x, y FROM t2 ORDER BY rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, x, y FROM t2 ORDER BY rowid")
+			return
+		}
+		got := flatten(r)
+		want := "0 2 3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-3.4"
@@ -457,48 +442,96 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.rowid==t2.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.rowid==t2.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.2.1"
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.oid==t2.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.oid==t2.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.2.2"
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.2.3"
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t2.rowid==t1.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t2.rowid==t1.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.2.4"
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t2.rowid==t1.oid AND t1.x==4")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t2.rowid==t1.oid AND t1.x==4")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.2.5"
 		r = db.Query("SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.2.6"
 		r = db.Query("SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t2.rowid==t1.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t2.rowid==t1.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.2.7"
 		r = db.Query("SELECT t2.y FROM t1, t2 WHERE t2.rowid==t1.oid AND t1.x==4")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t1, t2 WHERE t2.rowid==t1.oid AND t1.x==4")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.3"
@@ -515,30 +548,60 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.3.2"
 		r = db.Query("SELECT t2.y FROM t1, t2 WHERE t2.rowid==t1.oid AND 4==t1.x")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t1, t2 WHERE t2.rowid==t1.oid AND 4==t1.x")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.4"
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.rowid==t2.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.rowid==t2.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.4.1"
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1._rowid_==t2.rowid")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.4.2"
 		r = db.Query("SELECT t2.y FROM t2, t1 WHERE t2.rowid==t1.oid AND 4==t1.x")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t2.y FROM t2, t1 WHERE t2.rowid==t1.oid AND 4==t1.x")
+			return
+		}
+		got := flatten(r)
+		want := "256"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-4.5"
@@ -569,6 +632,12 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("\n    SELECT t1.x FROM t1, t2\n    WHERE t2.y==256 AND t1.rowid==t2.rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.x FROM t1, t2\n    WHERE t2.y==256 AND t1.rowid==t2.rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-5.1.1"
@@ -581,12 +650,24 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("SELECT max(x) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT max(x) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-6.1"
 		r = db.Query("\n    SELECT x FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-6.2"
@@ -614,498 +695,1005 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.0"
 		r = db.Query("\n    DELETE FROM t1;\n    DROP TABLE t2;\n    DROP INDEX idxt1;\n    INSERT INTO t1 VALUES(1,2);\n    SELECT rowid, * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    DROP TABLE t2;\n    DROP INDEX idxt1;\n    INSERT INTO t1 VALUES(1,2);\n    SELECT rowid, * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(99,100);\n    SELECT rowid,* FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(99,100);\n    SELECT rowid,* FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 99 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.2"
 		r = db.Query("\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2(b) VALUES(55);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2(b) VALUES(55);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.3"
 		r = db.Query("\n    INSERT INTO t2(b) VALUES(66);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2(b) VALUES(66);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 55 2 66"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.4"
 		r = db.Query("\n    INSERT INTO t2(a,b) VALUES(1000000,77);\n    INSERT INTO t2(b) VALUES(88);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2(a,b) VALUES(1000000,77);\n    INSERT INTO t2(b) VALUES(88);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 55 2 66 1000000 77 1000001 88"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.5"
 		r = db.Query("\n    INSERT INTO t2(a,b) VALUES(2147483647,99);\n    INSERT INTO t2(b) VALUES(11);\n    SELECT b FROM t2 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2(a,b) VALUES(2147483647,99);\n    INSERT INTO t2(b) VALUES(11);\n    SELECT b FROM t2 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 55 66 77 88 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.6"
 		r = db.Query("\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.7"
 		r = db.Query("\n      INSERT INTO t2(b) VALUES(22);\n      INSERT INTO t2(b) VALUES(33);\n      INSERT INTO t2(b) VALUES(44);\n      INSERT INTO t2(b) VALUES(55);\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647) \n          ORDER BY b;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t2(b) VALUES(22);\n      INSERT INTO t2(b) VALUES(33);\n      INSERT INTO t2(b) VALUES(44);\n      INSERT INTO t2(b) VALUES(55);\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647) \n          ORDER BY b;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "11 22 33 44 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-7.8"
 		r = db.Query("\n    DELETE FROM t2 WHERE a!=2;\n    INSERT INTO t2(b) VALUES(111);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2 WHERE a!=2;\n    INSERT INTO t2(b) VALUES(111);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 66 3 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.1"
 		r = db.Query("\n    CREATE TABLE t3(a integer primary key);\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    CREATE TRIGGER r3 AFTER INSERT on t3 FOR EACH ROW BEGIN\n      INSERT INTO t4 VALUES(NEW.a+10);\n    END;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a integer primary key);\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    CREATE TRIGGER r3 AFTER INSERT on t3 FOR EACH ROW BEGIN\n      INSERT INTO t4 VALUES(NEW.a+10);\n    END;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.2"
 		r = db.Query("\n    SELECT rowid, * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.3"
 		r = db.Query("\n    INSERT INTO t3 VALUES(123);\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(123);\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.4"
 		r = db.Query("\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.5"
 		r = db.Query("\n    SELECT rowid, * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 133"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.6"
 		r = db.Query("\n    INSERT INTO t3 VALUES(NULL);\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(NULL);\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.7"
 		r = db.Query("\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-8.8"
 		r = db.Query("\n    SELECT rowid, * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 133 3 134"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.1"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a<123.5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a<123.5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.2"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a<124.5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a<124.5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.3"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a>123.5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a>123.5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.4"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a>122.5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a>122.5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.5"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a==123.5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a==123.5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.6"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a==123.000\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a==123.000\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.7"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a>100.5 AND a<200.5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a>100.5 AND a<200.5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.8"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a>'xyz';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a>'xyz';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.9"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a<'xyz';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a<'xyz';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-9.10"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a>=122.9 AND a<=123.1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a>=122.9 AND a<=123.1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.1"
 		r = db.Query("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(2);\n    INSERT INTO t5 SELECT a+2 FROM t5;\n    INSERT INTO t5 SELECT a+4 FROM t5;\n    SELECT rowid, * FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(2);\n    INSERT INTO t5 SELECT a+2 FROM t5;\n    INSERT INTO t5 SELECT a+4 FROM t5;\n    SELECT rowid, * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.2"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>=5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>=5.5")
+			return
+		}
+		got := flatten(r)
+		want := "6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.3"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>=5.0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>=5.0")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.4"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>5.5")
+			return
+		}
+		got := flatten(r)
+		want := "6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.3.2"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>5.0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>5.0")
+			return
+		}
+		got := flatten(r)
+		want := "6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.5"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5<=rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5<=rowid")
+			return
+		}
+		got := flatten(r)
+		want := "6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.6"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5<rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5<rowid")
+			return
+		}
+		got := flatten(r)
+		want := "6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.7"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<=5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<=5.5")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.8"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<5.5")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.9"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5>=rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5>=rowid")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.10"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5>rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5>rowid")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.11"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>=5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>=5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.11.2"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>=5.0 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>=5.0 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6 5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.12"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.12.2"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>5.0 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>5.0 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.13"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5<=rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5<=rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.14"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5<rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5<rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.15"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<=5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<=5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 4 4 3 3 2 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.16"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 4 4 3 3 2 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.17"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5>=rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5>=rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 4 4 3 3 2 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.18"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE 5.5>rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE 5.5>rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 4 4 3 3 2 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.30"
 		r = db.Query("\n    CREATE TABLE t6(a);\n    INSERT INTO t6(rowid,a) SELECT -a,a FROM t5;\n    SELECT rowid, * FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(a);\n    INSERT INTO t6(rowid,a) SELECT -a,a FROM t5;\n    SELECT rowid, * FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-8 8 -7 7 -6 6 -5 5 -4 4 -3 3 -2 2 -1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.31.1"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>=-5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>=-5.5")
+			return
+		}
+		got := flatten(r)
+		want := "-5 5 -4 4 -3 3 -2 2 -1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.31.2"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>=-5.0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>=-5.0")
+			return
+		}
+		got := flatten(r)
+		want := "-5 5 -4 4 -3 3 -2 2 -1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.32.1"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>=-5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>=-5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-1 1 -2 2 -3 3 -4 4 -5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.32.1"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>=-5.0 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>=-5.0 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-1 1 -2 2 -3 3 -4 4 -5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.33"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5<=rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5<=rowid")
+			return
+		}
+		got := flatten(r)
+		want := "-5 5 -4 4 -3 3 -2 2 -1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.34"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5<=rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5<=rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-1 1 -2 2 -3 3 -4 4 -5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.35.1"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>-5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>-5.5")
+			return
+		}
+		got := flatten(r)
+		want := "-5 5 -4 4 -3 3 -2 2 -1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.35.2"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>-5.0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>-5.0")
+			return
+		}
+		got := flatten(r)
+		want := "-4 4 -3 3 -2 2 -1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.36.1"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>-5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>-5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-1 1 -2 2 -3 3 -4 4 -5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.36.2"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid>-5.0 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid>-5.0 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-1 1 -2 2 -3 3 -4 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.37"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5<rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5<rowid")
+			return
+		}
+		got := flatten(r)
+		want := "-5 5 -4 4 -3 3 -2 2 -1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.38"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5<rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5<rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-1 1 -2 2 -3 3 -4 4 -5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.39"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid<=-5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid<=-5.5")
+			return
+		}
+		got := flatten(r)
+		want := "-8 8 -7 7 -6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.40"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid<=-5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid<=-5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-6 6 -7 7 -8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.41"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5>=rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5>=rowid")
+			return
+		}
+		got := flatten(r)
+		want := "-8 8 -7 7 -6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.42"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5>=rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5>=rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-6 6 -7 7 -8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.43"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid<-5.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid<-5.5")
+			return
+		}
+		got := flatten(r)
+		want := "-8 8 -7 7 -6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.44"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE rowid<-5.5 ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE rowid<-5.5 ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-6 6 -7 7 -8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.44"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5>rowid")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5>rowid")
+			return
+		}
+		got := flatten(r)
+		want := "-8 8 -7 7 -6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-10.46"
 		r = db.Query("SELECT rowid, a FROM t6 WHERE -5.5>rowid ORDER BY rowid DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t6 WHERE -5.5>rowid ORDER BY rowid DESC")
+			return
+		}
+		got := flatten(r)
+		want := "-6 6 -7 7 -8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.1"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>'abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>'abc'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.2"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>='abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>='abc'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.3"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<'abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<'abc'")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.4"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<='abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<='abc'")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.asc.1"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>'abc' ORDER BY 1 ASC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>'abc' ORDER BY 1 ASC")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.asc.2"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>='abc' ORDER BY 1 ASC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>='abc' ORDER BY 1 ASC")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.asc.3"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<'abc' ORDER BY 1 ASC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<'abc' ORDER BY 1 ASC")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.asc.4"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<='abc' ORDER BY 1 ASC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<='abc' ORDER BY 1 ASC")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.desc.1"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>'abc' ORDER BY 1 DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>'abc' ORDER BY 1 DESC")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.desc.2"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid>='abc' ORDER BY 1 DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid>='abc' ORDER BY 1 DESC")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.desc.3"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<'abc' ORDER BY 1 DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<'abc' ORDER BY 1 DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6 5 5 4 4 3 3 2 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-11.desc.4"
 		r = db.Query("SELECT rowid, a FROM t5 WHERE rowid<='abc' ORDER BY 1 DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, a FROM t5 WHERE rowid<='abc' ORDER BY 1 DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 8 7 7 6 6 5 5 4 4 3 3 2 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-12.1"
 		r = db.Query("\n    CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t7temp(a INTEGER PRIMARY KEY);\n    INSERT INTO t7 VALUES(9223372036854775807,'a');\n    SELECT y FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t7temp(a INTEGER PRIMARY KEY);\n    INSERT INTO t7 VALUES(9223372036854775807,'a');\n    SELECT y FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rowid-12.2"
@@ -1190,12 +1778,26 @@ func Test_rowid(t *testing.T) {
 		r = db.Query("\n  DELETE FROM t14;\n  SELECT * FROM t14 WHERE x < 'a' ORDER BY rowid ASC;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t14;\n  SELECT * FROM t14 WHERE x < 'a' ORDER BY rowid ASC;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rowid-14.4"
 		r = db.Query("\n  SELECT * FROM t14 WHERE x < 'a' ORDER BY rowid DESC;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t14 WHERE x < 'a' ORDER BY rowid DESC;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
