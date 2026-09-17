@@ -412,8 +412,17 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 		// No FTS table in context: SQLite compiles MATCH to the match/2
 		// overload (sqlite3_overload_function → sqlite3InvalidFunction),
 		// which always fails outside an FTS context (func-4.3/4.4:
-		// SELECT 'abc' MATCH 'xyz').
-		return nil, fmt.Errorf("unable to use function MATCH in the requested context")
+		// SELECT 'abc' MATCH 'xyz') — but only for a literal left operand,
+		// which can never reach a vtab MATCH constraint. A column/expression
+		// left operand may belong to a statement whose MATCH constraint a
+		// virtual table's xBestIndex/xFilter already consumed (echo module
+		// vtab1-3.14/10-5, rtree geometry MATCH) — for those the residual
+		// row evaluation stays inert (SQLite emits no per-row code at all).
+		switch v.Left.(type) {
+		case *sql.StringLit, *sql.NumericLit, *sql.NullLit, *sql.BlobLit:
+			return nil, fmt.Errorf("unable to use function MATCH in the requested context")
+		}
+		return int64(0), nil
 	}
 
 	// Get the rowid from the current row. In a single-table FTS SELECT the

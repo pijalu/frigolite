@@ -418,6 +418,13 @@ func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	// when the next top-level statement starts.
 	if e.viewRefDepth == 0 {
 		e.viewRefCounts = nil
+		// Statement-boundary reset of the correlated-subquery row scope:
+		// outerRow/outerRows belong to the ENCLOSING select's evaluation,
+		// and a stale value carried over from a previous statement would
+		// wrongly enable the correlated modes of FROM-less and join-ON
+		// validation for this statement (insert2-4.1).
+		e.outerRow = nil
+		e.outerRows = nil
 	}
 	e.viewRefDepth++
 	defer func() { e.viewRefDepth-- }()

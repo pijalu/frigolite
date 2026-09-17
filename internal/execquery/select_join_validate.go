@@ -46,7 +46,7 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
 		tn = s.From.As
 	}
 	if tn != "" {
-		out[tn] = true
+		out[strings.ToLower(tn)] = true
 	}
 	if s.From.Subquery != nil {
 		collectFromTableNames(s.From.Subquery, out)
@@ -57,7 +57,7 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
 			jn = j.Table.As
 		}
 		if jn != "" {
-			out[jn] = true
+			out[strings.ToLower(jn)] = true
 		}
 		if j.Table.Subquery != nil {
 			collectFromTableNames(j.Table.Subquery, out)
@@ -423,7 +423,7 @@ func (v *joinOnValidator) addFromTable() {
 	if tn == "" {
 		return
 	}
-	v.available[tn] = true
+	v.available[strings.ToLower(tn)] = true
 	v.addFromColumns()
 	v.addLeftTable(tn)
 }
@@ -684,7 +684,7 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 // clause validation.
 func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn string) {
 	if tn != "" {
-		v.available[tn] = true
+		v.available[strings.ToLower(tn)] = true
 		v.engine.collectJoinTableCols(v.s, join, tn, v.availableCols)
 	}
 	if join.Table.Subquery != nil {
@@ -893,7 +893,7 @@ func (e *SelectEngine) mergeLeftTables(join sql.JoinClause, tn string, leftTable
 func (e *SelectEngine) validateOnRefs(s *sql.SelectStmt, join sql.JoinClause, available, availableCols map[string]bool, hasRightOrFull bool) string {
 	var bad string
 	walkJoinOnExpr(join.On, func(e2 sql.Expr) {
-		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[cr.Table] {
+		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[strings.ToLower(cr.Table)] {
 			bad = cr.Table
 		}
 	})

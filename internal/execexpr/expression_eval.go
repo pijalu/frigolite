@@ -317,13 +317,17 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 }
 
 // evalCoalesceLazy evaluates COALESCE/IFNULL arguments one at a time,
-// returning the first non-NULL value without evaluating the rest.
+// returning the first non-NULL value without evaluating the rest. Each value
+// is unwrapped (evalFuncArgs semantics) so the result carries no ColumnValue
+// or CollatedValue marker.
 func (ev *Evaluator) evalCoalesceLazy(argExprs []sql.Expr, row Row) (interface{}, error) {
 	for _, argExpr := range argExprs {
 		v, err := ev.evalExpr(argExpr, row)
 		if err != nil {
 			return nil, err
 		}
+		v = util.UnwrapColumnValue(v)
+		v = unwrapCollatedValue(v)
 		if v != nil {
 			return v, nil
 		}
