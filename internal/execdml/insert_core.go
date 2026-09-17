@@ -1030,6 +1030,16 @@ func (e *DMLExecutor) validateSequenceTable(dbCtx *DatabaseContext) *Result {
 			if strings.Contains(up, "WITHOUT ROWID") || strings.Contains(up, "VIRTUAL TABLE") {
 				return &Result{Error: fmt.Errorf("database disk image is malformed")}
 			}
+			// The sequence table must declare EXACTLY two columns (insert.c
+			// autoIncBegin: pSeqTab->nCol!=2 → SQLITE_CORRUPT_SEQUENCE,
+			// ticket d8dc2b3a58cd5dc2918a1d4acb): the sequence update reads
+			// (name, seq) positionally. A writable_schema rewrite to a
+			// 1-column declaration is corruption (autoinc-12.5); any other
+			// 2-column spelling keeps working — the columns are accessed by
+			// position, not name (autoinc-12.6/12.7).
+			if len(e.ctx.ParseColumnDefs(ent.Name, ent.SQL)) != 2 {
+				return &Result{Error: fmt.Errorf("database disk image is malformed")}
+			}
 			// A rootpage swap (autoinc-12.4: writable_schema points
 			// sqlite_sequence at another table's btree) leaves an index-type
 			// page where a table btree must be — SQLite reports corruption
