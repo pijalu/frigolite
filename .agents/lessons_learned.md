@@ -6544,3 +6544,65 @@ Transpiler/harness:
   (-DSQLITE_ENABLE_FTS3/4 + shell.c), diff trace prints against engine
   logs — settles in minutes what code-reading suggests in hours. go-test
   timeouts masquerade as hangs: instrument the loop with a counter first.
+- **T26-misc aggregate finals (2026-09-17)**: select_agg.go's evalAggFuncCall/
+  evalDistinctAggregate discarded agg.Final() errors (`result, _ :=`) — sum()'s
+  "integer overflow" (func.c sumFinalize) collapsed to NULL. Final errors must
+  set aggPendingErr like Step errors. sum/avg/total finalize must guard on
+  sqlite3IsOverflow(rErr) (NaN or ±Inf) — an Inf input leaves rErr NaN
+  ((Inf-t)+s), and folding it into rSum turns Inf into NaN.
+- **T26-misc f(*) zero args**: parse.y `expr ::= idj LP STAR RP` builds a
+  function with ZERO arguments (no star arg node) — `length(*)` fails arity
+  ("wrong number of arguments to function length()") while count(*) works via
+  count's 0..1 registration. Never model `*` as an argument expression.
+- **T26-misc tokenizer**: the numeric exponent is consumed ONLY when a digit
+  follows (optionally after one +/-); otherwise the e/E falls into the trailing
+  IdChar loop → TK_ILLEGAL "1.0e" (unrecognized token). `/*` with NOTHING after
+  the star (end of input) is NOT a comment — '/' is a TK_SLASH and the parser
+  reports near "*"; trailing whitespace after `/*` is still a comment
+  (tokenize-2.2). Beware ensureTrailingSemicolon-style augmenters that turn the
+  EOF case into a comment — check the un-trimmed tail.
+- **T26-misc lazy COALESCE**: COALESCE/IFNULL must short-circuit argument
+  evaluation (sqlite3ExprCodeTarget codes them with jumps). Eager evaluation
+  makes coalesce(b, eval('ROLLBACK;...')) run the UDF on EVERY row, breaking
+  misc8 (rollback-in-UDF, mid-scan DELETE) and 17 randexpr1 queries whose
+  expensive first arguments were evaluated repeatedly.
+- **T26-misc regexp(P,X) vs X REGEXP P**: the FUNCTION form takes the pattern
+  FIRST. The engine's REGEXP function dispatch was routing through the operator
+  implementation with (left,right) order — always 0. Also: match/2 is an
+  FTS overload (sqlite3_overload_function → sqlite3InvalidFunction): register
+  it with exact nArg=2 so `match(1,2,3)` fails arity and `match(1,2)` fails
+  with "unable to use function MATCH in the requested context".
+- **T26-misc ON CONFLICT case**: the parser captures `on conflict ignore` in
+  the SQL's own case; execdml compares == "IGNORE" case-sensitively. Normalize
+  to upper in parser rules (parser_rules.go ccons/tcons) — behavior flags only,
+  never in stored SQL text.
+- **T26-misc UPDATE NOT NULL conflict clauses**: column-level `NOT NULL ON
+  CONFLICT REPLACE/IGNORE` + statement OR-clause: REPLACE substitutes the
+  column DEFAULT (no default → ABORT), IGNORE drops the row's change from the
+  change list (so RETURNING/skip counting stay right); filter BEFORE applying.
+- **T26-misc same-session duplicate CREATE**: the JSON-harness accommodation
+  that silently tolerates a verbatim CREATE TABLE re-create must apply ONLY to
+  entries persisted by an earlier session (tracked via Manager.sessionCreated
+  set in AddEntry); two identical CREATEs in one session must error like
+  SQLite (misc1-16.2). Schema entries re-read from the btree after AddEntry
+  look identical to loaded ones — a session-set is the reliable discriminator.
+- **T26-misc outerRow leak**: execquery's aggregate-subquery paths save/restore
+  e.outerRows but NOT e.outerRow — a stale non-nil outerRow makes later
+  FROM-less SELECTs skip validateNoFromColumnRefs (colname-9.410 flip-flopped
+  to the RAISE error depending on prior statements). Always restore BOTH.
+- **T26-misc nan-3.1 leaf layout (OPEN, btree-owned)**: frigolite places the
+  first leaf cell at pageSize-4-cellSize (a "-4 chain pointer" reservation in
+  internal/btree/btree_insert.go:687/135 & btree.go:803 & page-init
+  contentOffset) where SQLite uses usableSize-cellSize with reserved=0; the 4
+  byte shift puts 0.5's IEEE bytes at 2036..2043 instead of 2040..2047
+  (hexio_read test.db 2040 8). Fix belongs to the btree owner.
+- **T26-misc resolver01-4.1 (OPEN, ORDER BY-execution owned)**: ORDER BY
+  expression identifiers (`ORDER BY lower(m)` where m is both a column and an
+  alias) must resolve against SOURCE row maps — only the whole bare term maps
+  to the alias (resolve.c resolveOrderGroupBy + sqlite3ExprSkipCollate). The
+  fix lives in compareOrderByFallback (ORDER BY execution), not validation.
+- **T26-misc existsexpr (OPEN, planner-owned)**: SQLite converts
+  `WHERE EXISTS (SELECT 1 FROM x1 WHERE col=x)` into a scan of x2 plus a
+  probe of x1's index (EQP shows no SUBQUERY; "SCAN t1*t2 EXISTS" for the
+  semi-join form). Needs the EXISTS→semi-join transform in the planner
+  (where.c); 5 existsexpr assertions hang on it.

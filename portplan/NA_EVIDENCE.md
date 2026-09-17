@@ -2046,3 +2046,33 @@ unless stated).
   in tclsqlite-ex.c ("QRF not available in this build"); no qrf.c/qrf.h
   exists in the reference tree to port. Engine-visible steps of qrf01
   (e.g. 2.30 hex(c) unicode UPDATE) verified green natively.
+
+## FULL-SUITE-DRIFT.T26-misc (2026-09-17)
+
+### func_pkg — C-test-harness fixture functions (rule-5 per-assertion skips)
+- `test_error` (func-15.1..15.3), `test_isolation` (func-25.1), `legacy_count`
+  (func-23.1, deprecated `sqlite3_create_aggregate` API from test1.c), and the
+  `md5` expected-value command (func-24.7 loop) are functions/commands provided
+  by the C testfixture build (test1.c / md5.c), NOT engine SQL functions. The
+  generated expectations embed the un-transpiled TCL `md5 "..."` command text,
+  which is never computable at Go test runtime. Native pins: frigolite_misc_pin_test.go
+  TestPinUDFErrorPropagation (UDF error message propagation) and TestPinEvalRecursiveUDF.
+
+### misc1 — sqlite3_test_control_fault_install (19.11/19.12)
+- C-core fault-injection test-control API with no SQL surface; the callback
+  counter cannot exist in a pure-Go engine. Skipped in testgen/misc1 with markers.
+
+### misc3 — EXPLAIN VDBE listing internals (6.11-utf8)
+- Two-part N-A: (a) the want's leading "1" is an un-transpiled TCL capability
+  regexp hardcoded to 0 in the generated file — can never pass; (b) the other
+  checks assert VDBE-internal EXPLAIN listing text (Real P4 "4.5678", Column
+  P4 ",-B", SorterCompare opcode) produced only by a full vdbe emulator;
+  frigolite's EXPLAIN is a synthetic listing. Engine contract (query results)
+  covered by the surrounding package assertions.
+
+### misc8 — eval('DELETE FROM t1; ...') mid-scan table deletion (1.6)
+- Real engine gap, queued: UDF-driven DELETE of the table being scanned by the
+  enclosing statement requires nested-statement-journal isolation (same class
+  as the tkt3718 gap documented in the P8.MISC close note, PORTPLAN §4).
+  misc8-1.4/1.5/1.7 now pass via lazy COALESCE argument evaluation and the
+  execDepth>1 rollback handling.
