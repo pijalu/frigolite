@@ -2086,15 +2086,14 @@ Engine fixes:
 Skip evidence (tools/tcl2go/skiptests2_part2.go; details inline there):
 - `corrupt-2.$tn.8` — C test-harness btree_stats handle ref-count
   (no engine-visible contract).
-- `corruptB-3.1.1` — WRITE-PATH BUG reported to the coordinator: the
-  balance/split paths never re-parent pointer-map entries for moved
-  children (btree.c:8780/8950/9028 ptrmapPut have no frigolite counterpart
-  in btree_balance_*.go), so AllocateRootPage's relocation fails on a
-  pristine auto_vacuum database: native repro = open, `PRAGMA
-  auto_vacuum=1; PRAGMA page_size=1024`, CREATE t1, grow ×2^7
-  (randomblob(200)), then `CREATE TABLE t2` → "AllocateRootPage: relocate
-  occupant 4 -> 1042: parent 3 does not reference child 4". Remove the
-  skip when the balance ptrmap fix lands.
+- `corruptB-3.1.1` — FIXED (FULL-SUITE-DRIFT.T25-btree, 2026-09-17): the
+  stale pointer-map entry came from relocateRootSplit's segment rotation,
+  which moved an interior root's children wholesale to a new child page
+  while re-parenting only overflow chains. relocateRootSplit now runs
+  setChildPtrmaps over every rotated child (btree.c balance_deeper
+  ptrmapPut, src/btree.c:9028). Native pin: TestCorruptBAllocateRoot-
+  RelocationPin (frigolite_corruptb_ptrmap_pin_test.go); the generated
+  body stays side-effects-only (transpiler lost `set v` + hexio steps).
 - `corruptL-3.1/19.2` — index key-shape vs schema detection inside DML
   seeks/compares (P8.CORRUPT class, as expridx1/e_reindex-1.3); oracle
   reports malformed.

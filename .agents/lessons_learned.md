@@ -6669,3 +6669,13 @@ Transpiler/harness:
 - bigrow-1.3/2.2 testgen failures are a transpiler rendering artifact
   (trailing space before the final "]" in the want string), identical on
   main — not an engine bug.
+- **The interactive `grep` is aliased to ugrep --ignore-files** — on big
+  logs or /tmp paths it can silently return ZERO matches for patterns that
+  exist (cost a false "committed main is green" baseline this session).
+  Always use `command grep` (or `command grep -a` for logs with binary
+  bytes) when adjudicating pass/fail sets.
+- **Full-suite baselines must come from a COMMITTED sha in a detached
+  worktree, never a live worktree** — the main checkout can be mid-merge
+  with uncommitted fixes, making "pre-existing vs regression" adjudication
+  wrong (P2Constraint/P6 looked fixed on "main" but were uncommitted local
+  work; committed main fixed them later via T26-select).
