@@ -440,17 +440,38 @@ func (e *SelectEngine) evalAggOverOuterRows(s *sql.SelectStmt, outerRows []RowMa
 	return e.evalAggOverOuterRowsWithInner(s, outerRows, nil)
 }
 
-// aggregateHasOnlyOuterRefs checks whether an aggregate function's arguments
-// and ORDER BY terms reference only outer columns (none from the inner table).
-// Returns true only when the aggregate has at least one column reference and
-// none of them match the inner column set.
+// aggregateHasOnlyOuterRefs checks whether an aggregate function's arguments,
+// FILTER clause, and ORDER BY terms reference only outer columns (none from
+// the inner table). Returns true only when the aggregate has at least one
+// column reference and none of them match the inner column set — resolve.c's
+// sqlite3ReferencesSrcList ownership test: the whole aggregate expression
+// (args + FILTER + ORDER BY) must reference no inner column for the
+// aggregate to belong to the outer aggregate context.
 func (e *SelectEngine) aggregateHasOnlyOuterRefs(fn *sql.FuncCall, innerColNames map[string]bool) bool {
-	if aggExprListHasSubquery(fn.Args) || aggExprListHasSubquery(orderByExprs(fn.OrderBy)) {
+	if aggExprListHasSubquery(fn.Args) || aggExprListHasSubquery(orderByExprs(fn.OrderBy)) ||
+		(fn.Filter != nil && aggExprListHasSubquery([]sql.Expr{fn.Filter})) {
 		return false
 	}
 	aInner, aHas := e.scanAggExprRefs(fn.Args, innerColNames)
 	oInner, oHas := e.scanAggExprRefs(orderByExprs(fn.OrderBy), innerColNames)
-	return !aInner && !oInner && (aHas || oHas)
+	fInner, fHas := e.scanAggExprRefs(filterExprs(fn), innerColNames)
+	return !aInner && !oInner && !fInner && (aHas || oHas || fHas)
+}
+
+// filterExprs returns the FILTER clause of an aggregate call as a one-element
+// slice (nil when absent), so it can share the aggregate-expression scanners.
+func filterExprs(fn *sql.FuncCall) []sql.Expr {
+	if fn.Filter == nil {
+		return nil
+	}
+	return []sql.Expr{fn.Filter}
+}
+
+// isAggregateFuncCallName reports whether the named function is a registered
+// aggregate.
+func (e *SelectEngine) isAggregateFuncCallName(name string) bool {
+	reg, found := e.ctx.Functions().Find(name)
+	return found && reg.Type == function.TypeAggregate
 }
 
 // evalAggOverOuterRowsWithInner evaluates a fully-correlated subquery's output
@@ -473,10 +494,11 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 	// aggregates (SELECT (SELECT max(y)) with y outer) keep stepping over the
 	// outer rows. filter1-6.1: COUNT(a) FILTER(WHERE x) with a outer and x
 	// inner counts the inner rows, not the outer rows.
-	if len(allRowMaps) > 0 && len(outerRows) > 0 &&
-		(s.From.Name != "" || s.From.Subquery != nil || len(s.From.Args) > 0) {
+	haveFrom := s.From.Name != "" || s.From.Subquery != nil || len(s.From.Args) > 0
+	var stepping []RowMap
+	if len(allRowMaps) > 0 && len(outerRows) > 0 && haveFrom {
 		fallback := outerRows[0]
-		stepping := make([]RowMap, len(allRowMaps))
+		stepping = make([]RowMap, len(allRowMaps))
 		for i, inner := range allRowMaps {
 			m := make(RowMap, len(inner)+len(fallback))
 			for k, v := range fallback {
@@ -487,12 +509,15 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 			}
 			stepping[i] = m
 		}
-		e.aggRowMaps = stepping
-		defer func() { e.aggRowMaps = nil }()
-	} else {
-		e.aggRowMaps = outerRows
-		defer func() { e.aggRowMaps = nil }()
 	}
+	// Inner column names for the per-aggregate ownership test.
+	innerColNames := map[string]bool{}
+	for _, r := range allRowMaps {
+		for k := range r {
+			innerColNames[k] = true
+		}
+	}
+	defer func() { e.aggRowMaps = nil }()
 	var outRow []interface{}
 	for _, col := range s.Columns {
 		if e.exprHasWindowFunc(col.Expr) {
@@ -501,6 +526,24 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 			// pass fills the single collapsed row (mirrors evalAggregates).
 			outRow = append(outRow, nil)
 			continue
+		}
+		// resolve.c:1332 — the first context whose SrcList the aggregate
+		// expression references owns it. A pure-outer aggregate (no inner
+		// column in args/FILTER/ORDER BY, aggnested-1.1 string_agg(a1,'x'),
+		// filter1-6.3 COUNT(a)) belongs to the OUTER aggregate context and
+		// steps the outer rows; an aggregate touching an inner column
+		// (filter1-6.1/6.2) steps the inner rows.
+		if haveFrom && len(outerRows) > 0 {
+			if fn, ok := col.Expr.(*sql.FuncCall); ok &&
+				e.isAggregateFuncCallName(fn.Name) && e.aggregateHasOnlyOuterRefs(fn, innerColNames) {
+				e.aggRowMaps = outerRows
+			} else if stepping != nil {
+				e.aggRowMaps = stepping
+			} else {
+				e.aggRowMaps = outerRows
+			}
+		} else {
+			e.aggRowMaps = outerRows
 		}
 		v, err := e.ctx.EvalExpr(col.Expr, innerRow)
 		if err != nil {
