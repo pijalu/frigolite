@@ -643,7 +643,10 @@ func (e *SelectEngine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap
 		return nil
 	}
 
-	groupBy := resolveGroupByOrdinals(s, colDefs)
+	groupBy, gbErr := resolveGroupByOrdinals(s, colDefs)
+	if gbErr != nil {
+		return &Result{Error: gbErr}
+	}
 	groups, keyVals, keyOrder := e.partitionByGroupKey(groupBy, rowMaps)
 	e.sortGroupKeys(keyOrder, keyVals)
 
@@ -780,7 +783,10 @@ func (e *SelectEngine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, co
 		return nil
 	}
 
-	groupBy := resolveGroupByOrdinals(s, colDefs)
+	groupBy, gbErr := resolveGroupByOrdinals(s, colDefs)
+	if gbErr != nil {
+		return &Result{Error: gbErr}
+	}
 	groups, keyVals, keyOrder := e.partitionByGroupKey(groupBy, rowMaps)
 	e.sortGroupKeys(keyOrder, keyVals)
 

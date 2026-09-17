@@ -348,14 +348,31 @@ func matchUnqualifiedColDef(colDefs []sql.ColumnDef, refName string) (string, bo
 	return "", false
 }
 
-func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.ColumnDef) string {
+// resolveColumnRefName resolves an unaliased column reference to its result
+// column name. With full_column_names=ON the name is TABLE.COLUMN (the FROM
+// spelling: the operand's alias when aliased, else the table name —
+// select.c generateColumnNames, SQLITE_FullColNames takes precedence over
+// short_column_names; select1-6.1.1 "test1.f1"). Otherwise the qualifier is
+// stripped unless the column conflicts (join colDefs store conflicting
+// columns as table.col — keep those).
+func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt) string {
+	if e.ctx.FullColumnNames() {
+		qualifier := ref.Table
+		if qualifier == "" {
+			qualifier = e.columnOwnerOperand(sel, ref, colDefs)
+		}
+		if qualifier != "" {
+			name := ref.Name
+			if n, ok := matchUnqualifiedColDef(colDefs, ref.Name); ok {
+				name = n
+			}
+			return qualifier + "." + name
+		}
+	}
 	if ref.Table == "" {
 		if name, ok := matchUnqualifiedColDef(colDefs, ref.Name); ok {
 			return name
 		}
-		return ref.Name
-	}
-	if e.ctx.FullColumnNames() {
 		return ref.Name
 	}
 	// Qualified reference with full_column_names=OFF: strip the
@@ -370,6 +387,55 @@ func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.Co
 		}
 	}
 	return ref.Name
+}
+
+// columnOwnerOperand finds the FROM/JOIN operand (alias when aliased, else
+// the table name) that provides the referenced column, for
+// full_column_names result naming. "" when no operand owns it.
+func (e *SelectEngine) columnOwnerOperand(sel *sql.SelectStmt, ref *sql.ColumnRef, colDefs []sql.ColumnDef) string {
+	if sel == nil {
+		return ""
+	}
+	type operand struct{ ref, table string }
+	operands := []operand{}
+	if sel.From.Name != "" {
+		t := sel.From.Name
+		if sel.From.As != "" {
+			t = sel.From.As
+		}
+		operands = append(operands, operand{ref: sel.From.As, table: t})
+	}
+	for _, j := range sel.Joins {
+		if j.Table.Name == "" {
+			continue
+		}
+		t := j.Table.Name
+		if j.Table.As != "" {
+			t = j.Table.As
+		}
+		operands = append(operands, operand{ref: j.Table.As, table: t})
+	}
+	for _, op := range operands {
+		cols, err := e.tableColumnNames(op.table)
+		if err != nil {
+			continue
+		}
+		for _, c := range cols {
+			if strings.EqualFold(c, ref.Name) {
+				if op.ref != "" {
+					return op.ref
+				}
+				return op.table
+			}
+		}
+	}
+	// Fall back to a conflicted colDef ("table.col") whose column matches.
+	for _, cd := range colDefs {
+		if dot := strings.Index(cd.Name, "."); dot >= 0 && strings.EqualFold(cd.Name[dot+1:], ref.Name) {
+			return cd.Name[:dot]
+		}
+	}
+	return ""
 }
 
 // orderQualifiedNamesByDefs reorders qualified star names to match the
@@ -610,18 +676,21 @@ func (e *SelectEngine) compareOrderByFallback(ob sql.OrderByTerm, obExpr sql.Exp
 
 // combinedOutputRowMap merges a source row map with the output row's values
 // keyed by result column name, so names inside ORDER BY expressions resolve
-// against SELECT-list aliases (SQLite resolves ORDER BY names against the
-// result set; filter1-4.2's ORDER BY (h+1.0) needs the alias h). Output
-// values shadow same-named source columns, matching alias shadowing.
+// against SELECT-list aliases when no source column matches (SQLite resolves
+// ORDER BY names against the result set; filter1-4.2's ORDER BY (h+1.0)
+// needs the alias h). SOURCE values shadow same-named output aliases: inside
+// an ORDER BY expression a name that is also a source column resolves to the
+// column, not the alias (resolver01-4.1's ORDER BY lower(m) sorts by t4.m,
+// not by the alias m).
 func combinedOutputRowMap(src RowMap, resultCols []string, row []interface{}) RowMap {
 	m := make(RowMap, len(src)+len(resultCols))
-	for k, v := range src {
-		m[k] = v
-	}
 	for ci, cn := range resultCols {
 		if cn != "" && ci < len(row) {
 			m[cn] = row[ci]
 		}
+	}
+	for k, v := range src {
+		m[k] = v
 	}
 	return m
 }

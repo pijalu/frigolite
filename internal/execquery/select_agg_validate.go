@@ -650,6 +650,9 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	if err := e.checkOrderByAggMisuse(s); err != nil {
 		return err
 	}
+	if err := e.validateAggregateStarArgs(s); err != nil {
+		return err
+	}
 	if err := e.validateSelectColumnList(s); err != nil {
 		return err
 	}
@@ -660,6 +663,9 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 		return err
 	}
 	if err := e.validateHavingExprs(s); err != nil {
+		return err
+	}
+	if err := e.validateHavingAliasedAggregate(s); err != nil {
 		return err
 	}
 	if err := e.validateWhereExprs(s); err != nil {
@@ -808,6 +814,131 @@ func (e *SelectEngine) validateFilterClause(expr sql.Expr) error {
 	})
 	return firstErr
 }
+
+// validateAggregateStarArgs enforces aggregate argument-shape rules at
+// prepare time (sqlite3WrongNumArgs): a `*` argument is only valid for a
+// single-argument COUNT, and an aggregate whose argument count falls outside
+// its registered arity errors "wrong number of arguments to function X()"
+// with the name spelled exactly as in the SQL (select1-2.6 min(*), 2.9
+// MAX(), 2.14 SUM()). Only aggregates are checked here — scalar arity keeps
+// its established eval-time reporting.
+func (e *SelectEngine) validateAggregateStarArgs(s *sql.SelectStmt) error {
+	clauses := make([]sql.Expr, 0, len(s.Columns)+len(s.GroupBy)+len(s.OrderBy)+2)
+	for _, col := range s.Columns {
+		if col.Expr != nil {
+			clauses = append(clauses, col.Expr)
+		}
+	}
+	clauses = append(clauses, s.Where)
+	clauses = append(clauses, s.Having)
+	for _, g := range s.GroupBy {
+		clauses = append(clauses, g)
+	}
+	for _, ob := range s.OrderBy {
+		clauses = append(clauses, ob.Expr)
+	}
+	var firstErr error
+	for _, expr := range clauses {
+		if expr == nil {
+			continue
+		}
+		WalkExprFull(expr, func(n sql.Expr) {
+			if firstErr != nil {
+				return
+			}
+			v, ok := n.(*sql.FuncCall)
+			if !ok {
+				return
+			}
+			reg, found := e.ctx.Functions().Find(v.Name)
+			if !found || reg.Type != function.TypeAggregate {
+				return
+			}
+			name := strings.ToLower(v.Name)
+			// Star argument: only count(*) is legal; count(*,x) and any
+			// other aggregate's star are argument-count errors.
+			star := 0
+			for _, a := range v.Args {
+				if ref, ok := sql.UnwrapParenExpr(a).(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
+					star++
+				}
+			}
+			if star > 0 {
+				if name != "count" || len(v.Args) != 1 {
+					firstErr = fmt.Errorf("wrong number of arguments to function %s()", v.Name)
+				}
+				return
+			}
+			if len(v.Args) < reg.MinArgs || (reg.MaxArgs >= 0 && len(v.Args) > reg.MaxArgs) {
+				firstErr = fmt.Errorf("wrong number of arguments to function %s()", v.Name)
+			}
+		})
+		if firstErr != nil {
+			return firstErr
+		}
+	}
+	return nil
+}
+
+// validateHavingAliasedAggregate rejects a HAVING aggregate whose argument
+// references a SELECT alias whose own expression IS an aggregate (SQLite
+// resolve.c: the alias reference expands to the aggregate expression, nesting
+// one aggregate inside another — "misuse of aliased aggregate m",
+// select1-7.x).
+func (e *SelectEngine) validateHavingAliasedAggregate(s *sql.SelectStmt) error {
+	if s.Having == nil {
+		return nil
+	}
+	for _, col := range s.Columns {
+		if col.As == "" || col.Expr == nil {
+			continue
+		}
+		if expressionAggregateName(col.Expr, e.ctx.Functions()) == "" {
+			continue
+		}
+		if havingAggregateReferencesAlias(s.Having, col.As, e.ctx.Functions()) {
+			return fmt.Errorf("misuse of aliased aggregate %s", col.As)
+		}
+	}
+	return nil
+}
+
+// havingAggregateReferencesAlias reports whether any aggregate call inside
+// expr contains a bare column reference naming alias.
+func havingAggregateReferencesAlias(expr sql.Expr, alias string, fns *function.Registry) bool {
+	if expr == nil {
+		return false
+	}
+	found := false
+	var walk func(n sql.Expr, insideAgg bool)
+	walk = func(n sql.Expr, insideAgg bool) {
+		if found {
+			return
+		}
+		switch v := n.(type) {
+		case *sql.Subquery, *sql.ExistsExpr:
+			return
+		case *sql.FuncCall:
+			reg, isAggFn := fns.Find(v.Name)
+			aggHere := insideAgg || (isAggFn && reg.Type == function.TypeAggregate)
+			for _, a := range v.Args {
+				walk(a, aggHere)
+			}
+			return
+		case *sql.ColumnRef:
+			if insideAgg && v.Table == "" && strings.EqualFold(v.Name, alias) {
+				found = true
+			}
+			return
+		}
+		for _, child := range aggValidateChildExprs(n) {
+			walk(child, insideAgg)
+		}
+	}
+	walk(expr, false)
+	return found
+}
+
 
 // validateGroupByExprs rejects aggregate functions inside GROUP BY
 // expressions. SQLite: "aggregate functions are not allowed in the GROUP BY

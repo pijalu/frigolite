@@ -91,12 +91,49 @@ func collectOuterTableNames(s *sql.SelectStmt, out map[string]bool) {
 	}
 }
 
+// fromOperand is one FROM/JOIN operand instance: ref is the name usable in
+// SQL to address it (the alias when present, else the table name), table is
+// the underlying real table. Two instances of the SAME table (select1-6.8:
+// "FROM test1 as A, test1 as B") are distinct operands, so each contributes
+// its columns separately to the ambiguity map.
+type fromOperand struct {
+	ref   string
+	table string
+}
+
+// collectFromOperands lists the visible operand instances of a SELECT
+// (outermost level only, no derived-table descent).
+func collectFromOperands(s *sql.SelectStmt) []fromOperand {
+	if s == nil {
+		return nil
+	}
+	var out []fromOperand
+	add := func(name, as string) {
+		if name == "" && as == "" {
+			return
+		}
+		ref := as
+		if ref == "" {
+			ref = name
+		}
+		out = append(out, fromOperand{ref: ref, table: name})
+	}
+	add(s.From.Name, s.From.As)
+	for _, j := range s.Joins {
+		add(j.Table.Name, j.Table.As)
+	}
+	return out
+}
+
 // validateAmbiguousColumnRefs rejects unqualified column references that are
-// ambiguous across the joined tables (SQLite: "ambiguous column name: X" at
-// prepare time). Every table contributes its declared columns plus the
-// implicit rowid/_rowid_/oid columns; a bare reference naming a column that
-// exists in more than one joined table is ambiguous. Qualified references
-// (t.col), TRUE/FALSE literals, and output-column aliases are exempt.
+// ambiguous across the joined operands (SQLite: "ambiguous column name: X"
+// at prepare time). Every operand instance contributes its declared columns
+// plus the implicit rowid/_rowid_/oid columns; a bare reference naming a
+// column that exists in more than one operand is ambiguous — including two
+// instances of the same table under different aliases (select1-6.8/6.8b), or
+// a qualified reference naming a duplicated alias (select1-6.8c: two
+// operands aliased A). TRUE/FALSE literals and output-column aliases are
+// exempt.
 func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 	names := map[string]bool{}
 	collectOuterTableNames(s, names)
@@ -105,7 +142,7 @@ func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 	}
 	mergedCols := map[string]bool{}
 	e.collectJoinMergedColumns(s, names, mergedCols)
-	colInTables := e.buildAmbiguousColMap(names)
+	colInTables := e.buildAmbiguousColMap(collectFromOperands(s))
 	// Derived-table operands (subquery FROM/JOIN) contribute an implicit
 	// rowid/_rowid_/oid to the ambiguity map even though they have no real
 	// table to resolve — a bare rowid over two derived tables is ambiguous
@@ -162,6 +199,12 @@ type ambiguousRefChecker struct {
 
 // checkClauses applies the ambiguity check to every clause in a SELECT that can
 // reference columns (output columns, WHERE, GROUP BY, HAVING, ORDER BY).
+// GROUP BY/HAVING/ORDER BY terms naming an output-column ALIAS are exempt:
+// resolve.c resolves those clauses against the output aliases FIRST, so the
+// alias reference never reaches the source-column ambiguity check
+// (resolver01-1.1: "SELECT 1 AS y FROM t1, t2 ORDER BY y" succeeds even
+// though both source tables have a y). WHERE has no alias visibility, so it
+// stays strict.
 func (c ambiguousRefChecker) checkClauses(s *sql.SelectStmt) error {
 	if err := c.checkExprList(columnExprs(s.Columns)); err != nil {
 		return err
@@ -169,15 +212,61 @@ func (c ambiguousRefChecker) checkClauses(s *sql.SelectStmt) error {
 	if err := c.checkExpr(s.Where); err != nil {
 		return err
 	}
-	if err := c.checkExprList(s.GroupBy); err != nil {
+	aliases := collectSelectAliases(s.Columns)
+	if err := c.checkExprListOptAliases(s.GroupBy, aliases); err != nil {
 		return err
 	}
-	if err := c.checkExpr(s.Having); err != nil {
+	if err := c.checkExprOptAliases(s.Having, aliases); err != nil {
 		return err
 	}
 	for _, ob := range s.OrderBy {
-		if err := c.checkExpr(ob.Expr); err != nil {
+		if err := c.checkExprOptAliases(ob.Expr, aliases); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// checkExprListOptAliases applies the ambiguity check to a list of clause
+// expressions, skipping bare references that name an output-column alias.
+func (c ambiguousRefChecker) checkExprListOptAliases(exprs []sql.Expr, aliases map[string]bool) error {
+	for _, expr := range exprs {
+		if err := c.checkExprOptAliases(expr, aliases); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// checkExprOptAliases applies the ambiguity check to a clause expression. A
+// term that IS an output-column alias (a bare unqualified column reference,
+// possibly wrapped in COLLATE) is skipped: resolve.c resolves such a term
+// against the output aliases first (resolver01-1.1/2.1). Any other operator
+// over that name ("+y" — resolver01-3.1) is an expression whose operand
+// resolves against the SOURCE columns, so the ambiguity check applies.
+func (c ambiguousRefChecker) checkExprOptAliases(expr sql.Expr, aliases map[string]bool) error {
+	if expr == nil {
+		return nil
+	}
+	if ref := aliasTermColumnRef(expr); ref != nil && ref.Table == "" && aliases[strings.ToLower(ref.Name)] {
+		return nil
+	}
+	return c.checkExpr(expr)
+}
+
+// aliasTermColumnRef returns the column reference when the expression is a
+// bare column reference, looking through ParenExpr and COLLATE wrappers;
+// nil for every other shape.
+func aliasTermColumnRef(expr sql.Expr) *sql.ColumnRef {
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		return v
+	case *sql.ParenExpr:
+		return aliasTermColumnRef(v.Expr)
+	case *sql.BinaryOp:
+		// COLLATE parses as a BinaryOp wrapping the term (rule 187).
+		if strings.EqualFold(v.Operator, "COLLATE") {
+			return aliasTermColumnRef(v.Left)
 		}
 	}
 	return nil
@@ -255,6 +344,27 @@ func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
 	if strings.EqualFold(q, "new") || strings.EqualFold(q, "old") {
 		return nil
 	}
+	instances := 0
+	found := false
+	for col, refs := range c.colInTables {
+		if !strings.EqualFold(col, ref.Name) {
+			continue
+		}
+		for _, rn := range refs {
+			if strings.EqualFold(rn, q) {
+				found = true
+				instances++
+			}
+		}
+	}
+	if instances > 1 {
+		// A qualifier naming a DUPLICATED alias is ambiguous
+		// (select1-6.8c: "FROM test1 as A, test1 as A").
+		return fmt.Errorf("ambiguous column name: %s.%s", ref.Table, ref.Name)
+	}
+	if found {
+		return nil
+	}
 	for tn := range c.names {
 		if strings.EqualFold(tn, q) {
 			return nil
@@ -277,13 +387,15 @@ func selectHasSubqueryOperand(s *sql.SelectStmt) bool {
 	return false
 }
 
-// buildAmbiguousColMap builds a map from lowercased column name to the list of
-// table names that contain it. Each table contributes its declared columns
-// plus the implicit rowid/_rowid_/oid pseudo-columns (unless WITHOUT ROWID).
-func (e *SelectEngine) buildAmbiguousColMap(names map[string]bool) map[string][]string {
+// buildAmbiguousColMap builds a map from lowercased column name to the list
+// of operand refs (alias-or-name) that contain it. Each operand instance
+// contributes its declared columns plus the implicit rowid/_rowid_/oid
+// pseudo-columns (unless WITHOUT ROWID), so two instances of the same table
+// under different aliases make every column ambiguous.
+func (e *SelectEngine) buildAmbiguousColMap(operands []fromOperand) map[string][]string {
 	colInTables := map[string][]string{}
-	for tn := range names {
-		cols, err := e.tableColumnNames(tn)
+	for _, op := range operands {
+		cols, err := e.tableColumnNames(op.table)
 		if err != nil {
 			// A table we cannot resolve (e.g. a CTE reference) — skip; the
 			// execution path reports the missing table.
@@ -291,20 +403,22 @@ func (e *SelectEngine) buildAmbiguousColMap(names map[string]bool) map[string][]
 		}
 		for _, c := range cols {
 			l := strings.ToLower(c)
-			colInTables[l] = append(colInTables[l], tn)
+			// No per-ref dedupe: a DUPLICATED alias contributes the same ref
+			// once per instance (select1-6.8c).
+			colInTables[l] = append(colInTables[l], op.ref)
 		}
-		e.addRowidCols(colInTables, tn)
+		e.addRowidCols(colInTables, op.ref, op.table)
 	}
 	return colInTables
 }
 
 // addRowidCols adds the implicit rowid/_rowid_/oid columns for a table, unless
 // it is declared WITHOUT ROWID (such tables have no rowid pseudo-column).
-func (e *SelectEngine) addRowidCols(colInTables map[string][]string, tn string) {
-	te, _, terr := e.ctx.FindTable(tn)
+func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string) {
+	te, _, terr := e.ctx.FindTable(table)
 	if terr != nil || !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
 		for _, r := range []string{"rowid", "_rowid_", "oid"} {
-			colInTables[r] = append(colInTables[r], tn)
+			colInTables[r] = append(colInTables[r], ref)
 		}
 	}
 }

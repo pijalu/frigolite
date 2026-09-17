@@ -2,6 +2,7 @@ package execquery
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execexpr"
@@ -411,16 +412,28 @@ func (e *SelectEngine) hasSubqueryWithCorrelatedAgg(columns []sql.SelectColumn) 
 // ordinal's SELECT column is a bare star (*), the ordinal groups by the first
 // output column of the result (SQLite resolves GROUP BY N against result
 // columns positionally), so it resolves to a reference to that column.
-func resolveGroupByOrdinals(s *sql.SelectStmt, colDefs []sql.ColumnDef) []sql.Expr {
+//
+// An out-of-range ordinal (0, negative, or past the result width) is an
+// error: "Nth GROUP BY term out of range - should be between 1 and M"
+// (resolve.c resolveOrderGroupBy via the aggregate path — select3-1.x). The
+// result width counts star expansions through colDefs.
+func resolveGroupByOrdinals(s *sql.SelectStmt, colDefs []sql.ColumnDef) ([]sql.Expr, error) {
 	if len(s.GroupBy) == 0 {
-		return nil
+		return nil, nil
 	}
 	resolved := make([]sql.Expr, len(s.GroupBy))
 	for i, g := range s.GroupBy {
-		if num, ok := g.(*sql.NumericLit); ok {
-			var ord int64
-			fmt.Sscanf(num.Value, "%d", &ord)
-			if ord >= 1 && int(ord) <= len(s.Columns) {
+		if num, ok := g.(*sql.NumericLit); ok && isDecimalIntegerLiteral(num.Value) {
+			ord, err := strconv.ParseInt(num.Value, 10, 64)
+			if err != nil {
+				ord = 0
+			}
+			width := selectResultWidth(s, colDefs)
+			if ord < 1 || ord > int64(width) {
+				return nil, fmt.Errorf("%d%s GROUP BY term out of range - should be between 1 and %d",
+					i+1, ordinalSuffix(i+1), width)
+			}
+			if ord <= int64(len(s.Columns)) {
 				col := s.Columns[ord-1]
 				if ref, isStar := col.Expr.(*sql.ColumnRef); isStar && ref.Name == "*" && ref.Table == "" && len(colDefs) > 0 {
 					// GROUP BY 1 on SELECT * groups by the first result column.
@@ -433,7 +446,21 @@ func resolveGroupByOrdinals(s *sql.SelectStmt, colDefs []sql.ColumnDef) []sql.Ex
 		}
 		resolved[i] = g
 	}
-	return resolved
+	return resolved, nil
+}
+
+// selectResultWidth computes the number of result columns for GROUP BY
+// ordinal validation: the SELECT-list length, with a bare star expanded to
+// the underlying column count (colDefs).
+func selectResultWidth(s *sql.SelectStmt, colDefs []sql.ColumnDef) int {
+	width := len(s.Columns)
+	for _, col := range s.Columns {
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" && len(colDefs) > 0 {
+			width = len(colDefs)
+			break
+		}
+	}
+	return width
 }
 
 // matchGroupByExpr returns the index of the GROUP BY term that matches the
