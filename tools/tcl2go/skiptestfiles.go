@@ -564,6 +564,22 @@ var skipTestFiles = map[string]string{
 	"mmap3":       "VFS/fault-injection harness N-A",
 	"mmap4":       "VFS/fault-injection harness N-A",
 	"mmapcorrupt": "VFS/fault-injection harness N-A",
+	// T26-corrupt (2026-09-17): corruptC's 3.x fuzz loop is structurally
+	// non-terminating in transpiled form. The TCL fuzzer pokes one byte per
+	// connection (outer loop = file size in bytes, inner loop breaks at the
+	// FIRST integrity_check failure via `string compare $ans "ok"`), but the
+	// transpiler (a) lost the `random` proc calls (roffset/rbyte became the
+	// literal strings "random $fsize"/"random 255"), and (b) emitted the
+	// early-exit comparison as strconv.Atoi("$ans \"ok\"") which always
+	// errors, so `last` is never set and the inner loop always runs all 512
+	// iterations per byte offset — fsize*512 open+statement cycles. The
+	// engine bug the exercise targets is fixed natively: openPager defers
+	// invalid header page sizes (power-of-two/[512,65536] check, btree.c
+	// lockBtree) instead of panicking, pinned in
+	// frigolite_corruptC_pin_test.go. Sections 2.x (pokes outside the
+	// header) run and pass; the whole file skip only removes the
+	// non-terminating fuzz loop.
+	"corruptC": "transpiler fuzzer loss (proc random + string-compare early-exit) makes the 3.x loop fsize*512 iterations; engine panic fixed natively (page-size deferral) + pinned",
 	"mmapwarm":    "VFS/fault-injection harness N-A",
 	// P7.LOCK-C re-skips (evidence-based). multiplex*.test register a custom VFS
 	// via sqlite3_multiplex_initialize that shards a logical DB across chunk

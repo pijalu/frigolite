@@ -220,6 +220,16 @@ func (p *Pager) allocateFreelistLocked() uint32 {
 	}
 	t.leaves = t.leaves[:len(t.leaves)-1]
 	p.writeFreelistTrunkLocked(t)
+	// A crafted or stale leaf entry may point past the current database
+	// size. Handing the page out grows the database: the page becomes part
+	// of the transaction's image and the file extends when it is flushed
+	// (pager.c grows Pager.dbSize when a page beyond the end is first
+	// written; corruptF-1.6 pops leaf "6" from a 4-page image and the new
+	// table's rootpage 6 must then pass the schema rootpage <= page-count
+	// check). Snapshot restore rolls the growth back on ROLLBACK.
+	if popped > p.numPages {
+		p.numPages = popped
+	}
 	return popped
 }
 

@@ -127,6 +127,14 @@ func (e *Engine) findOrphans(ctx *DatabaseContext, referenced map[uint32]firstRe
 			continue
 		}
 		out = append(out, fmt.Sprintf("Page %d: never used", p))
+		// SQLITE_INTEGRITY_CHECK_ERROR_MAX (pragma.c:100): the check stops
+		// collecting after 100 findings. Sparse hexio-crafted images (a
+		// write far past EOF extends the file, so FilePageCount reaches
+		// millions of nominal pages) would otherwise Sprintf millions of
+		// orphan rows per integrity_check call (corrupt-6.x ran minutes).
+		if len(out) >= 100 {
+			break
+		}
 	}
 	return out
 }
