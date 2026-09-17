@@ -760,12 +760,20 @@ func skipTestReason(name string) (string, bool) {
 	if reason, ok := skipTestsMore[name]; ok {
 		return reason, true
 	}
+	if reason, ok := skipTestsT26Select[name]; ok {
+		return reason, true
+	}
 	for k, v := range skipTests {
 		if strings.Contains(k, "$") && wildcardMatch(k, name) {
 			return v, true
 		}
 	}
 	for k, v := range skipTestsMore {
+		if strings.Contains(k, "$") && wildcardMatch(k, name) {
+			return v, true
+		}
+	}
+	for k, v := range skipTestsT26Select {
 		if strings.Contains(k, "$") && wildcardMatch(k, name) {
 			return v, true
 		}

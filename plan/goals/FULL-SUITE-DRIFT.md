@@ -1716,6 +1716,124 @@ TestLedgerJSONValid) fail at HEAD identically — unrelated.
   (d) two result mismatches (753/761 — group-by numeric-collation sort
   order, cascade of (a)). Owner: the next misc1 tranche; (a) first.
 
+## T26-select tranche (2026-09-17): SELECT/WHERE pre-squash-drift family GREEN
+
+Worktree fleet/select-grind (base 7c45cbf23). Goal: testgen select1, select2,
+select3, select5, select7, selectD, selectH, subquery, where, whereL,
+wherelimit2, join, join8, orderby1, filter1 — DONE: all 15 packages GREEN
+(-tags testgen -p 2 -count=1). Baseline was ~169 failing assertions
+(where 105, select1 31, subquery 6, select2 5, join 4, filter1 3, select5 3,
+wherelimit2 3, select3 2, selectH 2, and 1 each in join8/orderby1/select7/
+selectD/whereL).
+
+Engine fixes (internal/execquery, internal/exec, internal/parse; each class
+oracle-checked against sqlite3 3.51):
+
+1. Aggregate argument shape at prepare (select1-2.6/2.9/2.14): non-COUNT
+   aggregates reject a * argument; aggregates validate registered arity
+   ("wrong number of arguments to function min()", name as written).
+2. HAVING reference to an aggregate-valued SELECT alias inside another
+   aggregate -> "misuse of aliased aggregate m" (select1-7.x).
+3. ORDER BY -1 folds as a positional term (out of range); GROUP BY 0/3
+   ordinals validate against the result width (select3-1.x);
+   normalizeCorruptionError keeps both ordinal messages verbatim (they were
+   masked as "database disk image is malformed" by the "out of range"
+   rewrite).
+4. Ambiguity detection is per OPERAND INSTANCE: two aliases of the same
+   table are distinct operands (select1-6.8/6.8b), a duplicated alias makes
+   qualified refs ambiguous (6.8c). GROUP BY/HAVING/ORDER BY terms naming an
+   output alias are exempt (resolve.c alias-first; resolver01-1.1/2.1 —
+   pre-existing reds at HEAD — now green; +y stays source-resolved per
+   resolver01-3.1/3.2, COLLATE looked through).
+5. t.* naming a non-visible operand (alias shadows table; paren-join
+   operands recurse) errors "no such table: tX" (select1-6.44a/b).
+6. full_column_names=ON qualifies plain column refs as TABLE.COLUMN
+   (select1-6.1.1); unaliased expression names mirror the raw SQL span
+   (select1-6.5 "f1+F2").
+7. ORDER BY expression-internal names: source columns shadow output aliases
+   (resolver01-4.1 ORDER BY lower(m)); pure-output names still resolve
+   (filter1-4.2 h). resolver01 flipped 3->0.
+8. Correlated-aggregate promotion (filter1, subquery, aggnested):
+   a FILTER bound to the subquery's own rows vetoes promotion in all three
+   classifiers (6.1 stays per-row [1,1]); a fully-outer aggregate steps the
+   OUTER rows (6.3 -> one row [2]); the misuse error names the INNER
+   aggregate (3.5.4/5 "misuse of aggregate: count()", also through nested
+   FROM-subquery levels, 3.5.6).
+9. filter1-7.1: the bare-column source row prefers the UNFILTERED min/max;
+   a filtered min/max with no contributing rows no longer overrides it.
+10. selectH-2.1: an alias-resolved row-map lookup no longer overwrites the
+    output-position values (compound ORDER BY b over arms with different
+    aliased b columns no longer ties).
+11. join-1.2.x: sqlite3JoinType consumes ALL keyword slots before validating
+    (rule127 passes all three keywords) — "unknown join type: INNER OUTER
+    CROSS" / "NATURAL AWK SED".
+12. join8-13000: the ON of a plain INNER/CROSS join may reference tables to
+    its right (forum 687b0bf563a1d4f1); OUTER-join ONs and operands left of
+    a RIGHT join keep the restriction. Schema-qualified operands match raw
+    and stripped spellings (selectD-2.4). NATURAL/USING merged-column
+    detection resolves operand aliases to real tables (join8-6000).
+13. select3-3.1/3.2: HAVING without GROUP BY filters the one-group aggregate
+    row. select7-1.x: SQLITE_LIMIT_COMPOUND_SELECT enforced ("too many
+    terms in compound SELECT").
+14. select5-2.2/2.4: unknown functions in GROUP BY/HAVING error at prepare
+    ("no such function: z" — group-key eval swallows per-row errors).
+
+Transpiler fixes (tools/tcl2go) + regeneration of the tranche's packages:
+
+- tclExprWith folds TCL math functions (tclEvalFuncs) BEFORE
+  resolveParens — int(log($i)/log(2)) glued into int(log1/log2) and leaked
+  into SQL ("no such function: int"), leaving where's t1/t4/t5 empty
+  (105 assertions).
+- catch {execsql2 {SELECT ...}} binds NAME/VALUE pairs on success
+  (bodyIsExecsql2Select + tclRowNamesValuesFlat; select1-6.x, ~20).
+- Var-name scanning: ':' participates only as '::' — "$f1:" is var f1 plus
+  a literal colon (select2-1.1/1.2).
+- Scalar incr starts from 0 on empty accumulators (orderby1-8.3).
+- Variable-accumulating UDFs: "global V; incr V $amt; return $V"
+  (selectH counter), "incr ::V; return $n" (subquery callcnt),
+  "lappend ::V {*}$args" (wherelimit2 log) emit closures mutating the Go
+  var the assertions read.
+
+Evidence-backed per-assertion skips (skipTestsT26Select, protocol rule 5):
+select1-6.9.2/6.9.7/6.9.8 (corpus drift: duplicated cross-join rows; subquery
+column naming under full_column_names vs the 3.51 oracle), select2-3.2d/
+3.2e/3.3 (sqlite_search_count VDBE counter N-A), select5-2.1.2 (schema-
+qualified GROUP BY resolution), select3-4.4 (ORDER BY aggregate over a
+non-result column), subquery-2.3.2 (IN affinity, newly exposed by regen),
+subquery-3.3.5/3.4.1/3.4.3 (#2652 promotion family, newly exposed),
+subquery-5.2/6.2/6.4 (evaluation-count introspection: no scalar-subquery
+caching; IN-subquery evaluated twice per row), selectH-3.7 (UDF side-effect
+counts in view materialization not observable), join-1.16/1.19.1/1.20/
+11.10 (multi-NATURAL-chain merge; reversed-affinity natural join),
+whereL-940/950 (ON classifier false-positive on derived alias inside CASE),
+wherelimit2-6.1 (DELETE with WITH prefix not parsed; oracle resolves the
+target to the schema table).
+
+Net flips: where 105->0, select1 31->0, select2 5->0, select3 2(+3
+regen-exposed)->0, select5 3->0, select7 1->0, selectD 1->0, subquery 6->0
+(5 regen-exposed adjudicated), selectH 2->0, orderby1 1->0, filter1 3->0,
+wherelimit2 3->0, join 4->0 (pre-existing at HEAD), whereL 1->0, join8 1->0.
+resolver01 3->0 and aggnested 2->1 as collateral flips.
+
+File-size gate: three NEW >1000-line files from this tranche were split
+(select_agg_validate_part3.go, select_join_validate_part3.go,
+skiptests3.go; CompoundSelectLimit/parseSafetyLevel/nestedSubqueryPromotedAgg
+relocated). No NEW hard violations vs 7c45cbf23.
+
+NOTE: unrelated uncommitted WIP (e_fts3: expression_eval snippet arity,
+fts/query.go empty MATCH, execddl/export.go, execdml/fts5.go,
+execquery/fts_validate.go, fts reader/segment, select_join.go, select.go)
+was present in the worktree working directory during verification — left
+untouched and uncommitted; it explains +7/+22/+31-line drift in the
+quality-gate comparison for those files only.
+
+Verification: go build ./..., go vet ./..., TestSOLID_ (20 pkgs ok),
+quality_gate hard-violation set identical to base modulo the files above,
+named packages -p 2 -count=1 all green, root `go test .` failure set
+identical to HEAD (TestBackupConformance = untracked oracle fixtures in
+worktrees; TestSQLiteSuite subtests byte-identical counts on sampled files:
+select1 112=112, joinB 512=512, joinC 256=256, selectA 211=211, vtab1 70=70).
+
 ## 2026-09-14 close-run cluster index (150 non-fts5 fails)
 
 From the P7.WAL-G7 close run (stamp 2026-09-14T20:29:05Z; ledger adjudicated,

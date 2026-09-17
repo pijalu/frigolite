@@ -16,7 +16,10 @@ func (e *Engine) normalizeCorruptionError(res *Result) *Result {
 		return res
 	}
 	msg := res.Error.Error()
-	if strings.Contains(msg, "ORDER BY term out of range") {
+	if strings.Contains(msg, "ORDER BY term out of range") ||
+		strings.Contains(msg, "GROUP BY term out of range") {
+		// resolve.c's ordinal-range errors are prepare-time misuse errors,
+		// not corruption — keep them verbatim (select1-10.x, select3-1.x).
 		return res
 	}
 	if strings.Contains(msg, "zip archive") {

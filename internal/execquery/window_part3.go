@@ -465,7 +465,11 @@ func (e *SelectEngine) validateWindowFunctions(s *sql.SelectStmt) error {
 			return fmt.Errorf("no such column: %s", windowLimitColRef(s.Offset))
 		}
 	}
-	for _, g := range resolveGroupByOrdinals(s, nil) {
+	resolvedGroupBy, gbErr := resolveGroupByOrdinals(s, nil)
+	if gbErr != nil {
+		return gbErr
+	}
+	for _, g := range resolvedGroupBy {
 		if name := e.windowFuncInExpr(g); name != "" {
 			return fmt.Errorf("misuse of window function %s()", name)
 		}

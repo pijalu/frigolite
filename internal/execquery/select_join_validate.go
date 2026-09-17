@@ -91,39 +91,6 @@ func collectOuterTableNames(s *sql.SelectStmt, out map[string]bool) {
 	}
 }
 
-// validateAmbiguousColumnRefs rejects unqualified column references that are
-// ambiguous across the joined tables (SQLite: "ambiguous column name: X" at
-// prepare time). Every table contributes its declared columns plus the
-// implicit rowid/_rowid_/oid columns; a bare reference naming a column that
-// exists in more than one joined table is ambiguous. Qualified references
-// (t.col), TRUE/FALSE literals, and output-column aliases are exempt.
-func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
-	names := map[string]bool{}
-	collectOuterTableNames(s, names)
-	if len(names) == 0 {
-		return nil
-	}
-	mergedCols := map[string]bool{}
-	e.collectJoinMergedColumns(s, names, mergedCols)
-	colInTables := e.buildAmbiguousColMap(names)
-	// Derived-table operands (subquery FROM/JOIN) contribute an implicit
-	// rowid/_rowid_/oid to the ambiguity map even though they have no real
-	// table to resolve — a bare rowid over two derived tables is ambiguous
-	// (misc8-3.0: "ambiguous column name: rowid").
-	for _, ref := range derivedTableRefs(s) {
-		for _, r := range []string{"rowid", "_rowid_", "oid"} {
-			colInTables[r] = append(colInTables[r], ref)
-		}
-	}
-	checker := ambiguousRefChecker{
-		colInTables: colInTables,
-		mergedCols:  mergedCols,
-		names:       names,
-		hasDerived:  selectHasSubqueryOperand(s),
-	}
-	return checker.checkClauses(s)
-}
-
 // derivedTableRefs returns the alias (or name) of every FROM/JOIN operand that
 // is a subquery (derived table).
 func derivedTableRefs(s *sql.SelectStmt) []string {
@@ -151,118 +118,6 @@ func derivedTableRefs(s *sql.SelectStmt) []string {
 	return out
 }
 
-// ambiguousRefChecker carries the precomputed column/table data needed to test
-// individual column references for ambiguity.
-type ambiguousRefChecker struct {
-	colInTables map[string][]string
-	mergedCols  map[string]bool
-	names       map[string]bool
-	hasDerived  bool
-}
-
-// checkClauses applies the ambiguity check to every clause in a SELECT that can
-// reference columns (output columns, WHERE, GROUP BY, HAVING, ORDER BY).
-func (c ambiguousRefChecker) checkClauses(s *sql.SelectStmt) error {
-	if err := c.checkExprList(columnExprs(s.Columns)); err != nil {
-		return err
-	}
-	if err := c.checkExpr(s.Where); err != nil {
-		return err
-	}
-	if err := c.checkExprList(s.GroupBy); err != nil {
-		return err
-	}
-	if err := c.checkExpr(s.Having); err != nil {
-		return err
-	}
-	for _, ob := range s.OrderBy {
-		if err := c.checkExpr(ob.Expr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// columnExprs extracts the expression slice from a SELECT's output columns.
-func columnExprs(cols []sql.SelectColumn) []sql.Expr {
-	var exprs []sql.Expr
-	for _, col := range cols {
-		exprs = append(exprs, col.Expr)
-	}
-	return exprs
-}
-
-// checkExprList applies the ambiguity check to a list of expressions.
-func (c ambiguousRefChecker) checkExprList(exprs []sql.Expr) error {
-	for _, expr := range exprs {
-		if err := c.checkExpr(expr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// checkExpr walks a single expression and returns the first ambiguity error.
-func (c ambiguousRefChecker) checkExpr(expr sql.Expr) error {
-	if expr == nil {
-		return nil
-	}
-	var checkErr error
-	WalkExprFull(expr, func(e2 sql.Expr) {
-		if checkErr != nil {
-			return
-		}
-		ref, ok := e2.(*sql.ColumnRef)
-		if !ok || ref.Name == "*" {
-			return
-		}
-		checkErr = c.checkColumnRef(ref)
-	})
-	return checkErr
-}
-
-// checkColumnRef tests a single column reference for ambiguity or unknown
-// qualifier.
-func (c ambiguousRefChecker) checkColumnRef(ref *sql.ColumnRef) error {
-	if ref.Table != "" {
-		return c.checkQualifiedRef(ref)
-	}
-	if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
-		return nil
-	}
-	l := strings.ToLower(ref.Name)
-	if c.mergedCols[l] {
-		return nil
-	}
-	if len(c.colInTables[l]) > 1 {
-		return fmt.Errorf("ambiguous column name: %s", ref.Name)
-	}
-	return nil
-}
-
-// checkQualifiedRef validates that a qualified reference (t.col) names a
-// visible table. When a derived table is present in the FROM/JOIN operands,
-// the qualifier may name a table inside the derived table (resolved at
-// execution), so the check is skipped. NEW/OLD trigger references are exempt.
-func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
-	if c.hasDerived {
-		return nil
-	}
-	q := ref.Table
-	if dot := strings.Index(q, "."); dot >= 0 {
-		q = q[dot+1:]
-	}
-	if strings.EqualFold(q, "new") || strings.EqualFold(q, "old") {
-		return nil
-	}
-	for tn := range c.names {
-		if strings.EqualFold(tn, q) {
-			return nil
-		}
-	}
-	return fmt.Errorf("no such column: %s.%s", ref.Table, ref.Name)
-}
-
 // selectHasSubqueryOperand reports whether a SELECT's FROM or JOIN operands
 // include a subquery (derived table).
 func selectHasSubqueryOperand(s *sql.SelectStmt) bool {
@@ -277,13 +132,15 @@ func selectHasSubqueryOperand(s *sql.SelectStmt) bool {
 	return false
 }
 
-// buildAmbiguousColMap builds a map from lowercased column name to the list of
-// table names that contain it. Each table contributes its declared columns
-// plus the implicit rowid/_rowid_/oid pseudo-columns (unless WITHOUT ROWID).
-func (e *SelectEngine) buildAmbiguousColMap(names map[string]bool) map[string][]string {
+// buildAmbiguousColMap builds a map from lowercased column name to the list
+// of operand refs (alias-or-name) that contain it. Each operand instance
+// contributes its declared columns plus the implicit rowid/_rowid_/oid
+// pseudo-columns (unless WITHOUT ROWID), so two instances of the same table
+// under different aliases make every column ambiguous.
+func (e *SelectEngine) buildAmbiguousColMap(operands []fromOperand) map[string][]string {
 	colInTables := map[string][]string{}
-	for tn := range names {
-		cols, err := e.tableColumnNames(tn)
+	for _, op := range operands {
+		cols, err := e.tableColumnNames(op.table)
 		if err != nil {
 			// A table we cannot resolve (e.g. a CTE reference) — skip; the
 			// execution path reports the missing table.
@@ -291,20 +148,22 @@ func (e *SelectEngine) buildAmbiguousColMap(names map[string]bool) map[string][]
 		}
 		for _, c := range cols {
 			l := strings.ToLower(c)
-			colInTables[l] = append(colInTables[l], tn)
+			// No per-ref dedupe: a DUPLICATED alias contributes the same ref
+			// once per instance (select1-6.8c).
+			colInTables[l] = append(colInTables[l], op.ref)
 		}
-		e.addRowidCols(colInTables, tn)
+		e.addRowidCols(colInTables, op.ref, op.table)
 	}
 	return colInTables
 }
 
 // addRowidCols adds the implicit rowid/_rowid_/oid columns for a table, unless
 // it is declared WITHOUT ROWID (such tables have no rowid pseudo-column).
-func (e *SelectEngine) addRowidCols(colInTables map[string][]string, tn string) {
-	te, _, terr := e.ctx.FindTable(tn)
+func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string) {
+	te, _, terr := e.ctx.FindTable(table)
 	if terr != nil || !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
 		for _, r := range []string{"rowid", "_rowid_", "oid"} {
-			colInTables[r] = append(colInTables[r], tn)
+			colInTables[r] = append(colInTables[r], ref)
 		}
 	}
 }
@@ -581,7 +440,14 @@ func (v *joinOnValidator) validateJoins() error {
 // (select.c:7552), a reference to a table absent from the FROM entirely is
 // "no such column: <table>.<column>" (vtab6-3.6). References joined so far
 // and trigger row aliases pass.
-func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr) string {
+//
+// The right-reference restriction applies only when this ON's join processes
+// its operand outer-join-style (LEFT/RIGHT/FULL) or the query contains a
+// RIGHT/FULL join (JT_LTORJ: every operand left of a RIGHT JOIN is
+// restricted — build.c sqlite3SrcListShiftJoinType). The ON of a plain
+// INNER/CROSS join may reference tables to its right
+// (forum 687b0bf563a1d4f1, join8-13000).
+func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr, allowRightRefs bool) string {
 	var bad string
 	walkJoinOnExpr(on, func(e2 sql.Expr) {
 		cr, ok := e2.(*sql.ColumnRef)
@@ -589,18 +455,23 @@ func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr) string {
 			return
 		}
 		// Strip a schema prefix and compare case-insensitively against the
-		// FROM operands (sqlite3 name resolution is case-insensitive).
+		// FROM operands (sqlite3 name resolution is case-insensitive). A
+		// schema-qualified OPERAND ("FROM main.t4 JOIN aux1.t4 ...") also
+		// registers its raw name, so match both spellings (selectD-2.4).
 		t := strings.ToLower(cr.Table)
+		raw := t
 		if dot := strings.LastIndexByte(t, '.'); dot >= 0 {
 			t = t[dot+1:]
 		}
 		switch {
 		case t == "new" || t == "old":
 			// trigger row aliases
-		case v.available[t]:
+		case v.available[t] || v.available[raw]:
 			// joined so far
-		case v.fullTables[t]:
-			bad = "ON clause references tables to its right"
+		case v.fullTables[t] || v.fullTables[raw]:
+			if !allowRightRefs {
+				bad = "ON clause references tables to its right"
+			}
 		default:
 			bad = fmt.Sprintf("no such column: %s.%s", cr.Table, cr.Name)
 		}
@@ -628,7 +499,7 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 		}
 		return nil
 	}
-	if bad := v.classifyQualifiedOnRefs(join.On); bad != "" {
+	if bad := v.classifyQualifiedOnRefs(join.On, !v.shouldValidateOn(join)); bad != "" {
 		return fmt.Errorf("%s", bad)
 	}
 	// The legacy unqualified-reference and ON-subquery checks keep their

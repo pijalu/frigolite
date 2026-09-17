@@ -400,6 +400,28 @@ func tclRowValuesFlat(res *frigolite.Result) string {
 	return strings.Join(cells, " ")
 }
 
+// tclRowNamesValuesFlat renders TCL execsql2 output: for every row, each
+// result column NAME followed by its value, space-joined (tclsqlite.c
+// execsql2 interleaves the column names with the values; the names come
+// from res.Columns and therefore honor short/full_column_names and SELECT
+// aliases the way the engine computes them).
+func tclRowNamesValuesFlat(res *frigolite.Result) string {
+	if res == nil {
+		return ""
+	}
+	parts := make([]string, 0, len(res.Rows)*len(res.Columns)*2)
+	for _, row := range res.Rows {
+		for i, c := range row {
+			name := ""
+			if i < len(res.Columns) {
+				name = res.Columns[i]
+			}
+			parts = append(parts, name, catchsqlCell(c))
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
 // tclExprWith evaluates a TCL expression with $var values supplied at runtime.
 // The expr string may contain $name references; vars maps each name to its
 // current Go string value. Used by [expr $var + ...] calls where the variable
@@ -493,6 +515,11 @@ func tclExprWith(expr string, vars map[string]string) string {
 			return coerced
 		}
 	}
+	// Fold known TCL math functions (log(2), int(x), pow(a,b), ...) BEFORE
+	// resolveParens: the paren resolver glues a function call to its argument
+	// ("log(1)" -> "log1"), destroying the call before tclEvalFuncs can see
+	// it (where.test's int(log($i)/log(2)) table seeding).
+	s = tclEvalFuncs(s)
 	s = resolveBracketCommands(s)
 	s = resolveParens(s)
 	s = resolveLogicalOperators(resolveStringComparisons(s))

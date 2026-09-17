@@ -171,6 +171,13 @@ func (e *SelectEngine) aggExprRefsOnlyOuter(expr sql.Expr, inner map[string]bool
 		}
 		reg, found := e.ctx.Functions().Find(fn.Name)
 		if found && reg.Type == function.TypeAggregate {
+			// A FILTER bound to the subquery's own rows keeps the aggregate
+			// inner-evaluated: the query is a per-row correlated-aggregate
+			// subquery, NOT an outer aggregate collapse (filter1-6.1:
+			// COUNT(a) FILTER(WHERE x) with x inner evaluates per outer row).
+			if fn.Filter != nil && exprHasColRefInMap(fn.Filter, inner) {
+				return false
+			}
 			refsOuter := false
 			refsInner := false
 			for _, a := range fn.Args {
@@ -386,6 +393,12 @@ func (e *SelectEngine) aggColumnArgsRefInner(col sql.SelectColumn, colNames map[
 		if exprHasColRefInMap(ob.Expr, colNames) {
 			return true
 		}
+	}
+	// A FILTER referencing a FROM-table column binds the aggregate to the
+	// inner rows even when the arguments are outer-only (filter1-6.1:
+	// COUNT(a) FILTER(WHERE x) with x in the FROM table).
+	if fn.Filter != nil && exprHasColRefInMap(fn.Filter, colNames) {
+		return true
 	}
 	return false
 }
@@ -650,6 +663,9 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	if err := e.checkOrderByAggMisuse(s); err != nil {
 		return err
 	}
+	if err := e.validateAggregateStarArgs(s); err != nil {
+		return err
+	}
 	if err := e.validateSelectColumnList(s); err != nil {
 		return err
 	}
@@ -659,7 +675,16 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	if err := e.validateGroupByExprs(s); err != nil {
 		return err
 	}
+	if err := e.validateClauseFunctions(s.GroupBy); err != nil {
+		return err
+	}
+	if err := e.validateClauseFunctions([]sql.Expr{s.Having}); err != nil {
+		return err
+	}
 	if err := e.validateHavingExprs(s); err != nil {
+		return err
+	}
+	if err := e.validateHavingAliasedAggregate(s); err != nil {
 		return err
 	}
 	if err := e.validateWhereExprs(s); err != nil {
@@ -700,51 +725,10 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	// collations must be registered (build.c sqlite3LocateCollSeq; a
 	// close/reopen without re-registering a schema collation fails these
 	// with "no such collation sequence: NAME" — collate3-2.x).
-	return e.validateSchemaCollations(s)
-}
-
-// checkOrderByAggMisuse rejects aggregate functions in ORDER BY when the SELECT
-// is not an aggregate query (no GROUP BY, no aggregate in SELECT list).
-// Compound queries skip this: a trailing ORDER BY on a compound member is the
-// compound-level ORDER BY, where aggregates are permitted.
-func (e *SelectEngine) checkOrderByAggMisuse(s *sql.SelectStmt) error {
-	if len(s.OrderBy) == 0 || s.GroupBy != nil || e.inCompoundMember || s.Union != nil {
-		return nil
+	if err := e.validateSchemaCollations(s); err != nil {
+		return err
 	}
-	isAgg := e.hasAggregates(s.Columns)
-	for _, ob := range s.OrderBy {
-		if e.exprHasAggregate(ob.Expr) && !isAgg {
-			return fmt.Errorf("misuse of aggregate: %s()", e.aggregateName(ob.Expr))
-		}
-		// An aggregate inside a scalar subquery in ORDER BY that references
-		// outer columns is a misuse (window1 61.4.3: ORDER BY (SELECT sum(a)
-		// FROM t2) where a is t1's column). A subquery aggregate over its own
-		// FROM is fine (61.4.4).
-		if !isAgg {
-			if name := e.orderBySubqueryOuterAgg(ob.Expr); name != "" {
-				return fmt.Errorf("misuse of aggregate: %s()", name)
-			}
-		}
-	}
-	return nil
-}
-
-// orderBySubqueryOuterAgg returns the name of the first correlated aggregate
-// (aggregate referencing columns outside the subquery's own FROM) inside a
-// scalar subquery in an ORDER BY expression, or "".
-func (e *SelectEngine) orderBySubqueryOuterAgg(expr sql.Expr) string {
-	found := ""
-	WalkExprFull(expr, func(en sql.Expr) {
-		if found != "" {
-			return
-		}
-		if sub, ok := en.(*sql.Subquery); ok && sub.Select != nil {
-			if n := e.subqueryOuterAggRef(sub.Select); n != "" {
-				found = n
-			}
-		}
-	})
-	return found
+	return e.validateCompoundTermLimit(s)
 }
 
 // validateSelectColumnList validates each SELECT column expression for ORDER BY
