@@ -1,6 +1,7 @@
 {
   "file": "avtrans.test",
   "name": "avtrans",
+  "ordered": true,
   "tests": [
     {
       "name": "avtrans-1.0",
@@ -21,7 +22,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum"
+          "sql": "PRAGMA auto_vacuum",
+          "expect": "1"
         }
       ]
     },
@@ -59,7 +61,7 @@
       "name": "avtrans-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "BEGIN",
           "expect": "0 {}"
         }
@@ -69,7 +71,7 @@
       "name": "avtrans-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "END",
           "expect": "0 {}"
         }
@@ -79,7 +81,7 @@
       "name": "avtrans-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "BEGIN TRANSACTION",
           "expect": "0 {}"
         }
@@ -89,7 +91,7 @@
       "name": "avtrans-2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "COMMIT TRANSACTION",
           "expect": "0 {}"
         }
@@ -99,7 +101,7 @@
       "name": "avtrans-2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "BEGIN TRANSACTION 'foo'",
           "expect": "0 {}"
         }
@@ -109,7 +111,7 @@
       "name": "avtrans-2.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ROLLBACK TRANSACTION 'foo'",
           "expect": "0 {}"
         }
@@ -228,7 +230,7 @@
       "name": "avtrans-3.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a FROM two ORDER BY a;",
           "expect": "0 {1 4 5 10}"
         }
@@ -238,7 +240,7 @@
       "name": "avtrans-3.12",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a FROM one ORDER BY a;",
           "expect": "0 {1 2 3 4}"
         }
@@ -248,7 +250,7 @@
       "name": "avtrans-3.13",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a FROM two ORDER BY a;",
           "expect": "0 {1 4 5 10}"
         }
@@ -258,7 +260,7 @@
       "name": "avtrans-3.14",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a FROM one ORDER BY a;",
           "expect": "0 {1 2 3 4}"
         }
@@ -268,7 +270,7 @@
       "name": "avtrans-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "COMMIT;",
           "expect": "1 {cannot commit - no transaction is active}"
         }
@@ -278,7 +280,7 @@
       "name": "avtrans-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ROLLBACK;",
           "expect": "1 {cannot rollback - no transaction is active}"
         }
@@ -348,7 +350,7 @@
       "name": "avtrans-4.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "END TRANSACTION;\n    SELECT a FROM two ORDER BY a;",
           "expect": "0 {1 4 5 10}"
         }
@@ -358,7 +360,7 @@
       "name": "avtrans-4.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a FROM two ORDER BY a;",
           "expect": "0 {1 4 5 10}"
         }
@@ -368,7 +370,7 @@
       "name": "avtrans-4.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a FROM one ORDER BY a;",
           "expect": "0 {1 2 3 4}"
         }
@@ -459,7 +461,7 @@
       "name": "avtrans-5.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a,b FROM one ORDER BY b",
           "expect": "1 {no such table: one}"
         }
@@ -597,7 +599,7 @@
       "name": "avtrans-5.21",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t2",
           "expect": "1 {no such table: t2}"
         }
@@ -4932,6 +4934,15 @@
       ]
     },
     {
+      "name": "avtrans-7.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
       "name": "avtrans-7.10",
       "steps": [
         {
@@ -4941,11 +4952,29 @@
       ]
     },
     {
+      "name": "avtrans-7.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
       "name": "avtrans-7.12",
       "steps": [
         {
           "type": "exec",
           "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
         }
       ]
     },
@@ -4987,6 +5016,1869 @@
           "type": "exec",
           "sql": "BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;",
           "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.2.1-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.2.2-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.2.3-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.3.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.3.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.3.3-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.4.1-4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.4.2-4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.4.3-4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.5.1-5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.5.2-5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.5.3-5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.6.1-6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.6.2-6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.6.3-6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.7.1-7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.7.2-7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.7.3-7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.8.1-8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.8.2-8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.8.3-8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.9.1-9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.9.2-9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.9.3-9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.10.1-10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.10.2-10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.10.3-10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.11.1-11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.11.2-11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.11.3-11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.12.1-12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.12.2-12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.12.3-12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.13.1-13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.13.2-13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.13.3-13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.14.1-14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.14.2-14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.14.3-14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.15.1-15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.15.2-15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.15.3-15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.16.1-16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.16.2-16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.16.3-16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.17.1-17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.17.2-17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.17.3-17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.18.1-18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.18.2-18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.18.3-18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.19.1-19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.19.2-19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.19.3-19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.20.1-20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.20.2-20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.20.3-20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.21.1-21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.21.2-21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.21.3-21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.22.1-22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.22.2-22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.22.3-22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.23.1-23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.23.2-23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.23.3-23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.24.1-24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.24.2-24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.24.3-24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.25.1-25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.25.2-25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.25.3-25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.26.1-26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.26.2-26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.26.3-26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.27.1-27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.27.2-27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.27.3-27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.28.1-28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.28.2-28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.28.3-28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.29.1-29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.29.2-29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.29.3-29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.30.1-30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.30.2-30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.30.3-30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.31.1-31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.31.2-31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.31.3-31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.32.1-32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.32.2-32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.32.3-32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.33.1-33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.33.2-33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.33.3-33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.34.1-34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.34.2-34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.34.3-34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.35.1-35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.35.2-35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.35.3-35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.36.1-36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.36.2-36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.36.3-36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.37.1-37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.37.2-37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.37.3-37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.38.1-38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.38.2-38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.38.3-38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.39.1-39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.39.2-39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.39.3-39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.40.1-40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.40.2-40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
         }
       ]
     }

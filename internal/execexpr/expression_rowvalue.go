@@ -289,7 +289,7 @@ func binaryOpNeedsNullCheck(op string) bool {
 // resolved and the NULL pre-check has passed: LIKE-with-ESCAPE, IS/IS NOT, and
 // the remaining operators via evalBinaryOpValues.
 func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interface{}) (interface{}, error) {
-	if v.Operator == "LIKE" && (v.Escape != "" || v.HasEscape) {
+	if (v.Operator == "LIKE" || v.Operator == "NOT LIKE") && (v.Escape != "" || v.HasEscape) {
 		return ev.evalLikeWithEscape(v, left, right)
 	}
 	if v.Operator == "IS" || v.Operator == "IS NOT" {
@@ -298,18 +298,29 @@ func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interfa
 	return ev.evalBinaryOpValues(v.Operator, left, right)
 }
 
-// evalLikeWithEscape evaluates a LIKE expression with an ESCAPE clause.
-// SQLite requires the ESCAPE expression to be a single character: ESCAPE ”
-// and multi-character ESCAPE are runtime errors. An absent ESCAPE clause uses
-// the default matcher.
+// evalLikeWithEscape evaluates a LIKE (or negated NOT LIKE) expression with
+// an ESCAPE clause. SQLite requires the ESCAPE expression to be a single
+// character: ESCAPE ” and multi-character ESCAPE are runtime errors. An
+// absent ESCAPE clause uses the default matcher.
 func (ev *Evaluator) evalLikeWithEscape(v *sql.BinaryOp, left, right interface{}) (interface{}, error) {
 	if v.HasEscape && len([]rune(v.Escape)) != 1 {
 		return nil, fmt.Errorf("ESCAPE expression must be a single character")
 	}
+	var result bool
 	if ev.ctx.CaseSensitiveLike() {
-		return boolToInt(likeValuesWithEscapeCS(left, right, v.Escape)), nil
+		result = likeValuesWithEscapeCS(left, right, v.Escape)
+	} else {
+		result = likeValuesWithEscape(left, right, v.Escape)
 	}
-	return boolToInt(likeValuesWithEscape(left, right, v.Escape)), nil
+	if v.Operator == "NOT LIKE" {
+		result = !result
+	}
+	if result && v.Operator != "NOT LIKE" {
+		// Operator-overload probing (vtab.OperatorOverloadCounter scans):
+		// invoke the user's like(pattern, value) once per TRUE evaluation.
+		ev.probeOperatorOverload("LIKE", right, left)
+	}
+	return boolToInt(result), nil
 }
 
 // evalRowValueIs implements NULL-safe row-value IS / IS NOT comparison.

@@ -1,18 +1,23 @@
 {
   "file": "altercol.test",
   "name": "altercol",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB)}"
+          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB)"
         }
       ]
     },
     {
-      "name": "1.1.1",
+      "name": "altercol-1.1.1",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +26,7 @@
       ]
     },
     {
-      "name": "1.1.2",
+      "name": "altercol-1.1.2",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +35,7 @@
       ]
     },
     {
-      "name": "1.1.3",
+      "name": "altercol-1.1.3",
       "steps": [
         {
           "type": "query",
@@ -40,26 +45,30 @@
       ]
     },
     {
-      "name": "1.1.4",
+      "name": "altercol-1.1.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB)}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB)}"
         }
       ]
     },
     {
-      "name": "1.2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.2.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, x TEXT, \"b\" BLOB)}"
+          "sql": "CREATE TABLE t1(a INTEGER, x TEXT, \"b\" BLOB)"
         }
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "altercol-1.2.1",
       "steps": [
         {
           "type": "exec",
@@ -68,7 +77,7 @@
       ]
     },
     {
-      "name": "1.2.2",
+      "name": "altercol-1.2.2",
       "steps": [
         {
           "type": "exec",
@@ -77,7 +86,7 @@
       ]
     },
     {
-      "name": "1.2.3",
+      "name": "altercol-1.2.3",
       "steps": [
         {
           "type": "query",
@@ -87,26 +96,30 @@
       ]
     },
     {
-      "name": "1.2.4",
+      "name": "altercol-1.2.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, x TEXT, \"d\" BLOB)}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, x TEXT, \"d\" BLOB)}"
         }
       ]
     },
     {
-      "name": "1.3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.3.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(b!=''))}"
+          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(b!=''))"
         }
       ]
     },
     {
-      "name": "1.3.1",
+      "name": "altercol-1.3.1",
       "steps": [
         {
           "type": "exec",
@@ -115,7 +128,7 @@
       ]
     },
     {
-      "name": "1.3.2",
+      "name": "altercol-1.3.2",
       "steps": [
         {
           "type": "exec",
@@ -124,7 +137,7 @@
       ]
     },
     {
-      "name": "1.3.3",
+      "name": "altercol-1.3.3",
       "steps": [
         {
           "type": "query",
@@ -134,26 +147,30 @@
       ]
     },
     {
-      "name": "1.3.4",
+      "name": "altercol-1.3.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(d!=''))}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(d!=''))}"
         }
       ]
     },
     {
-      "name": "1.4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.4.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(t1.b!=''))}"
+          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(t1.b!=''))"
         }
       ]
     },
     {
-      "name": "1.4.1",
+      "name": "altercol-1.4.1",
       "steps": [
         {
           "type": "exec",
@@ -162,7 +179,7 @@
       ]
     },
     {
-      "name": "1.4.2",
+      "name": "altercol-1.4.2",
       "steps": [
         {
           "type": "exec",
@@ -171,7 +188,7 @@
       ]
     },
     {
-      "name": "1.4.3",
+      "name": "altercol-1.4.3",
       "steps": [
         {
           "type": "query",
@@ -181,26 +198,30 @@
       ]
     },
     {
-      "name": "1.4.4",
+      "name": "altercol-1.4.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(t1.d!=''))}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(t1.d!=''))}"
         }
       ]
     },
     {
-      "name": "1.5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.5.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK( coalesce(b,c) ))}"
+          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK( coalesce(b,c) ))"
         }
       ]
     },
     {
-      "name": "1.5.1",
+      "name": "altercol-1.5.1",
       "steps": [
         {
           "type": "exec",
@@ -209,7 +230,7 @@
       ]
     },
     {
-      "name": "1.5.2",
+      "name": "altercol-1.5.2",
       "steps": [
         {
           "type": "exec",
@@ -218,7 +239,7 @@
       ]
     },
     {
-      "name": "1.5.3",
+      "name": "altercol-1.5.3",
       "steps": [
         {
           "type": "query",
@@ -228,26 +249,30 @@
       ]
     },
     {
-      "name": "1.5.4",
+      "name": "altercol-1.5.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK( coalesce(d,c) ))}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK( coalesce(d,c) ))}"
         }
       ]
     },
     {
-      "name": "1.6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.6.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, \"b\"TEXT, c BLOB, CHECK( coalesce(b,c) ))}"
+          "sql": "CREATE TABLE t1(a INTEGER, \"b\"TEXT, c BLOB, CHECK( coalesce(b,c) ))"
         }
       ]
     },
     {
-      "name": "1.6.1",
+      "name": "altercol-1.6.1",
       "steps": [
         {
           "type": "exec",
@@ -256,7 +281,7 @@
       ]
     },
     {
-      "name": "1.6.2",
+      "name": "altercol-1.6.2",
       "steps": [
         {
           "type": "exec",
@@ -265,7 +290,7 @@
       ]
     },
     {
-      "name": "1.6.3",
+      "name": "altercol-1.6.3",
       "steps": [
         {
           "type": "query",
@@ -275,26 +300,30 @@
       ]
     },
     {
-      "name": "1.6.4",
+      "name": "altercol-1.6.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, \"d\"TEXT, c BLOB, CHECK( coalesce(d,c) ))}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, \"d\"TEXT, c BLOB, CHECK( coalesce(d,c) ))}"
         }
       ]
     },
     {
-      "name": "1.7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.7.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b, c))}"
+          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b, c))"
         }
       ]
     },
     {
-      "name": "1.7.1",
+      "name": "altercol-1.7.1",
       "steps": [
         {
           "type": "exec",
@@ -303,7 +332,7 @@
       ]
     },
     {
-      "name": "1.7.2",
+      "name": "altercol-1.7.2",
       "steps": [
         {
           "type": "exec",
@@ -312,7 +341,7 @@
       ]
     },
     {
-      "name": "1.7.3",
+      "name": "altercol-1.7.3",
       "steps": [
         {
           "type": "query",
@@ -322,26 +351,30 @@
       ]
     },
     {
-      "name": "1.7.4",
+      "name": "altercol-1.7.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d, c))}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d, c))}"
         }
       ]
     },
     {
-      "name": "1.8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.8.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b TEXT PRIMARY KEY, c BLOB)}"
+          "sql": "CREATE TABLE t1(a INTEGER, b TEXT PRIMARY KEY, c BLOB)"
         }
       ]
     },
     {
-      "name": "1.8.1",
+      "name": "altercol-1.8.1",
       "steps": [
         {
           "type": "exec",
@@ -350,7 +383,7 @@
       ]
     },
     {
-      "name": "1.8.2",
+      "name": "altercol-1.8.2",
       "steps": [
         {
           "type": "exec",
@@ -359,7 +392,7 @@
       ]
     },
     {
-      "name": "1.8.3",
+      "name": "altercol-1.8.3",
       "steps": [
         {
           "type": "query",
@@ -369,26 +402,30 @@
       ]
     },
     {
-      "name": "1.8.4",
+      "name": "altercol-1.8.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT PRIMARY KEY, c BLOB)}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT PRIMARY KEY, c BLOB)}"
         }
       ]
     },
     {
-      "name": "1.9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.9.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b TEXT, c, PRIMARY KEY(a, b), UNIQUE(\"B\"))}"
+          "sql": "CREATE TABLE t1(a, b TEXT, c, PRIMARY KEY(a, b), UNIQUE(\"B\"))"
         }
       ]
     },
     {
-      "name": "1.9.1",
+      "name": "altercol-1.9.1",
       "steps": [
         {
           "type": "exec",
@@ -397,7 +434,7 @@
       ]
     },
     {
-      "name": "1.9.2",
+      "name": "altercol-1.9.2",
       "steps": [
         {
           "type": "exec",
@@ -406,7 +443,7 @@
       ]
     },
     {
-      "name": "1.9.3",
+      "name": "altercol-1.9.3",
       "steps": [
         {
           "type": "query",
@@ -416,26 +453,30 @@
       ]
     },
     {
-      "name": "1.9.4",
+      "name": "altercol-1.9.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a, d TEXT, c, PRIMARY KEY(a, d), UNIQUE(\"d\"))}}"
+          "expect": "{CREATE TABLE t1(a, d TEXT, c, PRIMARY KEY(a, d), UNIQUE(\"d\"))}"
         }
       ]
     },
     {
-      "name": "1.10.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.10.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(a, c)}"
+          "sql": "CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(a, c)"
         }
       ]
     },
     {
-      "name": "1.10.1",
+      "name": "altercol-1.10.1",
       "steps": [
         {
           "type": "exec",
@@ -444,7 +485,7 @@
       ]
     },
     {
-      "name": "1.10.2",
+      "name": "altercol-1.10.2",
       "steps": [
         {
           "type": "exec",
@@ -453,7 +494,7 @@
       ]
     },
     {
-      "name": "1.10.3",
+      "name": "altercol-1.10.3",
       "steps": [
         {
           "type": "query",
@@ -463,26 +504,30 @@
       ]
     },
     {
-      "name": "1.10.4",
+      "name": "altercol-1.10.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(a, c)}}"
+          "expect": "{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(a, c)}"
         }
       ]
     },
     {
-      "name": "1.11.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.11.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b, c)}"
+          "sql": "CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b, c)"
         }
       ]
     },
     {
-      "name": "1.11.1",
+      "name": "altercol-1.11.1",
       "steps": [
         {
           "type": "exec",
@@ -491,7 +536,7 @@
       ]
     },
     {
-      "name": "1.11.2",
+      "name": "altercol-1.11.2",
       "steps": [
         {
           "type": "exec",
@@ -500,7 +545,7 @@
       ]
     },
     {
-      "name": "1.11.3",
+      "name": "altercol-1.11.3",
       "steps": [
         {
           "type": "query",
@@ -510,26 +555,30 @@
       ]
     },
     {
-      "name": "1.11.4",
+      "name": "altercol-1.11.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d, c)}}"
+          "expect": "{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d, c)}"
         }
       ]
     },
     {
-      "name": "1.12.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.12.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b+b+b+b, c) WHERE b\u003e0}"
+          "sql": "CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b+b+b+b, c) WHERE b\u003e0"
         }
       ]
     },
     {
-      "name": "1.12.1",
+      "name": "altercol-1.12.1",
       "steps": [
         {
           "type": "exec",
@@ -538,7 +587,7 @@
       ]
     },
     {
-      "name": "1.12.2",
+      "name": "altercol-1.12.2",
       "steps": [
         {
           "type": "exec",
@@ -547,7 +596,7 @@
       ]
     },
     {
-      "name": "1.12.3",
+      "name": "altercol-1.12.3",
       "steps": [
         {
           "type": "query",
@@ -557,26 +606,30 @@
       ]
     },
     {
-      "name": "1.12.4",
+      "name": "altercol-1.12.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d+d+d+d, c) WHERE d\u003e0}}"
+          "expect": "{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d+d+d+d, c) WHERE d\u003e0}"
         }
       ]
     },
     {
-      "name": "1.13.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.13.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, FOREIGN KEY (b) REFERENCES t2)}"
+          "sql": "CREATE TABLE t1(a, b, c, FOREIGN KEY (b) REFERENCES t2)"
         }
       ]
     },
     {
-      "name": "1.13.1",
+      "name": "altercol-1.13.1",
       "steps": [
         {
           "type": "exec",
@@ -585,7 +638,7 @@
       ]
     },
     {
-      "name": "1.13.2",
+      "name": "altercol-1.13.2",
       "steps": [
         {
           "type": "exec",
@@ -594,7 +647,7 @@
       ]
     },
     {
-      "name": "1.13.3",
+      "name": "altercol-1.13.3",
       "steps": [
         {
           "type": "query",
@@ -604,26 +657,30 @@
       ]
     },
     {
-      "name": "1.13.4",
+      "name": "altercol-1.13.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a, d, c, FOREIGN KEY (d) REFERENCES t2)}}"
+          "expect": "{CREATE TABLE t1(a, d, c, FOREIGN KEY (d) REFERENCES t2)}"
         }
       ]
     },
     {
-      "name": "1.14.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.14.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b))}"
+          "sql": "CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b))"
         }
       ]
     },
     {
-      "name": "1.14.1",
+      "name": "altercol-1.14.1",
       "steps": [
         {
           "type": "exec",
@@ -632,7 +689,7 @@
       ]
     },
     {
-      "name": "1.14.2",
+      "name": "altercol-1.14.2",
       "steps": [
         {
           "type": "exec",
@@ -641,7 +698,7 @@
       ]
     },
     {
-      "name": "1.14.3",
+      "name": "altercol-1.14.3",
       "steps": [
         {
           "type": "query",
@@ -651,26 +708,30 @@
       ]
     },
     {
-      "name": "1.14.4",
+      "name": "altercol-1.14.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d))}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d))}"
         }
       ]
     },
     {
-      "name": "1.15.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.15.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b INTEGER, c BLOB, PRIMARY KEY(b))}"
+          "sql": "CREATE TABLE t1(a INTEGER, b INTEGER, c BLOB, PRIMARY KEY(b))"
         }
       ]
     },
     {
-      "name": "1.15.1",
+      "name": "altercol-1.15.1",
       "steps": [
         {
           "type": "exec",
@@ -679,7 +740,7 @@
       ]
     },
     {
-      "name": "1.15.2",
+      "name": "altercol-1.15.2",
       "steps": [
         {
           "type": "exec",
@@ -688,7 +749,7 @@
       ]
     },
     {
-      "name": "1.15.3",
+      "name": "altercol-1.15.3",
       "steps": [
         {
           "type": "query",
@@ -698,26 +759,30 @@
       ]
     },
     {
-      "name": "1.15.4",
+      "name": "altercol-1.15.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d INTEGER, c BLOB, PRIMARY KEY(d))}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d INTEGER, c BLOB, PRIMARY KEY(d))}"
         }
       ]
     },
     {
-      "name": "1.16.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.16.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB)}"
+          "sql": "CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB)"
         }
       ]
     },
     {
-      "name": "1.16.1",
+      "name": "altercol-1.16.1",
       "steps": [
         {
           "type": "exec",
@@ -726,7 +791,7 @@
       ]
     },
     {
-      "name": "1.16.2",
+      "name": "altercol-1.16.2",
       "steps": [
         {
           "type": "exec",
@@ -735,7 +800,7 @@
       ]
     },
     {
-      "name": "1.16.3",
+      "name": "altercol-1.16.3",
       "steps": [
         {
           "type": "query",
@@ -745,26 +810,30 @@
       ]
     },
     {
-      "name": "1.16.4",
+      "name": "altercol-1.16.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB)}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB)}"
         }
       ]
     },
     {
-      "name": "1.17.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-1.17.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (b) REFERENCES t2)}"
+          "sql": "CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (b) REFERENCES t2)"
         }
       ]
     },
     {
-      "name": "1.17.1",
+      "name": "altercol-1.17.1",
       "steps": [
         {
           "type": "exec",
@@ -773,7 +842,7 @@
       ]
     },
     {
-      "name": "1.17.2",
+      "name": "altercol-1.17.2",
       "steps": [
         {
           "type": "exec",
@@ -782,7 +851,7 @@
       ]
     },
     {
-      "name": "1.17.3",
+      "name": "altercol-1.17.3",
       "steps": [
         {
           "type": "query",
@@ -792,17 +861,17 @@
       ]
     },
     {
-      "name": "1.17.4",
+      "name": "altercol-1.17.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''",
-          "expect": "{CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}}"
+          "expect": "{CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "altercol-2.0",
       "steps": [
         {
           "type": "exec",
@@ -811,7 +880,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "altercol-2.1",
       "steps": [
         {
           "type": "query",
@@ -820,7 +889,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "altercol-2.2",
       "steps": [
         {
           "type": "query",
@@ -830,7 +899,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "altercol-2.3",
       "steps": [
         {
           "type": "query",
@@ -839,7 +908,7 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "altercol-3.0",
       "steps": [
         {
           "type": "exec",
@@ -848,7 +917,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "altercol-3.1",
       "steps": [
         {
           "type": "query",
@@ -858,7 +927,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "altercol-3.2",
       "steps": [
         {
           "type": "query",
@@ -868,7 +937,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "altercol-3.3",
       "steps": [
         {
           "type": "exec",
@@ -877,7 +946,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "altercol-3.4",
       "steps": [
         {
           "type": "query",
@@ -887,7 +956,7 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "altercol-4.0",
       "steps": [
         {
           "type": "exec",
@@ -896,7 +965,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "altercol-4.1",
       "steps": [
         {
           "type": "query",
@@ -906,7 +975,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "altercol-4.2",
       "steps": [
         {
           "type": "exec",
@@ -915,7 +984,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "altercol-4.3",
       "steps": [
         {
           "type": "exec",
@@ -924,7 +993,7 @@
       ]
     },
     {
-      "name": "4.4",
+      "name": "altercol-4.4",
       "steps": [
         {
           "type": "query",
@@ -934,7 +1003,7 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "altercol-5.0",
       "steps": [
         {
           "type": "exec",
@@ -943,7 +1012,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "altercol-5.1",
       "steps": [
         {
           "type": "query",
@@ -953,21 +1022,17 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "altercol-6.1",
       "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE sqlite_stat1 RENAME tbl TO thetable;",
           "expect": "1 {table sqlite_stat1 may not be altered}"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE \"blob\" RENAME COLUMN \"rid\" TO \"a1\";"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "altercol-6.0",
       "steps": [
         {
           "type": "exec",
@@ -976,7 +1041,16 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "altercol-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE \"blob\" RENAME COLUMN \"rid\" TO \"a1\";"
+        }
+      ]
+    },
+    {
+      "name": "altercol-6.2",
       "steps": [
         {
           "type": "catch",
@@ -986,7 +1060,7 @@
       ]
     },
     {
-      "name": "6.3",
+      "name": "altercol-6.3",
       "steps": [
         {
           "type": "query",
@@ -995,7 +1069,11 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-7.0",
       "steps": [
         {
           "type": "exec",
@@ -1004,7 +1082,7 @@
       ]
     },
     {
-      "name": "7.1.1",
+      "name": "altercol-7.1.1",
       "steps": [
         {
           "type": "query",
@@ -1014,7 +1092,7 @@
       ]
     },
     {
-      "name": "7.1.2",
+      "name": "altercol-7.1.2",
       "steps": [
         {
           "type": "exec",
@@ -1023,7 +1101,7 @@
       ]
     },
     {
-      "name": "7.1.3",
+      "name": "altercol-7.1.3",
       "steps": [
         {
           "type": "query",
@@ -1033,7 +1111,11 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-8.0",
       "steps": [
         {
           "type": "exec",
@@ -1042,7 +1124,7 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "altercol-8.1",
       "steps": [
         {
           "type": "query",
@@ -1052,7 +1134,7 @@
       ]
     },
     {
-      "name": "8.2.1",
+      "name": "altercol-8.2.1",
       "steps": [
         {
           "type": "exec",
@@ -1061,7 +1143,7 @@
       ]
     },
     {
-      "name": "8.2.2",
+      "name": "altercol-8.2.2",
       "steps": [
         {
           "type": "exec",
@@ -1070,7 +1152,7 @@
       ]
     },
     {
-      "name": "8.2.3",
+      "name": "altercol-8.2.3",
       "steps": [
         {
           "type": "query",
@@ -1080,7 +1162,7 @@
       ]
     },
     {
-      "name": "8.3.1",
+      "name": "altercol-8.3.1",
       "steps": [
         {
           "type": "exec",
@@ -1089,7 +1171,7 @@
       ]
     },
     {
-      "name": "8.3.2",
+      "name": "altercol-8.3.2",
       "steps": [
         {
           "type": "exec",
@@ -1098,7 +1180,7 @@
       ]
     },
     {
-      "name": "8.3.3",
+      "name": "altercol-8.3.3",
       "steps": [
         {
           "type": "query",
@@ -1108,7 +1190,7 @@
       ]
     },
     {
-      "name": "8.4.0",
+      "name": "altercol-8.4.0",
       "steps": [
         {
           "type": "exec",
@@ -1117,7 +1199,7 @@
       ]
     },
     {
-      "name": "8.4.1",
+      "name": "altercol-8.4.1",
       "steps": [
         {
           "type": "query",
@@ -1127,7 +1209,7 @@
       ]
     },
     {
-      "name": "8.4.2",
+      "name": "altercol-8.4.2",
       "steps": [
         {
           "type": "query",
@@ -1137,7 +1219,7 @@
       ]
     },
     {
-      "name": "8.4.3",
+      "name": "altercol-8.4.3",
       "steps": [
         {
           "type": "exec",
@@ -1146,7 +1228,7 @@
       ]
     },
     {
-      "name": "8.4.4",
+      "name": "altercol-8.4.4",
       "steps": [
         {
           "type": "query",
@@ -1156,7 +1238,7 @@
       ]
     },
     {
-      "name": "8.4.5",
+      "name": "altercol-8.4.5",
       "steps": [
         {
           "type": "catch",
@@ -1166,7 +1248,7 @@
       ]
     },
     {
-      "name": "8.5",
+      "name": "altercol-8.5",
       "steps": [
         {
           "type": "query",
@@ -1176,7 +1258,7 @@
       ]
     },
     {
-      "name": "8.5.1",
+      "name": "altercol-8.5.1",
       "steps": [
         {
           "type": "query",
@@ -1186,7 +1268,7 @@
       ]
     },
     {
-      "name": "8.5.2",
+      "name": "altercol-8.5.2",
       "steps": [
         {
           "type": "query",
@@ -1194,531 +1276,11 @@
           "expect": "bbb,ccc,aaa"
         },
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
         },
         {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        }
-      ]
-    },
-    {
-      "name": "9.1.0.1",
-      "steps": [
-        {
           "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_) }} {}} {}} {}} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END }} {}} {}}"
-        }
-      ]
-    },
-    {
-      "name": "9.1.0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        }
-      ]
-    },
-    {
-      "name": "9.1.0.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        }
-      ]
-    },
-    {
-      "name": "9.1.1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_) }} {}} {}} {}} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END }} {}} {}}"
-        }
-      ]
-    },
-    {
-      "name": "9.1.1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        }
-      ]
-    },
-    {
-      "name": "9.1.1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        }
-      ]
-    },
-    {
-      "name": "9.2.0.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_) }} {}} {}} {}} {}} {}} {}} {}} {CREATE TABLE t2(c, d, e) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END }} {}} {}}"
-        }
-      ]
-    },
-    {
-      "name": "9.2.0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        }
-      ]
-    },
-    {
-      "name": "9.2.0.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        }
-      ]
-    },
-    {
-      "name": "9.2.1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_) }} {}} {}} {}} {}} {}} {}} {}} {CREATE TABLE t2(c, d, e) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END }} {}} {}}"
-        }
-      ]
-    },
-    {
-      "name": "9.2.1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        }
-      ]
-    },
-    {
-      "name": "9.2.1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        }
-      ]
-    },
-    {
-      "name": "9.3.0.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0)) }} {}} {}} {}} {}} {}} {}} {}} {CREATE TABLE t2(c, d, e) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END }} {}} {}}"
-        }
-      ]
-    },
-    {
-      "name": "9.3.0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        }
-      ]
-    },
-    {
-      "name": "9.3.0.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        }
-      ]
-    },
-    {
-      "name": "9.3.1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0)) }} {}} {}} {}} {}} {}} {}} {}} {CREATE TABLE t2(c, d, e) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END }} {}} {}}"
-        }
-      ]
-    },
-    {
-      "name": "9.3.1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        }
-      ]
-    },
-    {
-      "name": "9.3.1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        }
-      ]
-    },
-    {
-      "name": "9.4.0.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0)) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO UPDATE SET _x_ = _x_+1;\n      END }} {}} {}}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0)) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO NOTHING;\n      END }} {}} {}}"
-        }
-      ]
-    },
-    {
-      "name": "9.4.0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        }
-      ]
-    },
-    {
-      "name": "9.4.0.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
         },
         {
@@ -1758,78 +1320,28 @@
           "sql": "DROP 1 BY"
         },
         {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
         },
         {
           "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
+          "sql": "CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END"
         }
       ]
     },
     {
-      "name": "9.4.1.1",
+      "name": "altercol-9.1.0.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0)) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO UPDATE SET _x_ = _x_+1;\n      END }} {}} {}}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
-          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0)) }} {}} {}} {}} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO NOTHING;\n      END }} {}} {}}"
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END}"
         }
       ]
     },
     {
-      "name": "9.4.1.2",
+      "name": "altercol-9.1.0.2",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
-        },
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
@@ -1837,19 +1349,19 @@
       ]
     },
     {
-      "name": "9.4.1.3",
+      "name": "altercol-9.1.0.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
         },
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
         },
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
         },
         {
@@ -1889,14 +1401,1413 @@
           "sql": "DROP 1 BY"
         },
         {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
-          "expect": "_x_ _xxx_"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END"
         }
       ]
     },
     {
-      "name": "12.1.1",
+      "name": "altercol-9.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(c, d, e)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.2.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.2.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.2.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(c, d, e)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(c, d, e)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.3.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.3.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.3.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._xxx_);\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(c, d, e)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._xxx_);\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO UPDATE SET _x_ = _x_+1;\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO UPDATE SET _x_ = _x_+1;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._xxx_)\n          ON CONFLICT (_xxx_) WHERE _xxx_\u003e10 DO UPDATE SET _xxx_ = _xxx_+1;\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO UPDATE SET _x_ = _x_+1;\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO UPDATE SET _x_ = _x_+1;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._xxx_)\n          ON CONFLICT (_xxx_) WHERE _xxx_\u003e10 DO UPDATE SET _xxx_ = _xxx_+1;\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO NOTHING;\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO NOTHING;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._xxx_)\n          ON CONFLICT (_xxx_) WHERE _xxx_\u003e10 DO NOTHING;\n      END}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO NOTHING;\n      END"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO NOTHING;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-9.4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._xxx_)\n          ON CONFLICT (_xxx_) WHERE _xxx_\u003e10 DO NOTHING;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-9.4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW s1 AS SELECT a, b, _x_ FROM t1 WHERE _x_='abc' COLLATE xyz"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.1.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIEW s1 AS SELECT a, b, _x_ FROM t1 WHERE _x_='abc' COLLATE xyz}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.1.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.1.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW s1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_='abc' COLLATE xyz}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW s1 AS SELECT a, b, _x_ FROM t1 WHERE _x_='abc' COLLATE xyz"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIEW s1 AS SELECT a, b, _x_ FROM t1 WHERE _x_='abc' COLLATE xyz}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW s1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_='abc' COLLATE xyz}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE scalar(_x_)"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.2.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE scalar(_x_)}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.2.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.2.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE scalar(_xxx_)}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE scalar(_x_)"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE scalar(_x_)}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE scalar(_xxx_)}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE _x_ = unicode(1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.3.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE _x_ = unicode(1, 2, 3)}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.3.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.3.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_ = unicode(1, 2, 3)}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE _x_ = unicode(1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE _x_ = unicode(1, 2, 3)}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_ = unicode(1, 2, 3)}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE e1 USING echo(t1)"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.4.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIRTUAL TABLE e1 USING echo(t1)}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.4.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.4.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIRTUAL TABLE e1 USING echo(t1)}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name, SELECT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP FROM type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP WHERE sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP IN type"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 'view') ('table',"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP name AND"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP LIKE NOT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP ORDER 'sqlite_%'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP 1 BY"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, _x_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE e1 USING echo(t1)"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIRTUAL TABLE e1 USING echo(t1)}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME _x_ TO _xxx_"
+        }
+      ]
+    },
+    {
+      "name": "altercol-10.4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
+          "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIRTUAL TABLE e1 USING echo(t1)}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);"
+        }
+      ]
+    },
+    {
+      "name": "altercol-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE x1 RENAME b TO bbb;\n    SELECT sql FROM sqlite_master;",
+          "expect": " {CREATE TABLE x1(a, bbb, c)} {CREATE VIRTUAL TABLE e1 USING echo(x1)} "
+        }
+      ]
+    },
+    {
+      "name": "altercol-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT e1.*, x1.c FROM e1, x1;"
+        }
+      ]
+    },
+    {
+      "name": "altercol-11.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1 RENAME c TO ccc;",
+          "expect": "1 {error in view v1: no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-12.1.1",
       "steps": [
         {
           "type": "exec",
@@ -1905,7 +2816,7 @@
       ]
     },
     {
-      "name": "12.1.2",
+      "name": "altercol-12.1.2",
       "steps": [
         {
           "type": "catch",
@@ -1915,7 +2826,7 @@
       ]
     },
     {
-      "name": "12.1.3",
+      "name": "altercol-12.1.3",
       "steps": [
         {
           "type": "query",
@@ -1925,7 +2836,7 @@
       ]
     },
     {
-      "name": "12.2.1",
+      "name": "altercol-12.2.1",
       "steps": [
         {
           "type": "exec",
@@ -1934,7 +2845,7 @@
       ]
     },
     {
-      "name": "12.2.2",
+      "name": "altercol-12.2.2",
       "steps": [
         {
           "type": "catch",
@@ -1944,7 +2855,7 @@
       ]
     },
     {
-      "name": "12.2.3",
+      "name": "altercol-12.2.3",
       "steps": [
         {
           "type": "catch",
@@ -1954,7 +2865,26 @@
       ]
     },
     {
-      "name": "12.4.1",
+      "name": "altercol-12.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts5(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "altercol-12.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE ft RENAME a TO z;",
+          "expect": "1 {cannot rename columns of virtual table \"ft\"}"
+        }
+      ]
+    },
+    {
+      "name": "altercol-12.4.1",
       "steps": [
         {
           "type": "exec",
@@ -1963,7 +2893,7 @@
       ]
     },
     {
-      "name": "12.4.2",
+      "name": "altercol-12.4.2",
       "steps": [
         {
           "type": "catch",
@@ -1973,7 +2903,7 @@
       ]
     },
     {
-      "name": "12.5.1",
+      "name": "altercol-12.5.1",
       "steps": [
         {
           "type": "catch",
@@ -1983,7 +2913,11 @@
       ]
     },
     {
-      "name": "13.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-13.1.1",
       "steps": [
         {
           "type": "exec",
@@ -1992,7 +2926,7 @@
       ]
     },
     {
-      "name": "13.1.2",
+      "name": "altercol-13.1.2",
       "steps": [
         {
           "type": "catch",
@@ -2002,7 +2936,7 @@
       ]
     },
     {
-      "name": "13.1.3",
+      "name": "altercol-13.1.3",
       "steps": [
         {
           "type": "query",
@@ -2012,7 +2946,7 @@
       ]
     },
     {
-      "name": "13.1.4",
+      "name": "altercol-13.1.4",
       "steps": [
         {
           "type": "query",
@@ -2021,7 +2955,7 @@
       ]
     },
     {
-      "name": "13.1.5",
+      "name": "altercol-13.1.5",
       "steps": [
         {
           "type": "catch",
@@ -2031,7 +2965,7 @@
       ]
     },
     {
-      "name": "13.1.6",
+      "name": "altercol-13.1.6",
       "steps": [
         {
           "type": "query",
@@ -2040,7 +2974,7 @@
       ]
     },
     {
-      "name": "13.1.7",
+      "name": "altercol-13.1.7",
       "steps": [
         {
           "type": "catch",
@@ -2050,7 +2984,7 @@
       ]
     },
     {
-      "name": "13.1.8",
+      "name": "altercol-13.1.8",
       "steps": [
         {
           "type": "query",
@@ -2059,7 +2993,7 @@
       ]
     },
     {
-      "name": "13.2.0",
+      "name": "altercol-13.2.0",
       "steps": [
         {
           "type": "exec",
@@ -2068,83 +3002,83 @@
       ]
     },
     {
-      "name": "13.2.1.1",
+      "name": "altercol-13.2.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  }"
+          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;"
         }
       ]
     },
     {
-      "name": "13.2.1.2",
+      "name": "altercol-13.2.1.2",
       "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE x1 RENAME COLUMN t TO ttt;",
-          "expect": "1 {error in trigger tr1: no such column: zzz}}"
+          "expect": "1 {error in trigger tr1: no such column: zzz}"
         }
       ]
     },
     {
-      "name": "13.2.2.1",
+      "name": "altercol-13.2.2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  }"
+          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;"
         }
       ]
     },
     {
-      "name": "13.2.2.2",
+      "name": "altercol-13.2.2.2",
       "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE x1 RENAME COLUMN t TO ttt;",
-          "expect": "1 {error in trigger tr1: no such column: zz}}"
+          "expect": "1 {error in trigger tr1: no such column: zz}"
         }
       ]
     },
     {
-      "name": "13.2.3.1",
+      "name": "altercol-13.2.3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  }"
+          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;"
         }
       ]
     },
     {
-      "name": "13.2.3.2",
+      "name": "altercol-13.2.3.2",
       "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE x1 RENAME COLUMN t TO ttt;",
-          "expect": "1 {error in trigger tr1: no such column: tttttt}}"
+          "expect": "1 {error in trigger tr1: no such column: tttttt}"
         }
       ]
     },
     {
-      "name": "13.2.4.1",
+      "name": "altercol-13.2.4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  }"
+          "sql": "DROP TRIGGER IF EXISTS tr1;\n    \n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;"
         }
       ]
     },
     {
-      "name": "13.2.4.2",
+      "name": "altercol-13.2.4.2",
       "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE x1 RENAME COLUMN t TO ttt;",
-          "expect": "1 {error in trigger tr1: no such table: main.nosuchtable}}"
+          "expect": "1 {error in trigger tr1: no such table: main.nosuchtable}"
         }
       ]
     },
     {
-      "name": "14.1",
+      "name": "altercol-14.1",
       "steps": [
         {
           "type": "exec",
@@ -2153,7 +3087,7 @@
       ]
     },
     {
-      "name": "14.2",
+      "name": "altercol-14.2",
       "steps": [
         {
           "type": "query",
@@ -2163,7 +3097,7 @@
       ]
     },
     {
-      "name": "14.3",
+      "name": "altercol-14.3",
       "steps": [
         {
           "type": "catch",
@@ -2173,7 +3107,11 @@
       ]
     },
     {
-      "name": "15.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-15.0",
       "steps": [
         {
           "type": "query",
@@ -2182,7 +3120,7 @@
       ]
     },
     {
-      "name": "15.1",
+      "name": "altercol-15.1",
       "steps": [
         {
           "type": "exec",
@@ -2191,7 +3129,7 @@
       ]
     },
     {
-      "name": "15.2",
+      "name": "altercol-15.2",
       "steps": [
         {
           "type": "query",
@@ -2201,7 +3139,7 @@
       ]
     },
     {
-      "name": "16.1.0",
+      "name": "altercol-16.1.0",
       "steps": [
         {
           "type": "query",
@@ -2211,7 +3149,7 @@
       ]
     },
     {
-      "name": "16.1.1",
+      "name": "altercol-16.1.1",
       "steps": [
         {
           "type": "catch",
@@ -2221,7 +3159,7 @@
       ]
     },
     {
-      "name": "16.1.2",
+      "name": "altercol-16.1.2",
       "steps": [
         {
           "type": "query",
@@ -2231,7 +3169,7 @@
       ]
     },
     {
-      "name": "16.1.3",
+      "name": "altercol-16.1.3",
       "steps": [
         {
           "type": "exec",
@@ -2240,7 +3178,7 @@
       ]
     },
     {
-      "name": "16.1.4",
+      "name": "altercol-16.1.4",
       "steps": [
         {
           "type": "query",
@@ -2250,7 +3188,7 @@
       ]
     },
     {
-      "name": "16.1.5",
+      "name": "altercol-16.1.5",
       "steps": [
         {
           "type": "query",
@@ -2260,7 +3198,7 @@
       ]
     },
     {
-      "name": "16.1.6",
+      "name": "altercol-16.1.6",
       "steps": [
         {
           "type": "query",
@@ -2270,7 +3208,7 @@
       ]
     },
     {
-      "name": "16.2.1",
+      "name": "altercol-16.2.1",
       "steps": [
         {
           "type": "query",
@@ -2280,7 +3218,7 @@
       ]
     },
     {
-      "name": "16.2.2",
+      "name": "altercol-16.2.2",
       "steps": [
         {
           "type": "exec",
@@ -2289,7 +3227,7 @@
       ]
     },
     {
-      "name": "16.2.3",
+      "name": "altercol-16.2.3",
       "steps": [
         {
           "type": "query",
@@ -2299,7 +3237,7 @@
       ]
     },
     {
-      "name": "17.0",
+      "name": "altercol-17.0",
       "steps": [
         {
           "type": "exec",
@@ -2308,7 +3246,7 @@
       ]
     },
     {
-      "name": "17.1",
+      "name": "altercol-17.1",
       "steps": [
         {
           "type": "catch",
@@ -2318,7 +3256,7 @@
       ]
     },
     {
-      "name": "17.2",
+      "name": "altercol-17.2",
       "steps": [
         {
           "type": "exec",
@@ -2327,7 +3265,7 @@
       ]
     },
     {
-      "name": "17.3",
+      "name": "altercol-17.3",
       "steps": [
         {
           "type": "catch",
@@ -2337,7 +3275,11 @@
       ]
     },
     {
-      "name": "18.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-18.0",
       "steps": [
         {
           "type": "query",
@@ -2347,7 +3289,7 @@
       ]
     },
     {
-      "name": "18.1",
+      "name": "altercol-18.1",
       "steps": [
         {
           "type": "exec",
@@ -2356,7 +3298,11 @@
       ]
     },
     {
-      "name": "19.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-19.0",
       "steps": [
         {
           "type": "exec",
@@ -2365,7 +3311,7 @@
       ]
     },
     {
-      "name": "19.1",
+      "name": "altercol-19.1",
       "steps": [
         {
           "type": "query",
@@ -2375,7 +3321,11 @@
       ]
     },
     {
-      "name": "20.100",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-20.100",
       "steps": [
         {
           "type": "query",
@@ -2385,7 +3335,7 @@
       ]
     },
     {
-      "name": "20.105",
+      "name": "altercol-20.105",
       "steps": [
         {
           "type": "query",
@@ -2395,7 +3345,7 @@
       ]
     },
     {
-      "name": "20.110",
+      "name": "altercol-20.110",
       "steps": [
         {
           "type": "query",
@@ -2405,7 +3355,11 @@
       ]
     },
     {
-      "name": "21.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-21.0",
       "steps": [
         {
           "type": "exec",
@@ -2414,7 +3368,7 @@
       ]
     },
     {
-      "name": "21.1",
+      "name": "altercol-21.1",
       "steps": [
         {
           "type": "exec",
@@ -2423,7 +3377,7 @@
       ]
     },
     {
-      "name": "21.2",
+      "name": "altercol-21.2",
       "steps": [
         {
           "type": "query",
@@ -2433,13 +3387,26 @@
       ]
     },
     {
-      "name": "22.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-22.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, othername, extra AS (c + 1));\n  ALTER TABLE t1 RENAME a to othername;\n  SELECT sql FROM sqlite_schema;",
           "expect": "\n  {CREATE TABLE t1(othername, b)}\n  {CREATE TABLE t2(c, othername, extra AS (c + 1))}\n"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-22.0",
+      "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX x1 on t1(\"c\"=b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('c', 'c');\n  ALTER TABLE t1 RENAME COLUMN a TO \"c\";\n  PRAGMA integrity_check;",
@@ -2448,13 +3415,26 @@
       ]
     },
     {
-      "name": "23.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-23.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1('a'\"b\",c);\n  CREATE INDEX i1 ON t1('a');\n  INSERT INTO t1 VALUES(1,2), (3,4);\n  ALTER TABLE t1 RENAME COLUMN a TO x;\n  PRAGMA integrity_check;\n  SELECT sql FROM sqlite_schema WHERE name='t1';",
           "expect": "ok {CREATE TABLE t1(\"x\" \"b\",c)}"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-23.0",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INT, b REAL, c TEXT, d BLOB, e ANY);\n  CREATE INDEX t1abx ON t1(a, b, a+b) WHERE c IS NOT NULL;\n  CREATE VIEW t2 AS SELECT a+10, b*5.0, xyz FROM t1; -- unknown column \"xyz\"\n  CREATE TABLE schema_copy(name TEXT, sql TEXT);\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;"
@@ -2462,7 +3442,7 @@
       ]
     },
     {
-      "name": "23.1",
+      "name": "altercol-23.1",
       "steps": [
         {
           "type": "catch",
@@ -2472,7 +3452,7 @@
       ]
     },
     {
-      "name": "23.2",
+      "name": "altercol-23.2",
       "steps": [
         {
           "type": "query",
@@ -2481,7 +3461,7 @@
       ]
     },
     {
-      "name": "23.3",
+      "name": "altercol-23.3",
       "steps": [
         {
           "type": "exec",
@@ -2491,7 +3471,7 @@
       ]
     },
     {
-      "name": "23.10",
+      "name": "altercol-23.10",
       "steps": [
         {
           "type": "exec",
@@ -2500,7 +3480,7 @@
       ]
     },
     {
-      "name": "23.11",
+      "name": "altercol-23.11",
       "steps": [
         {
           "type": "catch",
@@ -2510,7 +3490,7 @@
       ]
     },
     {
-      "name": "23.12",
+      "name": "altercol-23.12",
       "steps": [
         {
           "type": "query",
@@ -2519,7 +3499,7 @@
       ]
     },
     {
-      "name": "23.13",
+      "name": "altercol-23.13",
       "steps": [
         {
           "type": "exec",
@@ -2529,7 +3509,7 @@
       ]
     },
     {
-      "name": "23.20",
+      "name": "altercol-23.20",
       "steps": [
         {
           "type": "exec",
@@ -2539,7 +3519,11 @@
       ]
     },
     {
-      "name": "24.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercol-24.0",
       "steps": [
         {
           "type": "exec",
@@ -2548,7 +3532,7 @@
       ]
     },
     {
-      "name": "24.1",
+      "name": "altercol-24.1",
       "steps": [
         {
           "type": "catch",

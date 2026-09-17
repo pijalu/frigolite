@@ -1,7 +1,84 @@
 {
   "file": "fkey1.test",
   "name": "fkey1",
+  "ordered": true,
   "tests": [
+    {
+      "name": "fkey1-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      y TEXT\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      a INTEGER REFERENCES t2,\n      b INTEGER REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a integer primary key);\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n    DROP TABLE t9;\n    DROP TABLE t5;\n    DROP TABLE t8;\n    DROP TABLE t6;\n    DROP TABLE t10;"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);",
+          "expect": "0 0 t5 e c {NO ACTION} {NO ACTION} NONE 1 0 t5 d {} {NO ACTION} {NO ACTION} NONE"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);",
+          "expect": "0 0 t5 d a {NO ACTION} {NO ACTION} NONE 0 1 t5 e b {NO ACTION} {NO ACTION} NONE"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);",
+          "expect": "0 0 t5 d {} {SET NULL} CASCADE NONE 0 1 t5 e {} {SET NULL} CASCADE NONE"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);",
+          "expect": "0 0 t5 d {} {SET DEFAULT} CASCADE NONE 0 1 t5 e {} {SET DEFAULT} CASCADE NONE"
+        }
+      ]
+    },
     {
       "name": "fkey1-4.0",
       "steps": [
@@ -45,9 +122,19 @@
       "name": "fkey1-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR REPLACE INTO t11 VALUES (2, 3);",
           "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-5.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO t11 VALUES(2,3);",
+          "expect": "{INSERT OR REPLACE INTO t11 VALUES(2,3);} {INSERT OR REPLACE INTO t11 VALUES(2,3);} {INSERT OR REPLACE INTO t11 VALUES(2,3);}"
         }
       ]
     },
@@ -64,33 +151,33 @@
       "name": "fkey1-5.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 3, 'A-2-3');",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "fkey1-6.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE p1(x, y);\n  CREATE UNIQUE INDEX p1x ON p1(x) WHERE y<2;\n  INSERT INTO p1 VALUES(1, 1);\n  CREATE TABLE c1(a REFERENCES p1(x));"
+          "sql": "CREATE TABLE p1(x, y);\n  CREATE UNIQUE INDEX p1x ON p1(x) WHERE y\u003c2;\n  INSERT INTO p1 VALUES(1, 1);\n  CREATE TABLE c1(a REFERENCES p1(x));"
         }
       ]
     },
     {
-      "name": "6.1",
+      "name": "fkey1-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO c1 VALUES(1);",
           "expect": "1 {foreign key mismatch - \"c1\" referencing \"p1\"}"
         }
       ]
     },
     {
-      "name": "6.2",
+      "name": "fkey1-6.2",
       "steps": [
         {
           "type": "exec",
@@ -99,7 +186,11 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fkey1-7.1",
       "steps": [
         {
           "type": "query",
@@ -109,7 +200,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "fkey1-7.2",
       "steps": [
         {
           "type": "query",
@@ -118,7 +209,11 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fkey1-8.1",
       "steps": [
         {
           "type": "exec",
@@ -127,7 +222,11 @@
       ]
     },
     {
-      "name": "8.2",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fkey1-8.2",
       "steps": [
         {
           "type": "query",
@@ -136,164 +235,27 @@
       ]
     },
     {
-      "name": "8.3",
+      "name": "fkey1-8.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "REINDEX;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "9.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fkey1-9.1",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";"
         }
       ]
-    },
-    {
-      "name": "fkey1-1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );"
-        }
-      ]
-    },
-    {
-      "name": "fkey1-1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      y TEXT\n    );"
-        }
-      ]
-    },
-    {
-      "name": "fkey1-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(\n      a INTEGER REFERENCES t2,\n      b INTEGER REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );"
-        }
-      ]
-    },
-    {
-      "name": "fkey1-2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a integer primary key);\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n    DROP TABLE t9;\n    DROP TABLE t5;\n    DROP TABLE t8;\n    DROP TABLE t6;\n    DROP TABLE t10;"
-        }
-      ]
-    },
-    {
-      "name": "fkey1-3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);"
-        }
-      ]
-    },
-    {
-      "name": "fkey1-3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);"
-        }
-      ]
-    },
-    {
-      "name": "fkey1-3.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);"
-        }
-      ]
-    },
-    {
-      "name": "fkey1-3.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      y TEXT\n    );"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(\n      a INTEGER REFERENCES t2,\n      b INTEGER REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a integer primary key);\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n    DROP TABLE t9;\n    DROP TABLE t5;\n    DROP TABLE t8;\n    DROP TABLE t6;\n    DROP TABLE t10;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO t11 VALUES(2,3);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

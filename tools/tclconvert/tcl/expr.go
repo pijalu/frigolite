@@ -19,9 +19,10 @@ func EvalExpr(expr string, interp *Interp, localVars map[string]string) (string,
 	if expr == "" {
 		return "", nil
 	}
-	// Substitute TCL variables ($var) and commands ([cmd]) before evaluating
+	// Substitute TCL variables ($var) and commands ([cmd]) before evaluating.
+	// Expr context: variable values bind as atomic operands.
 	if interp != nil {
-		expr = interp.substitute(expr, localVars)
+		expr = interp.substituteExprAtoms(expr, localVars)
 	}
 	p := &exprParser{input: expr, pos: 0}
 	result, err := p.parseExpr()
@@ -145,7 +146,7 @@ func (p *exprParser) parseBitOr() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	for p.matchOne('|') {
+	for p.matchSingle('|') {
 		right, err := p.parseBitXor()
 		if err != nil {
 			return nil, err
@@ -175,7 +176,7 @@ func (p *exprParser) parseBitAnd() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	for p.matchOne('&') {
+	for p.matchSingle('&') {
 		right, err := p.parseEquality()
 		if err != nil {
 			return nil, err
@@ -183,6 +184,17 @@ func (p *exprParser) parseBitAnd() (interface{}, error) {
 		left = float64(toInt(left) & toInt(right))
 	}
 	return left, nil
+}
+
+// matchSingle matches a single occurrence of c that is NOT doubled ("&&"/"||"
+// are logical operators consumed at a higher precedence level; consuming the
+// first char here used to abort expression parsing with "unexpected character").
+func (p *exprParser) matchSingle(c byte) bool {
+	p.skipSpaces()
+	if p.pos+1 < len(p.input) && p.input[p.pos] == c && p.input[p.pos+1] == c {
+		return false
+	}
+	return p.matchOne(c)
 }
 
 func (p *exprParser) parseEquality() (interface{}, error) {

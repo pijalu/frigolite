@@ -1,6 +1,7 @@
 {
   "file": "analyzeF.test",
   "name": "analyzeF",
+  "ordered": true,
   "tests": [
     {
       "name": "1.0",
@@ -16,7 +17,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = 4 AND y = 19\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = 4 AND y = 19"
         }
       ]
     },
@@ -25,7 +26,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = 19 AND y = 4\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = 19 AND y = 4"
         }
       ]
     },
@@ -34,7 +35,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = '4' AND y = '19'\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = '4' AND y = '19'"
         }
       ]
     },
@@ -43,7 +44,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = '19' AND y = '4'\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = '19' AND y = '4'"
         }
       ]
     },
@@ -52,7 +53,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('5195', 2, 2) AND y = substr('145', 2, 1)\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('5195', 2, 2) AND y = substr('145', 2, 1)"
         }
       ]
     },
@@ -61,7 +62,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('145', 2, 1) AND y = substr('5195', 2, 2)\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('145', 2, 1) AND y = substr('5195', 2, 2)"
         }
       ]
     },
@@ -70,7 +71,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)"
         }
       ]
     },
@@ -79,7 +80,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)"
         }
       ]
     },
@@ -88,7 +89,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = str('19') AND y = str('4')\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = str('19') AND y = str('4')"
         }
       ]
     },
@@ -97,7 +98,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = str('4') AND y = str('19')\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = str('4') AND y = str('19')"
         }
       ]
     },
@@ -106,7 +107,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nullif('19', 0) AND y = nullif('4', 0)\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nullif('19', 0) AND y = nullif('4', 0)"
         }
       ]
     },
@@ -115,7 +116,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nullif('4', 0) AND y = nullif('19', 0)\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nullif('4', 0) AND y = nullif('19', 0)"
         }
       ]
     },
@@ -144,7 +145,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = det4() AND y = det19()\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = det4() AND y = det19()"
         }
       ]
     },
@@ -153,7 +154,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = det19() AND y = det4()\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = det19() AND y = det4()"
         }
       ]
     },
@@ -162,7 +163,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nondet4() AND y = nondet19()\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nondet4() AND y = nondet19()"
         }
       ]
     },
@@ -171,7 +172,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nondet19() AND y = nondet4()\""
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE x = nondet19() AND y = nondet4()"
         },
         {
           "type": "exec",

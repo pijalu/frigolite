@@ -23,12 +23,14 @@ type Stmt struct {
 
 // Interp is the TCL interpreter state.
 type Interp struct {
-	vars      map[string]string
-	procs     map[string]*Proc
-	stmts     []Stmt // captured SQL statements
-	curTest   string // current test name (from do_test/do_execsql_test)
-	depth     int    // call stack depth guard
-	nullToken string // "db null TOKEN": rendering of SQL NULLs in results
+	vars         map[string]string
+	procs        map[string]*Proc
+	stmts        []Stmt          // captured SQL statements
+	curTest      string          // current test name (from do_test/do_execsql_test)
+	depth        int             // call stack depth guard
+	catchDepth   int             // nesting level of `catch { ... }` blocks
+	deletedFiles map[string]bool // files removed via forcedelete/file delete
+	nullToken    string          // "db null TOKEN": rendering of SQL NULLs in results
 }
 
 // NullToken returns the token used to render SQL NULL in results
@@ -37,9 +39,10 @@ func (i *Interp) NullToken() string { return i.nullToken }
 
 // Proc is a user-defined TCL procedure.
 type Proc struct {
-	Name string
-	Args []string
-	Body string
+	Name     string
+	Args     []string
+	Body     string
+	Defaults map[string]string // optional-arg default values ({name default} specs)
 }
 
 // NewInterp creates a new TCL interpreter.
@@ -53,9 +56,27 @@ func NewInterp() *Interp {
 // Stmts returns the captured SQL statements.
 func (i *Interp) Stmts() []Stmt { return i.stmts }
 
-// Execute parses and executes TCL source code.
+// Execute parses and executes TCL source code. A top-level command that
+// fails (bad expression, unsupported construct, user `error`) is skipped so
+// the remainder of the file still converts; nested scripts keep their
+// abort-on-error semantics so `catch` and control flow keep working.
 func (i *Interp) Execute(src string) error {
-	return i.execScript(src, nil)
+	cmds := parseCommands(src)
+	for _, cmd := range cmds {
+		if len(cmd) == 0 {
+			continue
+		}
+		if len(cmd[0].Text) > 0 && cmd[0].Text[0] == '#' && !cmd[0].Braced && !cmd[0].Quoted {
+			continue
+		}
+		if err := i.execCommand(cmd, nil); err != nil {
+			if ec, ok := err.(*ControlFlow); ok && ec.Kind == "return" {
+				return nil
+			}
+			// Skip the offending command and continue with the next one.
+		}
+	}
+	return nil
 }
 
 // evalWord evaluates a single word, performing variable ($var) and command
@@ -429,8 +450,54 @@ func (i *Interp) cmdWhile(rawWords []rawWord, localVars map[string]string) error
 	return nil
 }
 
+// substituteExprAtoms performs expr-context substitution: $var references
+// bind as ATOMIC operands (expr substitutes variable values without
+// re-tokenizing them), so a value containing spaces or braces is wrapped in
+// a double-quoted string literal. Textual substitution would corrupt
+// conditions like `$res == "0 {}"` when $res is the list
+// "1 {FOREIGN KEY constraint failed}" (the braces would garble the parse).
+func (i *Interp) substituteExprAtoms(s string, localVars map[string]string) string {
+	var result strings.Builder
+	pos := 0
+	for pos < len(s) {
+		ch := s[pos]
+		switch {
+		case ch == '\\' && pos+1 < len(s):
+			result.WriteByte(escapeChar(s[pos+1]))
+			pos += 2
+		case ch == '$':
+			var val string
+			var ok bool
+			pos, val, ok = i.substituteVar(s, pos, localVars)
+			if ok {
+				result.WriteString(exprAtom(val))
+			}
+		case ch == '[':
+			var val string
+			pos, val = i.substituteCmd(s, pos, localVars)
+			result.WriteString(exprAtom(val))
+		default:
+			result.WriteByte(ch)
+			pos++
+		}
+	}
+	return result.String()
+}
+
+// exprAtom renders a substituted value as a single expr operand.
+func exprAtom(v string) string {
+	if v == "" {
+		return `""`
+	}
+	if strings.ContainsAny(v, " \t\n\r{}\"") {
+		return `"` + strings.ReplaceAll(v, `"`, `\"`) + `"`
+	}
+	return v
+}
+
 // evalLoopCond evaluates a loop condition word and reports whether the loop
-// should continue.
+// should continue. An unparseable condition terminates the loop instead of
+// aborting the whole file conversion.
 func (i *Interp) evalLoopCond(cond rawWord, localVars map[string]string) (bool, error) {
 	condVal, err := i.evalWord(cond, localVars)
 	if err != nil {
@@ -438,7 +505,7 @@ func (i *Interp) evalLoopCond(cond rawWord, localVars map[string]string) (bool, 
 	}
 	result, err := EvalExpr(condVal, i, localVars)
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 	return isTrue(result), nil
 }
@@ -477,26 +544,28 @@ func (i *Interp) cmdIf(rawWords []rawWord, localVars map[string]string) error {
 			break
 		}
 
-		// Evaluate condition
+		// Evaluate condition. An unparseable condition is treated as false
+		// (skip to the elseif/else chain) instead of aborting the whole
+		// file conversion.
 		result, err := EvalExpr(condVal, i, localVars)
-		if err != nil {
-			return err
-		}
-
-		if isTrue(result) {
+		if err == nil && isTrue(result) {
 			return i.execIfBody(rawWords[idx], localVars)
 		}
-
-		// Skip body and handle elseif/else chain
-		idx = i.skipIfElse(rawWords, idx+1, localVars)
-		if idx < 0 {
+		next, done := i.advancePastFalseBranch(rawWords, idx, localVars)
+		if done {
 			return nil
 		}
-		if idx == 0 {
-			break
-		}
+		idx = next
 	}
 	return nil
+}
+
+// advancePastFalseBranch skips a false if-body and handles the elseif/else
+// chain. It returns the index of the next condition and whether the whole if
+// statement is finished.
+func (i *Interp) advancePastFalseBranch(rawWords []rawWord, idx int, localVars map[string]string) (int, bool) {
+	next := i.skipIfElse(rawWords, idx+1, localVars)
+	return next, next <= 0
 }
 
 // skipIfElse advances past a false if-body, handling the elseif/else chain.
@@ -546,12 +615,21 @@ func (i *Interp) evalIfCondition(rawWords []rawWord, idx int, localVars map[stri
 	return condVal, idx, nil
 }
 
-// execIfBody executes the body word if it is braced.
+// execIfBody executes the body word. TCL body words need not be braced
+// (e.g. `if {$tn<5} continue`) — an unbraced word is evaluated and executed
+// as a script so control-flow commands like continue/break propagate.
 func (i *Interp) execIfBody(bodyWord rawWord, localVars map[string]string) error {
 	if bodyWord.Braced {
 		return i.execScript(bodyWord.Text, localVars)
 	}
-	return nil
+	body, err := i.evalWord(bodyWord, localVars)
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(body) == "" {
+		return nil
+	}
+	return i.execScript(body, localVars)
 }
 
 // cmdProc implements `proc name {args} {body}`.
@@ -573,8 +651,33 @@ func (i *Interp) cmdProc(rawWords []rawWord) error {
 		body, _ = i.evalWord(rawWords[3], nil)
 	}
 	argNames := splitList(argsStr)
-	i.procs[name] = &Proc{Name: name, Args: argNames, Body: body}
+	proc := &Proc{Name: name, Args: argNames, Body: body}
+	// TCL optional arguments use {name default} specs: parse them so calls
+	// with fewer arguments bind the defaults instead of misnamed locals.
+	for _, spec := range argNames {
+		if name, def, ok := splitArgSpec(spec); ok {
+			if proc.Defaults == nil {
+				proc.Defaults = make(map[string]string)
+			}
+			proc.Defaults[name] = def
+		}
+	}
+	i.procs[name] = proc
 	return nil
+}
+
+// splitArgSpec parses a TCL argument spec, reporting (name, default, true)
+// for the {name default} optional-argument form.
+func splitArgSpec(spec string) (string, string, bool) {
+	spec = strings.TrimSpace(spec)
+	if !strings.ContainsAny(spec, " \t\n") {
+		return "", "", false
+	}
+	items := splitList(spec)
+	if len(items) != 2 {
+		return "", "", false
+	}
+	return items[0], items[1], true
 }
 
 // callProc calls a user-defined procedure.
@@ -587,8 +690,15 @@ func (i *Interp) callProc(proc *Proc, args []string, callerVars map[string]strin
 	// Create a new local scope (procs get their own scope in TCL)
 	localVars := make(map[string]string)
 	for idx, argName := range proc.Args {
+		// Optional-argument specs arrive as the {name default} element.
+		specName, defaultVal, hasDefault := splitArgSpec(argName)
+		if hasDefault {
+			argName = specName
+		}
 		if idx < len(args) {
 			localVars[argName] = args[idx]
+		} else if hasDefault {
+			localVars[argName] = defaultVal
 		}
 	}
 	err := i.execScript(proc.Body, localVars)
@@ -684,8 +794,20 @@ func (i *Interp) cmdRegsub(args []string) error {
 	return nil
 }
 
+// stmtType classifies a captured statement: statements executed inside a
+// `catch { ... }` block tolerate errors (the TCL test intends to ignore
+// failures), so they are captured with catchsql semantics even when the
+// inner command was a plain execsql.
+func (i *Interp) stmtType(sqlType string) string {
+	if i.catchDepth > 0 && sqlType == "exec" {
+		return "catch"
+	}
+	return sqlType
+}
+
 // cmdSQL handles execsql/catchsql commands.
 func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string, localVars map[string]string) error {
+	sqlType = i.stmtType(sqlType)
 	// execsql { SQL } [db] or execsql [subst { SQL }] [db]
 	for _, rw := range rawWords[1:] {
 		if rw.Braced && len(rw.Text) > 0 {
@@ -701,7 +823,7 @@ func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string, local
 		}
 		// Handle [subst { SQL }] form — the bracket parsing already resolved this
 		if !rw.Braced && len(rw.Text) > 0 {
-			val, _ := i.evalWord(rw, nil)
+			val, _ := i.evalWord(rw, localVars)
 			if strings.TrimSpace(val) != "" && looksLikeSQL(val) {
 				i.stmts = append(i.stmts, Stmt{
 					Type:     sqlType,
@@ -782,7 +904,7 @@ func (i *Interp) dbEval(rawWords []rawWord, args []string, localVars map[string]
 			typ = "query"
 		}
 		i.stmts = append(i.stmts, Stmt{
-			Type:     typ,
+			Type:     i.stmtType(typ),
 			SQL:      sql,
 			TestName: i.curTest,
 		})
@@ -842,6 +964,19 @@ func (i *Interp) bindSQLParams(sql string, localVars map[string]string) string {
 func tclSQLLiteral(v string) string {
 	return "'" + strings.ReplaceAll(v, "'", "''") + "'"
 }
+
+// fixTestName mirrors tester.tcl's fix_testname: when the file sets a
+// testprefix and the test name starts with a digit, the prefix is prepended
+// ("10.1" → "prefix-10.1"); names that already carry the prefix are kept.
+func (i *Interp) fixTestName(name string, localVars map[string]string) string {
+	if name == "" || name[0] < '0' || name[0] > '9' {
+		return name
+	}
+	if prefix, ok := i.getVar("testprefix", localVars); ok && prefix != "" {
+		return prefix + "-" + name
+	}
+	return name
+}
 func (i *Interp) cmdDoExecSQL(rawWords []rawWord, localVars map[string]string) error {
 	words, _ := i.evalAllWords(rawWords[1:], localVars)
 	// Skip optional -db flag
@@ -878,6 +1013,7 @@ func (i *Interp) cmdDoExecSQL(rawWords []rawWord, localVars map[string]string) e
 		sqlType = "query"
 	}
 
+	name = i.fixTestName(name, localVars)
 	i.curTest = name
 	i.stmts = append(i.stmts, Stmt{
 		Type:     sqlType,
@@ -900,6 +1036,7 @@ func (i *Interp) cmdDoCatchSQL(rawWords []rawWord, localVars map[string]string) 
 	if len(words) >= 3 {
 		expected = words[2]
 	}
+	name = i.fixTestName(name, localVars)
 	i.curTest = name
 	i.stmts = append(i.stmts, Stmt{
 		Type:     "catch",
@@ -918,12 +1055,19 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	}
 	nameWord := rawWords[1]
 	name, _ := i.evalWord(nameWord, localVars)
+	name = i.fixTestName(name, localVars)
 
-	// Find the body (braced) and expected (braced)
+	// Find the body (braced) and expected (braced or a $var reference)
 	bodyWord := rawWords[2]
 	expected := ""
-	if len(rawWords) >= 4 && rawWords[3].Braced {
-		expected = rawWords[3].Text
+	if len(rawWords) >= 4 {
+		if rawWords[3].Braced {
+			expected = rawWords[3].Text
+		} else {
+			// Unbraced expectation (e.g. `$res` set from a loop list):
+			// substitute so the captured statement carries the real value.
+			expected, _ = i.evalWord(rawWords[3], localVars)
+		}
 	}
 
 	i.curTest = name
@@ -954,6 +1098,7 @@ func (i *Interp) cmdDoEQP(rawWords []rawWord, localVars map[string]string) error
 		return nil
 	}
 	name, _ := i.evalWord(rawWords[1], localVars)
+	name = i.fixTestName(name, localVars)
 	sql := ""
 	if rawWords[2].Braced {
 		sql = i.substitute(rawWords[2].Text, localVars)

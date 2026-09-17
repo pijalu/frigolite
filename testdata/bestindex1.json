@@ -1,9 +1,10 @@
 {
   "file": "bestindex1.test",
   "name": "bestindex1",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "bestindex1-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "bestindex1-1.1",
       "steps": [
         {
           "type": "query",
@@ -21,7 +22,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "bestindex1-1.2",
       "steps": [
         {
           "type": "query",
@@ -30,7 +31,11 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "bestindex1-2.1",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +44,7 @@
       ]
     },
     {
-      "name": "2.2.use.1",
+      "name": "bestindex1-2.2.use.1",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +53,7 @@
       ]
     },
     {
-      "name": "2.2.use.2",
+      "name": "bestindex1-2.2.use.2",
       "steps": [
         {
           "type": "query",
@@ -58,7 +63,7 @@
       ]
     },
     {
-      "name": "2.2.use.3",
+      "name": "bestindex1-2.2.use.3",
       "steps": [
         {
           "type": "query",
@@ -68,7 +73,7 @@
       ]
     },
     {
-      "name": "2.2.use.4",
+      "name": "bestindex1-2.2.use.4",
       "steps": [
         {
           "type": "query",
@@ -78,7 +83,7 @@
       ]
     },
     {
-      "name": "2.2.use.5",
+      "name": "bestindex1-2.2.use.5",
       "steps": [
         {
           "type": "query",
@@ -88,7 +93,7 @@
       ]
     },
     {
-      "name": "2.2.use.6",
+      "name": "bestindex1-2.2.use.6",
       "steps": [
         {
           "type": "query",
@@ -97,7 +102,7 @@
       ]
     },
     {
-      "name": "2.2.omit.1",
+      "name": "bestindex1-2.2.omit.1",
       "steps": [
         {
           "type": "exec",
@@ -106,7 +111,7 @@
       ]
     },
     {
-      "name": "2.2.omit.2",
+      "name": "bestindex1-2.2.omit.2",
       "steps": [
         {
           "type": "query",
@@ -116,7 +121,7 @@
       ]
     },
     {
-      "name": "2.2.omit.3",
+      "name": "bestindex1-2.2.omit.3",
       "steps": [
         {
           "type": "query",
@@ -126,7 +131,7 @@
       ]
     },
     {
-      "name": "2.2.omit.4",
+      "name": "bestindex1-2.2.omit.4",
       "steps": [
         {
           "type": "query",
@@ -136,7 +141,7 @@
       ]
     },
     {
-      "name": "2.2.omit.5",
+      "name": "bestindex1-2.2.omit.5",
       "steps": [
         {
           "type": "query",
@@ -146,7 +151,7 @@
       ]
     },
     {
-      "name": "2.2.omit.6",
+      "name": "bestindex1-2.2.omit.6",
       "steps": [
         {
           "type": "query",
@@ -155,7 +160,7 @@
       ]
     },
     {
-      "name": "2.2.use2.1",
+      "name": "bestindex1-2.2.use2.1",
       "steps": [
         {
           "type": "exec",
@@ -164,7 +169,7 @@
       ]
     },
     {
-      "name": "2.2.use2.2",
+      "name": "bestindex1-2.2.use2.2",
       "steps": [
         {
           "type": "query",
@@ -174,7 +179,7 @@
       ]
     },
     {
-      "name": "2.2.use2.3",
+      "name": "bestindex1-2.2.use2.3",
       "steps": [
         {
           "type": "query",
@@ -184,7 +189,7 @@
       ]
     },
     {
-      "name": "2.2.use2.4",
+      "name": "bestindex1-2.2.use2.4",
       "steps": [
         {
           "type": "query",
@@ -194,7 +199,7 @@
       ]
     },
     {
-      "name": "2.2.use2.5",
+      "name": "bestindex1-2.2.use2.5",
       "steps": [
         {
           "type": "query",
@@ -204,7 +209,7 @@
       ]
     },
     {
-      "name": "2.2.use2.6",
+      "name": "bestindex1-2.2.use2.6",
       "steps": [
         {
           "type": "query",
@@ -213,7 +218,11 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "bestindex1-3.1",
       "steps": [
         {
           "type": "exec",
@@ -222,7 +231,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "bestindex1-3.2",
       "steps": [
         {
           "type": "exec",
@@ -231,7 +240,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "bestindex1-3.3",
       "steps": [
         {
           "type": "query",
@@ -241,7 +250,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "bestindex1-3.4",
       "steps": [
         {
           "type": "query",
@@ -251,7 +260,7 @@
       ]
     },
     {
-      "name": "3.5",
+      "name": "bestindex1-3.5",
       "steps": [
         {
           "type": "query",
@@ -261,7 +270,7 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "bestindex1-4.0",
       "steps": [
         {
           "type": "exec",
@@ -270,16 +279,17 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "bestindex1-4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);"
+          "sql": "SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);",
+          "expect": "{{op eq column 0 usable 1} {op eq column 2 usable 1} {op ge column 1 usable 1} {op le column 1 usable 1}} {{op eq column 0 usable 1} {op eq column 2 usable 0} {op ge column 1 usable 1} {op le column 1 usable 1}}"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "bestindex1-5.0",
       "steps": [
         {
           "type": "catch",

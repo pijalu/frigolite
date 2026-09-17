@@ -1,16 +1,216 @@
 {
   "file": "crashM.test",
   "name": "crashM",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "crashM-1.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "ATTACH 'file:test2.db?8_3_names=1' AS aux;\n\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n\n  CREATE TABLE aux.t2(x, y);\n  CREATE INDEX aux.t2x ON t2(x);\n  CREATE INDEX aux.t2y ON t2(y);\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t1 SELECT a, randomblob(500) FROM s;\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t2 SELECT a, randomblob(500) FROM s;"
+          "type": "query",
+          "sql": "ATTACH 'file:test2.db?8_3_names=1' AS aux;\n\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n\n  CREATE TABLE aux.t2(x, y);\n  CREATE INDEX aux.t2x ON t2(x);\n  CREATE INDEX aux.t2y ON t2(y);\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a\u003c1000\n  )\n  INSERT INTO t1 SELECT a, randomblob(500) FROM s;\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a\u003c1000\n  )\n  INSERT INTO t2 SELECT a, randomblob(500) FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "crashM-2.19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;",
+          "expect": "ok ok"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

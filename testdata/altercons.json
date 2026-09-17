@@ -1,46 +1,23 @@
 {
   "file": "altercons.test",
   "name": "altercons",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)) }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b))"
         }
       ]
     },
     {
-      "name": "1.1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 DROP CONSTRAINT abc;"
-        }
-      ]
-    },
-    {
-      "name": "1.1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b) }}"
-        }
-      ]
-    },
-    {
-      "name": "1.2.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL) }"
-        }
-      ]
-    },
-    {
-      "name": "1.2.1",
+      "name": "altercons-1.1.1",
       "steps": [
         {
           "type": "exec",
@@ -49,67 +26,30 @@
       ]
     },
     {
-      "name": "1.2.2",
+      "name": "altercons-1.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b NOT NULL) }}"
+          "expect": "{CREATE TABLE t1(a, b)}"
         }
       ]
     },
     {
-      "name": "1.3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.2.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL) }"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b)); }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL)"
         }
       ]
     },
     {
-      "name": "1.3.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 DROP CONSTRAINT abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 DROP CONSTRAINT abc;"
-        }
-      ]
-    },
-    {
-      "name": "1.3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b NOT NULL) }}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b NOT NULL) }}"
-        }
-      ]
-    },
-    {
-      "name": "1.4.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b)) }"
-        }
-      ]
-    },
-    {
-      "name": "1.4.1",
+      "name": "altercons-1.2.1",
       "steps": [
         {
           "type": "exec",
@@ -118,26 +58,30 @@
       ]
     },
     {
-      "name": "1.4.2",
+      "name": "altercons-1.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b) }}"
+          "expect": "{CREATE TABLE t1(a, b NOT NULL)}"
         }
       ]
     },
     {
-      "name": "1.5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.3.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))}"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL)"
         }
       ]
     },
     {
-      "name": "1.5.1",
+      "name": "altercons-1.3.1",
       "steps": [
         {
           "type": "exec",
@@ -146,26 +90,30 @@
       ]
     },
     {
-      "name": "1.5.2",
+      "name": "altercons-1.3.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, PRIMARY KEY(a)) }}"
+          "expect": "{CREATE TABLE t1(a, b NOT NULL)}"
         }
       ]
     },
     {
-      "name": "1.6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.3.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))}"
+          "sql": "CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b));"
         }
       ]
     },
     {
-      "name": "1.6.1",
+      "name": "altercons-1.3.1",
       "steps": [
         {
           "type": "exec",
@@ -174,26 +122,30 @@
       ]
     },
     {
-      "name": "1.6.2",
+      "name": "altercons-1.3.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b,PRIMARY KEY(a)) }}"
+          "expect": "{CREATE TABLE t1(a, b NOT NULL)}"
         }
       ]
     },
     {
-      "name": "1.7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.4.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE) }"
+          "sql": "CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b))"
         }
       ]
     },
     {
-      "name": "1.7.1",
+      "name": "altercons-1.4.1",
       "steps": [
         {
           "type": "exec",
@@ -202,26 +154,30 @@
       ]
     },
     {
-      "name": "1.7.2",
+      "name": "altercons-1.4.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b CONSTRAINT def UNIQUE) }}"
+          "expect": "{CREATE TABLE t1(a, b)}"
         }
       ]
     },
     {
-      "name": "1.8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.5.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123)) }"
+          "sql": "CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))"
         }
       ]
     },
     {
-      "name": "1.8.1",
+      "name": "altercons-1.5.1",
       "steps": [
         {
           "type": "exec",
@@ -230,26 +186,30 @@
       ]
     },
     {
-      "name": "1.8.2",
+      "name": "altercons-1.5.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b CHECK (123)) }}"
+          "expect": "{CREATE TABLE t1(a, b, PRIMARY KEY(a))}"
         }
       ]
     },
     {
-      "name": "1.9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.6.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL) }"
+          "sql": "CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))"
         }
       ]
     },
     {
-      "name": "1.9.1",
+      "name": "altercons-1.6.1",
       "steps": [
         {
           "type": "exec",
@@ -258,26 +218,30 @@
       ]
     },
     {
-      "name": "1.9.2",
+      "name": "altercons-1.6.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b DEFAULT NULL) }}"
+          "expect": "{CREATE TABLE t1(a, b,PRIMARY KEY(a))}"
         }
       ]
     },
     {
-      "name": "1.10.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.7.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase) }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE)"
         }
       ]
     },
     {
-      "name": "1.10.1",
+      "name": "altercons-1.7.1",
       "steps": [
         {
           "type": "exec",
@@ -286,26 +250,30 @@
       ]
     },
     {
-      "name": "1.10.2",
+      "name": "altercons-1.7.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b COLLATE nocase) }}"
+          "expect": "{CREATE TABLE t1(a, b CONSTRAINT def UNIQUE)}"
         }
       ]
     },
     {
-      "name": "1.11.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.8.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2) }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123))"
         }
       ]
     },
     {
-      "name": "1.11.1",
+      "name": "altercons-1.8.1",
       "steps": [
         {
           "type": "exec",
@@ -314,26 +282,30 @@
       ]
     },
     {
-      "name": "1.11.2",
+      "name": "altercons-1.8.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b REFERENCES t2) }}"
+          "expect": "{CREATE TABLE t1(a, b CHECK (123))}"
         }
       ]
     },
     {
-      "name": "1.12.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.9.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three) }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL)"
         }
       ]
     },
     {
-      "name": "1.12.1",
+      "name": "altercons-1.9.1",
       "steps": [
         {
           "type": "exec",
@@ -342,26 +314,30 @@
       ]
     },
     {
-      "name": "1.12.2",
+      "name": "altercons-1.9.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three) }}"
+          "expect": "{CREATE TABLE t1(a, b DEFAULT NULL)}"
         }
       ]
     },
     {
-      "name": "1.13.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.10.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase)"
         }
       ]
     },
     {
-      "name": "1.13.1",
+      "name": "altercons-1.10.1",
       "steps": [
         {
           "type": "exec",
@@ -370,26 +346,30 @@
       ]
     },
     {
-      "name": "1.13.2",
+      "name": "altercons-1.10.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }}"
+          "expect": "{CREATE TABLE t1(a, b COLLATE nocase)}"
         }
       ]
     },
     {
-      "name": "1.14.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.11.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT abc) }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2)"
         }
       ]
     },
     {
-      "name": "1.14.1",
+      "name": "altercons-1.11.1",
       "steps": [
         {
           "type": "exec",
@@ -398,26 +378,30 @@
       ]
     },
     {
-      "name": "1.14.2",
+      "name": "altercons-1.11.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c) }}"
+          "expect": "{CREATE TABLE t1(a, b REFERENCES t2)}"
         }
       ]
     },
     {
-      "name": "1.15.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.12.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b )) }"
+          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three)"
         }
       ]
     },
     {
-      "name": "1.15.1",
+      "name": "altercons-1.12.1",
       "steps": [
         {
           "type": "exec",
@@ -426,26 +410,30 @@
       ]
     },
     {
-      "name": "1.15.2",
+      "name": "altercons-1.12.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c, CHECK( a!=b )) }}"
+          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three)}"
         }
       ]
     },
     {
-      "name": "1.16.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.13.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b )) }"
+          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three)"
         }
       ]
     },
     {
-      "name": "1.16.1",
+      "name": "altercons-1.13.1",
       "steps": [
         {
           "type": "exec",
@@ -454,26 +442,30 @@
       ]
     },
     {
-      "name": "1.16.2",
+      "name": "altercons-1.13.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c) }}"
+          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three)}"
         }
       ]
     },
     {
-      "name": "1.17.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.14.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b )) }"
+          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT abc)"
         }
       ]
     },
     {
-      "name": "1.17.1",
+      "name": "altercons-1.14.1",
       "steps": [
         {
           "type": "exec",
@@ -482,26 +474,30 @@
       ]
     },
     {
-      "name": "1.17.2",
+      "name": "altercons-1.14.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c) }}"
+          "expect": "{CREATE TABLE t1(a, b, c)}"
         }
       ]
     },
     {
-      "name": "1.18.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.15.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  ) }"
+          "sql": "CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b ))"
         }
       ]
     },
     {
-      "name": "1.18.1",
+      "name": "altercons-1.15.1",
       "steps": [
         {
           "type": "exec",
@@ -510,26 +506,30 @@
       ]
     },
     {
-      "name": "1.18.2",
+      "name": "altercons-1.15.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c) }}"
+          "expect": "{CREATE TABLE t1(a, b, c, CHECK( a!=b ))}"
         }
       ]
     },
     {
-      "name": "1.19.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.16.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a\u003eb) CONSTRAINT two\n  ) }"
+          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b ))"
         }
       ]
     },
     {
-      "name": "1.19.1",
+      "name": "altercons-1.16.1",
       "steps": [
         {
           "type": "exec",
@@ -538,26 +538,30 @@
       ]
     },
     {
-      "name": "1.19.2",
+      "name": "altercons-1.16.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT two\n  ) }}"
+          "expect": "{CREATE TABLE t1(a, b, c)}"
         }
       ]
     },
     {
-      "name": "1.20.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.17.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a\u003eb)CONSTRAINT two) }"
+          "sql": "CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b ))"
         }
       ]
     },
     {
-      "name": "1.20.1",
+      "name": "altercons-1.17.1",
       "steps": [
         {
           "type": "exec",
@@ -566,26 +570,30 @@
       ]
     },
     {
-      "name": "1.20.2",
+      "name": "altercons-1.17.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two) }}"
+          "expect": "{CREATE TABLE t1(a, b, c)}"
         }
       ]
     },
     {
-      "name": "1.21.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.18.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1)) }"
+          "sql": "CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  )"
         }
       ]
     },
     {
-      "name": "1.21.1",
+      "name": "altercons-1.18.1",
       "steps": [
         {
           "type": "exec",
@@ -594,26 +602,30 @@
       ]
     },
     {
-      "name": "1.21.2",
+      "name": "altercons-1.18.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c AS (b+1)) }}"
+          "expect": "{CREATE TABLE t1(a, b, c)}"
         }
       ]
     },
     {
-      "name": "1.22.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.19.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED) }"
+          "sql": "CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a\u003eb) CONSTRAINT two\n  )"
         }
       ]
     },
     {
-      "name": "1.22.1",
+      "name": "altercons-1.19.1",
       "steps": [
         {
           "type": "exec",
@@ -622,17 +634,113 @@
       ]
     },
     {
-      "name": "1.22.2",
+      "name": "altercons-1.19.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED) }}"
+          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT two\n  )}"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.20.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a\u003eb)CONSTRAINT two)"
+        }
+      ]
+    },
+    {
+      "name": "altercons-1.20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP CONSTRAINT abc;"
+        }
+      ]
+    },
+    {
+      "name": "altercons-1.20.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
+          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two)}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.21.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1))"
+        }
+      ]
+    },
+    {
+      "name": "altercons-1.21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP CONSTRAINT abc;"
+        }
+      ]
+    },
+    {
+      "name": "altercons-1.21.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
+          "expect": "{CREATE TABLE t1(a, b, c AS (b+1))}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-1.22.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED)"
+        }
+      ]
+    },
+    {
+      "name": "altercons-1.22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP CONSTRAINT abc;"
+        }
+      ]
+    },
+    {
+      "name": "altercons-1.22.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
+          "expect": "{CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED)}"
+        }
+      ]
+    },
+    {
+      "name": "altercons-2.0",
       "steps": [
         {
           "type": "exec",
@@ -641,7 +749,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "altercons-2.1",
       "steps": [
         {
           "type": "catch",
@@ -651,7 +759,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "altercons-2.2",
       "steps": [
         {
           "type": "catch",
@@ -661,44 +769,24 @@
       ]
     },
     {
-      "name": "3.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a NOT NULL, b) }"
+          "sql": "CREATE TABLE t1(a NOT NULL, b)"
         }
       ]
     },
     {
-      "name": "3.1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER COLUMN a DROP NOT NULL"
-        }
-      ]
-    },
-    {
-      "name": "3.1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b) }}"
-        }
-      ]
-    },
-    {
-      "name": "3.2.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }"
-        }
-      ]
-    },
-    {
-      "name": "3.2.1",
+      "name": "altercons-3.1.1",
       "steps": [
         {
           "type": "exec",
@@ -707,26 +795,30 @@
       ]
     },
     {
-      "name": "3.2.2",
+      "name": "altercons-3.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b) }}"
+          "expect": "{CREATE TABLE t1(a, b)}"
         }
       ]
     },
     {
-      "name": "3.3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.2.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }"
+          "sql": "CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b)"
         }
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "altercons-3.2.1",
       "steps": [
         {
           "type": "exec",
@@ -735,54 +827,30 @@
       ]
     },
     {
-      "name": "3.3.2",
+      "name": "altercons-3.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a UNIQUE, b) }}"
+          "expect": "{CREATE TABLE t1(a, b)}"
         }
       ]
     },
     {
-      "name": "3.4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.3.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }"
+          "sql": "CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b)"
         }
       ]
     },
     {
-      "name": "3.4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER COLUMN b DROP NOT NULL"
-        }
-      ]
-    },
-    {
-      "name": "3.4.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }}"
-        }
-      ]
-    },
-    {
-      "name": "3.5.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a CHECK(a\u003cb) NOT NULL, b) }"
-        }
-      ]
-    },
-    {
-      "name": "3.5.1",
+      "name": "altercons-3.3.1",
       "steps": [
         {
           "type": "exec",
@@ -791,26 +859,62 @@
       ]
     },
     {
-      "name": "3.5.2",
+      "name": "altercons-3.3.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a CHECK(a\u003cb), b) }}"
+          "expect": "{CREATE TABLE t1(a UNIQUE, b)}"
         }
       ]
     },
     {
-      "name": "3.6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.4.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a CHECK(a\u003cb) CONSTRAINT nn NOT NULL, b) }"
+          "sql": "CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b)"
         }
       ]
     },
     {
-      "name": "3.6.1",
+      "name": "altercons-3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ALTER COLUMN b DROP NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "altercons-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
+          "expect": "{CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b)}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a CHECK(a\u003cb) NOT NULL, b)"
+        }
+      ]
+    },
+    {
+      "name": "altercons-3.5.1",
       "steps": [
         {
           "type": "exec",
@@ -819,26 +923,62 @@
       ]
     },
     {
-      "name": "3.6.2",
+      "name": "altercons-3.5.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a CHECK(a\u003cb), b) }}"
+          "expect": "{CREATE TABLE t1(a CHECK(a\u003cb), b)}"
         }
       ]
     },
     {
-      "name": "3.7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.6.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }"
+          "sql": "CREATE TABLE t1(a CHECK(a\u003cb) CONSTRAINT nn NOT NULL, b)"
         }
       ]
     },
     {
-      "name": "3.7.1",
+      "name": "altercons-3.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ALTER COLUMN a DROP NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "altercons-3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
+          "expect": "{CREATE TABLE t1(a CHECK(a\u003cb), b)}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b NOT NULL PRIMARY KEY)"
+        }
+      ]
+    },
+    {
+      "name": "altercons-3.7.1",
       "steps": [
         {
           "type": "exec",
@@ -847,26 +987,30 @@
       ]
     },
     {
-      "name": "3.7.2",
+      "name": "altercons-3.7.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b PRIMARY KEY) }}"
+          "expect": "{CREATE TABLE t1(a, b PRIMARY KEY)}"
         }
       ]
     },
     {
-      "name": "3.8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.8.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }"
+          "sql": "CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY)"
         }
       ]
     },
     {
-      "name": "3.8.1",
+      "name": "altercons-3.8.1",
       "steps": [
         {
           "type": "exec",
@@ -875,26 +1019,30 @@
       ]
     },
     {
-      "name": "3.8.2",
+      "name": "altercons-3.8.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }}"
+          "expect": "{CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY)}"
         }
       ]
     },
     {
-      "name": "3.9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.9.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }"
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL)"
         }
       ]
     },
     {
-      "name": "3.9.1",
+      "name": "altercons-3.9.1",
       "steps": [
         {
           "type": "exec",
@@ -903,26 +1051,30 @@
       ]
     },
     {
-      "name": "3.9.2",
+      "name": "altercons-3.9.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }}"
+          "expect": "{CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL))}"
         }
       ]
     },
     {
-      "name": "3.10.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.10.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b NOT NULL AS (a+1)) }"
+          "sql": "CREATE TABLE t1(a, b NOT NULL AS (a+1))"
         }
       ]
     },
     {
-      "name": "3.10.1",
+      "name": "altercons-3.10.1",
       "steps": [
         {
           "type": "exec",
@@ -931,26 +1083,30 @@
       ]
     },
     {
-      "name": "3.10.2",
+      "name": "altercons-3.10.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b AS (a+1)) }}"
+          "expect": "{CREATE TABLE t1(a, b AS (a+1))}"
         }
       ]
     },
     {
-      "name": "3.11.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-3.11.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }"
+          "sql": "CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1))"
         }
       ]
     },
     {
-      "name": "3.11.1",
+      "name": "altercons-3.11.1",
       "steps": [
         {
           "type": "exec",
@@ -959,17 +1115,21 @@
       ]
     },
     {
-      "name": "3.11.2",
+      "name": "altercons-3.11.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "{CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }}"
+          "expect": "{CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1))}"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-4.0",
       "steps": [
         {
           "type": "exec",
@@ -978,7 +1138,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "altercons-4.1",
       "steps": [
         {
           "type": "exec",
@@ -987,7 +1147,11 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-5.1",
       "steps": [
         {
           "type": "exec",
@@ -996,7 +1160,7 @@
       ]
     },
     {
-      "name": "5.2.1",
+      "name": "altercons-5.2.1",
       "steps": [
         {
           "type": "catch",
@@ -1006,147 +1170,167 @@
       ]
     },
     {
-      "name": "5.3.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-5.3.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b) }"
+          "sql": "CREATE TABLE t1(a, b)"
         }
       ]
     },
     {
-      "name": "5.3.1.2",
+      "name": "altercons-5.3.1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER a SET NOT NULL }"
+          "sql": "ALTER TABLE t1 ALTER a SET NOT NULL"
         }
       ]
     },
     {
-      "name": "5.3.1.3",
+      "name": "altercons-5.3.1.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1';",
-          "expect": "{CREATE TABLE t1(a NOT NULL, b) }}"
+          "expect": "{CREATE TABLE t1(a NOT NULL, b)}"
         }
       ]
     },
     {
-      "name": "5.3.2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-5.3.2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b) }"
+          "sql": "CREATE TABLE t1(a, b)"
         }
       ]
     },
     {
-      "name": "5.3.2.2",
+      "name": "altercons-5.3.2.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }"
+          "sql": "ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL"
         }
       ]
     },
     {
-      "name": "5.3.2.3",
+      "name": "altercons-5.3.2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1';",
-          "expect": "{CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }}"
+          "expect": "{CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b)}"
         }
       ]
     },
     {
-      "name": "5.3.3.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-5.3.3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b) }"
+          "sql": "CREATE TABLE t1(a, b)"
         }
       ]
     },
     {
-      "name": "5.3.3.2",
+      "name": "altercons-5.3.3.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }"
+          "sql": "ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail;"
         }
       ]
     },
     {
-      "name": "5.3.3.3",
+      "name": "altercons-5.3.3.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1';",
-          "expect": "{CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }}"
+          "expect": "{CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b)}"
         }
       ]
     },
     {
-      "name": "5.3.4.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-5.3.4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b) }"
+          "sql": "CREATE TABLE t1(a, b)"
         }
       ]
     },
     {
-      "name": "5.3.4.2",
+      "name": "altercons-5.3.4.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }"
+          "sql": "ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ;"
         }
       ]
     },
     {
-      "name": "5.3.4.3",
+      "name": "altercons-5.3.4.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1';",
-          "expect": "{CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }}"
+          "expect": "{CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE)}"
         }
       ]
     },
     {
-      "name": "5.3.5.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-5.3.5.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }"
+          "sql": "CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a))"
         }
       ]
     },
     {
-      "name": "5.3.5.2",
+      "name": "altercons-5.3.5.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }"
+          "sql": "ALTER TABLE t1 ALTER 'a b c' SET NOT NULL"
         }
       ]
     },
     {
-      "name": "5.3.5.3",
+      "name": "altercons-5.3.5.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t1';",
-          "expect": "{CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }}"
+          "expect": "{CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a))}"
         }
       ]
     },
     {
-      "name": "5.4.1",
+      "name": "altercons-5.4.1",
       "steps": [
         {
           "type": "exec",
@@ -1155,7 +1339,7 @@
       ]
     },
     {
-      "name": "5.4.2",
+      "name": "altercons-5.4.2",
       "steps": [
         {
           "type": "catch",
@@ -1165,7 +1349,7 @@
       ]
     },
     {
-      "name": "5.4.3",
+      "name": "altercons-5.4.3",
       "steps": [
         {
           "type": "catch",
@@ -1175,7 +1359,7 @@
       ]
     },
     {
-      "name": "5.4.4",
+      "name": "altercons-5.4.4",
       "steps": [
         {
           "type": "catch",
@@ -1185,7 +1369,11 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-6.1",
       "steps": [
         {
           "type": "exec",
@@ -1194,7 +1382,7 @@
       ]
     },
     {
-      "name": "6.2.1",
+      "name": "altercons-6.2.1",
       "steps": [
         {
           "type": "catch",
@@ -1204,7 +1392,7 @@
       ]
     },
     {
-      "name": "6.2.2",
+      "name": "altercons-6.2.2",
       "steps": [
         {
           "type": "exec",
@@ -1213,7 +1401,7 @@
       ]
     },
     {
-      "name": "6.2.3",
+      "name": "altercons-6.2.3",
       "steps": [
         {
           "type": "catch",
@@ -1223,105 +1411,112 @@
       ]
     },
     {
-      "name": "6.3.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-6.3.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b) }"
+          "sql": "CREATE TABLE t1(a, b)"
         }
       ]
     },
     {
-      "name": "6.3.1.2",
+      "name": "altercons-6.3.1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a\u003e=0) }"
+          "sql": "ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a\u003e=0)"
         }
       ]
     },
     {
-      "name": "6.3.1.3",
+      "name": "altercons-6.3.1.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='table';",
-          "expect": "{CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a\u003e=0)) }}"
+          "expect": "{CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a\u003e=0))}"
         }
       ]
     },
     {
-      "name": "6.3.2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-6.3.2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b  ) }"
+          "sql": "CREATE TABLE t1(a, b  )"
         }
       ]
     },
     {
-      "name": "6.3.2.2",
+      "name": "altercons-6.3.2.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a\u003e=0) }"
+          "sql": "ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a\u003e=0)"
         }
       ]
     },
     {
-      "name": "6.3.2.3",
+      "name": "altercons-6.3.2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='table';",
-          "expect": "{CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a\u003e=0)) }}"
+          "expect": "{CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a\u003e=0))}"
         }
       ]
     },
     {
-      "name": "6.3.3.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-6.3.3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b  ) }"
+          "sql": "CREATE TABLE t1(a, b  )"
         }
       ]
     },
     {
-      "name": "6.3.3.2",
+      "name": "altercons-6.3.3.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ADD CHECK (a\u003e=0) }"
+          "sql": "ALTER TABLE t1 ADD CHECK (a\u003e=0)"
         }
       ]
     },
     {
-      "name": "6.3.3.3",
+      "name": "altercons-6.3.3.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='table';",
-          "expect": "{CREATE TABLE t1(a, b  , CHECK (a\u003e=0)) }}"
+          "expect": "{CREATE TABLE t1(a, b  , CHECK (a\u003e=0))}"
         }
       ]
     },
     {
-      "name": "6.4.1",
+      "name": "altercons-6.4.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_schema WHERE tbl_name='b1'",
-          "expect": "{CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2))}"
         }
       ]
     },
     {
-      "name": "6.4.2",
+      "name": "altercons-6.4.2",
       "steps": [
         {
           "type": "catch",
@@ -1331,7 +1526,17 @@
       ]
     },
     {
-      "name": "6.5",
+      "name": "altercons-6.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE tbl_name='b1'",
+          "expect": "{CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2))}"
+        }
+      ]
+    },
+    {
+      "name": "altercons-6.5",
       "steps": [
         {
           "type": "exec",
@@ -1340,7 +1545,7 @@
       ]
     },
     {
-      "name": "6.6",
+      "name": "altercons-6.6",
       "steps": [
         {
           "type": "catch",
@@ -1350,7 +1555,11 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-7.0",
       "steps": [
         {
           "type": "exec",
@@ -1359,7 +1568,7 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "altercons-7.1",
       "steps": [
         {
           "type": "catch",
@@ -1369,7 +1578,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "altercons-7.2",
       "steps": [
         {
           "type": "catch",
@@ -1379,7 +1588,7 @@
       ]
     },
     {
-      "name": "7.3",
+      "name": "altercons-7.3",
       "steps": [
         {
           "type": "query",
@@ -1389,7 +1598,7 @@
       ]
     },
     {
-      "name": "7.4",
+      "name": "altercons-7.4",
       "steps": [
         {
           "type": "catch",
@@ -1399,7 +1608,7 @@
       ]
     },
     {
-      "name": "7.5",
+      "name": "altercons-7.5",
       "steps": [
         {
           "type": "exec",
@@ -1408,7 +1617,7 @@
       ]
     },
     {
-      "name": "7.6",
+      "name": "altercons-7.6",
       "steps": [
         {
           "type": "catch",
@@ -1418,7 +1627,7 @@
       ]
     },
     {
-      "name": "7.7",
+      "name": "altercons-7.7",
       "steps": [
         {
           "type": "catch",
@@ -1428,7 +1637,7 @@
       ]
     },
     {
-      "name": "7.8",
+      "name": "altercons-7.8",
       "steps": [
         {
           "type": "catch",
@@ -1438,7 +1647,7 @@
       ]
     },
     {
-      "name": "7.9",
+      "name": "altercons-7.9",
       "steps": [
         {
           "type": "catch",
@@ -1448,7 +1657,11 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-8.0",
       "steps": [
         {
           "type": "exec",
@@ -1457,7 +1670,7 @@
       ]
     },
     {
-      "name": "8.1.1",
+      "name": "altercons-8.1.1",
       "steps": [
         {
           "type": "exec",
@@ -1466,7 +1679,7 @@
       ]
     },
     {
-      "name": "8.1.2",
+      "name": "altercons-8.1.2",
       "steps": [
         {
           "type": "query",
@@ -1476,7 +1689,7 @@
       ]
     },
     {
-      "name": "8.1.3",
+      "name": "altercons-8.1.3",
       "steps": [
         {
           "type": "query",
@@ -1486,7 +1699,7 @@
       ]
     },
     {
-      "name": "8.2.1",
+      "name": "altercons-8.2.1",
       "steps": [
         {
           "type": "exec",
@@ -1495,7 +1708,7 @@
       ]
     },
     {
-      "name": "8.2.2",
+      "name": "altercons-8.2.2",
       "steps": [
         {
           "type": "query",
@@ -1505,7 +1718,7 @@
       ]
     },
     {
-      "name": "8.2.3",
+      "name": "altercons-8.2.3",
       "steps": [
         {
           "type": "query",
@@ -1515,7 +1728,11 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-9.0",
       "steps": [
         {
           "type": "exec",
@@ -1524,7 +1741,7 @@
       ]
     },
     {
-      "name": "9.1.1",
+      "name": "altercons-9.1.1",
       "steps": [
         {
           "type": "catch",
@@ -1534,7 +1751,7 @@
       ]
     },
     {
-      "name": "9.1.2",
+      "name": "altercons-9.1.2",
       "steps": [
         {
           "type": "query",
@@ -1544,7 +1761,7 @@
       ]
     },
     {
-      "name": "9.1.3",
+      "name": "altercons-9.1.3",
       "steps": [
         {
           "type": "query",
@@ -1554,7 +1771,7 @@
       ]
     },
     {
-      "name": "9.1.4",
+      "name": "altercons-9.1.4",
       "steps": [
         {
           "type": "query",
@@ -1564,7 +1781,7 @@
       ]
     },
     {
-      "name": "9.1.5",
+      "name": "altercons-9.1.5",
       "steps": [
         {
           "type": "query",
@@ -1574,7 +1791,7 @@
       ]
     },
     {
-      "name": "9.2.1",
+      "name": "altercons-9.2.1",
       "steps": [
         {
           "type": "catch",
@@ -1584,7 +1801,7 @@
       ]
     },
     {
-      "name": "9.2.2",
+      "name": "altercons-9.2.2",
       "steps": [
         {
           "type": "query",
@@ -1594,7 +1811,7 @@
       ]
     },
     {
-      "name": "9.2.3",
+      "name": "altercons-9.2.3",
       "steps": [
         {
           "type": "query",
@@ -1604,7 +1821,7 @@
       ]
     },
     {
-      "name": "9.2.4",
+      "name": "altercons-9.2.4",
       "steps": [
         {
           "type": "query",
@@ -1614,7 +1831,7 @@
       ]
     },
     {
-      "name": "9.2.5",
+      "name": "altercons-9.2.5",
       "steps": [
         {
           "type": "query",
@@ -1624,7 +1841,11 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercons-10.1",
       "steps": [
         {
           "type": "exec",
@@ -1633,7 +1854,7 @@
       ]
     },
     {
-      "name": "10.2",
+      "name": "altercons-10.2",
       "steps": [
         {
           "type": "catch",
@@ -1643,7 +1864,7 @@
       ]
     },
     {
-      "name": "10.3",
+      "name": "altercons-10.3",
       "steps": [
         {
           "type": "catch",

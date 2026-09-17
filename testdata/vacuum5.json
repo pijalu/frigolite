@@ -1,13 +1,14 @@
 {
   "file": "vacuum5.test",
   "name": "vacuum5",
+  "ordered": true,
   "tests": [
     {
       "name": "vacuum5-1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE main.t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1000) FROM c;\n  CREATE TEMP TABLE ttemp(x,y);\n  INSERT INTO ttemp SELECT * FROM t1;\n  ATTACH 'test2.db' AS x2;\n  ATTACH 'test3.db' AS x3;\n  CREATE TABLE x2.t2(c,d);\n  INSERT INTO t2 SELECT * FROM t1;\n  CREATE TABLE x3.t3(e,f);\n  INSERT INTO t3 SELECT * FROM t1;\n  DELETE FROM t1 WHERE (rowid%3)!=0;\n  DELETE FROM t2 WHERE (rowid%4)!=0;\n  DELETE FROM t3 WHERE (rowid%5)!=0;\n  PRAGMA main.integrity_check;\n  PRAGMA x2.integrity_check;\n  PRAGMA x3.integrity_check;",
+          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE main.t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c1000)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1000) FROM c;\n  CREATE TEMP TABLE ttemp(x,y);\n  INSERT INTO ttemp SELECT * FROM t1;\n  ATTACH 'test2.db' AS x2;\n  ATTACH 'test3.db' AS x3;\n  CREATE TABLE x2.t2(c,d);\n  INSERT INTO t2 SELECT * FROM t1;\n  CREATE TABLE x3.t3(e,f);\n  INSERT INTO t3 SELECT * FROM t1;\n  DELETE FROM t1 WHERE (rowid%3)!=0;\n  DELETE FROM t2 WHERE (rowid%4)!=0;\n  DELETE FROM t3 WHERE (rowid%5)!=0;\n  PRAGMA main.integrity_check;\n  PRAGMA x2.integrity_check;\n  PRAGMA x3.integrity_check;",
           "expect": "ok ok ok"
         }
       ]
@@ -56,12 +57,7 @@
         {
           "type": "exec",
           "sql": "VACUUM x3;"
-        }
-      ]
-    },
-    {
-      "name": "vacuum5-1.4.1",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "VACUUM temp;"
@@ -73,7 +69,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA temp.page_count;"
+          "sql": "PRAGMA temp.page_count;",
+          "expect": "1"
         }
       ]
     },
@@ -81,27 +78,9 @@
       "name": "vacuum5-2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "VACUUM olaf;",
           "expect": "1 {unknown database olaf}"
-        }
-      ]
-    },
-    {
-      "name": "3.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA temp_store = file;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 50;\n    CREATE TABLE t1(i INTEGER PRIMARY KEY, j UNIQUE);\n    WITH s(i) AS (\n      VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(100) FROM s;"
-        }
-      ]
-    },
-    {
-      "name": "3.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "VACUUM"
         }
       ]
     }
