@@ -760,6 +760,13 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// outermost statement starts, mirroring SQLite freeing auxdata at
 	// sqlite3_reset. Nested statements (triggers) share the outer aux.
 	if e.tx.execDepth == 1 {
+		// Statement-boundary reset of the correlated-subquery row scope
+		// (see SelectEngine.ResetStatementCorrelatedScope): a stale
+		// outerRow from a prior statement must not reach this one's
+		// FROM-less / join-ON validation (insert2-4.1) — but the reset
+		// happens BEFORE any DML outer-row scope for THIS statement is
+		// installed (with1-4.3).
+		e.selectEngine.ResetStatementCorrelatedScope()
 		e.expr.ResetStatementAux()
 	}
 	// Operator-overload probing is statement-scoped: materialization of a
