@@ -56,6 +56,9 @@ func (idx *InvertedIndex) TermEntries() []TermEntry {
 	return out
 }
 
+// maxSegmentHeight bounds the segment b-tree descent (see LoadSegment).
+const maxSegmentHeight uint64 = 32
+
 // LoadSegmentTermEntries loads one segment (root + %_segments blocks) into a
 // fresh index and returns its term entries. A corrupt segment returns an
 // error.
@@ -129,6 +132,13 @@ func (idx *InvertedIndex) LoadSegment(root []byte, leavesEndBlock int, readBlock
 	if n == 0 {
 		return fmt.Errorf("corrupt segment root")
 	}
+	// A node height beyond any writable segment b-tree (fts3's layered
+	// writer adds one level per ~nLeafEst leaves; real trees stay <= 4) is a
+	// crafted chain — SQLite's seek descends it and fails regardless of the
+	// queried term (fts3corrupt7 3.x: the 40000-deep interior chain).
+	if height > maxSegmentHeight {
+		return ErrSegmentStructure
+	}
 	pos := n
 	if height == 0 {
 		lastTerm, err := idx.loadLeaf(root, pos, nil)
@@ -174,59 +184,67 @@ func (idx *InvertedIndex) LoadSegment(root []byte, leavesEndBlock int, readBlock
 		}
 		return firstErr
 	}
-	// Interior node: first block id, boundary terms (which delimit the child
-	// subtrees). The leaves are consecutive blocks starting at the first block.
-	firstBlock, n := getFTS3Varint(root[pos:])
+	// Interior node: descend the b-tree. Children sit at consecutive block
+	// ids and may themselves be interior nodes of height-1 (a layered
+	// output: SQLite's fts3SegReader descends layer by layer — fts3fuzz001
+	// 220: a nodesize=24 merge writes a height-2 root over two layer-1
+	// interior blocks), so the walk recurses until it reaches leaves.
+	_, err := idx.loadInterior(root, height, pos, nil, readBlock)
+	return err
+}
+
+// loadInterior walks one interior node of a segment b-tree (height >= 1):
+// the node blob is [height][firstChildBlock][boundary terms...]. There is
+// one boundary term per child after the first (N children -> N-1
+// boundaries), so nChildren = 1 + number of boundaries read. Children sit
+// at consecutive block ids from firstBlock; the leaf chain is a continuous
+// delta-encoded term stream, so lastTerm carries across the whole walk.
+func (idx *InvertedIndex) loadInterior(blob []byte, height uint64, pos int, lastTerm []byte, readBlock SegmentBlockReader) ([]byte, error) {
+	firstBlock, n := getFTS3Varint(blob[pos:])
 	if n == 0 {
-		return fmt.Errorf("corrupt segment root")
+		return nil, fmt.Errorf("corrupt segment root")
 	}
 	pos += n
-	// Parse the boundary terms to know the number of children. There is one
-	// boundary term per child after the first (N leaves -> N-1 boundaries), so
-	// nChildren = 1 + number of boundaries read.
+	// Parse the boundary terms to know the number of children.
 	nChildren := 1
-	if pos < len(root) {
+	if pos < len(blob) {
 		var prevTerm []byte
 		first := true
-		for pos < len(root) {
+		for pos < len(blob) {
 			var nLen uint64
 			if first {
-				nLen, n = getFTS3Varint(root[pos:])
+				nLen, n = getFTS3Varint(blob[pos:])
 				if n == 0 {
-					return fmt.Errorf("corrupt segment root")
+					return nil, fmt.Errorf("corrupt segment root")
 				}
 				pos += n
-				if uint64(pos)+nLen > uint64(len(root)) {
-					return fmt.Errorf("corrupt segment root")
+				if uint64(pos)+nLen > uint64(len(blob)) {
+					return nil, fmt.Errorf("corrupt segment root")
 				}
-				prevTerm = root[pos : pos+int(nLen)]
+				prevTerm = blob[pos : pos+int(nLen)]
 				pos += int(nLen)
 				first = false
 			} else {
 				var nPrefix, nSuffix uint64
-				nPrefix, n = getFTS3Varint(root[pos:])
+				nPrefix, n = getFTS3Varint(blob[pos:])
 				if n == 0 {
-					return fmt.Errorf("corrupt segment root")
+					return nil, fmt.Errorf("corrupt segment root")
 				}
 				pos += n
-				nSuffix, n = getFTS3Varint(root[pos:])
-				if n == 0 || nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(root)) {
-					return fmt.Errorf("corrupt segment root")
+				nSuffix, n = getFTS3Varint(blob[pos:])
+				if n == 0 || nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(blob)) {
+					return nil, fmt.Errorf("corrupt segment root")
 				}
 				pos += n
 				term := make([]byte, nPrefix)
 				copy(term, prevTerm[:nPrefix])
-				term = append(term, root[pos:pos+int(nSuffix)]...)
+				term = append(term, blob[pos:pos+int(nSuffix)]...)
 				prevTerm = term
 				pos += int(nSuffix)
 			}
 			nChildren++
 		}
 	}
-	// Read each child leaf block in order and merge its terms. The leaf chain
-	// is a continuous delta-encoded term stream (fts3.c fts3SegReaderNext), so
-	// each block's first term is a delta of the previous block's last term.
-	var lastTerm []byte
 	var firstErr error
 	for i := 0; i < nChildren; i++ {
 		blockID := int(firstBlock) + i
@@ -238,19 +256,37 @@ func (idx *InvertedIndex) LoadSegment(root []byte, leavesEndBlock int, readBlock
 			lastTerm = nil
 			continue
 		}
-		// A leaf block starts with its own height varint (0). An interior
-		// height here means the segment b-tree chain is structurally broken;
-		// SQLite's seek descends it and fails regardless of the queried term
-		// (fts3corrupt7 3.x: a 40000-deep interior chain).
+		// A child block starts with its own height varint. Height 0 is a
+		// leaf; height-1 is a lower interior layer descended recursively.
+		// Any other height means the segment b-tree chain is structurally
+		// broken; SQLite's seek descends it and fails regardless of the
+		// queried term (fts3corrupt7 3.x: a 40000-deep interior chain).
 		bHeight, bn := getFTS3Varint(block)
-		if bn == 0 || bHeight != 0 {
+		if bn == 0 {
+			if firstErr == nil {
+				firstErr = fmt.Errorf("corrupt segment root")
+			}
+			lastTerm = nil
+			continue
+		}
+		if bHeight == 0 {
+			lastTerm, err = idx.loadLeaf(block, bn, lastTerm)
+			if err != nil {
+				if firstErr == nil {
+					firstErr = err
+				}
+				lastTerm = nil
+			}
+			continue
+		}
+		if bHeight != height-1 {
 			if firstErr == nil {
 				firstErr = ErrSegmentStructure
 			}
 			lastTerm = nil
 			continue
 		}
-		lastTerm, err = idx.loadLeaf(block, bn, lastTerm)
+		lastTerm, err = idx.loadInterior(block, bHeight, bn, lastTerm, readBlock)
 		if err != nil {
 			if firstErr == nil {
 				firstErr = err
@@ -258,7 +294,7 @@ func (idx *InvertedIndex) LoadSegment(root []byte, leavesEndBlock int, readBlock
 			lastTerm = nil
 		}
 	}
-	return firstErr
+	return lastTerm, firstErr
 }
 
 // loadLeaf parses a leaf node's terms (delta-encoded after the first) and adds

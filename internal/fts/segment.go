@@ -231,42 +231,54 @@ func commonPrefixLen(a, b string) int {
 
 // Segment nodes, doclists, %_segdir root blobs and the %_stat hint blob all
 // use FTS3's own varint encoding (fts3.c sqlite3Fts3PutVarint/
-// sqlite3Fts3GetVarintU): LITTLE-ENDIAN base-128 — each byte carries the
-// NEXT 7 low-order bits of the value, with the high bit set on every byte
-// except the last. This is deliberately NOT the record-format varint of
-// util.GetVarint (which is big-endian); mixing the two codecs corrupts any
-// blob that crosses them.
+// sqlite3Fts3GetVarintU): LITTLE-ENDIAN base-128 — byte i carries bits
+// [7i, 7i+7) of the value, with the high bit set on every byte except the
+// last. The 9-byte form (values >= 2^56, including negative docid deltas as
+// two's-complement u64) carries bits [56, 64) — a full 8 bits — in its 9th
+// byte unconditionally (fts3.c: v64 |= (u64)p[8] << 56), matching
+// getFTS3Varint's reader. This is deliberately NOT the record-format varint
+// of util.GetVarint (which is big-endian); mixing the two codecs corrupts
+// any blob that crosses them.
 func putFTS3Varint(buf []byte, v uint64) []byte {
-	var tmp [10]byte
+	var tmp [9]byte
 	n := 0
-	for {
-		tmp[n] = byte(v & 0x7f)
+	for n < 8 {
+		tmp[n] = byte(v&0x7f) | 0x80
 		v >>= 7
 		n++
 		if v == 0 {
 			break
 		}
 	}
-	for i := 0; i < n-1; i++ {
-		tmp[i] |= 0x80
+	if n == 8 {
+		// 56 bits consumed: the 9th byte holds the low 8 bits of the
+		// remainder with no continuation semantics.
+		tmp[8] = byte(v & 0xff)
+		return append(buf, tmp[:9]...)
 	}
+	tmp[n-1] &^= 0x80
 	return append(buf, tmp[:n]...)
 }
 
 // getFTS3Varint decodes an FTS3 varint starting at buf[0], returning the
 // value and the number of bytes consumed (0 on truncation). Ported from
-// fts3.c sqlite3Fts3GetVarintU: little-endian base-128, each byte's low 7
-// bits accumulate at increasing shift; a clear high bit terminates.
+// fts3.c sqlite3Fts3GetVarintU: little-endian base-128, byte i carries bits
+// [7i, 7i+7) of the value; a clear high bit terminates. The 9th byte carries
+// bits [56, 64) — a full 8 bits — unconditionally (fts3.c: v64 |=
+// (u64)p[8] << 56), so a longer continuation run decodes as a 9-byte varint
+// with a new varint starting at the 10th byte — SQLite's reader never fails
+// on value magnitude (fts3corrupt3 1.3: a doclist of FF*12 02 00 yields no
+// rows, not "database disk image is malformed").
 func getFTS3Varint(buf []byte) (uint64, int) {
 	var v uint64
 	for n := 0; n < len(buf); n++ {
 		b := buf[n]
+		if n == 8 {
+			return v | uint64(b)<<56, 9
+		}
 		v |= uint64(b&0x7f) << (7 * uint(n))
 		if b < 0x80 {
 			return v, n + 1
-		}
-		if n == 9 {
-			break // 10 bytes without terminator: corrupt
 		}
 	}
 	return 0, 0
