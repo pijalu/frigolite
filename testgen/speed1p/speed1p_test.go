@@ -138,9 +138,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t1 VALUES($i,$r,$x)}\n  }\n")
@@ -164,9 +163,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t2 VALUES($i,$r,$x)}\n  }\n")
@@ -190,9 +188,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {lwr upr} $::list {\n    db eval  {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n")
@@ -212,9 +209,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach pattern $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE c LIKE $pattern}\n  }\n")
@@ -241,9 +237,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {lwr upr} $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n")
@@ -265,9 +260,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE rowid=$id}\n  }\n")
@@ -289,9 +283,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE a=$id}\n  }\n")
@@ -325,9 +318,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {lwr upr} $::list {\n    db eval {UPDATE t1 SET b=b*2 WHERE a>=$lwr AND a<$upr}\n  }\n")
@@ -349,9 +341,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {i r} $::list {\n    db eval {UPDATE t1 SET b=$r WHERE a=$i}\n  }\n")
@@ -374,9 +365,8 @@ func Test_speed1p(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {i x} $::list {\n    db eval {UPDATE t1 SET c=$x WHERE a=$i}\n  }\n")

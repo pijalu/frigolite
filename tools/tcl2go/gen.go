@@ -345,6 +345,16 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 		body.WriteString(fixed)
 	}
 
+	// P9.PERF.T1: rewrite write-only string accumulators (only ever
+	// appended/wholesale-assigned, never read) to strings.Builder — TCL's
+	// append is amortized O(1) while `+=` is quadratic, which dominated the
+	// speed-family packages' wall clock. Read-having vars are left
+	// untouched, so packages without write-only accumulators regenerate
+	// byte-identically.
+	amortized := amortizeStringAppends(body.String())
+	body.Reset()
+	body.WriteString(amortized)
+
 	importSrc := body.String()
 	if tp.authPreamble != nil {
 		importSrc += tp.authPreamble.String()

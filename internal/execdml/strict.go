@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/pijalu/frigolite/internal/util"
 )
@@ -120,23 +121,60 @@ func strictStorageClass(v interface{}) string {
 	}
 }
 
+// asSelectRe matches an "AS SELECT" clause with arbitrary separating
+// whitespace. Compiled once (the per-row DML paths call stripCTASSelect on
+// every inserted/updated row; recompiling per call allocated tens of KB of
+// regexp machinery per statement).
+var asSelectRe = regexp.MustCompile(`(?i)\s+AS\s+SELECT`)
+
+// stripCTASCacheSize caps the stripCTASSelect memo; table CREATE SQL texts
+// are few per database, so the cap only guards long-lived processes that
+// create unbounded TEMP tables.
+const stripCTASCacheSize = 4096
+
+// stripCTASMu guards the stripCTASSelect memo below (DML executors can run
+// on multiple connections in one process).
+var stripCTASMu sync.Mutex
+
+// stripCTASCache memoizes stripCTASSelect, a pure function of its argument.
+// The per-row constraint checks (hasStrictKeyword / hasWithoutRowidKeyword)
+// re-derive the flags from the same CREATE TABLE text on every row; SQLite
+// computes the equivalent tabFlags (TF_Strict / TF_WithoutRowid) once at
+// CREATE time on the Table object.
+var stripCTASCache = make(map[string]string)
+
 // stripCTASSelect returns the CREATE TABLE text up to (but not including) an
 // "AS SELECT" clause. Table options such as STRICT and WITHOUT ROWID only
 // appear before AS SELECT, and the closing parenthesis of the column list
 // must not be confused with parentheses inside the SELECT body.
 func stripCTASSelect(createSQL string) string {
+	stripCTASMu.Lock()
+	cached, ok := stripCTASCache[createSQL]
+	stripCTASMu.Unlock()
+	if ok {
+		return cached
+	}
 	upper := strings.ToUpper(createSQL)
 	idx := strings.Index(upper, " AS SELECT")
+	stripped := createSQL
 	if idx < 0 {
 		// Allow "AS" and "SELECT" separated by arbitrary whitespace.
-		re := regexp.MustCompile(`(?i)\s+AS\s+SELECT`)
-		loc := re.FindStringIndex(createSQL)
+		loc := asSelectRe.FindStringIndex(createSQL)
 		if loc == nil {
-			return createSQL
+			stripped = createSQL
+		} else {
+			stripped = createSQL[:loc[0]]
 		}
-		return createSQL[:loc[0]]
+	} else {
+		stripped = createSQL[:idx]
 	}
-	return createSQL[:idx]
+	stripCTASMu.Lock()
+	if len(stripCTASCache) >= stripCTASCacheSize {
+		stripCTASCache = make(map[string]string)
+	}
+	stripCTASCache[createSQL] = stripped
+	stripCTASMu.Unlock()
+	return stripped
 }
 
 // isStrictTable returns true if the table's CREATE SQL specifies STRICT.
