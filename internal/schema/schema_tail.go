@@ -12,8 +12,7 @@ import (
 )
 
 func (m *Manager) UpdateEntryFull(oldName, newName, newSQL string) error {
-	m.cacheValid = false
-	m.entriesCache = nil
+	m.invalidateForMutation()
 
 	searchName := oldName
 	if dotIdx := strings.Index(oldName, "."); dotIdx >= 0 {
@@ -73,9 +72,8 @@ func (m *Manager) RemoveEntry(name string) error {
 // with another object (e.g. a trigger and a table both named "t2"): DROP
 // TRIGGER t2 must not delete the table t2.
 func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
-	// Invalidate schema cache since the schema has changed
-	m.cacheValid = false
-	m.entriesCache = nil
+	// Schema changed: drop the entry cache and bump the schema cookie.
+	m.invalidateForMutation()
 
 	// Strip schema prefix if present (e.g. "aux.t4" -> "t4")
 	searchName := name

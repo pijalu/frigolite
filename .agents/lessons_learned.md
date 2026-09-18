@@ -104,6 +104,43 @@ consolidate stale points.
   cookie change — NOT a blind cache (the old disabled cache caused
   DDL+restore divergence).
 
+## P9.PERF.T2 discoveries (2026-09-18, fleet agent PERF2)
+
+- **Engine index b-trees are serial-type-byte ordered, NOT value ordered.**
+  compareKey on index payloads is bytes.Compare over the encoded record;
+  record headers order by serial-type magnitude (int 2 serial 1 sorts before
+  int 0 serial 8; 2-column records sort before 1-column probes by header
+  size). Cursor.SeekToKey is therefore UNUSABLE for value probes on ordinary
+  indexes (or.go's OR-optimization knew this and reproduced "index order" by
+  value-sorting table rows instead). Point-lookup candidate collection must
+  value-scan the index btree (small records, byte-prefilter on serial
+  type+body) or seek the TABLE btree by rowid.
+- **CREATE INDEX backfill wrote Go-struct dumps as index keys.**
+  execddl buildIndexValues took values from execquery row maps, whose
+  *util.ColumnValue wrappers reached EncodeRecord's default branch and were
+  stringified ("%v" -> TEXT key "&{3 73}"); execdml index encoders were fixed
+  the same way (indexStorageValues). Symptom was invisible until code READ
+  index keys; UNIQUE enforcement already unwrapped before comparing.
+- **UPDATE never maintained secondary indexes at all.** Rekeying an indexed
+  column left the OLD key entry and wrote no new one (delete_index.go was
+  only called from DELETE). Now deleteUpdateIndexEntries /
+  writeUpdateIndexEntries hook every apply path (bulk/trigger/in-place/
+  ignore-replace-fail), maintaining only indexes whose key columns,
+  expression/predicate text, or the rowid changed (update.c UXF).
+- **Schema cache keyed on the header schema cookie (offset 40) is the
+  correct replacement for the disabled blind cache** — but ONLY after DDL
+  bumps the cookie: nothing incremented SchemaCookie before (only PRAGMA
+  schema_version wrote it). schema.Manager mutations now call
+  pager.BumpSchemaCookie(); the header image participates in Snapshot/
+  Restore so a rolled-back DDL reverts the cookie and the cache key.
+  External commits drop the pager cache without re-syncing p.header, so
+  checkExternalMod must ALSO drop the entry cache. Transaction ROLLBACK
+  paths keep their full InvalidateCache (conservative, fine).
+- **Benchmark fixture is benchmark truth**: perfBenchUpdate2 measured 7.08s
+  per 2k indexed point updates; after seek collection + prefilter it is
+  2.10s (3.4x); remaining per-statement cost is the O(index) value scan —
+  structural until index btrees become value-ordered (file-format change).
+
 ## T26-SINGLES discoveries (2026-09-18)
 
 - **Stale has-triggers flag after DROP TABLE.** dropTableCascade removed the
