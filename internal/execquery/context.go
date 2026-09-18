@@ -1,8 +1,6 @@
 package execquery
 
 import (
-	"runtime/debug"
-	"os"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
@@ -455,7 +453,6 @@ func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	if e.starNoSuchTable != "" && res.Error == nil {
 		t := e.starNoSuchTable
 		e.starNoSuchTable = ""
-		if os.Getenv("DBG_NST")!="" { fmt.Fprintf(os.Stderr, "DBG_NST %s:%d\n", "internal/execquery/context.go", 450); debug.PrintStack() }
 		return &Result{Error: fmt.Errorf("no such table: %s", t)}
 	}
 	return res
