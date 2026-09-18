@@ -441,6 +441,10 @@ type scanState struct {
 	// (nil for rowid tables and legacy table-leaf WR roots). Set by
 	// execSelectScanPhase via initWROrder; decodeRowFull applies it.
 	wrOrder                []int
+	// whereExpr is the WHERE clause this scan evaluates: s.Where with
+	// index-usable LIKE/GLOB terms decorated with their synthesized prefix
+	// range (select_like_opt.go). Identical to s.Where when no term qualifies.
+	whereExpr              sql.Expr
 	useLazyDecode          bool
 	whereDecodeIndices     map[int]bool
 	remainingDecodeIndices map[int]bool
@@ -475,11 +479,19 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 	if useLazyDecode {
 		whereDecodeIndices, remainingDecodeIndices = scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
 	}
+	// LIKE-optimization range synthesis (whereexpr.c exprAnalyze): decorate
+	// index-usable LIKE/GLOB conjuncts for this scan only (s.Where itself is
+	// left untouched for EXPLAIN and other consumers).
+	whereExpr := s.Where
+	if !hasJoins && whereExpr != nil {
+		whereExpr = e.likeOptimizedScanWhere(s, colDefs, whereExpr)
+	}
 	return &scanState{
 		e:                      e,
 		s:                      s,
 		colDefs:                colDefs,
 		hasJoins:               hasJoins,
+		whereExpr:              whereExpr,
 		affinityCols:           affinityCols,
 		reuseSRow:              &StructRow{Values: make([]interface{}, len(colDefs)), Index: colIndex},
 		useLazyDecode:          useLazyDecode,
@@ -541,10 +553,10 @@ func (st *scanState) decodeRowFull(cursor *btree.Cursor, payload []byte, dataSta
 // true (pass) when there is no WHERE clause to evaluate here (joins defer WHERE
 // to later join processing).
 func (st *scanState) evalRowWhere(cursor *btree.Cursor) (bool, error) {
-	if st.hasJoins || st.s.Where == nil {
+	if st.hasJoins || st.whereExpr == nil {
 		return true, nil
 	}
-	return st.e.rowPassesWhere(st.s.Where, st.reuseSRow, cursor)
+	return st.e.rowPassesWhere(st.whereExpr, st.reuseSRow, cursor)
 }
 
 // appendRowOutput builds the output for the current row. For SELECT * it copies

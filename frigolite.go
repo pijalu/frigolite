@@ -663,6 +663,15 @@ func (db *DB) SetDefensive(enabled bool) {
 	}
 }
 
+// SetQPSG mirrors SQLITE_DBCONFIG_ENABLE_QPSG (query planner stability
+// guarantee): when enabled, the LIKE optimization does not examine
+// bound-parameter patterns (whereexpr.c isLikeOrGlob's TK_VARIABLE branch).
+func (db *DB) SetQPSG(enabled bool) {
+	if db != nil && db.engine != nil {
+		db.engine.SetQPSG(enabled)
+	}
+}
+
 // RegisterRtreeGeometry installs a harness-style r-tree geometry callback
 // under its SQL function name: "cube" and "circle" from SQLite's
 // src/test_rtree.c (the TCL procs register_cube_geom/register_circle_geom).

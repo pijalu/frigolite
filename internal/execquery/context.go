@@ -130,6 +130,15 @@ type SelectContext interface {
 	CompareValuesWithCollate(left, right interface{}) int
 	CheckCollationString(name string) error
 
+	// QPSG reports SQLITE_DBCONFIG_ENABLE_QPSG: with the guarantee active
+	// the LIKE optimization must not read bound-parameter patterns.
+	QPSG() bool
+
+	// TCLParam resolves a $name / $::name parameter against the TCL
+	// variable table (the sqlite3 TCL driver binds TCL variables as SQL
+	// parameters); see execexpr.ExprContext.TCLParam.
+	TCLParam(name string) (string, bool)
+
 	// Table access.
 	TableBTree(tableName string, schemaRoot uint32, isTable bool) *btree.BTree
 	TableBTreeForName(tableName string, schemaRoot uint32, isTable bool) *btree.BTree

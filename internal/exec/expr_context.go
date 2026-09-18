@@ -8,6 +8,7 @@ import (
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // Compile-time check that Engine implements the expression evaluation
@@ -24,6 +25,34 @@ func (e *Engine) Functions() *function.Registry {
 // evaluations should also invoke user overrides for side effects (set while
 // an opted-in OperatorOverloadCounter vtab feeds the statement).
 func (e *Engine) OverloadProbe() bool { return e.overloadProbe }
+
+// TCLParam implements ExprContext: resolves $name / $::name parameters
+// against the TCL variable table (the tclvar registry mirrors the TCL
+// interpreter's variables, exactly the values sqlite3's TCL driver binds
+// for $-parameters, tclsqlite.c). Only $-prefixed parameters resolve;
+// ?, : and @ parameters stay unbound. Array elements ($arr(key)) resolve
+// through the same registry.
+func (e *Engine) TCLParam(name string) (string, bool) {
+	if !strings.HasPrefix(name, "$") {
+		return "", false
+	}
+	full := strings.TrimPrefix(name, "$")
+	key := ""
+	if open := strings.IndexByte(full, '('); open >= 0 && strings.HasSuffix(full, ")") {
+		key = full[open+1 : len(full)-1]
+		full = full[:open]
+		if key == "" || strings.ContainsAny(full, "()") {
+			return "", false
+		}
+	}
+	// A leading TCL namespace qualifier ("::likepat") names the same
+	// variable as its bare form.
+	full = strings.TrimPrefix(full, "::")
+	if !vtab.TclVarExists(full, key) {
+		return "", false
+	}
+	return vtab.TclVarGet(full, key), true
+}
 
 // ExecSelectRows runs a SELECT statement and returns its raw result rows,
 // or an error. It is the subquery-execution capability exposed to the

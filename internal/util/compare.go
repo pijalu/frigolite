@@ -693,7 +693,11 @@ func Affinity(typeName string) rune {
 func stringCompareFn(a, b, collation string, lookup func(string) (CollationFunc, bool)) int {
 	switch strings.ToUpper(collation) {
 	case "NOCASE":
-		return strings.Compare(strings.ToUpper(a), strings.ToUpper(b))
+		// SQLite's NOCASE collation (nocaseCollatingFunc) folds via
+		// sqlite3UpperToLower: ASCII 'A'-'Z' fold DOWN to 'a'-'z', every
+		// other byte is unchanged. The fold direction matters for the
+		// bytes between 'Z' and 'a' (0x5B-0x60), which sort before 'Z'.
+		return strings.Compare(value.SQLiteAsciiToLower(a), value.SQLiteAsciiToLower(b))
 	case "RTRIM":
 		return strings.Compare(strings.TrimRight(a, " "), strings.TrimRight(b, " "))
 	default:
@@ -705,6 +709,7 @@ func stringCompareFn(a, b, collation string, lookup func(string) (CollationFunc,
 		return binaryCompare(a, b)
 	}
 }
+
 
 // binaryCompare compares strings byte-wise like SQLite's BINARY collation:
 // memcmp over the common prefix, then shorter string sorts first.

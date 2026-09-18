@@ -636,9 +636,28 @@ type BinaryOp struct {
 	// it to refuse the LIKE optimization for ESCAPE '' (SQLite: the optimizer
 	// only applies when the ESCAPE is a single character).
 	HasEscape bool
+	// LikeRange carries the LIKE-optimization range the planner synthesized
+	// for this LIKE/GLOB term (whereexpr.c exprAnalyze's virtual
+	// x>='abc' AND x<'abd' constraints). It is set only on scan-local
+	// clones of WHERE terms; a nil value means the plain match runs.
+	LikeRange *LikeRangeOpt
 }
 
 func (e *BinaryOp) expr() {}
+
+// LikeRangeOpt is the synthesized prefix range of an index-usable LIKE/GLOB
+// term plus the elision bits derived from the pattern shape (whereexpr.c
+// exprAnalyze + wherecode.c's TERM_LIKEOPT/TERM_LIKECOND handling):
+// evaluating the bounds decides the row entirely when IsComplete and the
+// comparison is not case-folded, so the like()/glob() invocation can be
+// skipped exactly the way SQLite's code generator omits it.
+type LikeRangeOpt struct {
+	Low        string // range lower bound (the pattern prefix; upper-cased when NoCase)
+	High       string // range upper bound (prefix with incremented last byte; lower-cased when NoCase)
+	Collation  string // "BINARY" or "NOCASE": collation of the synthesized comparisons
+	IsComplete bool   // pattern is exactly prefix + one trailing match-all wildcard
+	NoCase     bool   // case-insensitive LIKE (PRAGMA case_sensitive_like=off on a NOCASE index)
+}
 
 // UnaryOp represents a unary operation.
 type UnaryOp struct {
