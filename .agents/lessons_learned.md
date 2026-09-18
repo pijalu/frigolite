@@ -7126,3 +7126,72 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   change — re-run / compare standalone, and check the parent file at
   baseline standalone (func2-1.8 fails standalone at baseline but passes
   in some full-suite runs).
+
+## FULL-SUITE-DRIFT.T27-ftsflush (2026-09-18) — FTS flush model + fts4merge4 openclose grid
+- **The fts4merge4 oracle target is only reproducible at page_size 1024** (probe
+  method, validated): tester.tcl / the testfixture TCL binding default the
+  database to page_size 1024 while the sqlite3 CLI defaults to 4096. The same
+  automerge grind at 4096 converges to {2:2, 3:1, 4:1, 5:1}; at 1024 it converges
+  to the TCL-expected {1:1, 2:1, 4:1, 6:1}. ALWAYS drive oracle-vs-engine diffs
+  with `PRAGMA page_size=1024` in the CLI script (nodesize = pgsz-35 changes the
+  whole merge cadence). Shared cache is NOT a factor (fmp_nosc probe identical).
+- **The T27-automerge lesson "flushes pending terms PER STATEMENT on a REOPENED
+  connection" is WRONG as stated** — three oracle probes (3 INSERTs in BEGIN,
+  creator vs reopened) all return 1 segdir row; single-row INSERTs get no
+  statement journal (`usesStmtJournal = isMultiWrite && mayAbort`,
+  build.c:5401/5434 + vdbeaux.c:2690), so xSavepoint never fires for them.
+  Per-statement flush asymmetry does not exist. tn2=2 exists in fts4merge4 to
+  prove a REOPEN produces identical level counts — nothing more.
+- **The real reopen gap was the automerge SETTING, not the flush**:
+  fts3DoAutoincrmerge persists `automerge=N` into %_stat id=2
+  (FTS_STAT_AUTOINCRMERGE, INTEGER via SQL_REPLACE_STAT) and
+  sqlite3Fts3PendingTermsFlush restores it when unknown (0xff sentinel; 1→8;
+  absent row → 0). frigolite kept it in memory only, so every REOPENED grid flow
+  lost automerge and converged by crisis-merge alone ("0 4 1 6" in all four
+  tn2=2 assertions — identical across am values because only crisis merges
+  ran). Fixed: writeFTSAutomergeStat/readFTSAutomergeStat + restore in
+  flushFTSTable when `!known && nLeafAdd>0` (fts3.c-faithful).
+- **fts4onepass-4.0's 3-vs-2 segdir rows come from fts3PendingTermsDocid's
+  docid-restart flush, NOT xSavepoint**: an xUpdate whose docid equals the
+  previous operation's docid while the previous op was NOT its delete (i.e.
+  UPDATE #2 of the same row: iDocid==iPrevDocid && bPrevDelete==0), or whose
+  docid moves backward, flushes the pending batch BEFORE pending its own terms
+  (fts3_write.c fts3PendingTermsDocid). Oracle per-statement trace:
+  insert1=1, insert2=1 (all-NULL doc → empty pending → no row), update1=1,
+  update2=2, commit=3. Ported as FTS3Table.PendingDocidRestart (tracks
+  iPrevDocid/bPrevDelete/iPrevLangid) + mid-statement FlushFTSPendingTable
+  hooks at the xUpdate delete/insert phases (insert_exec.go, execFTSDelete,
+  updateFTSDoc). Empty-pending flushes are no-ops in C (fts3SegmentMerge bails
+  on nSegment==0), so the HasPendingOps() guard is behavior-neutral.
+- **tcl2go eval-dispatch comparison must use the RAW list element**
+  (processstringcmd.go): the runtime loop var holds the verbatim
+  tclSplitList element, so `if vn == "<raw text>"` is the only faithful
+  comparison. The old buildListStringExpr rendering evaluated [cmd]/$var
+  fragments through tclListElem, producing strings that could NEVER match
+  elements containing brackets — fts4onepass's tn=2 `eval $tcl2` COMMIT was
+  silently skipped, leaving the transaction open into section 4.0 ("cannot
+  start a transaction within a transaction" from the multi-statement Query).
+  backup.test's committed dispatch already used raw comparisons.
+- **tclBool's bare-word fallback breaks C-API probe conditions**:
+  `if tclBool("sqlite3_get_autocommit db==1")` returns true (letters → s!="0"),
+  inverting the branch. Fixed with reAutocommitCond in tclCondToGo: emit
+  `tclAutocommit(<conn>)` (new generated helper over the new public
+  DB.InTransaction(), the negation of sqlite3_get_autocommit).
+- **ftS4merge4 tn2=1 residual "0 11 1 11"-class failures were the SAME-CONNECTION
+  btree residue the T27-automerge agent queued**: reproduced cleanly with a
+  two-flow probe at page_size 1024 — flow1 is per-tx IDENTICAL to the oracle
+  100/100, flow2 (after DELETE-all) diverges at tx87 with
+  "writeOutBlock fail: UNIQUE constraint failed: t2_segments.blockid" (an
+  IsReplace insert whose delete missed — stale seek) and
+  "btree: interior rebalance did not converge (page 58481)" (btree_insert.go:494),
+  then a statement-path "database disk image is malformed". The FTS merge logic
+  is exonerated: identical level counts for 86 consecutive transactions from
+  wiped shadow tables. ROOT CAUSE is internal/btree (delete-all + heavy churn
+  breaks later rebalance/seek) — NOT the flush model. With the reopen emitted,
+  tn2=1 flows land on fresh connections and pass; the btree defect remains
+  queued for the storage owner.
+- **Scratch-probe recipe for FTS automerge work** (fast feedback vs the
+  20-minute testgen): /tmp/ftsflush_probe — PRAGMA page_size=1024, DELETE +
+  automerge=N, N transactions of BEGIN/5×INSERT(10KB doc)/COMMIT, dumping
+  `group_concat(level||':'||count)` per tx and the %_stat id=1 hint; diff
+  against the oracle CLI driven with the identical script at 1024.
