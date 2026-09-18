@@ -83,6 +83,15 @@ type Result struct {
 	SQL             string // The SQL statement that produced this result
 }
 
+// InTransaction reports whether an explicit transaction is open on the
+// connection — the negation of sqlite3_get_autocommit's return.
+func (db *DB) InTransaction() bool {
+	if db == nil || db.engine == nil {
+		return false
+	}
+	return db.engine.InTransaction()
+}
+
 // FilePath returns path associated with connection.
 func (db *DB) FilePath() string {
 	if db == nil {

@@ -585,6 +585,14 @@ func (e *DDLExecutor) execFTSDelete(tableName string, ftsTable *fts.FTS3Table, c
 		if ct := ftsTable.ContentTable(); ct != "" && !e.ctx.ContentRowExists(ct, docID) {
 			continue
 		}
+		// C's fts3PendingTermsDocid (bDelete=1) runs per deleted document: a
+		// docid that restarts the pending sequence flushes the pending batch
+		// BEFORE this document's delete terms pend (fts4onepass-4.0).
+		if ftsTable.PendingDocidRestart(docID, true, ftsTable.DocLangID(docID)) && ftsTable.HasPendingOps() {
+			if res := e.flushFTSPendingFlagged(tableName); res != nil {
+				return res
+			}
+		}
 		ftsTable.Delete(docID)
 		// Remove the document row from the %_content shadow table so SELECT
 		// FROM <name>_content reflects the deletion (fts3comp1 1.9: DELETE

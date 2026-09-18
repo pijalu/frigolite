@@ -140,6 +140,19 @@ type FTS3Table struct {
 	// unknown (0xff in SQLite), which is treated as 0 until set.
 	automerge      int
 	automergeKnown bool
+	// prevDocid/prevDocidDelete/prevLangid mirror C's Fts3Table iPrevDocid /
+	// bPrevDelete / iPrevLangid (fts3_write.c fts3PendingTermsDocid): the
+	// docid and kind of the last xUpdate operation whose terms were pended.
+	// An operation whose docid goes BACKWARD, or that re-pends a docid whose
+	// previous operation was NOT its delete, or whose language changed, must
+	// flush the pending batch FIRST — otherwise one pending segment would
+	// hold two runs of terms whose doclists interleave out of order
+	// (fts4onepass-4.0: two UPDATEs of one row in a transaction land TWO
+	// level-0 segments, not one). Zero values match C's fresh-table state;
+	// fts3DeleteAll leaves them alone in C, so Clear() does too.
+	prevDocid       int64
+	prevDocidDelete bool
+	prevLangid      int64
 	// mergeCtx tracks the incremental-merge writer state per output level
 	// (SQLite's IncrmergeWriter persisted across calls via the pre-allocated
 	// block range and the last leaf's fill; the engine tracks it in memory
@@ -360,8 +373,9 @@ func (t *FTS3Table) Automerge() (int, bool) {
 }
 
 // SetAutomerge sets the table's automerge value from the automerge= command
-// (fts3.c fts3DoAutoincrmerge: 1 or > MergeCount map to 8).
-func (t *FTS3Table) SetAutomerge(v int) {
+// (fts3.c fts3DoAutoincrmerge: 1 or > MergeCount map to 8) and returns the
+// normalized value so callers persist exactly what was set.
+func (t *FTS3Table) SetAutomerge(v int) int {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if v == 1 || v > 16 {
@@ -369,6 +383,35 @@ func (t *FTS3Table) SetAutomerge(v int) {
 	}
 	t.automerge = v
 	t.automergeKnown = true
+	return t.automerge
+}
+
+// PendingDocidRestart reports whether C's fts3PendingTermsDocid
+// (fts3_write.c) would flush the pending-terms hash before recording THIS
+// operation, and always advances the tracker: a docid moving backward, a
+// re-pend of a docid whose previous operation was not its own delete, or a
+// language change means the current pending batch would otherwise interleave
+// two runs of doclists out of docid order in one flushed segment.
+func (t *FTS3Table) PendingDocidRestart(docid int64, bDelete bool, langid int64) bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	restart := docid < t.prevDocid ||
+		(docid == t.prevDocid && !t.prevDocidDelete) ||
+		t.prevLangid != langid
+	t.prevDocid = docid
+	t.prevDocidDelete = bDelete
+	t.prevLangid = langid
+	return restart
+}
+
+// HasPendingOps reports whether any insert terms, delete docids, or delete
+// term snapshots are waiting for the next flush (the callers use it to skip
+// the docid-restart flush when the pending batch is empty — C's flush of an
+// empty pending hash is a no-op, fts3SegmentMerge bails on nSegment==0).
+func (t *FTS3Table) HasPendingOps() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return len(t.pendingDocIDs) > 0 || len(t.deletedDocIDs) > 0 || len(t.deleteMarkerTerms) > 0
 }
 
 // RootBlobBytes converts a %_segdir.root stored value ([]byte or string) into

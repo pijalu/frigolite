@@ -32,6 +32,24 @@ func (e *Engine) FlushFTSSegments() *Result {
 	return e.ddl.FlushFTSSegments()
 }
 
+// FlushFTSPendingTable flushes ONE FTS table's pending-terms batch (SQLite's
+// sqlite3Fts3PendingTermsFlush for that Fts3Table). The shadow writes are
+// part of the enclosing statement's rollback scope, so they run under the
+// FTS-flush flag like the COMMIT-time flush (fts4onepass-4.0).
+func (e *Engine) FlushFTSPendingTable(tableName string) *Result {
+	was := e.tx.inFTSFlush
+	e.tx.inFTSFlush = true
+	res := e.ddl.FlushFTSPendingTable(tableName)
+	e.tx.inFTSFlush = was
+	return res
+}
+
+// WriteFTSAutomergeStat persists the auto-incr-merge setting as the %_stat
+// id=2 INTEGER row (fts3_write.c fts3DoAutoincrmerge's SQL_REPLACE_STAT).
+func (e *Engine) WriteFTSAutomergeStat(tableName string, v int) {
+	e.ddl.WriteFTSAutomergeStat(tableName, v)
+}
+
 // ValidateFTSSegments checks an FTS table's %_segdir roots for corruption.
 func (e *Engine) ValidateFTSSegments(tableName string, checkBlocks bool) *Result {
 	return e.ddl.ValidateFTSSegments(tableName, checkBlocks)

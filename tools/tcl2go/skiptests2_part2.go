@@ -618,16 +618,6 @@ var skipTestsMoreTail = map[string]string{
 	// separately.
 	"fts3fuzz001-220": "post-merge integrity_check N-A: block layout now matches the nodesize=24 oracle; the guard-blocked release-leaf layout C tolerates is flagged by the engine's stricter segment check (no-side-effects)",
 
-	// fts4onepass-4.0: two UPDATEs inside one BEGIN count 3 %_segdir rows in
-	// the oracle — FTS4's xSavepoint (sqlite3 opens a statement savepoint at
-	// each statement start inside a transaction) flushes the pending-terms
-	// hash per statement, so each UPDATE lands its own level-0 segment. The
-	// engine flushes FTS pending terms at COMMIT only (one segment for both
-	// UPDATEs, 2 rows). Porting the per-statement savepoint flush touches
-	// the transaction rollback/savepoint interplay for every FTS-in-tx
-	// suite — queued with the FTS flush-model work.
-	"fts4onepass-4.0": "segdir count after in-transaction UPDATEs N-A: C flushes pending terms per statement via xSavepoint; engine flushes at COMMIT (2 vs 3 rows) (no-side-effects)",
-
 	// fts4content-13.2.x: the TCL source registers a TCL-implemented vtab
 	// module (`register_tcl_module db xyz` — not transpiled, the module body
 	// is TCL proc code) and then creates/queries `aa USING tcl(vtab_command)`.

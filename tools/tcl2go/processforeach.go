@@ -59,15 +59,29 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		return
 	}
 
-	// Record literal braced-list values for single-variable foreach loops so a
-	// later `eval $var` can inline each script's commands (backup.test's
-	// foreach zOpenScript { ... } { eval $zOpenScript } pattern).
-	if len(varNames) == 1 {
-		if vals := literalForeachList(rawList); len(vals) > 0 {
-			if tp.foreachLitValues == nil {
-				tp.foreachLitValues = make(map[string][]string)
+	// Record literal list values for foreach loop variables so a later
+	// `eval $var` can inline each script's commands (backup.test's
+	// foreach zOpenScript { ... } { eval $zOpenScript } pattern; fts4merge4's
+	// `foreach {tn2 openclose} {1 {} 2 { db close ; sqlite3 db test.db }}`
+	// grid). For a K-variable foreach over N literal values, variable i takes
+	// the elements at indexes i, i+K, i+2K, ... (TCL's round-robin
+	// assignment).
+	if vals := literalForeachList(rawList); len(vals) > 0 && len(varNames) >= 1 && len(varNames) <= len(vals) {
+		dynamic := listExpr != strconv.Quote(rawList)
+		if tp.foreachLitValues == nil {
+			tp.foreachLitValues = make(map[string][]foreachLitValue)
+		}
+		for i, vn := range varNames {
+			var mine []foreachLitValue
+			for j := i; j < len(vals); j += len(varNames) {
+				raw := stripOuterBraces(vals[j])
+				cmp := strconv.Quote(raw)
+				if dynamic {
+					cmp = tp.buildListStringExpr(raw)
+				}
+				mine = append(mine, foreachLitValue{raw: raw, cmpExpr: cmp})
 			}
-			tp.foreachLitValues[varNames[0]] = vals
+			tp.foreachLitValues[vn] = mine
 		}
 	}
 	// splitExpr, when non-empty, replaces the tclSplitList(listExpr) iteration
@@ -317,6 +331,16 @@ func splitListExpr(rawList string) string {
 		sep = fmt.Sprintf("%q", strings.Trim(fields[1], `"`))
 	}
 	return fmt.Sprintf("strings.Split(%s, %s)", goVar, sep)
+}
+
+// foreachLitValue is one recorded element of a literal foreach list: raw is
+// the element's verbatim text (for parseCommands), cmpExpr is the Go string
+// expression whose runtime value equals the loop variable's value for that
+// iteration (raw %q for static braced lists; the expanded buildListStringExpr
+// rendering for lists built with $var/[cmd] substitution).
+type foreachLitValue struct {
+	raw     string
+	cmpExpr string
 }
 
 // emitBreakUnpack handles `foreach {v1 v2 ...} $list break` — unpack the first

@@ -57,7 +57,7 @@ type transpiler struct {
 	prefixFuncs         map[string]string       // `proc NAME {args} { return "P: $args" }`: NAME prepends a fixed prefix to its args
 	rangeListFuncs      map[string]string       // `proc NAME {} { set L [list]; for ... lappend ... }`: NAME returns a generated list
 	varConstValues      map[string]string       // TCL var name → last simple string value (set var "lit")
-	foreachLitValues    map[string][]string     // foreach var name → literal braced list values (eval $var inlining)
+	foreachLitValues    map[string][]foreachLitValue // foreach var name → literal list elements (eval $var inlining)
 	intarrayEvalVars    map[string]bool         // TCL var built as an `sqlite3_intarray_bind` script (eval $var → runtime)
 	dbConnVars          map[string]bool         // Go var names that are *frigolite.DB connections (opened via sqlite3)
 	connPredeclared     map[string]bool         // Go var names pre-declared as *frigolite.DB in the preamble (sqlite3 NAME)

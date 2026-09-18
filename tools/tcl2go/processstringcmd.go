@@ -403,10 +403,19 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 				if i > 0 {
 					kw = "} else if"
 				}
-				tp.emitLine("%s %s == %s {", kw, vn, tp.buildListStringExpr(stripOuterBraces(v)))
+				// The comparison reproduces the loop variable's RUNTIME value:
+				// raw text for verbatim braced-list elements, the expanded
+				// buildListStringExpr rendering for substituted lists. Using
+				// the wrong form never matches (fts4onepass-4.0: the
+				// [sqlite3_get_autocommit db] script's case never matched,
+				// silently skipping the COMMIT and leaving the transaction
+				// open for the next section; backup.test needs the expanded
+				// form because its [list {...$zSrcFile...}] is emitted as a
+				// runtime tclListElem concatenation).
+				tp.emitLine("%s %s == %s {", kw, vn, v.cmpExpr)
 				tp.indent++
-				bodyCmds := parseCommands(stripOuterBraces(v))
-				bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, inEvalScript: true}
+				bodyCmds := parseCommands(v.raw)
+				bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, inEvalScript: true, catchMode: tp.catchMode, dbClosed: tp.dbClosed, connClosed: tp.connClosed, pendingFileReset: tp.pendingFileReset, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases}
 				bodyTP.processCommands(bodyCmds)
 				tp.indent = bodyTP.indent
 				tp.vars = bodyTP.vars
@@ -417,6 +426,11 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 				tp.dbConnVars = bodyTP.dbConnVars
 				tp.runtimeConnVars = bodyTP.runtimeConnVars
 				tp.varRenames = bodyTP.varRenames
+				tp.dbClosed = bodyTP.dbClosed
+				tp.connClosed = bodyTP.connClosed
+				tp.pendingFileReset = bodyTP.pendingFileReset
+				tp.dqsDDL = bodyTP.dqsDDL
+				tp.dqsDML = bodyTP.dqsDML
 				tp.indent--
 			}
 			tp.emitLine("}")

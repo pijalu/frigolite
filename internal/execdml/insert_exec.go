@@ -452,7 +452,22 @@ func (e *DMLExecutor) insertFTSRow(tableEntry *schema.Entry, values []interface{
 	}
 	if fixedRowID != nil {
 		if ftsTable.HasDoc(*fixedRowID) {
+			// OR REPLACE's xUpdate delete phase: C's fts3PendingTermsDocid
+			// (bDelete=1) flushes on a docid-restart (fts3conf 4.x).
+			if ftsTable.PendingDocidRestart(*fixedRowID, true, langID) && ftsTable.HasPendingOps() {
+				if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
+					return res
+				}
+			}
 			ftsTable.Delete(*fixedRowID)
+		}
+		// Insert phase (bDelete=0): a docid moving backward, or repeating
+		// the previous insert's docid, restarts the pending batch
+		// (fts4onepass-4.0).
+		if ftsTable.PendingDocidRestart(*fixedRowID, false, langID) && ftsTable.HasPendingOps() {
+			if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
+				return res
+			}
 		}
 		if langCol := ftsTable.LangIDColName(); langCol != "" {
 			ftsTable.InsertWithIDLangID(*fixedRowID, ftsValues, langID)
@@ -469,6 +484,14 @@ func (e *DMLExecutor) insertFTSRow(tableEntry *schema.Entry, values []interface{
 		if ct := ftsTable.ContentTable(); ct != "" {
 			if !e.ctx.ContentRowExists(ct, ftsTable.NextDocID()) {
 				return &Result{Error: fmt.Errorf("constraint failed")}
+			}
+		}
+		// fts3PendingTermsDocid runs for auto docids too: a DELETE-all in
+		// the tx drops the next docid below iPrevDocid (the restart flush
+		// fires, usually on an empty pending batch — a no-op).
+		if r := ftsTable.PendingDocidRestart(ftsTable.NextDocID(), false, langID); r && ftsTable.HasPendingOps() {
+			if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
+				return res
 			}
 		}
 		if langCol := ftsTable.LangIDColName(); langCol != "" {
@@ -797,13 +820,16 @@ func (e *DMLExecutor) handleFTSCommand(tableName, s string) (bool, *Result) {
 		// stored in the %_stat id=2 row). It does not add a document.
 		// SQLite's fts3SpecialInsert writes the %_stat row through the shadow
 		// btree, so a corrupt shadow table fails the command with "database
-		// disk image is malformed" (fts3corrupt4 24.7).
+		// disk image is malformed" (fts3corrupt4 24.7). The %_stat row makes
+		// the setting survive a close/reopen: a flushed-after-reopen
+		// connection whose setting is still unknown reads id=2 back
+		// (fts3_write.c sqlite3Fts3PendingTermsFlush — fts4merge4 2.2 tn2=2).
 		if res := e.ctx.ValidateFTSShadowRoots(tableName); res != nil {
 			return true, res
 		}
 		v, _ := ftsGetint(s[len("automerge="):])
 		if t, ok := e.ctx.FTSTables()[tableName]; ok {
-			t.SetAutomerge(v)
+			e.ctx.WriteFTSAutomergeStat(tableName, t.SetAutomerge(v))
 		}
 		return true, nil
 	case s == "":

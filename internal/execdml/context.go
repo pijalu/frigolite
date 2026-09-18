@@ -157,6 +157,16 @@ type DMLContext interface {
 	ExecFTSUpdate(tableName string, ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef, s *sql.UpdateStmt) *Result
 	ValidateFTSSegments(tableName string, checkBlocks bool) *Result
 	ValidateFTSShadowRoots(tableName string) *Result
+	// FlushFTSPendingTable flushes ONE FTS table's pending-terms batch
+	// (SQLite's sqlite3Fts3PendingTermsFlush for that Fts3Table). The INSERT
+	// path calls it when the fts3PendingTermsDocid rule fires (a docid going
+	// backward, or an explicit docid re-pended after an insert of the same
+	// docid, must start a fresh pending batch — fts4onepass-4.0 semantics).
+	FlushFTSPendingTable(tableName string) *Result
+	// WriteFTSAutomergeStat persists the auto-incr-merge setting as the
+	// %_stat id=2 INTEGER row (fts3_write.c fts3DoAutoincrmerge's
+	// SQL_REPLACE_STAT) so it survives a close/reopen.
+	WriteFTSAutomergeStat(tableName string, v int)
 	// WriteFTSStat refreshes the FTS4 %_stat doctotal row from the live
 	// index (fts3.c fts3UpdateDocTotals runs inside xUpdate, so REPLACE and
 	// other xUpdate inserts keep matchinfo's 'n'/'a' current).

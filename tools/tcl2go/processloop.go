@@ -17,6 +17,11 @@ import (
 var reInfoExistsDyn = regexp.MustCompile(`\[info exists ([A-Za-z_][A-Za-z0-9_]*)\((\$[A-Za-z0-9_]+)\)\]`)
 var reIncrMod = regexp.MustCompile(`^\[incr\s+(\w+)\](?:\s*%\s*(\d+))?$`)
 
+// reAutocommitCond matches a [sqlite3_get_autocommit CONN] comparison against
+// a numeric literal (fts4onepass-4.0's eval'd
+// "if {[sqlite3_get_autocommit db]==1} { error ... }" rollback probe).
+var reAutocommitCond = regexp.MustCompile(`\[sqlite3_get_autocommit\s+(\w+)\]\s*(==|!=)\s*(\d+)`)
+
 // (imports managed by goimports)
 
 // emitContinue emits a Go continue statement. In TCL, `continue` inside a
@@ -630,6 +635,24 @@ func (tp *transpiler) tclCondToGo(cond string) string {
 			keyExpr := tclVarToGo(strings.TrimPrefix(m[2], "$"))
 			return fmt.Sprintf("%s[%s] != \"\"", mapVar, keyExpr)
 		}
+	}
+
+	// [sqlite3_get_autocommit CONN] == N — the connection's autocommit flag
+	// compared against a constant. Emit the runtime mirror (DB.InTransaction,
+	// the negation of the C flag) instead of the generic tclBool fallback,
+	// which treats the bare-word text as true and inverts the branch.
+	if m := reAutocommitCond.FindStringSubmatch(cond); m != nil {
+		connGo := tclVarToGo(m[1])
+		if !isValidGoIdent(connGo) {
+			connGo = tp.dbVar
+		}
+		autocommit := fmt.Sprintf("tclAutocommit(%s)", connGo)
+		isEq := m[2] == "=="
+		wantsOne := m[3] == "1"
+		if isEq == wantsOne {
+			return autocommit
+		}
+		return "!" + autocommit
 	}
 
 	// For conditions with comparison operators, generate a proper Go boolean expression.

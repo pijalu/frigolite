@@ -28,6 +28,12 @@ func tclBool01(b bool) string {
 	return "0"
 }
 
+// tclAutocommit mirrors sqlite3_get_autocommit(db): true when the connection
+// is in autocommit mode (no transaction is open).
+func tclAutocommit(db *frigolite.DB) bool {
+	return !db.InTransaction()
+}
+
 // tclDbStatus renders a sqlite3_db_status result as the TCL list
 // "{current highwater 0}" (reset flag cleared).
 func tclDbStatus(db *frigolite.DB, name string) string {

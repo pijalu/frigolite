@@ -498,6 +498,13 @@ func (e *Engine) InFTSFlush() bool {
 	return e.tx.inFTSFlush
 }
 
+// SetFTSFlush enters or leaves the FTS-flush scope explicitly (the DDL
+// executor's mid-statement pending flushes — the fts3PendingTermsDocid
+// docid-restart hook — run under the same flag as the COMMIT-time flush).
+func (e *Engine) SetFTSFlush(v bool) {
+	e.tx.inFTSFlush = v
+}
+
 // SetTriggersSuppressed turns trigger firing on or off for DML executed
 // through this engine (see the triggersSuppressed field comment).
 func (e *Engine) SetTriggersSuppressed(v bool) {

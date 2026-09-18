@@ -49,6 +49,12 @@ type DDLContext interface {
 	WritableSchema() bool
 	ForeignKeys() bool
 	InTransaction() bool
+	// InFTSFlush/SetFTSFlush scope the engine's FTS-flush flag around a
+	// mid-statement pending flush (fts3PendingTermsDocid docid-restart):
+	// the flush's shadow writes are part of the enclosing statement's
+	// rollback scope.
+	InFTSFlush() bool
+	SetFTSFlush(v bool)
 	DQSAllowDDL() bool
 	DQSAllowDML() bool
 	IgnoreCheckConstraints() bool

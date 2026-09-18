@@ -662,7 +662,28 @@ func (e *DDLExecutor) updateFTSDoc(tableName string, ftsTable *fts.FTS3Table, co
 	// the pending insert persists them at the next flush (the delete marker
 	// removes the stale persisted segment terms — fts4onepass 3.x integrity
 	// after UPDATE SET content=... must see only the new terms).
+	//
+	// The xUpdate DELETE phase first runs fts3PendingTermsDocid (bDelete=1,
+	// old langid): when the pending sequence restarts here the pending batch
+	// flushes BEFORE this document's delete terms pend — an UPDATE whose
+	// docid equals the previous operation's docid (update #2 of the same row
+	// inside one transaction, fts4onepass-4.0: the oracle counts one segdir
+	// row per UPDATE, not one for the whole COMMIT).
+	if ftsTable.PendingDocidRestart(docID, true, ftsTable.DocLangID(docID)) && ftsTable.HasPendingOps() {
+		if res := e.flushFTSPendingFlagged(tableName); res != nil {
+			return res
+		}
+	}
 	ftsTable.Delete(docID)
+	// The xUpdate INSERT phase runs fts3PendingTermsDocid (bDelete=0, new
+	// langid): re-pending the SAME docid right after its delete is NOT a
+	// restart (bPrevDelete=1), but a docid moving below the sequence or a
+	// language change flushes before the new terms pend.
+	if ftsTable.PendingDocidRestart(newRowID, false, newLangID) && ftsTable.HasPendingOps() {
+		if res := e.flushFTSPendingFlagged(tableName); res != nil {
+			return res
+		}
+	}
 	if lc := ftsTable.LangIDColName(); lc != "" {
 		// A languageid table re-pends the terms under the NEW language id
 		// (the segment writer stores them in the new language's index).
