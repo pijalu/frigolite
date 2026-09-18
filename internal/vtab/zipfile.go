@@ -888,10 +888,18 @@ func zipFinalizeEntry(name string, mode uint32, mtime int64, method uint16, data
 	if isDirMode != bIsDir {
 		return zipEntry{}, fmt.Errorf("zipfile: mode does not match data")
 	}
-	if bIsDir && !strings.HasSuffix(name, "/") {
-		name += "/"
-	}
 	if bIsDir {
+		// zipfile.c zipfileStep: "If this is a directory entry, ensure
+		// that there is exactly one '/' at the end of the path." A name
+		// without one gains it; duplicate trailing slashes collapse
+		// ("dir3//" stores as "dir3/"), keeping a bare "/" intact.
+		if !strings.HasSuffix(name, "/") {
+			name += "/"
+		} else {
+			for len(name) > 1 && name[len(name)-2] == '/' {
+				name = name[:len(name)-1]
+			}
+		}
 		data = nil
 	}
 	return newZipEntry(name, mode, mtime, method, data), nil

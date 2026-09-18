@@ -590,9 +590,8 @@ func Test_orderby1(t *testing.T) {
 			// incr res a
 			{
 				_n, _err := strconv.Atoi(res)
-				if _err == nil {
-					res = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(a); return _v }())
-				}
+				if _err != nil { _n = 0 }
+				res = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(a); return _v }())
 			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }

@@ -302,6 +302,36 @@ var tcl_fp_digits = 15
 
 // tclRenderCell converts a single query-result cell to its TCL string
 // rendering, honoring the nullvalue setting and SQLite's REAL formatting.
+// tclQuoteListElem renders one cell's text as a TCL list element. Text
+// containing braces is quoted with one bracing level — TCL's element
+// rendering wraps special-character content, so the JSON object {"b":9}
+// displays as {{"b":9}} (json102-1600, json501-1.x). Mirrors the fixed
+// tcl2go helpers template.
+func tclQuoteListElem(x string) string {
+	if !strings.ContainsAny(x, "{}") || strings.ContainsAny(x, "\n") || !tclBracesBalanced(x) {
+		return x
+	}
+	return "{" + x + "}"
+}
+
+// tclBracesBalanced reports whether s's braces are balanced (every { is
+// closed by a }, never closing below depth 0).
+func tclBracesBalanced(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth < 0 {
+				return false
+			}
+		}
+	}
+	return depth == 0
+}
+
 func tclRenderCell(v interface{}) string {
 	if v == nil {
 		// A NULL renders as the nullvalue string; when that is empty, TCL's
@@ -359,7 +389,7 @@ func tclRenderCell(v interface{}) string {
 		if x == "" {
 			return "{}"
 		}
-		return x
+		return tclQuoteListElem(x)
 	case []byte:
 		// TCL renders a zero-length blob as {} (the empty list element),
 		// same as an empty string / NULL cell.
@@ -368,7 +398,11 @@ func tclRenderCell(v interface{}) string {
 		}
 		return string(x)
 	default:
-		return fmt.Sprint(x)
+		d := fmt.Sprint(x)
+		if d == "" {
+			return "{}"
+		}
+		return tclQuoteListElem(d)
 	}
 }
 

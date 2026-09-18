@@ -176,6 +176,19 @@ type Engine struct {
 	fts5Snapshots []fts5Snap
 	// settings groups the PRAGMA/config flags and limits.
 	settings engineSettings
+	// schemaParseOK memoizes whether a stored sqlite_schema SQL text parses
+	// (validateLoadedSchema). The text of a row uniquely determines parse
+	// validity, so entries are never invalidated (per connection).
+	schemaParseOK map[string]error
+	// schemaParseMu guards schemaParseOK (preflight can run concurrently
+	// for statements on shared connections).
+	schemaParseMu sync.Mutex
+	// schemaValidated records the (schema cookie, page count) fingerprint
+	// each database context last passed validateLoadedSchema at: SQLite
+	// validates rows once per schema LOAD (cookie change / reopen), and
+	// writable_schema row edits must not trip per-statement re-checks
+	// (misc4-7.1 keeps serving a stale in-memory schema).
+	schemaValidated map[*DatabaseContext]uint64
 	// caches groups the per-table and statement caches.
 	caches tableCaches
 	// lockingMode tracks this connection's file-locking model as set by
@@ -404,6 +417,7 @@ type txState struct {
 	// outer statement's rollback does not cover, so they skip the O(pages)
 	// pager snapshot entirely — the dominant cost of per-row FTS builds.
 	inFTSFlush bool
+	internalWrites int
 }
 
 // progressState holds the progress-handler state (db progress N fn).

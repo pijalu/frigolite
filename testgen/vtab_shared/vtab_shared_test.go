@@ -131,20 +131,17 @@ func Test_vtab_shared(t *testing.T) {
 		dbClose := _items0[_idx0+2]
 		_ = dbClose // suppress unused warning
 		_ = _idx0
-			{ // do_test "vtab_shared-1.9." + iTest
-				res = ""
-				_ = res // suppress unused warning
-				// $dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappe...... (unsupported command, not transpiled)
-				// sqlite3 $dbClose test.db (dynamic connection name)
-				_dbtmp1, err := frigolite.Open("test.db")
-				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp1
-				db.RegisterEchoModule()
-				got := tclListFlatten(res)
-				want := tclListFlatten("1 2 3 4 5 6")
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "vtab_shared-1.9." + iTest)
-				}
+			{ // do_test "vtab_shared-1.9." + iTest — skipped: shared-cache cross-connection schema reset not supported
+				// The test closes one shared-cache connection mid-scan of an
+				// echo vtab opened by the other ($dbSelect eval callback with
+				// dynamic connection names). The eval body is not transpilable
+				// without shared-cache schema-reset semantics, so the emitted
+				// assertion could never observe `res` — this block is listed
+				// in tcl2go skiptests2 as vtab_shared-1.9.1/2/3; the dynamic
+				// test name ("vtab_shared-1.9.$iTest") only missed the
+				// transpile-time skip lookup. SQL side effects preserved.
+				_res = db.Exec(" SELECT * FROM t1 ")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 		}
 		{ // "vtab_shared-1.10" — skipped: shared-cache DROP-lock propagation not supported (SQL side effects only)

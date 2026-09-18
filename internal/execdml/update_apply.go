@@ -375,7 +375,18 @@ func (e *DMLExecutor) mergeTriggerModifiedRow(tableName string, rootPage uint32,
 	if err != nil {
 		return nil, err
 	}
-	current, found := readCurrentRowValues(cursor, ch.rowID)
+	var current []interface{}
+	var found bool
+	if tableEntry, _, ferr := e.ctx.FindTable(tableName); ferr == nil && tableEntry != nil &&
+		hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		// WITHOUT ROWID rows share the synthetic rowid 0 and are stored
+		// PK-first: match by OLD PK key and decode to declared order so the
+		// SET overlay below (and writeUpdateCell's declared→storage reorder)
+		// see declared slots.
+		current, found = e.readCurrentRowValuesWR(cursor, tableEntry, colDefs, ch.oldValues)
+	} else {
+		current, found = readCurrentRowValues(cursor, ch.rowID)
+	}
 	if !found {
 		// The row vanished during trigger execution (a BEFORE trigger deleted
 		// it); the caller skips the write when rowExists reports false, so this
@@ -389,6 +400,31 @@ func (e *DMLExecutor) mergeTriggerModifiedRow(tableName string, rootPage uint32,
 		return ch.values, nil
 	}
 	return e.overlaySetColumns(current, colDefs, ch), nil
+}
+
+// readCurrentRowValuesWR scans a WITHOUT ROWID table for the row holding the
+// change's OLD primary key and returns its current values in declared column
+// order. Every index-leaf cell carries the synthetic rowid 0, so rowid
+// equality would return the first cell regardless of identity.
+func (e *DMLExecutor) readCurrentRowValuesWR(cursor *btree.Cursor, tableEntry *schema.Entry, colDefs []sql.ColumnDef, oldValues []interface{}) ([]interface{}, bool) {
+	for {
+		cell, rerr := cursor.ReadCell()
+		if rerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+		if declaredPKMatches(rec.Values, tableEntry, oldValues, colDefs) {
+			return rec.Values, true
+		}
+		if cursorExhausted(cursor) {
+			break
+		}
+	}
+	return nil, false
 }
 
 // updateRowTree builds the btree for the table being updated, using the

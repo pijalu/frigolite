@@ -263,6 +263,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"sqlite3_errcode": func(tp *transpiler, cmdName, cmdText string, args []string) string {
 			return cmdExprErrcode(tp, cmdName, cmdText, args)
 		},
+		"sqlite3_set_errmsg": sqlite3SetErrmsgExpr,
 		"sqlite3_bind_int":    sqlite3BindExpr,
 		"sqlite3_bind_int64":  sqlite3BindExpr,
 		"sqlite3_bind_text":   sqlite3BindExpr,

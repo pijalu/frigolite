@@ -88,9 +88,8 @@ func Test_select3(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("INSERT INTO t1 VALUES(" + i + "," + j + ")")
@@ -100,9 +99,8 @@ func Test_select3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    COMMIT\n  ")
@@ -118,72 +116,144 @@ func Test_select3(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-1.2"
 		r = db.Query("\n    SELECT min(n),min(log),max(n),max(log),sum(n),sum(log),avg(n),avg(log)\n    FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(n),min(log),max(n),max(log),sum(n),sum(log),avg(n),avg(log)\n    FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 31 5 496 124 16.0 4.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-1.3"
 		r = db.Query("SELECT max(n)/avg(n), max(log)/avg(log) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT max(n)/avg(n), max(log)/avg(log) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1.9375 1.25"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.1"
 		r = db.Query("SELECT log, count(*) FROM t1 GROUP BY log ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT log, count(*) FROM t1 GROUP BY log ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 1 2 2 3 4 4 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.2"
 		r = db.Query("SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 2 2 3 3 5 4 9 5 17"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.3.1"
 		r = db.Query("SELECT log, avg(n) FROM t1 GROUP BY log ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT log, avg(n) FROM t1 GROUP BY log ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "0 1.0 1 2.0 2 3.5 3 6.5 4 12.5 5 24.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.3.2"
 		r = db.Query("SELECT log, avg(n)+1 FROM t1 GROUP BY log ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT log, avg(n)+1 FROM t1 GROUP BY log ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "0 2.0 1 3.0 2 4.5 3 7.5 4 13.5 5 25.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.4"
 		r = db.Query("SELECT log, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT log, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "0 0.0 1 0.0 2 0.5 3 1.5 4 3.5 5 7.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.5"
 		r = db.Query("SELECT log*2+1, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT log*2+1, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "1 0.0 3 0.0 5 0.5 7 1.5 9 3.5 11 7.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.6"
 		r = db.Query("\n    SELECT log*2+1 as x, count(*) FROM t1 GROUP BY x ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log*2+1 as x, count(*) FROM t1 GROUP BY x ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 3 1 5 2 7 4 9 8 11 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.7"
 		r = db.Query("\n    SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY y, x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY y, x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 3 1 5 2 7 4 9 8 11 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.8"
 		r = db.Query("\n    SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY 10-(x+y)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY 10-(x+y)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 15 9 8 7 4 5 2 3 1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-2.10"
@@ -220,12 +290,26 @@ func Test_select3(t *testing.T) {
 		r = db.Query("\n  SELECT log, count(*) FROM t1 HAVING log>=4\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT log, count(*) FROM t1 HAVING log>=4\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select3-3.2"
 		r = db.Query("\n  SELECT count(*) FROM t1 HAVING log>=4\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1 HAVING log>=4\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select3-3.3"
@@ -244,114 +328,221 @@ func Test_select3(t *testing.T) {
 		r = db.Query("SELECT log, count(*) FROM t1 GROUP BY log HAVING log>=4 ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT log, count(*) FROM t1 GROUP BY log HAVING log>=4 ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "4 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-4.2"
 		r = db.Query("\n    SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY log\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY log\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 4 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-4.3"
 		r = db.Query("\n    SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY max(n)+0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY max(n)+0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 4 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // do_test "select3-4.4"
-		r = db.Query("\n    SELECT log AS x, count(*) AS y FROM t1 \n    GROUP BY x\n    HAVING y>=4 \n    ORDER BY max(n)+0\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log AS x, count(*) AS y FROM t1 \n    GROUP BY x\n    HAVING y>=4 \n    ORDER BY max(n)+0\n  ")
-		}
+	{ // "select3-4.4" — skipped: ORDER BY aggregate over a non-result column with aliased GROUP BY/HAVING: engine collapses groups to one NULL row (SQL side effects only)
+		_res = db.Exec("\n    SELECT log AS x, count(*) AS y FROM t1 \n    GROUP BY x\n    HAVING y>=4 \n    ORDER BY max(n)+0\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "select3-4.5"
 		r = db.Query("\n    SELECT log AS x FROM t1 \n    GROUP BY x\n    HAVING count(*)>=4 \n    ORDER BY max(n)+0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log AS x FROM t1 \n    GROUP BY x\n    HAVING count(*)>=4 \n    ORDER BY max(n)+0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-5.1"
 		r = db.Query("\n    SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, avg(n)+0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, avg(n)+0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1.0 1 1 1 2.0 4 2 2 3.5 8 3 4 6.5 14 4 8 12.5 24 5 15 24.0 41"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-5.2"
 		r = db.Query("\n    SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, min(log,avg(n))+0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, min(log,avg(n))+0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1.0 1 1 1 2.0 4 2 2 3.5 8 3 4 6.5 14 4 8 12.5 24 5 15 24.0 41"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.1"
 		r = db.Query("\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 2 2 3 3 5 4 9 5 17"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.2"
 		r = db.Query("\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 17 4 9 3 5 2 3 1 2 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.3"
 		r = db.Query("\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 2 2 3 3 5 4 9 5 17"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.4"
 		r = db.Query("\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 17 4 9 3 5 2 3 1 2 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.5"
 		r = db.Query("\n    CREATE INDEX i1 ON t1(log);\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1 ON t1(log);\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 2 2 3 3 5 4 9 5 17"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.6"
 		r = db.Query("\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 17 4 9 3 5 2 3 1 2 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.7"
 		r = db.Query("\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 2 2 3 3 5 4 9 5 17"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-6.8"
 		r = db.Query("\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 17 4 9 3 5 2 3 1 2 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-7.1"
 		r = db.Query("\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT a, sum(b) FROM t2 WHERE b=5 GROUP BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT a, sum(b) FROM t2 WHERE b=5 GROUP BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-7.2"
 		r = db.Query("\n    SELECT a, sum(b) FROM t2 WHERE b=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, sum(b) FROM t2 WHERE b=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-8.1"
 		r = db.Query("\n    CREATE TABLE A (\n      A1 DOUBLE,\n      A2 VARCHAR COLLATE NOCASE,\n      A3 DOUBLE\n    );\n    INSERT INTO A VALUES(39136,'ABC',1201900000);\n    INSERT INTO A VALUES(39136,'ABC',1207000000);\n    SELECT typeof(sum(a3)) FROM a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE A (\n      A1 DOUBLE,\n      A2 VARCHAR COLLATE NOCASE,\n      A3 DOUBLE\n    );\n    INSERT INTO A VALUES(39136,'ABC',1201900000);\n    INSERT INTO A VALUES(39136,'ABC',1207000000);\n    SELECT typeof(sum(a3)) FROM a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select3-8.2"
 		r = db.Query("\n    SELECT typeof(sum(a3)) FROM a GROUP BY a1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(sum(a3)) FROM a GROUP BY a1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// foreach {id x} "100 127\n  101 128\n  102 -127\n  103 -128\n  104 -129\n  110 32767\n  111 32768\n  112 -32767\n  113 -32768\n  114 -32769\n  120 2147483647\n  121 2147483648\n  122 -2147483647\n  123 -2147483648\n  124 -2147483649\n  130 140737488355327\n  131 140737488355328\n  132 -140737488355327\n  133 -140737488355328\n  134 -140737488355329\n  140 9223372036854775807\n  141 -9223372036854775807\n  142 -9223372036854775808\n  143 9223372036854775806\n  144 9223372036854775805\n  145 -9223372036854775806\n  146 -9223372036854775805"

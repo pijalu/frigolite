@@ -59,6 +59,57 @@ in goal handovers / plan notes, not here. Review and summarize this file at
 the start of each goal session to limit context impact; remove or
 consolidate stale points.
 
+## T26-SINGLES discoveries (2026-09-18)
+
+- **Stale has-triggers flag after DROP TABLE.** dropTableCascade removed the
+  table's triggers but not the cached has-triggers flag, routing later DML on
+  a recreated same-name trigger-less table through applyUpdateWithTriggers,
+  whose post-trigger row re-read (readCurrentRowValues) matches WITHOUT ROWID
+  rows by synthetic rowid 0 (first cell!) and merges SET columns over raw
+  PK-first storage values - corrupting rows and phantom-failing statement-end
+  FK checks. Fixed both ends: cache reset on DROP, and a WR-aware re-read
+  (readCurrentRowValuesWR: OLD-PK match + declared-order decode).
+
+- **Recursive-CTE join fast path reads res.rowMaps, which some execSelect
+  paths leave empty while res.Rows is filled.** An empty probe hash stalled
+  the recursion at its anchor row (closure01-1.1-cte got "1 0"). Rule: when a
+  Result is consumed for its row maps, fall back to
+  rebuildRowMapsFromRows(res.Rows, res.Columns).
+
+- **tclListAppend/tclList round-trips are O(n^2) for lappend-in-loop chains.**
+  The generated tclListAppend fast path now splices braced items too
+  (" {item}" is exactly TCL lappend's string form), gated only on no
+  embedded quote. trans2-2.x went from >10min (100k-char chain) to minutes.
+
+- **[list {*}BRACED] expansion**: tcl2go processList now splices the braced
+  word's inner elements when the preceding element is the braced star (RawWord
+  Text for a braced word EXCLUDES the braces - `{*}` parses as Text "*").
+
+- **sqlite3_set_errmsg** (main.c) is a real C API: sets the connection error
+  code/message; NULL handle reports SQLITE_MISUSE. DB.SetErrMsg + numeric
+  code-name mapping added; tcl2go emits it statement-side and expression-side.
+
+- **TCL list-element quoting in rendered cells**: a cell value containing
+  balanced braces renders with one extra bracing level ({"b":9} -> {{"b":9}}).
+  tclRenderCell (and the transpiled json102/json501 want literals) must honor
+  this or literal-form expectations mismatch. Split-transcribed wants
+  (tclSplitList strips one level) need the opposite normalization
+  (tclListFlatten on want + tclListFlattenCollapse on got).
+
+- **total_changes excludes schema-maintenance DML**: ANALYZE (sqlite_stat1
+  writes) and VACUUM (logical copy) run nested SQL DML on the user connection;
+  gate them with txState.internalWrites so execTrackChanges skips the
+  accumulation (e_totalchanges-2.3). VACUUM is intercepted in the ROOT package
+  (frigolite_vacuum.go), not execDispatch - it never appears in engine
+  dispatch traces.
+
+- **PRAGMA database_list lists temp only when materialized** (pragma.c skips
+  aDb[i].pBt==0); gate the temp row on tempBtreeOpen (attach4-1.2.1).
+
+- **Quality gate hard limit (1000 lines)**: files AT 999-1000 are one comment
+  away from failing. Before adding to processcommand.go / pragma_state.go /
+  engine.go, check wc -l and relocate new handlers to a sub-1000 sibling.
+
 ## Debugging methodology
 
 - **Verify disagreement claims with a direct UT before theorizing.** When two
@@ -6627,3 +6678,146 @@ Transpiler/harness:
 - **SQLITE_TESTCTRL_LOCALTIME_FAULT:** mode 1 = fault on, hook cleared
   (osLocaltime always fails); mode 2 = alternate localtime hook (date.test);
   mode 0 = clear both (main.c:4469-4476). Engine: function.SetLocaltimeFault.
+## 2026-09-17 (T26-corrupt): hexio corruption-family lessons
+
+- **openPager must never adopt unvalidated header fields**: a crafted
+  page-size field (power-of-two/512..65536 check, btree.c lockBtree) must
+  defer like a parse error (headerCorrupt) — `make([]byte, ps)` panics
+  before ValidateHeader ever runs. First statement then reports
+  "file is not a database" (oracle-verified error 26).
+- **Schema-load row validation lives at preflight, per statement** (port of
+  prepare.c sqlite3InitCallback): rootpage > page count → "malformed
+  database schema (NAME) - invalid rootpage"; unparseable CREATE text →
+  named parser error; duplicate index rootpage among same-table indexes →
+  invalid rootpage (build.c:4389, NOT gated by bExtraSchemaChecks). PRAGMA
+  statements skip the check (C does not read the schema preparing a
+  PRAGMA) — otherwise `PRAGMA writable_schema=ON` batches abort before the
+  flag flips. With writable_schema ON every violation becomes the GENERIC
+  "database disk image is malformed" (corruptSchema SQLITE_WriteSchema
+  branch) — verified with `sqlite3 -bail` (the default CLI CONTINUES after
+  a failed first statement, silently masking the error and faking
+  "success" for later statements — always bail-mode the oracle when
+  adjudicating).
+- **integrity_check findings are capped at 100** (pragma.c
+  SQLITE_INTEGRITY_CHECK_ERROR_MAX): uncapped "Page N: never used" scans
+  multiply into minutes on sparse hexio images (a write far past EOF makes
+  FilePageCount millions). C parity + performance in one line.
+- **Freelist leaf beyond EOF grows the page count** (pager dbSize growth on
+  write); corruptF's root-from-freelist at page 6 then passes rootpage
+  validation. Pager partial final page reads zero-fill (pager.c) — do not
+  error EOF.
+- **Known write-path bug (btree-writes goal)**: frigolite's balance/split
+  never re-parents ptrmap entries (btree.c:8780/8950/9028 ptrmapPut have
+  no counterpart), so autovacuum relocation later fails "parent does not
+  reference child" on pristine DBs (corruptB-3.1.1). Also error-free page
+  allocation is needed to surface freelist-pop corruption (corruptL-5.x) —
+  AllocatePage returns *Page only.
+- **tcl2go drift**: regenerating a stale generated file pulls the CURRENT
+  helper/emitter semantics — testgen/corrupt's catchsql `set x {}`
+  pattern now renders want="{}" (normalizeExpectedWord's empty-brace rule
+  for update/fkey2) against got="" — 7 assertions flip per 1005-iteration
+  loop. When a stale package needs one skip, hand-patch the generated file
+  to the exact post-skip shape instead of regenerating through drifted
+  emitters, and note the drift for the next full-regeneration tranche.
+- **Regenerating a testgen package re-emits it with the CURRENT generator**
+  — stale files (last regenerated before later transpiler commits) gain
+  NEWLY-ASSERTED comparisons on regen; a package's failure count can rise
+  even when every fix is correct. Adjudicate per-assertion (skip with
+  evidence), never per-count.
+- **Stash juggling on a shared worktree can import another agent's WIP** —
+  blind `git stash pop >/dev/null` restored e_fts3 work into my tree
+  (expression_eval/fts/query/select.go +72 lines). After ANY stash cycle,
+  `git status` and diff the unexpected files; commit ONLY explicit paths
+  (never `git add -A` after a stash cycle).
+- **sqlite3JoinType consumes ALL keyword slots before validating** and the
+  grammar's 3-keyword joinop rule must pass every slot to it — error
+  messages name every keyword as written ("INNER OUTER CROSS"); a
+  short-circuiting port loses tokens after the first bad one.
+- **Correlated-aggregate promotion**: an aggregate is outer-promotable only
+  if args AND FILTER reference zero inner columns (three classifier sites
+  must agree); promoted aggregates step the OUTER rows; the nested-aggregate
+  misuse names the INNER (promoted) function, not the enclosing one.
+- **normalizeCorruptionError rewrites any message containing "out of range"**
+  into "database disk image is malformed" — new prepare-time range errors
+  need an exemption or they surface as corruption.
+- **The quality gate's file scan follows the script's own repo root** —
+  running another worktree's tools/quality_gate.sh from a base worktree
+  still scans the script's tree; compare hard violations with a manual
+  find|wc -l loop on both checkouts.
+- **helpers_test.go is a per-package COPY generated at regen time** — a
+  template fix reaches only regenerated packages; regen exactly the
+  tranche's package list (a full 1219-file regen re-asserts stale packages
+  corpus-wide and is a separate adjudication tranche).
+=======
+
+## FULL-SUITE-DRIFT.T26-harness (2026-09-17) — JSON-harness fidelity: converter + comparator
+
+The testdata/*.json corpus predates the Go `tools/tclconvert` rewrite (old python
+converter). The four diagnosed false-red classes were verified and fixed; 88 files
+regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
+
+- **The Go tclconvert had silently regressed vs the old python converter.** It lacked:
+  testprefix (tester.tcl `fix_testname` — prefix only when the do_test name STARTS
+  WITH A DIGIT), `ifcapable` body execution (capabilities mapped 1/0 by !-negation;
+  the body is the LAST braced word — the capability expr itself may be braced),
+  `drop_all_tables`, `sqlite3 db :memory:` reopen (→ reset marker; also file reopen
+  after forcedelete/file delete), `string map` real substitution (was identity!),
+  proc optional args `{name default}`, `if {$cond} continue` (unbraced body words),
+  and `&&`/`||` (parseBitAnd/parseBitOr consumed the first char of `&&`/`||` —
+  "unexpected character '&'" aborted whole files). Any ONE of these silently lost
+  sections (e.g. `string map`-built FkeySimpleSchema) or whole files.
+- **sortTestsBySection stale-index comparator**: `sort.SliceStable(tests, func(i,j)
+  { keys[i]... })` compares PRECOMPUTED keys by ORIGINAL index — after the first
+  swap the pairing is garbage. Fix: sort an index permutation. ALSO: sorting is only
+  needed for LEGACY (unordered) JSON; new converter output is faithful TCL execution
+  order — mark it `"ordered": true` in the JSON and skip the sort, otherwise the key
+  sort hoists setup groups ([0] keys) to the file front and destroys loop-local state.
+- **JSON contract addition**: `ordered` (bool) in TestFileData. Legacy files keep the
+  scramble-repair sort (permutation + setup/marker key inheritance from the FOLLOWING
+  test + alpha-leading names like `fkey2-genfkey.1.11` sorting after numeric sections
+  via a sentinel; interior alpha components like `2-test-67` are skipped).
+- **catchsql semantics split**: catchsql/do_catchsql_test steps are type "catch"
+  (rc-prefixed expectations: `1 {msg}` error / `0 {result}` success); plain do_test
+  results NEVER carry rc — the old harness heuristic "exec expect starts with 1 =
+  expected error" produced false reds on result lists like "1 2 3" (fixed: exec steps
+  need a literal `1 {...}` braced-message form). Statements wrapped in TCL
+  `catch { execsql ... }` are captured as tolerant catch steps (errors allowed).
+- **expr $var substitution must bind ATOMS**: textual `$res` substitution inside
+  braced expr conditions garbles list values (`$res == "0 {}"` with
+  $res="1 {FK failed}" parses as `1 == 0` → TRUE). Values containing whitespace or
+  braces are wrapped as double-quoted expr literals (substituteExprAtoms/exprAtom).
+- **TCL parser details that matter**: backslash-newline continuation inside quoted
+  words; quoted list elements must EXCLUDE the closing quote (readListQuoted leaked
+  `"` into SQL); `do_test name body $var` unbraced expectations must be substituted;
+  cmdSQL re-evaluation must pass localVars (proc-scope $vars vanished from quoted
+  SQL); contiguous-run grouping (never global name-merge — loop iterations are
+  distinct tests; Go t.Run auto-suffixes duplicates `#01`).
+- **`drop_all_tables` must NOT be translated as a reset**: tester.tcl drops
+  tables+views in main/temp/attached with FKs off and RESTORES the FK flag — a reset
+  also detaches aux databases and resets pragmas (broke 14.2aux/14.1aux blocks and
+  FK state for whole files). The harness now executes a `__DROP_ALL_TABLES__` marker
+  with the faithful semantics (attachments and pragma state survive).
+- **Engine bugs found & fixed while triaging (minimally, oracle-verified)**:
+  (1) `x NOT LIKE y ESCAPE z` evaluated as POSITIVE LIKE — parse rule 207 dropped
+  the NOT when attaching the ESCAPE clause, and evalBinaryOpDispatched only handled
+  the positive operator (internal/parse/parser_rules3.go rule207 +
+  internal/execexpr/expression_rowvalue.go evalLikeWithEscape). (2) nothing else —
+  the rest of the residual reds are genuine engine gaps (deferred FK enforcement,
+  ALTER ADD COLUMN REFERENCES+DEFAULT state sensitivity, sqlite_rename_parent/
+  test_rename_parent C test functions, `db func` test scalars) or old-JSON legacy
+  files kept deliberately (KEEP-OLD set: 8_3_names aggerror alter2 attach attach2
+  auth auth2 e_update e_walhook pragma4 trigger2 triggerC where7).
+- **Regeneration policy**: regenerate per-file with
+  `go run ./tools/tclconvert/ -testdir <ori>/sqlite/test -outdir <dir> <file.test ...>`;
+  install only files whose regenerated JSON is faithful and better than legacy.
+  Compare per-file new-harness fail counts (regenerated vs HEAD JSON) and keep the
+  better; whole-file unsupportedTestFiles entries only for genuinely untranslatable
+  machinery (user collations, dynamic authorizer procs, TCL-proc-defined vtab
+  modules) with pointers to the green testgen/native pins.
+
+- **A COMPOUND select's ORDER BY resolves ONLY against result-column names**
+  (sqlite3Select: the terms never touch any member's FROM scope, so
+  source-column ambiguity cannot apply). In the ambiguity checker, exempt
+  compound ORDER BY terms naming a result column — alias, or the
+  column-reference name including a qualified ref's unqualified part
+  ("InnerElem.ElemCode" is "ElemCode") — tkt3527 ElemView2 self-join.

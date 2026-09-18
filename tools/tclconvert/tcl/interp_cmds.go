@@ -54,12 +54,11 @@ func init() {
 		"global":  noopCommand,
 		"info":    commandInfo,
 
-		"namespace":  noopCommand,
-		"rename":     noopCommand,
-		"array":      noopCommand,
-		"foreach_kv": noopCommand,
-		"foreach_u":  noopCommand,
-
+		"namespace":             noopCommand,
+		"rename":                noopCommand,
+		"array":                 noopCommand,
+		"foreach_kv":            noopCommand,
+		"foreach_u":             noopCommand,
 		"execsql":               commandExecSQL,
 		"catchsql":              commandCatchSQL,
 		"db":                    commandDB,
@@ -70,6 +69,11 @@ func init() {
 		"do_timed_execsql_test": commandDoExecSQL,
 		"do_execsql2_test":      commandDoExecSQL,
 		"reset_db":              commandResetDB,
+		"sqlite3":               commandSQLite3,
+		"ifcapable":             commandIfCapable,
+		"drop_all_tables":       commandDropAllTables,
+		"forcedelete":           commandForceDelete,
+		"file":                  commandFile,
 
 		// Test infrastructure stubs — all no-ops.
 		"finish_test":               noopCommand,
@@ -84,7 +88,6 @@ func init() {
 		"sqlite3_memdebug_settitle": noopCommand,
 		"flush":                     noopCommand,
 		"source":                    noopCommand,
-		"ifcapable":                 noopCommand,
 		"ifnotcapable":              noopCommand,
 	}
 }
@@ -270,7 +273,9 @@ func commandCatch(i *Interp, rawWords []rawWord, args []string, localVars map[st
 	if len(rawWords) >= 2 {
 		body := rawWords[1]
 		if body.Braced {
+			i.catchDepth++
 			err := i.execScript(body.Text, localVars)
+			i.catchDepth--
 			if err != nil {
 				i.vars[""] = "1"
 				if len(args) >= 2 {
@@ -361,4 +366,141 @@ func commandDoEQP(i *Interp, rawWords []rawWord, args []string, localVars map[st
 func commandResetDB(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	i.stmts = append(i.stmts, Stmt{Type: "reset_db"})
 	return nil
+}
+
+// commandSQLite3 handles `sqlite3 HANDLE FILENAME ?flags?`. Reopening an
+// in-memory database discards all state, so it is captured as a reset marker
+// exactly like reset_db. Reopening a file that was removed by a preceding
+// forcedelete / `file delete` is equally fresh, so it also emits a marker.
+// Reopening an existing file-backed database preserves data (the JSON
+// harness models it with the current connection, i.e. a no-op).
+func commandSQLite3(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(args) >= 2 {
+		if args[1] == ":memory:" {
+			i.stmts = append(i.stmts, Stmt{Type: "reset_db"})
+			return nil
+		}
+		if i.deletedFiles[args[1]] {
+			delete(i.deletedFiles, args[1])
+			i.stmts = append(i.stmts, Stmt{Type: "reset_db"})
+		}
+	}
+	return nil
+}
+
+// commandForceDelete handles `forcedelete FILE...`: the named files are
+// removed, so a subsequent `sqlite3 db FILE` opens a fresh database.
+func commandForceDelete(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if i.deletedFiles == nil {
+		i.deletedFiles = make(map[string]bool)
+	}
+	for _, a := range args {
+		i.deletedFiles[a] = true
+	}
+	return nil
+}
+
+// commandFile handles `file delete ...`: tracks removed files the same way
+// as forcedelete (only the `delete` subcommand matters for state tracking).
+func commandFile(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(args) >= 1 && args[0] == "delete" {
+		return commandForceDelete(i, rawWords, args[1:], localVars)
+	}
+	return nil
+}
+
+// commandDropAllTables mirrors tester.tcl's drop_all_tables: with foreign
+// keys disabled, tables and views are dropped from every attached database.
+// The harness executes the __DROP_ALL_TABLES__ marker with the same
+// semantics (a plain reset would also detach aux databases, which
+// tester.tcl does not do).
+func commandDropAllTables(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	i.stmts = append(i.stmts, Stmt{Type: "drop_all_tables"})
+	return nil
+}
+
+// commandIfCapable handles `ifcapable EXPR ?EXPR...? BODY`. Each EXPR is a
+// boolean combination of SQLITE_* capability names with !, && and ||. The
+// converter targets a full-featured build: every capability is assumed
+// present, so a plain name evaluates true and a !-negated name false. When
+// the expression evaluates true the (braced) body is executed.
+func commandIfCapable(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	expr, body := capableExprAndBody(rawWords, args)
+	if body == nil || expr == "" {
+		return nil
+	}
+	val, err := EvalExpr(expr, i, localVars)
+	if err != nil {
+		// Unparseable capability expression: skip the body rather than
+		// aborting the whole file conversion.
+		return nil
+	}
+	if isTrue(val) {
+		return i.execScript(body.Text, localVars)
+	}
+	return nil
+}
+
+// capableExprAndBody extracts the capability expression and the braced body
+// word from an ifcapable command. The body is the LAST braced word (the
+// capability expression itself may also be braced, as in
+// `ifcapable {update_delete_limit} {...}`). Capability words are mapped to
+// "1" (present) or "0" (negated with !); operators and parentheses are kept.
+func capableExprAndBody(rawWords []rawWord, args []string) (string, *rawWord) {
+	if len(rawWords) < 2 {
+		return "", nil
+	}
+	bodyIdx := -1
+	for idx := len(rawWords) - 1; idx >= 1; idx-- {
+		if rawWords[idx].Braced {
+			bodyIdx = idx
+			break
+		}
+	}
+	if bodyIdx < 0 {
+		return "", nil
+	}
+	terms := make([]string, 0, bodyIdx)
+	for idx := 1; idx < bodyIdx; idx++ {
+		if idx-1 < len(args) {
+			terms = append(terms, args[idx-1])
+		}
+	}
+	body := rawWords[bodyIdx]
+	return rewriteCapExpr(strings.Join(terms, " && ")), &body
+}
+
+// rewriteCapExpr maps capability identifiers to boolean literals: a plain
+// name becomes "1", a !-negated name becomes "0". Operators, whitespace and
+// parentheses are copied verbatim.
+func rewriteCapExpr(expr string) string {
+	var b strings.Builder
+	for i := 0; i < len(expr); i++ {
+		ch := expr[i]
+		switch {
+		case ch == '!' && (i+1 >= len(expr) || expr[i+1] != '='):
+			b.WriteByte('0')
+			i = skipCapName(expr, i)
+		case isCapNameChar(ch) && (i == 0 || !isCapNameChar(expr[i-1])):
+			b.WriteByte('1')
+			i = skipCapName(expr, i)
+		default:
+			b.WriteByte(ch)
+		}
+	}
+	return b.String()
+}
+
+// skipCapName returns the index of the last character of the identifier that
+// starts at or after i (the caller's loop continues past it).
+func skipCapName(expr string, i int) int {
+	for i+1 < len(expr) && isCapNameChar(expr[i+1]) {
+		i++
+	}
+	return i
+}
+
+// isCapNameChar reports whether c can appear in a capability identifier.
+func isCapNameChar(c byte) bool {
+	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
 }

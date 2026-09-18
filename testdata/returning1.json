@@ -1,18 +1,21 @@
 {
   "file": "returning1.test",
   "name": "returning1",
+  "nullToken": "N",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "returning1-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;",
+          "expect": "1 10 pax 2 happy pax 3 {} pax"
         }
       ]
     },
     {
-      "name": "1.1",
+      "name": "returning1-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,16 +25,17 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "returning1-1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1(b,c) VALUES(5,99) RETURNING b,c,a,rowid;"
+          "sql": "INSERT INTO t1(b,c) VALUES(5,99) RETURNING b,c,a,rowid;",
+          "expect": "5 99 4 4"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "returning1-1.3",
       "steps": [
         {
           "type": "query",
@@ -41,16 +45,17 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "returning1-1.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 DEFAULT VALUES RETURNING *;"
+          "sql": "INSERT INTO t1 DEFAULT VALUES RETURNING *;",
+          "expect": "5 {} pax"
         }
       ]
     },
     {
-      "name": "1.5",
+      "name": "returning1-1.5",
       "steps": [
         {
           "type": "query",
@@ -60,7 +65,7 @@
       ]
     },
     {
-      "name": "1.6",
+      "name": "returning1-1.6",
       "steps": [
         {
           "type": "exec",
@@ -69,16 +74,17 @@
       ]
     },
     {
-      "name": "1.7",
+      "name": "returning1-1.7",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 SELECT * FROM t2 RETURNING *;"
+          "sql": "INSERT INTO t1 SELECT * FROM t2 RETURNING *;",
+          "expect": "11 12 13 21 b c 31 b-value 4.75"
         }
       ]
     },
     {
-      "name": "1.8",
+      "name": "returning1-1.8",
       "steps": [
         {
           "type": "query",
@@ -88,16 +94,17 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "returning1-2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET c='bellum' WHERE c='pax' RETURNING rowid, b, '|';"
+          "sql": "UPDATE t1 SET c='bellum' WHERE c='pax' RETURNING rowid, b, '|';",
+          "expect": "1 10 | 2 happy | 3 {} | 5 {} |"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "returning1-2.2",
       "steps": [
         {
           "type": "query",
@@ -107,16 +114,17 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "returning1-3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE c='bellum' RETURNING rowid, *, '|';"
+          "sql": "DELETE FROM t1 WHERE c='bellum' RETURNING rowid, *, '|';",
+          "expect": "1 1 10 bellum | 2 2 happy bellum | 3 3 {} bellum | 5 5 {} bellum |"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "returning1-3.2",
       "steps": [
         {
           "type": "query",
@@ -126,7 +134,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "returning1-4.1",
       "steps": [
         {
           "type": "exec",
@@ -135,16 +143,17 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "returning1-4.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t4(a,b,c) VALUES(1,22,33)\n  ON CONFLICT(a) DO UPDATE SET b=44\n  RETURNING *;"
+          "sql": "INSERT INTO t4(a,b,c) VALUES(1,22,33)\n  ON CONFLICT(a) DO UPDATE SET b=44\n  RETURNING *;",
+          "expect": "1 44 3"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "returning1-4.3",
       "steps": [
         {
           "type": "query",
@@ -154,7 +163,7 @@
       ]
     },
     {
-      "name": "4.4",
+      "name": "returning1-4.4",
       "steps": [
         {
           "type": "exec",
@@ -163,16 +172,21 @@
       ]
     },
     {
-      "name": "4.5",
+      "name": "returning1-4.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t4(a,b,c) VALUES(2,3,4),(4,5,6),(5,6,7)\n  ON CONFLICT(a) DO UPDATE SET b=100\n  RETURNING *, '|';"
+          "sql": "INSERT INTO t4(a,b,c) VALUES(2,3,4),(4,5,6),(5,6,7)\n  ON CONFLICT(a) DO UPDATE SET b=100\n  RETURNING *, '|';",
+          "expect": "2 3 4 | 4 100 6 | 5 6 7 |"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-5.0",
       "steps": [
         {
           "type": "exec",
@@ -181,7 +195,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "returning1-5.1",
       "steps": [
         {
           "type": "exec",
@@ -190,7 +204,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "returning1-5.2",
       "steps": [
         {
           "type": "exec",
@@ -199,54 +213,65 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "returning1-5.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);"
+          "sql": "UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);",
+          "expect": "{}"
         }
       ]
     },
     {
-      "name": "5.4",
+      "name": "returning1-5.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2(b) VALUES('abc');\n  INSERT INTO t1(xyz) VALUES(1);\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING b;"
+          "sql": "INSERT INTO t2(b) VALUES('abc');\n  INSERT INTO t1(xyz) VALUES(1);\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING b;",
+          "expect": "123"
         }
       ]
     },
     {
-      "name": "5.5",
+      "name": "returning1-5.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2(b) VALUES('abc');\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);"
+          "sql": "INSERT INTO t2(b) VALUES('abc');\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);",
+          "expect": "123"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-6.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;",
           "expect": "1 {RETURNING may not use \"TABLE.*\" wildcards}"
         }
       ]
     },
     {
-      "name": "6.1",
+      "name": "returning1-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING *, '|';\n  SELECT * FROM t1 ORDER BY id;",
           "expect": "0 {29 | 1 2 9 29}"
         }
       ]
     },
     {
-      "name": "7.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-7.1",
       "steps": [
         {
           "type": "exec",
@@ -255,77 +280,81 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "returning1-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=b+1 RETURNING new.b;",
           "expect": "1 {no such column: new.b}"
         }
       ]
     },
     {
-      "name": "7.3",
+      "name": "returning1-7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=b+1 RETURNING old.b;",
           "expect": "1 {no such column: old.b}"
         }
       ]
     },
     {
-      "name": "7.4",
+      "name": "returning1-7.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=b+1 RETURNING another.b;",
           "expect": "1 {no such column: another.b}"
         }
       ]
     },
     {
-      "name": "7.5",
+      "name": "returning1-7.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t2.x;",
           "expect": "1 {no such column: t2.x}"
         }
       ]
     },
     {
-      "name": "7.6",
+      "name": "returning1-7.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t1.b;",
           "expect": "0 32"
         }
       ]
     },
     {
-      "name": "7.7",
+      "name": "returning1-7.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 AS alias SET b=123 RETURNING alias.b;",
           "expect": "1 {no such column: alias.b}"
         }
       ]
     },
     {
-      "name": "7.8",
+      "name": "returning1-7.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 AS alias SET b=alias.b+1000 RETURNING t1.b;",
           "expect": "0 1032"
         }
       ]
     },
     {
-      "name": "8.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-8.1",
       "steps": [
         {
           "type": "exec",
@@ -334,47 +363,51 @@
       ]
     },
     {
-      "name": "8.2",
+      "name": "returning1-8.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE new.a=t2.b) AS x;",
           "expect": "1 {no such column: new.a}"
         }
       ]
     },
     {
-      "name": "8.3",
+      "name": "returning1-8.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE old.a=t2.b) AS x;",
           "expect": "1 {no such column: old.a}"
         }
       ]
     },
     {
-      "name": "8.4",
+      "name": "returning1-8.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;",
           "expect": "0 {3 40}"
         }
       ]
     },
     {
-      "name": "9.1",
+      "name": "returning1-9.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE pragma_encoding SET encoding='UTF-8' RETURNING a, b, *;",
           "expect": "1 {table pragma_encoding may not be modified}"
         }
       ]
     },
     {
-      "name": "10.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-10.1",
       "steps": [
         {
           "type": "exec",
@@ -383,7 +416,7 @@
       ]
     },
     {
-      "name": "10.2",
+      "name": "returning1-10.2",
       "steps": [
         {
           "type": "exec",
@@ -392,138 +425,95 @@
       ]
     },
     {
-      "name": "10.3a",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-11.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;",
-          "expect": "1 {no such column: new.rowid}"
+          "sql": "CREATE TEMP TABLE t1(a,b);\n  CREATE TEMP TABLE t2(c,d);\n  CREATE TEMP TABLE t3(e,f);\n  CREATE TEMP TABLE log(op,x,y);\n  CREATE TEMP TRIGGER t1r1 AFTER INSERT ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t1r2 BEFORE DELETE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D1',old.a,old.b);\n  END;\n  CREATE TEMP TRIGGER t2r3 AFTER UPDATE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I2',new.c,new.d);\n  END;\n  CREATE TEMP TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D3',old.e,old.f);\n  END;\n  CREATE TEMP TRIGGER t3r2 BEFORE UPDATE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U3',new.e,new.f);\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2),('happy','glad') RETURNING a, b, '|';",
+          "expect": "1 2 | happy glad |"
         }
       ]
     },
     {
-      "name": "10.3b",
+      "name": "returning1-11.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET a='z' WHERE b='y' RETURNING rowid;",
-          "expect": "1 {no such column: new.rowid}"
+          "sql": "UPDATE t1 SET b=9 WHERE a=1 RETURNING a, b, 'x';",
+          "expect": "1 9 x"
         }
       ]
     },
     {
-      "name": "10.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM log;"
-        }
-      ]
-    },
-    {
-      "name": "10.3a",
+      "name": "returning1-11.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;",
-          "expect": "0 -1"
+          "sql": "DELETE FROM t1 WHERE a\u003c\u003e'xray' RETURNING a, b, '@';",
+          "expect": "1 9 @ happy glad @"
         }
       ]
     },
     {
-      "name": "10.3b",
+      "name": "returning1-11.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET a='z' WHERE b='y' RETURNING rowid;",
-          "expect": "0 {{} {} {}}"
+          "sql": "SELECT * FROM log;\n  DELETE FROM log;",
+          "expect": "I1 1 2 I1 happy glad U1 1 9 D1 1 9 D1 happy glad"
         }
       ]
     },
     {
-      "name": "10.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM log;",
-          "expect": "insert -1 1234 5678 update {} z y update {} z y update {} z y"
-        }
-      ]
-    },
-    {
-      "name": "11.1",
+      "name": "returning1-11.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TEMP TABLE t1(a,b);\n  CREATE TEMP TABLE t2(c,d);\n  CREATE TEMP TABLE t3(e,f);\n  CREATE TEMP TABLE log(op,x,y);\n  CREATE TEMP TRIGGER t1r1 AFTER INSERT ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t1r2 BEFORE DELETE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D1',old.a,old.b);\n  END;\n  CREATE TEMP TRIGGER t2r3 AFTER UPDATE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I2',new.c,new.d);\n  END;\n  CREATE TEMP TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D3',old.e,old.f);\n  END;\n  CREATE TEMP TRIGGER t3r2 BEFORE UPDATE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U3',new.e,new.f);\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2),('happy','glad') RETURNING a, b, '|';"
+          "sql": "INSERT INTO t2 VALUES('bravo','charlie') RETURNING d, c, 'z';",
+          "expect": "charlie bravo z"
         }
       ]
     },
     {
-      "name": "11.2",
+      "name": "returning1-11.6",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET b=9 WHERE a=1 RETURNING a, b, 'x';"
+          "sql": "SELECT * FROM log;\n  DELETE FROM log;",
+          "expect": "I2 bravo charlie"
         }
       ]
     },
     {
-      "name": "11.3",
+      "name": "returning1-11.7",
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a<>'xray' RETURNING a, b, '@';"
+          "sql": "INSERT INTO t3(e) VALUES(1),(2),(3) RETURNING 'I', e;\n  UPDATE t3 SET f=e+100 RETURNING 'U', e, f;\n  DELETE FROM t3 WHERE f\u003e100 RETURNING 'D', e, f;",
+          "expect": "I 1 I 2 I 3 U 1 101 U 2 102 U 3 103 D 1 101 D 2 102 D 3 103"
         }
       ]
     },
     {
-      "name": "11.4",
+      "name": "returning1-11.6",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM log;\n  DELETE FROM log;"
+          "sql": "SELECT * FROM log;\n  DELETE FROM log;",
+          "expect": "U3 1 101 U3 2 102 U3 3 103 D3 1 101 D3 2 102 D3 3 103"
         }
       ]
     },
     {
-      "name": "11.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 VALUES('bravo','charlie') RETURNING d, c, 'z';"
-        }
-      ]
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
-      "name": "11.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM log;\n  DELETE FROM log;"
-        }
-      ]
-    },
-    {
-      "name": "11.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3(e) VALUES(1),(2),(3) RETURNING 'I', e;\n  UPDATE t3 SET f=e+100 RETURNING 'U', e, f;\n  DELETE FROM t3 WHERE f>100 RETURNING 'D', e, f;"
-        }
-      ]
-    },
-    {
-      "name": "11.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM log;\n  DELETE FROM log;"
-        }
-      ]
-    },
-    {
-      "name": "11.11",
+      "name": "returning1-11.11",
       "steps": [
         {
           "type": "exec",
@@ -532,7 +522,7 @@
       ]
     },
     {
-      "name": "11.12",
+      "name": "returning1-11.12",
       "steps": [
         {
           "type": "query",
@@ -542,7 +532,82 @@
       ]
     },
     {
-      "name": "14.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT, y INT)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x) VALUES(1) RETURNING \"x\";",
+          "expect": "* x"
+        }
+      ]
+    },
+    {
+      "name": "returning1-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x) VALUES(2) RETURNING [x];",
+          "expect": "* x"
+        }
+      ]
+    },
+    {
+      "name": "returning1-12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];",
+          "expect": "* xyz"
+        }
+      ]
+    },
+    {
+      "name": "returning1-12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x,y) VALUES(4,5) RETURNING \"x\"+\"y\";",
+          "expect": "{\"x\"+\"y\"} *"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);"
+        }
+      ]
+    },
+    {
+      "name": "returning1-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,2,3) \n  RETURNING (SELECT b FROM t2);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-14.0",
       "steps": [
         {
           "type": "exec",
@@ -551,53 +616,65 @@
       ]
     },
     {
-      "name": "14.1",
+      "name": "returning1-14.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO child(parent_id) VALUES(123) RETURNING id;",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "15.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-15.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);"
+          "sql": "CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);",
+          "expect": "5.0 real"
         }
       ]
     },
     {
-      "name": "15.1",
+      "name": "returning1-15.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET x=x+1 RETURNING x, affinity(x);"
+          "sql": "UPDATE t1 SET x=x+1 RETURNING x, affinity(x);",
+          "expect": "6.0 real"
         }
       ]
     },
     {
-      "name": "15.2",
+      "name": "returning1-15.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 RETURNING x, affinity(x);"
+          "sql": "DELETE FROM t1 RETURNING x, affinity(x);",
+          "expect": "6.0 real"
         }
       ]
     },
     {
-      "name": "16.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-16.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  CREATE TEMP TABLE t2(x,y,z);\n  INSERT INTO t2 SELECT * FROM t1 RETURNING *;"
+          "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  CREATE TEMP TABLE t2(x,y,z);\n  INSERT INTO t2 SELECT * FROM t1 RETURNING *;",
+          "expect": "1 2 3 a b c"
         }
       ]
     },
     {
-      "name": "16.1",
+      "name": "returning1-16.1",
       "steps": [
         {
           "type": "query",
@@ -607,16 +684,67 @@
       ]
     },
     {
-      "name": "17.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-17.1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;"
+          "sql": "CREATE  TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );"
         }
       ]
     },
     {
-      "name": "18.0",
+      "name": "returning1-17.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;",
+          "expect": "\n    1 2 1\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-17.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );"
+        }
+      ]
+    },
+    {
+      "name": "returning1-17.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;",
+          "expect": "\n    1 2 1\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;",
+          "expect": "NULL 1"
+        }
+      ]
+    },
+    {
+      "name": "returning1-18.0",
       "steps": [
         {
           "type": "exec",
@@ -625,17 +753,17 @@
       ]
     },
     {
-      "name": "18.1",
+      "name": "returning1-18.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO view_2 DEFAULT VALUES RETURNING *;",
           "expect": "1 {no such collation sequence: TRUE}"
         }
       ]
     },
     {
-      "name": "19.0",
+      "name": "returning1-19.0",
       "steps": [
         {
           "type": "exec",
@@ -644,62 +772,79 @@
       ]
     },
     {
-      "name": "19.1",
+      "name": "returning1-19.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "20.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-20.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a\u003c\u003e3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;",
+          "expect": "\n  1 2 8 4.6\n  2 3 8 5.25\n  4 3 8 5.67\n  6 3 8 5.5\n  8 3 3 3.0\n"
         }
       ]
     },
     {
-      "name": "20.2",
+      "name": "returning1-20.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;"
+          "sql": "BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;",
+          "expect": "\n  1 2 8 4.6\n  2 3 8 5.25\n  3 4 8 6.0\n  4 6 8 7.0\n  6 8 8 8.0\n  8 N N N\n"
         }
       ]
     },
     {
-      "name": "20.3",
+      "name": "returning1-20.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;"
+          "sql": "BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;",
+          "expect": "\n  1 102 108 104.6\n  2 203 208 205.25\n  3 304 308 306.0\n  4 406 408 407.0\n  6 608 608 608.0\n  8 N N N\n"
         }
       ]
     },
     {
-      "name": "21.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-21.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;"
+          "sql": "PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;",
+          "expect": "{}"
         }
       ]
     },
     {
-      "name": "21.1",
+      "name": "returning1-21.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;"
+          "sql": "INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;",
+          "expect": "{}"
         }
       ]
     },
     {
-      "name": "22.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-22.0",
       "steps": [
         {
           "type": "exec",
@@ -708,199 +853,89 @@
       ]
     },
     {
-      "name": "22.1",
+      "name": "returning1-22.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);",
           "expect": "1 {no such column: sqlite_master.name}"
         }
       ]
     },
     {
-      "name": "23.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-23.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;"
+          "sql": "PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x\u003c5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;"
         }
       ]
     },
     {
-      "name": "23.1",
+      "name": "returning1-23.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 'one') RETURNING *;"
+          "sql": "INSERT INTO t1 VALUES(1, 'one') RETURNING *;",
+          "expect": "1 one"
         }
       ]
     },
     {
-      "name": "23.2",
+      "name": "returning1-23.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1",
           "expect": "1 one 2 one 3 one 4 one 5 one"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returning1-24.0",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x INT, y INT)"
-        },
+          "sql": "CREATE VIRTUAL TABLE ft USING fts5(c);\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "returning1-24.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x"
+        }
+      ]
+    },
+    {
+      "name": "returning1-24.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1(x) VALUES(1) RETURNING \"x\";"
-        },
+          "sql": "CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');"
+        }
+      ]
+    },
+    {
+      "name": "returning1-24.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1(x) VALUES(2) RETURNING [x];"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(x,y) VALUES(4,5) RETURNING \"x\"+\"y\";"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "INSERT INTO ft VALUES('hello world') RETURNING *",
+          "expect": "{hello world}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -604,6 +604,15 @@ func (e *DDLExecutor) dropTableCascade(ctx *DatabaseContext, entry *schema.Entry
 	for _, t := range triggers {
 		_ = ctx.Schema.RemoveEntry(t.Name)
 	}
+	if len(triggers) > 0 {
+		// Dropping a table drops its triggers (src/build.c sqlite3DropTable
+		// destroys the associated triggers). The cached has-triggers flag for
+		// the name must be recomputed: a stale "true" routes later DML on a
+		// trigger-less table recreated under the same name through the
+		// trigger paths (applyUpdateWithTriggers), whose post-trigger row
+		// re-read then corrupts WITHOUT ROWID rows (without_rowid3-16.4.1.2).
+		e.ctx.ResetHasTriggersCache()
+	}
 	indexes, _ := ctx.Schema.FindIndexesForTable(entry.Name)
 	for _, idx := range indexes {
 		// FIX E: the index's b-tree pages are freed by dropBtreeRoot

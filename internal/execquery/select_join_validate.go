@@ -91,6 +91,83 @@ func collectOuterTableNames(s *sql.SelectStmt, out map[string]bool) {
 	}
 }
 
+// derivedTableRefs returns the alias (or name) of every FROM/JOIN operand that
+// is a subquery (derived table).
+func derivedTableRefs(s *sql.SelectStmt) []string {
+	var out []string
+	if s.From.Subquery != nil {
+		ref := s.From.Name
+		if s.From.As != "" {
+			ref = s.From.As
+		}
+		if ref != "" {
+			out = append(out, ref)
+		}
+	}
+	for _, j := range s.Joins {
+		if j.Table.Subquery != nil {
+			ref := j.Table.Name
+			if j.Table.As != "" {
+				ref = j.Table.As
+			}
+			if ref != "" {
+				out = append(out, ref)
+			}
+		}
+	}
+	return out
+}
+
+// selectHasSubqueryOperand reports whether a SELECT's FROM or JOIN operands
+// include a subquery (derived table).
+func selectHasSubqueryOperand(s *sql.SelectStmt) bool {
+	if s.From.Subquery != nil {
+		return true
+	}
+	for _, j := range s.Joins {
+		if j.Table.Subquery != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// buildAmbiguousColMap builds a map from lowercased column name to the list
+// of operand refs (alias-or-name) that contain it. Each operand instance
+// contributes its declared columns plus the implicit rowid/_rowid_/oid
+// pseudo-columns (unless WITHOUT ROWID), so two instances of the same table
+// under different aliases make every column ambiguous.
+func (e *SelectEngine) buildAmbiguousColMap(operands []fromOperand) map[string][]string {
+	colInTables := map[string][]string{}
+	for _, op := range operands {
+		cols, err := e.tableColumnNames(op.table)
+		if err != nil {
+			// A table we cannot resolve (e.g. a CTE reference) — skip; the
+			// execution path reports the missing table.
+			continue
+		}
+		for _, c := range cols {
+			l := strings.ToLower(c)
+			// No per-ref dedupe: a DUPLICATED alias contributes the same ref
+			// once per instance (select1-6.8c).
+			colInTables[l] = append(colInTables[l], op.ref)
+		}
+		e.addRowidCols(colInTables, op.ref, op.table)
+	}
+	return colInTables
+}
+
+// addRowidCols adds the implicit rowid/_rowid_/oid columns for a table, unless
+// it is declared WITHOUT ROWID (such tables have no rowid pseudo-column).
+func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string) {
+	te, _, terr := e.ctx.FindTable(table)
+	if terr != nil || !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
+		for _, r := range []string{"rowid", "_rowid_", "oid"} {
+			colInTables[r] = append(colInTables[r], ref)
+		}
+	}
+}
+
 // validateJoinOnClauses checks that each join's ON clause only references
 // tables that have already been joined (to its left). SQLite raises
 // "ON clause references tables to its right" otherwise. OUTER joins always
@@ -389,31 +466,41 @@ func (v *joinOnValidator) addAvailableName(tn string) {
 }
 
 // classifyQualifiedOnRefs returns the prepare-time error for the first
-// qualified ON reference that fails resolution, or "". A reference to a table
-// right of this join yields "ON clause references tables to its right"
-// (select.c:7552) only when strict is set: SQLite attaches the checker to
-// outer-join ON clauses (EP_OuterON) and to inner-join ON clauses solely when
-// the query contains a RIGHT or FULL join forcing left-to-right processing
-// (EP_InnerON + hasRightJoin, select.c:7524). A reference to a table absent
-// from the FROM entirely is always "no such column: <table>.<column>"
-// (vtab6-3.6). References joined so far and trigger row aliases pass.
-func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr, strict bool) string {
+// qualified ON reference that fails resolution, or "": a reference to a
+// table right of this join is "ON clause references tables to its right"
+// (select.c:7552), a reference to a table absent from the FROM entirely is
+// "no such column: <table>.<column>" (vtab6-3.6). References joined so far
+// and trigger row aliases pass.
+//
+// The right-reference restriction applies only when this ON's join processes
+// its operand outer-join-style (LEFT/RIGHT/FULL) or the query contains a
+// RIGHT/FULL join (JT_LTORJ: every operand left of a RIGHT JOIN is
+// restricted — build.c sqlite3SrcListShiftJoinType). The ON of a plain
+// INNER/CROSS join may reference tables to its right
+// (forum 687b0bf563a1d4f1, join8-13000).
+func (v *joinOnValidator) classifyQualifiedOnRefs(on sql.Expr, allowRightRefs bool) string {
 	var bad string
 	walkJoinOnExpr(on, func(e2 sql.Expr) {
 		cr, ok := e2.(*sql.ColumnRef)
 		if !ok || cr.Table == "" {
 			return
 		}
-		// Compare case-insensitively against the FROM operands (sqlite3 name
-		// resolution is case-insensitive).
-		t := onQualifierKey(cr)
+		// Strip a schema prefix and compare case-insensitively against the
+		// FROM operands (sqlite3 name resolution is case-insensitive). A
+		// schema-qualified OPERAND ("FROM main.t4 JOIN aux1.t4 ...") also
+		// registers its raw name, so match both spellings (selectD-2.4).
+		t := strings.ToLower(cr.Table)
+		raw := t
+		if dot := strings.LastIndexByte(t, '.'); dot >= 0 {
+			t = t[dot+1:]
+		}
 		switch {
 		case t == "new" || t == "old":
 			// trigger row aliases
-		case v.available[t]:
+		case v.available[t] || v.available[raw]:
 			// joined so far
-		case v.fullTables[t]:
-			if strict {
+		case v.fullTables[t] || v.fullTables[raw]:
+			if !allowRightRefs {
 				bad = "ON clause references tables to its right"
 			}
 		default:
@@ -443,7 +530,7 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 		}
 		return nil
 	}
-	if bad := v.classifyQualifiedOnRefs(join.On, v.shouldValidateOn(join)); bad != "" {
+	if bad := v.classifyQualifiedOnRefs(join.On, !v.shouldValidateOn(join)); bad != "" {
 		return fmt.Errorf("%s", bad)
 	}
 	// The legacy unqualified-reference and ON-subquery checks keep their

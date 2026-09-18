@@ -16,7 +16,10 @@ func (e *Engine) normalizeCorruptionError(res *Result) *Result {
 		return res
 	}
 	msg := res.Error.Error()
-	if strings.Contains(msg, "ORDER BY term out of range") {
+	if strings.Contains(msg, "ORDER BY term out of range") ||
+		strings.Contains(msg, "GROUP BY term out of range") {
+		// resolve.c's ordinal-range errors are prepare-time misuse errors,
+		// not corruption — keep them verbatim (select1-10.x, select3-1.x).
 		return res
 	}
 	if strings.Contains(msg, "zip archive") {
@@ -125,6 +128,14 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 	// "malformed database schema" at schema load. Validate once per
 	// statement.
 	if err := e.validateLoadedTriggers(); err != nil {
+		return &Result{Error: err}
+	}
+	// sqlite3InitCallback row validation (rootpage within the page count,
+	// stored CREATE text parses, no duplicate index rootpage): corrupt
+	// schema rows report "malformed database schema (NAME) - detail" — or
+	// the generic SQLITE_CORRUPT when writable_schema is ON — at prepare
+	// time (corruptL-6.1/7.1, corruptN-3.1).
+	if err := e.validateLoadedSchema(stmt); err != nil {
 		return &Result{Error: err}
 	}
 	// Stored schema validation is performed by schema-loading operations; do
@@ -425,7 +436,9 @@ func (e *Engine) execTrackChanges(res *Result, isDML bool) {
 	}
 	if isDML {
 		e.lastChanges = res.Changes
-		e.totalChanges += res.Changes
+		if e.tx.internalWrites == 0 {
+			e.totalChanges += res.Changes
+		}
 	}
 	// LAST_INSERT_ROWID() reflects the last rowid written by any DML, including
 	// negative docids (an FTS or explicit-rowid insert with rowid -22 sets

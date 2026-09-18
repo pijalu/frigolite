@@ -1,6 +1,7 @@
 {
   "file": "alter4.test",
   "name": "alter4",
+  "ordered": true,
   "tests": [
     {
       "name": "alter4-1.1",
@@ -101,6 +102,16 @@
       ]
     },
     {
+      "name": "alter4-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(a, b, UNIQUE(a, b));\n      ALTER TABLE t2 ADD c REFERENCES t1(c)  ;\n      SELECT sql FROM sqlite_temp_master\n       WHERE tbl_name = 't2' AND type = 'table';",
+          "expect": "{CREATE TABLE t2(a, b, c REFERENCES t1(c), UNIQUE(a, b))}"
+        }
+      ]
+    },
+    {
       "name": "alter4-1.7",
       "steps": [
         {
@@ -173,6 +184,20 @@
       ]
     },
     {
+      "name": "alter4-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMPORARY VIEW v1 AS SELECT * FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "alter table v1 add column d;",
+          "expect": "1 {Cannot add a column to a view}"
+        }
+      ]
+    },
+    {
       "name": "alter4-2.6",
       "steps": [
         {
@@ -226,6 +251,20 @@
       ]
     },
     {
+      "name": "alter4-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "alter4-4.1",
       "steps": [
         {
@@ -250,11 +289,130 @@
       ]
     },
     {
+      "name": "alter4-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version;",
+          "expect": "20"
+        }
+      ]
+    },
+    {
       "name": "alter4-4.99",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1 AS SELECT * FROM t1;\n      PRAGMA aux.schema_version = 30;\n      SELECT sql FROM aux.sqlite_master;",
+          "expect": "{CREATE TABLE t1(a,b)}"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE aux.t1 ADD COLUMN c VARCHAR(128);\n      SELECT sql FROM aux.sqlite_master;",
+          "expect": "{CREATE TABLE t1(a,b, c VARCHAR(128))}"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.t1;",
+          "expect": "1 one {} 2 two {}"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.schema_version;",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE aux.t1 ADD COLUMN d DEFAULT 1000;\n      SELECT sql FROM aux.sqlite_master;",
+          "expect": "{CREATE TABLE t1(a,b, c VARCHAR(128), d DEFAULT 1000)}"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.t1;",
+          "expect": "1 one {} 1000 2 two {} 1000"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.schema_version;",
+          "expect": "32"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 one 2 two"
+        }
+      ]
+    },
+    {
+      "name": "alter4-5.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE aux.t1;\n      DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "alter4-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a, b);\n      CREATE TEMP TABLE log(trig, a, b);\n\n      CREATE TRIGGER t1_a AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('a', new.a, new.b);\n      END;\n      CREATE TEMP TRIGGER t1_b AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('b', new.a, new.b);\n      END;\n  \n      INSERT INTO t1 VALUES(1, 2);\n      SELECT * FROM log ORDER BY trig, a, b;",
+          "expect": "a 1 2 b 1 2"
+        }
+      ]
+    },
+    {
+      "name": "alter4-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN c DEFAULT 'c';\n      INSERT INTO t1(a, b) VALUES(3, 4);\n      SELECT * FROM log ORDER BY trig, a, b;",
+          "expect": "a 1 2 a 3 4 b 1 2 b 3 4"
         }
       ]
     },
@@ -664,7 +822,8 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT sql FROM sqlite_temp_master WHERE name = 't4';"
+          "sql": "SELECT sql FROM sqlite_temp_master WHERE name = 't4';",
+          "expect": "{CREATE TABLE t4(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84, c85, c86, c87, c88, c89, c90, c91, c92, c93, c94, c95, c96, c97, c98, c99)}"
         }
       ]
     },
@@ -698,6 +857,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "alter4-10.1",
       "steps": [
         {
@@ -706,6 +869,10 @@
           "expect": "ok"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "alter4-11.0",
@@ -742,6 +909,25 @@
           "type": "catch",
           "sql": "ALTER TABLE t2 ADD COLUMN g;",
           "expect": "1 {no such table: t2}"
+        }
+      ]
+    },
+    {
+      "name": "alter4-11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fff USING fts5(f);"
+        }
+      ]
+    },
+    {
+      "name": "alter4-11.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE fff ADD COLUMN g;",
+          "expect": "1 {virtual tables may not be altered}"
         }
       ]
     }

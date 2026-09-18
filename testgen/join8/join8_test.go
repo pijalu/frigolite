@@ -99,6 +99,13 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a int, b int, c int);\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6);\n  CREATE TABLE t2(d int, e int);\n  INSERT INTO t2 VALUES(3,333),(4,444);\n  CREATE TABLE t3(f int, g int);\n  PRAGMA automatic_index=off;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a int, b int, c int);\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6);\n  CREATE TABLE t2(d int, e int);\n  INSERT INTO t2 VALUES(3,333),(4,444);\n  CREATE TABLE t3(f int, g int);\n  PRAGMA automatic_index=off;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-2010"
@@ -137,6 +144,13 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  SELECT id, count(*) FROM t9 GROUP BY id HAVING count(*)!=1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, count(*) FROM t9 GROUP BY id HAVING count(*)!=1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-3030"
@@ -155,6 +169,13 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t9 WHERE id<>128*h+64*g+32*f+16*e+8*d+4*c+2*b+a;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t9 WHERE id<>128*h+64*g+32*f+16*e+8*d+4*c+2*b+a;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -272,12 +293,26 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  SELECT *\n    FROM t3 LEFT JOIN t2 ON true\n            JOIN t1 ON (t3.e IS t2.c);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n    FROM t3 LEFT JOIN t2 ON true\n            JOIN t1 ON (t3.e IS t2.c);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-8020"
 		r = db.Query("\n  SELECT *\n    FROM t3 LEFT JOIN t2 ON true\n            JOIN t1 ON (t3.e IS NOT DISTINCT FROM t2.c);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n    FROM t3 LEFT JOIN t2 ON true\n            JOIN t1 ON (t3.e IS NOT DISTINCT FROM t2.c);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -527,6 +562,13 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t0(t TEXT, u TEXT);  INSERT INTO t0 VALUES('t', 'u');\n  CREATE TABLE t1(v TEXT, w TEXT);  INSERT INTO t1 VALUES('v', 'w');\n  CREATE TABLE t2(x TEXT, y TEXT);  INSERT INTO t2 VALUES('x', 'y');\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false;\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false\n   WHERE t2.y ISNULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(t TEXT, u TEXT);  INSERT INTO t0 VALUES('t', 'u');\n  CREATE TABLE t1(v TEXT, w TEXT);  INSERT INTO t1 VALUES('v', 'w');\n  CREATE TABLE t2(x TEXT, y TEXT);  INSERT INTO t2 VALUES('x', 'y');\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false;\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false\n   WHERE t2.y ISNULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -540,6 +582,13 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t0(a TEXT, b TEXT, c TEXT);\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('1');\n  CREATE VIEW v0 AS SELECT 'xyz' AS d;\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'';\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'' WHERE b ISNULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(a TEXT, b TEXT, c TEXT);\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('1');\n  CREATE VIEW v0 AS SELECT 'xyz' AS d;\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'';\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'' WHERE b ISNULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-14010"
@@ -578,18 +627,39 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t2 ON true JOIN t3 ON t2.y IS NOT NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON true JOIN t3 ON t2.y IS NOT NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-15020"
 		r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t2 ON true JOIN t3 ON t2.y IS NOT NULL\n   WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON true JOIN t3 ON t2.y IS NOT NULL\n   WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-15100"
 		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t4(x TEXT);\n  CREATE TABLE t5(y TEXT);\n  CREATE TABLE t6(z TEXT);\n  INSERT INTO t4 VALUES('a'), ('b');\n  INSERT INTO t5 VALUES('b'), ('c');\n  INSERT INTO t6 VALUES('a'), ('d');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t4(x TEXT);\n  CREATE TABLE t5(y TEXT);\n  CREATE TABLE t6(z TEXT);\n  INSERT INTO t4 VALUES('a'), ('b');\n  INSERT INTO t5 VALUES('b'), ('c');\n  INSERT INTO t6 VALUES('a'), ('d');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	tcl_nullvalue = "-"
@@ -659,36 +729,78 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c IS NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c IS NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-16030"
 		r = db.Query("\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-16040"
 		r = db.Query("\n  SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'' WHERE c<>'';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'' WHERE c<>'';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-16050"
 		r = db.Query("\n  SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'' WHERE c IS NOT NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'' WHERE c IS NOT NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-16060"
 		r = db.Query("\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c<>'';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c<>'';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-16070"
 		r = db.Query("\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c IS NOT NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c IS NOT NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -745,24 +857,52 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE 99=id AND 0=y;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE 99=id AND 0=y;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-17041"
 		r = db.Query("\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE 99=+id AND 0=y;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE 99=+id AND 0=y;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-17050"
 		r = db.Query("\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE (99, 0)==(id,y);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE (99, 0)==(id,y);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-17051"
 		r = db.Query("\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE (99, 0)==(+id,y);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 RIGHT JOIN t1 WHERE (99, 0)==(+id,y);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-17060"
@@ -854,18 +994,39 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a BOOLEAN); INSERT INTO t1 VALUES (false);\n  CREATE TABLE t2(x INT);     INSERT INTO t2 VALUES (0);\n  SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 RIGHT JOIN t1 ON true WHERE (x NOTNULL)=a;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a BOOLEAN); INSERT INTO t1 VALUES (false);\n  CREATE TABLE t2(x INT);     INSERT INTO t2 VALUES (0);\n  SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 RIGHT JOIN t1 ON true WHERE (x NOTNULL)=a;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-18010"
 		r = db.Query("\n  CREATE INDEX t1a ON t1(a);\n  SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 RIGHT JOIN t1 ON true WHERE (x NOTNULL)=a;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX t1a ON t1(a);\n  SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 RIGHT JOIN t1 ON true WHERE (x NOTNULL)=a;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-18020"
 		r = db.Query("\n  CREATE TABLE t3(z);\n  INSERT INTO t3 VALUES('t3value');\n  SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 RIGHT JOIN t1 ON true INNER JOIN t3 ON (x NOTNULL)=a;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(z);\n  INSERT INTO t3 VALUES('t3value');\n  SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 RIGHT JOIN t1 ON true INNER JOIN t3 ON (x NOTNULL)=a;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-18030" — skipped: rtree virtual table not supported (SQL side effects only)
@@ -1014,6 +1175,13 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 JOIN t3 ON (b=TRUE) RIGHT JOIN t2 ON TRUE WHERE (b IS TRUE);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 JOIN t3 ON (b=TRUE) RIGHT JOIN t2 ON TRUE WHERE (b IS TRUE);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join8-22030"
@@ -1045,6 +1213,13 @@ func Test_join8(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c TEXT);  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(d TEXT);  INSERT INTO t4 VALUES('y');\n  SELECT 99\n    FROM t1\n         LEFT JOIN t2 ON true\n         RIGHT JOIN t3 ON true\n         RIGHT JOIN t4 ON true\n   WHERE a=b;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c TEXT);  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(d TEXT);  INSERT INTO t4 VALUES('y');\n  SELECT 99\n    FROM t1\n         LEFT JOIN t2 ON true\n         RIGHT JOIN t3 ON true\n         RIGHT JOIN t4 ON true\n   WHERE a=b;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

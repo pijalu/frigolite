@@ -593,6 +593,13 @@ func (e *SelectEngine) newRecursiveJoinFastPath(term *sql.SelectStmt, colDefs []
 		return nil
 	}
 	baseMaps := res.rowMaps
+	if len(baseMaps) == 0 && len(res.Rows) > 0 {
+		// Some execSelect paths leave rowMaps empty (only Rows filled);
+		// rebuild the maps from the output columns so the probe hash
+		// sees the base rows (closure01-1.1-cte's recursion stalled at
+		// the anchor with an empty hash).
+		baseMaps = rebuildRowMapsFromRows(res.Rows, res.Columns)
+	}
 	hash := make(map[interface{}][]RowMap, len(baseMaps))
 	for _, rm := range baseMaps {
 		cv, found := lookupRowMapCol(rm, baseCol, baseAlias)

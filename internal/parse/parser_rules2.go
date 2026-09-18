@@ -477,7 +477,10 @@ func rule126(ruleNo int, p *Parser) interface{} {
 }
 
 func rule127(ruleNo int, p *Parser) interface{} {
-	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)), getString(getRHS(p, ruleNo, 2)))
+	// joinop ::= JOIN_KW nm nm JOIN: all THREE keyword slots go to
+	// sqlite3JoinType, whose error names every keyword as written
+	// ("NATURAL AWK SED", join-1.2.3).
+	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)), getString(getRHS(p, ruleNo, 2)), getString(getRHS(p, ruleNo, 3)))
 
 }
 

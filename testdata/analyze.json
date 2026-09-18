@@ -1,6 +1,7 @@
 {
   "file": "analyze.test",
   "name": "analyze",
+  "ordered": true,
   "tests": [
     {
       "name": "analyze-1.1",
@@ -359,6 +360,16 @@
       ]
     },
     {
+      "name": "analyze-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;",
+          "expect": "t3i1 t3i2 t3i3 t4i1 t4i2 t3 t4"
+        }
+      ]
+    },
+    {
       "name": "analyze-5.2",
       "steps": [
         {
@@ -369,11 +380,31 @@
       ]
     },
     {
+      "name": "analyze-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;",
+          "expect": "t3i1 t3i3 t4i1 t4i2 t3 t4"
+        }
+      ]
+    },
+    {
       "name": "analyze-5.4",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;",
+          "expect": "t4i1 t4i2 t4"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;",
           "expect": "t4i1 t4i2 t4"
         }
       ]
@@ -393,12 +424,30 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "analyze-6.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE sqliteDemo(a);\n  INSERT INTO sqliteDemo(a) VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE SQLiteDemo2(a INTEGER PRIMARY KEY AUTOINCREMENT);\n  INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;\n  CREATE TABLE t1(b);\n  INSERT INTO t1(b) SELECT a FROM sqliteDemo;\n  ANALYZE;\n  SELECT tbl FROM sqlite_stat1 WHERE idx IS NULL ORDER BY tbl;",
           "expect": "SQLiteDemo2 sqliteDemo t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "analyze-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n    INSERT INTO t1 VALUES(1, 7223372036854775);\n    INSERT INTO t1 VALUES(2, 7223372036854776);\n    INSERT INTO t1 VALUES(3, 7223372036854777);\n    CREATE INDEX i1 ON t1(b);\n    ANALYZE;\n    UPDATE sqlite_stat4 SET sample = substr(sample, 0, 4);\n    ANALYZE sqlite_schema;\n    SELECT * FROM t1 WHERE b\u003e7223372036854775",
+          "expect": "2 7223372036854776 3 7223372036854777"
         }
       ]
     }

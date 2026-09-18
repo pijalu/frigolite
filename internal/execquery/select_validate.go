@@ -379,8 +379,17 @@ func (e *SelectEngine) validateSubqFuncCall(v *sql.FuncCall, dmlArity bool) erro
 	if fn, ok := e.ctx.Functions().Find(v.Name); ok && fn.Type == function.TypeAggregate {
 		for _, arg := range v.Args {
 			if sub, ok := arg.(*sql.Subquery); ok && sub.Select != nil {
+				// The error names the INNER (promoted) aggregate, not the
+				// enclosing one — subquery-3.5.4: max((SELECT count(x) FROM
+				// t35b)) with x outer reports "misuse of aggregate: count()".
 				if name := e.subqueryOuterAggRef(sub.Select); name != "" {
-					return fmt.Errorf("misuse of aggregate: %s()", strings.ToLower(v.Name))
+					return fmt.Errorf("misuse of aggregate: %s()", name)
+				}
+				// A promoted aggregate nested deeper (in a FROM subquery of
+				// the scalar subquery) is the same misuse — subquery-3.5.6:
+				// max((SELECT a FROM (SELECT count(x) AS a FROM t35b))).
+				if name := e.nestedSubqueryPromotedAgg(sub.Select); name != "" {
+					return fmt.Errorf("misuse of aggregate: %s()", name)
 				}
 			}
 		}

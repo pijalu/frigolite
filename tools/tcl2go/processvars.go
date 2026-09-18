@@ -110,7 +110,20 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 // name sanitizer.
 func wholeTclVarRef(s string) bool {
 	i := 0
-	for i < len(s) && isVarChar(s[i]) {
+	for i < len(s) {
+		c := s[i]
+		if c == ':' {
+			// ':' counts only as the '::' namespace separator; a LONE
+			// trailing colon is a literal (select2-1.1: "$f1:").
+			if i+1 < len(s) && s[i+1] == ':' {
+				i += 2
+				continue
+			}
+			return false
+		}
+		if !isVarChar(c) {
+			break
+		}
 		i++
 	}
 	if i == len(s) {
@@ -265,10 +278,12 @@ func (tp *transpiler) processIncr(args []tcl.RawWord) {
 	tp.emitLine("// incr %s %s", goName, amount)
 	tp.emitLine("{")
 	tp.indent++
+	// TCL `incr` on a variable holding "" (an accumulator declared but not
+	// yet set — orderby1-8.3's `incr res $a` inside a db-eval loop) starts
+	// from 0, mirroring the map-backed path below.
 	tp.emitLine("_n, _err := strconv.Atoi(%s)", goName)
-	tp.emitLine("if _err == nil {")
-	tp.emitLine("\t%s = strconv.Itoa(_n + %s)", goName, amountInt)
-	tp.emitLine("}")
+	tp.emitLine("if _err != nil { _n = 0 }")
+	tp.emitLine("%s = strconv.Itoa(_n + %s)", goName, amountInt)
 	tp.indent--
 	tp.emitLine("}")
 }
@@ -675,7 +690,24 @@ func (tp *transpiler) processList(args []tcl.RawWord) {
 	}
 	var items []string
 	colmetaFound := false
-	for _, a := range args {
+	for ai := 0; ai < len(args); ai++ {
+		a := args[ai]
+		// `{*}` followed by a braced word is TCL's expansion operator: the
+		// braced word's inner elements splice into the list (windowfault.test
+		// 13.x: set queryres [list {*}{
+		//   1b22
+		//   ...
+		// }]). Skip the {*} and splice the next argument's inner elements.
+		if a.Braced && a.Text == "*" && ai+1 < len(args) && args[ai+1].Braced {
+			inner := strings.TrimSpace(args[ai+1].Text)
+			inner = strings.TrimPrefix(inner, "{")
+			inner = strings.TrimSuffix(inner, "}")
+			for _, e := range strings.Fields(inner) {
+				items = append(items, tp.goStringLiteral(tcl.RawWord{Text: e, Braced: false, Quoted: false}))
+			}
+			ai++
+			continue
+		}
 		// A trailing lone backslash is a line-continuation remnant, not a
 		// list element: `set v [list \ ... \ ]` ends with backslash-newline
 		// before `]`, which TCL folds away (trigger2 tbl_definitions).

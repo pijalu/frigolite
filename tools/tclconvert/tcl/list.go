@@ -65,7 +65,8 @@ func readListBraced(s string, pos int) (string, int) {
 }
 
 // readListQuoted reads a " ... " list element, returning the element text and
-// the position after the closing quote.
+// the position after the closing quote. The closing quote is NOT part of the
+// element value.
 func readListQuoted(s string, pos int) (string, int) {
 	start := pos + 1
 	pos++
@@ -77,8 +78,9 @@ func readListQuoted(s string, pos int) (string, int) {
 		pos++
 	}
 	if pos < len(s) {
-		pos++ // skip closing "
+		return s[start:pos], pos + 1
 	}
+	// Unterminated element: take the rest verbatim.
 	return s[start:pos], pos
 }
 
