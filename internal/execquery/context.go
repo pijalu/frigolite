@@ -1,6 +1,8 @@
 package execquery
 
 import (
+	"runtime/debug"
+	"os"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
@@ -426,6 +428,12 @@ func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	// when the next top-level statement starts.
 	if e.viewRefDepth == 0 {
 		e.viewRefCounts = nil
+		// Per-statement reset of the deferred qualified-star error flag
+		// (same class as resultTooWide): a flag left over by a statement
+		// that failed on an earlier error — its replay is skipped by the
+		// res.Error == nil guard — must not fail the NEXT statement
+		// (misc1-9.1 after misc1-8.2's SELECT t1.*).
+		e.starNoSuchTable = ""
 		// Statement-boundary reset of the correlated-subquery row scope:
 		// outerRow/outerRows belong to the ENCLOSING select's evaluation,
 		// and a stale value carried over from a previous statement would
@@ -447,6 +455,7 @@ func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	if e.starNoSuchTable != "" && res.Error == nil {
 		t := e.starNoSuchTable
 		e.starNoSuchTable = ""
+		if os.Getenv("DBG_NST")!="" { fmt.Fprintf(os.Stderr, "DBG_NST %s:%d\n", "internal/execquery/context.go", 450); debug.PrintStack() }
 		return &Result{Error: fmt.Errorf("no such table: %s", t)}
 	}
 	return res

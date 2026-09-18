@@ -387,3 +387,36 @@ func TestPinCompoundGroupByOrdinalAggregate(t *testing.T) {
 	pinExpectError(t, db, "SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2 UNION SELECT ID, Value FROM Table1 ORDER BY 1, 2",
 		"aggregate functions are not allowed in the GROUP BY clause")
 }
+
+// TestPinStarNoSuchTableNoStatementLeak covers misc1-8.2 → 9.1: a failed
+// SELECT t1.* records the deferred starNoSuchTable flag; the statement
+// fails on an earlier error path so the replay is skipped, and the flag
+// must not fail the NEXT statement's SELECT (statement-scoped like
+// resultTooWide).
+func TestPinStarNoSuchTableNoStatementLeak(t *testing.T) {
+	db := openPinDB(t)
+	pinExec(t, db, "CREATE TABLE t1(a); INSERT INTO t1 VALUES('hi')")
+	pinExpectError(t, db, "SELECT t1.*", "no such table: t1")
+	// The next statement must succeed: CREATE + INSERT in one batch.
+	pinExec(t, db, "CREATE TABLE t2(a unique not null, b unique not null); INSERT INTO t2 VALUES('a',1234567890123456789); SELECT * FROM t2")
+}
+
+// TestPinWritableSchemaRollbackNoReparses covers misc1-23.1: SQLite never
+// reloads (re-parses stored rows of) the schema while a transaction is
+// active — a writable_schema edit of sqlite_master followed by
+// BEGIN/CREATE/ROLLBACK/DROP succeeds (oracle 3.54: "done").
+func TestPinWritableSchemaRollbackNoReparses(t *testing.T) {
+	db, err := frigolite.Open("")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+	db.SetDefensive(false)
+	pinExec(t, db, "CREATE TABLE t1(x)")
+	pinExec(t, db, "PRAGMA writable_schema=ON")
+	pinExec(t, db, "UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)'")
+	pinExec(t, db, "BEGIN")
+	pinExec(t, db, "CREATE TABLE t2(y)")
+	pinExec(t, db, "ROLLBACK")
+	pinExec(t, db, "DROP TABLE IF EXISTS t3")
+}

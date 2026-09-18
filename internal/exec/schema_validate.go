@@ -32,6 +32,17 @@ func (e *Engine) validateLoadedSchema(stmt sql.Stmt) error {
 	if _, isPragma := stmt.(*sql.PragmaStmt); isPragma {
 		return nil
 	}
+	// Inside an open transaction the in-memory schema is authoritative:
+	// SQLite never reloads (and never re-parses stored rows) while a
+	// transaction is active — the file schema cookie is compared only on
+	// prepares AFTER COMMIT/ROLLBACK restores or settles the header.
+	// (misc1-23.1: a writable_schema edit of sqlite_master followed by
+	// BEGIN/CREATE/ROLLBACK must not fail — the ROLLBACK statement's
+	// preflight must not re-parse the edited row from the in-flight
+	// header state.)
+	if e.tx.inTransaction {
+		return nil
+	}
 	e.schemaParseMu.Lock()
 	defer e.schemaParseMu.Unlock()
 	for _, ctx := range e.dbList {
