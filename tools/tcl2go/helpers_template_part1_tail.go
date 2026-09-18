@@ -389,7 +389,31 @@ func tclRegexp(pattern, str string) string {
 func tclRegsub(pattern, str, replacement string) string {
 	re, err := regexp.Compile(pattern)
 	if err != nil { return str }
-	return re.ReplaceAllString(str, replacement)
+	// TCL replacement syntax differs from Go's: & is the whole match (\&
+	// a literal ampersand), \1..\9 are submatches, and $ has no special
+	// meaning. Convert to Go's $0/${1} form before ReplaceAllString
+	// (fts3an regsub -all {[A-Za-z]+} $bigtext "&$c").
+	var b strings.Builder
+	for i := 0; i < len(replacement); i++ {
+		ch := replacement[i]
+		switch {
+		case ch == '&':
+			b.WriteString("$0")
+		case ch == '\\' && i+1 < len(replacement):
+			i++
+			d := replacement[i]
+			if d >= '0' && d <= '9' {
+				b.WriteString("${" + string(d) + "}")
+			} else {
+				b.WriteByte(d)
+			}
+		case ch == '$':
+			b.WriteString("$$")
+		default:
+			b.WriteByte(ch)
+		}
+	}
+	return re.ReplaceAllString(str, b.String())
 }
 
 func tclRegsubAll(pattern, str, replacement string) string {

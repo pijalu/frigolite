@@ -322,7 +322,8 @@ func tclQuoteListElem(x string) string {
 }
 
 // tclBracesBalanced reports whether s's braces are balanced (every { is
-// closed by a }, never closing below depth 0).
+// closed by a }, never closing below depth 0). Quotes make the scan
+// conservative: tclListAppend's fast path excludes quoted lists up front.
 func tclBracesBalanced(s string) bool {
 	depth := 0
 	for i := 0; i < len(s); i++ {
@@ -867,25 +868,6 @@ func tclList(items []string) string {
 		}
 	}
 	return strings.Join(parts, " ")
-}
-
-// tclBracesBalanced reports whether s's braces are balanced (every { is
-// closed by a } and depth never drops below zero). Quotes make the scan
-// conservative: tclListAppend's fast path excludes quoted lists up front.
-func tclBracesBalanced(s string) bool {
-	depth := 0
-	for i := 0; i < len(s); i++ {
-		switch s[i] {
-		case '{':
-			depth++
-		case '}':
-			depth--
-			if depth < 0 {
-				return false
-			}
-		}
-	}
-	return depth == 0
 }
 
 // tclListElem renders one TCL list element: an empty value becomes the
