@@ -417,14 +417,26 @@ func parseTriggerHeader(triggerSQL string) (timing, event string) {
 	}
 	// The event is the first standalone INSERT/UPDATE/DELETE word in the
 	// header (the table name appears after "ON", so the first event word is
-	// always the declared event).
-	for _, ev := range []string{"INSERT", "UPDATE", "DELETE"} {
-		if regexp.MustCompile(`\b` + ev + `\b`).MatchString(header) {
-			event = ev
+	// always the declared event). The patterns are constants — compiled
+	// once, not per call (trigger validation runs per DML statement).
+	for _, ev := range triggerEventRes {
+		if ev.re.MatchString(header) {
+			event = ev.name
 			break
 		}
 	}
 	return timing, event
+}
+
+// triggerEventRes pairs each DML event keyword with its word-boundary
+// pattern for parseTriggerHeader.
+var triggerEventRes = []struct {
+	name string
+	re   *regexp.Regexp
+}{
+	{"INSERT", regexp.MustCompile(`\bINSERT\b`)},
+	{"UPDATE", regexp.MustCompile(`\bUPDATE\b`)},
+	{"DELETE", regexp.MustCompile(`\bDELETE\b`)},
 }
 
 // checkConstraintText extracts the original CHECK constraint expression text
