@@ -25,6 +25,21 @@ func (e *SelectEngine) validateMultipleFTSMatch(s *sql.SelectStmt) error {
 		table    string
 		crossTbl bool
 	}
+	// An unqualified MATCH column (a MATCH 'x') must resolve against THIS
+	// query's FROM tables in FROM order: the connection-wide FTS table map
+	// may hold other tables whose columns share the name (e_fts3 7.3.x:
+	// t7(a,b) while an earlier t1(a,b) is still registered) — resolving via
+	// map iteration is nondeterministic and splits two same-column MATCHes
+	// across tables, missing the duplicate-MATCH rejection.
+	queryTables := make([]string, 0, 1+len(s.Joins))
+	if s.From.Name != "" {
+		queryTables = append(queryTables, s.From.Name)
+	}
+	for _, j := range s.Joins {
+		if j.Table.Name != "" {
+			queryTables = append(queryTables, j.Table.Name)
+		}
+	}
 	var matches []matchInfo
 	var matchErr error
 	count := func(expr sql.Expr) {
@@ -36,7 +51,7 @@ func (e *SelectEngine) validateMultipleFTSMatch(s *sql.SelectStmt) error {
 			if !ok || (bop.Operator != "MATCH" && bop.Operator != "NOT MATCH") {
 				return
 			}
-			tableName := ftsMatchTableName(bop, e.ctx.FTSTables())
+			tableName := ftsMatchTableName(bop, e.ctx.FTSTables(), queryTables)
 			if tableName == "" {
 				// MATCH is only usable against an FTS table or one of its
 				// columns; `rowid MATCH`/`docid MATCH` (any table) has no
@@ -123,7 +138,10 @@ func matchRHSCrossTable(bop *sql.BinaryOp, tableName string, ftsTables map[strin
 // qualified left operand's table, or a bare left operand that names an FTS
 // table or a column of one. Returns "" when the expression is not an FTS
 // MATCH (mirrors matchFTSLookup's table resolution without the row context).
-func ftsMatchTableName(bop *sql.BinaryOp, ftsTables map[string]*fts.FTS3Table) string {
+// queryTables lists THIS query's FROM tables in FROM order: a bare column
+// name resolves against them first (deterministically), falling back to the
+// connection-wide FTS table scan only when none matches.
+func ftsMatchTableName(bop *sql.BinaryOp, ftsTables map[string]*fts.FTS3Table, queryTables []string) string {
 	colRef, ok := bop.Left.(*sql.ColumnRef)
 	if !ok {
 		return ""
@@ -136,6 +154,17 @@ func ftsMatchTableName(bop *sql.BinaryOp, ftsTables map[string]*fts.FTS3Table) s
 	}
 	if _, ok := ftsTables[colRef.Name]; ok {
 		return colRef.Name
+	}
+	for _, qt := range queryTables {
+		ft, ok := ftsTables[qt]
+		if !ok || ft == nil {
+			continue
+		}
+		for _, col := range ft.ColumnNames() {
+			if strings.EqualFold(col, colRef.Name) {
+				return qt
+			}
+		}
 	}
 	for tname, ft := range ftsTables {
 		for _, col := range ft.ColumnNames() {
