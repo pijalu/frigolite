@@ -24,8 +24,11 @@ import (
 
 // accVar records the write/read classification of one declared string var.
 type accVar struct {
-	appends int
-	reads   bool
+	appends       int
+	listAppends   int   // `V = tclListAppend(V, ...)` self-appends
+	badAssign     bool  // at least one non-empty wholesale assignment
+	badAssignIdxs []int // their line indexes
+	reads         bool
 }
 
 // amortizeStringAppends rewrites write-only string accumulators in an
@@ -46,17 +49,18 @@ func amortizeStringAppends(body string) string {
 // classifyAccumulators finds plain-string vars that are only appended or
 // wholesale-assigned (never read) and returns the set eligible for the
 // strings.Builder rewrite.
-func classifyAccumulators(lines, codeOf []string) map[string]bool {
+func classifyAccumulators(lines, codeOf []string) map[string]string {
 	accs := map[string]*accVar{}
 	var order []string
 	for i := range lines {
 		code := codeOf[i]
-		if isBlank(code) || isDeclLine(code, accs, &order) || isWriteLine(code, accs, order) || isSuppressLine(code) {
+		if isBlank(code) || isDeclLine(code, accs, &order) || isWriteLine(code, accs, order, i) || isSuppressLine(code) {
 			continue
 		}
 		// Any other occurrence of a candidate var is a read.
 		markReads(accs, order, code, "")
 	}
+	settleTerminalAssigns(lines, codeOf, accs, order)
 	return qualifiedSet(accs, order)
 }
 
@@ -82,7 +86,7 @@ func isDeclLine(code string, accs map[string]*accVar, order *[]string) bool {
 // isWriteLine classifies an assignment `V += ...` / `V = ...` for a
 // candidate var (self-references on the right-hand side count as reads); it
 // returns true when the line has the assignment form.
-func isWriteLine(code string, accs map[string]*accVar, order []string) bool {
+func isWriteLine(code string, accs map[string]*accVar, order []string, lineIdx int) bool {
 	v, rhs, ok := splitAssign(code)
 	if !ok {
 		return false
@@ -94,16 +98,49 @@ func isWriteLine(code string, accs map[string]*accVar, order []string) bool {
 			a.appends++
 			markReads(accs, order, val, v)
 		case "=":
+			// A TCL-lappend chain emits `V = tclListAppend(V, items...)`:
+			// a self-append through the list helper. The non-target
+			// arguments may read other candidates.
+			if items, ok := splitListAppendCall(val, v); ok {
+				a.listAppends++
+				markReads(accs, order, items, v)
+				break
+			}
 			// A self-referencing assignment (`set sql "$sql more"`) reads
-			// the var; a plain value assignment is a pure write.
+			// the var; a plain value assignment is a pure write (a
+			// non-empty one is unsafe for the list-builder rewrite UNLESS
+			// it is terminal — nothing appends or reads the var after it —
+			// in which case the dead store is emitted as a discard).
 			if identIn(val, v) {
 				a.reads = true
+			} else if val != `""` {
+				a.badAssign = true
+				a.badAssignIdxs = append(a.badAssignIdxs, lineIdx)
 			}
 		}
 	}
 	// The right-hand side may read OTHER candidates.
 	markReads(accs, order, rhs, v)
 	return true
+}
+
+// splitListAppendCall recognizes `tclListAppend(V, items...)` where V is the
+// accumulator itself (the emitted form of a TCL `lappend V items...`), and
+// returns the items argument text.
+func splitListAppendCall(val, v string) (string, bool) {
+	call := "tclListAppend("
+	if !strings.HasPrefix(val, call) || !strings.HasSuffix(val, ")") {
+		return "", false
+	}
+	args := strings.TrimSpace(val[len(call) : len(val)-1])
+	first, rest, ok := strings.Cut(args, ",")
+	if !ok {
+		return "", false
+	}
+	if strings.TrimSpace(first) != v {
+		return "", false
+	}
+	return strings.TrimSpace(rest), true
 }
 
 // isSuppressLine recognizes the generated `_ = V ...` unused-suppression
@@ -134,13 +171,65 @@ func markReads(accs map[string]*accVar, order []string, text, exclude string) {
 	}
 }
 
-// qualifiedSet returns the candidates eligible for the rewrite: appended at
-// least once (a Builder only pays off for repeated appends) and never read.
-func qualifiedSet(accs map[string]*accVar, order []string) map[string]bool {
-	rewrite := map[string]bool{}
+// settleTerminalAssigns downgrades badAssign flags that are TERMINAL: no
+// occurrence of the var in any later line (suppress lines excepted). The
+// assigned value overwrites the built list in the original code and nothing
+// reads it afterwards, so the rewrite may emit the dead store as a discard.
+func settleTerminalAssigns(lines, codeOf []string, accs map[string]*accVar, order []string) {
 	for _, v := range order {
-		if a := accs[v]; a.appends > 0 && !a.reads {
-			rewrite[v] = true
+		a := accs[v]
+		if !a.badAssign {
+			continue
+		}
+		terminal := true
+		for _, idx := range a.badAssignIdxs {
+			for i := idx + 1; i < len(lines); i++ {
+				code := codeOf[i]
+				if isSuppressLine(code) {
+					continue
+				}
+				if w, rhs, ok := splitAssign(code); ok && w == v {
+					op, val := splitOp(rhs)
+					if _, isApp := splitListAppendCall(val, v); isApp || op == "+=" {
+						// A chained self-append (or +=) consumes the stored
+						// value: the assignment is not dead.
+						terminal = false
+					}
+					// Any other wholesale write severs the dataflow — the
+					// stored value is discarded, so stop scanning here.
+					break
+				}
+				if identIn(code, v) {
+					terminal = false
+					break
+				}
+			}
+			if !terminal {
+				break
+			}
+		}
+		if terminal {
+			a.badAssign = false
+		}
+	}
+}
+
+// qualifiedSet returns the candidates eligible for the rewrite, keyed by
+// kind ("string" for append-accumulated SQL batches, "list" for
+// tclListAppend-accumulated TCL lists): appended at least once, never read,
+// never mixed-kind, and without a non-empty wholesale assignment.
+func qualifiedSet(accs map[string]*accVar, order []string) map[string]string {
+	rewrite := map[string]string{}
+	for _, v := range order {
+		a := accs[v]
+		if a.reads || a.badAssign {
+			continue
+		}
+		switch {
+		case a.appends > 0 && a.listAppends == 0:
+			rewrite[v] = "string"
+		case a.listAppends > 0 && a.appends == 0:
+			rewrite[v] = "list"
 		}
 	}
 	return rewrite
@@ -153,16 +242,21 @@ func qualifiedSet(accs map[string]*accVar, order []string) map[string]bool {
 // newline parity with the original body is preserved (a strings.Split on
 // "\n" leaves a final "" element exactly when the body ended with a
 // newline).
-func rewriteAccumulators(lines, codeOf []string, rewrite map[string]bool) string {
+func rewriteAccumulators(lines, codeOf []string, rewrite map[string]string) string {
 	var b strings.Builder
 	for i, ln := range lines {
 		code := codeOf[i]
 		comment := goLineComment(ln)
-		if v := declStringName(code); v != "" && rewrite[v] {
-			b.WriteString(fmt.Sprintf("\tvar %s strings.Builder%s\n", v, comment))
+		if v := declStringName(code); v != "" && rewrite[v] != "" {
+			decl := "strings.Builder"
+			if rewrite[v] == "list" {
+				decl = "*tclListBuilder"
+			}
+			indent := ln[:len(ln)-len(strings.TrimLeft(ln, "\t"))]
+			b.WriteString(fmt.Sprintf("%svar %s %s%s\n", indent, v, decl, comment))
 			continue
 		}
-		if out, ok := rewriteWrite(code, comment, rewrite); ok {
+		if out, ok := rewriteWrite(ln, code, comment, rewrite, i); ok {
 			b.WriteString(out)
 			continue
 		}
@@ -178,20 +272,40 @@ func rewriteAccumulators(lines, codeOf []string, rewrite map[string]bool) string
 
 // rewriteWrite emits the Builder form of one assignment line; ok is false
 // when the line is not a write to a rewritten var.
-func rewriteWrite(code, comment string, rewrite map[string]bool) (string, bool) {
+func rewriteWrite(origLine, code, comment string, rewrite map[string]string, lineIdx int) (string, bool) {
 	v, rhs, ok := splitAssign(code)
-	if !ok || !rewrite[v] {
+	if !ok || rewrite[v] == "" {
 		return "", false
 	}
+	// Preserve the original line's indentation (the accumulator's writes are
+	// often inside loop bodies).
+	indent := origLine[:len(origLine)-len(strings.TrimLeft(origLine, "\t"))]
 	op, val := splitOp(rhs)
+	if rewrite[v] == "list" {
+		// List builders: a wholesale "" assignment starts a fresh builder;
+		// a self-append calls Append (which applies TCL bracing per item,
+		// matching tclListAppend's fast path); a terminal non-empty
+		// assignment overwrites the built list without ever reading it —
+		// emit the dead store as a discard.
+		if op == "=" && val == `""` {
+			return fmt.Sprintf("%s%s = &tclListBuilder{}%s\n", indent, v, comment), true
+		}
+		if items, ok := splitListAppendCall(val, v); ok {
+			return fmt.Sprintf("%s%s.Append(%s)%s\n", indent, v, items, comment), true
+		}
+		if op == "=" && val != `""` {
+			return fmt.Sprintf("%s_ = %s%s\n", indent, val, comment), true
+		}
+		return "", false
+	}
 	if op == "=" {
-		out := fmt.Sprintf("\t%s.Reset()%s\n", v, comment)
+		out := fmt.Sprintf("%s%s.Reset()%s\n", indent, v, comment)
 		if val != `""` {
-			out += fmt.Sprintf("\t%s.WriteString(%s)%s\n", v, val, comment)
+			out += fmt.Sprintf("%s%s.WriteString(%s)%s\n", indent, v, val, comment)
 		}
 		return out, true
 	}
-	return fmt.Sprintf("\t%s.WriteString(%s)%s\n", v, val, comment), true
+	return fmt.Sprintf("%s%s.WriteString(%s)%s\n", indent, v, val, comment), true
 }
 
 // splitOp splits an operator-with-RHS part into the operator and the

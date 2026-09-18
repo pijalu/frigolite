@@ -857,6 +857,38 @@ func tclListAppend(list string, items ...string) string {
 	return tclList(existing)
 }
 
+// tclListBuilder amortizes TCL lappend-in-loop accumulation: each Append is
+// O(item) (strings.Builder growth) instead of tclListAppend's copy of the
+// whole accumulated list, so building an N-element list is O(N) total
+// instead of O(N^2) bytes. Append applies the same element encoding as
+// tclListAppend's fast path (space-separated; braced when the item needs
+// bracing), so String() matches the list text tclListAppend would have
+// produced for append-only accumulation starting from an empty list.
+type tclListBuilder struct {
+	sb strings.Builder
+	n  int
+}
+
+// Append appends items to the list (TCL lappend semantics).
+func (b *tclListBuilder) Append(items ...string) {
+	for _, it := range items {
+		if b.n > 0 {
+			b.sb.WriteByte(' ')
+		}
+		if tclNeedsBracing(it) {
+			b.sb.WriteByte('{')
+			b.sb.WriteString(it)
+			b.sb.WriteByte('}')
+		} else {
+			b.sb.WriteString(it)
+		}
+		b.n++
+	}
+}
+
+// String returns the accumulated TCL-format list text.
+func (b *tclListBuilder) String() string { return b.sb.String() }
+
 // tclList joins items into a TCL-format list string.
 func tclList(items []string) string {
 	parts := make([]string, len(items))
