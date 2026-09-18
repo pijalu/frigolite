@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strings"
 "testing"
 )
 
@@ -295,6 +296,13 @@ func Test_e_fts3(t *testing.T) {
 				r = db.Query("SELECT * FROM sqlite_master")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1.1.8.1"
@@ -391,6 +399,13 @@ func Test_e_fts3(t *testing.T) {
 				r = db.Query(" SELECT docid, * FROM pages ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid, * FROM pages ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// do_error_test fts3-1.2.1.10 {\n  INSERT INTO pages(rowid, docid, title, body) V...} {SQL logic... (unsupported command, not transpiled)
@@ -464,6 +479,13 @@ func Test_e_fts3(t *testing.T) {
 				r = db.Query(" \n  SELECT * FROM mail WHERE rowid = 15;                -- Fast. Rowid lookup.\n  SELECT * FROM mail WHERE body MATCH 'sqlite';       -- Fast. Full-text query.\n  SELECT * FROM mail WHERE mail MATCH 'search';       -- Fast. Full-text query.\n  SELECT * FROM mail WHERE rowid BETWEEN 15 AND 20;   -- Slow. Linear scan.\n  SELECT * FROM mail WHERE subject = 'database';      -- Slow. Linear scan.\n  SELECT * FROM mail WHERE subject MATCH 'database';  -- Fast. Full-text query.\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT * FROM mail WHERE rowid = 15;                -- Fast. Rowid lookup.\n  SELECT * FROM mail WHERE body MATCH 'sqlite';       -- Fast. Full-text query.\n  SELECT * FROM mail WHERE mail MATCH 'search';       -- Fast. Full-text query.\n  SELECT * FROM mail WHERE rowid BETWEEN 15 AND 20;   -- Slow. Linear scan.\n  SELECT * FROM mail WHERE subject = 'database';      -- Slow. Linear scan.\n  SELECT * FROM mail WHERE subject MATCH 'database';  -- Fast. Full-text query.\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1.3.1.3"
@@ -560,18 +582,39 @@ func Test_e_fts3(t *testing.T) {
 				r = db.Query(" SELECT * FROM docs WHERE docs MATCH 'sqlite' ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM docs WHERE docs MATCH 'sqlite' ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1.3.3.3"
 				r = db.Query(" SELECT * FROM docs WHERE docs.docs MATCH 'sqlite' ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM docs WHERE docs.docs MATCH 'sqlite' ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1.3.3.4"
 				r = db.Query(" SELECT * FROM docs WHERE main.docs.docs MATCH 'sqlite' ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM docs WHERE main.docs.docs MATCH 'sqlite' ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// do_error_test e_fts3-1.3.3.5 { \n  SELECT * FROM docs WHERE main.docs MATCH 'sql...} {no such ... (unsupported command, not transpiled)
@@ -800,6 +843,13 @@ func Test_e_fts3(t *testing.T) {
 							r = db.Query("\n  SELECT * FROM docs WHERE docs MATCH 'database and sqlite'\n")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM docs WHERE docs MATCH 'database and sqlite'\n")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "1.5.2.1"
@@ -1015,6 +1065,13 @@ func Test_e_fts3(t *testing.T) {
 							r = db.Query("SELECT docid FROM simple WHERE simple MATCH 'Frustration'")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM simple WHERE simple MATCH 'Frustration'")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "1.8.2.1"
@@ -1065,38 +1122,38 @@ func Test_e_fts3(t *testing.T) {
 					}
 					{ // "2.1.3"
 						_res = db.Exec("\n  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "illegal first argument to offsets") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "illegal first argument to offsets", resErrString(_res), "\n  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.4"
 						_res = db.Exec("\n  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "illegal first argument to offsets") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "illegal first argument to offsets", resErrString(_res), "\n  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.5"
 						_res = db.Exec("\n  SELECT optimize(a) FROM t1 LIMIT 1\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT optimize(a) FROM t1 LIMIT 1\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "illegal first argument to optimize") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "illegal first argument to optimize", resErrString(_res), "\n  SELECT optimize(a) FROM t1 LIMIT 1\n")
 						}
 					}
 					{ // "2.1.6"
 						_res = db.Exec("\n  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "illegal first argument to snippet") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "illegal first argument to snippet", resErrString(_res), "\n  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.7"
 						_res = db.Exec("\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function snippet in the requested context") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function snippet in the requested context", resErrString(_res), "\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					{ // "2.1.8"
 						_res = db.Exec("\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') FROM t1 WHERE a MATCH 'one'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') FROM t1 WHERE a MATCH 'one'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function snippet()") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function snippet()", resErrString(_res), "\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') FROM t1 WHERE a MATCH 'one'\n")
 						}
 					}
 					// do_malloc_test e_fts3-3 -tclbody { \n  if {[catch {sqlite3 db test.db}]} { error "ou...} (unsupported command, not transpiled)
@@ -1125,12 +1182,24 @@ func Test_e_fts3(t *testing.T) {
 						r = db.Query(" SELECT optimize(t4) FROM t4 LIMIT 1 ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT optimize(t4) FROM t4 LIMIT 1 ")
+							return
+						}
+						got := flatten(r)
+						want := "Index optimized"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // do_test "e_fts3-4.5"
 						r = db.Query(" SELECT optimize(t4) FROM t4 LIMIT 1 ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT optimize(t4) FROM t4 LIMIT 1 ")
+							return
+						}
+						got := flatten(r)
+						want := "Index already optimal"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					vtab.TclVarSet("DO_MALLOC_TEST", "", "0")
@@ -1187,24 +1256,52 @@ func Test_e_fts3(t *testing.T) {
 						r = db.Query(" SELECT * FROM t6 WHERE t6 MATCH '' ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t6 WHERE t6 MATCH '' ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "6.6"
 						r = db.Query(" SELECT * FROM t6 WHERE x MATCH '' ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t6 WHERE x MATCH '' ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "6.7"
 						r = db.Query(" SELECT * FROM t6 WHERE t6 MATCH NULL ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t6 WHERE t6 MATCH NULL ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "6.8"
 						r = db.Query(" SELECT * FROM t6 WHERE x MATCH NULL ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t6 WHERE x MATCH NULL ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					vtab.TclVarSet("DO_MALLOC_TEST", "", "0")
@@ -1250,32 +1347,32 @@ func Test_e_fts3(t *testing.T) {
 					}
 					{ // "7.2.1"
 						_res = db.Exec("\n  SELECT * FROM t7 WHERE docid MATCH 'number'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7 WHERE docid MATCH 'number'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n  SELECT * FROM t7 WHERE docid MATCH 'number'\n")
 						}
 					}
 					{ // "7.2.2"
 						_res = db.Exec("\n  SELECT * FROM t7 WHERE rowid MATCH 'number'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7 WHERE rowid MATCH 'number'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n  SELECT * FROM t7 WHERE rowid MATCH 'number'\n")
 						}
 					}
 					{ // "7.3.1"
 						_res = db.Exec("\n  SELECT * FROM t7 WHERE a MATCH 'number' AND a MATCH 'four'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7 WHERE a MATCH 'number' AND a MATCH 'four'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n  SELECT * FROM t7 WHERE a MATCH 'number' AND a MATCH 'four'\n")
 						}
 					}
 					{ // "7.3.2"
 						_res = db.Exec("\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND a MATCH 'four'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND a MATCH 'four'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND a MATCH 'four'\n")
 						}
 					}
 					{ // "7.3.3"
 						_res = db.Exec("\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND b MATCH 'd'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND b MATCH 'd'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", resErrString(_res), "\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND b MATCH 'd'\n")
 						}
 					}
 					{ // "e_fts3-7.3.4" — skipped: snippet() aux function P6.FTS-E
@@ -1344,7 +1441,7 @@ func Test_e_fts3(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "0 c\\\"1 {} 0 {} 0 1 c'2 {} 0 {} 0"
+						want := "0 c\"1 {} 0 {} 0 1 c'2 {} 0 {} 0"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1474,8 +1571,8 @@ func Test_e_fts3(t *testing.T) {
 					}
 					{ // "10.1.6"
 						_res = db.Exec("\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n")
 						}
 					}
 					{ // "10.2.1"
@@ -1513,8 +1610,8 @@ func Test_e_fts3(t *testing.T) {
 					}
 					{ // "10.2.5"
 						_res = db.Exec("\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n")
 						}
 					}
 }
