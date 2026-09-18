@@ -92,3 +92,33 @@ func TestPinFTS4SelfReferentialTVFReadFails(t *testing.T) {
 		t.Fatalf("expected SQL logic error, got %v", r.Error)
 	}
 }
+
+// TestPinFTS4ViewRowidNotAmbiguous pins that a rowid-shadowing view operand
+// keeps its qualified rowid reference unambiguous: the ambiguity map must
+// count the declared rowid column of a view once — the implicit
+// rowid/_rowid_/oid pseudo-columns are not added a second time for the same
+// operand (fts4upfrom 1.3.8: WITH x1 ... SELECT ft.rowid ... FROM ft, x1
+// where ft = CREATE VIEW ft AS SELECT rowid, a, b, c FROM real).
+func TestPinFTS4ViewRowidNotAmbiguous(t *testing.T) {
+	db, err := Open("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, s := range []string{
+		"CREATE TABLE real(a, b, c)",
+		"INSERT INTO real VALUES('apple', 'x', 'y')",
+		"CREATE VIEW ft AS SELECT rowid, a, b, c FROM real",
+	} {
+		if r := db.Exec(s); r.Error != nil {
+			t.Fatalf("%s: %v", s, r.Error)
+		}
+	}
+	r := db.Query("WITH x1(o, n) AS (VALUES(1, 11)) SELECT ft.rowid, a, o, n FROM ft, x1 WHERE ft.rowid = o")
+	if r.Error != nil {
+		t.Fatalf("qualified view rowid must not be ambiguous: %v", r.Error)
+	}
+	if len(r.Rows) != 1 {
+		t.Fatalf("expected 1 row, got %v", r.Rows)
+	}
+}
