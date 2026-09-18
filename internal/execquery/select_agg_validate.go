@@ -815,6 +815,20 @@ func (e *SelectEngine) validateGroupByExprs(s *sql.SelectStmt) error {
 			return fmt.Errorf("aggregate functions are not allowed in the GROUP BY clause")
 		}
 	}
+	// Numeric ordinals resolve to their SELECT-column expressions first
+	// (resolve.c maps GROUP BY N to the Nth result column before the
+	// no-aggregate check), so "GROUP BY 1, 2" over a list holding max(Value)
+	// is rejected too (misc4-4.1/4.2). colDefs only matter for the SELECT *
+	// mapping, which can never contain an aggregate.
+	resolved, err := resolveGroupByOrdinals(s, nil)
+	if err != nil {
+		return err
+	}
+	for _, gb := range resolved {
+		if nested := FindAggregateInExpr(gb); nested != "" {
+			return fmt.Errorf("aggregate functions are not allowed in the GROUP BY clause")
+		}
+	}
 	return nil
 }
 
