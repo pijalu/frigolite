@@ -359,3 +359,31 @@ func TestPinEvalRecursiveUDF(t *testing.T) {
 	}
 	pinExpectError(t, db, "SELECT eval('SELECT d FROM t1 ORDER BY a')", "no such column: d")
 }
+
+// TestPinCompoundGroupByOrdinalAggregate covers misc4-3.3/3.4: GROUP BY
+// ordinals resolve to the term's RESULT columns (resolve.c
+// resolveOrderGroupBy), so ordinal 2 over "ID, max(Value)" is the aggregate
+// itself — "aggregate functions are not allowed in the GROUP BY clause".
+// Oracle: sqlite3 3.54 errors identically on the simple and compound forms.
+func TestPinCompoundGroupByOrdinalAggregate(t *testing.T) {
+	db := openPinDB(t)
+	// Byte-exact misc4-1.1/2.1/2.2/2.4 preamble (t3 insert-before-create).
+	pinExec(t, db, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n  ")
+	_ = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")  // catchsql: t3 not there yet
+	pinExec(t, db, "CREATE TABLE t3(x);")
+	pinExec(t, db, "\n    INSERT INTO t3 VALUES(1);\n  ")
+	pinExec(t, db, "CREATE TABLE Table1(ID integer primary key, Value TEXT); INSERT INTO Table1 VALUES(1,'x')")
+	pinExec(t, db, "CREATE TABLE Table2(ID integer NOT NULL, Value TEXT); INSERT INTO Table2 VALUES(1,'z'),(1,'a')")
+	pinExpectError(t, db, "SELECT b, max(d) FROM Table2 GROUP BY 1, 2",
+		"aggregate functions are not allowed in the GROUP BY clause")
+	// Exact misc4-3.1..3.4 sequence: a UNION query WITHOUT the aggregate
+	// (3.2) runs first — a state leak from it must not swallow 3.3's error.
+	if r := db.Query("SELECT ID, Value FROM Table1 UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1 ORDER BY 1, 2"); r.Error != nil {
+		t.Fatalf("3.2 query: %v", r.Error)
+	}
+	// Byte-exact misc4-3.3 input (leading/trailing whitespace, semicolon).
+	pinExpectError(t, db, " \n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n      ORDER BY 1, 2;\n    ",
+		"aggregate functions are not allowed in the GROUP BY clause")
+	pinExpectError(t, db, "SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2 UNION SELECT ID, Value FROM Table1 ORDER BY 1, 2",
+		"aggregate functions are not allowed in the GROUP BY clause")
+}
