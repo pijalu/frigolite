@@ -70,8 +70,11 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 	if isHexLiteral(v.Value) && v.Value != "" {
 		return evalHexLiteral(v)
 	}
-	// Try base 0 first (auto-detect for hex literals like 0x...)
-	if i, err := strconv.ParseInt(v.Value, 0, 64); err == nil {
+	// Decimal integer (SQLite's only non-hex integer form): leading zeros
+	// are NOT octal (unlike Go's base-0 scan) — SELECT typeof(08) is
+	// integer in SQLite, so parse base 10 explicitly. Hex was handled by
+	// evalHexLiteral above; 0b/0o prefixes are not SQLite literals.
+	if i, err := strconv.ParseInt(v.Value, 10, 64); err == nil {
 		v.SetCached(i)
 		return i, nil
 	}
