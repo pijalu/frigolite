@@ -630,7 +630,7 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 	// functions (random(), julianday('now',...)), subqueries, window
 	// functions, and other prohibited constructs in index expressions
 	// (build.c sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction).
-		for _, term := range s.Terms {
+	for _, term := range s.Terms {
 		if err := validateIndexColumnRefs(term.Expr, colDefs, allowDQS); err != nil {
 			return &Result{Error: err}
 		}
