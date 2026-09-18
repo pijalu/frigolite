@@ -6934,14 +6934,61 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   message with "1 " before emitCatchSQLComparison, else the comparison
   flips to expect-success. Expectation literals go through
   resolveTCLListEscapes so TCL backslash escapes (c\"1) compare equal.
+- **T27-automerge (2026-09-18): the fts4merge4 plateau had THREE stacked
+  engine bugs, not one.** In order of discovery: (1) `IncrLeafWriter.Finish`
+  emitted the ROOT layer as an "extra" block too (extras loop bounded by
+  maxHierLayers, not top) — the root blob lost its boundaries and the next
+  continuation's chain-walk aborted; (2) `SegmentStreamReader` is leaf-only —
+  a height>=2 continuation output (root over layer-1 interior blocks) fails
+  `bHeight != 0` on its first interior child and every merge INTO that level
+  silently no-ops ([SEG13]-class); fixed by enumerating leaf block ids via
+  collectLeafIDs at construction; (3) the continuation rewrote start_block
+  from the ROOT's first child — for height>=2 roots that is an INTERIOR id,
+  making leaves_end < start and the next merge read the segment as empty and
+  DELETE it (content loss). C-faithful rule: `pWriter->iStart` is the segdir
+  start_block (first LEAF) forever; the root's first child only seeds the
+  pending chain.
+- **T27: the automerge grind now matches the instrumented oracle
+  byte-for-byte per transaction** (am=8 100/100 txs; all four tn2=1 grid
+  variants 100/100). Method: keep the AMQ/AMIT/AMCHOMP-instrumented sqlite3
+  (/Users/muaddib/dev/sqlite), drive both sides with the identical SQL
+  script, and diff per-tx level counts — far faster feedback than the
+  20-minute testgen suite.
+- **T27: the instrumented oracle binary is NOT a faithful oracle for
+  TEST-only paths** — `nodesize=` is parsed under
+  `#if defined(SQLITE_DEBUG)||defined(SQLITE_TEST)`; that build silently
+  ignored nodesize=24 (220's scenario) and even silently STOPPED executing
+  the script after a big `DELETE FROM`. For test-only paths, rebuild a
+  scratch oracle from sqlite3.c with the guard patched to `#if 1`
+  (/tmp/sqlite3_ns recipe).
+- **T27: real SQLite flushes FTS pending terms PER STATEMENT on a REOPENED
+  connection, but only at COMMIT on the connection that created the table**
+  (fts3SavepointMethod's flush; verified: reopen + BEGIN/3 INSERTs/COMMIT →
+  3 segdir rows vs 1 without reopen). The tcl2go transpiler does NOT
+  transpile the fts4merge4 openclose (`eval $openclose` is dynamic), so the
+  generated grid never reopens — its tn2=2 flows cannot match an oracle
+  driven through a real reopen. This is the fts4onepass-4.0 xSavepoint
+  flush-model work, still queued.
 - **Known remaining divergences (engine work queued, skipped with evidence
-  under T26-fts34)**: per-statement FTS pending flush inside transactions
-  (fts4onepass-4.0, xSavepoint semantics); OR REPLACE docid-change flush
-  marker bookkeeping (fts3conf-4.1.3/4.2.2 [T27]); merge-writer layered
-  block reservation (fts4growth 2.x/5.x/7.x, fts3fuzz001-220 — MergeFTS
-  continuation, owned by the fts4merge4 agent); crafted fuzz/crash image
-  detection depth (fts3fuzz001-110/120/121, fts3corrupt4-13.1/18.1/
-  24.7/28.8).
+  under T26-fts34 + T27-automerge)**: per-statement FTS pending flush inside
+  transactions (fts4onepass-4.0 + the fts4merge4 tn2=2 grid variants — see
+  the reopen note above); OR REPLACE docid-change flush marker bookkeeping
+  (fts3conf-4.1.3/4.2.2 [T27]; not reproducible in isolation, needs the
+  exact 3.8 sequence); merge-writer crisis-merge/flush-model byte layout
+  (fts4growth 2.x/5.x/7.x — re-evaluated under T27, still divergent);
+  fts3fuzz001-220 block layout now MATCHES the nodesize=24 oracle, but C's
+  guard-blocked release-leaf layout is only tolerated by SQLite's segment
+  checker while the engine's stricter integrity_check flags it (checker
+  leniency parity queued); crafted fuzz/crash image detection depth
+  (fts3fuzz001-110/120/121, fts3corrupt4-13.1/18.1/24.7/28.8).
+- **T27 follow-up (uncovered while probing beyond asserted scope)**: a
+  200-transaction automerge=2 grind converges through tx136 exactly like the
+  oracle (levels 1,2,3,4,5,6) and then hits "database disk image is
+  malformed" on the next INSERT — a transient %_segdir read returns 0 rows
+  for a level that the count query sees (stale btree/cursor under the
+  merge's row churn). No test covers tx>100; baseline never got there
+  (plateaued instead). Debug with the /tmp/obsmod long-grind observer before
+  touching the merge code again.
 =======
 - **A COMPOUND select's ORDER BY resolves ONLY against result-column names**
   (sqlite3Select: the terms never touch any member's FROM scope, so

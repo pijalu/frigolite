@@ -1339,8 +1339,8 @@ func Test_fts3fuzz001(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "fts3fuzz001-220" — skipped: post-merge integrity_check N-A: merge writer layer-slot collision (leaf overwrites layer-1 interior slot) strands leaves; oracle pre-allocates per-layer ranges (no-side-effects)
+	{ // "fts3fuzz001-220" — skipped: post-merge integrity_check N-A: block layout now matches the nodesize=24 oracle; the guard-blocked release-leaf layout C tolerates is flagged by the engine's stricter segment check (no-side-effects)
 	}
-	{ // "fts3fuzz001-220" — skipped: post-merge integrity_check N-A: merge writer layer-slot collision (leaf overwrites layer-1 interior slot) strands leaves; oracle pre-allocates per-layer ranges (no-side-effects)
+	{ // "fts3fuzz001-220" — skipped: post-merge integrity_check N-A: block layout now matches the nodesize=24 oracle; the guard-blocked release-leaf layout C tolerates is flagged by the engine's stricter segment check (no-side-effects)
 	}
 }
