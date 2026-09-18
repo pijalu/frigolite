@@ -146,23 +146,32 @@ func (e *SelectEngine) buildAmbiguousColMap(operands []fromOperand) map[string][
 			// execution path reports the missing table.
 			continue
 		}
+		declared := make(map[string]bool, len(cols))
 		for _, c := range cols {
 			l := strings.ToLower(c)
+			declared[l] = true
 			// No per-ref dedupe: a DUPLICATED alias contributes the same ref
 			// once per instance (select1-6.8c).
 			colInTables[l] = append(colInTables[l], op.ref)
 		}
-		e.addRowidCols(colInTables, op.ref, op.table)
+		e.addRowidCols(colInTables, op.ref, op.table, declared)
 	}
 	return colInTables
 }
 
 // addRowidCols adds the implicit rowid/_rowid_/oid columns for a table, unless
-// it is declared WITHOUT ROWID (such tables have no rowid pseudo-column).
-func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string) {
+// it is declared WITHOUT ROWID (such tables have no rowid pseudo-column) or
+// the operand already declares a column shadowing the name — a view exposing
+// rowid (fts4upfrom 1.3.8: CREATE VIEW ft AS SELECT rowid, ... ) contributes
+// it once via its declared columns, and the implicit pseudo-column must not
+// be counted a second time or the qualified ft.rowid reads as ambiguous.
+func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string, declared map[string]bool) {
 	te, _, terr := e.ctx.FindTable(table)
 	if terr != nil || !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
 		for _, r := range []string{"rowid", "_rowid_", "oid"} {
+			if declared[r] {
+				continue
+			}
 			colInTables[r] = append(colInTables[r], ref)
 		}
 	}
