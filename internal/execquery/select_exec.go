@@ -199,6 +199,11 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 		e.currentScanTable = s.From.As
 	}
 	defer func() { e.currentScanTable = prevScanTable }()
+	// Point-lookup short circuit (src/where.c SEARCH rowid=?): a WHERE that
+	// pins the rowid to a literal reads the single candidate row by seek.
+	if rows, rowMaps, handled := e.selectRowidSeekRows(s, tableEntry, colDefs, tree); handled {
+		return e.execSelectPostScan(s, rows, rowMaps, colDefs)
+	}
 	allRows, allRowMaps, scanErr := e.scan.ScanTable(s, tableEntry, colDefs, cursor)
 	if scanErr != nil {
 		return &Result{Error: scanErr}

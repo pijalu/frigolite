@@ -175,6 +175,17 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 	e.ctx.SetCurrentScanTable(scanName)
 	defer func() { e.ctx.SetCurrentScanTable(prevScan) }()
 
+	// Point-lookup narrowing (src/where.c SEARCH plans): a rowid or indexed
+	// leading-column equality pins the candidate rows; visit only those.
+	// UPDATE ... FROM joins rows from other tables, so its WHERE is not a
+	// pure target-table predicate — keep the scan there.
+	if s.From.Name == "" {
+		if changes, rowMaps, ok := e.seekUpdateChanges(tableName, rootPage, colDefs, s, deferSetEval, scanName); ok {
+			changes = e.applyUpdateOrderLimit(changes, rowMaps, s)
+			return changes, nil
+		}
+	}
+
 	var changes []updateChange
 	var rowMaps []RowMap
 	for {
@@ -217,6 +228,69 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 	// natural rowid order).
 	changes = e.applyUpdateOrderLimit(changes, rowMaps, s)
 	return changes, nil
+}
+
+// seekUpdateChanges collects UPDATE changes through a point-lookup plan,
+// mirroring the scan loop's per-row work (decode, remap, WHERE evaluation,
+// change building) over the candidate rows only. ok=false falls back to the
+// full scan (no plan, or a candidate lookup/evaluation anomaly).
+func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool, scanName string) ([]updateChange, []RowMap, bool) {
+	var tableEntry *schema.Entry
+	te, _, ferr := e.ctx.FindTable(tableName)
+	if ferr != nil || te == nil {
+		return nil, nil, false
+	}
+	tableEntry = te
+	colIndex := buildColumnIndex(colDefs)
+	plan := e.planDMLSeek(tableEntry, colDefs, s.Where, scanName, e.currentDMLCtx)
+	if plan == nil {
+		return nil, nil, false
+	}
+	rowIDs, ok := e.seekCandidateRowIDs(tableName, rootPage, plan)
+	if !ok {
+		return nil, nil, false
+	}
+	tree := e.dmlTableBTree(tableName, rootPage)
+	var changes []updateChange
+	var rowMaps []RowMap
+	for _, rowID := range rowIDs {
+		// SQLITE_TEST interrupt countdown: one op per row examined
+		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
+		if err := e.ctx.CheckProgress(); err != nil {
+			return nil, nil, false
+		}
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return nil, nil, false
+		}
+		found, err := cursor.SeekToRowID(rowID)
+		if err != nil {
+			return nil, nil, false
+		}
+		if !found {
+			continue
+		}
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			return nil, nil, false
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil {
+			return nil, nil, false
+		}
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
+		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
+		if err != nil {
+			return nil, nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		if matched {
+			ch.seq = len(changes)
+			changes = append(changes, *ch)
+			rowMaps = append(rowMaps, matchRow)
+		}
+	}
+	return changes, rowMaps, true
 }
 
 // applyUpdateOrderLimit applies UPDATE ... ORDER BY ... LIMIT: sort a copy of

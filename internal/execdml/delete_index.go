@@ -54,6 +54,9 @@ func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs 
 // tracking is needed. A missing entry is tolerated (no error): the index
 // may predate this engine's index maintenance.
 func (e *DMLExecutor) deleteIndexCell(def indexDef, indexValues []interface{}) error {
+	// Mirror writeIndexCell's storage normalization: the delete payload must
+	// byte-match the entry the insert side wrote.
+	indexStorageValues(indexValues)
 	payload, err := storage.EncodeRecord(indexValues)
 	if err != nil {
 		return err

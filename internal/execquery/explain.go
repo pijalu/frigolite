@@ -34,27 +34,118 @@ func (e *SelectEngine) execExplainQueryPlan(stmt sql.Stmt) *Result {
 		}
 		return simplePlan("SCAN " + s.Table)
 	case *sql.DeleteStmt:
-		return e.explainFKParentPlan(s.Table, 1)
+		return e.explainDMLPlan(s.Table, s.Where, 1)
 	case *sql.UpdateStmt:
-		return e.explainFKParentPlan(s.Table, 2)
+		return e.explainDMLPlan(s.Table, s.Where, 2)
 	default:
 		return simplePlan("SCAN (unnamed)")
 	}
 }
 
-// explainFKParentPlan plans a parent-table DELETE/UPDATE the way SQLite does:
-// the table scan plus one SCAN node per FK child check query. SQLite plans the
-// child lookup "SELECT rowid FROM <child> WHERE <child-key> = ..." once for a
-// DELETE and twice for an UPDATE (the old-key and new-key checks) when foreign
-// keys are enabled at prepare time (e_fkey-26.x).
-func (e *SelectEngine) explainFKParentPlan(tableName string, childScans int) *Result {
-	nodes := []planNode{{detail: "SCAN " + tableName}}
+// explainDMLPlan plans a DELETE/UPDATE the way SQLite does: the target table
+// renders as SEARCH when a point-lookup drives the statement — a rowid or
+// indexed leading-column equality against a literal (where.c SEARCH plans) —
+// otherwise SCAN. One SCAN node per FK child check query follows (one for a
+// DELETE, two for an UPDATE, when the table has foreign-key children;
+// e_fkey-26.x).
+func (e *SelectEngine) explainDMLPlan(tableName string, where sql.Expr, childScans int) *Result {
+	detail := "SCAN " + tableName
+	if search := e.dmlSearchDetail(tableName, where); search != "" {
+		detail = search
+	}
+	nodes := []planNode{{detail: detail}}
 	for _, child := range e.ctx.FKChildTableNames(tableName) {
 		for i := 0; i < childScans; i++ {
 			nodes = append(nodes, planNode{detail: "SCAN " + child})
 		}
 	}
 	return planTreeResult(nodes)
+}
+
+// dmlSearchDetail renders the SEARCH node for a DELETE/UPDATE point lookup:
+// "SEARCH <t> USING INTEGER PRIMARY KEY (rowid=?)" for a rowid equality, or
+// "SEARCH <t> USING INDEX <idx> (<col>=?)" for an indexed leading-column
+// equality. Returns "" when no seek applies (caller keeps SCAN). The gate
+// mirrors the DML seek path (internal/execdml planDMLSeek); the plan label is
+// advisory, so a divergence only affects the EQP text, never the rows
+// touched.
+func (e *SelectEngine) dmlSearchDetail(tableName string, where sql.Expr) string {
+	if where == nil || tableName == "" {
+		return ""
+	}
+	tableEntry, _, err := e.ctx.FindTable(tableName)
+	if err != nil || tableEntry == nil {
+		return ""
+	}
+	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		return ""
+	}
+	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	if RowHasRowIDColumn(colDefs) {
+		return ""
+	}
+	isRowidTable := !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	for _, conj := range splitAnd(where) {
+		bin, ok := conj.(*sql.BinaryOp)
+		if !ok || bin.Operator != "=" {
+			continue
+		}
+		// Rowid equality (rowid/_rowid_/oid; a declared column with such a
+		// name shadows the pseudo-column, checked above).
+		for _, sides := range [2][2]sql.Expr{{bin.Left, bin.Right}, {bin.Right, bin.Left}} {
+			ref, ok := sides[0].(*sql.ColumnRef)
+			if !ok {
+				continue
+			}
+			lit := sides[1] != nil && isDMLSearchLiteral(sides[1])
+			if !lit {
+				continue
+			}
+			name := strings.ToLower(ref.Name)
+			qualified := ref.Table == "" || strings.EqualFold(ref.Table, tableName)
+			if isRowidTable && qualified && (name == "rowid" || name == "_rowid_" || name == "oid") {
+				return fmt.Sprintf("SEARCH %s USING INTEGER PRIMARY KEY (rowid=?)", tableName)
+			}
+			if colDefsHasColumn(colDefs, ref.Name) && qualified {
+				if cd, ok := findColDefByName(colDefs, ref.Name); ok && isIPKRowidAliasCol(cd) && isRowidTable {
+					return fmt.Sprintf("SEARCH %s USING INTEGER PRIMARY KEY (rowid=?)", tableName)
+				}
+				// The seek narrows on an index whose LEADING key is the
+				// constrained column (mirrors the execdml seek gate; a
+				// non-leading key cannot drive the probe).
+				if idx := e.findIndexOnLeadingColumn(tableName, ref.Name); idx != "" {
+					return fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", tableName, idx, ref.Name)
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// isDMLSearchLiteral reports whether an expression is a plain literal (or a
+// parenthesized/unary literal): the shapes the DML seek path pins on.
+func isDMLSearchLiteral(expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case *sql.NumericLit, *sql.StringLit, *sql.NullLit, *sql.BlobLit:
+		return true
+	case *sql.ParenExpr:
+		return isDMLSearchLiteral(v.Expr)
+	case *sql.UnaryOp:
+		if _, ok := v.Operand.(*sql.NumericLit); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// colDefsHasColumn reports whether colName resolves to a declared column.
+func colDefsHasColumn(colDefs []sql.ColumnDef, colName string) bool {
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, colName) {
+			return true
+		}
+	}
+	return false
 }
 
 // planNode is one EXPLAIN QUERY PLAN tree node: a detail line plus optional
@@ -1011,4 +1102,23 @@ func parseStatSZ(stat string) int {
 		return 0
 	}
 	return val
+}
+
+// findIndexOnLeadingColumn returns the first index on the table whose FIRST
+// key column is colName (case-insensitive), or "".
+func (e *SelectEngine) findIndexOnLeadingColumn(tableName, colName string) string {
+	entries, err := e.ctx.Schema().GetEntries("")
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if entry.Type != "index" || entry.TblName != tableName {
+			continue
+		}
+		cols := e.indexEntryColumns(entry)
+		if len(cols) > 0 && strings.EqualFold(cols[0], colName) {
+			return entry.Name
+		}
+	}
+	return ""
 }
