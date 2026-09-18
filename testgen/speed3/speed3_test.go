@@ -105,6 +105,7 @@ func Test_speed3(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
@@ -141,6 +142,12 @@ func Test_speed3(t *testing.T) {
 		r = db.Query("\n    PRAGMA main.auto_vacuum;\n    PRAGMA aux.auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.auto_vacuum;\n    PRAGMA aux.auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

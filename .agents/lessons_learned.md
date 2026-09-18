@@ -59,6 +59,51 @@ in goal handovers / plan notes, not here. Review and summarize this file at
 the start of each goal session to limit context impact; remove or
 consolidate stale points.
 
+## P9.PERF.T1 discoveries (2026-09-18, fleet agent PERF)
+
+- **The speed-family wall clock was harness-side, not engine-side.** In
+  testgen/speed1|speed1p|speed2 the `speed_trial` batches are transpiler-
+  unsupported, so the 50k-100k-statement SQL strings are BUILT but never
+  executed; the packages' 29-445s was tcl2go-emitted `sql += ...` O(n²)
+  string concatenation plus GC pressure (speed1 CPU profile: ~95%
+  runtime/GC, only 3.4s cum in Test_speed1). Fix: tools/tcl2go
+  perfappend.go rewrites PROVABLY write-only accumulators (appended or
+  wholesale-assigned, never read) to strings.Builder — TCL `append` is
+  amortized O(1). Speed packages regenerate; read-having vars stay
+  byte-identical, so other packages don't drift. Residual speed1p 10.8s =
+  `tclListAppend` fast path still copying the accumulated list per call
+  (O(n) per append → O(n²) overall; aggorderby-style 70k-element lists).
+- **Per-call regexp compilation in DML hot paths.** execdml/strict.go
+  stripCTASSelect compiled `(?i)\s+AS\s+SELECT` on every row (fast path
+  `strings.Index` misses on ordinary CREATE TABLEs) — 2.7GB regexp
+  allocations across one 50k-INSERT benchmark (37.7% of all allocs).
+  Package-level var + memoizing the pure function by CREATE-SQL text
+  (CREATE text is immutable per schema entry) fixed it. parseTriggerHeader
+  had the same disease (3 compiles per call).
+- **Pager journaled before-images on EVERY page write.** WritePage +
+  flushPage both appended a rollback record per write (a pread of the old
+  image + journal pwrite each time; 54% of benchmark CPU was raw
+  syscalls). SQLite's pager_write journals each page once per transaction
+  (pInJournal bitvec) and skips pages > dbOrigSize. internal/pager now
+  keeps journalPagesDone (reset at journal open/finalize/rollback) with
+  the journalDBOrigSize gate. Insert1 benchmark 1.49s → 1.10s.
+- **Beware benchmark fixtures diverging from the test they mirror**:
+  speed1-update2 runs AFTER createidx (indexed `WHERE a=`), so the
+  mirrored benchmark must create i1a or it measures an O(n²) unindexed
+  update loop (hours instead of seconds).
+- **EXPLAIN QUERY PLAN gap found (NOT yet fixed, next PERF tranche #1)**:
+  `UPDATE t1 SET b=0 WHERE a=5` (even `WHERE rowid=5`) plans SCAN t1;
+  SQLite plans SEARCH USING INDEX/INTEGER PRIMARY KEY (oracle-verified).
+  execdml collectUpdateChanges/collectDeleteRows always full-scan.
+  Fix shape: seek-based row collection through the existing planner.
+- **Schema reads dominate remaining insert cost**: schema.Manager.GetEntries
+  intentionally re-walks the schema btree per call (stale-cache history),
+  and DML calls it 2-3x per statement (indexDefsIn/FindTriggersForTable/
+  validateLoadedTriggers) = 44% of insert-benchmark allocations. Proper
+  fix: schema-cookie-keyed (page-1 offset-40) entry cache, invalidated on
+  cookie change — NOT a blind cache (the old disabled cache caused
+  DDL+restore divergence).
+
 ## T26-SINGLES discoveries (2026-09-18)
 
 - **Stale has-triggers flag after DROP TABLE.** dropTableCascade removed the
