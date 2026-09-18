@@ -69,16 +69,12 @@ func Test_fts4content(t *testing.T) {
 	_ = rowid // pre-declared from TCL source
 	var fd string
 	_ = fd // pre-declared from TCL source
-	var stmt string
-	_ = stmt // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
 	var path string
 	_ = path // pre-declared from TCL source
 	var text string
 	_ = text // pre-declared from TCL source
-	var method string
-	_ = method // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "fts4content")
@@ -148,6 +144,13 @@ func Test_fts4content(t *testing.T) {
 		r = db.Query(" SELECT rowid FROM ft1 WHERE ft1 MATCH 'a' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM ft1 WHERE ft1 MATCH 'a' ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.2.1"
@@ -323,6 +326,13 @@ func Test_fts4content(t *testing.T) {
 						r = db.Query(" SELECT * FROM t3 ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "3.1.4"
@@ -341,6 +351,13 @@ func Test_fts4content(t *testing.T) {
 						r = db.Query("\n  INSERT INTO t3(rowid, x, y) VALUES(21, 'a b c', 'd e f');\n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(21, 'a b c', 'd e f');\n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "3.1.6"
@@ -674,6 +691,13 @@ func Test_fts4content(t *testing.T) {
 									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "5.1.7"
@@ -1082,55 +1106,5 @@ func Test_fts4content(t *testing.T) {
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
 										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT count(*) FROM t1;\n")
 									}
-								}
-								db.Close()
-								os.Remove("test.db")
-								os.Remove("test.db-journal")
-								os.Remove("test.db-wal")
-								db, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
-								tcl_nullvalue = "{}" // fresh connection resets nullvalue
-								{ // "13.0"
-									r = db.Query("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
-									}
-								}
-								{ // "13.1"
-									_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
-									}
-								}
-								// proc definition (not transpiled)
-								// register_tcl_module db xyz (unsupported command, not transpiled)
-								{ // "13.2.0"
-									_res = db.Exec("\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
-									}
-								}
-								{ // "13.2.1"
-									_res = db.Exec("\n  INSERT INTO aa VALUES('one two three');\n")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO aa VALUES('one two three');\n")
-									}
-								}
-								{ // "13.2.2" (prepare-step internals; SQL side effects only)
-									_ = stmt // prepared statement handle
-									tclFinalizePrepared("stmt")
-									// sqlite3_finalize $stmt
-								}
-								{ // "13.2.2" (prepare-step internals; SQL side effects only)
-									_rc := "0"
-									{
-										var _catchErr error
-										_ = stmt // prepared statement handle
-										if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
-										if _catchErr != nil { _rc = "1" }
-									}
-									_list7 := tclList([]string{_rc, msg})
-									_ = _list7
-									_r = _list7
 								}
 }

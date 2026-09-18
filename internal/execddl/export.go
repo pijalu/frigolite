@@ -123,6 +123,20 @@ func (e *DDLExecutor) ReloadFTSIndex(tableName string) *Result {
 	// markers and postings); a corrupt segment records a load error that
 	// surfaces on the next FTS operation.
 	e.loadFTSSegments(tableName, ftsTable)
+	// Then restore the document text from the %_content shadow WITHOUT
+	// re-indexing: a segment-only reload leaves every in-memory document
+	// without column values, so a MATCH hit on an INTACT document would read
+	// empty text (e_fts3 10.1.5: DELETE FROM ta_content WHERE rowid=2, then
+	// MATCH 'summer' — doc 1's content row still exists and supplies its
+	// text). The reload must NOT re-pend content rows as new documents
+	// (fts4check/fts3matchinfo hand-edit shadow rows and integrity-check the
+	// segments, so re-pending would diverge from SQLite's lazy per-row
+	// content reads). A FAILED load (a corrupt root) skips the restore: the
+	// segments are the read authority and their damage must surface
+	// (fts4record 1.5.x: the crafted root keeps every query malformed).
+	if ftsTable.LoadErr() == nil {
+		e.rebuildFTSFromContentMode(tableName, ftsTable, true)
+	}
 	return nil
 }
 

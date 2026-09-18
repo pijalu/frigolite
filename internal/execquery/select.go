@@ -144,6 +144,29 @@ func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
 			return res, true
 		}
 	}
+	// An FTS3/4 table in TVF form (FROM t1('query')): the argument binds as
+	// a MATCH constraint on the table's hidden column — C's xBestIndex sees
+	// it like any MATCH. Strip the TVF form and AND the constraint into the
+	// WHERE so the statement flows through the dedicated FTS scan
+	// (fts4content 12.1.3/12.2.3: self-referential content sources fail the
+	// read with "SQL logic error" in either form).
+	if s.From.IsTabFunc && len(s.From.Args) > 0 {
+		if entry, _, terr := e.ctx.FindTable(s.From.Name); terr == nil && entry != nil && entry.RootPage == 0 {
+			if _, isFTS := e.ctx.FTSTables()[entry.Name]; isFTS {
+				if lit, ok := s.From.Args[0].(*sql.StringLit); ok {
+					match := &sql.BinaryOp{Operator: "MATCH", Left: &sql.ColumnRef{Name: entry.Name}, Right: lit}
+					if s.Where == nil {
+						s.Where = match
+					} else {
+						s.Where = &sql.BinaryOp{Operator: "AND", Left: s.Where, Right: match}
+					}
+				}
+				s.From.IsTabFunc = false
+				s.From.Args = nil
+				return nil, false
+			}
+		}
+	}
 	// A FROM term that names a CREATED virtual table (CREATE VIRTUAL TABLE
 	// entry): the arguments bind to the leftmost HIDDEN columns as equality
 	// constraints (SQLite's vtab TVF form, e.g. FROM fts5tokenize-t('text')).
@@ -552,6 +575,14 @@ func (e *SelectEngine) execSelectVtab(s *sql.SelectStmt, tableEntry *schema.Entr
 		// content table and reports "database disk image is malformed").
 		if len(s.Joins) > 0 && e.ftsReadsContentColumns(s, ftsTable) && e.contentBtreeCorrupt(tableEntry.Name) {
 			return &Result{Error: fmt.Errorf("database disk image is malformed")}
+		}
+		// SQLite's FTS3 xBestIndex binds at most one MATCH constraint per
+		// table; a second MATCH on the same table is an unusable constraint
+		// reported at prepare (e_fts3 7.3.1/7.3.2). The generic pipeline
+		// validates this for real tables; the dedicated FTS scan paths run
+		// it here.
+		if err := e.validateMultipleFTSMatch(s); err != nil {
+			return &Result{Error: err}
 		}
 		if len(s.Joins) == 0 {
 			return e.ctx.ExecFTSSelect(s, tableEntry, ftsTable, colDefs)

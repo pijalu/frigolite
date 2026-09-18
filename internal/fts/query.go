@@ -316,6 +316,13 @@ func ParseMatchQuery(query string) (QueryNode, error) {
 	p := &queryParser{
 		input: strings.TrimSpace(query),
 	}
+	// An empty (or whitespace-only) query has no expression: C's
+	// fts3ExprParse exhausts its input with no token and the FTS cursor sits
+	// at EOF — zero rows, no error (fts3expr5 1.0-1.4, e_fts3 6.5/6.6:
+	// MATCH '' on a populated table matches nothing).
+	if p.input == "" {
+		return &emptyQueryNode{}, nil
+	}
 	result, err := p.parse()
 	if err != nil {
 		return nil, fmt.Errorf("malformed MATCH expression: [%s]", query)
@@ -334,6 +341,14 @@ func ParseMatchQuery(query string) (QueryNode, error) {
 	}
 	return result, nil
 }
+
+// emptyQueryNode matches no document — the cursor-at-EOF semantics of an
+// empty MATCH expression (fts3expr.c fts3ExprParse exhausting empty input).
+type emptyQueryNode struct{}
+
+func (n *emptyQueryNode) MatchDoc(idx *InvertedIndex, docID int64) bool { return false }
+
+func (n *emptyQueryNode) String() string { return "" }
 
 type queryParser struct {
 	input string
@@ -927,12 +942,15 @@ func isASCIIWordChar(b byte) bool {
 // non-word, non-paren separator (e.g. \x05, '.'). The simple tokenizer treats
 // such bytes as token separators (fts3_tokenizer1.c simpleDelim), and a '(' or
 // ')' that directly follows one is consumed as part of the delimiter run
-// rather than being a grouping operator.
+// rather than being a grouping operator. Quote characters are excluded: the
+// parser reads the next token AFTER a quoted phrase (fts3_expr.c getNextString
+// stops exactly at the closing quote), so a paren directly following one is a
+// grouping operator, not tokenizer content (e_fts3 4.1: '("a b" OR "c d")').
 func isHardDelim(b byte) bool {
 	if b >= 0x80 {
 		return false
 	}
-	return !isSpaceByte(b) && !isASCIIWordChar(b) && b != '(' && b != ')' && b != ':' && b != '*' && b != '-'
+	return !isSpaceByte(b) && !isASCIIWordChar(b) && b != '(' && b != ')' && b != ':' && b != '*' && b != '-' && b != '"' && b != '\''
 }
 
 // ColumnRefNode is a temporary node that references a column by name.

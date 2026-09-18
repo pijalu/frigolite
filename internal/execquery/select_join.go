@@ -454,6 +454,24 @@ func buildViewRowMaps(viewResult *Result, rightDefs []sql.ColumnDef, tableName s
 func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	tableName := joinTableName(join)
 	if tableEntry.RootPage == 0 {
+		// FTS3/4 and FTS5 tables have no materializable module instance
+		// (createdVTabModuleKind skips them — their documents live in the
+		// in-memory FTS engines), so materialize them through the FTS join
+		// helpers like the FROM-side scan does (fts3join 2.x: FROM ft2, ft3
+		// WHERE x MATCH y).
+		if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
+			rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+			return e.ftsJoinRowMaps(ftsTable, rightDefs, tableName), rightDefs, tableName, nil, nil
+		}
+		if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+			rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+			rowids, allRows, err := fts5ScanRows(t5, rightDefs, nil)
+			if err != nil {
+				return nil, nil, "", nil, err
+			}
+			maps := buildMaterializedRowMaps(&sql.SelectStmt{From: sql.TableRef{Name: tableName}}, rightDefs, allRows, rowids)
+			return maps, rightDefs, tableName, nil, nil
+		}
 		// Created virtual tables declare their columns in the module schema,
 		// not in the CREATE VIRTUAL TABLE SQL text.  Use that schema here;
 		// parsing the CREATE statement yields no usable column definitions and
@@ -491,31 +509,6 @@ func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClau
 		return nil, nil, "", nil, err
 	}
 	return rightMaps, rightDefs, tableName, nil, nil
-}
-
-// materializeVTabJoinRows materializes a virtual table's rows into RowMaps for
-// a join.
-func (e *SelectEngine) materializeVTabJoinRows(tableEntry *schema.Entry, rightDefs []sql.ColumnDef, tableName string) ([]RowMap, error) {
-	rows, err := e.ctx.VirtualTableRows(tableEntry, 0, "", false)
-	if err != nil {
-		return nil, err
-	}
-	// An FTS table's row maps must carry the real docid (as rowid/docid plus
-	// the qualified <table>.rowid key) so MATCH evaluation resolves the FTS
-	// document being matched in a joined row. The vtab cursor returns only
-	// the user column values; the docids come from the in-memory FTS index.
-	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
-		return e.ftsJoinRowMaps(ftsTable, rightDefs, tableName), nil
-	}
-	// fts5 tables in a join materialize through the fts5 engine.
-	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
-		rowids, allRows, err := fts5ScanRows(t5, rightDefs, nil)
-		if err != nil {
-			return nil, err
-		}
-		return buildMaterializedRowMaps(&sql.SelectStmt{From: sql.TableRef{Name: tableName}}, rightDefs, allRows, rowids), nil
-	}
-	return buildScanRowMaps(rows, rightDefs, tableName), nil
 }
 
 // scanRealTableJoinRows scans all rows from a real table's b-tree into RowMaps

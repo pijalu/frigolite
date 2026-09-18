@@ -586,12 +586,19 @@ func (ev *Evaluator) validateFTSAuxArgs(name string, f *sql.FuncCall) error {
 		if len(f.Args) > 6 {
 			return fmt.Errorf("wrong number of arguments to function snippet()")
 		}
+		if len(f.Args) == 0 {
+			// fts3.c fts3SnippetFunc checks argc<1 before it can identify a
+			// table argument, so zero args report the missing cursor context
+			// rather than an arity error (oracle-verified; e_fts3 2.1.7).
+			return fmt.Errorf("unable to use function snippet in the requested context")
+		}
 	case "OFFSETS":
 		if len(f.Args) != 1 {
 			return fmt.Errorf("wrong number of arguments to function %s()", lower)
 		}
 	}
-	// First argument must reference the fts table of the active MATCH query.
+	// OPTIMIZE (and any other aux function reaching the first-argument
+	// check) with no args at all reports the arity error.
 	if len(f.Args) == 0 {
 		return fmt.Errorf("wrong number of arguments to function %s()", lower)
 	}

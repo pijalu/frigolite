@@ -600,6 +600,17 @@ func (e *DDLExecutor) loadFTSSegmentsForIndex(tableName string, ftsTable *fts.FT
 // writeFTSContentRow on every insert; reading it back after a reopen restores
 // the MATCH-able document set.
 func (e *DDLExecutor) rebuildFTSFromContent(tableName string, ftsTable *fts.FTS3Table) {
+	e.rebuildFTSFromContentMode(tableName, ftsTable, false)
+}
+
+// rebuildFTSFromContentMode repopulates the in-memory FTS index from the
+// %_content shadow. textOnly=false re-tokenizes every content row into the
+// index (the reopen/rebuild path); textOnly=true only fills each EXISTING
+// document's stored text — the segment reload path keeps the index
+// segment-driven and must not re-pend content rows as if they were new
+// writes (fts4check/fts3matchinfo hand-edit shadow rows; re-indexing them
+// on reload diverges from SQLite's lazy per-row content reads).
+func (e *DDLExecutor) rebuildFTSFromContentMode(tableName string, ftsTable *fts.FTS3Table, textOnly bool) {
 	// An FTS4 content=<table> table reads its document text from the external
 	// content table instead of the %_content shadow (fts3.c fts3DoRebuild
 	// prepares "SELECT %s" over zReadExprlist).
@@ -616,6 +627,9 @@ func (e *DDLExecutor) rebuildFTSFromContent(tableName string, ftsTable *fts.FTS3
 	// real table) has no b-tree: read its rows through the vtab machinery
 	// (fts3.c fts3DoRebuild prepares "SELECT %s" over the content source).
 	if contentEntry.RootPage == 0 {
+		if textOnly {
+			return
+		}
 		e.rebuildFTSFromVTabContent(tableName, ftsTable, contentEntry)
 		return
 	}
@@ -743,13 +757,20 @@ func (e *DDLExecutor) rebuildFTSFromContent(tableName string, ftsTable *fts.FTS3
 		if len(vals) == 0 {
 			vals = make([]interface{}, 0)
 		}
-		ftsTable.InsertWithID(docID, vals)
-		// Record the docid as pending so the next COMMIT flushes the rebuilt
-		// index to %_segdir (SQLite's fts3RebuildMethod writes segments
-		// immediately; the engine defers to the commit-time flush, which
-		// requires the pending list — fts4check/fts4intck1's integrity check
-		// reads the index from the segments).
-		ftsTable.RecordPending(docID)
+		if textOnly {
+			// Text-only restore: fill the stored text of documents the
+			// segment load already indexed; docs whose content row vanished
+			// stay textless (a matched read reports the corruption).
+			ftsTable.RestoreDocText(docID, vals)
+		} else {
+			ftsTable.InsertWithID(docID, vals)
+			// Record the docid as pending so the next COMMIT flushes the rebuilt
+			// index to %_segdir (SQLite's fts3RebuildMethod writes segments
+			// immediately; the engine defers to the commit-time flush, which
+			// requires the pending list — fts4check/fts4intck1's integrity check
+			// reads the index from the segments).
+			ftsTable.RecordPending(docID)
+		}
 		if ok, nerr := cursor.Next(); nerr != nil || !ok {
 			break
 		}

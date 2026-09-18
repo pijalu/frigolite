@@ -387,7 +387,11 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 			if !t5.Config().Locale && fts5.IsLocaleValue(util.UnwrapColumnValue(v)) {
 				return &Result{Error: fmt.Errorf("fts5_locale() requires locale=1")}
 			}
-			newVals[idx] = v
+			// Store the scalar: an expression that resolves to a joined row
+			// cell (UPDATE ... FROM: SET b=o.c) yields the cell's affinity
+			// wrapper, which the content write would stringify as Go source
+			// ("&{apple 0}") — C binds the plain value (fts4upfrom 1.x).
+			newVals[idx] = util.UnwrapColumnValue(v)
 			changed = true
 		}
 		if !changed {

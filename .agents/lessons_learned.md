@@ -6820,7 +6820,6 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **template drift is normal**: testgen packages are regenerated on demand;
   regenerating a package pulls ALL current template changes. Re-run the
   package after regen; don't assume old failures persist unchanged.
-=======
 
 ## 2026-09-17 (T25-btree): overflow-cell churn corruption lessons
 
@@ -6865,3 +6864,45 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   with uncommitted fixes, making "pre-existing vs regression" adjudication
   wrong (P2Constraint/P6 looked fixed on "main" but were uncommitted local
   work; committed main fixed them later via T26-select).
+=======
+- **FTS3 varint codec is 9-byte-capped, not 10 (T26-fts34)**: fts3.c
+  fts3GetVarint64 reads bytes 0..7 as 7-bit LE groups and the 9th byte as a
+  full 8 bits at shift 56 (`v |= p[8] << 56`); fts3PutVarint mirrors it.
+  Negative docid deltas (UPDATE SET docid=-1) need the 9-byte form — a pure
+  7-bit writer emits 10 bytes and silently mis-round-trips once the reader is
+  C-faithful. Reader and writer MUST switch together (fts4onepass 3.x caught
+  the split; frigolite_fts3_pin_test.go pins the pair).
+- **Segment loader must recurse by height**: the merge writer emits layered
+  roots (height-2 root over layer-1 interior %_segments blocks, slots
+  iStart + L*nLeafEst); a leaf-only child walker turns them into
+  ErrSegmentStructure/empty loads. The integrity check then compares a
+  half-empty fresh index ([T25]-class false positives).
+- **ReloadFTSIndex must rebuild document text too**: a segment-only reload
+  after a shadow-table edit leaves in-memory docs with empty Columns, so
+  MATCH hits return empty text (e_fts3 10.1.5). Reload = content rebuild +
+  segment load (ensureFTSForTable's initial-load pair).
+- **ftsMatchTableName resolves unqualified MATCH columns against the query's
+  FROM tables in FROM order** — the connection-wide ftsTables map holds
+  shadowed column names from every FTS table ever created, and map
+  iteration made the duplicate-MATCH validation nondeterministic.
+- **fts3/4 in TVF form** (FROM t('query')) must strip the TVF and route
+  through the FTS scan (arg = MATCH conjunct) before the "'t' is not a
+  function" resolver check; likewise FTS3/4 tables as JOIN right-operands
+  need explicit dispatch in materializeTableJoin (createdVTabModuleKind
+  skips them, so the generic vtab path reports "no such table").
+- **fts5 UPDATE..FROM SET values** must be UnwrapColumnValue'd at the
+  assignment site: joined row cells arrive affinity-wrapped and the content
+  write stringifies the wrapper ("&{apple 0}").
+- **ft3 error tests with custom procs** (error_test/read_test/write_test/
+  ddl_test in e_fts3.test): processFTSErrorTest must prefix the bare
+  message with "1 " before emitCatchSQLComparison, else the comparison
+  flips to expect-success. Expectation literals go through
+  resolveTCLListEscapes so TCL backslash escapes (c\"1) compare equal.
+- **Known remaining divergences (engine work queued, skipped with evidence
+  under T26-fts34)**: per-statement FTS pending flush inside transactions
+  (fts4onepass-4.0, xSavepoint semantics); OR REPLACE docid-change flush
+  marker bookkeeping (fts3conf-4.1.3/4.2.2 [T27]); merge-writer layered
+  block reservation (fts4growth 2.x/5.x/7.x, fts3fuzz001-220 — MergeFTS
+  continuation, owned by the fts4merge4 agent); crafted fuzz/crash image
+  detection depth (fts3fuzz001-110/120/121, fts3corrupt4-13.1/18.1/
+  24.7/28.8).
