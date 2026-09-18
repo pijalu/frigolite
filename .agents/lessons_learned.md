@@ -6879,3 +6879,15 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **template drift is normal**: testgen packages are regenerated on demand;
   regenerating a package pulls ALL current template changes. Re-run the
   package after regen; don't assume old failures persist unchanged.
+- **FLEET HAZARD — git stash is repo-global across worktrees (T26-misc)**: all
+  fleet worktrees share refs/stash. A `git stash` during a bisect, plus `git
+  stash pop`, can pop ANOTHER agent's entry (their WIP applies into your tree)
+  and strand your own uncommitted work in the stash; repeated bisects then mix
+  trees. Never `git stash` for temporary checkouts in fleet worktrees — use a
+  scratch worktree for the other commit, and commit early/often. Check `git
+  stash list` (branch names in the messages) before touching entries.
+- **Hand-written root tests can codify superseded behavior**: TestDoubleCreateTable
+  asserted the old silent-skip duplicate-CREATE accommodation; the
+  SQLite-correct contract (same-session duplicate errors, misc1-16.2) required
+  updating that test alongside the engine change. When an engine fix changes a
+  behavior, grep root *_test.go for tests pinning the old one.
