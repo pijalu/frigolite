@@ -76,6 +76,7 @@ func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 		mergedCols:  mergedCols,
 		names:       names,
 		hasDerived:  selectHasSubqueryOperand(s),
+		inCompound:  e.inCompoundMember,
 	}
 	return checker.checkClauses(s)
 }
@@ -87,6 +88,10 @@ type ambiguousRefChecker struct {
 	mergedCols  map[string]bool
 	names       map[string]bool
 	hasDerived  bool
+	// inCompound is true while validating a member of a compound SELECT
+	// (UNION/INTERSECT/EXCEPT): its ORDER BY is the compound-level ORDER BY
+	// and resolves only against result-column names.
+	inCompound bool
 }
 
 // checkClauses applies the ambiguity check to every clause in a SELECT that can
@@ -111,12 +116,49 @@ func (c ambiguousRefChecker) checkClauses(s *sql.SelectStmt) error {
 	if err := c.checkExprOptAliases(s.Having, aliases); err != nil {
 		return err
 	}
+	if len(s.OrderBy) > 0 && (s.Union != nil || c.inCompound) {
+		// A COMPOUND select's ORDER BY resolves ONLY against the compound's
+		// result-column names (sqlite3Select: the terms never touch any
+		// member's FROM scope, so source-column ambiguity cannot apply —
+		// tkt3527: ElemView2's "ORDER BY ElemId, InnerCode" over a member
+		// "FROM ElemView1 AS Element JOIN ElemView1 AS InnerElem").
+		// Exempt bare terms naming a result column (alias or column name).
+		return c.checkExprListOptAliases(orderByExprsOf(s.OrderBy),
+			collectResultColumnNames(s.Columns))
+	}
 	for _, ob := range s.OrderBy {
 		if err := c.checkExprOptAliases(ob.Expr, aliases); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// collectResultColumnNames names a compound's result columns: the explicit
+// alias when present, else the column-reference name (a qualified ref
+// contributes its unqualified name — "InnerElem.ElemCode" is "ElemCode"),
+// matching sqlite3Select's compound result-column naming.
+func collectResultColumnNames(columns []sql.SelectColumn) map[string]bool {
+	names := make(map[string]bool)
+	for _, col := range columns {
+		if col.As != "" {
+			names[strings.ToLower(col.As)] = true
+			continue
+		}
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "*" {
+			names[strings.ToLower(ref.Name)] = true
+		}
+	}
+	return names
+}
+
+// orderByExprsOf extracts the expression list of ORDER BY terms.
+func orderByExprsOf(obs []sql.OrderByTerm) []sql.Expr {
+	out := make([]sql.Expr, 0, len(obs))
+	for _, ob := range obs {
+		out = append(out, ob.Expr)
+	}
+	return out
 }
 
 // checkExprListOptAliases applies the ambiguity check to a list of clause
@@ -225,16 +267,20 @@ func (c ambiguousRefChecker) checkColumnRef(ref *sql.ColumnRef) error {
 // visible table. When a derived table is present in the FROM/JOIN operands,
 // the qualifier may name a table inside the derived table (resolved at
 // execution), so the check is skipped. NEW/OLD trigger references are exempt.
+// A schema-qualified reference (main.t4.a) matches an operand written either
+// way (main.t4 or t4) — both spellings are candidates, mirroring SQLite's
+// db-qualified name resolution (selectD-2.4).
 func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
 	if c.hasDerived {
 		return nil
 	}
-	q := ref.Table
-	if dot := strings.Index(q, "."); dot >= 0 {
-		q = q[dot+1:]
-	}
-	if strings.EqualFold(q, "new") || strings.EqualFold(q, "old") {
+	q := strings.ToLower(ref.Table)
+	if q == "new" || q == "old" {
 		return nil
+	}
+	qualifiers := []string{q}
+	if dot := strings.IndexByte(q, '.'); dot >= 0 {
+		qualifiers = append(qualifiers, q[dot+1:])
 	}
 	instances := 0
 	found := false
@@ -243,9 +289,12 @@ func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
 			continue
 		}
 		for _, rn := range refs {
-			if strings.EqualFold(rn, q) {
-				found = true
-				instances++
+			for _, ql := range qualifiers {
+				if strings.EqualFold(rn, ql) {
+					found = true
+					instances++
+					break // count each operand instance once
+				}
 			}
 		}
 	}
@@ -258,8 +307,10 @@ func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
 		return nil
 	}
 	for tn := range c.names {
-		if strings.EqualFold(tn, q) {
-			return nil
+		for _, ql := range qualifiers {
+			if strings.EqualFold(tn, ql) {
+				return nil
+			}
 		}
 	}
 	return fmt.Errorf("no such column: %s.%s", ref.Table, ref.Name)

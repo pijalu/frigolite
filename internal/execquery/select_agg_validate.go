@@ -180,13 +180,20 @@ func (e *SelectEngine) aggExprRefsOnlyOuter(expr sql.Expr, inner map[string]bool
 			}
 			refsOuter := false
 			refsInner := false
-			for _, a := range fn.Args {
-				if e.exprRefsOuterCol(a, inner, innerTables) {
-					refsOuter = true
+			scanRefs := func(exprs []sql.Expr) {
+				for _, a := range exprs {
+					if e.exprRefsOuterCol(a, inner, innerTables) {
+						refsOuter = true
+					}
+					if exprHasColRefInMap(a, inner) {
+						refsInner = true
+					}
 				}
-				if exprHasColRefInMap(a, inner) {
-					refsInner = true
-				}
+			}
+			scanRefs(fn.Args)
+			scanRefs(orderByExprs(fn.OrderBy))
+			if fn.Filter != nil {
+				scanRefs([]sql.Expr{fn.Filter})
 			}
 			if refsOuter && !refsInner {
 				return true
@@ -377,8 +384,12 @@ func (e *SelectEngine) fromTableColumnNames(tableEntry *schema.Entry) map[string
 	return names
 }
 
-// aggColumnArgsRefInner checks if a SELECT column's aggregate function args or
-// ORDER BY terms reference any of the given inner column names.
+// aggColumnArgsRefInner checks if a SELECT column's aggregate function args,
+// FILTER clause, or ORDER BY terms reference any of the given inner column
+// names. The FILTER is part of the aggregate expression (resolve.c
+// sqlite3ReferencesSrcList scans the whole aggregate), so a FILTER reference
+// to an inner column (filter1-6.1: COUNT(a) FILTER(WHERE x)) makes the
+// aggregate inner-owned.
 func (e *SelectEngine) aggColumnArgsRefInner(col sql.SelectColumn, colNames map[string]bool) bool {
 	fn, ok := col.Expr.(*sql.FuncCall)
 	if !ok {
@@ -848,7 +859,12 @@ func (e *SelectEngine) validateWhereExprs(s *sql.SelectStmt) error {
 	// WHERE subtree — "misuse of aggregate: max()", tkt1514/tkt3508). The
 	// walk does not descend into subqueries: their WHERE clauses are
 	// validated against their own scope by the nested validateWhereExprs.
-	if name := whereDirectAggregate(s.Where, e.ctx.Functions()); name != "" {
+	// resolve.c:1960 exception: when this SELECT is itself an aggregate query
+	// (result-set aggregates or GROUP BY), WHERE resolution keeps NC_AllowAgg,
+	// and the resolve.c:1332 context walk transfers an aggregate whose
+	// arguments reference no column of this SELECT's own FROM to an outer
+	// aggregate context (aggnested-3.11: WHERE value2=max(value1)).
+	if name := e.whereDirectAggregateScoped(s); name != "" {
 		return fmt.Errorf("misuse of aggregate: %s()", name)
 	}
 	// A WHERE reference to a SELECT alias whose expression IS an aggregate
@@ -901,6 +917,88 @@ func whereReferencesBareName(expr sql.Expr, name string) bool {
 		}
 	})
 	return found
+}
+
+// whereDirectAggregateScoped returns the name of the first inner-owned scalar
+// aggregate found directly in s's WHERE tree, or "" when every WHERE
+// aggregate is either absent, valid-by-arity, or a pure-outer aggregate of an
+// aggregate query (resolve.c:1960 + resolve.c:1332 — aggnested-3.11 allows
+// WHERE value2=max(value1) inside SELECT count(*) FROM t2 because count(*)
+// keeps NC_AllowAgg set and max(value1) references no t2 column, so it is
+// attributed to the enclosing aggregate context).
+func (e *SelectEngine) whereDirectAggregateScoped(s *sql.SelectStmt) string {
+	name := whereDirectAggregate(s.Where, e.ctx.Functions())
+	if name == "" {
+		return ""
+	}
+	// resolve.c:1960 — without result-set aggregates or GROUP BY, NC_AllowAgg
+	// is cleared and any WHERE aggregate is a misuse.
+	if !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 {
+		return name
+	}
+	// resolve.c:1332 ownership walk — an aggregate referencing no column of
+	// this SELECT's own FROM scope belongs to an outer context. count(*)
+	// (no column references) stays inner-owned and remains a misuse.
+	inner, innerTables := e.collectInnerColsAndTables(s)
+	var bad string
+	var stop bool
+	WalkExprFull(s.Where, func(en sql.Expr) {
+		if bad != "" || stop {
+			return
+		}
+		switch en.(type) {
+		case *sql.Subquery, *sql.ExistsExpr:
+			stop = true
+			return
+		}
+		fn, ok := en.(*sql.FuncCall)
+		if !ok || !e.isAggregateFuncCallName(fn.Name) {
+			return
+		}
+		refs := make([]sql.Expr, 0, len(fn.Args)+len(fn.OrderBy)+1)
+		refs = append(refs, fn.Args...)
+		for _, ob := range fn.OrderBy {
+			refs = append(refs, ob.Expr)
+		}
+		if fn.Filter != nil {
+			refs = append(refs, fn.Filter)
+		}
+		for _, r := range refs {
+			if exprHasColRefInMap(r, inner) {
+				bad = strings.ToLower(fn.Name)
+				return
+			}
+		}
+		// Qualified references to inner tables are inner-owned too.
+		for _, r := range refs {
+			if e.exprRefsInnerTable(r, innerTables) {
+				bad = strings.ToLower(fn.Name)
+				return
+			}
+		}
+	})
+	return bad
+}
+
+// exprRefsInnerTable reports whether expr contains a column reference
+// qualified by one of the given (inner) table names or aliases.
+func (e *SelectEngine) exprRefsInnerTable(expr sql.Expr, innerTables map[string]bool) bool {
+	if expr == nil {
+		return false
+	}
+	if ref, ok := expr.(*sql.ColumnRef); ok && ref.Table != "" {
+		t := strings.ToLower(ref.Table)
+		if dot := strings.IndexByte(t, '.'); dot >= 0 {
+			t = t[dot+1:]
+		}
+		return innerTables[t]
+	}
+	for _, child := range aggValidateChildExprs(expr) {
+		if e.exprRefsInnerTable(child, innerTables) {
+			return true
+		}
+	}
+	return false
 }
 
 // whereDirectAggregate returns the (lowercased) name of the first scalar

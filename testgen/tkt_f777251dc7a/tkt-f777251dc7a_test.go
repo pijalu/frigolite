@@ -63,7 +63,11 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	db.RegisterFunction("force_rollback", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func force_rollback force_rollback (literal-SQL db-eval UDF, catch form)
+	db.RegisterFunction("force_rollback", func(args []interface{}) (interface{}, error) {
+		db.Exec("INSERT OR ROLLBACK INTO t1 VALUES(1)")
+		return nil, nil
+	}, 0, -1)
 	{ // do_test "tkt-f7772-1.2"
 		_res = db.Exec("\n    BEGIN IMMEDIATE;\n    CREATE TABLE xyzzy(abc);\n    SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "abort due to ROLLBACK") {
@@ -97,17 +101,33 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	db.RegisterFunction("ins", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func ins ins (literal-SQL db-eval UDF)
+	db.RegisterFunction("ins", func(args []interface{}) (interface{}, error) {
+		if r := db.Exec("INSERT INTO t3 VALUES('hello')"); r.Error != nil { return nil, r.Error }
+		return nil, nil
+	}, 0, -1)
 	{ // do_test "tkt-f7772-3.2"
 		r = db.Query("\n    SELECT ins() AS x FROM t2 UNION ALL SELECT ins() AS x FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT ins() AS x FROM t2 UNION ALL SELECT ins() AS x FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-f7772-3.3"
 		r = db.Query(" SELECT * FROM t3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+			return
+		}
+		got := flatten(r)
+		want := "hello hello hello hello"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

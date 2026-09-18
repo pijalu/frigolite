@@ -338,7 +338,6 @@ func isWordOperator(op string) bool {
 	return false
 }
 
-
 // expandStarColNames returns the non-dropped, non-hidden column names for a
 // plain * expansion.
 func expandStarColNames(colDefs []sql.ColumnDef) []string {

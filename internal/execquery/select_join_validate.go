@@ -250,7 +250,7 @@ func (v *joinOnValidator) addFromTable() {
 	if tn == "" {
 		return
 	}
-	v.available[tn] = true
+	v.addAvailableName(tn)
 	v.addFromColumns()
 	v.addLeftTable(tn)
 }
@@ -434,6 +434,37 @@ func (v *joinOnValidator) validateJoins() error {
 	return nil
 }
 
+// addLowerKeys merges the keys of src into dst, lower-cased, so lookups
+// against dst are case-insensitive like SQLite name resolution.
+func addLowerKeys(src, dst map[string]bool) {
+	for k := range src {
+		dst[strings.ToLower(k)] = true
+	}
+}
+
+// addLowerTableNames merges FROM-operand names into a table-name lookup set:
+// each name is keyed lower-cased, and a schema-qualified name (main.t4) is
+// additionally keyed by its bare table name, since SQLite matches column
+// qualifiers against either form.
+func addLowerTableNames(src, dst map[string]bool) {
+	for k := range src {
+		lk := strings.ToLower(k)
+		dst[lk] = true
+		if dot := strings.LastIndexByte(lk, '.'); dot >= 0 {
+			dst[lk[dot+1:]] = true
+		}
+	}
+}
+
+// addAvailableName registers a FROM operand name in the available-table set
+// (see addLowerTableNames for the keying rules).
+func (v *joinOnValidator) addAvailableName(tn string) {
+	if tn == "" {
+		return
+	}
+	addLowerTableNames(map[string]bool{tn: true}, v.available)
+}
+
 // classifyQualifiedOnRefs returns the prepare-time error for the first
 // qualified ON reference that fails resolution, or "": a reference to a
 // table right of this join is "ON clause references tables to its right"
@@ -523,11 +554,13 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 // clause validation.
 func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn string) {
 	if tn != "" {
-		v.available[tn] = true
+		v.addAvailableName(tn)
 		v.engine.collectJoinTableCols(v.s, join, tn, v.availableCols)
 	}
 	if join.Table.Subquery != nil {
-		collectFromTableNames(join.Table.Subquery, v.available)
+		subNames := map[string]bool{}
+		collectFromTableNames(join.Table.Subquery, subNames)
+		addLowerTableNames(subNames, v.available)
 		collectSubqueryOnCols(join.Table.Subquery, v.availableCols)
 		v.engine.addSubqueryFromCols(join.Table.Subquery, v.availableCols)
 		// VALUES-derived tables expose column1..columnN columns (SQLite: a
@@ -732,7 +765,7 @@ func (e *SelectEngine) mergeLeftTables(join sql.JoinClause, tn string, leftTable
 func (e *SelectEngine) validateOnRefs(s *sql.SelectStmt, join sql.JoinClause, available, availableCols map[string]bool, hasRightOrFull bool) string {
 	var bad string
 	walkJoinOnExpr(join.On, func(e2 sql.Expr) {
-		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[cr.Table] {
+		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[onQualifierKey(cr)] {
 			bad = cr.Table
 		}
 	})
@@ -793,8 +826,10 @@ func SubquerySelect(expr sql.Expr) *sql.SelectStmt {
 // (WHERE, ON clauses) that reference tables outside the subquery's own FROM
 // scope or the outer available tables.
 func (e *SelectEngine) checkSubqueryLocalRefs(sel *sql.SelectStmt, available map[string]bool, bad *string) {
+	localSrc := map[string]bool{}
+	collectFromTableNames(sel, localSrc)
 	local := map[string]bool{}
-	collectFromTableNames(sel, local)
+	addLowerTableNames(localSrc, local)
 	walkSelectJoinExprs(sel, func(e3 sql.Expr) {
 		rejectUnresolvedTableRef(e3, local, available, bad)
 	})
@@ -809,7 +844,7 @@ func (e *SelectEngine) checkSubqueryJoinOnRefs(sel *sql.SelectStmt, available ma
 		j := &sel.Joins[i]
 		jn := joinTableName(*j)
 		if jn != "" {
-			subAvail[jn] = true
+			addLowerTableNames(map[string]bool{jn: true}, subAvail)
 		}
 		if j.On == nil {
 			continue
@@ -821,27 +856,32 @@ func (e *SelectEngine) checkSubqueryJoinOnRefs(sel *sql.SelectStmt, available ma
 }
 
 // collectSubAvail builds the set of table names available at the start of a
-// subquery's join chain (the base FROM table, by name and alias).
+// subquery's join chain (the base FROM table, by name and alias), keyed
+// lower-cased for case-insensitive lookups.
 func collectSubAvail(sel *sql.SelectStmt) map[string]bool {
 	subAvail := map[string]bool{}
 	if sel.From.Name != "" {
-		subAvail[sel.From.Name] = true
+		names := map[string]bool{sel.From.Name: true}
 		if sel.From.As != "" {
-			subAvail[sel.From.As] = true
+			names[sel.From.As] = true
 		}
+		addLowerTableNames(names, subAvail)
 	}
 	return subAvail
 }
 
 // rejectUnresolvedTableRef sets *bad to the table name of a column reference
 // that is not found in the local or available sets (used inside ON-clause
-// validation walkers).
+// validation walkers). Lookups are case-insensitive: the sets are keyed
+// lower-cased and the reference's qualifier is schema-stripped and lower-cased
+// before the check.
 func rejectUnresolvedTableRef(expr sql.Expr, local, available map[string]bool, bad *string) {
 	cr, ok := expr.(*sql.ColumnRef)
 	if !ok || cr.Table == "" {
 		return
 	}
-	if local[cr.Table] || available[cr.Table] {
+	t := onQualifierKey(cr)
+	if local[t] || available[t] {
 		return
 	}
 	*bad = cr.Table
