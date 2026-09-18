@@ -1,9 +1,10 @@
 {
   "file": "bestindexC.test",
   "name": "bestindexC",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "bestindexC-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "bestindexC-1.1",
       "steps": [
         {
           "type": "exec",
@@ -20,232 +21,236 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 8\""
+          "sql": "SELECT * FROM t_unionall LIMIT 8"
         }
       ]
     },
     {
-      "name": "1.2.t_unionall.1",
+      "name": "bestindexC-1.2.t_unionall.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 8",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 8\""
+          "sql": "SELECT * FROM t_union LIMIT 8"
         }
       ]
     },
     {
-      "name": "1.2.t_union.1",
+      "name": "bestindexC-1.2.t_union.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 8",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 8\""
+          "sql": "SELECT * FROM t_intersect LIMIT 8"
         }
       ]
     },
     {
-      "name": "1.2.t_intersect.1",
+      "name": "bestindexC-1.2.t_intersect.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 8",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 8\""
+          "sql": "SELECT * FROM t_except LIMIT 8"
         }
       ]
     },
     {
-      "name": "1.2.t_except.1",
+      "name": "bestindexC-1.2.t_except.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 8",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 4\""
+          "sql": "SELECT * FROM t_unionall LIMIT 4"
         }
       ]
     },
     {
-      "name": "1.2.t_unionall.2",
+      "name": "bestindexC-1.2.t_unionall.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 4",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 4\""
+          "sql": "SELECT * FROM t_union LIMIT 4"
         }
       ]
     },
     {
-      "name": "1.2.t_union.2",
+      "name": "bestindexC-1.2.t_union.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 4",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 4\""
+          "sql": "SELECT * FROM t_intersect LIMIT 4"
         }
       ]
     },
     {
-      "name": "1.2.t_intersect.2",
+      "name": "bestindexC-1.2.t_intersect.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 4",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 4\""
+          "sql": "SELECT * FROM t_except LIMIT 4"
         }
       ]
     },
     {
-      "name": "1.2.t_except.2",
+      "name": "bestindexC-1.2.t_except.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 4",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 4 OFFSET 2\""
+          "sql": "SELECT * FROM t_unionall LIMIT 4 OFFSET 2"
         }
       ]
     },
     {
-      "name": "1.2.t_unionall.3",
+      "name": "bestindexC-1.2.t_unionall.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 4 OFFSET 2\""
+          "sql": "SELECT * FROM t_union LIMIT 4 OFFSET 2"
         }
       ]
     },
     {
-      "name": "1.2.t_union.3",
+      "name": "bestindexC-1.2.t_union.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 4 OFFSET 2\""
+          "sql": "SELECT * FROM t_intersect LIMIT 4 OFFSET 2"
         }
       ]
     },
     {
-      "name": "1.2.t_intersect.3",
+      "name": "bestindexC-1.2.t_intersect.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 4 OFFSET 2\""
+          "sql": "SELECT * FROM t_except LIMIT 4 OFFSET 2"
         }
       ]
     },
     {
-      "name": "1.2.t_except.3",
+      "name": "bestindexC-1.2.t_except.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 8 OFFSET 4\""
+          "sql": "SELECT * FROM t_unionall LIMIT 8 OFFSET 4"
         }
       ]
     },
     {
-      "name": "1.2.t_unionall.4",
+      "name": "bestindexC-1.2.t_unionall.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 8 OFFSET 4\""
+          "sql": "SELECT * FROM t_union LIMIT 8 OFFSET 4"
         }
       ]
     },
     {
-      "name": "1.2.t_union.4",
+      "name": "bestindexC-1.2.t_union.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 8 OFFSET 4\""
+          "sql": "SELECT * FROM t_intersect LIMIT 8 OFFSET 4"
         }
       ]
     },
     {
-      "name": "1.2.t_intersect.4",
+      "name": "bestindexC-1.2.t_intersect.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
           "expect": "bestindexC"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 8 OFFSET 4\""
+          "sql": "SELECT * FROM t_except LIMIT 8 OFFSET 4"
         }
       ]
     },
     {
-      "name": "1.2.t_except.4",
+      "name": "bestindexC-1.2.t_except.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
           "expect": "bestindexC"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "bestindexC-2.0",
       "steps": [
         {
           "type": "exec",
@@ -254,7 +259,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "bestindexC-2.1",
       "steps": [
         {
           "type": "query",
@@ -264,7 +269,11 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "bestindexC-3.0",
       "steps": [
         {
           "type": "exec",
@@ -273,7 +282,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "bestindexC-3.1",
       "steps": [
         {
           "type": "query",
@@ -283,7 +292,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "bestindexC-3.2",
       "steps": [
         {
           "type": "query",
@@ -293,7 +302,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "bestindexC-3.3",
       "steps": [
         {
           "type": "query",
@@ -303,7 +312,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "bestindexC-3.4",
       "steps": [
         {
           "type": "query",
@@ -313,7 +322,7 @@
       ]
     },
     {
-      "name": "3.5",
+      "name": "bestindexC-3.5",
       "steps": [
         {
           "type": "query",
@@ -323,7 +332,7 @@
       ]
     },
     {
-      "name": "3.6",
+      "name": "bestindexC-3.6",
       "steps": [
         {
           "type": "query",
@@ -333,7 +342,11 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "bestindexC-4.0",
       "steps": [
         {
           "type": "catch",
@@ -343,7 +356,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "bestindexC-4.2",
       "steps": [
         {
           "type": "catch",
@@ -353,7 +366,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "bestindexC-4.3",
       "steps": [
         {
           "type": "catch",
@@ -363,7 +376,7 @@
       ]
     },
     {
-      "name": "4.4",
+      "name": "bestindexC-4.4",
       "steps": [
         {
           "type": "catch",
@@ -373,7 +386,11 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "bestindexC-5.1",
       "steps": [
         {
           "type": "exec",
@@ -382,70 +399,77 @@
       ]
     },
     {
-      "name": "5.2.0",
+      "name": "bestindexC-5.2.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM x1 $::where"
+          "type": "catch",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND c=? AND c=?",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "5.2.1",
+      "name": "bestindexC-5.2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM x1 $::where"
+          "type": "catch",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND c=?",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "5.2.2",
+      "name": "bestindexC-5.2.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM x1 $::where"
+          "type": "catch",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c=? OR c=?)",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "5.2.3",
+      "name": "bestindexC-5.2.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM x1 $::where"
+          "type": "catch",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c=? OR c=? OR c=?)",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "5.2.4",
+      "name": "bestindexC-5.2.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM x1 $::where"
+          "type": "catch",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c IS ? OR c IS ?)",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "5.2.5",
+      "name": "bestindexC-5.2.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM x1 $::where"
+          "type": "catch",
+          "sql": "SELECT * FROM x1 WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "5.2.6",
+      "name": "bestindexC-5.2.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM x1 $::where"
+          "type": "catch",
+          "sql": "SELECT * FROM x1 WHERE a=? AND ((b=? AND c=?) OR (c=?))",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "5.3",
+      "name": "bestindexC-5.3",
       "steps": [
         {
           "type": "query",
@@ -454,7 +478,7 @@
       ]
     },
     {
-      "name": "5.4",
+      "name": "bestindexC-5.4",
       "steps": [
         {
           "type": "query",
@@ -464,7 +488,7 @@
       ]
     },
     {
-      "name": "5.5",
+      "name": "bestindexC-5.5",
       "steps": [
         {
           "type": "query",
@@ -474,7 +498,7 @@
       ]
     },
     {
-      "name": "5.6",
+      "name": "bestindexC-5.6",
       "steps": [
         {
           "type": "query",
@@ -484,7 +508,7 @@
       ]
     },
     {
-      "name": "5.7",
+      "name": "bestindexC-5.7",
       "steps": [
         {
           "type": "exec",
@@ -493,7 +517,7 @@
       ]
     },
     {
-      "name": "5.8",
+      "name": "bestindexC-5.8",
       "steps": [
         {
           "type": "catch",
@@ -503,7 +527,7 @@
       ]
     },
     {
-      "name": "5.9",
+      "name": "bestindexC-5.9",
       "steps": [
         {
           "type": "catch",
@@ -513,7 +537,11 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "bestindexC-6.0",
       "steps": [
         {
           "type": "exec",
@@ -522,7 +550,7 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "bestindexC-6.1",
       "steps": [
         {
           "type": "query",
@@ -532,7 +560,7 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "bestindexC-6.2",
       "steps": [
         {
           "type": "query",
@@ -542,7 +570,7 @@
       ]
     },
     {
-      "name": "6.3",
+      "name": "bestindexC-6.3",
       "steps": [
         {
           "type": "query",
@@ -552,7 +580,7 @@
       ]
     },
     {
-      "name": "6.4",
+      "name": "bestindexC-6.4",
       "steps": [
         {
           "type": "query",
@@ -562,7 +590,7 @@
       ]
     },
     {
-      "name": "6.5",
+      "name": "bestindexC-6.5",
       "steps": [
         {
           "type": "query",
@@ -572,7 +600,7 @@
       ]
     },
     {
-      "name": "6.6",
+      "name": "bestindexC-6.6",
       "steps": [
         {
           "type": "query",

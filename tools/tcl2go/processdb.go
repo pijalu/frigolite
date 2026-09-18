@@ -725,6 +725,38 @@ func (tp *transpiler) processDBTransaction(rest []tcl.RawWord) {
 	tp.indent = bodyTP.indent
 }
 
+// isStringMatchBody reports whether a proc body is a single
+// `string match $a $b` command (like.test's test_match), the TCL-glob
+// MATCH overload shape.
+func isStringMatchBody(body string) bool {
+	b := strings.TrimSpace(body)
+	if strings.HasPrefix(b, "{") && strings.HasSuffix(b, "}") {
+		b = strings.TrimSpace(b[1 : len(b)-1])
+	}
+	if strings.HasPrefix(strings.ToLower(b), "return ") {
+		b = strings.TrimSpace(b[len("return "):])
+	}
+	// Allow both a bare command and a bracket-command word:
+	// `[string match $a $b]`.
+	if strings.HasPrefix(b, "[") && strings.HasSuffix(b, "]") {
+		b = strings.TrimSpace(b[1 : len(b)-1])
+	}
+	cmds := tcl.ParseCommands(b)
+	if len(cmds) != 1 {
+		return false
+	}
+	w := cmds[0]
+	if len(w) < 3 || w[0].Text != "string" || w[1].Text != "match" {
+		return false
+	}
+	for _, a := range w[2:] {
+		if !strings.HasPrefix(a.Text, "$") {
+			return false
+		}
+	}
+	return true
+}
+
 // processDBFunction handles `db function NAME procName` / `db func NAME
 // procName` — register a scalar SQL function whose behavior is a TCL proc.
 func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
@@ -741,6 +773,29 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 	// shadow the real eval and break DELETE/SELECT execution.
 	if strings.EqualFold(name, "eval") {
 		tp.emitLine("// db func eval %s (db-eval passthrough — built-in eval used)", procName)
+		return
+	}
+	// A TCL proc whose body accumulates into a global variable (a counter or
+	// a log): selectH.test's counter (global selectH_cnt; incr ... $amt;
+	// return $amt-var), subquery.test's callcnt (incr ::callcnt; return $n)
+	// and wherelimit2.test's log (lappend ::log {*}$args). The generated UDF
+	// updates the SAME Go variable the assertions read back.
+	if tp.emitTclVarUDFFromProc(name, procName) {
+		return
+	}
+	// `db function match -argcount 2 test_match` — like.test's MATCH
+	// overload whose proc body is a single `string match $a $b` command
+	// (TCL glob): emit a real glob-based closure instead of a nil stub so
+	// the MATCH operator filters rows (like-2.3/2.4).
+	if body, ok := globalProcBodies[procName]; ok && isStringMatchBody(body) {
+		tp.emitLine("// db function %s %s (TCL string match UDF: anchored glob of args[1] against args[0])", name, procName)
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 2 { return nil, nil }")
+		tp.emitLine("\tpat := function.ValueText(args[0])")
+		tp.emitLine("\tstr := function.ValueText(args[1])")
+		tp.emitLine("\tif tclStringMatch(pat, str) { return int64(1), nil }")
+		tp.emitLine("\treturn int64(0), nil")
+		tp.emitLine("}, 2, 2)")
 		return
 	}
 	// `db function execsql execsql` — the test-harness's execsql command
@@ -1568,4 +1623,91 @@ var recoverProcNames = map[string]bool{
 // precedence rule as recoverProcNames).
 var sideEffectOnlyProcs = map[string]bool{
 	"execsqlS": true,
+}
+
+// emitTclVarUDFFromProc registers a scalar SQL function backed by a TCL proc
+// whose body accumulates into a global variable. Three corpus shapes are
+// recognized (everything else returns false and keeps the stub registration):
+//
+//   - selectH.test: proc P {amt} { global V; incr V $amt; return $V }
+//     -> UDF adds the (integer) argument to V and returns the new value.
+//   - subquery.test: proc P {n} { incr ::V; return $n }
+//     -> UDF adds 1 to V and returns its argument.
+//   - wherelimit2.test: proc P {args} { lappend ::V {*}$args }
+//     -> UDF space-appends every argument to V (TCL list accumulation).
+//
+// The closure mutates the generated Go variable the assertions read back, so
+// the side effect is observable exactly like the TCL global.
+func (tp *transpiler) emitTclVarUDFFromProc(name, procName string) bool {
+	body := tp.procBodies[procName]
+	if body == "" {
+		return false
+	}
+	// Shape C: lappend ::V {*}$args
+	if m := tclVarUDFLappendRe.FindStringSubmatch(body); m != nil {
+		goVar := tclVarToGo(m[1])
+		tp.emitTclVarUDF(name, goVar, m[1], "lappend")
+		return true
+	}
+	// Shape A: global V ... incr V $amt ... return $V
+	if m := tclVarUDFGlobalIncrRe.FindStringSubmatch(body); m != nil &&
+		m[1] == m[2] && m[4] == m[1] {
+		goVar := tclVarToGo(m[1])
+		tp.emitTclVarUDF(name, goVar, m[1], "incrReturnNew")
+		return true
+	}
+	// Shape B: incr ::V ... return $n
+	if m := tclVarUDFIncrReturnArgRe.FindStringSubmatch(body); m != nil {
+		goVar := tclVarToGo(m[1])
+		tp.emitTclVarUDF(name, goVar, m[1], "incrReturnArg")
+		return true
+	}
+	return false
+}
+
+// tclVarUDF body-shape patterns (compiled once; bodies are tiny TCL scripts).
+var (
+	tclVarUDFLappendRe       = regexp.MustCompile(`lappend\s+::?([A-Za-z_][A-Za-z0-9_]*)\s+\{\*\}\$args`)
+	tclVarUDFGlobalIncrRe    = regexp.MustCompile(`global\s+([A-Za-z_][A-Za-z0-9_]*)[\s;]+incr\s+([A-Za-z_][A-Za-z0-9_]*)\s+\$([A-Za-z_][A-Za-z0-9_]*)[\s;]+return\s+\$([A-Za-z_][A-Za-z0-9_]*)`)
+	tclVarUDFIncrReturnArgRe = regexp.MustCompile(`incr\s+::?([A-Za-z_][A-Za-z0-9_]*)[\s;]*return\s+\$([A-Za-z_][A-Za-z0-9_]*)`)
+)
+
+// emitTclVarUDF writes the RegisterFunction emission for the three
+// variable-accumulating proc shapes recognized by emitTclVarUDFFromProc.
+func (tp *transpiler) emitTclVarUDF(name, goVar, tclVar, shape string) {
+	if !tp.isVarDeclared(goVar) {
+		tp.emitLine("var %s = \"0\"", goVar)
+		tp.vars = append(tp.vars, goVar)
+	}
+	tp.emitLine("// db func %s %s (TCL proc accumulating ::%s)", name, name, tclVar)
+	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+	switch shape {
+	case "lappend":
+		tp.emitLine("\tparts := []string{}")
+		tp.emitLine("\tif %s != \"\" { parts = append(parts, %s) }", goVar, goVar)
+		tp.emitLine("\tfor _, a := range args { parts = append(parts, function.ValueText(a)) }")
+		tp.emitLine("\t%s = strings.Join(parts, \" \")", goVar)
+		tp.emitLine("\tvtab.TclVarSet(%q, \"\", %s)", tclVar, goVar)
+		tp.emitLine("\treturn %s, nil", goVar)
+	case "incrReturnNew":
+		tp.emitLine("\tcur := int64(0)")
+		tp.emitLine("\tif n, err := strconv.ParseInt(strings.TrimSpace(%s), 10, 64); err == nil { cur = n }", goVar)
+		tp.emitLine("\tamt := int64(1)")
+		tp.emitLine("\tif len(args) > 0 {")
+		tp.emitLine("\t\tif n, err := strconv.ParseInt(function.ValueText(args[0]), 10, 64); err == nil { amt = n }")
+		tp.emitLine("\t}")
+		tp.emitLine("\tcur += amt")
+		tp.emitLine("\t%s = strconv.FormatInt(cur, 10)", goVar)
+		tp.emitLine("\tvtab.TclVarSet(%q, \"\", %s)", tclVar, goVar)
+		tp.emitLine("\treturn cur, nil")
+	default: // incrReturnArg
+		tp.emitLine("\tcur := int64(0)")
+		tp.emitLine("\tif n, err := strconv.ParseInt(strings.TrimSpace(%s), 10, 64); err == nil { cur = n }", goVar)
+		tp.emitLine("\tcur++")
+		tp.emitLine("\t%s = strconv.FormatInt(cur, 10)", goVar)
+		tp.emitLine("\tvtab.TclVarSet(%q, \"\", %s)", tclVar, goVar)
+		tp.emitLine("\tif len(args) > 0 { return function.ValueText(args[0]), nil }")
+		tp.emitLine("\treturn nil, nil")
+	}
+	tp.emitLine("}, 0, -1)")
 }

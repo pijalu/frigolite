@@ -164,10 +164,17 @@ func (tp *transpiler) processPuts(args []tcl.RawWord) {
 		// by the emitted `fileChannelSeek["fd"] = int64(tclAtoi(...))`)
 		// carries the correct offset. Default offset 0 matches TCL's
 		// "no seek => write at start" semantics.
+		// TCL advances a write channel's position past each written
+		// record, so emit the advance after every puts — sequential puts
+		// append instead of overwriting at the same offset (csv01-7.x:
+		// `puts $fd "a,b"` then `puts -nonewline $fd "abcd,$T"` builds a
+		// two-line file).
 		if nonewline {
 			tp.emitLine("tclChannelAppendAt(%s, %s, fileChannelSeek[%q])", dest, msgExpr, chName)
+			tp.emitLine("fileChannelSeek[%q] += int64(len(%s))", chName, msgExpr)
 		} else {
 			tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", fileChannelSeek[%q])", dest, msgExpr, chName)
+			tp.emitLine("fileChannelSeek[%q] += int64(len(%s+\"\\n\"))", chName, msgExpr)
 		}
 		return
 	}
@@ -182,8 +189,11 @@ func (tp *transpiler) processPuts(args []tcl.RawWord) {
 	tp.emitLine("_ = _putsMsg")
 }
 
-// processFileDelete handles: forcedelete path (an optional leading "-force"
-// flag is accepted and ignored — TCL forcedelete always forces).
+// processFileDelete handles: forcedelete path... (an optional leading "-force"
+// flag is accepted and ignored — TCL forcedelete always forces). Every listed
+// path is deleted: `forcedelete test.db test.db2 test.db3` (e_resolve.test's
+// between-cycles reset) deletes all three; dropping the extras left stale
+// ATTACH files whose old rows duplicated on the re-executed schema.
 func (tp *transpiler) processFileDelete(args []tcl.RawWord) {
 	if len(args) == 0 {
 		return
@@ -194,21 +204,23 @@ func (tp *transpiler) processFileDelete(args []tcl.RawWord) {
 			return
 		}
 	}
-	// A leading delete was already emitted before the preamble Open
-	// (genPreDeleted); consume it here so the freshly opened file is not
-	// deleted behind the connection a second time.
-	if genPreDeleted[args[0].Text] > 0 {
-		genPreDeleted[args[0].Text]--
-		return
+	for _, arg := range args {
+		// A leading delete was already emitted before the preamble Open
+		// (genPreDeleted); consume it here so the freshly opened file is not
+		// deleted behind the connection a second time.
+		if genPreDeleted[arg.Text] > 0 {
+			genPreDeleted[arg.Text]--
+			continue
+		}
+		pathExpr := tp.goStringLiteral(arg)
+		tp.emitLine("os.Remove(%s)", pathExpr)
+		// The next sqlite3 db <file> open of this file starts from a fresh
+		// database (the TCL "forcedelete test.db; sqlite3 db test.db" pattern).
+		if tp.pendingFileReset == nil {
+			tp.pendingFileReset = make(map[string]bool)
+		}
+		tp.pendingFileReset[arg.Text] = true
 	}
-	pathExpr := tp.goStringLiteral(args[0])
-	tp.emitLine("os.Remove(%s)", pathExpr)
-	// The next sqlite3 db <file> open of this file starts from a fresh
-	// database (the TCL "forcedelete test.db; sqlite3 db test.db" pattern).
-	if tp.pendingFileReset == nil {
-		tp.pendingFileReset = make(map[string]bool)
-	}
-	tp.pendingFileReset[args[0].Text] = true
 }
 
 // processFileCopy handles: forcecopy src dst

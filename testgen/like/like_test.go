@@ -6,6 +6,7 @@ package like
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "regexp"
@@ -119,24 +120,48 @@ func Test_like(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABC abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.2"
 		r = db.Query("\n    SELECT x FROM t1 WHERE x GLOB 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x GLOB 'abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.3"
 		r = db.Query("\n    SELECT x FROM t1 WHERE x LIKE 'ABC' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x LIKE 'ABC' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABC abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.4"
 		r = db.Query("\n    SELECT x FROM t1 WHERE x LIKE 'aBc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x LIKE 'aBc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABC abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.5.1"
@@ -149,42 +174,85 @@ func Test_like(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.5.3"
 		r = db.Query("\n    PRAGMA case_sensitive_like; -- no argument; does not change setting\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like; -- no argument; does not change setting\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.6"
 		r = db.Query("\n    SELECT x FROM t1 WHERE x GLOB 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x GLOB 'abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.7"
 		r = db.Query("\n    SELECT x FROM t1 WHERE x LIKE 'ABC' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x LIKE 'ABC' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.8"
 		r = db.Query("\n    SELECT x FROM t1 WHERE x LIKE 'aBc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x LIKE 'aBc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.9"
 		r = db.Query("\n    PRAGMA case_sensitive_like=off;\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABC abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-1.10"
 		r = db.Query("\n    PRAGMA case_sensitive_like;  -- No argument, does not change setting.\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like;  -- No argument, does not change setting.\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABC abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.1"
@@ -199,11 +267,24 @@ func Test_like(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM t1 WHERE x REGEXP '^abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x REGEXP '^abc' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc abcd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.3"
 		// proc definition (not transpiled)
-		db.RegisterFunction("match", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		// db function match test_match (TCL string match UDF: anchored glob of args[1] against args[0])
+		db.RegisterFunction("match", func(args []interface{}) (interface{}, error) {
+			if len(args) < 2 { return nil, nil }
+			pat := function.ValueText(args[0])
+			str := function.ValueText(args[1])
+			if tclStringMatch(pat, str) { return int64(1), nil }
+			return int64(0), nil
+		}, 2, 2)
 		r = db.Query("\n    SELECT x FROM t1 WHERE x MATCH '*abc*' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x MATCH '*abc*' ORDER BY 1;\n  ")
@@ -213,34 +294,40 @@ func Test_like(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM t1 WHERE x MATCH 'abc*' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x MATCH 'abc*' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc abcd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
 	{ // do_test "like-3.1"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;")
 	}
 	{ // do_test "like-3.2"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.2")
 		}
 	}
 	{ // do_test "like-3.3.100"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
 		r = db.Query("\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		}
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;")
 	}
 	{ // do_test "like-3.3.100.cnt"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.100.cnt")
@@ -251,13 +338,13 @@ func Test_like(t *testing.T) {
 	_ = likepat // suppress unused warning
 	if "" != "prepare" {
 		{ // do_test "like-3.3.102"
-			vtab.TclVarSet("sqlite_like_count", "", "0")
 			sqlite_like_count = "0"
+			db.ResetLikeCallCount()
 			_ = sqlite_like_count // suppress unused warning
-			// queryplan {\n      SELECT x FROM t1 WHERE x LIKE $::likepat O...} (test infra, not transpiled)
+			_ = db.Query("SELECT x FROM t1 WHERE x LIKE $::likepat ORDER BY 1;")
 		}
 		{ // do_test "like-3.3.103"
-			got := tclListFlatten(sqlite_like_count)
+			got := tclListFlatten(tclLikeCount(db))
 			want := tclListFlatten("0")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.103")
@@ -265,27 +352,27 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-3.3.104"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
 		// sqlite3_db_config QPSG (unhandled flag)
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE $::likepat ORD...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE $::likepat ORDER BY 1;")
 	}
 	{ // do_test "like-3.3.105"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.105")
 		}
 	}
 	{ // do_test "like-3.3.105"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;")
 	}
 	{ // do_test "like-3.3.106"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.106")
@@ -293,199 +380,199 @@ func Test_like(t *testing.T) {
 	}
 	// sqlite3_db_config QPSG (unhandled flag)
 	{ // do_test "like-3.4.2"
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1;")
 	}
 	{ // do_test "like-3.4.3"
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'ab' ORDER BY ...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'ab' ORDER BY 1;")
 	}
 	{ // do_test "like-3.4.4"
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abcd' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abcd' ORDER BY 1;")
 	}
 	{ // do_test "like-3.4.5"
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abcde' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abcde' ORDER BY 1;")
 	}
 	{ // do_test "like-3.5"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'a_c' ORDER BY...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'a_c' ORDER BY 1;")
 	}
 	{ // do_test "like-3.6"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("6")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.6")
 		}
 	}
 	{ // do_test "like-3.7"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'ab%d' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'ab%d' ORDER BY 1;")
 	}
 	{ // do_test "like-3.8"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("4")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.8")
 		}
 	}
 	{ // do_test "like-3.9"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'a_c%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'a_c%' ORDER BY 1;")
 	}
 	{ // do_test "like-3.10"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("6")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.10")
 		}
 	}
 	{ // do_test "like-3.11"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE '%bcd' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE '%bcd' ORDER BY 1;")
 	}
 	{ // do_test "like-3.12"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.12")
 		}
 	}
 	{ // do_test "like-3.13"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("PRAGMA case_sensitive_like=off;")
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;")
 	}
 	{ // do_test "like-3.14"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.14")
 		}
 	}
 	{ // do_test "like-3.15"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=on;\n    DROP INDEX i1;\n  ")
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;")
 	}
 	{ // do_test "like-3.16"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.16")
 		}
 	}
 	{ // do_test "like-3.17"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;")
 	}
 	{ // do_test "like-3.18"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.18")
 		}
 	}
 	{ // do_test "like-3.19"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("CREATE INDEX i1 ON t1(x);")
-		// queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;")
 	}
 	{ // do_test "like-3.20"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.20")
 		}
 	}
 	{ // do_test "like-3.21"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("PRAGMA case_sensitive_like=on;")
-		// queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;")
 	}
 	{ // do_test "like-3.22"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.22")
 		}
 	}
 	{ // do_test "like-3.23"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("PRAGMA case_sensitive_like=off;")
-		// queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'a[bc]d' ORDER...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x GLOB 'a[bc]d' ORDER BY 1;")
 	}
 	{ // do_test "like-3.24"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("6")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.24")
 		}
 	}
 	{ // do_test "like-3.25"
-		// queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'a' ORDER BY 1...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x GLOB 'a' ORDER BY 1;")
 	}
 	{ // do_test "like-3.26"
-		// queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abcd' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x GLOB 'abcd' ORDER BY 1;")
 	}
 	{ // do_test "like-3.27"
-		// queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abcde' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x GLOB 'abcde' ORDER BY 1;")
 	}
 	{ // do_test "like-4.1"
 		r = db.Query("PRAGMA case_sensitive_like=on")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA case_sensitive_like=on")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1")
 	}
 	{ // do_test "like-4.2"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-4.2")
 		}
 	}
 	{ // do_test "like-4.3"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE +x LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE +x LIKE 'abc%' ORDER BY 1")
 	}
 	{ // do_test "like-4.4"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-4.4")
 		}
 	}
 	{ // do_test "like-4.5"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE ('ab' || 'c%')...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE ('ab' || 'c%') ORDER BY 1")
 	}
 	{ // do_test "like-4.6"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-4.6")
@@ -496,13 +583,13 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA case_sensitive_like=off")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1")
 	}
 	{ // do_test "like-5.2"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.2")
@@ -513,13 +600,13 @@ func Test_like(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x TEXT COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1 ORDER BY rowid;\n    CREATE INDEX i2 ON t2(x COLLATE NOCASE);\n  ")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1")
 	}
 	{ // do_test "like-5.4"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.4")
@@ -530,13 +617,13 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=on;\n  ")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1")
 	}
 	{ // do_test "like-5.6"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.6")
@@ -547,13 +634,13 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n  ")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t2 WHERE x GLOB 'abc*' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x GLOB 'abc*' ORDER BY 1")
 	}
 	{ // do_test "like-5.8"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.8")
@@ -564,26 +651,26 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA case_sensitive_like=off")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'ABC%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'ABC%' ORDER BY 1")
 	}
 	{ // do_test "like-5.12"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.12")
 		}
 	}
 	{ // do_test "like-5.13"
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1")
 	}
 	{ // do_test "like-5.14"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.14")
@@ -594,13 +681,13 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=on;\n  ")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1")
 	}
 	{ // do_test "like-5.16"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.16")
@@ -611,13 +698,13 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n  ")
 		}
-		vtab.TclVarSet("sqlite_like_count", "", "0")
 		sqlite_like_count = "0"
+		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// queryplan {\n    SELECT x FROM t2 WHERE x GLOB 'ABC*' ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x GLOB 'ABC*' ORDER BY 1")
 	}
 	{ // do_test "like-5.18"
-		got := tclListFlatten(sqlite_like_count)
+		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.18")
@@ -628,29 +715,29 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');\n  ")
 		}
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'zz%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'zz%';")
 	}
 	{ // do_test "like-5.22"
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'zZ%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'zZ%';")
 	}
 	{ // do_test "like-5.23"
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'Zz%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'Zz%';")
 	}
 	{ // do_test "like-5.24"
-		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'ZZ%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t2 WHERE x LIKE 'ZZ%';")
 	}
 	{ // do_test "like-5.25"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=on;\n    CREATE TABLE t3(x TEXT);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES('ZZ-upper-upper');\n    INSERT INTO t3 VALUES('zZ-lower-upper');\n    INSERT INTO t3 VALUES('Zz-upper-lower');\n    INSERT INTO t3 VALUES('zz-lower-lower');\n  ")
-		// queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'zz%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t3 WHERE x LIKE 'zz%';")
 	}
 	{ // do_test "like-5.26"
-		// queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'zZ%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t3 WHERE x LIKE 'zZ%';")
 	}
 	{ // do_test "like-5.27"
-		// queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'Zz%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t3 WHERE x LIKE 'Zz%';")
 	}
 	{ // do_test "like-5.28"
-		// queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'ZZ%';\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT x FROM t3 WHERE x LIKE 'ZZ%';")
 	}
 	{ // do_test "like-6.1"
 		for _, x := range tclSplitList("'abc 'bcd 'def 'ax") {
@@ -669,6 +756,12 @@ func Test_like(t *testing.T) {
 		r = db.Query("\n    SELECT rowid, * FROM t1 WHERE rowid GLOB '1*' ORDER BY rowid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1 WHERE rowid GLOB '1*' ORDER BY rowid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a 10 ABC 11 CDE 12 ABC abc xyz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-8.1"
@@ -708,7 +801,7 @@ func Test_like(t *testing.T) {
 		// count_steps {\n       SELECT x FROM t2 WHERE x LIKE '_y%'\n    } (unsupported command, not transpiled)
 	}
 	{ // do_test "like-9.3.1"
-		res = "sqlite3_exec_hex db {\n       SELECT x FROM t2 WHERE x LIKE '%78%25'\n    }"
+		res = tclExecHex(db, "SELECT x FROM t2 WHERE x LIKE '%78%25'")
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 x xyz")
@@ -717,13 +810,13 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-9.3.2"
-		res = "sqlite3_exec_hex db {\n         EXPLAIN QUERY PLAN SELECT x FROM t2 WHERE x LIKE '%78%25'\n      }"
+		res = tclExecHex(db, "EXPLAIN QUERY PLAN SELECT x FROM t2 WHERE x LIKE '%78%25'")
 		_ = res // suppress unused warning
 		tclRegexp("INDEX i2", res)
 	}
 	{ // do_test "like-9.4.1"
-		// sqlite3_exec_hex db {INSERT INTO t2 VALUES('%ffhello')} (unsupported command, not transpiled)
-		res = "sqlite3_exec_hex db {\n       SELECT substr(x,2) AS x FROM t2 WHERE +x LIKE '%ff%25'\n    }"
+		_ = tclExecHex(db, "INSERT INTO t2 VALUES('%ffhello')")
+		res = tclExecHex(db, "SELECT substr(x,2) AS x FROM t2 WHERE +x LIKE '%ff%25'")
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 x hello")
@@ -732,7 +825,7 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-9.4.2"
-		res = "sqlite3_exec_hex db {\n       SELECT substr(x,2) AS x FROM t2 WHERE x LIKE '%ff%25'\n    }"
+		res = tclExecHex(db, "SELECT substr(x,2) AS x FROM t2 WHERE x LIKE '%ff%25'")
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 x hello")
@@ -741,12 +834,12 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-9.4.3"
-		res = "sqlite3_exec_hex db {\n         EXPLAIN QUERY PLAN SELECT x FROM t2 WHERE x LIKE '%ff%25'\n      }"
+		res = tclExecHex(db, "EXPLAIN QUERY PLAN SELECT x FROM t2 WHERE x LIKE '%ff%25'")
 		_ = res // suppress unused warning
 		tclRegexp("SCAN t2", res)
 	}
 	{ // do_test "like-9.5.1"
-		res = "sqlite3_exec_hex db {\n       SELECT 1 FROM t2 WHERE x LIKE '%fe%25'\n    }"
+		res = tclExecHex(db, "SELECT 1 FROM t2 WHERE x LIKE '%fe%25'")
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 1 1")
@@ -755,7 +848,7 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-9.5.2"
-		res = "sqlite3_exec_hex db {\n         EXPLAIN QUERY PLAN SELECT x FROM t2 WHERE x LIKE '%fe%25'\n      }"
+		res = tclExecHex(db, "EXPLAIN QUERY PLAN SELECT x FROM t2 WHERE x LIKE '%fe%25'")
 		_ = res // suppress unused warning
 		tclRegexp("INDEX i2", res)
 	}
@@ -812,46 +905,52 @@ func Test_like(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t11(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE nocase,\n      c TEXT COLLATE binary\n    );\n    INSERT INTO t11 VALUES(1, 'a','a');\n    INSERT INTO t11 VALUES(2, 'ab','ab');\n    INSERT INTO t11 VALUES(3, 'abc','abc');\n    INSERT INTO t11 VALUES(4, 'abcd','abcd');\n    INSERT INTO t11 VALUES(5, 'A','A');\n    INSERT INTO t11 VALUES(6, 'AB','AB');\n    INSERT INTO t11 VALUES(7, 'ABC','ABC');\n    INSERT INTO t11 VALUES(8, 'ABCD','ABCD');\n    INSERT INTO t11 VALUES(9, 'x','x');\n    INSERT INTO t11 VALUES(10, 'yz','yz');\n    INSERT INTO t11 VALUES(11, 'X','X');\n    INSERT INTO t11 VALUES(12, 'YZ','YZ');\n    SELECT count(*) FROM t11;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t11(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE nocase,\n      c TEXT COLLATE binary\n    );\n    INSERT INTO t11 VALUES(1, 'a','a');\n    INSERT INTO t11 VALUES(2, 'ab','ab');\n    INSERT INTO t11 VALUES(3, 'abc','abc');\n    INSERT INTO t11 VALUES(4, 'abcd','abcd');\n    INSERT INTO t11 VALUES(5, 'A','A');\n    INSERT INTO t11 VALUES(6, 'AB','AB');\n    INSERT INTO t11 VALUES(7, 'ABC','ABC');\n    INSERT INTO t11 VALUES(8, 'ABCD','ABCD');\n    INSERT INTO t11 VALUES(9, 'x','x');\n    INSERT INTO t11 VALUES(10, 'yz','yz');\n    INSERT INTO t11 VALUES(11, 'X','X');\n    INSERT INTO t11 VALUES(12, 'YZ','YZ');\n    SELECT count(*) FROM t11;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-11.1"
 		_res = db.Exec("PRAGMA case_sensitive_like=OFF;")
-		// queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;")
 	}
 	{ // do_test "like-11.2"
 		_res = db.Exec("PRAGMA case_sensitive_like=ON;")
-		// queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;")
 	}
 	{ // do_test "like-11.3"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=OFF;\n    CREATE INDEX t11b ON t11(b);\n  ")
-		// queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;")
 	}
 	{ // do_test "like-11.4"
 		_res = db.Exec("PRAGMA case_sensitive_like=ON;")
-		// queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;")
 	}
 	{ // do_test "like-11.5"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=OFF;\n    DROP INDEX t11b;\n    CREATE INDEX t11bnc ON t11(b COLLATE nocase);\n  ")
-		// queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;")
 	}
 	{ // do_test "like-11.6"
 		_res = db.Exec("CREATE INDEX t11bb ON t11(b COLLATE binary);")
-		// queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;")
 	}
 	{ // do_test "like-11.7"
 		_res = db.Exec("PRAGMA case_sensitive_like=ON;")
-		// queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;")
 	}
 	{ // do_test "like-11.8"
 		_res = db.Exec("PRAGMA case_sensitive_like=OFF;")
-		// queryplan {\n    SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER BY +a;")
 	}
 	{ // do_test "like-11.9"
 		_res = db.Exec("\n    CREATE INDEX t11cnc ON t11(c COLLATE nocase);\n    CREATE INDEX t11cb ON t11(c COLLATE binary);\n  ")
-		// queryplan {\n    SELECT c FROM t11 WHERE c LIKE 'abc%' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT c FROM t11 WHERE c LIKE 'abc%' ORDER BY +a;")
 	}
 	{ // do_test "like-11.10"
-		// queryplan {\n    SELECT c FROM t11 WHERE c GLOB 'abc*' ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT c FROM t11 WHERE c GLOB 'abc*' ORDER BY +a;")
 	}
 	{ // "like-12.1"
 		r = db.Query("\n  CREATE TABLE t12nc(id INTEGER, x TEXT UNIQUE COLLATE nocase);\n  INSERT INTO t12nc VALUES(1,'abcde'),(2,'uvwxy'),(3,'ABCDEF');\n  CREATE TABLE t12b(id INTEGER, x TEXT UNIQUE COLLATE binary);\n  INSERT INTO t12b VALUES(1,'abcde'),(2,'uvwxy'),(3,'ABCDEF');\n  SELECT id FROM t12nc WHERE x LIKE 'abc%' ORDER BY +id;\n")

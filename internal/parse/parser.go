@@ -200,6 +200,12 @@ func parseSQLMode(input string, schemaMode bool) ([]sql.Stmt, error) {
 	// AS alias (main.t1 AS t2) reduce to a malformed TableRef through the
 	// LALR tables; recover the real table name and alias from the raw SQL.
 	fixupDMLTableAlias(stmts)
+	// build.c sqlite3AddPrimaryKey: a table-level PRIMARY KEY over exactly
+	// one column of exact type INTEGER (not DESC) makes that column the
+	// rowid alias — promote the flag onto the ColumnDef so every later
+	// consumer (IPK NULL fill, AUTOINCREMENT, PRAGMA table_info pk) sees the
+	// same shape as the column-level spelling.
+	promoteTableLevelPrimaryKey(stmts)
 	if pre.hasStmtRewrite {
 		attachStmtOrderLimit(stmts, pre.stmtClauses)
 	}

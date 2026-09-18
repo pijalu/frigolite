@@ -112,9 +112,8 @@ func Test_where(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n      INSERT INTO t2 SELECT 101-w, x, (SELECT max(y) FROM t1)+1-y, y FROM t1;\n    ")
@@ -413,30 +412,62 @@ func Test_where(t *testing.T) {
 		r = db.Query("\n    SELECT 99 WHERE 0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 99 WHERE 0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-4.4"
 		r = db.Query("\n    SELECT 99 WHERE 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 99 WHERE 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-4.5"
 		r = db.Query("\n    SELECT 99 WHERE 0.1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 99 WHERE 0.1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-4.6"
 		r = db.Query("\n    SELECT 99 WHERE 0.0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 99 WHERE 0.0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-4.7"
 		r = db.Query("\n    SELECT count(*) FROM t1 WHERE t1.w\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE t1.w\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-5.1"
@@ -546,6 +577,12 @@ func Test_where(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "100 5050 5050 348550"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-6.2"
@@ -782,31 +819,65 @@ func Test_where(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(x PRIMARY KEY);\n    SELECT * FROM t5 WHERE x<10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(x PRIMARY KEY);\n    SELECT * FROM t5 WHERE x<10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-9.2"
 		r = db.Query("\n    SELECT * FROM t5 WHERE x<10 ORDER BY x DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t5 WHERE x<10 ORDER BY x DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-9.3"
 		r = db.Query("\n    SELECT * FROM t5 WHERE x=10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t5 WHERE x=10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-10.1"
 		r = db.Query("\n    SELECT 1 WHERE abs(random())<0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 1 WHERE abs(random())<0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "where-10.2" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable
+	{ // "where-10.2" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL side effects only)
+		_res = db.Exec("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "where-10.3" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable
+	{ // "where-10.3" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL side effects only)
+		_res = db.Exec("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "where-10.4" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable
+	{ // "where-10.4" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL side effects only)
+		_res = db.Exec("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "where-11.1"
 		_res = db.Exec("\n   CREATE TABLE t99(Dte INT, X INT);\n   DELETE FROM t99 WHERE (Dte = 2451337) OR (Dte = 2451339) OR\n     (Dte BETWEEN 2451345 AND 2451347) OR (Dte = 2451351) OR \n     (Dte BETWEEN 2451355 AND 2451356) OR (Dte = 2451358) OR\n     (Dte = 2451362) OR (Dte = 2451365) OR (Dte = 2451367) OR\n     (Dte BETWEEN 2451372 AND 2451376) OR (Dte BETWEEN 2451382 AND 2451384) OR\n     (Dte = 2451387) OR (Dte BETWEEN 2451389 AND 2451391) OR \n     (Dte BETWEEN 2451393 AND 2451395) OR (Dte = 2451400) OR \n     (Dte = 2451402) OR (Dte = 2451404) OR (Dte BETWEEN 2451416 AND 2451418) OR \n     (Dte = 2451422) OR (Dte = 2451426) OR (Dte BETWEEN 2451445 AND 2451446) OR\n     (Dte = 2451456) OR (Dte = 2451458) OR (Dte BETWEEN 2451465 AND 2451467) OR\n     (Dte BETWEEN 2451469 AND 2451471) OR (Dte = 2451474) OR\n     (Dte BETWEEN 2451477 AND 2451501) OR (Dte BETWEEN 2451503 AND 2451509) OR\n     (Dte BETWEEN 2451511 AND 2451514) OR (Dte BETWEEN 2451518 AND 2451521) OR\n     (Dte BETWEEN 2451523 AND 2451531) OR (Dte BETWEEN 2451533 AND 2451537) OR\n     (Dte BETWEEN 2451539 AND 2451544) OR (Dte BETWEEN 2451546 AND 2451551) OR\n     (Dte BETWEEN 2451553 AND 2451555) OR (Dte = 2451557) OR\n     (Dte BETWEEN 2451559 AND 2451561) OR (Dte = 2451563) OR\n     (Dte BETWEEN 2451565 AND 2451566) OR (Dte BETWEEN 2451569 AND 2451571) OR \n     (Dte = 2451573) OR (Dte = 2451575) OR (Dte = 2451577) OR (Dte = 2451581) OR\n     (Dte BETWEEN 2451583 AND 2451586) OR (Dte BETWEEN 2451588 AND 2451592) OR \n     (Dte BETWEEN 2451596 AND 2451598) OR (Dte = 2451600) OR\n     (Dte BETWEEN 2451602 AND 2451603) OR (Dte = 2451606) OR (Dte = 2451611);\n  ")
@@ -942,7 +1013,9 @@ func Test_where(t *testing.T) {
 			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||x.b DESC\n  ") // cksort
 		}
 	}
-	{ // "where-15.1" — skipped: TEMP schema not supported
+	{ // "where-15.1" — skipped: TEMP schema not supported (SQL side effects only)
+		_res = db.Exec("\n    CREATE TEMP TABLE t1 (a, b, c, d, e);\n    CREATE TEMP TABLE t2 (f);\n    SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1 ;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "where-16.1"
 		_res = db.Exec("\n    CREATE TABLE a1(id INTEGER PRIMARY KEY, v);\n    CREATE TABLE a2(id INTEGER PRIMARY KEY, v);\n    INSERT INTO a1 VALUES(1, 'one');\n    INSERT INTO a1 VALUES(2, 'two');\n    INSERT INTO a2 VALUES(1, 'one');\n    INSERT INTO a2 VALUES(2, 'two');\n  ")
@@ -954,6 +1027,12 @@ func Test_where(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM a2 CROSS JOIN a1 WHERE a1.id=1 AND a1.v='one';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM a2 CROSS JOIN a1 WHERE a1.id=1 AND a1.v='one';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one 1 one 2 two 1 one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-16.3"
@@ -966,6 +1045,12 @@ func Test_where(t *testing.T) {
 		r = db.Query("\n    SELECT bar.RowID id FROM foo, bar WHERE foo.idx = bar.RowID AND id = 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT bar.RowID id FROM foo, bar WHERE foo.idx = bar.RowID AND id = 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -980,24 +1065,48 @@ func Test_where(t *testing.T) {
 		r = db.Query("\n    SELECT a.id\n    FROM tbooking AS a\n    WHERE a.eventtype=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.id\n    FROM tbooking AS a\n    WHERE a.eventtype=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "42"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-17.3"
 		r = db.Query("\n    SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM tbooking AS a\n    WHERE a.eventtype=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM tbooking AS a\n    WHERE a.eventtype=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "42 43"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-17.4"
 		r = db.Query("\n    SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM (SELECT 1.5 AS id) AS a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM (SELECT 1.5 AS id) AS a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1.5 42"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-17.5"
 		r = db.Query("\n    CREATE TABLE tother(a, b);\n    INSERT INTO tother VALUES(1, 3.7);\n    SELECT id, a FROM tbooking, tother WHERE id>a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tother(a, b);\n    INSERT INTO tother VALUES(1, 3.7);\n    SELECT id, a FROM tbooking, tother WHERE id>a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "42 1 43 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "where-18.1"
@@ -1382,6 +1491,13 @@ func Test_where(t *testing.T) {
 				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "where-27.2"

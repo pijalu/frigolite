@@ -24,6 +24,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/exec"
+	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/recover"
@@ -423,6 +424,19 @@ func (db *DB) Status(name string) (current, highwater int64) {
 	}
 	return 0, 0
 }
+
+// LikeCallCount reports the number of LIKE/GLOB comparisons the engine has
+// evaluated since the last reset (func.c sqlite3_like_count under
+// SQLITE_TEST, linked to tester.tcl's sqlite_like_count variable). The LIKE
+// optimization replaces a prefix LIKE with an index range scan and removes
+// the per-row invocation entirely, so the counter observes the optimization
+// the same way SQLite's does (like.test 3.x: 12 calls without the
+// optimization, 0 calls with it).
+func (db *DB) LikeCallCount() int64 { return execexpr.LikeCallCount() }
+
+// ResetLikeCallCount zeroes the LIKE/GLOB invocation counter
+// (tester.tcl: set sqlite_like_count 0).
+func (db *DB) ResetLikeCallCount() { execexpr.ResetLikeCallCount() }
 
 // PagerCacheSize reports the number of pages currently held in the pager
 // cache (test3.c btree_pager_stats "page" field; cache.test pager_cache_size).
@@ -1348,11 +1362,17 @@ func (db *DB) errorCode(err error) string {
 	case strings.Contains(msg, "out of memory"):
 		return "SQLITE_NOMEM"
 	case strings.Contains(msg, "no such table"), strings.Contains(msg, "no such column"),
-		strings.Contains(msg, "syntax error"), strings.Contains(msg, "near "),
-		strings.Contains(msg, "constraint"), strings.Contains(msg, "UNIQUE"),
+		strings.Contains(msg, "syntax error"), strings.Contains(msg, "near "):
+		return "SQLITE_ERROR"
+	case strings.Contains(msg, "constraint"), strings.Contains(msg, "UNIQUE"),
 		strings.Contains(msg, "NOT NULL"), strings.Contains(msg, "CHECK"),
 		strings.Contains(msg, "FOREIGN KEY"), strings.Contains(msg, "PRIMARY KEY"):
-		return "SQLITE_ERROR"
+		// Constraint violations report SQLITE_CONSTRAINT (sqlite3_errcode
+		// after a NOT NULL/UNIQUE/CHECK/FK failure: vdbe.c OP_Halt carries
+		// P2=SQLITE_CONSTRAINT; the commit-hook abort in vdbe.c reports the
+		// bare "constraint failed" message with the same code).
+		// altercons-5.2.2 asserts the code via the TCL errorcode fixture.
+		return "SQLITE_CONSTRAINT"
 	case strings.Contains(msg, "too big"), strings.Contains(msg, "string or blob too big"):
 		// vdbemem.c SQLITE_TOOBIG: "string or blob too big" from sqlite3_bind_*
 		// for a value whose byte length exceeds SQLITE_LIMIT_LENGTH

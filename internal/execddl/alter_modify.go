@@ -307,6 +307,16 @@ func (e *DDLExecutor) columnHasNull(tableName string, entry *schema.Entry, colDe
 		return false
 	}
 	idx := findColDefIndex(colDefs, colName)
+	if idx < 0 {
+		return false
+	}
+	// The INTEGER PRIMARY KEY column is the rowid alias: its stored record
+	// slot is always NULL (the rowid carries the value), so it can never
+	// violate SET NOT NULL (altercons-8.1.1: t1(a INTEGER PRIMARY KEY, ...)
+	// with rows must accept ALTER a SET NOT NULL).
+	if isIPKRowidAlias(colDefs[idx]) {
+		return false
+	}
 	for {
 		cell, cerr := cursor.ReadCell()
 		if cerr != nil || cell == nil {
@@ -316,7 +326,7 @@ func (e *DDLExecutor) columnHasNull(tableName string, entry *schema.Entry, colDe
 		if derr != nil || rec == nil {
 			break
 		}
-		if idx >= 0 && (idx >= len(rec.Values) || rec.Values[idx] == nil) {
+		if idx >= len(rec.Values) || rec.Values[idx] == nil {
 			return true
 		}
 		ok, nerr := cursor.Next()
@@ -325,6 +335,13 @@ func (e *DDLExecutor) columnHasNull(tableName string, entry *schema.Entry, colDe
 		}
 	}
 	return false
+}
+
+// isIPKRowidAlias reports whether cd declares the INTEGER PRIMARY KEY rowid
+// alias (its value lives in the btree rowid, not in the record; mirrors
+// execquery's isIPKRowidAliasCol — a DESC PK is NOT a rowid alias).
+func isIPKRowidAlias(cd sql.ColumnDef) bool {
+	return cd.PrimaryKey && !cd.PKDesc && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER")
 }
 
 // findColDefIndex returns the index of the named column definition, or -1.
@@ -714,10 +731,12 @@ func applyAlterColumnAction(e *DDLExecutor, tableName string, tableEntry *schema
 		}
 		switch action {
 		case "SET NOT NULL":
-			// SQLite: SET NOT NULL fails with "constraint failed" if any
-			// existing row has NULL in this column.
+			// SQLite: SET NOT NULL fails if any existing row has NULL in
+			// this column, with the standard NOT NULL violation error —
+			// which carries SQLITE_CONSTRAINT via the error-code mapping
+			// (altercons-5.2.1/5.2.2).
 			if e.columnHasNull(tableName, tableEntry, colDefs, c.Name) {
-				return true, fmt.Errorf("constraint failed")
+				return true, fmt.Errorf("NOT NULL constraint failed: %s", c.Name)
 			}
 			colDefs[i].NotNull = true
 		case "DROP NOT NULL":

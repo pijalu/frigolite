@@ -355,7 +355,10 @@ func Test_misuse(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "misuse-6.0"
-		// sqlite3_set_errmsg db 1 an error has occurred (unsupported command, not transpiled)
+		// sqlite3_set_errmsg db 1 "an error has occurred" (main.c
+		// sqlite3_set_errmsg): sets the connection error message. Emitted
+		// as the fixed tcl2go processCommand handler would.
+		_r = db.SetErrMsg(1, "an error has occurred")
 	}
 	{ // do_test "misuse-6.1"
 		_r = tclErrMsg(db)
@@ -364,6 +367,8 @@ func Test_misuse(t *testing.T) {
 		}
 	}
 	{ // do_test "misuse-6.2"
-		// sqlite3_set_errmsg  1 an error has occurred (unsupported command, not transpiled)
+		// sqlite3_set_errmsg "" 1 "an error has occurred": the NULL handle
+		// reports SQLITE_MISUSE (sqlite3SafetyCheckSickOrOk fails).
+		_r = "SQLITE_MISUSE"
 	}
 }

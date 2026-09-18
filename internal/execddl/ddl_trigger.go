@@ -350,6 +350,12 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if err := e.ctx.Authorize(auth.ActionCreateTrigger, s.Name, s.Table, "", ""); err != nil {
 		return &Result{Error: err}
 	}
+	// build.c sqlite3CheckObjectName: the "sqlite_" prefix is reserved in
+	// every namespace, including triggers ("object name reserved for
+	// internal use: sqlite_tr1", index.test 7.x).
+	if res := e.validateReservedName(strings.TrimSpace(s.Name)); res != nil {
+		return res
+	}
 	ctx, triggerName, tableName, explicitSchema, rerr := resolveTriggerSchema(e, s)
 	if rerr != nil {
 		return &Result{Error: rerr}

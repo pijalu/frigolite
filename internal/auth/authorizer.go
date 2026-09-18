@@ -29,6 +29,7 @@ const (
 	ActionDetach                      // DETACH DATABASE
 	ActionFunction                    // function call
 	ActionPragma                      // PRAGMA
+	ActionSavepoint                   // SAVEPOINT / RELEASE / ROLLBACK TO
 )
 
 // String returns a human-readable name for the action.
@@ -54,6 +55,7 @@ var actionNames = map[Action]string{
 	ActionDetach:        "SQLITE_DETACH",
 	ActionFunction:      "SQLITE_FUNCTION",
 	ActionPragma:        "SQLITE_PRAGMA",
+	ActionSavepoint:     "SQLITE_SAVEPOINT",
 }
 
 func (a Action) String() string {

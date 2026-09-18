@@ -1,6 +1,7 @@
 {
   "file": "fkey6.test",
   "name": "fkey6",
+  "ordered": true,
   "tests": [
     {
       "name": "fkey6-1.0",
@@ -22,11 +23,97 @@
       ]
     },
     {
+      "name": "fkey6-1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 WHERE x=2;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;"
+        }
+      ]
+    },
+    {
       "name": "fkey6-1.10.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;"
+          "sql": "PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;",
+          "expect": "1 0 1 0"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 WHERE x=3",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;",
+          "expect": "0 1 0"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE y=1;",
+          "expect": "0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
         }
       ]
     },
@@ -89,7 +176,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "fkey6-3.1",
       "steps": [
         {
           "type": "exec",
@@ -98,17 +185,17 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "fkey6-3.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "BEGIN;\n    UPDATE p2 SET a=a-1;",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "3.2.2",
+      "name": "fkey6-3.2.2",
       "steps": [
         {
           "type": "exec",
@@ -117,7 +204,7 @@
       ]
     },
     {
-      "name": "3.2.3",
+      "name": "fkey6-3.2.3",
       "steps": [
         {
           "type": "exec",
@@ -126,7 +213,7 @@
       ]
     },
     {
-      "name": "3.2.4",
+      "name": "fkey6-3.2.4",
       "steps": [
         {
           "type": "exec",
@@ -135,17 +222,17 @@
       ]
     },
     {
-      "name": "3.2.5",
+      "name": "fkey6-3.2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "COMMIT;",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "3.2.6",
+      "name": "fkey6-3.2.6",
       "steps": [
         {
           "type": "exec",
@@ -154,7 +241,7 @@
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "fkey6-3.3.1",
       "steps": [
         {
           "type": "exec",
@@ -163,17 +250,17 @@
       ]
     },
     {
-      "name": "3.3.2",
+      "name": "fkey6-3.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "BEGIN;\n    DELETE FROM p2 WHERE a=1;",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "3.3.3",
+      "name": "fkey6-3.3.3",
       "steps": [
         {
           "type": "exec",
@@ -182,7 +269,7 @@
       ]
     },
     {
-      "name": "3.3.4",
+      "name": "fkey6-3.3.4",
       "steps": [
         {
           "type": "query",
@@ -192,7 +279,11 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fkey6-4.0",
       "steps": [
         {
           "type": "query",
@@ -201,7 +292,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "fkey6-4.1",
       "steps": [
         {
           "type": "exec",
@@ -210,17 +301,21 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "fkey6-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "COMMIT;",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fkey6-5.0",
       "steps": [
         {
           "type": "exec",
@@ -229,7 +324,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "fkey6-5.1",
       "steps": [
         {
           "type": "exec",
@@ -238,131 +333,39 @@
       ]
     },
     {
-      "name": "fkey6-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2;",
-          "expect": "1 {FOREIGN KEY constraint failed}"
-        }
-      ]
-    },
-    {
-      "name": "fkey6-1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
-        }
-      ]
-    },
-    {
-      "name": "fkey6-1.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;"
-        }
-      ]
-    },
-    {
-      "name": "fkey6-1.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;"
-        }
-      ]
-    },
-    {
-      "name": "fkey6-1.10.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3",
-          "expect": "1 {FOREIGN KEY constraint failed}"
-        }
-      ]
-    },
-    {
-      "name": "fkey6-1.20",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
-        }
-      ]
-    },
-    {
-      "name": "fkey6-1.21",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t2 WHERE y=1;"
-        }
-      ]
-    },
-    {
-      "name": "fkey6-1.22",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
-        },
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t2 WHERE y=1;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "ROLLBACK"
-        }
-      ]
-    },
-    {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fkey6-6.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');"
+        },
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fkey6-6.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n        y INTEGER PRIMARY KEY,\n        z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n    );"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fkey6-6.3",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

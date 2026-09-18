@@ -41,6 +41,7 @@ type TestFileData struct {
 	File      string     `json:"file"`
 	Name      string     `json:"name"`
 	NullToken string     `json:"nullToken,omitempty"`
+	Ordered   bool       `json:"ordered,omitempty"`
 	Tests     []TestCase `json:"tests"`
 }
 
@@ -186,46 +187,40 @@ func runInterpreter(src []byte) ([]tcl.Stmt, string, error) {
 }
 
 // convertToJSON converts captured TCL statements into the JSON test format.
-// Statements are grouped by TestName. Statements with no TestName go into
-// a "setup" group. Each group becomes a TestCase with Steps.
+// Statements are grouped into runs of equal TestName (contiguous-run
+// grouping): a do_test whose name repeats later in the file (loop bodies)
+// starts a NEW test case so each invocation keeps its own steps and
+// expectation, mirroring the TCL harness. Statements with no TestName go
+// into "setup" groups. Each group becomes a TestCase with Steps.
 func convertToJSON(base string, stmts []tcl.Stmt, nullToken string) TestFileData {
 	td := TestFileData{
 		File:      base + ".test",
 		Name:      base,
 		NullToken: nullToken,
+		// Statements are captured in TCL execution order; the harness must
+		// not re-order them (see TestFileData.Ordered in the harness).
+		Ordered: true,
 	}
 
-	// Group statements by TestName, preserving capture order
 	var groups []*stmtGroup
-	groupIdx := make(map[string]*stmtGroup)
+	var cur *stmtGroup
 
 	resetCounter := 0
+	dropCounter := 0
 	setupCounter := 0
 	for _, s := range stmts {
-		name := s.TestName
-		if s.Type == "reset_db" {
-			// A unique marker group preserves ordering; it converts into
-			// the harness's fresh-database test below.
-			name = fmt.Sprintf("reset_db_%d", resetCounter)
-			resetCounter++
-		} else if name == "" {
-			name = fmt.Sprintf("setup_%d", setupCounter)
-			setupCounter++
+		name, kind := classifyStmt(s, &resetCounter, &dropCounter)
+		if cur == nil || !sameGroup(cur, name, kind) {
+			name = finalizeGroupName(name, kind, &setupCounter)
+			cur = &stmtGroup{name: name, kind: kind}
+			groups = append(groups, cur)
 		}
-
-		g, ok := groupIdx[name]
-		if !ok {
-			g = &stmtGroup{name: name}
-			groupIdx[name] = g
-			groups = append(groups, g)
-		}
-		g.stmts = append(g.stmts, s)
+		cur.stmts = append(cur.stmts, s)
 	}
 
-	// Convert groups to TestCases
 	for _, g := range groups {
-		if strings.HasPrefix(g.name, "reset_db_") {
-			td.Tests = append(td.Tests, TestCase{Name: "__RESET_DB__"})
+		if tc, ok := markerTestCase(g); ok {
+			td.Tests = append(td.Tests, tc)
 			continue
 		}
 		tc := groupToTestCase(g)
@@ -237,9 +232,62 @@ func convertToJSON(base string, stmts []tcl.Stmt, nullToken string) TestFileData
 	return td
 }
 
-// stmtGroup groups statements by test name.
+// classifyStmt assigns a grouping name and kind to a captured statement.
+// reset_db / drop_all_tables get unique marker names so consecutive markers
+// never merge; unnamed statements are "setup" runs.
+func classifyStmt(s tcl.Stmt, resetCounter, dropCounter *int) (string, string) {
+	switch {
+	case s.Type == "reset_db":
+		name := fmt.Sprintf("reset_db_%d", *resetCounter)
+		*resetCounter++
+		return name, "reset"
+	case s.Type == "drop_all_tables":
+		name := fmt.Sprintf("drop_all_tables_%d", *dropCounter)
+		*dropCounter++
+		return name, "droptables"
+	case s.TestName == "":
+		return "", "setup"
+	default:
+		return s.TestName, "test"
+	}
+}
+
+// finalizeGroupName numbers a setup group at group-creation time.
+func finalizeGroupName(name, kind string, setupCounter *int) string {
+	if kind == "setup" {
+		numbered := fmt.Sprintf("setup_%d", *setupCounter)
+		*setupCounter++
+		return numbered
+	}
+	return name
+}
+
+// sameGroup reports whether s belongs to the group cur. Setup statements
+// always continue the current setup run (contiguity is positional); test
+// statements must carry the same test name.
+func sameGroup(cur *stmtGroup, name, kind string) bool {
+	if cur.kind != kind {
+		return false
+	}
+	return kind == "setup" || cur.name == name
+}
+
+// markerTestCase converts a marker group to its special TestCase; ok is
+// false for ordinary statement groups.
+func markerTestCase(g *stmtGroup) (TestCase, bool) {
+	switch g.kind {
+	case "reset":
+		return TestCase{Name: "__RESET_DB__"}, true
+	case "droptables":
+		return TestCase{Name: "__DROP_ALL_TABLES__"}, true
+	}
+	return TestCase{}, false
+}
+
+// stmtGroup groups contiguous statements sharing one test name.
 type stmtGroup struct {
 	name  string
+	kind  string // "test" or "setup" or "reset"
 	stmts []tcl.Stmt
 }
 

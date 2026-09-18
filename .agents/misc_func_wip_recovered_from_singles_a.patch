@@ -1,0 +1,80 @@
+diff --git a/internal/execquery/context.go b/internal/execquery/context.go
+index 4865f9380..895984b8f 100644
+--- a/internal/execquery/context.go
++++ b/internal/execquery/context.go
+@@ -418,6 +418,13 @@ func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
+ 	// when the next top-level statement starts.
+ 	if e.viewRefDepth == 0 {
+ 		e.viewRefCounts = nil
++		// Statement-boundary reset of the correlated-subquery row scope:
++		// outerRow/outerRows belong to the ENCLOSING select's evaluation,
++		// and a stale value carried over from a previous statement would
++		// wrongly enable the correlated modes of FROM-less and join-ON
++		// validation for this statement (insert2-4.1).
++		e.outerRow = nil
++		e.outerRows = nil
+ 	}
+ 	e.viewRefDepth++
+ 	defer func() { e.viewRefDepth-- }()
+diff --git a/internal/execquery/select_colnames.go b/internal/execquery/select_colnames.go
+index 6b8986418..416e485db 100644
+--- a/internal/execquery/select_colnames.go
++++ b/internal/execquery/select_colnames.go
+@@ -512,7 +512,7 @@ func derivedTableBadColumnRef(s *sql.SelectStmt) string {
+ 		if strings.EqualFold(cr.Table, "new") || strings.EqualFold(cr.Table, "old") {
+ 			return
+ 		}
+-		if !local[cr.Table] {
++		if !local[strings.ToLower(cr.Table)] {
+ 			bad = cr.Table + "." + cr.Name
+ 		}
+ 	})
+diff --git a/internal/execquery/select_join_validate.go b/internal/execquery/select_join_validate.go
+index fd73b9070..159c05585 100644
+--- a/internal/execquery/select_join_validate.go
++++ b/internal/execquery/select_join_validate.go
+@@ -46,7 +46,7 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
+ 		tn = s.From.As
+ 	}
+ 	if tn != "" {
+-		out[tn] = true
++		out[strings.ToLower(tn)] = true
+ 	}
+ 	if s.From.Subquery != nil {
+ 		collectFromTableNames(s.From.Subquery, out)
+@@ -57,7 +57,7 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
+ 			jn = j.Table.As
+ 		}
+ 		if jn != "" {
+-			out[jn] = true
++			out[strings.ToLower(jn)] = true
+ 		}
+ 		if j.Table.Subquery != nil {
+ 			collectFromTableNames(j.Table.Subquery, out)
+@@ -391,7 +391,7 @@ func (v *joinOnValidator) addFromTable() {
+ 	if tn == "" {
+ 		return
+ 	}
+-	v.available[tn] = true
++	v.available[strings.ToLower(tn)] = true
+ 	v.addFromColumns()
+ 	v.addLeftTable(tn)
+ }
+@@ -652,7 +652,7 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
+ // clause validation.
+ func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn string) {
+ 	if tn != "" {
+-		v.available[tn] = true
++		v.available[strings.ToLower(tn)] = true
+ 		v.engine.collectJoinTableCols(v.s, join, tn, v.availableCols)
+ 	}
+ 	if join.Table.Subquery != nil {
+@@ -861,7 +861,7 @@ func (e *SelectEngine) mergeLeftTables(join sql.JoinClause, tn string, leftTable
+ func (e *SelectEngine) validateOnRefs(s *sql.SelectStmt, join sql.JoinClause, available, availableCols map[string]bool, hasRightOrFull bool) string {
+ 	var bad string
+ 	walkJoinOnExpr(join.On, func(e2 sql.Expr) {
+-		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[cr.Table] {
++		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[strings.ToLower(cr.Table)] {
+ 			bad = cr.Table
+ 		}
+ 	})

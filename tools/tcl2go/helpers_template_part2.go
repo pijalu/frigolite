@@ -400,6 +400,28 @@ func tclRowValuesFlat(res *frigolite.Result) string {
 	return strings.Join(cells, " ")
 }
 
+// tclRowNamesValuesFlat renders TCL execsql2 output: for every row, each
+// result column NAME followed by its value, space-joined (tclsqlite.c
+// execsql2 interleaves the column names with the values; the names come
+// from res.Columns and therefore honor short/full_column_names and SELECT
+// aliases the way the engine computes them).
+func tclRowNamesValuesFlat(res *frigolite.Result) string {
+	if res == nil {
+		return ""
+	}
+	parts := make([]string, 0, len(res.Rows)*len(res.Columns)*2)
+	for _, row := range res.Rows {
+		for i, c := range row {
+			name := ""
+			if i < len(res.Columns) {
+				name = res.Columns[i]
+			}
+			parts = append(parts, name, catchsqlCell(c))
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
 // tclExprWith evaluates a TCL expression with $var values supplied at runtime.
 // The expr string may contain $name references; vars maps each name to its
 // current Go string value. Used by [expr $var + ...] calls where the variable
@@ -449,6 +471,12 @@ func tclExprWith(expr string, vars map[string]string) string {
 		}
 		s = s[:i] + val + s[j:]
 	}
+	// TCL expr math functions (log, sqrt, pow, ...): fold every function
+	// call with numeric arguments to its value BEFORE the coercion pass, so
+	// int(log($i)/log(2)) evaluates the log() groups first and int() sees a
+	// plain number (in3-2.1's log2 bucketing; without the fold the raw text
+	// leaks into the SQL and the engine reports "no such function: int").
+	s = foldTclMathFuncs(s)
 	// TCL coercions int(X)/wide(X)/double(X)/boolean(X): the argument is
 	// evaluated arithmetically, then coerced (trigger2 accumulates
 	// int($idx) per rlog row). Must run BEFORE resolveParens, which would
@@ -493,6 +521,11 @@ func tclExprWith(expr string, vars map[string]string) string {
 			return coerced
 		}
 	}
+	// Fold known TCL math functions (log(2), int(x), pow(a,b), ...) BEFORE
+	// resolveParens: the paren resolver glues a function call to its argument
+	// ("log(1)" -> "log1"), destroying the call before tclEvalFuncs can see
+	// it (where.test's int(log($i)/log(2)) table seeding).
+	s = tclEvalFuncs(s)
 	s = resolveBracketCommands(s)
 	s = resolveParens(s)
 	s = resolveLogicalOperators(resolveStringComparisons(s))
@@ -505,6 +538,300 @@ func tclExprWith(expr string, vars map[string]string) string {
 		return res
 	}
 	return s
+}
+
+// tclLikeCount renders the engine's LIKE/GLOB invocation counter (func.c
+// sqlite3_like_count, TCL-linked as the sqlite_like_count variable in
+// tester.tcl) as a TCL string.
+func tclLikeCount(db *frigolite.DB) string {
+	return strconv.FormatInt(db.LikeCallCount(), 10)
+}
+
+// tclExecHex mirrors test1.c's sqlite3_exec_hex: percent-H-H sequences in
+// the SQL decode to raw bytes, the SQL runs, and the result is the
+// two-element list "<rc> <data>" where data holds the column names followed
+// by every row's values (exec_printf_cb prepends the column names before
+// the first row); an error renders as "<rc> <message>". Elements are
+// TCL-list-quoted, so an empty data element keeps its {} rendering.
+func tclExecHex(db *frigolite.DB, sqlStr string) string {
+	decoded, _ := decodePercentHex(sqlStr)
+	res := db.Query(decoded)
+	parts := make([]string, 0, 8)
+	if res.Error != nil {
+		return tclListElem("1") + " " + tclListElem(res.Error.Error())
+	}
+	first := true
+	for _, row := range res.Rows {
+		if first {
+			// exec_printf_cb appends the column names before the first
+			// row's values (not instead of them).
+			for _, col := range res.Columns {
+				parts = append(parts, tclListElem(col))
+			}
+			first = false
+		}
+		for _, c := range row {
+			parts = append(parts, tclListElem(catchsqlCell(c)))
+		}
+	}
+	data := strings.Join(parts, " ")
+	if len(res.Rows) == 0 {
+		data = ""
+	}
+	return tclListElem("0") + " " + tclListElem(data)
+}
+
+// decodePercentHex translates percent-H-H sequences to their byte values,
+// leaving every other character as-is (test1.c test_exec_hex).
+func decodePercentHex(s string) (string, bool) {
+	const pct = byte(37) // the percent character
+	if !strings.ContainsRune(s, rune(pct)) {
+		return s, false
+	}
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == pct && i+2 < len(s) {
+			hi, e1 := strconv.ParseUint(string(s[i+1]), 16, 8)
+			lo, e2 := strconv.ParseUint(string(s[i+2]), 16, 8)
+			if e1 == nil && e2 == nil {
+				b.WriteByte(byte(hi<<4 | lo))
+				i += 2
+				continue
+			}
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String(), true
+}
+
+// tclMathFuncNames are the deterministic math functions of TCL's expr
+// command (TCL 8.6 tclGetExprFuncs / SQLite's TCL harness uses them inside
+// computed values, e.g. in3.test's int(log($i)/log(2))). int/wide/double/
+// boolean are handled by the dedicated coercion pass above; rand/srand are
+// nondeterministic and stay unfolded.
+var tclMathFuncNames = map[string]bool{
+	"abs": true, "acos": true, "asin": true, "atan": true, "atan2": true,
+	"ceil": true, "cos": true, "cosh": true, "entier": true, "exp": true,
+	"floor": true, "fmod": true, "hypot": true, "isqrt": true, "log": true,
+	"log10": true, "max": true, "min": true, "pow": true, "round": true,
+	"sin": true, "sinh": true, "sqrt": true, "tan": true, "tanh": true,
+}
+
+// foldTclMathFuncs repeatedly replaces innermost name(arg, ...) calls
+// whose name is a TCL expr math function and whose arguments evaluate to
+// numbers with the computed value (rendered like TCL's doubles). A call
+// whose arguments are not yet numeric is left for a later round; unknown
+// function names are skipped (scanning continues to their right) and the
+// surrounding evaluators keep their previous fallback behavior.
+func foldTclMathFuncs(s string) string {
+	for round := 0; round < 64; round++ {
+		folded := false
+		pos := 0
+		for pos < len(s) {
+			rel := strings.IndexByte(s[pos:], ')')
+			if rel < 0 {
+				break
+			}
+			closeP := pos + rel
+			open := strings.LastIndex(s[:closeP], "(")
+			if open < 0 {
+				break
+			}
+			// The function name is the identifier directly before "(".
+			nameStart := open
+			for nameStart > 0 && isTclIdent(s[nameStart-1]) {
+				nameStart--
+			}
+			name := strings.ToLower(s[nameStart:open])
+			if nameStart == open || !tclMathFuncNames[name] {
+				// Not a math call: skip this group, keep scanning after it.
+				pos = closeP + 1
+				continue
+			}
+			args := make([]float64, 0, 4)
+			ok := true
+			for _, a := range strings.Split(s[open+1:closeP], ",") {
+				if v, err := evalSimpleArith(strings.TrimSpace(a)); err == nil {
+					if f, perr := strconv.ParseFloat(strings.TrimSpace(v), 64); perr == nil {
+						args = append(args, f)
+						continue
+					}
+				}
+				ok = false
+				break
+			}
+			if !ok || len(args) == 0 {
+				pos = closeP + 1
+				continue
+			}
+			res, rerr := evalTclMathFunc(name, args)
+			if rerr != nil {
+				pos = closeP + 1
+				continue
+			}
+			s = s[:nameStart] + res + s[closeP+1:]
+			folded = true
+			break
+		}
+		if !folded {
+			return s
+		}
+	}
+	return s
+}
+
+// evalTclMathFunc computes one TCL expr math function with numeric
+// arguments, rendering the result the way TCL renders doubles (shortest
+// representation; whole-number float results keep no trailing ".0" because
+// the folded value only feeds further arithmetic or an int() coercion).
+func evalTclMathFunc(name string, args []float64) (string, error) {
+	var v float64
+	switch name {
+	case "abs":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Abs(args[0])
+	case "acos":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Acos(args[0])
+	case "asin":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Asin(args[0])
+	case "atan":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Atan(args[0])
+	case "atan2":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Atan2(args[0], args[1])
+	case "ceil":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Ceil(args[0])
+	case "cos":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Cos(args[0])
+	case "cosh":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Cosh(args[0])
+	case "entier":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Trunc(args[0])
+	case "exp":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Exp(args[0])
+	case "floor":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Floor(args[0])
+	case "fmod":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Mod(args[0], args[1])
+	case "hypot":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Hypot(args[0], args[1])
+	case "isqrt":
+		if len(args) != 1 || args[0] < 0 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Floor(math.Sqrt(args[0]))
+	case "log":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Log(args[0])
+	case "log10":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Log10(args[0])
+	case "max":
+		if len(args) == 0 {
+			return "", errTclMathArity(name)
+		}
+		v = args[0]
+		for _, a := range args[1:] {
+			if a > v {
+				v = a
+			}
+		}
+	case "min":
+		if len(args) == 0 {
+			return "", errTclMathArity(name)
+		}
+		v = args[0]
+		for _, a := range args[1:] {
+			if a < v {
+				v = a
+			}
+		}
+	case "pow":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Pow(args[0], args[1])
+	case "round":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Round(args[0])
+	case "sin":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Sin(args[0])
+	case "sinh":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Sinh(args[0])
+	case "sqrt":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Sqrt(args[0])
+	case "tan":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Tan(args[0])
+	case "tanh":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Tanh(args[0])
+	default:
+		return "", errTclMathArity(name)
+	}
+	return strconv.FormatFloat(v, 'g', -1, 64), nil
+}
+
+// errTclMathArity reports an unsupported call shape so the caller leaves the
+// expression text unchanged.
+func errTclMathArity(name string) error {
+	return errors.New("tcl expr: bad argument count for " + name)
 }
 
 // resolveParens evaluates innermost parenthesized arithmetic groups

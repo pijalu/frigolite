@@ -92,6 +92,10 @@ type SelectContext interface {
 	// CREATE TABLE column counts and ORDER BY/GROUP BY term counts).
 	ColumnLimit() int
 
+	// CompoundSelectLimit returns the runtime SQLITE_LIMIT_COMPOUND_SELECT
+	// value (the maximum number of terms in a compound SELECT chain).
+	CompoundSelectLimit() int
+
 	// SkipScanEnabled reports whether the skip-scan query optimization is on.
 	// Mirrors SQLite's SQLITE_SkipScan optimization_control bit. Used by the
 	// query planner's skip-scan detection.
@@ -279,6 +283,10 @@ type SelectEngine struct {
 	// resultTooWide flags that a SELECT in the current statement expanded to
 	// more result columns than SQLITE_LIMIT_COLUMN (consumed at finalize).
 	resultTooWide bool
+	// starNoSuchTable records the table qualifier of a t.* star that names no
+	// visible FROM/JOIN operand (consumed at execSelect's return paths with
+	// "no such table: tX" — select1-6.44a/6.44b).
+	starNoSuchTable string
 	// nestDepth is the current view/subquery nesting depth.
 	nestDepth int
 	// usingAutoIndex tracks whether an ephemeral index is being used (for EQP).
@@ -435,6 +443,11 @@ func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	if e.resultTooWide && res.Error == nil {
 		e.resultTooWide = false
 		return &Result{Error: fmt.Errorf("too many columns in result set")}
+	}
+	if e.starNoSuchTable != "" && res.Error == nil {
+		t := e.starNoSuchTable
+		e.starNoSuchTable = ""
+		return &Result{Error: fmt.Errorf("no such table: %s", t)}
 	}
 	return res
 }

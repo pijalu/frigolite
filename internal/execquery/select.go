@@ -674,10 +674,18 @@ func (e *SelectEngine) evalLimitExpr(expr sql.Expr) (sql.Expr, error) {
 	if expr == nil {
 		return nil, nil
 	}
+	// resolve.c resolves LIMIT/OFFSET expressions at prepare time. They are
+	// evaluated without a row, so ANY column reference is "no such column"
+	// (even a real FROM column) and functions must exist with matching
+	// arity (limit-12.1: LIMIT replace(1); LIMIT x; OFFSET x).
+	if err := e.validateLimitExpr(expr); err != nil {
+		return nil, err
+	}
 	v, err := e.ctx.EvalExpr(expr, nil)
 	if err != nil {
 		return expr, nil
 	}
+
 	switch n := util.UnwrapColumnValue(v).(type) {
 	case int64:
 		return &sql.NumericLit{Value: strconv.FormatInt(n, 10)}, nil

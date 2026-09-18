@@ -157,6 +157,17 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	if err := e.validateCompoundFromTables(s); err != nil {
 		return &Result{Error: err}
 	}
+	// INDEXED BY is only valid against a real table: a FROM term that
+	// resolves to a VIEW has no indexes, so any INDEXED BY name on it
+	// reports "no such index" (indexedby-6.4: SELECT * FROM v1 INDEXED BY
+	// i1 where v1 is a view).
+	if s.From.IndexedBy != "" && s.From.Name != "" && !s.From.EmptyName && s.From.Subquery == nil {
+		if _, _, terr := e.ctx.FindTable(s.From.Name); terr != nil {
+			if _, _, verr := e.ctx.FindView(s.From.Name); verr == nil {
+				return &Result{Error: fmt.Errorf("no such index: %s", s.From.IndexedBy)}
+			}
+		}
+	}
 	if aliasMap := selectAliasMap(s); len(aliasMap) > 0 {
 		e.aliasStack = append(e.aliasStack, aliasMap)
 		defer func() { e.aliasStack = e.aliasStack[:len(e.aliasStack)-1] }()

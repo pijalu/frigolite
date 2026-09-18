@@ -7,6 +7,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -18,8 +19,10 @@ import (
 func (e *DDLExecutor) execAlterTable(s *sql.AlterTableStmt) *Result {
 	// SQLITE_IGNORE on SQLITE_ALTER_TABLE silently skips the ALTER (auth-1.353
 	// returns IGNORE for ALTER TABLE RENAME COLUMN and the column stays);
-	// DENY errors.
-	if res := e.authorizeActionOrSkip(auth.ActionAlterTable, s.Table, "", "", ""); res != nil {
+	// DENY errors. Arguments mirror alter.c's sqlite3AuthCheck call:
+	// (zDb, zTab) — arg1 is the database name ("main"/"temp"/attach name),
+	// arg2 the table name (alterauth-1.1 expects SQLITE_ALTER_TABLE main t1).
+	if res := e.authorizeActionOrSkip(auth.ActionAlterTable, e.alterAuthDbName(s.Table), bareTableName(s.Table), "", ""); res != nil {
 		return res
 	}
 	if res := e.eponymousAlterGuard(s); res != nil {
@@ -77,6 +80,32 @@ func (e *DDLExecutor) eponymousAlterGuard(s *sql.AlterTableStmt) *Result {
 	default:
 		return &Result{Error: fmt.Errorf("table %s may not be altered", name)}
 	}
+}
+
+// alterAuthDbName resolves the database name reported to the authorizer for
+// an ALTER TABLE on the given target (alter.c: zDb = the table's schema name,
+// "main" when the table cannot be located). The schema prefix, when present,
+// wins without a lookup.
+func (e *DDLExecutor) alterAuthDbName(target string) string {
+	if schema, _ := execdml.ParseSchemaName(target); schema != "" {
+		return strings.ToLower(schema)
+	}
+	if _, ctx, err := e.ctx.FindTable(target); err == nil && ctx != nil && ctx.Name != "" {
+		if strings.EqualFold(ctx.Name, "main") {
+			return "main"
+		}
+		return ctx.Name
+	}
+	return "main"
+}
+
+// bareTableName strips a leading schema prefix ("main.t1" -> "t1").
+func bareTableName(target string) string {
+	_, object := execdml.ParseSchemaName(target)
+	if object == "" {
+		return target
+	}
+	return object
 }
 
 // readCellByRowID scans the tree for the cell with the given rowID.

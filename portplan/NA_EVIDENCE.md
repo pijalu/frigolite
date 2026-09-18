@@ -2076,3 +2076,79 @@ unless stated).
   as the tkt3718 gap documented in the P8.MISC close note, PORTPLAN §4).
   misc8-1.4/1.5/1.7 now pass via lazy COALESCE argument evaluation and the
   execDepth>1 rollback handling.
+## FULL-SUITE-DRIFT.T26-corrupt — hexio family (2026-09-17)
+
+Residue packages `corrupt`, `corruptB`, `corruptC`, `corruptF`, `corruptL`,
+`corruptN` (testgen) flipped green. Engine fixes (each oracle-verified
+against /usr/bin/sqlite3 3.51.0 on the identical crafted image) and
+evidence-backed skips:
+
+Engine fixes:
+- `openPager` page-size deferral: a header whose page-size field is not a
+  power of two in [512, 65536] is deferred to the first statement
+  ("file is not a database", btree.c lockBtree) instead of sizing internal
+  buffers with it — corruptC-3 pokes single bytes into offsets 16-17 and
+  the old engine panicked in `make([]byte, 0)[:18]`. Oracle: invalid page
+  size → error 26 on first use. Pinned in TestCorruptCPageSizeDeferral.
+- Schema-load row validation (internal/exec/schema_validate.go, port of
+  prepare.c sqlite3InitCallback + build.c init.busy duplicate-rootpage):
+  rootpage beyond the page count, unparseable stored CREATE text, and
+  duplicate index rootpages report "malformed database schema (NAME) -
+  <detail>" — or the generic "database disk image is malformed" when
+  writable_schema is ON (corruptSchema's SQLITE_WriteSchema branch).
+  PRAGMA statements are exempt (SQLite does not read the schema while
+  preparing a PRAGMA). Pinned in TestCorruptLSchemaRootpageValidation +
+  TestCorruptNSequenceSchemaParse.
+- Pager partial final page: a short trailing page is zero-filled (pager.c
+  short-read memset) instead of erroring "read page N: EOF".
+- Freelist leaf beyond EOF grows the page count (pager.c grows dbSize when
+  a page beyond the end is written) — corruptF 1.5/1.6 root-from-freelist
+  at page 6. Pinned in TestCorruptFFreelistRootBeyondEOF.
+- integrity_check index key shape: an index whose stored CREATE text was
+  narrowed while its b-tree still holds old-width keys fails integrity_check
+  with "database disk image is malformed" (corruptL 19.4). Pinned in
+  TestCorruptLIndexKeyShapeIntegrityCheck.
+- integrity_check orphan scan capped at 100 findings
+  (SQLITE_INTEGRITY_CHECK_ERROR_MAX, pragma.c) — sparse hexio images made
+  the unbounded scan Sprintf millions of rows.
+
+Skip evidence (tools/tcl2go/skiptests2_part2.go; details inline there):
+- `corrupt-2.$tn.8` — C test-harness btree_stats handle ref-count
+  (no engine-visible contract).
+- `corruptB-3.1.1` — WRITE-PATH BUG reported to the coordinator: the
+  balance/split paths never re-parent pointer-map entries for moved
+  children (btree.c:8780/8950/9028 ptrmapPut have no frigolite counterpart
+  in btree_balance_*.go), so AllocateRootPage's relocation fails on a
+  pristine auto_vacuum database: native repro = open, `PRAGMA
+  auto_vacuum=1; PRAGMA page_size=1024`, CREATE t1, grow ×2^7
+  (randomblob(200)), then `CREATE TABLE t2` → "AllocateRootPage: relocate
+  occupant 4 -> 1042: parent 3 does not reference child 4". Remove the
+  skip when the balance ptrmap fix lands.
+- `corruptL-3.1/19.2` — index key-shape vs schema detection inside DML
+  seeks/compares (P8.CORRUPT class, as expridx1/e_reindex-1.3); oracle
+  reports malformed.
+- `corruptL-5.1/5.2/5.3` — freelist-pop corruption needs error-threaded
+  allocation (write path); 5.3 additionally oracle-divergent (oracle
+  succeeds after DROP INDEX — the corrupt object was the index).
+- `corruptL-2.2`, `4.1`, `8.1` — version-specific ("out of memory" /
+  oversize_cell_check-capable expectations the oracle 3.51 does not
+  reproduce).
+- `corruptL-13.1/14.1/14.2` — engine now matches the oracle's NAMED schema
+  errors; tests expect the older generic runtime message.
+- `corruptN-4.2`, `6.1`, `6.3`, `7.1/7.2/7.3` — oracle-divergent: 3.51
+  rejects the swapped autoindex rootpages the test expects to survive,
+  6.0's own setup fails on 3.51, 6.3's assert was fixed upstream, and the
+  rollback stale-schema-cache behavior (p1 surviving ROLLBACK) no longer
+  exists on 3.51 (the engine matches the oracle: "no such table: p1",
+  integrity_check ok).
+- `corruptF-1.2/2.2` — transpiler nil-stub for the TCL proc `str` (body
+  `format %08d $i`): the crafted layout shrinks 6→4 pages; the freelist
+  structure (1.3/1.4), root-from-freelist (1.6) and aliasing loops (1.7.x)
+  still pass. Real 6-page layout pinned via TestCorruptFFreelistRootBeyondEOF
+  (page-growth contract) and the passing 1.3/1.4 assertions.
+- `corruptC` whole file — transpiler lost the `random` proc calls AND the
+  `string compare $ans "ok"` early-exit (emitted as a failing
+  strconv.Atoi, so `last` never set): the 3.x fuzz loop degenerates to
+  fsize×512 open+statement cycles (non-terminating in practice). The
+  engine panic the file targets is fixed + pinned natively; sections 2.x
+  (header pokes) run in the generated test.

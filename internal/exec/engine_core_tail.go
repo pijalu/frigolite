@@ -16,7 +16,10 @@ func (e *Engine) normalizeCorruptionError(res *Result) *Result {
 		return res
 	}
 	msg := res.Error.Error()
-	if strings.Contains(msg, "ORDER BY term out of range") {
+	if strings.Contains(msg, "ORDER BY term out of range") ||
+		strings.Contains(msg, "GROUP BY term out of range") {
+		// resolve.c's ordinal-range errors are prepare-time misuse errors,
+		// not corruption — keep them verbatim (select1-10.x, select3-1.x).
 		return res
 	}
 	if strings.Contains(msg, "zip archive") {
@@ -127,6 +130,14 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 	if err := e.validateLoadedTriggers(); err != nil {
 		return &Result{Error: err}
 	}
+	// sqlite3InitCallback row validation (rootpage within the page count,
+	// stored CREATE text parses, no duplicate index rootpage): corrupt
+	// schema rows report "malformed database schema (NAME) - detail" — or
+	// the generic SQLITE_CORRUPT when writable_schema is ON — at prepare
+	// time (corruptL-6.1/7.1, corruptN-3.1).
+	if err := e.validateLoadedSchema(stmt); err != nil {
+		return &Result{Error: err}
+	}
 	// Stored schema validation is performed by schema-loading operations; do
 	// not mask ordinary SELECT semantic errors during statement preflight.
 	// DML statements validate their embedded subquery arity (INSERT/UPDATE/
@@ -137,7 +148,48 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 			return &Result{Error: err}
 		}
 	}
+	// fk.c sqlite3FkCheck runs at statement compilation: an FK whose parent
+	// table or parent key cannot be located fails an INSERT/UPDATE/DELETE
+	// regardless of the rows involved (e_fkey-20.x: an UPDATE of an empty
+	// child reports "no such table: main.X"; a parent DELETE reports the
+	// child's "foreign key mismatch").
+	if res := e.validateDMLFKPrepare(stmt); res != nil {
+		return res
+	}
 	return nil
+}
+
+// validateDMLFKPrepare resolves the FK relationships of an INSERT/UPDATE/
+// DELETE's target table at prepare time (delegating to the constraint
+// enforcer). Non-DML statements and unknown tables (which error elsewhere)
+// pass through. singleRowInsert marks a VALUES-tuple INSERT (no SELECT/
+// VALUES-chain source): fkey.c skips the parent-side key location for those
+// because inserting single rows into a parent cannot cause or fix an
+// immediate FK violation.
+func (e *Engine) validateDMLFKPrepare(stmt sql.Stmt) *Result {
+	var table string
+	singleRowInsert := false
+	switch s := stmt.(type) {
+	case *sql.InsertStmt:
+		table = s.Table
+		// A single-tuple VALUES insert (or DEFAULT VALUES: no tuples and no
+		// SELECT) writes one row without a multi-write co-routine;
+		// multi-row VALUES and INSERT...SELECT are multi-write
+		// (fkey.c pParse->isMultiWrite).
+		singleRowInsert = len(s.Values) == 1 || (len(s.Values) == 0 && s.Select == nil)
+	case *sql.UpdateStmt:
+		table = s.Table
+	case *sql.DeleteStmt:
+		table = s.Table
+	}
+	if table == "" {
+		return nil
+	}
+	entry, ctx, err := e.FindTable(table)
+	if err != nil {
+		return nil
+	}
+	return e.constraints.ValidateDMLTableFKs(entry, ctx, singleRowInsert)
 }
 
 // shouldDeferRaiseCheck reports whether a statement's RAISE() check is deferred
@@ -425,7 +477,9 @@ func (e *Engine) execTrackChanges(res *Result, isDML bool) {
 	}
 	if isDML {
 		e.lastChanges = res.Changes
-		e.totalChanges += res.Changes
+		if e.tx.internalWrites == 0 {
+			e.totalChanges += res.Changes
+		}
 	}
 	// LAST_INSERT_ROWID() reflects the last rowid written by any DML, including
 	// negative docids (an FTS or explicit-rowid insert with rowid -22 sets

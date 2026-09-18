@@ -289,7 +289,7 @@ func binaryOpNeedsNullCheck(op string) bool {
 // resolved and the NULL pre-check has passed: LIKE-with-ESCAPE, IS/IS NOT, and
 // the remaining operators via evalBinaryOpValues.
 func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interface{}) (interface{}, error) {
-	if v.Operator == "LIKE" && (v.Escape != "" || v.HasEscape) {
+	if (v.Operator == "LIKE" || v.Operator == "NOT LIKE") && (v.Escape != "" || v.HasEscape) {
 		return ev.evalLikeWithEscape(v, left, right)
 	}
 	if v.Operator == "IS" || v.Operator == "IS NOT" {
@@ -298,18 +298,30 @@ func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interfa
 	return ev.evalBinaryOpValues(v.Operator, left, right)
 }
 
-// evalLikeWithEscape evaluates a LIKE expression with an ESCAPE clause.
-// SQLite requires the ESCAPE expression to be a single character: ESCAPE ”
-// and multi-character ESCAPE are runtime errors. An absent ESCAPE clause uses
-// the default matcher.
+// evalLikeWithEscape evaluates a LIKE (or negated NOT LIKE) expression with
+// an ESCAPE clause. SQLite requires the ESCAPE expression to be a single
+// character: ESCAPE ” and multi-character ESCAPE are runtime errors. An
+// absent ESCAPE clause uses the default matcher.
 func (ev *Evaluator) evalLikeWithEscape(v *sql.BinaryOp, left, right interface{}) (interface{}, error) {
 	if v.HasEscape && len([]rune(v.Escape)) != 1 {
 		return nil, fmt.Errorf("ESCAPE expression must be a single character")
 	}
+	bumpLikeCallCount()
+	var result bool
 	if ev.ctx.CaseSensitiveLike() {
-		return boolToInt(likeValuesWithEscapeCS(left, right, v.Escape)), nil
+		result = likeValuesWithEscapeCS(left, right, v.Escape)
+	} else {
+		result = likeValuesWithEscape(left, right, v.Escape)
 	}
-	return boolToInt(likeValuesWithEscape(left, right, v.Escape)), nil
+	if v.Operator == "NOT LIKE" {
+		result = !result
+	}
+	if result && v.Operator != "NOT LIKE" {
+		// Operator-overload probing (vtab.OperatorOverloadCounter scans):
+		// invoke the user's like(pattern, value) once per TRUE evaluation.
+		ev.probeOperatorOverload("LIKE", right, left)
+	}
+	return boolToInt(result), nil
 }
 
 // evalRowValueIs implements NULL-safe row-value IS / IS NOT comparison.
@@ -409,19 +421,40 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 	// restrict the match to ("" for a whole-table match).
 	ftsTable, tableName, columnName, ok := ev.matchFTSLookup(v, row)
 	if !ok {
-		// No FTS table in context: SQLite compiles MATCH to the match/2
-		// overload (sqlite3_overload_function → sqlite3InvalidFunction),
-		// which always fails outside an FTS context (func-4.3/4.4:
-		// SELECT 'abc' MATCH 'xyz') — but only for a literal left operand,
-		// which can never reach a vtab MATCH constraint. A column/expression
-		// left operand may belong to a statement whose MATCH constraint a
-		// virtual table's xBestIndex/xFilter already consumed (echo module
-		// vtab1-3.14/10-5, rtree geometry MATCH) — for those the residual
-		// row evaluation stays inert (SQLite emits no per-row code at all).
+		// SQLite compiles `expr MATCH expr` to the two-argument function
+		// match(RIGHT, LEFT) — like()'s argument order. A REAL registration
+		// (an application UDF, e.g. like.test 2.3/2.4 `db function match
+		// -argcount 2 test_match`) takes precedence over the modules'
+		// match/2 overload, so call it with (right, left).
+		if fn, found := ev.ctx.Functions().Find("match"); found && fn.ScalarFn != nil && !fn.Builtin {
+			left, lerr := ev.evalExprWithCollation(v.Left, row)
+			if lerr != nil {
+				return nil, lerr
+			}
+			right, rerr := ev.evalExprWithCollation(v.Right, row)
+			if rerr != nil {
+				return nil, rerr
+			}
+			out, ferr := fn.ScalarFn([]interface{}{right, left})
+			if ferr != nil {
+				return nil, ferr
+			}
+			return boolToInt(out != nil && ToBool(out)), nil
+		}
+		// No real registration: the FTS/rtree modules' match/2 overload
+		// (sqlite3_overload_function → sqlite3InvalidFunction) fails when
+		// EVALUATED. A literal left operand can never reach a vtab MATCH
+		// constraint, so it always reaches evaluation (func-4.3/4.4:
+		// SELECT 'abc' MATCH 'xyz').
 		switch v.Left.(type) {
 		case *sql.StringLit, *sql.NumericLit, *sql.NullLit, *sql.BlobLit:
 			return nil, fmt.Errorf("unable to use function MATCH in the requested context")
 		}
+		// A column/expression left operand may belong to a statement whose
+		// MATCH constraint a virtual table's xBestIndex/xFilter already
+		// consumed (echo module vtab1-3.14/10-5, rtree geometry MATCH):
+		// SQLite emits no per-row code for the consumed term, so the
+		// residual row evaluation stays inert.
 		return int64(0), nil
 	}
 
@@ -833,13 +866,17 @@ var binaryOpDispatch = map[string]binaryOpFn{
 	"LIKE":     func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalLikeOp(l, r, false), nil },
 	"NOT LIKE": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalLikeOp(l, r, true), nil },
 	"GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
+		bumpLikeCallCount()
 		res := globValues(l, r)
 		if res {
 			ev.probeOperatorOverload("GLOB", r, l)
 		}
 		return boolToInt(res), nil
 	},
-	"NOT GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return boolToInt(!globValues(l, r)), nil },
+	"NOT GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
+		bumpLikeCallCount()
+		return boolToInt(!globValues(l, r)), nil
+	},
 	"REGEXP": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
 		res, err := ev.evalRegexpOp(l, r, false)
 		if err == nil && res == int64(1) {
@@ -900,6 +937,7 @@ func (ev *Evaluator) evalInequalityOp(left, right interface{}) interface{} {
 // evalLikeOp evaluates LIKE / NOT LIKE with the engine's case-sensitivity
 // setting.
 func (ev *Evaluator) evalLikeOp(left, right interface{}, negated bool) interface{} {
+	bumpLikeCallCount()
 	var result bool
 	if ev.ctx.CaseSensitiveLike() {
 		result = likeValuesCaseSensitive(left, right)
@@ -936,6 +974,7 @@ func (ev *Evaluator) probeOperatorOverload(op string, pattern, value interface{}
 // operator form is string LIKE pattern; the function form is pattern, string).
 // The escape must be a single character (SQLite runtime error otherwise).
 func (ev *Evaluator) evalLikeFunction(args []interface{}) (interface{}, error) {
+	bumpLikeCallCount()
 	if len(args) == 3 && args[2] != nil {
 		esc, ok := util.UnwrapColumnValue(args[2]).(string)
 		if !ok || len([]rune(esc)) != 1 {

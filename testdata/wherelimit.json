@@ -1,7 +1,2277 @@
 {
   "file": "wherelimit.test",
   "name": "wherelimit",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y)"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 ORDER BY x",
+          "expect": "1 {ORDER BY without LIMIT on DELETE}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x",
+          "expect": "1 {ORDER BY without LIMIT on DELETE}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x",
+          "expect": "1 {ORDER BY without LIMIT on UPDATE}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 AS a WHERE a.x=1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 AS a SET y=1 WHERE x=1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 AS a SET y=1 WHERE t1.x=1",
+          "expect": "1 {no such column: t1.x}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 WHERE x=1 OFFSET 2",
+          "expect": "1 {near \"OFFSET\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-0.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1 OFFSET 2",
+          "expect": "1 {near \"OFFSET\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "25"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.3b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5",
+          "expect": "1 1 | 1 2 | 1 3 | 1 4 | 2 1 |"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.3c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2",
+          "expect": "2 4 | 3 1 | 3 2 | 3 3 | 3 4 |"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.4cnt",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 30, 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "36"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "30"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "30"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "26"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "24"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "32"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "36"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5",
+          "expect": "1 1 | 1 1 | 1 1 | 1 1 | 1 1 |"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.2cnt",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=2",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=3",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=3",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=4",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=4",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
     {
       "name": "wherelimit-4.1",
       "steps": [
@@ -15,7 +2285,7 @@
       "name": "wherelimit-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM tv WHERE 1 LIMIT 2;",
           "expect": "0 {}"
         }
@@ -25,7 +2295,7 @@
       "name": "wherelimit-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;",
           "expect": "0 {}"
         }
@@ -44,7 +2314,7 @@
       "name": "wherelimit-4.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t3 WHERE a=5 LIMIT 2;",
           "expect": "0 {}"
         }
@@ -57,862 +2327,6 @@
           "type": "query",
           "sql": "SELECT a,b,c,d FROM t3 ORDER BY 1;",
           "expect": "1 2 3 4 9 10 11 12"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x",
-          "expect": "1 {ORDER BY without LIMIT on DELETE}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x",
-          "expect": "1 {ORDER BY without LIMIT on DELETE}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x",
-          "expect": "1 {ORDER BY without LIMIT on UPDATE}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 AS a WHERE a.x=1",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.5.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 AS a SET y=1 WHERE x=1",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.5.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 AS a SET y=1 WHERE t1.x=1",
-          "expect": "1 {no such column: t1.x}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 OFFSET 2",
-          "expect": "1 {near \"OFFSET\": syntax error}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-0.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1 OFFSET 2",
-          "expect": "1 {near \"OFFSET\": syntax error}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "25"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 LIMIT 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.3b",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.3c",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "11"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.4cnt",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "6"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, -5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, -5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 30, 50"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-1.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "36"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 LIMIT 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-2.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "36"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.2cnt",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1",
-          "expect": "10"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-3.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x, y)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=2"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=3"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=3"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=4"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=4"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

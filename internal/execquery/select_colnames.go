@@ -3,6 +3,7 @@ package execquery
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -202,7 +203,16 @@ func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sq
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			if ref.Table != "" {
-				// Qualified star (t.*): only that table's columns.
+				// Qualified star (t.*): only that table's columns. A star
+				// naming a table that is not a visible FROM/JOIN operand
+				// errors "no such table: tX" (build.c sqlite3TwoPartName;
+				// select1-6.44a t5.*, 6.44b t3.* under an alias) — flagged
+				// and consumed on the execSelect return paths like
+				// resultTooWide.
+				if !selectOperandVisible(sel, ref.Table) {
+					e.starNoSuchTable = ref.Table
+					continue
+				}
 				names = append(names, e.buildQualifiedStarNames(ref, colDefs, sel)...)
 				continue
 			}
@@ -214,13 +224,15 @@ func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sq
 		} else if col.As != "" {
 			names = append(names, col.As)
 		} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
-			names = append(names, e.resolveColumnRefName(ref, colDefs))
+			names = append(names, e.resolveColumnRefName(ref, colDefs, sel))
 		} else {
 			// Unaliased expression: SQLite names the result column after the
 			// expression text (e.g. SELECT a+b names it "a+b"). Without this,
 			// CREATE TABLE ... AS SELECT of an expression produces a column
-			// with an empty name and SELECT * exposes zero columns.
-			names = append(names, sql.ExprString(col.Expr))
+			// with an empty name and SELECT * exposes zero columns. The name
+			// mirrors the raw SQL span, so symbol operators render without
+			// injected spaces (select1-6.5 "f1+F2").
+			names = append(names, exprResultName(col.Expr))
 		}
 	}
 	// select.c sqlite3SelectCallback: a result set wider than
@@ -231,6 +243,101 @@ func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sq
 	}
 	return names
 }
+
+// selectOperandVisible reports whether tableRef names a FROM/JOIN operand of
+// the SELECT (by alias or name; a schema prefix on the reference is ignored
+// the way sqlite3TwoPartName resolves db.table references). A nil SELECT has
+// no operand list to check against and never fails the lookup.
+func selectOperandVisible(sel *sql.SelectStmt, tableRef string) bool {
+	if sel == nil {
+		return true
+	}
+	q := tableRef
+	if dot := strings.LastIndex(q, "."); dot >= 0 {
+		q = q[dot+1:]
+	}
+	visible := func(name, as string) bool {
+		if as != "" {
+			// An alias shadows the table name: FROM t3 AS x makes t3
+			// unaddressable (select1-6.44b "no such table: t3").
+			return strings.EqualFold(as, q)
+		}
+		return name != "" && strings.EqualFold(name, q)
+	}
+	if visible(sel.From.Name, sel.From.As) {
+		return true
+	}
+	// A parenthesized join operand ("(dual JOIN t1 ON true)") parses as a
+	// subquery-shaped TableRef WITHOUT an alias; its inner operands stay
+	// visible at the outer level (join7-.70 t1.*). An ALIASED derived table
+	// shadows its inner tables.
+	recurse := func(t sql.TableRef) bool {
+		if t.Subquery != nil && t.As == "" {
+			return selectOperandVisible(t.Subquery, tableRef)
+		}
+		return false
+	}
+	if recurse(sel.From) {
+		return true
+	}
+	for _, j := range sel.Joins {
+		if visible(j.Table.Name, j.Table.As) {
+			return true
+		}
+		if recurse(j.Table) {
+			return true
+		}
+	}
+	return false
+}
+
+// exprResultName renders an unaliased result-column name the way SQLite does:
+// the expression text with the source's own spacing. The AST does not keep
+// raw spans, so the renderer mirrors the common spellings — symbol operators
+// tight (f1+F2, a<b), word operators and keywords spaced (a AND b), matching
+// sqlite3ColumnsFromExprList's raw-span names for the corpus shapes and
+// falling back to ExprString for exotic nodes.
+func exprResultName(e sql.Expr) string {
+	switch v := e.(type) {
+	case *sql.BinaryOp:
+		op := v.Operator
+		if isWordOperator(op) {
+			return exprResultName(v.Left) + " " + op + " " + exprResultName(v.Right)
+		}
+		if strings.TrimSpace(op) == "<>" {
+			op = "!="
+		}
+		return exprResultName(v.Left) + op + exprResultName(v.Right)
+	case *sql.UnaryOp:
+		operand := exprResultName(v.Operand)
+		if _, isNum := v.Operand.(*sql.NumericLit); isNum && strings.HasPrefix(strings.TrimSpace(operand), "-") {
+			return v.Operator + "(" + operand + ")"
+		}
+		if _, isUnary := v.Operand.(*sql.UnaryOp); isUnary {
+			return v.Operator + "(" + operand + ")"
+		}
+		return v.Operator + operand
+	case *sql.ParenExpr:
+		return "(" + exprResultName(v.Expr) + ")"
+	case *sql.IsNull:
+		return exprResultName(v.Operand) + " IS NULL"
+	case *sql.IsNotNull:
+		return exprResultName(v.Operand) + " NOT NULL"
+	default:
+		return sql.ExprString(e)
+	}
+}
+
+// isWordOperator reports whether a binary operator is a keyword that renders
+// with surrounding spaces in expression names (AND/OR/IS/LIKE/...).
+func isWordOperator(op string) bool {
+	switch strings.ToUpper(strings.TrimSpace(op)) {
+	case "AND", "OR", "IS", "IS NOT", "LIKE", "GLOB", "REGEXP", "MATCH", "IN", "NOT IN", "ISNULL", "NOTNULL", "COLLATE":
+		return true
+	}
+	return false
+}
+
 
 // expandStarColNames returns the non-dropped, non-hidden column names for a
 // plain * expansion.
@@ -285,20 +392,49 @@ func selectProjectsPlainColumns(columns []sql.SelectColumn) bool {
 // message format when a term is out of range.
 func validateOrderBy(orderBy []sql.OrderByTerm, numCols int) error {
 	for i, ob := range orderBy {
-		if nl, ok := ob.Expr.(*sql.NumericLit); ok && isDecimalIntegerLiteral(nl.Value) {
-			// The term is an INTEGER literal, so it is a positional
-			// reference: zero or beyond the result width is out of range
-			// (SQLite resolve.c resolveOrderGroupBy: integer ORDER BY terms
-			// with iCol<1 or past the result set error; FLOAT literals are
-			// ordinary expressions and never match here).
-			n, _ := parsePositiveInt(nl.Value)
-			if n < 1 || n > numCols {
-				return fmt.Errorf("%d%s ORDER BY term out of range - should be between 1 and %d",
-					i+1, ordinalSuffix(i+1), numCols)
-			}
+		// The term is an INTEGER literal (possibly negated: sqlite3ExprIsInteger
+		// folds "-1" so ORDER BY -1 validates as positional term -1 and is out
+		// of range — select1-10.x), so it is a positional reference: zero or
+		// beyond the result width is out of range (SQLite resolve.c
+		// resolveOrderGroupBy: integer ORDER BY terms with iCol<1 or past the
+		// result set error; FLOAT literals are ordinary expressions and never
+		// match here).
+		n, isOrdinal := orderByTermOrdinal(ob.Expr)
+		if !isOrdinal {
+			continue
+		}
+		if n < 1 || n > int64(numCols) {
+			return fmt.Errorf("%d%s ORDER BY term out of range - should be between 1 and %d",
+				i+1, ordinalSuffix(i+1), numCols)
 		}
 	}
 	return nil
+}
+
+// orderByTermOrdinal extracts the positional value of an ORDER BY/GROUP BY
+// term: a plain decimal integer literal, or its negation through a unary
+// minus (resolve.c treats both as positional references). isOrdinal is false
+// for every other expression shape.
+func orderByTermOrdinal(expr sql.Expr) (int64, bool) {
+	switch v := expr.(type) {
+	case *sql.NumericLit:
+		if isDecimalIntegerLiteral(v.Value) {
+			n, err := strconv.ParseInt(v.Value, 10, 64)
+			if err == nil {
+				return n, true
+			}
+		}
+	case *sql.UnaryOp:
+		if v.Operator == "-" {
+			if nl, ok := v.Operand.(*sql.NumericLit); ok && isDecimalIntegerLiteral(nl.Value) {
+				n, err := strconv.ParseInt(nl.Value, 10, 64)
+				if err == nil {
+					return -n, true
+				}
+			}
+		}
+	}
+	return 0, false
 }
 
 // validateCompoundOrderBy enforces SQLite's compound-SELECT ORDER BY rule:

@@ -3,16 +3,17 @@ package execdml
 
 import (
 	"fmt"
-	"math"
-	"strconv"
+	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"math"
 	"os"
 	"runtime/debug"
+	"strconv"
 	"strings"
 )
 
@@ -240,7 +241,11 @@ func buildBeforeTriggerRow(colDefs []sql.ColumnDef, values []interface{}, ipkWas
 	}
 	// new.rowid/_rowid_/oid: the explicit rowid when supplied, -1 otherwise.
 	// The aliases are visible even when an IPK column carries the value.
-	if !withoutRowid {
+	// A table that DECLARES columns named rowid/_rowid_/oid shadows the
+	// pseudo-rowid: triggerD-1.2 (new.rowid must read the declared column's
+	// value 100, not the unassigned pseudo-rowid -1) — same rule as the
+	// other trigger-row builders (RowHasRowIDColumn).
+	if !withoutRowid && !execquery.RowHasRowIDColumn(colDefs) {
 		rowidVal := int64(-1)
 		if explicitRowID != nil {
 			rowidVal = *explicitRowID
@@ -621,6 +626,14 @@ func (e *DMLExecutor) rowMatchesIndexKey(rc *storage.Record, cl *storage.Cell, c
 		} else if cd != nil {
 			coll = cd.Collate
 		}
+		// Expression keys may carry a CollatedValue wrapper (the index
+		// key's explicit COLLATE, e.g. substr(b,2,4) COLLATE nocase). Peel
+		// both wrapper layers before comparing: the collation is already
+		// resolved into `coll` above, and comparing the wrapper structs
+		// themselves would classify distinct keys as equal — a false UNIQUE
+		// conflict on the second row of any expression index (indexexpr1-4.x).
+		kv = execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(kv))
+		key[i] = execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(key[i]))
 		if e.ctx.CompareValuesCollate(util.ApplyColumnAffinity(kv, typ), util.ApplyColumnAffinity(key[i], typ), coll) != 0 {
 			return false
 		}

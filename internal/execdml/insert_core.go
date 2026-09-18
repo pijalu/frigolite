@@ -18,6 +18,15 @@ import (
 // prefix (test8.c echoError: xUpdate reports the failed source write as
 // "echo-vtab-error: %s", vtab1.12-2).
 func (e *DMLExecutor) execInsert(s *sql.InsertStmt) *Result {
+	// resolve.c: a VALUES tuple has no source row, so any column reference
+	// in it is a prepare-time "no such column" error (bare or
+	// table-qualified alike; trigger NEW./OLD. rows excepted). Subqueries
+	// keep their own scope and are not descended into (insert-14.x:
+	// INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1, t3.a, 6) reports
+	// "no such column: t3.a").
+	if res := e.validateInsertValuesExprs(s); res != nil {
+		return res
+	}
 	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
 		return e.execInsertInner(s)
 	}
@@ -1028,6 +1037,16 @@ func (e *DMLExecutor) validateSequenceTable(dbCtx *DatabaseContext) *Result {
 		if strings.EqualFold(ent.Name, "sqlite_sequence") || strings.EqualFold(ent.TblName, "sqlite_sequence") {
 			up := strings.ToUpper(ent.SQL)
 			if strings.Contains(up, "WITHOUT ROWID") || strings.Contains(up, "VIRTUAL TABLE") {
+				return &Result{Error: fmt.Errorf("database disk image is malformed")}
+			}
+			// The sequence table must declare EXACTLY two columns (insert.c
+			// autoIncBegin: pSeqTab->nCol!=2 → SQLITE_CORRUPT_SEQUENCE,
+			// ticket d8dc2b3a58cd5dc2918a1d4acb): the sequence update reads
+			// (name, seq) positionally. A writable_schema rewrite to a
+			// 1-column declaration is corruption (autoinc-12.5); any other
+			// 2-column spelling keeps working — the columns are accessed by
+			// position, not name (autoinc-12.6/12.7).
+			if len(e.ctx.ParseColumnDefs(ent.Name, ent.SQL)) != 2 {
 				return &Result{Error: fmt.Errorf("database disk image is malformed")}
 			}
 			// A rootpage swap (autoinc-12.4: writable_schema points

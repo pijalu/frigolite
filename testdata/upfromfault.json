@@ -1,9 +1,36 @@
 {
   "file": "upfromfault.test",
   "name": "upfromfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE real(x, y, z);\n    CREATE VIEW t1 AS SELECT * FROM real;\n    CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n      INSERT INTO real VALUES(new.x, new.y, new.z);\n    END;\n    CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(old.z || '-\u003e' || new.z);\n      UPDATE real SET y=new.y, z=new.z WHERE x=old.x;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "upfromfault-1.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(t TEXT);\n\n    INSERT INTO t1 VALUES(1, 'i',   'one');\n    INSERT INTO t1 VALUES(2, 'ii',  'two');\n    INSERT INTO t1 VALUES(3, 'iii', 'three');\n    INSERT INTO t1 VALUES(4, 'iv',  'four');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "upfromfault-2.0",
       "steps": [
         {
           "type": "exec",
@@ -12,43 +39,11 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "upfromfault-2.2",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "WITH data(k, v) AS (\n          VALUES(3, 'thirty'), (1, 'ten')\n      )\n      UPDATE t1 SET z=v FROM data WHERE x=k;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      UPDATE t2 SET x=a FROM t1 WHERE c=z;\n    END;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(NULL, NULL, 1), (NULL, NULL, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

@@ -1192,6 +1192,18 @@ func bodyEndsWithExecsqlSelect(body string) bool {
 	return sqlBatchEndsWithRowStmt(cmds[0][1].Text)
 }
 
+// bodyIsExecsql2Select reports whether the catch body is exactly one
+// `execsql2 {SELECT ...}` statement: TCL `catch {execsql2 {...}} msg` binds
+// the NAME/VALUE pairs of every result row to msg on success (select1-6.x
+// checks PRAGMA full_column_names through this shape), not the bare values.
+func bodyIsExecsql2Select(body string) bool {
+	cmds := parseCommands(body)
+	if len(cmds) != 1 || len(cmds[0]) < 2 || cmds[0][0].Text != "execsql2" {
+		return false
+	}
+	return sqlBatchEndsWithRowStmt(cmds[0][1].Text)
+}
+
 // sqlBatchEndsWithRowStmt reports whether the last statement of a
 // multi-statement SQL batch produces rows (SELECT/WITH/VALUES). TCL
 // `catch {execsql {END TRANSACTION; SELECT ...}} msg` binds the batch's
@@ -1305,6 +1317,8 @@ func (tp *transpiler) emitCatchBlock(varName, errVar, bodyStr string) {
 	// (quote-1.3.4).
 	if singleDbEvalSelectRows(bodyStr) {
 		tp.emitLine("%s = tclRowValuesFlat(_res)", errVar)
+	} else if bodyIsExecsql2Select(bodyStr) {
+		tp.emitLine("%s = tclRowNamesValuesFlat(r)", errVar)
 	} else if bodyEndsWithExecsqlSelect(bodyStr) {
 		tp.emitLine("%s = tclRowValuesFlat(r)", errVar)
 	} else {

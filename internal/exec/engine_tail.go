@@ -17,6 +17,7 @@ import (
 	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+
 )
 
 func (e *Engine) getDB(name string) *DatabaseContext {
@@ -455,7 +456,13 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 	case *sql.DropTableStmt, *sql.DropIndexStmt, *sql.DropViewStmt, *sql.DropTriggerStmt:
 		return e.execDropStmt(s)
 	case *sql.AnalyzeStmt:
-		return e.execAnalyze(s)
+		// ANALYZE's sqlite_stat1 writes are schema maintenance, not
+		// application DML: they do not accumulate into total_changes
+		// (e_totalchanges-2.3). REINDEX likewise.
+		e.tx.internalWrites++
+		res := e.execAnalyze(s)
+		e.tx.internalWrites--
+		return res
 	case *sql.PragmaStmt:
 		return e.execPragma(s)
 	case *sql.AlterTableStmt:
@@ -465,7 +472,10 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 	case *sql.AttachStmt:
 		return e.execAttachOrDetach(s)
 	case *sql.ReindexStmt:
-		return e.execReindex(s)
+		e.tx.internalWrites++
+		res := e.execReindex(s)
+		e.tx.internalWrites--
+		return res
 	default:
 		// Begin, Rollback, Vacuum, Reindex, Savepoint — all no-ops
 		return &Result{}

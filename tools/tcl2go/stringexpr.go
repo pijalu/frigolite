@@ -730,7 +730,21 @@ func (p *stringPartsParser) handleDollar() {
 		return
 	}
 	if isVarStartChar(p.s[p.pos]) {
-		for p.pos < len(p.s) && isVarChar(p.s[p.pos]) {
+		for p.pos < len(p.s) {
+			c := p.s[p.pos]
+			if c == ':' {
+				// ':' participates only as the '::' namespace separator;
+				// a LONE colon ends the name — "$f1:" is var f1 followed
+				// by a literal colon (select2-1.1's lappend r $f1:).
+				if p.pos+1 < len(p.s) && p.s[p.pos+1] == ':' {
+					p.pos += 2
+					continue
+				}
+				break
+			}
+			if !isVarChar(c) {
+				break
+			}
 			p.pos++
 		}
 		varName := p.s[varStart:p.pos]

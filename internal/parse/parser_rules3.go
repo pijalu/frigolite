@@ -337,9 +337,16 @@ func rule207(ruleNo int, p *Parser) interface{} {
 	left := getExpr(getRHS(p, ruleNo, 1))
 	right := getExpr(getRHS(p, ruleNo, 3))
 	escape := getExpr(getRHS(p, ruleNo, 5))
+	// likeop may be the negated form ("NOT LIKE" etc. from rule 205) — the
+	// operator name must survive the ESCAPE attachment, or `x NOT LIKE y
+	// ESCAPE z` silently evaluates as a positive LIKE.
+	op := "LIKE"
+	if s, ok := getRHS(p, ruleNo, 2).(string); ok && s != "" {
+		op = s
+	}
 	return &sql.BinaryOp{
 		Left:      left,
-		Operator:  "LIKE",
+		Operator:  op,
 		Right:     right,
 		Escape:    getString(escape),
 		HasEscape: true,

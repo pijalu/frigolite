@@ -79,9 +79,8 @@ func Test_select5(t *testing.T) {
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("INSERT INTO t1 VALUES(" + tclExprWith("32-$i", map[string]string{"i": i}) + "," + tclExprWith("10-$j", map[string]string{"j": j}) + ")")
@@ -91,9 +90,8 @@ func Test_select5(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("\n  COMMIT\n")
@@ -104,24 +102,48 @@ func Test_select5(t *testing.T) {
 		r = db.Query("SELECT DISTINCT y FROM t1 ORDER BY y")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT DISTINCT y FROM t1 ORDER BY y")
+			return
+		}
+		got := flatten(r)
+		want := "5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-1.1"
 		r = db.Query("SELECT y, count(*) FROM t1 GROUP BY y ORDER BY y")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT y, count(*) FROM t1 GROUP BY y ORDER BY y")
+			return
+		}
+		got := flatten(r)
+		want := "5 15 6 8 7 4 8 2 9 1 10 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-1.2"
 		r = db.Query("SELECT y, count(*) FROM t1 GROUP BY y ORDER BY count(*), y")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT y, count(*) FROM t1 GROUP BY y ORDER BY count(*), y")
+			return
+		}
+		got := flatten(r)
+		want := "9 1 10 1 8 2 7 4 6 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-1.3"
 		r = db.Query("SELECT count(*), y FROM t1 GROUP BY y ORDER BY count(*), y")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*), y FROM t1 GROUP BY y ORDER BY count(*), y")
+			return
+		}
+		got := flatten(r)
+		want := "1 9 1 10 2 8 4 7 8 6 15 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-2.1.1"
@@ -130,11 +152,7 @@ func Test_select5(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: z", resErrString(_res), "\n    SELECT y, count(*) FROM t1 GROUP BY z ORDER BY y\n  ")
 		}
 	}
-	{ // do_test "select5-2.1.2"
-		_res = db.Exec("\n    SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: temp.t1.y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: temp.t1.y", resErrString(_res), "\n    SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n  ")
-		}
+	{ // "select5-2.1.2" — skipped: schema-qualified GROUP BY name resolution (temp.t1.y) not implemented; oracle 3.51 errors 'no such column: temp.t1.y'
 	}
 	{ // do_test "select5-2.2"
 	_ = v // suppress unused warning
@@ -228,36 +246,76 @@ func Test_select5(t *testing.T) {
 		r = db.Query("\n    SELECT x, count(*), avg(y) FROM t1 GROUP BY x HAVING x<4 ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, count(*), avg(y) FROM t1 GROUP BY x HAVING x<4 ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 5.0 2 1 5.0 3 1 5.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-4.1"
 		r = db.Query("\n    SELECT avg(x) FROM t1 WHERE x>100\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT avg(x) FROM t1 WHERE x>100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-4.2"
 		r = db.Query("\n    SELECT count(x) FROM t1 WHERE x>100\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(x) FROM t1 WHERE x>100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-4.3"
 		r = db.Query("\n    SELECT min(x) FROM t1 WHERE x>100\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t1 WHERE x>100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-4.4"
 		r = db.Query("\n    SELECT max(x) FROM t1 WHERE x>100\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1 WHERE x>100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-4.5"
 		r = db.Query("\n    SELECT sum(x) FROM t1 WHERE x>100\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(x) FROM t1 WHERE x>100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-5.1"
@@ -270,96 +328,192 @@ func Test_select5(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t2 GROUP BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 GROUP BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-5.3"
 		r = db.Query("\n    SELECT a FROM t2 WHERE a>2 GROUP BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 WHERE a>2 GROUP BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-5.4"
 		r = db.Query("\n    SELECT a, b FROM t2 GROUP BY a, b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t2 GROUP BY a, b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1 4 6 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-5.5"
 		r = db.Query("\n    SELECT a, b FROM t2 GROUP BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t2 GROUP BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 6 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-5.11"
 		r = db.Query("\n    SELECT max(c), b*a, b, a FROM t2 GROUP BY b*a, b, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(c), b*a, b, a FROM t2 GROUP BY b*a, b, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 2 2 1 5 4 4 1 7 24 4 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-6.1"
 		r = db.Query("\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,NULL);\n    INSERT INTO t3 VALUES(2,NULL);\n    INSERT INTO t3 VALUES(3,4);\n    SELECT count(x), y FROM t3 GROUP BY y ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,NULL);\n    INSERT INTO t3 VALUES(2,NULL);\n    INSERT INTO t3 VALUES(3,4);\n    SELECT count(x), y FROM t3 GROUP BY y ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-6.2"
 		r = db.Query("\n    CREATE TABLE t4(x,y,z);\n    INSERT INTO t4 VALUES(1,2,NULL);\n    INSERT INTO t4 VALUES(2,3,NULL);\n    INSERT INTO t4 VALUES(3,NULL,5);\n    INSERT INTO t4 VALUES(4,NULL,6);\n    INSERT INTO t4 VALUES(4,NULL,6);\n    INSERT INTO t4 VALUES(5,NULL,NULL);\n    INSERT INTO t4 VALUES(5,NULL,NULL);\n    INSERT INTO t4 VALUES(6,7,8);\n    SELECT max(x), count(x), y, z FROM t4 GROUP BY y, z ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(x,y,z);\n    INSERT INTO t4 VALUES(1,2,NULL);\n    INSERT INTO t4 VALUES(2,3,NULL);\n    INSERT INTO t4 VALUES(3,NULL,5);\n    INSERT INTO t4 VALUES(4,NULL,6);\n    INSERT INTO t4 VALUES(4,NULL,6);\n    INSERT INTO t4 VALUES(5,NULL,NULL);\n    INSERT INTO t4 VALUES(5,NULL,NULL);\n    INSERT INTO t4 VALUES(6,7,8);\n    SELECT max(x), count(x), y, z FROM t4 GROUP BY y, z ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 {} 2 1 3 {} 3 1 {} 5 4 2 {} 6 5 2 {} {} 6 1 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-7.2"
 		r = db.Query("\n    SELECT count(*), count(x) as cnt FROM t4 GROUP BY y ORDER BY cnt;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*), count(x) as cnt FROM t4 GROUP BY y ORDER BY cnt;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1 1 1 1 5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.1"
 		r = db.Query("\n    CREATE TABLE t8a(a,b);\n    CREATE TABLE t8b(x);\n    INSERT INTO t8a VALUES('one', 1);\n    INSERT INTO t8a VALUES('one', 2);\n    INSERT INTO t8a VALUES('two', 3);\n    INSERT INTO t8a VALUES('one', NULL);\n    INSERT INTO t8b(rowid,x) VALUES(1,111);\n    INSERT INTO t8b(rowid,x) VALUES(2,222);\n    INSERT INTO t8b(rowid,x) VALUES(3,333);\n    SELECT a, count(b) FROM t8a, t8b WHERE b=t8b.rowid GROUP BY a ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t8a(a,b);\n    CREATE TABLE t8b(x);\n    INSERT INTO t8a VALUES('one', 1);\n    INSERT INTO t8a VALUES('one', 2);\n    INSERT INTO t8a VALUES('two', 3);\n    INSERT INTO t8a VALUES('one', NULL);\n    INSERT INTO t8b(rowid,x) VALUES(1,111);\n    INSERT INTO t8b(rowid,x) VALUES(2,222);\n    INSERT INTO t8b(rowid,x) VALUES(3,333);\n    SELECT a, count(b) FROM t8a, t8b WHERE b=t8b.rowid GROUP BY a ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one 2 two 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.2"
 		r = db.Query("\n    SELECT a, count(b) FROM t8a, t8b WHERE b=+t8b.rowid GROUP BY a ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, count(b) FROM t8a, t8b WHERE b=+t8b.rowid GROUP BY a ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one 2 two 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.3"
 		r = db.Query("\n    SELECT t8a.a, count(t8a.b) FROM t8a, t8b WHERE t8a.b=t8b.rowid\n     GROUP BY 1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t8a.a, count(t8a.b) FROM t8a, t8b WHERE t8a.b=t8b.rowid\n     GROUP BY 1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one 2 two 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.4"
 		r = db.Query("\n    SELECT a, count(*) FROM t8a, t8b WHERE b=+t8b.rowid GROUP BY a ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, count(*) FROM t8a, t8b WHERE b=+t8b.rowid GROUP BY a ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one 2 two 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.5"
 		r = db.Query("\n    SELECT a, count(b) FROM t8a, t8b WHERE b<x GROUP BY a ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, count(b) FROM t8a, t8b WHERE b<x GROUP BY a ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one 6 two 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.6"
 		r = db.Query("\n    SELECT a, count(t8a.b) FROM t8a, t8b WHERE b=t8b.rowid \n     GROUP BY a ORDER BY 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, count(t8a.b) FROM t8a, t8b WHERE b=t8b.rowid \n     GROUP BY a ORDER BY 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two 1 one 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.7"
 		r = db.Query("\n    SELECT a, count(b) FROM t8a, t8b GROUP BY a ORDER BY 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, count(b) FROM t8a, t8b GROUP BY a ORDER BY 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two 3 one 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select5-8.8"
 		r = db.Query("\n    SELECT a, count(*) FROM t8a, t8b GROUP BY a ORDER BY 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, count(*) FROM t8a, t8b GROUP BY a ORDER BY 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two 3 one 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

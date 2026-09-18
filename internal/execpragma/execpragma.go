@@ -431,10 +431,17 @@ var pragmaHandlers = map[string]Handler{
 		func(st EngineState) bool { return st.CountChanges() },
 		func(st EngineState, b bool) { st.SetCountChanges(b) },
 	),
-	"CASE_SENSITIVE_LIKE": pragmaBoolHandler(
-		func(st EngineState) bool { return st.CaseSensitiveLike() },
-		func(st EngineState, b bool) { st.SetCaseSensitiveLike(b) },
-	),
+	"CASE_SENSITIVE_LIKE": func(st EngineState, s *sql.PragmaStmt) *Result {
+		// PragFlg_NoColumns (pragma.h): the pragma sets the LIKE
+		// case-sensitivity flag and NEVER returns a row — the no-argument
+		// form is a no-op that produces no result (like.test 1.5.3's batch
+		// "PRAGMA case_sensitive_like; SELECT ..." returns only the SELECT
+		// rows).
+		if s.Value != "" {
+			st.SetCaseSensitiveLike(boolPragma(s.Value))
+		}
+		return &Result{}
+	},
 	"TRUSTED_SCHEMA": pragmaBoolHandler(
 		func(st EngineState) bool { return st.TrustedSchema() },
 		func(st EngineState, b bool) { st.SetTrustedSchema(b) },

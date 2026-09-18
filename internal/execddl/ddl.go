@@ -12,6 +12,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"sort"
 )
 
 // MaxAttachedDatabases is the SQLite SQLITE_MAX_ATTACHED default (10): the
@@ -207,10 +208,87 @@ func (e *DDLExecutor) runCreateTableValidations(ctx *DatabaseContext, s *sql.Cre
 		func() *Result { return e.validateCheckExprColumns(s) },
 		func() *Result { return e.validateSchemaFunctionSafety(s) },
 		func() *Result { return e.validateTableCollations(s) },
+		func() *Result { return e.validateConflictActions(s) },
 	}
 	for _, v := range validators {
 		if res := v(); res != nil {
 			return res
+		}
+	}
+	return nil
+}
+
+// normalizeConflictAction extracts a constraint's effective ON CONFLICT
+// action: the first resolution keyword found in the text, else the default
+// ABORT. The parser leaves stray text (e.g. a trailing ")") in the field for
+// table-level constraints without an explicit ON CONFLICT clause, so the
+// keyword scan is the reliable signal.
+func normalizeConflictAction(text string) string {
+	upper := strings.ToUpper(text)
+	for _, a := range []string{"FAIL", "IGNORE", "REPLACE", "ROLLBACK", "ABORT"} {
+		if idx := strings.Index(upper, a); idx >= 0 {
+			before := byte(0)
+			if idx > 0 {
+				before = upper[idx-1]
+			}
+			after := byte(0)
+			if idx+len(a) < len(upper) {
+				after = upper[idx+len(a)]
+			}
+			boundary := func(c byte) bool { return c == 0 || !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) }
+			if boundary(before) && boundary(after) {
+				return a
+			}
+		}
+	}
+	return "ABORT"
+}
+
+// validateConflictActions rejects a table whose UNIQUE-equivalent constraints
+// (column-level PRIMARY KEY / UNIQUE and table-level PRIMARY KEY / UNIQUE)
+// cover the same column set with DIFFERENT ON CONFLICT actions. SQLite builds
+// one implicit index per distinct key; when the second constraint's action
+// differs it reports "conflicting ON CONFLICT clauses specified" (build.c
+// sqlite3CreateIndex; index.test 7.6: a PRIMARY KEY ON CONFLICT FAIL plus
+// UNIQUE(a) ON CONFLICT IGNORE on the same column). Equal actions dedup into
+// a single index and stay legal.
+func (e *DDLExecutor) validateConflictActions(s *sql.CreateTableStmt) *Result {
+	type uc struct {
+		key    string
+		action string
+		name   string
+	}
+	var groups []uc
+	add := func(cols []string, action, name string) {
+		sorted := append([]string(nil), cols...)
+		for i := range sorted {
+			sorted[i] = strings.ToLower(strings.TrimSpace(sorted[i]))
+		}
+		sort.Strings(sorted)
+		groups = append(groups, uc{key: strings.Join(sorted, "\u0001"), action: strings.ToUpper(action), name: name})
+	}
+	for i := range s.Columns {
+		cd := &s.Columns[i]
+		if !cd.PrimaryKey && !cd.Unique {
+			continue
+		}
+		add([]string{cd.Name}, normalizeConflictAction(cd.OnConflict), cd.Name)
+	}
+	for _, tc := range s.Constraints {
+		if tc.Type != sql.ConstraintPrimaryKey && tc.Type != sql.ConstraintUnique {
+			continue
+		}
+		cols := make([]string, 0, len(tc.Columns))
+		for _, ic := range tc.Columns {
+			cols = append(cols, ic.Name)
+		}
+		add(cols, normalizeConflictAction(tc.OnConflict), tc.Name)
+	}
+	for i := range groups {
+		for j := i + 1; j < len(groups); j++ {
+			if groups[i].key == groups[j].key && groups[i].action != groups[j].action {
+				return &Result{Error: fmt.Errorf("conflicting ON CONFLICT clauses specified")}
+			}
 		}
 	}
 	return nil
@@ -548,10 +626,12 @@ func (e *DDLExecutor) validateTableKeyConstraints(s *sql.CreateTableStmt) *Resul
 	// one primary key" (build.c sqlite3AddPrimaryKey). Column-level PKs are
 	// each a single-column PK; a table-level PRIMARY KEY(...) is another.
 	// The go-lemon parser folds repeated column-level PRIMARY KEY keywords
-	// into col.PrimaryKey (no duplicate error), so count both forms.
+	// into col.PrimaryKey (no duplicate error), so count both forms. A
+	// PKPromoted column IS the table-level declaration (promoted post-parse
+	// for the rowid-alias rule) — count it once via its constraint.
 	pkCount := 0
 	for _, col := range s.Columns {
-		if col.PrimaryKey {
+		if col.PrimaryKey && !col.PKPromoted {
 			pkCount++
 		}
 	}

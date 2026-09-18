@@ -75,12 +75,24 @@ func Test_select7(t *testing.T) {
 		r = db.Query("\n      create temp table t1(x);\n      insert into t1 values('amx');\n      insert into t1 values('anx');\n      insert into t1 values('amy');\n      insert into t1 values('bmy');\n      select * from t1 where x like 'a__'\n        intersect select * from t1 where x like '_m_'\n        intersect select * from t1 where x like '__x';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create temp table t1(x);\n      insert into t1 values('amx');\n      insert into t1 values('anx');\n      insert into t1 values('amy');\n      insert into t1 values('bmy');\n      select * from t1 where x like 'a__'\n        intersect select * from t1 where x like '_m_'\n        intersect select * from t1 where x like '__x';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "amx"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-2.1"
 		r = db.Query("\n    CREATE TABLE x(id integer primary key, a TEXT NULL);\n    INSERT INTO x (a) VALUES ('first');\n    CREATE TABLE tempx(id integer primary key, a TEXT NULL);\n    INSERT INTO tempx (a) VALUES ('t-first');\n    CREATE VIEW tv1 AS SELECT x.id, tx.id FROM x JOIN tempx tx ON tx.id=x.id;\n    CREATE VIEW tv1b AS SELECT x.id, tx.id FROM x JOIN tempx tx on tx.id=x.id;\n    CREATE VIEW tv2 AS SELECT * FROM tv1 UNION SELECT * FROM tv1b;\n    SELECT * FROM tv2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE x(id integer primary key, a TEXT NULL);\n    INSERT INTO x (a) VALUES ('first');\n    CREATE TABLE tempx(id integer primary key, a TEXT NULL);\n    INSERT INTO tempx (a) VALUES ('t-first');\n    CREATE VIEW tv1 AS SELECT x.id, tx.id FROM x JOIN tempx tx ON tx.id=x.id;\n    CREATE VIEW tv1b AS SELECT x.id, tx.id FROM x JOIN tempx tx on tx.id=x.id;\n    CREATE VIEW tv2 AS SELECT * FROM tv1 UNION SELECT * FROM tv1b;\n    SELECT * FROM tv2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-3.1"
@@ -93,12 +105,25 @@ func Test_select7(t *testing.T) {
 		r = db.Query("\n      CREATE TABLE IF NOT EXISTS photo(pk integer primary key, x);\n      CREATE TABLE IF NOT EXISTS tag(pk integer primary key, fk int, name);\n    \n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE IF NOT EXISTS photo(pk integer primary key, x);\n      CREATE TABLE IF NOT EXISTS tag(pk integer primary key, fk int, name);\n    \n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-4.2"
 		r = db.Query("\n      INSERT INTO photo VALUES(1,1);\n      INSERT INTO photo VALUES(2,2);\n      INSERT INTO photo VALUES(3,3);\n      INSERT INTO tag VALUES(11,1,'one');\n      INSERT INTO tag VALUES(12,1,'two');\n      INSERT INTO tag VALUES(21,1,'one-b');\n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO photo VALUES(1,1);\n      INSERT INTO photo VALUES(2,2);\n      INSERT INTO photo VALUES(3,3);\n      INSERT INTO tag VALUES(11,1,'one');\n      INSERT INTO tag VALUES(12,1,'two');\n      INSERT INTO tag VALUES(21,1,'one-b');\n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-5.1"
@@ -142,9 +167,8 @@ func Test_select7(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			{ // do_test "select7-6.1"
@@ -217,6 +241,12 @@ func Test_select7(t *testing.T) {
 		r = db.Query("\n    pragma vdbe_trace = 0;\n    SELECT (CASE WHEN a=0 THEN 0 ELSE (a + 25) / 50 END) AS categ, count(*)\n    FROM t3 GROUP BY categ\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma vdbe_trace = 0;\n    SELECT (CASE WHEN a=0 THEN 0 ELSE (a + 25) / 50 END) AS categ, count(*)\n    FROM t3 GROUP BY categ\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1.38 1 1.62 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-7.3"
@@ -229,24 +259,48 @@ func Test_select7(t *testing.T) {
 		r = db.Query("\n    SELECT (CASE WHEN a=0 THEN 'zero' ELSE a/2 END) AS t FROM t4 GROUP BY t;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (CASE WHEN a=0 THEN 'zero' ELSE a/2 END) AS t FROM t4 GROUP BY t;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1.0 1.5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-7.5"
 		r = db.Query(" SELECT a=0, typeof(a) FROM t4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a=0, typeof(a) FROM t4 ")
+			return
+		}
+		got := flatten(r)
+		want := "0 real 0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-7.6"
 		r = db.Query(" SELECT a=0, typeof(a) FROM t4 GROUP BY a ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a=0, typeof(a) FROM t4 GROUP BY a ")
+			return
+		}
+		got := flatten(r)
+		want := "0 real 0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select7-7.7"
 		r = db.Query("\n    CREATE TABLE t5(a TEXT, b INT);\n    INSERT INTO t5 VALUES(123, 456);\n    SELECT typeof(a), a FROM t5 GROUP BY a HAVING a<b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a TEXT, b INT);\n    INSERT INTO t5 VALUES(123, 456);\n    SELECT typeof(a), a FROM t5 GROUP BY a HAVING a<b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "text 123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.0"

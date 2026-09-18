@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/lockreg"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -38,6 +39,13 @@ func (e *Engine) execCommit() *Result {
 	if res := e.commitLockGate(); res != nil {
 		return res
 	}
+	// fts5 secure-delete format upgrade: the deletes that requested it flush
+	// at COMMIT (fts5_main.c xCommit → sqlite3Fts5StorageStorageSync →
+	// fts5IndexFlush → fts5FlushSecureDelete's REPLACE 'version'=5), inside
+	// the committing transaction.
+	if err := e.fts5ApplySecureUpgrades(); err != nil {
+		return &Result{Error: err}
+	}
 	e.tx.txSchemaChanged = false
 	e.tx.inTransaction = false
 	e.settings.deferForeignKeys = false
@@ -46,6 +54,7 @@ func (e *Engine) execCommit() *Result {
 	e.tx.ddlBuffer = nil
 	e.tx.txSnapshots = nil
 	e.tx.txFTSnapshots = nil
+	e.clearReservedDbs()
 	e.dml.ClearTxnWrittenFiles()
 	// Flush pending FTS3 segments (SQLite's FTS3 flushes the pending-terms
 	// hash at COMMIT, writing one segment per transaction). Mark the flush so
@@ -340,6 +349,14 @@ func (e *Engine) execRollback() *Result {
 	// COMMIT leaves the connection PENDING; ROLLBACK releases it so another
 	// writer can proceed).
 	e.releaseSharedTx()
+	// ROLLBACK cancels EVERY savepoint opened in the transaction
+	// (lang_savepoint.html: "the transaction is rolled back and all
+	// savepoints are cancelled"). A stale stack made a later RELEASE of a
+	// pre-ROLLBACK savepoint find idx>0 (startsTransaction false) and leave
+	// an implicit transaction open, so the next BEGIN failed with "cannot
+	// start a transaction within a transaction" (savepoint-4.2).
+	e.tx.savepointStack = nil
+	e.clearReservedDbs()
 	// Undo all DDL operations that were performed during the transaction
 	for i := len(e.tx.ddlBuffer) - 1; i >= 0; i-- {
 		e.tx.ddlBuffer[i]()
@@ -369,6 +386,9 @@ func (e *Engine) execRollback() *Result {
 		}
 	}
 	e.tx.txFTS5Snapshots = nil
+	// The rolled-back deletes' pending format-upgrade requests are dropped
+	// with them (sqlite3Fts5StorageRollback discards the pending data).
+	e.fts5DiscardSecureUpgrades()
 	e.invalidateTableCaches()
 	for _, dbCtx := range e.dbList {
 		dbCtx.Schema.InvalidateCache()
@@ -392,7 +412,47 @@ type savepointEntry struct {
 
 // --- SAVEPOINT / RELEASE / ROLLBACK TO ---
 
+// noteReservedDbs records every attached database whose pager currently holds
+// dirty pages (i.e. took the WRITER/RESERVED lock) as locked-for-the-
+// transaction. A later savepoint rollback may clean the pages, but C's pager
+// keeps the lock until COMMIT / full ROLLBACK (see txState.reservedDbs).
+func (e *Engine) noteReservedDbs() {
+	marked := false
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil || !ctx.Pager.HasDirtyPages() {
+			continue
+		}
+		if e.tx.reservedDbs == nil {
+			e.tx.reservedDbs = make(map[string]bool)
+		}
+		key := strings.ToUpper(ctx.Name)
+		if !e.tx.reservedDbs[key] {
+			e.tx.reservedDbs[key] = true
+			marked = true
+		}
+	}
+	_ = marked
+}
+
+// clearReservedDbs releases the per-transaction RESERVED marks (COMMIT /
+// full ROLLBACK; pager.c clears the WRITER state when the transaction ends).
+func (e *Engine) clearReservedDbs() {
+	e.tx.reservedDbs = nil
+}
+
 func (e *Engine) execSavepoint(s *sql.SavepointStmt) *Result {
+	// The authorizer sees SQLITE_SAVEPOINT with the operation name and the
+	// savepoint name BEFORE the statement executes (build.c sqlite3Savepoint:
+	// sqlite3AuthCheck(pParse, SQLITE_SAVEPOINT, az[op], zName, 0) with
+	// az = {"BEGIN", "RELEASE", "ROLLBACK"}; savepoint-9.1..9.3). DENY fails
+	// the statement with "not authorized" and no savepoint work happens.
+	ops := map[string]string{"SAVEPOINT": "BEGIN", "RELEASE": "RELEASE", "ROLLBACK": "ROLLBACK"}
+	op, ok := ops[strings.ToUpper(s.Type)]
+	if ok {
+		if err := e.Authorize(auth.ActionSavepoint, op, s.Name, "", ""); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	switch strings.ToUpper(s.Type) {
 	case "SAVEPOINT":
 		return e.execSavepointCreate(s)
@@ -408,6 +468,12 @@ func (e *Engine) execSavepoint(s *sql.SavepointStmt) *Result {
 // name creates a new savepoint above the old one (SQLite allows same-name
 // nesting).
 func (e *Engine) execSavepointCreate(s *sql.SavepointStmt) *Result {
+	// fts5SavepointMethod flushes the pending index (and its secure-delete
+	// format upgrade) to disk BEFORE the savepoint is recorded, so a later
+	// ROLLBACK TO does not undo the flushed writes.
+	if err := e.fts5ApplySecureUpgrades(); err != nil {
+		return &Result{Error: err}
+	}
 	snaps := make(map[string]*pager.PagerState, len(e.databases))
 	for name, ctx := range e.databases {
 		snaps[name] = ctx.Pager.Snapshot()
@@ -467,11 +533,18 @@ func (e *Engine) execSavepointRelease(s *sql.SavepointStmt) *Result {
 	// transaction so the next bare SAVEPOINT starts a fresh implicit
 	// transaction whose RELEASE re-checks deferred FKs (e_fkey-37.x).
 	if startsTransaction {
+		// Releasing the outermost savepoint commits: flush the fts5
+		// secure-delete format upgrade (fts5SavepointMethod's flush).
+		if err := e.fts5ApplySecureUpgrades(); err != nil {
+			e.tx.savepointStack = append(e.tx.savepointStack, popped...)
+			return &Result{Error: err}
+		}
 		e.tx.inTransaction = false
 		e.settings.deferForeignKeys = false
 		e.constraints.ResetFKDirty()
 		e.tx.ddlBuffer = nil
 		e.tx.txSnapshots = nil
+		e.clearReservedDbs()
 		for _, dbCtx := range e.dbList {
 			if dbCtx != nil && dbCtx.Pager != nil {
 				if err := dbCtx.Pager.FlushWithContext(false); err != nil {
@@ -522,6 +595,9 @@ func (e *Engine) execSavepointRollback(s *sql.SavepointStmt) *Result {
 			snap.table.Restore(snap.state)
 		}
 	}
+	// Deletes rolled back by ROLLBACK TO take their pending format-upgrade
+	// requests with them (fts5RollbackToMethod → sqlite3Fts5StorageRollback).
+	e.fts5DiscardSecureUpgrades()
 	e.invalidateTableCaches()
 	for _, dbCtx := range e.dbList {
 		dbCtx.Schema.InvalidateCache()
@@ -529,4 +605,40 @@ func (e *Engine) execSavepointRollback(s *sql.SavepointStmt) *Result {
 	// Pop savepoints above the named one (the named one stays).
 	e.tx.savepointStack = e.tx.savepointStack[:idx+1]
 	return &Result{}
+}
+
+// fts5ApplySecureUpgrades persists every fts5 table's pending secure-delete
+// format upgrade ('version'=5 in %_config — fts5FlushSecureDelete's
+// one-time REPLACE). Called at the flush points: COMMIT, RELEASE-of-outermost
+// savepoint, and SAVEPOINT creation (fts5SavepointMethod's flush).
+func (e *Engine) fts5ApplySecureUpgrades() error {
+	for _, t := range e.fts5Tables {
+		if t != nil {
+			if err := t.ApplySecureUpgrade(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// fts5DiscardSecureUpgrades drops every fts5 table's pending secure-delete
+// format-upgrade request (the deletes that requested it were rolled back —
+// sqlite3Fts5StorageRollback discards the pending data).
+func (e *Engine) fts5DiscardSecureUpgrades() {
+	for _, t := range e.fts5Tables {
+		if t != nil {
+			t.DiscardSecureUpgrade()
+		}
+	}
+}
+
+// BeginInternalWrites marks the engine as executing schema-maintenance
+// statements (VACUUM's logical copy): DML executed inside this window does
+// not accumulate into sqlite3_total_changes — the C library's internal vdbe
+// programs never touch db->nTotalChange (e_totalchanges-2.3). The returned
+// function ends the window and must be called by the caller.
+func (e *Engine) BeginInternalWrites() (end func()) {
+	e.tx.internalWrites++
+	return func() { e.tx.internalWrites-- }
 }

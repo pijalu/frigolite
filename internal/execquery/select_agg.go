@@ -448,6 +448,14 @@ func (e *SelectEngine) aggregateHasOnlyOuterRefs(fn *sql.FuncCall, innerColNames
 	if aggExprListHasSubquery(fn.Args) || aggExprListHasSubquery(orderByExprs(fn.OrderBy)) {
 		return false
 	}
+	// A FILTER bound to the subquery's own rows keeps the aggregate
+	// inner-evaluated: it can never promote to the outer query
+	// (filter1-6.1: COUNT(a) FILTER(WHERE x) with x inner stays per-row).
+	if fn.Filter != nil {
+		if fInner, _ := e.scanAggExprRefs([]sql.Expr{fn.Filter}, innerColNames); fInner {
+			return false
+		}
+	}
 	aInner, aHas := e.scanAggExprRefs(fn.Args, innerColNames)
 	oInner, oHas := e.scanAggExprRefs(orderByExprs(fn.OrderBy), innerColNames)
 	return !aInner && !oInner && (aHas || oHas)
@@ -473,7 +481,40 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 	// aggregates (SELECT (SELECT max(y)) with y outer) keep stepping over the
 	// outer rows. filter1-6.1: COUNT(a) FILTER(WHERE x) with a outer and x
 	// inner counts the inner rows, not the outer rows.
-	if len(allRowMaps) > 0 && len(outerRows) > 0 &&
+	// A PROMOTED aggregate — every aggregate of the subquery references only
+	// outer columns — becomes an aggregate OF THE OUTER QUERY (resolve.c
+	// name promotion; filter1-6.3: (SELECT count(a) FROM t2) with a outer
+	// aggregates over t1 and the output is one row of the promoted value),
+	// so its stepping rows are the OUTER rows even with a FROM clause.
+	promoted := false
+	{
+		innerNames := make(map[string]bool)
+		if len(allRowMaps) > 0 {
+			for k := range allRowMaps[0] {
+				innerNames[k] = true
+			}
+		}
+		promoted = true
+		sawAgg := false
+		for _, col := range s.Columns {
+			if fn, ok := col.Expr.(*sql.FuncCall); ok {
+				if reg, isFn := e.ctx.Functions().Find(fn.Name); isFn && reg.Type == function.TypeAggregate && fn.Over == nil {
+					sawAgg = true
+					if !e.aggregateHasOnlyOuterRefs(fn, innerNames) {
+						promoted = false
+						break
+					}
+				}
+			}
+		}
+		if !sawAgg {
+			promoted = false
+		}
+	}
+	if promoted && len(outerRows) > 0 {
+		e.aggRowMaps = outerRows
+		defer func() { e.aggRowMaps = nil }()
+	} else if len(allRowMaps) > 0 && len(outerRows) > 0 &&
 		(s.From.Name != "" || s.From.Subquery != nil || len(s.From.Args) > 0) {
 		fallback := outerRows[0]
 		stepping := make([]RowMap, len(allRowMaps))
@@ -587,6 +628,19 @@ func (e *SelectEngine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDe
 			outRow = winResult.Rows[0]
 		}
 	}
+	// A HAVING clause without GROUP BY still filters the single aggregate
+	// row (SQLite resolves it as a one-group aggregate query — select3-3.1:
+	// "SELECT log, count(*) FROM t1 HAVING log>=4" emits no row when the
+	// predicate fails on the group's representative row).
+	if s.Having != nil {
+		match, herr := e.evalHaving(s.Having, rowMaps)
+		if herr != nil {
+			return &Result{Error: herr}
+		}
+		if !match {
+			return &Result{Columns: columns, Rows: nil}
+		}
+	}
 	return e.finalizeSelectResult(&Result{Columns: columns, Rows: [][]interface{}{outRow}}, s, nil)
 }
 
@@ -643,7 +697,10 @@ func (e *SelectEngine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap
 		return nil
 	}
 
-	groupBy := resolveGroupByOrdinals(s, colDefs)
+	groupBy, gbErr := resolveGroupByOrdinals(s, colDefs)
+	if gbErr != nil {
+		return &Result{Error: gbErr}
+	}
 	groups, keyVals, keyOrder := e.partitionByGroupKey(groupBy, rowMaps)
 	e.sortGroupKeys(keyOrder, keyVals)
 
@@ -794,7 +851,10 @@ func (e *SelectEngine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, co
 		return nil
 	}
 
-	groupBy := resolveGroupByOrdinals(s, colDefs)
+	groupBy, gbErr := resolveGroupByOrdinals(s, colDefs)
+	if gbErr != nil {
+		return &Result{Error: gbErr}
+	}
 	groups, keyVals, keyOrder := e.partitionByGroupKey(groupBy, rowMaps)
 	e.sortGroupKeys(keyOrder, keyVals)
 

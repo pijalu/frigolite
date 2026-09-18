@@ -226,18 +226,7 @@ func Test_corrupt(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".7")
 			}
 		}
-		{ // do_test "corrupt-2." + tn + ".8"
-			bt = "btree_from_db db"
-			_ = bt // suppress unused warning
-			// db_enter db (unsupported command, not transpiled)
-			// array set stats (dynamic list, not transpiled)
-			// db_leave db (unsupported command, not transpiled)
-			stats_ref = statsMap["ref"]
-			got := tclListFlatten(statsMap["ref"])
-			want := tclListFlatten("0")
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".8")
-			}
+		{ // "corrupt-2." + tn + ".8" — skipped: C test-harness btree_stats handle ref-count N-A (no-side-effects)
 		}
 		// incr i 256
 		{

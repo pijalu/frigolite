@@ -1,7 +1,12 @@
 {
   "file": "e_createtable.test",
   "name": "e_createtable",
+  "ordered": true,
   "tests": [
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
     {
       "name": "e_createtable-1.0",
       "steps": [
@@ -10,6 +15,30 @@
           "sql": "ATTACH 'test.db2' AS auxa;\n  ATTACH 'test.db3' AS auxb;"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_createtable-1.7.0",
@@ -21,6 +50,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_createtable-1.8.0",
       "steps": [
         {
@@ -30,6 +63,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_createtable-1.10.0",
       "steps": [
         {
@@ -37,6 +74,10 @@
           "sql": "CREATE TABLE t1(x, y);\n  CREATE TABLE auxb.t2(x, y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 1;\n  END;\n  CREATE TRIGGER auxb.tr2 AFTER INSERT ON t2 BEGIN\n    SELECT 1;\n  END;"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_createtable-1.11.0",
@@ -69,7 +110,7 @@
       "name": "e_createtable-1.11.1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "1 {no such table: t1}"
         }
@@ -88,7 +129,7 @@
       "name": "e_createtable-1.11.1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t3",
           "expect": "1 {no such table: t3}"
         }
@@ -130,6 +171,10 @@
           "sql": "SELECT name FROM sqlite_master;\n  SELECT name FROM auxa.sqlite_master;"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_createtable-2.0",
@@ -190,13 +235,105 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_createtable-2.4.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('i',   'one');\n  INSERT INTO t1 VALUES('ii',  'two');\n  INSERT INTO t1 VALUES('iii', 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
         }
       ]
+    },
+    {
+      "name": "e_createtable-2.4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-2.3.1",
+          "expect": "e_createtable-2.3.1"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-2.4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-2.3.1",
+          "expect": "1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY x DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY x DESC"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-2.4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-2.3.1",
+          "expect": "e_createtable-2.3.1"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-2.4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-2.3.1",
+          "expect": "1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY x ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY x ASC"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-2.4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-2.3.1",
+          "expect": "e_createtable-2.3.1"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-2.4.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-2.3.1",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_createtable-3.1.0",
@@ -332,6 +469,54 @@
       ]
     },
     {
+      "name": "e_createtable-3.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-3.9"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-3.10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "e_createtable-3.9",
+          "expect": "1 {too many columns on t10}"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-3.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-3.9"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-3.11.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "e_createtable-3.9",
+          "expect": "1 {too many columns on t11}"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-3.11.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "2",
+          "expect": "1 {too many columns on t11}"
+        }
+      ]
+    },
+    {
       "name": "e_createtable-3.11.4",
       "steps": [
         {
@@ -344,17 +529,21 @@
       "name": "e_createtable-3.11.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t12 VALUES(randomblob(30001),randomblob(30000),randomblob(30000));",
           "expect": "1 {string or blob too big}"
         }
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "4.1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t6(a, b); --ok",
           "expect": "0 {}"
         }
@@ -364,11 +553,15 @@
       "name": "4.1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t7(a, b) WITHOUT ROWID; --Error, no PRIMARY KEY",
           "expect": "1 {PRIMARY KEY missing on table t7}"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "4.3.0",
@@ -393,7 +586,7 @@
       "name": "4.5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t3 VALUES(2, 5, 3);\n  UPDATE t3 SET u = NULL WHERE s = 2;",
           "expect": "1 {datatype mismatch}"
         }
@@ -403,7 +596,7 @@
       "name": "4.5.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t4(s, u INT PRIMARY KEY, v) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(1, NULL, 2);",
           "expect": "1 {NOT NULL constraint failed: t4.u}"
         }
@@ -413,7 +606,7 @@
       "name": "4.5.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t5(s, u INT PRIMARY KEY NOT NULL, v);\n  INSERT INTO t5 VALUES(1, NULL, 2);",
           "expect": "1 {NOT NULL constraint failed: t5.u}"
         }
@@ -423,7 +616,7 @@
       "name": "4.5.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t6(s INT, u INT PRIMARY KEY, v INT) STRICT;\n  INSERT INTO t6 VALUES(1, NULL, 2);",
           "expect": "1 {NOT NULL constraint failed: t6.u}"
         }
@@ -433,11 +626,15 @@
       "name": "4.5.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t7(s INT, u INT PRIMARY KEY NOT NULL, v INT) STRICT;\n  INSERT INTO t7 VALUES(1, NULL, 2);",
           "expect": "1 {NOT NULL constraint failed: t7.u}"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "4.7.0",
@@ -458,13 +655,21 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "4.11",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE x1(a TEXT, b INTEGER CHECK( b>0 ));\n  CREATE TABLE t1(a TEXT, b INTEGER, CHECK( b>0 ));\n  INSERT INTO x1 VALUES('x', 'xx');\n  INSERT INTO x1 VALUES('y', 'yy');\n  INSERT INTO t1 SELECT * FROM x1;\n\n  CREATE TABLE x2(a CHECK( a||b ), b);\n  CREATE TABLE t2(a, b, CHECK( a||b ));\n  INSERT INTO x2 VALUES(1, 'xx');\n  INSERT INTO x2 VALUES(1, 'yy');\n  INSERT INTO t2 SELECT * FROM x2;"
+          "sql": "CREATE TABLE x1(a TEXT, b INTEGER CHECK( b\u003e0 ));\n  CREATE TABLE t1(a TEXT, b INTEGER, CHECK( b\u003e0 ));\n  INSERT INTO x1 VALUES('x', 'xx');\n  INSERT INTO x1 VALUES('y', 'yy');\n  INSERT INTO t1 SELECT * FROM x1;\n\n  CREATE TABLE x2(a CHECK( a||b ), b);\n  CREATE TABLE t2(a, b, CHECK( a||b ));\n  INSERT INTO x2 VALUES(1, 'xx');\n  INSERT INTO x2 VALUES(1, 'yy');\n  INSERT INTO t2 SELECT * FROM x2;"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "4.14.0",
@@ -476,11 +681,613 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "4.15.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1_ab(a PRIMARY KEY ON CONFLICT ABORT, b);\n  CREATE TABLE t1_ro(a PRIMARY KEY ON CONFLICT ROLLBACK, b);\n  CREATE TABLE t1_ig(a PRIMARY KEY ON CONFLICT IGNORE, b);\n  CREATE TABLE t1_fa(a PRIMARY KEY ON CONFLICT FAIL, b);\n  CREATE TABLE t1_re(a PRIMARY KEY ON CONFLICT REPLACE, b);\n  CREATE TABLE t1_xx(a PRIMARY KEY, b);\n\n  INSERT INTO t1_ab VALUES(1, 'one');\n  INSERT INTO t1_ab VALUES(2, 'two');\n  INSERT INTO t1_ro SELECT * FROM t1_ab;\n  INSERT INTO t1_ig SELECT * FROM t1_ab;\n  INSERT INTO t1_fa SELECT * FROM t1_ab;\n  INSERT INTO t1_re SELECT * FROM t1_ab;\n  INSERT INTO t1_xx SELECT * FROM t1_ab;\n\n  CREATE TABLE t2_ab(a, b NOT NULL ON CONFLICT ABORT);\n  CREATE TABLE t2_ro(a, b NOT NULL ON CONFLICT ROLLBACK);\n  CREATE TABLE t2_ig(a, b NOT NULL ON CONFLICT IGNORE);\n  CREATE TABLE t2_fa(a, b NOT NULL ON CONFLICT FAIL);\n  CREATE TABLE t2_re(a, b NOT NULL ON CONFLICT REPLACE);\n  CREATE TABLE t2_xx(a, b NOT NULL);\n\n  INSERT INTO t2_ab VALUES(1, 'one');\n  INSERT INTO t2_ab VALUES(2, 'two');\n  INSERT INTO t2_ro SELECT * FROM t2_ab;\n  INSERT INTO t2_ig SELECT * FROM t2_ab;\n  INSERT INTO t2_fa SELECT * FROM t2_ab;\n  INSERT INTO t2_re SELECT * FROM t2_ab;\n  INSERT INTO t2_xx SELECT * FROM t2_ab;\n\n  CREATE TABLE t3_ab(a, b, UNIQUE(a, b) ON CONFLICT ABORT);\n  CREATE TABLE t3_ro(a, b, UNIQUE(a, b) ON CONFLICT ROLLBACK);\n  CREATE TABLE t3_ig(a, b, UNIQUE(a, b) ON CONFLICT IGNORE);\n  CREATE TABLE t3_fa(a, b, UNIQUE(a, b) ON CONFLICT FAIL);\n  CREATE TABLE t3_re(a, b, UNIQUE(a, b) ON CONFLICT REPLACE);\n  CREATE TABLE t3_xx(a, b, UNIQUE(a, b));\n\n  INSERT INTO t3_ab VALUES(1, 'one');\n  INSERT INTO t3_ab VALUES(2, 'two');\n  INSERT INTO t3_ro SELECT * FROM t3_ab;\n  INSERT INTO t3_ig SELECT * FROM t3_ab;\n  INSERT INTO t3_fa SELECT * FROM t3_ab;\n  INSERT INTO t3_re SELECT * FROM t3_ab;\n  INSERT INTO t3_xx SELECT * FROM t3_ab;"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.15.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1_ab VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.15.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1_ab SELECT ((a%2)*a+3), 'string' FROM t1_ab;",
+          "expect": "1 {UNIQUE constraint failed: t1_ab.a}"
+        }
+      ]
+    },
+    {
+      "name": "4.15.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1_ab",
+          "expect": "1 one 2 two 3 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.15.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1_ro VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.15.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1_ro SELECT ((a%2)*a+3), 'string' FROM t1_ro;",
+          "expect": "1 {UNIQUE constraint failed: t1_ro.a}"
+        }
+      ]
+    },
+    {
+      "name": "4.15.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1_ro",
+          "expect": "1 one 2 two"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.15.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1_fa VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.15.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1_fa SELECT ((a%2)*a+3), 'string' FROM t1_fa;",
+          "expect": "1 {UNIQUE constraint failed: t1_fa.a}"
+        }
+      ]
+    },
+    {
+      "name": "4.15.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1_fa",
+          "expect": "1 one 2 two 3 three 4 string"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.15.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1_ig VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.15.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1_ig SELECT ((a%2)*a+3), 'string' FROM t1_ig;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.15.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1_ig",
+          "expect": "1 one 2 two 3 three 4 string 6 string"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.15.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1_re VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.15.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1_re SELECT ((a%2)*a+3), 'string' FROM t1_re;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.15.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1_re",
+          "expect": "1 one 2 two 4 string 3 string 6 string"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.15.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1_xx VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.15.6.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1_xx SELECT ((a%2)*a+3), 'string' FROM t1_xx;",
+          "expect": "1 {UNIQUE constraint failed: t1_xx.a}"
+        }
+      ]
+    },
+    {
+      "name": "4.15.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1_xx",
+          "expect": "1 one 2 two 3 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.16.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t2_ab VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.16.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2_ab SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM t2_ab",
+          "expect": "1 {NOT NULL constraint failed: t2_ab.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.16.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2_ab",
+          "expect": "1 one 2 two 3 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.16.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t2_ro VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.16.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2_ro SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM t2_ro",
+          "expect": "1 {NOT NULL constraint failed: t2_ro.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.16.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2_ro",
+          "expect": "1 one 2 two"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.16.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t2_fa VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.16.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2_fa SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM t2_fa",
+          "expect": "1 {NOT NULL constraint failed: t2_fa.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.16.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2_fa",
+          "expect": "1 one 2 two 3 three 4 xx"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.16.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t2_ig VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.16.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2_ig SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM t2_ig",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.16.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2_ig",
+          "expect": "1 one 2 two 3 three 4 xx 6 xx"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.16.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t2_re VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.16.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2_re SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM t2_re",
+          "expect": "1 {NOT NULL constraint failed: t2_re.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.16.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2_re",
+          "expect": "1 one 2 two 3 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.16.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t2_xx VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.16.6.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2_xx SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM t2_xx",
+          "expect": "1 {NOT NULL constraint failed: t2_xx.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.16.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2_xx",
+          "expect": "1 one 2 two 3 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.17.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t3_ab VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.17.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3_ab SELECT ((a%2)*a+3), 'three' FROM t3_ab",
+          "expect": "1 {UNIQUE constraint failed: t3_ab.a, t3_ab.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.17.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3_ab ORDER BY rowid",
+          "expect": "1 one 2 two 3 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.17.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t3_ro VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.17.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3_ro SELECT ((a%2)*a+3), 'three' FROM t3_ro",
+          "expect": "1 {UNIQUE constraint failed: t3_ro.a, t3_ro.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.17.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3_ro ORDER BY rowid",
+          "expect": "1 one 2 two"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.17.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t3_fa VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.17.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3_fa SELECT ((a%2)*a+3), 'three' FROM t3_fa",
+          "expect": "1 {UNIQUE constraint failed: t3_fa.a, t3_fa.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.17.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3_fa ORDER BY rowid",
+          "expect": "1 one 2 two 3 three 4 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.17.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t3_ig VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.17.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3_ig SELECT ((a%2)*a+3), 'three' FROM t3_ig",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.17.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3_ig ORDER BY rowid",
+          "expect": "1 one 2 two 3 three 4 three 6 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.17.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t3_re VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.17.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3_re SELECT ((a%2)*a+3), 'three' FROM t3_re",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.17.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3_re ORDER BY rowid",
+          "expect": "1 one 2 two 4 three 3 three 6 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "4.17.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t3_xx VALUES(3, 'three')"
+        }
+      ]
+    },
+    {
+      "name": "4.17.6.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3_xx SELECT ((a%2)*a+3), 'three' FROM t3_xx",
+          "expect": "1 {UNIQUE constraint failed: t3_xx.a, t3_xx.b}"
+        }
+      ]
+    },
+    {
+      "name": "4.17.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3_xx ORDER BY rowid",
+          "expect": "1 one 2 two 3 three"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
         }
       ]
     },
@@ -506,7 +1313,7 @@
       "name": "4.18.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 SELECT a+4, b+4 FROM t4",
           "expect": "1 {CHECK constraint failed: b!=10}"
         }
@@ -535,7 +1342,7 @@
       "name": "4.19.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t5 VALUES(NULL, 'not null')",
           "expect": "0 {}"
         }
@@ -554,8 +1361,9 @@
       "name": "4.19.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t5 VALUES('not null', NULL)"
+          "type": "catch",
+          "sql": "INSERT INTO t5 VALUES('not null', NULL)",
+          "expect": "1 {NOT NULL constraint failed: t5.b}"
         }
       ]
     },
@@ -567,6 +1375,10 @@
           "sql": "SELECT * FROM t5"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "5.1.0",
@@ -596,6 +1408,46 @@
       ]
     },
     {
+      "name": "e_createtable-5.4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-5.3",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-5.4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-5.3",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-5.4.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-5.3",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-5.4.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "e_createtable-5.3",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "5.4.3",
       "steps": [
         {
@@ -609,7 +1461,7 @@
       "name": "5.4.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t6 VALUES(2)",
           "expect": "1 {UNIQUE constraint failed: t6.pk}"
         }
@@ -619,7 +1471,7 @@
       "name": "5.4.4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t7 VALUES(2)",
           "expect": "1 {UNIQUE constraint failed: t7.pk}"
         }
@@ -629,7 +1481,7 @@
       "name": "5.4.4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t8 VALUES(2)",
           "expect": "1 {UNIQUE constraint failed: t8.pk}"
         }
@@ -639,7 +1491,7 @@
       "name": "5.4.4.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t9 VALUES(2)",
           "expect": "1 {UNIQUE constraint failed: t9.pk}"
         }
@@ -653,6 +1505,10 @@
           "sql": "CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES('ten', 10);\n\n  CREATE TABLE t11(a, b INTEGER PRIMARY KEY);\n  INSERT INTO t11 VALUES('ten', 10);"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "5.9.0",
@@ -678,49 +1534,8 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t12"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x PRIMARY KEY)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x PRIMARY KEY)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a, b, c)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x PRIMARY KEY, y)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(i, j, UNIQUE(i, j) )"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t10"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t11"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t12"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma database_list"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

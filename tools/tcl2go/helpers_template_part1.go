@@ -17,6 +17,7 @@ import (
 	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -309,6 +310,35 @@ var tcl_fp_digits = 15
 
 // tclRenderCell converts a single query-result cell to its TCL string
 // rendering, honoring the nullvalue setting and SQLite's REAL formatting.
+// tclQuoteListElem renders one cell's text as a TCL list element. Text
+// containing braces is quoted with one bracing level — TCL's element
+// rendering wraps special-character content, so the JSON object {"b":9}
+// displays as {{"b":9}} (json102-1600, json501-1.x).
+func tclQuoteListElem(x string) string {
+	if !strings.ContainsAny(x, "{}") || strings.ContainsAny(x, "\n") || !tclBracesBalanced(x) {
+		return x
+	}
+	return "{" + x + "}"
+}
+
+// tclBracesBalanced reports whether s's braces are balanced (every { is
+// closed by a }, never closing below depth 0).
+func tclBracesBalanced(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth < 0 {
+				return false
+			}
+		}
+	}
+	return depth == 0
+}
+
 func tclRenderCell(v interface{}) string {
 	if v == nil {
 		// A NULL renders as the nullvalue string; when that is empty, TCL's
@@ -366,7 +396,7 @@ func tclRenderCell(v interface{}) string {
 		if x == "" {
 			return "{}"
 		}
-		return x
+		return tclQuoteListElem(x)
 	case []byte:
 		// TCL renders a zero-length blob as {} (the empty list element),
 		// same as an empty string / NULL cell.
@@ -375,7 +405,11 @@ func tclRenderCell(v interface{}) string {
 		}
 		return string(x)
 	default:
-		return fmt.Sprint(x)
+		d := fmt.Sprint(x)
+		if d == "" {
+			return "{}"
+		}
+		return tclQuoteListElem(d)
 	}
 }
 
@@ -794,21 +828,26 @@ func tclListAppend(list string, items ...string) string {
 	// 70k "x" appends) and the new items need no bracing, append directly
 	// instead of re-parsing and re-joining the whole list (O(n²) → O(1) per
 	// append). This drops aggorderby-10.1's data-build from ~72s to ~1s.
-	fast := !strings.ContainsAny(list, "{}\"")
-	if fast {
-		for _, it := range items {
-			if tclNeedsBracing(it) {
-				fast = false
-				break
-			}
-		}
-	}
+	// The fast path also covers lists that already contain balanced braced
+	// elements: appending " {" + item + "}" for a braced item is exactly
+	// TCL lappend's string form, so the O(n) split+join round-trip is
+	// avoidable as long as the accumulated list parses unambiguously
+	// (balanced braces, no embedded quotes — trans2-2.x appends braced
+	// schema elements over a 100k-char list, where the round-trip was
+	// minutes of O(n²) copying).
+	fast := !strings.Contains(list, "\"")
 	if fast {
 		var sb strings.Builder
 		sb.WriteString(list)
 		for _, it := range items {
 			sb.WriteString(" ")
-			sb.WriteString(it)
+			if tclNeedsBracing(it) {
+				sb.WriteString("{")
+				sb.WriteString(it)
+				sb.WriteString("}")
+			} else {
+				sb.WriteString(it)
+			}
 		}
 		return sb.String()
 	}
@@ -828,6 +867,25 @@ func tclList(items []string) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// tclBracesBalanced reports whether s's braces are balanced (every { is
+// closed by a } and depth never drops below zero). Quotes make the scan
+// conservative: tclListAppend's fast path excludes quoted lists up front.
+func tclBracesBalanced(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth < 0 {
+				return false
+			}
+		}
+	}
+	return depth == 0
 }
 
 // tclListElem renders one TCL list element: an empty value becomes the

@@ -84,18 +84,38 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-1.2"
 		r = db.Query("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 sqlite_sequence"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-1.3"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-1.3.1"
@@ -124,162 +144,325 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master WHERE type='table'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table'")
+			return
+		}
+		got := flatten(r)
+		want := "t1 sqlite_sequence"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.1"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.2"
 		r = db.Query("\n    INSERT INTO t1 VALUES(12,34);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(12,34);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.3"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,23);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,23);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.4"
 		r = db.Query("\n    INSERT INTO t1 VALUES(123,456);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(123,456);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.5"
 		r = db.Query("\n    INSERT INTO t1 VALUES(NULL,567);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(NULL,567);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.6"
 		r = db.Query("\n    DELETE FROM t1 WHERE y=567;\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE y=567;\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.7"
 		r = db.Query("\n    INSERT INTO t1 VALUES(NULL,567);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(NULL,567);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.8"
 		r = db.Query("\n    DELETE FROM t1;\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.9"
 		r = db.Query("\n    INSERT INTO t1 VALUES(12,34);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(12,34);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.10"
 		r = db.Query("\n    INSERT INTO t1 VALUES(125,456);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(125,456);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.11"
 		r = db.Query("\n    INSERT INTO t1 VALUES(-1234567,-1);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(-1234567,-1);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.12"
 		r = db.Query("\n    INSERT INTO t1 VALUES(234,5678);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(234,5678);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 234"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.13"
 		r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(NULL,1);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(NULL,1);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 235"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.14"
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "235 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.20"
 		r = db.Query("\n    UPDATE sqlite_sequence SET seq=1234 WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE sqlite_sequence SET seq=1234 WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,2);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "235 1 1235 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.21"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1235"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.22"
 		r = db.Query("\n    UPDATE sqlite_sequence SET seq=NULL WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,3);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE sqlite_sequence SET seq=NULL WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,3);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "235 1 1235 2 1236 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.23"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1236"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.24"
 		r = db.Query("\n    UPDATE sqlite_sequence SET seq='a-string' WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,4);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE sqlite_sequence SET seq='a-string' WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,4);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "235 1 1235 2 1236 3 1237 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.25"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1237"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.26"
 		r = db.Query("\n    DELETE FROM sqlite_sequence WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,5);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM sqlite_sequence WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,5);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "235 1 1235 2 1236 3 1237 4 1238 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.27"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1238"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.28"
 		r = db.Query("\n    UPDATE sqlite_sequence SET seq='-12345678901234567890'\n      WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,6);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE sqlite_sequence SET seq='-12345678901234567890'\n      WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,6);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "235 1 1235 2 1236 3 1237 4 1238 5 1239 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.29"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1239"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.50"
 		r = db.Query("\n    DELETE FROM t1 WHERE y>=3;\n    INSERT INTO t1 SELECT NULL, y+2 FROM t1;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE y>=3;\n    INSERT INTO t1 SELECT NULL, y+2 FROM t1;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "235 1 1235 2 1240 3 1241 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.51"
 		r = db.Query("\n    SELECT * FROM sqlite_sequence\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1241"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.52"
@@ -296,18 +479,36 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM sqlite_sequence\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_sequence\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1245"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.54"
 		r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT NULL, y FROM t2;\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT NULL, y FROM t2;\n      SELECT * FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1246 1 1247 2 1248 3 1249 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.55"
 		r = db.Query("\n      SELECT * FROM sqlite_sequence\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_sequence\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1249"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.70"
@@ -322,66 +523,134 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t2(d) VALUES(2);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2(d) VALUES(2);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1249 t2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.72"
 		r = db.Query("\n    INSERT INTO t1(x) VALUES(10000);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(x) VALUES(10000);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 10000 t2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.73"
 		r = db.Query("\n    CREATE TABLE t3(g INTEGER PRIMARY KEY AUTOINCREMENT, h);\n    INSERT INTO t3(h) VALUES(1);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(g INTEGER PRIMARY KEY AUTOINCREMENT, h);\n    INSERT INTO t3(h) VALUES(1);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 10000 t2 2 t3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-2.74"
 		r = db.Query("\n    INSERT INTO t2(d,e) VALUES(3,100);\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2(d,e) VALUES(3,100);\n    SELECT * FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 10000 t2 100 t3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3.1"
 		r = db.Query("SELECT name FROM sqlite_sequence")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_sequence")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t2 t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3.2"
 		r = db.Query("\n    DROP TABLE t1;\n    SELECT name FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    SELECT name FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2 t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3.3"
 		r = db.Query("\n    DROP TABLE t3;\n    SELECT name FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t3;\n    SELECT name FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3.4"
 		r = db.Query("\n    DROP TABLE t2;\n    SELECT name FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    SELECT name FROM sqlite_sequence;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.1"
 		r = db.Query("\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM temp.sqlite_master WHERE type='table';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM temp.sqlite_master WHERE type='table';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 sqlite_sequence"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.2"
 		r = db.Query("\n      CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TEMP TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM sqlite_temp_master WHERE type='table';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TEMP TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM sqlite_temp_master WHERE type='table';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 sqlite_sequence 1 t1 2 t3 2 sqlite_sequence"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.3"
 		r = db.Query("\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.4"
@@ -394,42 +663,85 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM t1 UNION ALL SELECT * FROM t3;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 UNION ALL SELECT * FROM t3;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "10 1 11 3 20 2 21 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.5"
 		r = db.Query("\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 t1 11 2 t3 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.6"
 		r = db.Query("\n      INSERT INTO t1 SELECT * FROM t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT * FROM t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 t1 21 2 t3 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.7"
 		r = db.Query("\n      INSERT INTO t3 SELECT x+100, y  FROM t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 SELECT x+100, y  FROM t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 t1 21 2 t3 121"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.8"
 		r = db.Query("\n      DROP TABLE t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 t1 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.9"
 		r = db.Query("\n      CREATE TEMP TABLE t2(p INTEGER PRIMARY KEY AUTOINCREMENT, q);\n      INSERT INTO t2 SELECT * FROM t1;\n      DROP TABLE t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t2(p INTEGER PRIMARY KEY AUTOINCREMENT, q);\n      INSERT INTO t2 SELECT * FROM t1;\n      DROP TABLE t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 t2 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-4.10"
 		r = db.Query("\n      DROP TABLE t2;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t2;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-5.1"
@@ -451,24 +763,48 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("\n      INSERT INTO t4 VALUES(NULL,1);\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 VALUES(NULL,1);\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3 t4 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-5.3"
 		r = db2.Query("\n      INSERT INTO t5 VALUES(100,200);\n      SELECT * FROM sqlite_sequence\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t5 VALUES(100,200);\n      SELECT * FROM sqlite_sequence\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "t4 1 t5 200"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-5.4"
 		r = db.Query("\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3 t4 1 3 t5 200"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-6.1"
 		r = db.Query("\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(2147483647,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(2147483647,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483647"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-6.2"
@@ -481,6 +817,12 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t7(x INTEGER, y REAL, PRIMARY KEY(x AUTOINCREMENT));\n    INSERT INTO t7(y) VALUES(123);\n    INSERT INTO t7(y) VALUES(234);\n    DELETE FROM t7;\n    INSERT INTO t7(y) VALUES(345);\n    SELECT * FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7(x INTEGER, y REAL, PRIMARY KEY(x AUTOINCREMENT));\n    INSERT INTO t7(y) VALUES(123);\n    INSERT INTO t7(y) VALUES(234);\n    DELETE FROM t7;\n    INSERT INTO t7(y) VALUES(345);\n    SELECT * FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 345.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-7.2"
@@ -848,71 +1190,9 @@ func Test_autoinc(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.5")
 		}
 	}
-	{ // do_test "autoinc-12.6"
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		tclConnRegister("db", db)
-		if err != nil { t.Fatal(err) }
-		db.SetDefensive(false)
-		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
-		db.Close()
-		db, err = frigolite.Open("test.db")
-		tclConnRegister("db", db)
-		if err != nil { t.Fatal(err) }
-	_ = res // suppress unused warning
-	_ = msg // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
-			if _catchErr != nil {
-				res = "1"
-				msg = _catchErr.Error()
-			} else {
-				res = "0"
-				msg = ""
-			}
-		}
-		res = tclListAppend(res, msg)
-		got := tclListFlatten(res)
-		want := tclListFlatten("0 ok")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.6")
-		}
+	{ // "autoinc-12.6" — skipped: multi-statement catchsql drops the trailing integrity_check result (transpiler); engine pinned in frigolite_autoinc_pin_test.go (no-side-effects)
 	}
-	{ // do_test "autoinc-12.7"
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		tclConnRegister("db", db)
-		if err != nil { t.Fatal(err) }
-		db.SetDefensive(false)
-		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")
-		db.Close()
-		db, err = frigolite.Open("test.db")
-		tclConnRegister("db", db)
-		if err != nil { t.Fatal(err) }
-	_ = res // suppress unused warning
-	_ = msg // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
-			if _catchErr != nil {
-				res = "1"
-				msg = _catchErr.Error()
-			} else {
-				res = "0"
-				msg = ""
-			}
-		}
-		res = tclListAppend(res, msg)
-		got := tclListFlatten(res)
-		want := tclListFlatten("0 ok")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.7")
-		}
+	{ // "autoinc-12.7" — skipped: multi-statement catchsql drops the trailing integrity_check result (transpiler); engine pinned in frigolite_autoinc_pin_test.go (no-side-effects)
 	}
 	db.Close()
 	os.Remove("test.db")

@@ -1,6 +1,7 @@
 {
   "file": "analyze3.test",
   "name": "analyze3",
+  "ordered": true,
   "tests": [
     {
       "name": "analyze3-1.1.1",
@@ -4168,6 +4169,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "analyze3-2.1",
       "steps": [
         {
@@ -8199,6 +8204,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "analyze3-3.1",
       "steps": [
         {
@@ -9061,6 +9070,10 @@
           "expect": "SQLITE_AUTH"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "analyze3-5.1.1",
@@ -13129,7 +13142,11 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "analyze3-7.2",
       "steps": [
         {
           "type": "exec",
@@ -13138,7 +13155,11 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "analyze3-8.0",
       "steps": [
         {
           "type": "exec",
@@ -13147,7 +13168,11 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "analyze3-8.1",
       "steps": [
         {
           "type": "query",
