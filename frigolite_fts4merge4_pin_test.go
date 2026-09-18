@@ -141,3 +141,136 @@ func TestFTS4Merge4SmallScaleCheckpoints(t *testing.T) {
 		}
 	}
 }
+
+// merge4Doc10k builds the fts4merge4 grid document: 1000 distinct 3-character
+// words (c1c2c3 over a..j) joined by spaces, repeated 10 times.
+func merge4Doc10k() string {
+	words := make([]string, 0, 1000)
+	for _, a := range "abcdefghij" {
+		for _, b := range "abcdefghij" {
+			for _, c := range "abcdefghij" {
+				words = append(words, string([]rune{a, b, c}))
+			}
+		}
+	}
+	doc := strings.Repeat(strings.Join(words, " ")+" ", 10)
+	return strings.TrimSuffix(doc, " ")
+}
+
+// merge4Grind runs n transactions of BEGIN + five 10KB documents + COMMIT.
+func merge4Grind(t *testing.T, db *DB, doc string, n int) {
+	t.Helper()
+	for i := 1; i <= n; i++ {
+		sql := "BEGIN;"
+		for j := 0; j < 5; j++ {
+			sql += "INSERT INTO t2 VALUES('" + doc + "');"
+		}
+		sql += "COMMIT;"
+		checkExecOK(t, db.Exec(sql))
+	}
+}
+
+// TestFTS4Merge4AutomergePersistsAcrossReopen pins the fts4merge4 2.2
+// openclose contract (T27-ftsflush): the automerge setting is PERSISTED in
+// the %_stat id=2 row (fts3_write.c fts3DoAutoincrmerge's SQL_REPLACE_STAT)
+// and a REOPENED connection restores it at flush time when its in-memory
+// setting is still unknown (sqlite3Fts3PendingTermsFlush's
+// p->nAutoincrmerge==0xff restore). Before the fix the reopened flow lost
+// automerge and converged by crisis-merge alone ("0:4 1:6" — no level-2
+// output, which only the automerge produces at this scale).
+//
+// Oracle checkpoints (/Users/muaddib/dev/sqlite sqlite3 CLI, page_size 1024,
+// identical two-flow script, per-tx diff): flow tx20 "1:3 2:1" and flow2
+// tx20 "1:3 2:1" — byte-identical across the reopen.
+func TestFTS4Merge4AutomergePersistsAcrossReopen(t *testing.T) {
+	if testing.Short() {
+		t.Skip("slow automerge grind")
+	}
+	path := t.TempDir() + "/merge4reopen.db"
+	db, err := Open(path)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING fts4"))
+	checkExecOK(t, db.Exec("INSERT INTO t2(t2) VALUES('automerge=2')"))
+	// The setting persists as the %_stat id=2 INTEGER row (normalized value).
+	res := db.Query("SELECT value FROM t2_stat WHERE id=2")
+	if res.Error != nil {
+		t.Fatalf("query t2_stat: %v", res.Error)
+	}
+	if len(res.Rows) != 1 || res.Rows[0][0] != int64(2) {
+		t.Fatalf("%%_stat id=2 automerge row: got %v, want [2]", res.Rows)
+	}
+
+	doc := merge4Doc10k()
+	merge4Grind(t, db, doc, 20)
+	if got := merge4SegdirLevels(t, db, "t2"); got != "1:3 2:1" {
+		t.Fatalf("flow1 tx20 level distribution: got %q, want %q", got, "1:3 2:1")
+	}
+	// DELETE-all wipes the index (SQLite's fts3DeleteAll clears the shadow
+	// tables including %_stat) and the next grid iteration re-arms automerge.
+	checkExecOK(t, db.Exec("DELETE FROM t2"))
+	checkExecOK(t, db.Exec("INSERT INTO t2(t2) VALUES('automerge=2')"))
+	// The REOPEN: the fresh connection's in-memory automerge state is gone;
+	// the flush must restore it from the persisted %_stat id=2 row.
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+	db, err = Open(path)
+	if err != nil {
+		t.Fatalf("reopen: %v", err)
+	}
+	defer db.Close()
+	merge4Grind(t, db, doc, 20)
+	if got := merge4SegdirLevels(t, db, "t2"); got != "1:3 2:1" {
+		t.Fatalf("reopened flow tx20 level distribution: got %q, want %q (automerge lost across reopen?)", got, "1:3 2:1")
+	}
+}
+
+// TestFTS4OnePassInTxUpdateRestartFlush pins the fts4onepass-4.0 contract
+// (T27-ftsflush): an UPDATE of a row whose docid equals the previous
+// operation's docid restarts the pending sequence, so the pending batch
+// flushes BEFORE the new terms pend (fts3_write.c fts3PendingTermsDocid:
+// iDocid==iPrevDocid && bPrevDelete==0). Oracle per-statement segdir counts
+// (testfixture, page_size 1024): insert1=1, insert2=1 (all-NULL document —
+// empty pending flushes nothing), update1=1, update2=2, commit=3.
+func TestFTS4OnePassInTxUpdateRestartFlush(t *testing.T) {
+	db, err := Open(t.TempDir() + "/onepass.db")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer db.Close()
+	segdir := func() int {
+		t.Helper()
+		res := db.Query("SELECT count(*) FROM zt_segdir")
+		if res.Error != nil {
+			t.Fatalf("query segdir: %v", res.Error)
+		}
+		return int(res.Rows[0][0].(int64))
+	}
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE zt USING fts4(a, b)"))
+	checkExecOK(t, db.Exec("INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL)"))
+	if got := segdir(); got != 1 {
+		t.Fatalf("after insert1: segdir=%d, want 1", got)
+	}
+	checkExecOK(t, db.Exec("INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL)"))
+	if got := segdir(); got != 1 {
+		t.Fatalf("after insert2 (all-NULL doc flushes no segment): segdir=%d, want 1", got)
+	}
+	checkExecOK(t, db.Exec("BEGIN"))
+	checkExecOK(t, db.Exec("UPDATE zt SET b='septum' WHERE rowid = 1"))
+	if got := segdir(); got != 1 {
+		t.Fatalf("after update1: segdir=%d, want 1", got)
+	}
+	// The second UPDATE's xUpdate DELETE phase sees iDocid==iPrevDocid with
+	// bPrevDelete==0: the restart flush lands update1's terms as their own
+	// level-0 segment before update2's terms pend.
+	checkExecOK(t, db.Exec("UPDATE zt SET b='octo' WHERE rowid = 1"))
+	if got := segdir(); got != 2 {
+		t.Fatalf("after update2 (docid-restart flush): segdir=%d, want 2", got)
+	}
+	checkExecOK(t, db.Exec("COMMIT"))
+	if got := segdir(); got != 3 {
+		t.Fatalf("after commit: segdir=%d, want 3", got)
+	}
+}
