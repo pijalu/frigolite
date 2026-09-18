@@ -9,4 +9,4 @@ import (
 )
 
 func Test_fts3atoken2(t *testing.T) {}
-// skipped: FTS3/4/5 beyond basic module N-A
+// skipped: fts3_tokenizer() two-arg tokenizer registry (C function-pointer blob + probe tokenizers) N-A C-extension seam; built-in tokenizers covered by P6.FTS-C

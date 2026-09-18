@@ -9,4 +9,4 @@ import (
 )
 
 func Test_fts3aux1(t *testing.T) {}
-// skipped: FTS3/4/5 beyond basic module N-A
+// skipped: fts4aux virtual table is a NoopModule stub (internal/vtab/vtab.go); the %_stat vocabulary contract is not implemented

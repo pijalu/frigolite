@@ -9,4 +9,4 @@ import (
 )
 
 func Test_e_vacuum(t *testing.T) {}
-// skipped: VACUUM / file-size harness N-A (P1.E-SQL deep gap)
+// skipped: VACUUM aux (attached-db vacuum) unimplemented ('unknown database aux') - the 2.x/3.x sections chain through it (downstream row-set divergence); 1.1.x.5 error-text checks are VACUUM failure-path specifics (T27 regen+run)

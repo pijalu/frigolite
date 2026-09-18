@@ -9,4 +9,4 @@ import (
 )
 
 func Test_alter2(t *testing.T) {}
-// skipped: legacy file-format short-row tests (hexio helpers) not implemented
+// skipped: legacy file-format short-row semantics require the hexio file-format-byte patch (byte 44) + PRAGMA writable_schema sqlite_master surgery + sqlite3_db_config DEFENSIVE seam (T27 regen+run: 2/46 assertions fail on the untranspiled fixture machinery)

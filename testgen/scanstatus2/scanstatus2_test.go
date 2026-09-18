@@ -5,8 +5,250 @@
 package scanstatus2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_scanstatus2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_scanstatus2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var nCycle string
+	_ = nCycle // pre-declared from TCL source
+	var graph string
+	_ = graph // pre-declared from TCL source
+	var trace_explain string
+	_ = trace_explain // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var v2 string
+	_ = v2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var debug string
+	_ = debug // pre-declared from TCL source
+	var body string
+	_ = body // pre-declared from TCL source
+	var A_iParentId string
+	_ = A_iParentId // pre-declared from TCL source
+	var iPar string
+	_ = iPar // pre-declared from TCL source
+	var A_zExplain string
+	_ = A_zExplain // pre-declared from TCL source
+	var A_nCycle string
+	_ = A_nCycle // pre-declared from TCL source
+	var nIndent string
+	_ = nIndent // pre-declared from TCL source
+	var A_iSelectId string
+	_ = A_iSelectId // pre-declared from TCL source
+	var X_debug_explain string
+	_ = X_debug_explain // pre-declared from TCL source
+	var X_zExplain string
+	_ = X_zExplain // pre-declared from TCL source
+	var X_debug_loop string
+	_ = X_debug_loop // pre-declared from TCL source
+	var X_debug_visit string
+	_ = X_debug_visit // pre-declared from TCL source
+	var X_debug_csr string
+	_ = X_debug_csr // pre-declared from TCL source
+	var X_debug_range string
+	_ = X_debug_range // pre-declared from TCL source
+	AMap := map[string]string{}
+	_ = AMap // dynamic-key array from TCL source
+	_varMap := map[string]string{}
+	_ = _varMap // dynamic-key array from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "scanstatus2")
+	testprefix = "scanstatus2"
+	_ = testprefix // suppress unused warning
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
+	{ // "1.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');\n")
+		}
+	}
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// do_zexplain_test 0 1.1 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WH...} {\n  {SCAN t2}\n  ... (unsupported command, not transpiled)
+	// do_zexplain_test 1 1.2 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WH...} {\n  {SCAN t2}\n  ... (unsupported command, not transpiled)
+	// do_graph_test 1.3 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WH...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	// do_graph_test 1.4 {\n  WITH v2(x,y) AS MATERIALIZED (\n    SELECT x,y...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
+	{ // "2.0"
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');\n  ")
+		}
+	}
+	// do_graph_test 2.1 {\n    SELECT * FROM ft('def')\n  } {\nQUERY (nCycle=nnn)\n--SCAN ft VIRTUAL... (unsupported command, not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
+	{ // "3.0"
+		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
+		}
+	}
+	// do_graph_test 2.1 {\n  SELECT * FROM x1, x2 WHERE c=+a;\n} {\nQUERY (nCycle=nnn)\n--SCAN x1 (n... (unsupported command, not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
+	{ // "4.0"
+		_res = db.Exec("\n  CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);\n")
+		}
+	}
+	// do_graph_test 4.1 {\n  SELECT * FROM rt1, rt2 WHERE rt1.id%2 AND rt2....} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	// do_graph_test 4.2 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	// do_graph_test 4.3 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	// do_graph_test 4.4 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	// do_graph_test 4.5 {\n  SELECT v1.cnt FROM rt1, (\n    SELECT count(*)...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "5.0"
+		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      SELECT 1;\n    END;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(x, y);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      SELECT 1;\n    END;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		}
+	}
+	// proc definition (not transpiled)
+	tclTraceNameSet(db, "trace_v2", "trace")
+	// db.trace_v2 trace (proc body not recognized, not transpiled)
+	vtab.TclVarSet("trace_explain", "", "")
+	trace_explain = "" // TCL namespace variable
+	_ = trace_explain // suppress unused warning
+	{ // "5.1"
+		_res = db.Exec("\n    DELETE FROM t1 WHERE x=1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1 WHERE x=1;\n  ")
+		}
+	}
+	{ // "scanstatus2-5.2" — skipped: trace_v2 proc introspects sqlite3_stmt_scanstatus -flags complex per stmt handle (C-API seam) to build 'SCAN t1' explains
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
+	{ // "6.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');\n")
+		}
+	}
+	// do_graph_test 6.1 {\n  SELECT (a % 2), group_concat(b) FROM t1 GROUP ...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	vtab.TclVarSet("sql", "", "\n  WITH xy(x, y) AS ( SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1)\n  SELECT * FROM xy WHERE x=1\n")
+	sql = "\n  WITH xy(x, y) AS ( SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1)\n  SELECT * FROM xy WHERE x=1\n"
+	_ = sql // suppress unused warning
+	// do_graph_test 6.2 $sql {\nQUERY (nCycle=nnn)\n--CO-ROUTINE xy\n----SCAN t1...} (unsupported command, not transpiled)
+	// do_graph_test 6.3 {\n  WITH xy(x, y) AS ( SELECT (a % 2), group_conca...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // do_test "7.0"
+		_res = db.Exec("SELECT * FROM sqlite_schema")
+		stmt = tclDbOne(db, "db version -last-stmt-ptr")
+		_ = stmt // suppress unused warning
+		// sqlite3_stmt_scanstatus -flags complex $stmt 1000000 (unsupported command, not transpiled)
+	}
+}

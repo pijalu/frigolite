@@ -9,4 +9,4 @@ import (
 )
 
 func Test_join9(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: outer-join column synthesis: unmatched rows of the outer join fill right-side key columns with the left row's value (6 6 -) where C emits NULL (6 - -) - 11/30 assertions (engine outer-join NULL-fill gap, T27 regen+run)

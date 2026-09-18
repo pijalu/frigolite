@@ -5,8 +5,143 @@
 package zerodamage
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_zerodamage(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_zerodamage(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var max_journal_size string
+	_ = max_journal_size // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "zerodamage")
+	testprefix = "zerodamage"
+	_ = testprefix // suppress unused warning
+	{ // do_test "zerodamage-1.0"
+		// file_control_powersafe_overwrite db -1 (unsupported command, not transpiled)
+	}
+	{ // do_test "zerodamage-1.1"
+		// file_control_powersafe_overwrite db 0 (unsupported command, not transpiled)
+		// file_control_powersafe_overwrite db -1 (unsupported command, not transpiled)
+	}
+	{ // do_test "zerodamage-1.2"
+		// file_control_powersafe_overwrite db 1 (unsupported command, not transpiled)
+		// file_control_powersafe_overwrite db -1 (unsupported command, not transpiled)
+	}
+	{ // "zerodamage-2.0" (prepare-step internals; SQL side effects only)
+		db.Close()
+		// testvfs tv -default 1 (unsupported command, not transpiled)
+		// tv sectorsize 8192 (unsupported command, not transpiled)
+		db, err = frigolite.Open("file:test.db?psow=TRUE")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		vtab.TclVarSet("max_journal_size", "", "0")
+		max_journal_size = "0" // TCL namespace variable
+		_ = max_journal_size // suppress unused warning
+		// proc definition (not transpiled)
+		// tv filter xDelete (unsupported command, not transpiled)
+		// tv script xDeleteCallback (unsupported command, not transpiled)
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
+		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;\n  ")
+		vtab.TclVarSet("max_journal_size", "", "0")
+		max_journal_size = "0" // TCL namespace variable
+		_ = max_journal_size // suppress unused warning
+		_res = db.Exec("\n    UPDATE t1 SET y=randomblob(50) WHERE x=123;\n  ")
+		_r_tcl := append([]string{}, tclSplitList("file_control_powersafe_overwrite db -1")...)
+		_r_tcl = append(_r_tcl, tclSplitList(max_journal_size)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
+	}
+	{ // do_test "zerodamage-2.1"
+		vtab.TclVarSet("max_journal_size", "", "0")
+		max_journal_size = "0" // TCL namespace variable
+		_ = max_journal_size // suppress unused warning
+		db.Close()
+		db, err = frigolite.Open("file:test.db?psow=FALSE")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    UPDATE t1 SET y=randomblob(50) WHERE x=124;\n  ")
+		_r_tcl := append([]string{}, tclSplitList("file_control_powersafe_overwrite db -1")...)
+		_r_tcl = append(_r_tcl, tclSplitList(max_journal_size)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
+	}
+	if tclBool("wal_is_capable") {
+		{ // do_test "zerodamage-3.0"
+			_res = db.Exec("\n       PRAGMA journal_mode=WAL;\n    ")
+			db.Close()
+			db, err = frigolite.Open("file:test.db?psow=TRUE")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;\n    ")
+			_r = strconv.Itoa(tclFileSize("test.db-wal"))
+			if _r != "1080" {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "1080", "zerodamage-3.0")
+			}
+		}
+		{ // do_test "zerodamage-3.1"
+			db.Close()
+			db, err = frigolite.Open("file:test.db?psow=FALSE")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n       PRAGMA synchronous=FULL;\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;\n    ")
+			_r = strconv.Itoa(tclFileSize("test.db-wal"))
+			if _r != "16800" {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "16800", "zerodamage-3.1")
+			}
+		}
+	}
+}

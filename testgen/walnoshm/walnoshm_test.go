@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walnoshm(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: testvfs -iversion 1 custom VFS (WAL requires locking_mode=EXCLUSIVE without shm) + second-connection lock contracts; testvfs instrumentation untranspilable; WAL itself implemented (P7.WAL-G7)

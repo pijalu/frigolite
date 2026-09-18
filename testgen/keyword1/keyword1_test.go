@@ -5,8 +5,98 @@
 package keyword1
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_keyword1(t *testing.T) {}
-// skipped: bare-keyword-as-identifier parser N-A (keyword1)
+func Test_keyword1(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var kwlist string
+	_ = kwlist // pre-declared from TCL source
+	var exprkw string
+	_ = exprkw // pre-declared from TCL source
+	var kw string
+	_ = kw // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n")
+	vtab.TclVarSet("kwlist", "", "\n  abort\n  after\n  analyze\n  asc\n  attach\n  before\n  begin\n  by\n  cascade\n  cast\n  column\n  conflict\n  current_date\n  current_time\n  current_timestamp\n  database\n  deferred\n  desc\n  detach\n  end\n  each\n  exclusive\n  explain\n  fail\n  for\n  glob\n  if\n  ignore\n  immediate\n  initially\n  instead\n  key\n  like\n  match\n  of\n  offset\n  plan\n  pragma\n  query\n  raise\n  recursive\n  regexp\n  reindex\n  release\n  rename\n  replace\n  restrict\n  rollback\n  row\n  savepoint\n  temp\n  temporary\n  trigger\n  vacuum\n  view\n  virtual\n  with\n  without\n")
+	kwlist = "\n  abort\n  after\n  analyze\n  asc\n  attach\n  before\n  begin\n  by\n  cascade\n  cast\n  column\n  conflict\n  current_date\n  current_time\n  current_timestamp\n  database\n  deferred\n  desc\n  detach\n  end\n  each\n  exclusive\n  explain\n  fail\n  for\n  glob\n  if\n  ignore\n  immediate\n  initially\n  instead\n  key\n  like\n  match\n  of\n  offset\n  plan\n  pragma\n  query\n  raise\n  recursive\n  regexp\n  reindex\n  release\n  rename\n  replace\n  restrict\n  rollback\n  row\n  savepoint\n  temp\n  temporary\n  trigger\n  vacuum\n  view\n  virtual\n  with\n  without\n"
+	_ = kwlist // suppress unused warning
+	vtab.TclVarSet("exprkw", "", "\n  cast\n  current_date\n  current_time\n  current_timestamp\n  raise\n")
+	exprkw = "\n  cast\n  current_date\n  current_time\n  current_timestamp\n  raise\n"
+	_ = exprkw // suppress unused warning
+	for _, kw := range tclSplitList(kwlist) {
+	_ = kw // suppress unused warning
+		{ // do_test "keyword1-" + kw + ".1"
+			if kw == "if" {
+				_res = db.Exec("CREATE TABLE \"" + kw + "\"(" + kw + " " + kw + ")")
+			} else {
+				_res = db.Exec("CREATE TABLE " + kw + "(" + kw + " " + kw + ")")
+			}
+			_res = db.Exec("INSERT INTO " + kw + " VALUES(99)")
+			_res = db.Exec("INSERT INTO " + kw + " SELECT a FROM t1")
+			if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLsearch(exprkw, kw))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n < r_n }() {
+				_res = db.Exec("SELECT * FROM " + kw + " ORDER BY " + kw + " ASC")
+			} else {
+				_res = db.Exec("SELECT * FROM " + kw + " ORDER BY \"" + kw + "\" ASC")
+			}
+		}
+		{ // do_test "keyword1-" + kw + ".2"
+			if kw == "if" {
+				_res = db.Exec("DROP TABLE \"" + kw + "\"")
+				_res = db.Exec("CREATE INDEX \"" + kw + "\" ON t1(a)")
+			} else {
+				_res = db.Exec("DROP TABLE " + kw)
+				_res = db.Exec("CREATE INDEX " + kw + " ON t1(a)")
+			}
+			_res = db.Exec("SELECT b FROM t1 INDEXED BY " + kw + " WHERE a=2")
+		}
+	}
+}

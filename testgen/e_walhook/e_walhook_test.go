@@ -9,4 +9,4 @@ import (
 )
 
 func Test_e_walhook(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: db wal_hook TCL-proc callback (sqlite3_wal_hook seam) untranspilable; hook contract covered natively (internal/pager/wal_test.go TestWalHookFires); WAL itself implemented (P7.WAL-G7)

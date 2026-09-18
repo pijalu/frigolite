@@ -9,4 +9,4 @@ import (
 )
 
 func Test_starschema1(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: EQP join-order: planner lacks star-schema fact-first reordering (C: SCAN t1 outer then 3-4 dimension SEARCHes; engine: SCAN x01 outer) - 8/9 EQP-pattern assertions (planner cost-model gap, T27 regen+run)

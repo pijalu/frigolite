@@ -5,8 +5,114 @@
 package fts3al
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_fts3al(t *testing.T) {}
-// skipped: FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)
+func Test_fts3al(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var word string
+	_ = word // pre-declared from TCL source
+	var phrase1 string
+	_ = phrase1 // pre-declared from TCL source
+	var phrase2 string
+	_ = phrase2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "fts3al-1.1"
+		_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(content, \x80)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING fts3(content, \x80)")
+		}
+	}
+	{ // do_test "fts3al-1.2"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_r = ""
+			_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(content, tokenize \x80)")
+			if _res.Error != nil { _catchErr = _res.Error }
+		}
+		_r = tclErrMsg(db)
+		if _r != "unknown tokenizer: \x80" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "unknown tokenizer: \x80", "fts3al-1.2")
+		}
+	}
+	{ // do_test "fts3al-1.3"
+		_res = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3(content, tokenize\x80)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t3 USING fts3(content, tokenize\x80)")
+		}
+	}
+	vtab.TclVarSet("word", "", "\x80xxxxx\x80xxxxx\x80xxxxx\x80xxxxx\x80xxxxx\x80xxxxx\x80")
+	word = "\x80xxxxx\x80xxxxx\x80xxxxx\x80xxxxx\x80xxxxx\x80xxxxx\x80"
+	_ = word // suppress unused warning
+	vtab.TclVarSet("phrase1", "", word + " " + word + " " + word + " target " + word + " " + word + " " + word)
+	phrase1 = word + " " + word + " " + word + " target " + word + " " + word + " " + word
+	_ = phrase1 // suppress unused warning
+	vtab.TclVarSet("phrase2", "", word + " " + word + " " + word + "    target    " + word + " " + word + " " + word)
+	phrase2 = word + " " + word + " " + word + "    target    " + word + " " + word + " " + word
+	_ = phrase2 // suppress unused warning
+	_res = db.Exec("CREATE VIRTUAL TABLE t4 USING fts3(content)")
+	_res = db.Exec("INSERT INTO t4 (content) VALUES ('" + phrase1 + "')")
+	_res = db.Exec("INSERT INTO t4 (content) VALUES ('" + phrase2 + "')")
+	{ // do_test "fts3al-1.4"
+		r = db.Query("SELECT rowid, length(snippet(t4)) FROM t4 WHERE t4 MATCH 'target'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, length(snippet(t4)) FROM t4 WHERE t4 MATCH 'target'")
+			return
+		}
+		got := flatten(r)
+		want := "1 241 2 247"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

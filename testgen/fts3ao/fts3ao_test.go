@@ -9,4 +9,4 @@ import (
 )
 
 func Test_fts3ao(t *testing.T) {}
-// skipped: FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)
+// skipped: engine gaps (T27 regen+run): snippet() renders leftmost column text instead of the MATCHed column (1.1/1.2) and FTS vtab RENAME lacks shadow-table collision validation/rollback - the 2.5-2.12 rename-failure section is fixture-cascading, so per-assertion skips would diverge state

@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walfault2(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: faultsim (sqlite3_test_control) fault-injection harness N-A (§1 class); WAL itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)

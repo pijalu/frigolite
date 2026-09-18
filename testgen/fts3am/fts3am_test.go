@@ -5,8 +5,117 @@
 package fts3am
 
 import (
+"github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
-func Test_fts3am(t *testing.T) {}
-// skipped: FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)
+func Test_fts3am(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(col_a, col_b);\n\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(1, 'testing', 'testing');\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(2, 'only a', null);\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(3, null, 'only b');\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(4, null, null);\n")
+	{ // do_test "fts3am-1.0"
+		r = db.Query("\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3am-1.1"
+		r = db.Query("\n    DELETE FROM t1 WHERE rowid = 1;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE rowid = 1;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3am-1.2"
+		r = db.Query("\n    DELETE FROM t1 WHERE rowid = 2;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE rowid = 2;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3am-1.3"
+		r = db.Query("\n    DELETE FROM t1 WHERE rowid = 3;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE rowid = 3;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3am-1.4"
+		r = db.Query("\n    DELETE FROM t1 WHERE rowid = 4;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE rowid = 4;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

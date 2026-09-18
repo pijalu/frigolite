@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walvfs(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: testvfs xSync-count + IOCAP_SEQUENTIAL + -iversion 2 VFS instrumentation; sync-count observability untranspilable; WAL itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)

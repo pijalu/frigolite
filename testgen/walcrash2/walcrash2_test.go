@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walcrash2(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: crashsql mid-WAL-write crash-recovery simulation N-A (crash/fault-injection §1 class); WAL recovery itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)

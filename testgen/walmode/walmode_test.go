@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walmode(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: VFS sync-count + byte-exact file-size instrumentation (walmode-1.2/1.3/3.2) + engine gap: WAL-to-rollback journal conversion leaves a malformed image (probe-verified T27); journal_mode/WAL itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)

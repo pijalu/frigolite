@@ -5,8 +5,141 @@
 package fts3ak
 
 import (
+"github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
-func Test_fts3ak(t *testing.T) {}
-// skipped: FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)
+func Test_fts3ak(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, 'hello world');\n  INSERT INTO t1 (rowid, content) VALUES(2, 'hello there');\n  INSERT INTO t1 (rowid, content) VALUES(3, 'cruel world');\n")
+	{ // do_test "fts3ak-1.1"
+		r = db.Query("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(4, 'false world');\n    INSERT INTO t1 (rowid, content) VALUES(5, 'false door');\n    COMMIT TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(4, 'false world');\n    INSERT INTO t1 (rowid, content) VALUES(5, 'false door');\n    COMMIT TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3ak-1.2"
+		r = db.Query("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3ak-1.3"
+		r = db.Query("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4 6 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3ak-1.4"
+		r = db.Query("\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3ak-1.5"
+		r = db.Query("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(10, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(11, 'second sight');\n    ROLLBACK TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(10, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(11, 'second sight');\n    ROLLBACK TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3ak-1.6"
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(12, 'third world');\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'third';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(12, 'third world');\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'third';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3ak-1.7"
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(13, 'third dimension');\n    CREATE TABLE x (c);\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'dimension';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(13, 'third dimension');\n    CREATE TABLE x (c);\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'dimension';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "13"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

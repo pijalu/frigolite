@@ -9,4 +9,4 @@ import (
 )
 
 func Test_e_expr(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: typed-value operator matrix sections (6.x '||' concat pairs, IS/ISNOT pairs over the type matrix) - 110/282 assertions fail on cross-type coercion semantics (P1.E-SQL deep gap, T27 regen+run); scalar sections pass

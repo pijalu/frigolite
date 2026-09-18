@@ -5,8 +5,176 @@
 package fts3ai
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_fts3ai(t *testing.T) {}
-// skipped: FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)
+func Test_fts3ai(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var TAIL string
+	_ = TAIL // prepared-statement tail var
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var sql16 string
+	_ = sql16 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var nt string
+	_ = nt // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	return
+	// proc definition (not transpiled)
+	_res = db.Exec("\n  PRAGMA encoding = \"UTF-16le\";\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n")
+	{ // do_test "fts3ai-1.0"
+		r = db.Query("PRAGMA encoding")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+			return
+		}
+		got := flatten(r)
+		want := "UTF-16le"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "fts3ai-1.1"
+		_res = db.Exec("INSERT INTO t1 (rowid, content) VALUES(1, 'one')")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 (rowid, content) VALUES(1, 'one')")
+		}
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 1")
+		}
+	}
+	{ // "fts3ai-1.2" (prepare-step internals; SQL side effects only)
+		vtab.TclVarSet("sql", "", "INSERT INTO t1 (rowid, content) VALUES(2, 'two')")
+		sql = "INSERT INTO t1 (rowid, content) VALUES(2, 'two')"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		tclPrepareStep(db, sql, "STMT")
+		TAIL = tclSqlTail(sql)
+		_ = TAIL // suppress unused warning
+		_ = STMT // prepared statement handle
+		tclStepEmulated(db, "STMT", sql)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 2")
+		}
+	}
+	{ // "fts3ai-1.3" (prepare-step internals; SQL side effects only)
+		vtab.TclVarSet("sql", "", "INSERT INTO t1 (rowid, content) VALUES(3, 'three')")
+		sql = "INSERT INTO t1 (rowid, content) VALUES(3, 'three')"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		tclPrepareStep(db, sql, "STMT")
+		TAIL = tclSqlTail(sql)
+		_ = TAIL // suppress unused warning
+		_ = STMT // prepared statement handle
+		tclStepEmulated(db, "STMT", sql)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+		vtab.TclVarSet("sql", "", "UPDATE t1 SET content = 'trois' WHERE rowid = 3")
+		sql = "UPDATE t1 SET content = 'trois' WHERE rowid = 3"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		tclPrepareStep(db, sql, "STMT")
+		TAIL = tclSqlTail(sql)
+		_ = TAIL // suppress unused warning
+		_ = STMT // prepared statement handle
+		tclStepEmulated(db, "STMT", sql)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 3")
+		}
+	}
+	{ // "fts3ai-1.4" (prepare-step internals; SQL side effects only)
+		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(4, 'four')}"
+		_ = sql16 // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_step $STMT (unknown prepared statement)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 4")
+		}
+	}
+	{ // "fts3ai-1.5" (prepare-step internals; SQL side effects only)
+		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(5, 'five')}"
+		_ = sql16 // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_step $STMT (unknown prepared statement)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+		vtab.TclVarSet("sql", "", "UPDATE t1 SET content = 'cinq' WHERE rowid = 5")
+		sql = "UPDATE t1 SET content = 'cinq' WHERE rowid = 5"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		tclPrepareStep(db, sql, "STMT")
+		TAIL = tclSqlTail(sql)
+		_ = TAIL // suppress unused warning
+		_ = STMT // prepared statement handle
+		tclStepEmulated(db, "STMT", sql)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 5")
+		}
+	}
+}

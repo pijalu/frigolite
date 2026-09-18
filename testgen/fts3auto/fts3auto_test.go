@@ -9,4 +9,4 @@ import (
 )
 
 func Test_fts3auto(t *testing.T) {}
-// skipped: FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)
+// skipped: TCL-computed oracle harness (get_near_results/do_fts3query_test/fts3_make_deferrable procs compute the wants in TCL) — untranspilable; the same contracts are covered by the generated fts3aa..ao matrix packages (fts3ai/ak/al/am un-skipped green in T27)

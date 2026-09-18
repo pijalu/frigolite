@@ -9,4 +9,4 @@ import (
 )
 
 func Test_walslow(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: reopen_db close/reopen churn + save/restore_prng_state harness + byte-exact WAL file-size assertions (wal_file_size); 9x99 randomblob stress iterations exceed any harness budget; WAL itself implemented (P7.WAL-G7)

@@ -9,4 +9,4 @@ import (
 )
 
 func Test_eval(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: the eval-2.x section drives DELETE/UPDATE through test_eval() (C test_eval.c harness UDF writing via a second connection mid-scan) - the state-chain cannot be per-assertion skipped; engine eval() covers eval-1.1/3.x/4.x (T27 regen+run)

@@ -9,4 +9,4 @@ import (
 )
 
 func Test_offset1(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: LIMIT/OFFSET over compound (UNION ALL) selects applies per-arm instead of over the whole compound result - 11/24 assertions in offset1-1.2.x/1.3.x/2.x (engine compound-offset gap, T27 regen+run)

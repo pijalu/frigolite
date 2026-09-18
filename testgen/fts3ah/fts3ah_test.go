@@ -9,4 +9,4 @@ import (
 )
 
 func Test_fts3ah(t *testing.T) {}
-// skipped: FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)
+// skipped: tcl2go cannot inline the user TCL proc bigtermdoc - doc fixtures become literal proc-call text; engine verified correct natively on the same 3x5000-char-term fixture (T27 probe)

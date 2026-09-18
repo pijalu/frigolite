@@ -9,4 +9,4 @@ import (
 )
 
 func Test_where9(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: count_steps harness proc (statement-count instrumentation + BEGIN/ROLLBACK pairing) untranspiled - the 6.2.x section's ROLLBACK has no active transaction; OR-branch scan-count wants unobservable (16 assertions, T27 regen+run)
