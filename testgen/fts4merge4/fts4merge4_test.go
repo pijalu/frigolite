@@ -105,9 +105,8 @@ func Test_fts4merge4(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -127,9 +126,8 @@ func Test_fts4merge4(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('merge=8,50');\n    COMMIT\n  ")
@@ -162,9 +160,8 @@ func Test_fts4merge4(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -246,7 +243,13 @@ func Test_fts4merge4(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES(" + sqlLiteral(am) + ") ")
 						}
-						// eval $openclose (dynamic, not transpiled)
+						if openclose == "" {
+						} else if openclose == " db close ; sqlite3 db test.db " {
+							db.Close()
+							db, err = frigolite.Open("test.db")
+							tclConnRegister("db", db)
+							if err != nil { t.Fatal(err) }
+						}
 						vtab.TclVarSet("i", "", "0")
 						i = "0"
 						_ = i // suppress unused warning
@@ -258,9 +261,8 @@ func Test_fts4merge4(t *testing.T) {
 							// incr i 1
 							{
 								_n, _err := strconv.Atoi(i)
-								if _err == nil {
-									i = strconv.Itoa(_n + 1)
-								}
+								if _err != nil { _n = 0 }
+								i = strconv.Itoa(_n + 1)
 							}
 						}
 						r = db.Query(" SELECT level, count(*) FROM t2_segdir GROUP BY level ")

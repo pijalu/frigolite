@@ -136,17 +136,23 @@ func Test_fts4onepass(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
 						}
 					}
-					// eval $tcl1 (dynamic, not transpiled)
+					if tcl1 == "" {
+					} else if tcl1 == "\n    execsql BEGIN\n  " {
+						_res = db.Exec("BEGIN")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+						}
+					}
 					// foreach {tn2 sql content} "1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }"
-					_items3 := tclSplitList("1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }")
-					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-						tn2 := _items3[_idx3+0]
+					_items0 := tclSplitList("1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }")
+					for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+						tn2 := _items0[_idx0+0]
 						_ = tn2 // suppress unused warning
-						sql := _items3[_idx3+1]
+						sql := _items0[_idx0+1]
 						_ = sql // suppress unused warning
-						content := _items3[_idx3+2]
+						content := _items0[_idx0+2]
 						_ = content // suppress unused warning
-						_ = _idx3
+						_ = _idx0
 							{ // "3." + tn + "." + tn2 + ".a"
 								_res = db.Exec(sql)
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
@@ -173,8 +179,27 @@ func Test_fts4onepass(t *testing.T) {
 								}
 							}
 						}
-						// eval $tcl2 (dynamic, not transpiled)
+						if tcl2 == "" {
+						} else if tcl2 == "\n    if {[sqlite3_get_autocommit db]==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  " {
+							if tclAutocommit(db) {
+								t.Errorf("TCL error: %s", "transaction rolled back!")
+							}
+							_res = db.Exec("COMMIT")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+							}
+						}
 					}
-					{ // "fts4onepass-4.0" — skipped: segdir count after in-transaction UPDATEs N-A: C flushes pending terms per statement via xSavepoint; engine flushes at COMMIT (2 vs 3 rows) (no-side-effects)
+					{ // "4.0"
+						r = db.Query("\n  CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;\n")
+							return
+						}
+						got := flatten(r)
+						want := "3"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
 					}
 }
