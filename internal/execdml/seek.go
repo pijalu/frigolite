@@ -63,63 +63,68 @@ func (e *DMLExecutor) planDMLSeek(tableEntry *schema.Entry, colDefs []sql.Column
 		outerCols[cd.Name] = true
 	}
 	colIndex := buildColumnIndex(colDefs)
+	rowidTable := !execquery.RowHasRowIDColumn(colDefs)
 	for _, conj := range splitAndTerms(where) {
 		col, val, aff, ok := e.extractEquality(conj, outerCols)
-		if !ok || !aff {
+		if !ok || !aff || !dmlQualifierMatches(col, conj, scanName) {
 			continue
 		}
-		// rowid equality: the pinned row is fetched by a direct b-tree seek.
-		if isRowIDName(col) && !execquery.RowHasRowIDColumn(colDefs) {
-			if !dmlQualifierMatches(col, conj, scanName) {
+		// Rowid equality: the pinned row is fetched by a direct b-tree seek.
+		if isRowIDName(col) {
+			if !rowidTable {
 				continue
 			}
-			rowid, matches, planned := dmlRowidConst(val)
-			if !planned {
-				return nil // unhandled constant shape: keep the scan
-			}
-			if !matches {
-				return &dmlSeekPlan{empty: true}
-			}
-			return &dmlSeekPlan{rowid: rowid}
+			return dmlRowidSeekPlan(val)
 		}
-		// Indexed equality: candidates come from the driving index's entries.
-		ci, ok := colIndex[strings.ToLower(col)]
-		if !ok || ci < 0 || ci >= len(colDefs) {
-			continue
-		}
-		if !dmlQualifierMatches(col, conj, scanName) {
-			continue
-		}
-		if val == nil {
-			// col = NULL matches nothing (NULL comparison is UNKNOWN).
-			return &dmlSeekPlan{empty: true}
-		}
-		// An INTEGER PRIMARY KEY column IS the rowid (rowid-alias): the
-		// equality pins the btree key exactly like rowid = <const>.
-		if isIPKRowidAliasCol(colDefs[ci]) {
-			rowid, matches, planned := dmlRowidConst(val)
-			if !planned {
-				return nil
-			}
-			if !matches {
-				return &dmlSeekPlan{empty: true}
-			}
-			return &dmlSeekPlan{rowid: rowid}
-		}
-		def := e.seekIndexFor(tableEntry.Name, col, ci, colDefs, owning)
-		if def == nil {
-			continue
-		}
-		typ := colDefs[ci].Type
-		return &dmlSeekPlan{
-			index: def,
-			probe: [2]interface{}{
-				util.ApplyColumnAffinity(util.UnwrapColumnValue(val), typ),
-				util.UnwrapColumnValue(val),
-			},
+		plan := e.dmlIndexedSeekPlan(tableEntry, colDefs, colIndex, col, val, owning)
+		if plan != nil {
+			return plan
 		}
 	}
 	return nil
+}
+
+// dmlRowidSeekPlan resolves a `rowid = <const>` conjunct to a plan.
+func dmlRowidSeekPlan(val interface{}) *dmlSeekPlan {
+	rowid, matches, planned := dmlRowidConst(val)
+	if !planned {
+		return nil // unhandled constant shape: keep the scan
+	}
+	if !matches {
+		return &dmlSeekPlan{empty: true}
+	}
+	return &dmlSeekPlan{rowid: rowid}
+}
+
+// dmlIndexedSeekPlan resolves a `col = <const>` conjunct to an index-driven
+// plan. It returns nil when the conjunct does not qualify (the caller keeps
+// scanning for other candidates).
+func (e *DMLExecutor) dmlIndexedSeekPlan(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, col string, val interface{}, owning *DatabaseContext) *dmlSeekPlan {
+	ci, ok := colIndex[strings.ToLower(col)]
+	if !ok || ci < 0 || ci >= len(colDefs) {
+		return nil
+	}
+	if val == nil {
+		// col = NULL matches nothing (NULL comparison is UNKNOWN).
+		return &dmlSeekPlan{empty: true}
+	}
+	// An INTEGER PRIMARY KEY column IS the rowid (rowid-alias): the
+	// equality pins the btree key exactly like rowid = <const>.
+	if isIPKRowidAliasCol(colDefs[ci]) {
+		return dmlRowidSeekPlan(val)
+	}
+	def := e.seekIndexFor(tableEntry.Name, col, ci, colDefs, owning)
+	if def == nil {
+		return nil
+	}
+	typ := colDefs[ci].Type
+	return &dmlSeekPlan{
+		index: def,
+		probe: [2]interface{}{
+			util.ApplyColumnAffinity(util.UnwrapColumnValue(val), typ),
+			util.UnwrapColumnValue(val),
+		},
+	}
 }
 
 // dmlQualifierMatches reports whether an equality conjunct's column reference
@@ -204,24 +209,31 @@ func (e *DMLExecutor) seekIndexFor(tableName, col string, colIdx int, colDefs []
 			continue
 		}
 		for _, def := range e.indexDefsIn(ctx, tableName) {
-			if def.Where != "" || len(def.Cols) == 0 {
-				continue
+			if dmlIndexProbeEligible(def, col) {
+				d := def
+				return &d
 			}
-			if !strings.EqualFold(def.Cols[0], col) {
-				continue
-			}
-			// Expression or qualified first keys cannot be probed by value.
-			if strings.ContainsAny(def.Cols[0], "(.") {
-				continue
-			}
-			if coll := seekKeyCollation(def.SQL, 0); coll != "" && coll != "BINARY" {
-				continue
-			}
-			d := def
-			return &d
 		}
 	}
 	return nil
+}
+
+// dmlIndexProbeEligible reports whether an index can drive a col = <const>
+// candidate scan: full (non-partial), plain unqualified leading key column,
+// BINARY collation.
+func dmlIndexProbeEligible(def indexDef, col string) bool {
+	if def.Where != "" || len(def.Cols) == 0 {
+		return false
+	}
+	if !strings.EqualFold(def.Cols[0], col) {
+		return false
+	}
+	// Expression or qualified first keys cannot be probed by value.
+	if strings.ContainsAny(def.Cols[0], "(.") {
+		return false
+	}
+	coll := seekKeyCollation(def.SQL, 0)
+	return coll == "" || coll == "BINARY"
 }
 
 // seekKeyCollation returns the explicit COLLATE of the idx-th key of a CREATE
@@ -249,40 +261,43 @@ func (e *DMLExecutor) seekCandidateRowIDs(tableName string, rootPage uint32, pla
 	if plan.index == nil {
 		return []int64{plan.rowid}, true
 	}
+	return e.scanIndexCandidates(plan)
+}
+
+// scanIndexCandidates walks the driving index's entries, collecting the
+// rowids whose first key value matches the probe (see seekCandidateRowIDs).
+func (e *DMLExecutor) scanIndexCandidates(plan *dmlSeekPlan) (rowIDs []int64, ok bool) {
 	idxTree := btree.NewBTree(plan.index.Ctx.Pager, plan.index.RootPage, false)
 	cursor, err := idxTree.OpenCursor()
 	if err != nil {
 		return nil, false
 	}
-	// Byte-level prefilter for the scan: equal values always produce the same
-	// record element encoding (serial type + body bytes), so an entry whose
-	// first element's encoding differs from BOTH probe candidates cannot
-	// match and is skipped without decoding the record.
-	probeKeys := make([]dmlKeyProbe, 0, 2)
-	for _, p := range plan.probe {
-		if p == nil {
-			continue
-		}
-		if kp := newDMLKeyProbe(execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(p))); kp.ok {
-			probeKeys = append(probeKeys, kp)
-		}
+	rowIDs, ok = walkIndexForCandidates(cursor, newDMLKeyProbes(plan), plan)
+	if !ok {
+		return nil, false
 	}
+	// The table scan visits rows in rowid order; sort the candidates so the
+	// trigger/preupdate/LIMIT order is unchanged (index byte order does not
+	// imply rowid order).
+	sortInt64Ascending(rowIDs)
+	return rowIDs, true
+}
+
+// walkIndexForCandidates iterates the index entries, collecting the rowids of
+// entries whose first key value matches the probe.
+func walkIndexForCandidates(cursor *btree.Cursor, probeKeys []dmlKeyProbe, plan *dmlSeekPlan) ([]int64, bool) {
+	var rowIDs []int64
 	seen := make(map[int64]bool)
 	for {
 		payload, _, err := cursor.ReadCellData()
 		if err != nil {
 			return nil, false
 		}
-		if len(probeKeys) == 0 || dmlPayloadKeyMatches(payload, probeKeys) {
-			rec, err := storage.DecodeRecord(payload)
-			if err != nil || rec == nil || len(rec.Values) < 2 {
+		if dmlPayloadKeyMatches(payload, probeKeys) {
+			var ok bool
+			rowIDs, ok = dmlAppendCandidate(payload, plan, seen, rowIDs)
+			if !ok {
 				return nil, false
-			}
-			if dmlProbeMatches(rec.Values[0], plan.probe) {
-				if rid, ok := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64); ok && !seen[rid] {
-					seen[rid] = true
-					rowIDs = append(rowIDs, rid)
-				}
 			}
 		}
 		next, err := cursor.Next()
@@ -293,10 +308,20 @@ func (e *DMLExecutor) seekCandidateRowIDs(tableName string, rootPage uint32, pla
 			break
 		}
 	}
-	// The table scan visits rows in rowid order; sort the candidates so the
-	// trigger/preupdate/LIMIT order is unchanged (index byte order does not
-	// imply rowid order).
-	sortInt64Ascending(rowIDs)
+	return rowIDs, true
+}
+
+// dmlAppendCandidate decodes one index entry and, when its first key value
+// matches the probe, appends the entry's rowid. ok=false signals an
+// undecodable payload (the caller falls back to the full scan).
+func dmlAppendCandidate(payload []byte, plan *dmlSeekPlan, seen map[int64]bool, rowIDs []int64) ([]int64, bool) {
+	rid, matched, scanOK := dmlMatchIndexPayload(payload, plan, seen)
+	if !scanOK {
+		return nil, false
+	}
+	if matched {
+		rowIDs = append(rowIDs, rid)
+	}
 	return rowIDs, true
 }
 
@@ -412,4 +437,40 @@ func dmlPayloadKeyMatches(payload []byte, probes []dmlKeyProbe) bool {
 		}
 	}
 	return false
+}
+
+// dmlMatchIndexPayload decodes one index entry and reports its rowid when the
+// first key value matches the probe. scanOK=false signals an unreadable
+// payload (the caller falls back to the full scan); matched=false with
+// scanOK=true is a plain miss (rid is 0).
+func dmlMatchIndexPayload(payload []byte, plan *dmlSeekPlan, seen map[int64]bool) (rid int64, matched, scanOK bool) {
+	rec, err := storage.DecodeRecord(payload)
+	if err != nil || rec == nil || len(rec.Values) < 2 {
+		return 0, false, false
+	}
+	if !dmlProbeMatches(rec.Values[0], plan.probe) {
+		return 0, false, true
+	}
+	if id, ok := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64); ok && !seen[id] {
+		seen[id] = true
+		return id, true, true
+	}
+	return 0, false, true
+}
+
+// newDMLKeyProbes builds the byte-level prefilter probes for a plan: equal
+// values always produce the same record element encoding (serial type + body
+// bytes), so an entry whose first element's encoding differs from BOTH probe
+// candidates cannot match and is skipped without decoding the record.
+func newDMLKeyProbes(plan *dmlSeekPlan) []dmlKeyProbe {
+	probeKeys := make([]dmlKeyProbe, 0, 2)
+	for _, p := range plan.probe {
+		if p == nil {
+			continue
+		}
+		if kp := newDMLKeyProbe(execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(p))); kp.ok {
+			probeKeys = append(probeKeys, kp)
+		}
+	}
+	return probeKeys
 }

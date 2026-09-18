@@ -24,24 +24,7 @@ import (
 // handled=false falls back to the full scan: any gate miss, seek anomaly, or
 // evaluation error (the scan re-evaluates and surfaces it identically).
 func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tree *btree.BTree) (allRows [][]interface{}, allRowMaps []RowMap, handled bool) {
-	if s.Where == nil || tableEntry == nil {
-		return nil, nil, false
-	}
-	// Single real table only: joins, FROM subqueries, views, INDEXED BY, and
-	// system tables keep the scan (an INDEXED BY clause forces the named
-	// plan; schema tables have post-scan filtering the seek path bypasses).
-	if len(s.Joins) > 0 || s.From.Name == "" || s.From.Subquery != nil ||
-		s.From.IndexedBy != "" || s.From.EmptyName || IsSchemaTable(tableEntry.Name) {
-		return nil, nil, false
-	}
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
-		return nil, nil, false
-	}
-	// A declared column named rowid/_rowid_/oid shadows the pseudo-column.
-	if RowHasRowIDColumn(colDefs) {
-		return nil, nil, false
-	}
-	rowid, matches, planned := selectRowidSeekConst(s.Where, tableEntry.Name, s.From.As)
+	rowid, matches, planned := e.selectRowidSeekGate(s, tableEntry, colDefs)
 	if !planned {
 		return nil, nil, false
 	}
@@ -49,37 +32,12 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 	if !matches {
 		return [][]interface{}{}, nil, true
 	}
-	cursor, err := tree.OpenCursor()
-	if err != nil {
-		return nil, nil, false
-	}
-	found, err := cursor.SeekToRowID(rowid)
-	if err != nil {
+	cursor, srow, found, ok := e.fetchSeekStructRow(s, tree, rowid, colDefs, needMaps)
+	if !ok {
 		return nil, nil, false
 	}
 	if !found {
 		return [][]interface{}{}, nil, true
-	}
-	payload, realRowID, err := cursor.ReadCellData()
-	if err != nil {
-		return nil, nil, false
-	}
-	rec, err := storage.DecodeRecord(payload)
-	if err != nil || rec == nil {
-		return nil, nil, false
-	}
-	colIndex := make(map[string]int, len(colDefs))
-	for i, cd := range colDefs {
-		colIndex[cd.Name] = i
-	}
-	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
-	srow := &StructRow{Values: rec.Values, Index: colIndex, RowID: realRowID}
-	if affinityCols != nil {
-		for i := range colDefs {
-			if affinityCols[strings.ToLower(colDefs[i].Name)] {
-				srow.Values[i] = wrapValueForRowMap(rec.Values[i], colDefs[i])
-			}
-		}
 	}
 	pass, err := e.RowPassesWhere(s.Where, srow, cursor)
 	if err != nil {
@@ -88,25 +46,95 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 	if !pass {
 		return [][]interface{}{}, nil, true
 	}
-	if s.Columns != nil && len(s.Columns) == 1 {
-		if ref, ok := s.Columns[0].Expr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
-			star := appendScanStarValues(nil, colDefs, srow.Values, affinityCols != nil)
-			allRows = [][]interface{}{star}
-			if needMaps {
-				allRowMaps = []RowMap{StructRowToMap(srow)}
+	return e.seekRowOutput(s, colDefs, srow, true, needMaps)
+}
+
+// fetchSeekStructRow seeks the pinned row and builds its affinity-wrapped
+// StructRow. found=false with ok=true means the rowid is absent (empty
+// result); ok=false falls back to the scan.
+func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, rowid int64, colDefs []sql.ColumnDef, needMaps bool) (cursor *btree.Cursor, srow *StructRow, found, ok bool) {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil, nil, false, false
+	}
+	found, err = cursor.SeekToRowID(rowid)
+	if err != nil {
+		return nil, nil, false, false
+	}
+	if !found {
+		return cursor, nil, false, true
+	}
+	payload, realRowID, err := cursor.ReadCellData()
+	if err != nil {
+		return nil, nil, false, false
+	}
+	rec, err := storage.DecodeRecord(payload)
+	if err != nil || rec == nil {
+		return nil, nil, false, false
+	}
+	colIndex := make(map[string]int, len(colDefs))
+	for i, cd := range colDefs {
+		colIndex[cd.Name] = i
+	}
+	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
+	srow = &StructRow{Values: rec.Values, Index: colIndex, RowID: realRowID}
+	if affinityCols != nil {
+		for i := range colDefs {
+			if affinityCols[strings.ToLower(colDefs[i].Name)] {
+				srow.Values[i] = wrapValueForRowMap(rec.Values[i], colDefs[i])
 			}
-			return allRows, allRowMaps, true
+		}
+	}
+	return cursor, srow, true, true
+}
+
+// selectRowidSeekGate runs the eligibility checks and extracts the pinned
+// rowid. planned=false keeps the scan.
+func (e *SelectEngine) selectRowidSeekGate(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (rowid int64, matches bool, planned bool) {
+	if s.Where == nil || tableEntry == nil {
+		return 0, false, false
+	}
+	// Single real table only: joins, FROM subqueries, views, INDEXED BY, and
+	// system tables keep the scan (an INDEXED BY clause forces the named
+	// plan; schema tables have post-scan filtering the seek path bypasses).
+	if len(s.Joins) > 0 || s.From.Name == "" || s.From.Subquery != nil ||
+		s.From.IndexedBy != "" || s.From.EmptyName || IsSchemaTable(tableEntry.Name) {
+		return 0, false, false
+	}
+	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		return 0, false, false
+	}
+	// A declared column named rowid/_rowid_/oid shadows the pseudo-column.
+	if RowHasRowIDColumn(colDefs) {
+		return 0, false, false
+	}
+	return selectRowidSeekConst(s.Where, tableEntry.Name, s.From.As)
+}
+
+// seekRowOutput builds the single row's output (SELECT * flat path or
+// buildOutputRow projection) plus its row map when needed.
+func (e *SelectEngine) seekRowOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, srow *StructRow, affinity, needMaps bool) ([][]interface{}, []RowMap, bool) {
+	if len(s.Columns) == 1 {
+		if ref, ok := s.Columns[0].Expr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
+			star := appendScanStarValues(nil, colDefs, srow.Values, affinity)
+			rows := [][]interface{}{star}
+			var maps []RowMap
+			if needMaps {
+				maps = []RowMap{StructRowToMap(srow)}
+			}
+			return rows, maps, true
 		}
 	}
 	row, err := e.buildOutputRow(s.Columns, colDefs, srow)
 	if err != nil {
 		return nil, nil, false
 	}
-	allRows = [][]interface{}{row}
+	rows := [][]interface{}{row}
+	var maps []RowMap
 	if needMaps {
-		allRowMaps = []RowMap{StructRowToMap(srow)}
+		maps = []RowMap{StructRowToMap(srow)}
 	}
-	return allRows, allRowMaps, true
+	return rows, maps, true
 }
 
 // selectRowidSeekConst extracts a rowid-pinning constant from the WHERE
@@ -150,11 +178,7 @@ func selectRowidLiteral(expr sql.Expr) (rowid int64, matches bool, planned bool)
 		}
 		return integralRowid(f)
 	case *sql.StringLit:
-		f, err := strconv.ParseFloat(strings.TrimSpace(v.Value), 64)
-		if err != nil {
-			return 0, false, true // non-numeric text never equals an integer rowid
-		}
-		return integralRowid(f)
+		return rowidFromNumericText(v.Value)
 	case *sql.NullLit:
 		return 0, false, true // rowid = NULL matches nothing
 	case *sql.UnaryOp:
@@ -179,6 +203,17 @@ func selectRowidLiteral(expr sql.Expr) (rowid int64, matches bool, planned bool)
 		return 0, false, true // blob > integer: never equal
 	}
 	return 0, false, false
+}
+
+// rowidFromNumericText applies the rowid column's numeric affinity to text:
+// well-formed numbers convert (integral ones pin a rowid); anything else
+// never equals an integer rowid.
+func rowidFromNumericText(text string) (int64, bool, bool) {
+	f, err := strconv.ParseFloat(strings.TrimSpace(text), 64)
+	if err != nil {
+		return 0, false, true
+	}
+	return integralRowid(f)
 }
 
 // integralRowid maps a numeric constant to a rowid: only integral values
