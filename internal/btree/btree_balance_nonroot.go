@@ -452,7 +452,16 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 
 // removeInteriorCellRange removes count divider cells starting at index
 // start from an interior page, shifting subsequent cell pointers down.
-// Equivalent to SQLite's dropCell in a loop (src/btree.c dropCell).
+// Equivalent to SQLite's dropCell in a loop (src/btree.c dropCell). The
+// dropped cells' bytes cannot simply stay in place: any untracked byte
+// region inside the cell content area (between live cells) is flagged by
+// SQLite's integrity_check as fragmentation ("Fragmentation of N bytes
+// reported as M", the coverage walk at src/btree.c:11004-11064) — so the
+// page is defragmented after the pointer shift (defragmentPage parity,
+// the same end state dropCell→freeSpace + a later allocateSpace
+// defragment reaches). Interior cells in this engine are 4-byte
+// left-child + varint key with no overflow chain, so nothing is leaked
+// to the freelist.
 func (t *BTree) removeInteriorCellRange(pg *pager.Page, page *storage.BTreePage, start, count int) error {
 	if count <= 0 {
 		return nil
@@ -475,7 +484,10 @@ func (t *BTree) removeInteriorCellRange(pg *pager.Page, page *storage.BTreePage,
 	}
 	page.CellCount = uint16(cnt - count)
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
-	return nil
+	// Reclaim the dropped cells' bytes: repack the surviving dividers
+	// contiguously from the usable end so the content area holds no
+	// untracked holes (integrity_check coverage parity).
+	return t.defragmentInterior(pg, page)
 }
 
 // insertInteriorDividerAt inserts a table-interior divider cell (4-byte
@@ -553,7 +565,8 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 	ptrBase := coff + cellPtrOffset(page.PageType)
 	cnt := int(page.CellCount)
 	// Interior cell layout: 4-byte left-child + varint key — the varint
-	// length determines the on-page cell size.
+	// length determines the on-page cell size (uniform for table and index
+	// interiors in this engine; dividers carry no payload/overflow).
 	sizes := make([]int, cnt)
 	data := make([][]byte, cnt)
 	for i := 0; i < cnt; i++ {
@@ -566,12 +579,18 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 		sizes[i] = sz
 		data[i] = append([]byte(nil), pg.Data[off:off+sz]...)
 	}
-	start := int(t.pageSize)
+	start := int(t.usableSize)
 	for i := 0; i < cnt; i++ {
 		start -= sizes[i]
 		copy(pg.Data[start:start+sizes[i]], data[i])
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+i*2:ptrBase+i*2+2], uint16(start))
 	}
+	// Full header reset (zeroPage parity): a page handed back by the
+	// freelist as a cached buffer from an earlier incarnation can carry
+	// a stale freeblock pointer that would now overlap the packed cells
+	// ("Multiple uses for byte N"); the engine never maintains a
+	// freeblock chain, so after a defragment there is none.
+	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0) // first freeblock
 	page.CellContent = uint16(start)
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
 	pg.Data[coff+7] = 0 // fragmented free bytes

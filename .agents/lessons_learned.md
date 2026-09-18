@@ -6669,12 +6669,16 @@ Transpiler/harness:
   write); corruptF's root-from-freelist at page 6 then passes rootpage
   validation. Pager partial final page reads zero-fill (pager.c) — do not
   error EOF.
-- **Known write-path bug (btree-writes goal)**: frigolite's balance/split
-  never re-parents ptrmap entries (btree.c:8780/8950/9028 ptrmapPut have
-  no counterpart), so autovacuum relocation later fails "parent does not
-  reference child" on pristine DBs (corruptB-3.1.1). Also error-free page
-  allocation is needed to surface freelist-pop corruption (corruptL-5.x) —
-  AllocatePage returns *Page only.
+- **T25 FIXED the balance ptrmap gap (2026-09-17)**: the stale entry came
+  from relocateRootSplit's segment ROTATION — when an interior root split,
+  S1 inherited the old root's children wholesale but only overflow chains
+  were re-parented, so PTRMAP_BTREE entries kept pointing at the root
+  ("AllocateRootPage: relocate occupant 4 -> 1042: parent 3 does not
+  reference child 4", corruptB-3.1.1). Fix: setChildPtrmaps(child, child)
+  for every rotated child (btree children of interiors + overflow chains
+  of leaves — one helper for both). Still open: error-free page allocation
+  hides freelist-pop corruption (corruptL-5.x) — AllocatePage returns
+  *Page only.
 - **tcl2go drift**: regenerating a stale generated file pulls the CURRENT
   helper/emitter semantics — testgen/corrupt's catchsql `set x {}`
   pattern now renders want="{}" (normalizeExpectedWord's empty-brace rule
@@ -6776,7 +6780,6 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   better; whole-file unsupportedTestFiles entries only for genuinely untranslatable
   machinery (user collations, dynamic authorizer procs, TCL-proc-defined vtab
   modules) with pointers to the green testgen/native pins.
-=======
 
 ## FULL-SUITE-DRIFT.T26-dml (2026-09-17) — DML/index residue family
 
@@ -6817,3 +6820,48 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **template drift is normal**: testgen packages are regenerated on demand;
   regenerating a package pulls ALL current template changes. Re-run the
   package after regen; don't assume old failures persist unchanged.
+=======
+
+## 2026-09-17 (T25-btree): overflow-cell churn corruption lessons
+
+- **integrity_check coverage rule (btree.c:11004-11064)**: the implied
+  first heap entry covers [0, contentOffset-1] — the gap BELOW the cell
+  content start is legal free space; only untracked holes WITHIN the
+  content area (between live cells) count as nFrag and must equal
+  header byte 7. A page of contiguous cells packed from usableSize with
+  freeblock=0/nFrag=0 is a valid SQLite page state (post-defragmentPage),
+  so eager compaction on delete is format-exact even though C defers it.
+- **Interior divider removal must defragment** (removeInteriorCellRange):
+  leaving dropped dividers' bytes in place reads as "Fragmentation of N
+  bytes reported as 0" on the oracle (churn repro: 570-byte hole on an
+  interior page, 6-byte hole on the root). Interior cells are 4-byte
+  child + varint key, nothing to free to the freelist — repack instead.
+- **Overflow chains must be freed on EVERY cell clear** (clearCell →
+  freePageChain): read each page's next pointer BEFORE freeing (freeing
+  overwrites bytes 0-4 with freelist metadata). Paths: rowid-delete,
+  bulk predicate delete, index-entry delete, UPDATE/OR REPLACE overwrite
+  (deleteCellOnPage).
+- **Freelist pops can return STALE CACHED buffers** (grabPageLocked
+  hands back p.pages[pgno] unzeroed) — every page (re)writer must reset
+  freeblock + cellcount + content + frag explicitly (writeLeafHalf,
+  createInteriorRoot, zeroPageAsLeafTable, defragmentInterior...).
+- **storage.CellPointer(data, X, i) reads at X+8+2i** (header delta
+  baked in). Mixing direct indexing with a `cellPtrOffset-8` base (or
+  vice versa) silently writes cell pointers into the page header
+  (balanceQuick's dead-code bug, fixed).
+- **Oracle PRAGMA integrity_check on the ENGINE-WRITTEN file is the
+  churn oracle**; the engine's own integrity_check is too lenient to
+  catch fragmentation drift (it passed while the oracle failed).
+- bigrow-1.3/2.2 testgen failures are a transpiler rendering artifact
+  (trailing space before the final "]" in the want string), identical on
+  main — not an engine bug.
+- **The interactive `grep` is aliased to ugrep --ignore-files** — on big
+  logs or /tmp paths it can silently return ZERO matches for patterns that
+  exist (cost a false "committed main is green" baseline this session).
+  Always use `command grep` (or `command grep -a` for logs with binary
+  bytes) when adjudicating pass/fail sets.
+- **Full-suite baselines must come from a COMMITTED sha in a detached
+  worktree, never a live worktree** — the main checkout can be mid-merge
+  with uncommitted fixes, making "pre-existing vs regression" adjudication
+  wrong (P2Constraint/P6 looked fixed on "main" but were uncommitted local
+  work; committed main fixed them later via T26-select).

@@ -86,10 +86,9 @@ func (t *BTree) copyLeafRootToChild(child, root *pager.Page, page *storage.BTree
 		moved = append(moved, splitEntry{cell: c, cellData: storage.EncodeCell(c)})
 	}
 	child.Data[0] = root.Data[coff] // the child inherits the leaf page type
-	if err := writeLeafHalf(child, 0, moved, int(t.pageSize)); err != nil {
+	if err := writeLeafHalf(child, 0, moved, int(t.usableSize)); err != nil {
 		return err
 	}
-	binary.BigEndian.PutUint32(child.Data[int(t.pageSize)-4:int(t.pageSize)], 0) // no right sibling
 	if err := t.pager.WritePage(child); err != nil {
 		return err
 	}
@@ -110,8 +109,8 @@ func (t *BTree) rewriteRootLeafAsInterior(root *pager.Page, rightmost uint32, co
 	} else {
 		root.Data[coff] = storage.PageTypeInteriorIndex
 	}
-	binary.BigEndian.PutUint16(root.Data[coff+3:coff+5], 0)                   // nCell = 0
-	binary.BigEndian.PutUint16(root.Data[coff+5:coff+7], uint16(t.pageSize)) // content start
-	binary.BigEndian.PutUint32(root.Data[coff+8:coff+12], rightmost)          // rightmost ptr
+	binary.BigEndian.PutUint16(root.Data[coff+3:coff+5], 0)                      // nCell = 0
+	binary.BigEndian.PutUint16(root.Data[coff+5:coff+7], uint16(t.usableSize)) // content start (zeroPage)
+	binary.BigEndian.PutUint32(root.Data[coff+8:coff+12], rightmost)             // rightmost ptr
 	return t.pager.WritePage(root)
 }

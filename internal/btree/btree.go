@@ -793,23 +793,26 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 }
 
 // leafHasRoom checks if a leaf page has enough room for the given cell data.
-func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff int, pageSize uint32) bool {
+func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff int, usableSize uint32) bool {
 	cellPtrEnd := coff + storage.CellPointerOffset + int(page.CellCount)*2 + 2
 	cellContentEnd := int(page.CellContent)
 	var cellStart int
 	if cellContentEnd == 0 {
-		// Reserve 4 bytes at page end for the chain pointer (matches
-		// writeLeafCell).
-		cellStart = int(pageSize) - 4 - len(cellData) - int(page.FragFree)
+		// Fresh page: the first cell ends at the usable end (matches
+		// writeLeafCell; btree.c packs cells from usableSize).
+		cellStart = int(usableSize) - len(cellData) - int(page.FragFree)
 	} else {
 		cellStart = cellContentEnd - len(cellData)
 	}
 	return cellStart >= cellPtrEnd
 }
 
-// DeleteCell removes a cell from the b-tree by its index position.
-// This is a simple implementation that removes the cell from a leaf page
-// by shifting remaining cells and updating the page header.
+// DeleteCell removes a cell from the b-tree by its index position. The cell
+// must live on the root page (this entry point predates the cursor-based
+// delete paths); deletion goes through deleteCellOnPage so the removed
+// cell's overflow chain is freed (btree.c dropCell → clearCell) and the
+// surviving cells are compacted with exact free-space accounting
+// (defragmentPage parity).
 func (t *BTree) DeleteCell(cellIdx int) error {
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
@@ -825,45 +828,7 @@ func (t *BTree) DeleteCell(cellIdx int) error {
 		return fmt.Errorf("btree: delete only supported on leaf pages")
 	}
 
-	if cellIdx < 0 || cellIdx >= int(page.CellCount) {
-		return fmt.Errorf("btree: cell index %d out of range (count %d)", cellIdx, page.CellCount)
-	}
-
-	// Get the cell offset for the cell being deleted
-	ptrBase := coff + storage.CellPointerOffset
-	_ = int(binary.BigEndian.Uint16(pg.Data[ptrBase+cellIdx*2 : ptrBase+cellIdx*2+2]))
-
-	// Shift remaining cell pointers down
-	for i := cellIdx; i < int(page.CellCount)-1; i++ {
-		src := ptrBase + (i+1)*2
-		dst := ptrBase + i*2
-		pg.Data[dst] = pg.Data[src]
-		pg.Data[dst+1] = pg.Data[src+1]
-	}
-
-	// Clear the last (now unused) cell pointer
-	lastPtr := ptrBase + (int(page.CellCount)-1)*2
-	pg.Data[lastPtr] = 0
-	pg.Data[lastPtr+1] = 0
-
-	// Decrease cell count
-	page.CellCount--
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
-
-	// If the page became empty, reset the content pointer so the next
-	// insert treats it as a fresh page (otherwise the stale content end
-	// makes leafHasRoom think the empty page is full). SQLite sets the
-	// content pointer to the page's usable end for empty leaves.
-	if page.CellCount == 0 {
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.pageSize)) // cell content
-		pg.Data[coff+7] = 0                                                    // frag free
-	}
-
-	// For simplicity, we don't reclaim the cell data space immediately.
-	// The cell data becomes part of the free space and will be overwritten
-	// by subsequent inserts. This is a valid approach for a simple implementation.
-
-	return t.pager.WritePage(pg)
+	return t.deleteCellOnPage(pg, page, cellIdx)
 }
 
 // DeleteCellsWhere deletes all cells matching a predicate.

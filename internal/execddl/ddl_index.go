@@ -185,10 +185,11 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 
 // initIndexRootPage initializes a freshly allocated index root page: zero the
 // data, set the leaf-index page type, and write a valid header (freeblock=0,
-// cellCount=0, contentOffset=pageSize-4) so a reused page (from a dropped
-// table/index) does not retain stale cells and ParsePage accepts the page. The
-// content-offset header mirrors CREATE TABLE's page initialization; without it
-// a fresh page's zeroed content offset fails ParsePage's free-space
+// cellCount=0, contentOffset=pageSize) so a reused page (from a dropped
+// table/index) does not retain stale cells and ParsePage accepts the page.
+// The empty-page content pointer is the usable end (zeroPage:
+// put2byte(&data[hdr+5], pBt->usableSize); reserved bytes are 0 here); without
+// it a fresh page's zeroed content offset fails ParsePage's free-space
 // consistency check ("database disk image is malformed").
 func initIndexRootPage(pg *pager.Page, pageSize uint32) {
 	for i := range pg.Data {
@@ -199,9 +200,9 @@ func initIndexRootPage(pg *pager.Page, pageSize uint32) {
 	if pg.PageNum == 1 {
 		coff = 100
 	}
-	// Header: type(1) freeblock(2) cellCount(2)=0 contentOffset(2)=pageSize-4
+	// Header: type(1) freeblock(2) cellCount(2)=0 contentOffset(2)=pageSize
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], 0)
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(int(pageSize)-4))
+	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(int(pageSize)))
 }
 
 // validateIndexCollations resolves each index column's collation from the

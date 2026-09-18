@@ -192,7 +192,11 @@ func (t *BTree) balanceQuick(pPage, pParent *pager.Page, pSpace []byte) (*balanc
 	}
 	copy(pParent.Data[dividerStart:dividerStart+dividerSize], pSpace[:dividerSize])
 	// Cell pointer array: insert at position parentPage.CellCount.
-	ptrBase := parentCo + cellPtrOffset(parentPage.PageType) - 8
+	// cellPtrOffset is the header-relative array base; the raw buffer
+	// slot for cell i is parentCo + cellPtrOffset + i*2 (storage.CellPointer
+	// adds the 8-byte header delta internally — here the slot is written
+	// directly, so the delta is explicit).
+	ptrBase := parentCo + cellPtrOffset(parentPage.PageType)
 	binary.BigEndian.PutUint16(pParent.Data[ptrBase+int(parentPage.CellCount)*2:ptrBase+int(parentPage.CellCount)*2+2], uint16(dividerStart))
 	// Update parent header: cell count, cell content pointer.
 	newCount := parentPage.CellCount + 1
@@ -305,11 +309,9 @@ func (t *BTree) writeSingleCellAtEnd(pg *pager.Page, cell []byte) error {
 	// each subsequent cell pointer at a lower address. For nCell=1
 	// the cell goes at usableSize-len(cell).
 	usableStart := int(t.usableSize)
-	// SQLite reserves the last 4 bytes of the page for the
-	// right-child pointer (a leaf page's "right child" is used by
-	// overflow chains). Use the bytes just before that reserved
-	// area.
-	cellStart := usableStart - 4 - len(cell)
+	// Cells pack from the usable end (zeroPage convention; a leaf page
+	// carries no right-child pointer).
+	cellStart := usableStart - len(cell)
 	if cellStart < coff+8+2*int(page.CellCount)+2 {
 		return fmt.Errorf("btree: writeSingleCellAtEnd: cell too large for page")
 	}

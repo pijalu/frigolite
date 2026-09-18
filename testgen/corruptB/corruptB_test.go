@@ -209,7 +209,7 @@ func Test_corruptB(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
-	{ // "corruptB-3.1.1" — skipped: write-path: balance/split leaves stale ptrmap entries, AllocateRootPage relocation fails on pristine auto_vacuum DB (reported FULL-SUITE-DRIFT.T26-corrupt) (SQL side effects only)
+	{ // "corruptB-3.1.1" — ptrmap/balance blocker FIXED (FULL-SUITE-DRIFT.T25-btree: relocateRootSplit re-parents children via setChildPtrmaps); native pin: TestCorruptBAllocateRootRelocationPin. Generated body stays side-effects-only: the transpiler lost the TCL `set v [string repeat abcdefghij 200]` (sqlLiteral renders it empty) and the hexio steps, so no assertion is expressible here
 		_res = db.Exec("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(" + sqlLiteral(v) + ");\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}

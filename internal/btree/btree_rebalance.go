@@ -262,7 +262,7 @@ func (t *BTree) mergeIntoLeft(src, dst, parent uint32, srcParentIdx, dstParentId
 	// Extract src cells as raw bytes in order, then determine the
 	// end of each cell (the next pointer or the end of the usable
 	// area).
-	usableStart := int(t.pageSize) - 4 // skip the 4-byte reserved area
+	usableStart := int(t.usableSize) // cells pack from the usable end
 	srcPtrs := make([]uint16, int(srcPage.CellCount))
 	for i := 0; i < int(srcPage.CellCount); i++ {
 		srcPtrs[i] = storage.CellPointer(srcPg.Data, scoff, i, int(t.pageSize))
