@@ -6891,3 +6891,13 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   SQLite-correct contract (same-session duplicate errors, misc1-16.2) required
   updating that test alongside the engine change. When an engine fix changes a
   behavior, grep root *_test.go for tests pinning the old one.
+
+
+## FULL-SUITE-DRIFT.T26-misc (2026-09-18) — resume close-out: leak classes + oracle-parity discipline
+
+- **External actors CAN reset your worktree mid-run** — a sibling agent wiped my uncommitted merge resolutions during a background test run; their repairs landed as branch commits. Commit conflict resolutions IMMEDIATELY (even red); never leave a merge uncommitted across long-running commands; check `git stash list` after anomalies.
+- **starNoSuchTable was a cross-statement error leak**: the deferred t.* "no such table" flag is replayed at end-of-ExecSelect only when `res.Error == nil`; when the same statement fails earlier the flag survived and failed the NEXT statement. Rule: every deferred flag replayed under a success guard must be reset per statement (resultTooWide class).
+- **Schema stored-row validation must be deferred inside open transactions**: SQLite never reloads/re-parses sqlite_master rows mid-transaction (in-memory schema authoritative; file cookie compared only on prepares after commit/rollback). Preflight validation on ROLLBACK re-parsed a writable_schema-edited row and reported corruption (misc1-23.1).
+- **PRAGMA database_list slot numbering**: aDb[1] is the TEMP slot (reserved per connection even when unmaterialized) — the first ATTACH lands at slot 2 ("0 main ... 2 aux2"), not 1.
+- **Doubled-quote edge is oracle-faithful**: `eval('SELECT ''bam''))` is an UNRECOGNIZED TOKEN in SQLite 3.54 (the escape consumes both quotes; the string never closes) — frigolite's lexer matches byte-for-byte. Verify engine AND oracle against the exact transpiled text before assuming a lexer bug; the TCL-suite expectations relied on version/TCL-processing divergence.
+- **randexpr mismatches ≠ lexer/arithmetic bugs**: probe isolated sub-pieces first (arithmetic, BETWEEN, exists, max-over-empty→NULL, COALESCE lazy all verified correct); the residual 8 mismatches are the correlated-aggregate promotion class — queued for the aggregate-owner tranche.
