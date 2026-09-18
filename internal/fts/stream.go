@@ -18,11 +18,18 @@ type SegmentStreamReader struct {
 
 	// Parsed root: the segment's leaf chain. For a root-only (height 0)
 	// segment the root blob is leaf 0 and blocks 1..nLeaves-1 come from
-	// %_segments; for an interior root the leaves are the consecutive
-	// %_segments blocks [firstBlock, firstBlock+nLeaves).
+	// %_segments; for a height-1 interior root the leaves are the
+	// consecutive %_segments blocks [firstBlock, firstBlock+nLeaves). For a
+	// TALLER root the children are interior layers, so the leaf block ids
+	// are enumerated once up front by walking the tree (leafIDs) — SQLite's
+	// fts3SegReader descends the same layers when seeking (fts3_write.c);
+	// a leaf-only walker misreads every interior child as a leaf and fails
+	// with "corrupt segment root", which silently aborted every merge into
+	// levels whose outputs had split (the fts4merge4 2.2 plateau).
 	height     int
 	firstBlock int
 	nLeaves    int
+	leafIDs    []int // leaf block ids in order (height >= 2 roots only)
 
 	// Current leaf buffer and parse position.
 	leaf      []byte
@@ -78,8 +85,11 @@ func NewSegmentStreamReader(root []byte, leavesEndBlock int, readBlock SegmentBl
 		r.nextLeafIdx = 1
 		return r
 	}
-	// Interior node: first block id, boundary terms, then the leaves are the
-	// consecutive blocks starting at firstBlock.
+	// Interior node: first block id, boundary terms, then the leaves. For a
+	// height-1 root the children ARE the leaves (consecutive blocks from
+	// firstBlock); a taller root's children are interior layers, so the leaf
+	// block ids are collected by descending the tree (SQLite's
+	// fts3SegReader walks the same interior nodes on demand).
 	firstBlock, n := getFTS3Varint(root[pos:])
 	if n == 0 {
 		r.err = fmt.Errorf("corrupt segment root")
@@ -87,51 +97,61 @@ func NewSegmentStreamReader(root []byte, leavesEndBlock int, readBlock SegmentBl
 	}
 	pos += n
 	r.firstBlock = int(firstBlock)
-	// The number of children = 1 + the number of boundary terms in the root.
-	nChildren := 1
-	if pos < len(root) {
-		var prevTerm []byte
-		first := true
-		for pos < len(root) {
-			if first {
-				var nLen uint64
-				nLen, n = getFTS3Varint(root[pos:])
-				if n == 0 {
-					r.err = fmt.Errorf("corrupt segment root")
-					return r
-				}
-				pos += n
-				if uint64(pos)+nLen > uint64(len(root)) {
-					r.err = fmt.Errorf("corrupt segment root")
-					return r
-				}
-				prevTerm = root[pos : pos+int(nLen)]
-				pos += int(nLen)
-				first = false
-			} else {
-				var nPrefix, nSuffix uint64
-				nPrefix, n = getFTS3Varint(root[pos:])
-				if n == 0 {
-					r.err = fmt.Errorf("corrupt segment root")
-					return r
-				}
-				pos += n
-				nSuffix, n = getFTS3Varint(root[pos:])
-				if n == 0 || nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(root)) {
-					r.err = fmt.Errorf("corrupt segment root")
-					return r
-				}
-				pos += n
-				term := make([]byte, nPrefix)
-				copy(term, prevTerm[:nPrefix])
-				term = append(term, root[pos:pos+int(nSuffix)]...)
-				prevTerm = term
-				pos += int(nSuffix)
-			}
-			nChildren++
+	if r.height > 1 {
+		ids, err := collectLeafIDs(root, r.height, readBlock)
+		if err != nil {
+			r.err = err
+			return r
 		}
+		r.leafIDs = ids
+		r.nLeaves = len(ids)
+	} else {
+		// The number of children = 1 + the number of boundary terms in the root.
+		nChildren := 1
+		if pos < len(root) {
+			var prevTerm []byte
+			first := true
+			for pos < len(root) {
+				if first {
+					var nLen uint64
+					nLen, n = getFTS3Varint(root[pos:])
+					if n == 0 {
+						r.err = fmt.Errorf("corrupt segment root")
+						return r
+					}
+					pos += n
+					if uint64(pos)+nLen > uint64(len(root)) {
+						r.err = fmt.Errorf("corrupt segment root")
+						return r
+					}
+					prevTerm = root[pos : pos+int(nLen)]
+					pos += int(nLen)
+					first = false
+				} else {
+					var nPrefix, nSuffix uint64
+					nPrefix, n = getFTS3Varint(root[pos:])
+					if n == 0 {
+						r.err = fmt.Errorf("corrupt segment root")
+						return r
+					}
+					pos += n
+					nSuffix, n = getFTS3Varint(root[pos:])
+					if n == 0 || nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(root)) {
+						r.err = fmt.Errorf("corrupt segment root")
+						return r
+					}
+					pos += n
+					term := make([]byte, nPrefix)
+					copy(term, prevTerm[:nPrefix])
+					term = append(term, root[pos:pos+int(nSuffix)]...)
+					prevTerm = term
+					pos += int(nSuffix)
+				}
+				nChildren++
+			}
+		}
+		r.nLeaves = nChildren
 	}
-	r.nLeaves = nChildren
 	// Load the first leaf lazily (the smallest terms live in the leftmost
 	// leaf, so the merge reads blocks only as it advances past them).
 	if err := r.loadLeafBlock(0); err != nil {
@@ -141,10 +161,89 @@ func NewSegmentStreamReader(root []byte, leavesEndBlock int, readBlock SegmentBl
 	return r
 }
 
+// collectLeafIDs enumerates one interior subtree's leaf block ids in order
+// (the %_segments block ids of every leaf under the node). The node blob is
+// [height][firstChildBlock][boundary terms...]; children sit at consecutive
+// block ids and a child's own height byte says leaf (0) or interior layer
+// (recursed). Structural breaks surface as "corrupt segment root", the same
+// error SQLite's descent produces (fts3SegReaderNext).
+func collectLeafIDs(node []byte, height int, readBlock SegmentBlockReader) ([]int, error) {
+	pos := 0
+	h, n := getFTS3Varint(node)
+	if n == 0 || int(h) != height {
+		return nil, fmt.Errorf("corrupt segment root")
+	}
+	pos += n
+	firstBlock, n := getFTS3Varint(node[pos:])
+	if n == 0 {
+		return nil, fmt.Errorf("corrupt segment root")
+	}
+	pos += n
+	nChildren := 1
+	if pos < len(node) {
+		var prevTerm []byte
+		first := true
+		for pos < len(node) {
+			if first {
+				var nLen uint64
+				nLen, n = getFTS3Varint(node[pos:])
+				if n == 0 || uint64(pos)+nLen > uint64(len(node)) {
+					return nil, fmt.Errorf("corrupt segment root")
+				}
+				pos += n
+				prevTerm = node[pos : pos+int(nLen)]
+				pos += int(nLen)
+				first = false
+			} else {
+				var nPrefix, nSuffix uint64
+				nPrefix, n = getFTS3Varint(node[pos:])
+				if n == 0 {
+					return nil, fmt.Errorf("corrupt segment root")
+				}
+				pos += n
+				nSuffix, n = getFTS3Varint(node[pos:])
+				if n == 0 || nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(node)) {
+					return nil, fmt.Errorf("corrupt segment root")
+				}
+				pos += n
+				term := make([]byte, nPrefix)
+				copy(term, prevTerm[:nPrefix])
+				term = append(term, node[pos:pos+int(nSuffix)]...)
+				prevTerm = term
+				pos += int(nSuffix)
+			}
+			nChildren++
+		}
+	}
+	var out []int
+	for i := 0; i < nChildren; i++ {
+		blockID := int(firstBlock) + i
+		block, err := readBlock(blockID)
+		if err != nil {
+			return nil, err
+		}
+		bHeight, bn := getFTS3Varint(block)
+		if bn == 0 {
+			return nil, fmt.Errorf("corrupt segment root")
+		}
+		if bHeight == 0 {
+			out = append(out, blockID)
+			continue
+		}
+		sub, err := collectLeafIDs(block, int(bHeight), readBlock)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, sub...)
+	}
+	return out, nil
+}
+
 // loadLeafBlock loads leaf block index idx (0 = the first leaf) into r.leaf
 // and resets r.pos past the leaf's height varint. For a height-0 segment leaf
-// 0 is the root blob; otherwise the leaves are %_segments blocks
-// firstBlock+idx.
+// 0 is the root blob; for a height-1 interior root the leaves are
+// %_segments blocks firstBlock+idx; for taller roots the leaf ids come from
+// the pre-enumerated leafIDs (the children are interior layers).
 func (r *SegmentStreamReader) loadLeafBlock(idx int) error {
 	var block []byte
 	if r.height == 0 && idx == 0 {
@@ -153,6 +252,12 @@ func (r *SegmentStreamReader) loadLeafBlock(idx int) error {
 		blockID := r.firstBlock + idx
 		if r.height == 0 {
 			blockID = idx
+		}
+		if r.leafIDs != nil {
+			if idx >= len(r.leafIDs) {
+				return fmt.Errorf("corrupt segment root")
+			}
+			blockID = r.leafIDs[idx]
 		}
 		var err error
 		block, err = r.readBlock(blockID)

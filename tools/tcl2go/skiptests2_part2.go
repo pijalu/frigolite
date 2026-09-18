@@ -603,15 +603,20 @@ var skipTestsMoreTail = map[string]string{
 	"fts3fuzz001-110": "integrity-check on fuzz image N-A: oracle detects segdir/schema layers the engine decodes as NULLs and reports ok (no-side-effects)",
 	"fts3fuzz001-120": "optimize on fuzz image N-A: oracle detects segdir/schema layers the engine decodes as NULLs and reports ok (no-side-effects)",
 	"fts3fuzz001-121": "second integrity-check on fuzz image N-A: same under-detection as 110; it only errored because the skipped 110/120 runs mutated state (no-side-effects)",
-	// fts3fuzz001-220: after merge=10,2 with nodesize=24 the merge writer's
-	// layered slot arithmetic collides — leaf 9 was written at block id 9,
-	// the same pre-allocated slot as the layer-1 interior (iStart + 1 *
-	// nLeafEst), so the persisted tree (root height 2 → interior 10 →
-	// leaves 8,9) strands leaves 1..7 and PRAGMA integrity_check reports
-	// "malformed inverted index" where the oracle (which pre-allocates the
-	// per-layer ranges in fts3IncrmergeWriter) reports "ok". Fixing the
-	// writer's block reservation is MergeFTS-continuation work.
-	"fts3fuzz001-220": "post-merge integrity_check N-A: merge writer layer-slot collision (leaf overwrites layer-1 interior slot) strands leaves; oracle pre-allocates per-layer ranges (no-side-effects)",
+	// fts3fuzz001-220: merge=10,2 with nodesize=24 (T27-automerge update).
+	// The original strandings are FIXED: the leaf flush guard is now SQLite's
+	// absolute bound (fts3IncrmergeAppend: pLeaf->iBlock < iStart+nLeafEst,
+	// mirrored by IncrLeafWriter.leafNextID) and interior slots carry the
+	// per-layer baseID, so the engine's post-merge block layout matches the
+	// nodesize=24 oracle byte-for-byte (blocks 1..10 + marker 128, root
+	// 020906627261696E73, verified against a SQLITE_TEST-patched oracle
+	// build). What still differs: C's guard-blocked RELEASE leaf lands on
+	// the layer-1 base slot and the resulting root-over-height child chain
+	// is only tolerated by SQLite's segment checker, while the engine's
+	// stricter integrity_check reports "malformed inverted index" for the
+	// same layout. Checker-leniency parity for that C corner is queued
+	// separately.
+	"fts3fuzz001-220": "post-merge integrity_check N-A: block layout now matches the nodesize=24 oracle; the guard-blocked release-leaf layout C tolerates is flagged by the engine's stricter segment check (no-side-effects)",
 
 	// fts4onepass-4.0: two UPDATEs inside one BEGIN count 3 %_segdir rows in
 	// the oracle — FTS4's xSavepoint (sqlite3 opens a statement savepoint at

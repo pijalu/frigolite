@@ -71,29 +71,14 @@ func TestFTS4Merge4Automerge8Grind(t *testing.T) {
 		10: "0:10",
 		20: "0:4 1:1",
 		40: "0:8 1:4",
-		// KNOWN GAP (P6.FTS-RESIDUE, 2026-09-16): the oracle's tail is
-		// 80:"0:8 1:9 2:1" and 100:"0:4 1:3 2:1" (verified against
-		// /Users/muaddib/dev/sqlite at page_size 1024 — the AMIT/AMCHOMP
-		// trace shows 5 level-1 merge iterations building ONE ~7.9MB level-2
-		// output). The engine's level-1 drain never runs: its level-1 merge
-		// inputs fail to read ([SEG13] on leaf blocks of segments whose rows
-		// survived earlier chomps), because the %_segments/%_segdir btrees
-		// corrupt under the automerge's delete/insert churn with
-		// overflow-sized cells — integrity_check on the engine's file reports
-		// "free space corruption" and "2nd reference to page" (internal/btree
-		// delete/balance paths never free cell overflow chains and the
-		// compaction misaccounts free space). Fix the btree churn corruption
-		// FIRST, then port the remaining merge-side deltas identified in the
-		// 2026-09-16 fts-residue session (full patch + trace evidence in the
-		// session report): C's REPLACE-into-%_segments semantics for merge
-		// block writes, the fts3IncrmergeLoad pending-node-chain restore for
-		// continuations, and rc!=OK merge aborts.
-		80: "0:8 1:9",
-		// The oracle converges to 0:4 1:3 2:1; the engine plateaus at
-		// 0:12 1:11 until the gap above is closed. Pinning the plateau keeps
-		// the early-group behavior and the drain bound locked while the
-		// btree fix lands.
-		100: "0:12 1:11",
+		// Oracle checkpoints (/Users/muaddib/dev/sqlite 3.51 instrumented
+		// build, AMQ/AMIT/AMCHOMP trace, page_size 1024): the engine's grind
+		// now reproduces the oracle's per-transaction level structure exactly
+		// (all 100 checkpoints byte-identical), closing the T24 known gap.
+		80: "0:8 1:9 2:1",
+		// The convergence the TCL suite asserts (fts4merge4 2.2.3: the L1
+		// drain completes and one ~7.9MB level-2 output holds the index).
+		100: "0:4 1:3 2:1",
 	}
 	deadline := time.Now().Add(120 * time.Second)
 	for i := 1; i <= 100; i++ {

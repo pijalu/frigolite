@@ -21,6 +21,13 @@ type IncrLeafWriter struct {
 	pendingSep    string      // separator of the leaf just flushed
 	hasPendingSep bool
 	workOut       int // leaves written by Append during this call (SQLite nWork)
+	// leafNextID mirrors SQLite's pLeaf->iBlock (aNodeWriter[0].iBlock): the
+	// id the NEXT leaf flush will be written at. The leaf flush guard is
+	// ABSOLUTE (fts3IncrmergeAppend: "pLeaf->iBlock < iStart+nLeafEst"), not a
+	// per-call count — a continuation resuming at leaf iStart+k may flush only
+	// while its ids stay under iStart+nLeafEst, or new leaves would land in
+	// the interior layers' pre-allocated slots (fts3fuzz001-220 strandings).
+	leafNextID int
 
 	records      []termRecord // current (unfinished) leaf
 	buffer       int          // current leaf's byte size
@@ -67,12 +74,13 @@ func (w *IncrLeafWriter) leafSpace(term string, nDoclist int) int {
 // first appended term flushes the existing leaf when it no longer fits,
 // exactly matching SQLite's quota accounting (fts4merge 4.3: the continuation
 // consumes ONE source segment per merge=1,16 call because the last leaf is
-// already full, not two).
-func (w *IncrLeafWriter) LoadLeaf(block []byte) {
+// already full, not two). It returns false when the block is not a parseable
+// leaf (the caller aborts the merge — SQLite's read/parse failure sets rc).
+func (w *IncrLeafWriter) LoadLeaf(block []byte) bool {
 	pos := 0
 	height, n := getFTS3Varint(block[pos:])
 	if n == 0 || height != 0 {
-		return
+		return false
 	}
 	pos += n
 	w.records = nil
@@ -84,7 +92,7 @@ func (w *IncrLeafWriter) LoadLeaf(block []byte) {
 		if len(w.records) == 0 {
 			nLen, n := getFTS3Varint(block[pos:])
 			if n == 0 || uint64(pos)+nLen > uint64(len(block)) {
-				return
+				return false
 			}
 			pos += n
 			term = string(block[pos : pos+int(nLen)])
@@ -92,16 +100,16 @@ func (w *IncrLeafWriter) LoadLeaf(block []byte) {
 		} else {
 			nPrefix, n := getFTS3Varint(block[pos:])
 			if n == 0 {
-				return
+				return false
 			}
 			pos += n
 			nSuffix, n := getFTS3Varint(block[pos:])
 			if n == 0 {
-				return
+				return false
 			}
 			pos += n
 			if uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(block)) {
-				return
+				return false
 			}
 			t := make([]byte, nPrefix)
 			copy(t, prevTerm[:nPrefix])
@@ -111,7 +119,7 @@ func (w *IncrLeafWriter) LoadLeaf(block []byte) {
 		}
 		nDoclist, n := getFTS3Varint(block[pos:])
 		if n == 0 || uint64(pos)+nDoclist > uint64(len(block)) {
-			return
+			return false
 		}
 		pos += n
 		doclist := append([]byte(nil), block[pos:pos+int(nDoclist)]...)
@@ -120,6 +128,7 @@ func (w *IncrLeafWriter) LoadLeaf(block []byte) {
 		w.buffer += w.leafSpace(term, len(doclist))
 		prevTerm = []byte(term)
 	}
+	return true
 }
 
 // Append adds one merged term. It returns the finished previous leaf's bytes
@@ -127,7 +136,7 @@ func (w *IncrLeafWriter) LoadLeaf(block []byte) {
 // and counts one unit of work, mirroring fts3WriteSegment + pWriter->nWork.
 func (w *IncrLeafWriter) Append(term string, doclist []byte) []byte {
 	sz := w.leafSpace(term, len(doclist))
-	if len(w.records) > 0 && w.buffer+sz > w.nodeSize && w.workOut < w.nLeafEst {
+	if len(w.records) > 0 && w.buffer+sz > w.nodeSize && w.leafQuotaOK() {
 		flushed := serializeLeafNode(w.records)
 		// The interior-root boundary is a TRUNCATED SEPARATOR: the new term
 		// cut to its common prefix with the flushed leaf's last term, plus
@@ -166,6 +175,19 @@ func (w *IncrLeafWriter) Append(term string, doclist []byte) []byte {
 	return nil
 }
 
+// leafQuotaOK reports whether the pending leaf may still be flushed:
+// SQLite's fts3IncrmergeAppend guard "pLeaf->iBlock < iStart+nLeafEst" —
+// an ABSOLUTE block-id bound, so a continuation resuming at leaf iStart+k
+// stops flushing once its ids reach the interior layers' base slot. The
+// non-layered writer keeps the equivalent per-call count (iBlock starts at
+// iStart, so iBlock-iStart == leaves flushed this call).
+func (w *IncrLeafWriter) leafQuotaOK() bool {
+	if w.hier {
+		return w.leafNextID < w.hierStart+w.nLeafEst
+	}
+	return w.workOut < w.nLeafEst
+}
+
 // appendCurrent stores the record in the (new or current) leaf.
 func (w *IncrLeafWriter) appendCurrent(term string, doclist []byte, sz int) {
 	// SQLite nLeafData excludes first leaf height marker, includes it after
@@ -194,12 +216,31 @@ type iBlockOut struct {
 // maxHierLayers caps interior depth (FTS_MAX_APPENDABLE_HEIGHT).
 const maxHierLayers = 16
 
+// MaxHierLayers is the interior-depth cap (SQLite FTS_MAX_APPENDABLE_HEIGHT):
+// a continuation root taller than this is corrupt (fts3IncrmergeLoad).
+const MaxHierLayers = maxHierLayers
+
+// SetLeafNextID seeds the leaf-block cursor for a continuation (the id of
+// the restored last leaf, whose flush overwrites it in place).
+func (w *IncrLeafWriter) SetLeafNextID(id int) { w.leafNextID = id }
+
 // iLayer is one interior layer's pending state. Layer 1 sits directly above
 // the leaves; layer L+1 indexes layer-L blocks. Children are consecutive
 // block ids, so a node is fully described by its first child plus the
 // separator terms between consecutive children.
 type iLayer struct {
-	started    bool
+	started bool
+	// baseID is the layer's FIRST writable slot: SQLite's aNodeWriter[i].iBlock
+	// initial value (fts3IncrmergeWriter: iStart+i*nLeafEst for a fresh
+	// writer). A continuation layer restored from disk (fts3IncrmergeLoad:
+	// pNode->iBlock = reader.iChild) seeds baseID with the LOADED block id —
+	// the pending node is re-written at its own slot when it overflows, and
+	// subsequent nodes continue at baseID+1, +2 ... (fts3IncrmergePush does
+	// pNode->iBlock++ after every flush).
+	baseID int
+	// firstChild is the pending node's header child pointer (the node's first
+	// subtree block). For a fresh node it is the finished child that opened
+	// the node; for a seeded node it is the LOADED header value.
 	firstChild int
 	seps       []string
 	bytes      int
@@ -207,30 +248,40 @@ type iLayer struct {
 }
 
 // BeginHierarchy enables layered interior output: interior layer L blocks
-// are allocated at iStart + L*nLeafEst (+ sequence), mirroring
+// are allocated from iStart + L*nLeafEst (the layer's base slot), mirroring
 // aNodeWriter[i].iBlock = pWriter->iStart + i*pWriter->nLeafEst
-// (fts3_write.c fts3IncrmergeWriter). sep pushes flow through hierPush.
+// (fts3_write.c fts3IncrmergeWriter). The leaf cursor starts at iStart
+// (aNodeWriter[0].iBlock). sep pushes flow through hierPush.
 func (w *IncrLeafWriter) BeginHierarchy(iStart, nLeafEst int) {
 	w.hier = true
 	w.hierStart = iStart
+	w.leafNextID = iStart
 	if nLeafEst > 0 {
 		w.nLeafEst = nLeafEst
 	}
+	for L := 1; L < maxHierLayers; L++ {
+		w.layers[L].baseID = iStart + L*w.nLeafEst
+	}
 }
 
-// SeedHierarchySeps preloads layer 1 with an EXISTING segment's boundary
-// separators (a continuation's stored root covers firstLeaf..firstLeaf+len-
-// (seps)); further appends extend that node naturally. The byte accounting
-// MUST include the node header — height byte + left-child varint — exactly
-// like fts3IncrmergeLoad's restored pNode->block (header written via
-// pBlk->a[0]=iLayer; pBlk->n = 1 + putVarint(child)); omitting it made the
-// continuation node fit one extra separator before overflowing, shifting
-// every subsequent split point (x6 blocks 2155/2156 were 990/750 instead of
-// 986/754).
-func (w *IncrLeafWriter) SeedHierarchySeps(firstChild int, seps []string) {
+// SeedHierarchyLayer restores one interior layer's PENDING node from a
+// continuation's on-disk state (SQLite's fts3IncrmergeLoad): the node's
+// content (header child firstChild + boundary separators) is reloaded into
+// the writer so further appends extend it, and its block id nodeID becomes
+// the layer's base slot — when the restored node overflows it is RE-WRITTEN
+// at its own id (fts3IncrmergePush writes pNode->block at pNode->iBlock;
+// SQL_INSERT_SEGMENTS is a REPLACE), and later siblings continue at
+// nodeID+1, +2 ... The restored header is pre-charged to the byte budget
+// (height byte + child varint), exactly like fts3IncrmergeLoad's
+// pBlk->a[0]=iLayer; pBlk->n = 1 + putVarint(child) restore.
+func (w *IncrLeafWriter) SeedHierarchyLayer(L, firstChild int, seps []string, nodeID int) {
+	if L < 1 || L >= maxHierLayers {
+		return
+	}
 	w.hier = true
-	n := &w.layers[1]
+	n := &w.layers[L]
 	n.started = true
+	n.baseID = nodeID
 	n.firstChild = firstChild
 	n.bytes = 1 + varintSize(uint64(firstChild))
 	for _, s := range seps {
@@ -242,8 +293,14 @@ func (w *IncrLeafWriter) SeedHierarchySeps(firstChild int, seps []string) {
 // NoteFlushedID reports the block id the caller assigned to the leaf just
 // flushed by Append/TakeLeaf, releasing the pending separator into the
 // interior hierarchy. Ids arrive after the write because allocation belongs
-// to the caller (reuse/overwrite rules for continuations).
+// to the caller (reuse/overwrite rules for continuations). The leaf cursor
+// resyncs to the reported id so the flush guard tracks the caller's actual
+// allocation (reuse of a continuation's last leaf, sequential in-range
+// allocation, ...).
 func (w *IncrLeafWriter) NoteFlushedID(id int) {
+	if id >= w.leafNextID {
+		w.leafNextID = id + 1
+	}
 	if !w.hasPendingSep {
 		return
 	}
@@ -264,21 +321,25 @@ func (w *IncrLeafWriter) hierAdd(L int, sep string, finishedChild int) {
 	}
 	n := &w.layers[L]
 	entry := sepEntrySize(n.seps, sep)
-	if len(n.seps) > 0 && n.bytes+entry > w.nodeSize {
+	if n.started && n.bytes+entry > w.nodeSize {
 		// Flush this node WITHOUT the new separator, then let the separator
 		// rise to the parent layer; the next node begins after the child
-		// that produced the separator.
+		// that produced the separator. The flushed node is written at its
+		// own slot (baseID+written — the loaded slot for a restored node)
+		// and the layer's cursor advances by one (fts3IncrmergePush:
+		// fts3WriteSegment(p, pNode->iBlock, ...); pNode->iBlock++).
 		blk := serializeInteriorNode(L, n.firstChild, n.seps)
-		id := w.hierStart + L*w.nLeafEst + n.written
+		id := n.baseID + n.written
 		n.written++
 		w.interiorQ = append(w.interiorQ, iBlockOut{ID: id, Data: blk})
 		w.hierAdd(L+1, sep, id)
 		n.seps = n.seps[:0]
 		n.bytes = 0
+		n.started = false
 		n.firstChild = finishedChild + 1
 		return
 	}
-	if len(n.seps) == 0 {
+	if !n.started {
 		n.started = true
 		// This separator sits between the finished child and the NEXT one,
 		// and opens THIS node's coverage: the node's first child IS the
@@ -319,10 +380,15 @@ func (w *IncrLeafWriter) Finish() ([]byte, []iBlockOut) {
 		return nil, nil
 	}
 	extras := make([]iBlockOut, 0, 2)
+	// Layers BELOW the root are persisted as %_segments blocks; the TOP
+	// layer's pending buffer IS the root blob (fts3IncrmergeRelease writes
+	// only aNodeWriter[0..iRoot-1] and hands aNodeWriter[iRoot] to
+	// fts3WriteSegdir — emitting the root layer here too would strand it as
+	// a duplicate "extra" and leave the root blob empty of boundaries).
 	for L := 1; L < top; L++ {
 		n := &w.layers[L]
 		if len(n.seps) > 0 {
-			id := w.hierStart + L*w.nLeafEst + n.written
+			id := n.baseID + n.written
 			n.written++
 			blk := serializeInteriorNode(L, n.firstChild, n.seps)
 			extras = append(extras, iBlockOut{ID: id, Data: blk})
