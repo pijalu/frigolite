@@ -273,37 +273,72 @@ func (t *BTree) removeEmptyIndexLeaf(leafNum uint32) error {
 // after DELETE/REPLACE so stale entries cannot pin overflow pages (which
 // stalled auto-vacuum truncation and corrupted integrity_check walks).
 func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
-	var leaves []uint32
-	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
+	// Index entries are unique (the rowid suffix is part of the record) and
+	// the leaf cells are stored in the b-tree's byte order, so an entry with
+	// EXACTLY these bytes — if present — sits at the first position >= target.
+	// A binary seek therefore locates it directly, instead of the previous
+	// whole-tree leaf walk that made each indexed-row delete O(index) (an
+	// indexed UPDATE over 1000 blob rows under cache_size=10 crawled for
+	// minutes in temptable2 3.2).
+	cursor, err := t.OpenCursor()
+	if err != nil {
 		return false, err
 	}
-	deleted := false
-	for _, leafNum := range leaves {
-		// A leaf freed as a surplus empty sibling during an earlier
-		// iteration must be skipped (its type byte is the freelist
-		// chain pointer, not a page type).
-		if pager.IsPageOnFreelist(t.pager, leafNum) {
-			continue
-		}
-		found, err := t.deleteIndexEntryFromLeaf(leafNum, target)
-		if err != nil {
-			return deleted, err
-		}
-		if found {
-			deleted = true
-			if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
-				return deleted, err
-			}
-		}
+	found, err := cursor.SeekToKey(target)
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		return false, nil
+	}
+	// The seek matches by the stored comparator (raw payload bytes); verify
+	// the entry byte-equals the target with its overflow chain reassembled
+	// before deleting (a longer entry sharing the prefix sorts after target).
+	pg, err := t.pager.ReadPage(cursor.pageNum)
+	if err != nil {
+		return false, err
+	}
+	coff := contentOffset(cursor.pageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return false, err
+	}
+	if page.PageType != storage.PageTypeLeafIndex {
+		return false, nil
+	}
+	p := storage.CellPointer(pg.Data, coff, cursor.cellIdx, int(t.pageSize))
+	c, derr := storage.DecodeCell(pg.Data, int(p), storage.CellIndexLeaf, int(t.usableSize))
+	if derr != nil {
+		return false, derr
+	}
+	full, ferr := t.readOverflow(c)
+	if ferr != nil {
+		return false, ferr
+	}
+	if !bytes.Equal(full.Payload, target) {
+		return false, nil
+	}
+	leafNum := cursor.pageNum
+	// Delete through the leaf-rewrite path: the byte-equal entry is unique,
+	// so the single-cell leaf delete is the whole job.
+	deleted, err := t.deleteIndexEntryFromLeaf(leafNum, target)
+	if err != nil {
+		return false, err
+	}
+	if !deleted {
+		return false, nil
+	}
+	if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
+		return true, err
 	}
 	// A fully-emptied index tree can leave its root an interior page with
 	// 0 cells and a dead rightmost-child (removeEmptyIndexLeaf zeroed it
 	// at the root level); rewrite the root as an empty leaf — the same
 	// end state clearEmptyRootRightmost produces for table trees.
 	if err := t.clearEmptyRootRightmost(); err != nil {
-		return deleted, err
+		return true, err
 	}
-	return deleted, nil
+	return true, nil
 }
 
 // deleteIndexEntryFromLeaf removes the cells on one index leaf whose FULL

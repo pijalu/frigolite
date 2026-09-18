@@ -83,18 +83,22 @@ type Manager struct {
 	externalInvalidated bool
 
 	// Cookie-keyed schema entry cache: GetEntries walks the schema btree once
-	// per SCHEMA VERSION and serves later reads from the snapshot. The key is
-	// the header schema cookie (offset 40 — SQLite's schema-version counter):
-	// every schema mutation bumps the cookie (BumpSchemaCookie), a ROLLBACK of
-	// a DDL transaction reverts it with the restored page-1 header image, and
-	// an external connection's commit drops the pager cache and re-reads a new
-	// cookie. This replaces the historically disabled blind cache, whose
-	// stale entries diverged from the btree after DDL + pager-restore cycles
-	// (FK torture "table X already exists"): the cookie key tracks exactly the
-	// btree content. Not thread-safe — callers must ensure single-goroutine
-	// access, which holds (each DB has its own Manager; access is sequential).
+	// per SCHEMA VERSION and serves later reads from the snapshot. The key
+	// folds the header schema cookie (offset 40 — SQLite's schema-version
+	// counter) with a local mutation epoch: every schema mutation bumps the
+	// cookie AND the epoch (BumpSchemaCookie is a no-op on pagers without a
+	// materialized header image — e.g. temp stores — so the epoch keeps the
+	// key moving there), a ROLLBACK of a DDL transaction reverts the cookie
+	// with the restored page-1 header image, and an external connection's
+	// commit drops the cache outright. This replaces the historically
+	// disabled blind cache, whose stale entries diverged from the btree
+	// after DDL + pager-restore cycles (FK torture "table X already
+	// exists"): the key tracks exactly the btree content. Not thread-safe —
+	// callers must ensure single-goroutine access, which holds (each DB has
+	// its own Manager; access is sequential).
 	cookieCacheValid bool
-	cookieCacheKey   uint32
+	cookieCacheKey   uint64
+	mutationEpoch    uint64
 	cookieCacheAll   []*Entry
 
 	// headerValidated records that the pager header's freelist/root-page
@@ -347,6 +351,7 @@ func (m *Manager) checkExternalMod() {
 		// in-memory header image is not re-synced by InvalidateCache.
 		m.cookieCacheValid = false
 		m.cookieCacheAll = nil
+		m.mutationEpoch++
 	}
 }
 
@@ -355,6 +360,7 @@ func (m *Manager) checkExternalMod() {
 func (m *Manager) invalidateForMutation() {
 	m.cookieCacheValid = false
 	m.cookieCacheAll = nil
+	m.mutationEpoch++
 	m.pager.BumpSchemaCookie()
 }
 
@@ -379,8 +385,8 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 	// Serve from the cookie-keyed cache when the schema version is unchanged
 	// (the common case within and across DML statements: DML hits the schema
 	// 2-3 times per statement).
-	cookie := m.pager.SchemaCookie()
-	if m.cookieCacheValid && m.cookieCacheKey == cookie {
+	key := m.cacheKey()
+	if m.cookieCacheValid && m.cookieCacheKey == key {
 		return filterEntries(m.cookieCacheAll, schemaType), nil
 	}
 
@@ -425,9 +431,15 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 	}
 
 	m.cookieCacheAll = all
-	m.cookieCacheKey = cookie
+	m.cookieCacheKey = m.cacheKey()
 	m.cookieCacheValid = true
 	return filterEntries(all, schemaType), nil
+}
+
+// cacheKey folds the schema cookie with the local mutation epoch (the epoch
+// covers pagers without a header image, where the cookie cannot move).
+func (m *Manager) cacheKey() uint64 {
+	return uint64(m.pager.SchemaCookie())<<32 ^ m.mutationEpoch
 }
 
 // filterEntries returns the entries of one type (all entries when schemaType
