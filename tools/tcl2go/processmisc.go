@@ -40,6 +40,16 @@ func (tp *transpiler) processDBConfig(args []tcl.RawWord) {
 		}
 		tp.emitLine("tcl_fp_digits = %d", n)
 		return
+	case flag == "QPSG":
+		// sqlite3_db_config db QPSG N: the query planner stability
+		// guarantee gates the bound-parameter branch of the LIKE
+		// optimization (whereexpr.c isLikeOrGlob).
+		goName := tclVarToGo(args[0].Text)
+		if goName == "" {
+			goName = "db"
+		}
+		tp.emitLine("%s.SetQPSG(%t)", goName, on)
+		return
 	case flag == "DEFENSIVE":
 		goName := tclVarToGo(args[0].Text)
 		if goName == "" {

@@ -355,7 +355,7 @@ func Test_like(t *testing.T) {
 		sqlite_like_count = "0"
 		db.ResetLikeCallCount()
 		_ = sqlite_like_count // suppress unused warning
-		// sqlite3_db_config QPSG (unhandled flag)
+		db.SetQPSG(true)
 		_ = db.Query("SELECT x FROM t1 WHERE x LIKE $::likepat ORDER BY 1;")
 	}
 	{ // do_test "like-3.3.105"
@@ -378,7 +378,7 @@ func Test_like(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.106")
 		}
 	}
-	// sqlite3_db_config QPSG (unhandled flag)
+	db.SetQPSG(false)
 	{ // do_test "like-3.4.2"
 		_ = db.Query("SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1;")
 	}

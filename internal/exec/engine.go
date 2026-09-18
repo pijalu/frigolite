@@ -334,6 +334,7 @@ type engineSettings struct {
 	countChanges           bool             // PRAGMA count_changes: DML statements return a row with the changed-row count
 	cacheSpillEnabled      bool             // PRAGMA cache_spill on/off flag
 	defensive              bool             // SQLITE_DBCONFIG_DEFENSIVE: ignore certain writes (e.g. schema_version)
+	qpsg                   bool             // SQLITE_DBCONFIG_ENABLE_QPSG: query planner stability guarantee (plan from static schema only)
 	recursiveCTELimit      int              // PRAGMA recursive_cte_limit setting (default 1000000)
 	cacheSpillSize         int              // PRAGMA cache_spill threshold in pages (negative = KiB until read)
 	mmapSize               int64            // PRAGMA mmap_size limit in bytes (value store only; the engine performs no real mmap)
@@ -782,6 +783,17 @@ func (e *Engine) SetTrackExternalModForMain(enabled bool) {
 func (e *Engine) SetDefensive(enabled bool) {
 	e.settings.defensive = enabled
 }
+
+// SetQPSG mirrors SQLITE_DBCONFIG_ENABLE_QPSG (the query planner stability
+// guarantee): when enabled, planning must not depend on runtime values, so
+// bound-parameter LIKE patterns are not examined for the prefix-range
+// optimization (whereexpr.c isLikeOrGlob's TK_VARIABLE branch).
+func (e *Engine) SetQPSG(enabled bool) {
+	e.settings.qpsg = enabled
+}
+
+// QPSG reports the query planner stability guarantee flag.
+func (e *Engine) QPSG() bool { return e.settings.qpsg }
 
 // RegisterFunction registers a scalar SQL function for this engine instance.
 // It is used by the test harness to reproduce SQLite's TCL-defined functions

@@ -8,6 +8,7 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/value"
 	"strings"
 )
 
@@ -637,7 +638,10 @@ func normalizeCollationKey(v interface{}, collation string) string {
 	}
 	switch strings.ToUpper(collation) {
 	case "NOCASE":
-		return strings.ToUpper(s)
+		// sqlite3UpperToLower folds ASCII A-Z down; the direction only
+		// matters for ordering, but ASCII-only folding also keeps the
+		// non-ASCII bytes distinct like SQLite's NOCASE.
+		return value.SQLiteAsciiToLower(s)
 	case "RTRIM":
 		return strings.TrimRight(s, " ")
 	default:

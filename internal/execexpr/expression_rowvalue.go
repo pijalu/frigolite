@@ -292,6 +292,11 @@ func binaryOpNeedsNullCheck(op string) bool {
 // resolved and the NULL pre-check has passed: LIKE-with-ESCAPE, IS/IS NOT, and
 // the remaining operators via evalBinaryOpValues.
 func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interface{}) (interface{}, error) {
+	// LIKE/GLOB term with a planner-synthesized prefix range: the bounds
+	// gate the matcher (and elide it where they decide the row).
+	if v.LikeRange != nil {
+		return ev.evalLikeRangeOp(v, left, right)
+	}
 	if (v.Operator == "LIKE" || v.Operator == "NOT LIKE") && (v.Escape != "" || v.HasEscape) {
 		return ev.evalLikeWithEscape(v, left, right)
 	}

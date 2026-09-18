@@ -32,7 +32,12 @@ func (ev *Evaluator) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 	case *sql.NullLit:
 		return nil, nil
 	case *sql.ParameterExpr:
-		// Unbound parameter placeholders evaluate to NULL.
+		// $name / $::name resolve against the TCL variable table
+		// (tclsqlite.c binds TCL variables as parameters); other parameter
+		// forms and unknown variables evaluate to NULL.
+		if val, ok := ev.ctx.TCLParam(v.Name); ok {
+			return val, nil
+		}
 		return nil, nil
 	case *sql.ParenExpr:
 		return ev.evalExpr(v.Expr, row)

@@ -154,16 +154,24 @@ func toFloat(v interface{}) (float64, bool) {
 // SQLite's sqlite3Utf8Read does: ASCII bytes and lone continuation bytes are
 // single code points (read as themselves), while a byte >= 0xC0 begins a
 // multi-byte UTF-8 sequence whose continuation bytes are consumed when valid.
+// Invalid sequences normalize to U+FFFD the way sqlite3Utf8Read does
+// (util.c): a decoded value below 0x80 (overlong), a surrogate
+// (D800-DFFF), or U+FFFE/U+FFFF each read as U+FFFD, and the 0xFE/0xFF
+// bytes decode to U+FFFD as well — so a pattern containing raw 0xFE
+// matches a value containing raw 0xFF (like.test 9.4.2/9.5.1).
 // Returns the code point and the next position.
 func sqliteReadCodePoint(s string, i int) (rune, int) {
 	c := s[i]
 	if c < 0x80 {
 		return rune(c), i + 1
 	}
-	if c < 0xC0 || c >= 0xFE {
-		// Lone continuation byte (or 0xFE/0xFF): read as a single
-		// code point (sqlite3Utf8Read returns the byte itself).
+	if c < 0xC0 {
+		// Lone continuation byte: sqlite3Utf8Read returns it as itself.
 		return rune(c), i + 1
+	}
+	if c >= 0xFE {
+		// trans1[0xFE..0xFF] = 0x00 -> the <0x80 check maps to U+FFFD.
+		return utf8RuneError, i + 1
 	}
 	width := utf8SeqWidth(c)
 	got := 1
@@ -185,8 +193,16 @@ func sqliteReadCodePoint(s string, i int) (rune, int) {
 		j++
 		got++
 	}
+	u32 := uint32(cp)
+	if cp < 0x80 || (u32&0xFFFFF800) == 0xD800 || (u32&0xFFFFFFFE) == 0xFFFE {
+		cp = utf8RuneError
+	}
 	return cp, j
 }
+
+// utf8RuneError is the replacement character SQLite's sqlite3Utf8Read
+// yields for invalid UTF-8 (U+FFFD).
+const utf8RuneError = 0xFFFD
 
 // utf8SeqWidth returns the byte width of a UTF-8 sequence starting with the
 // given lead byte (2-4 for 0xC0-0xFD lead bytes).
@@ -201,9 +217,12 @@ func utf8SeqWidth(c byte) int {
 	}
 }
 
-// validUTF8 reports whether s is valid UTF-8: every byte >= 0x80 is a
-// multi-byte sequence start (not a lone continuation byte) with the expected
-// number of continuation bytes.
+// validUTF8 reports whether s is valid UTF-8 under SQLite's reader rules:
+// every byte >= 0x80 is a multi-byte sequence start (not a lone
+// continuation byte) with the expected number of continuation bytes, and
+// no sequence encodes a value sqlite3Utf8Read would replace with U+FFFD
+// while Go keeps it (surrogate encodings ED A0-BF .., U+FFFE/U+FFFF).
+// Strings that fail route through sqliteReadCodePoint's normalization.
 func validUTF8(s string) bool {
 	for i := 0; i < len(s); i++ {
 		c := s[i]
@@ -222,6 +241,12 @@ func validUTF8(s string) bool {
 			if s[i+j]&0xC0 != 0x80 {
 				return false
 			}
+		}
+		if c == 0xED && width >= 2 && s[i+1] >= 0xA0 {
+			return false // surrogate D800-DFFF
+		}
+		if c == 0xEF && width >= 3 && s[i+1] == 0xBF && (s[i+2] == 0xBE || s[i+2] == 0xBF) {
+			return false // U+FFFE / U+FFFF
 		}
 		i += width - 1
 	}

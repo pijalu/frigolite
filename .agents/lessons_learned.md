@@ -6990,3 +6990,47 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   FTS vtab RENAME shadow propagation; snippet() column selection; offsets()
   prefix hit counts; compound LIMIT/OFFSET; outer-join NULL-fill;
   star-schema join reorder; VACUUM aux; same-file ATTACH.
+=======
+- **LIKE-optimization residue closed (T27-like)**: the like()/glob() call
+  counter observes the PLANNER's prefix-range synthesis, not a physical
+  index seek. frigolite's single-table scan materializes rows and filters
+  per row, so whereexpr.c's virtual x>='abc' AND x<'abd' terms are emulated
+  per row in execquery/select_like_opt.go (scan-local WHERE decoration with
+  sql.LikeRangeOpt) + execexpr/like_range.go: out-of-range -> 0 without
+  touching the matcher; IsComplete (pattern = prefix + one trailing
+  wildcard) -> range decides, like() elided; NoCase complete patterns keep
+  the matcher for BLOB rows only (wherecode.c TERM_LIKECOND two-pass):
+  blob rows compare against the FOLDED bounds byte-wise. Counts then match
+  like.test 3.x exactly (12 no-opt / 6 'a_c' / 0 'abc%').
+- **NOCASE fold direction is load-bearing once the range decides rows**:
+  SQLite's NOCASE folds via sqlite3UpperToLower (ASCII A-Z DOWN to a-z),
+  so bytes 0x5B-0x60 ([\]^_`) sort BEFORE 'Z'. frigolite folded UP
+  (ToUpper both sides) which no row-level test caught — but range
+  elision made membership decisions from the collation and returned wrong
+  rows for like2 2.x (like2_test.go 2151/2331 classes). Fixed in
+  value.SQLiteAsciiToLower (shared by util + value string compares and
+  ANALYZE key normalization). ASCII-only: Unicode case pairs stay distinct
+  like SQLite.
+- **sqlite3Utf8Read maps 0xFE AND 0xFF to U+FFFD** (trans1[0xFE/0xFF]=0 ->
+  <0x80 check): a LIKE pattern containing raw 0xFE matches a value
+  containing raw 0xFF (like.test 9.5.1). Mirror the three normalization
+  cases (overlong <0x80, surrogates D800-DFFF, FFFE/FFFF) in any
+  code-point decoder; route strings containing those encodings through the
+  slow path (validUTF8 guards).
+- **$::name parameters bind from the TCL variable table** (tclsqlite.c
+  binds TCL variables as SQL parameters); frigolite resolves $name/$::name
+  via the vtab tclvar registry (ExprContext.TCLParam / Engine.TCLParam).
+  Like-test 3.3.102-3.3.106 need this PLUS a QPSG knob: isLikeOrGlob's
+  TK_VARIABLE branch reads the bound value only when
+  SQLITE_DBCONFIG_ENABLE_QPSG is OFF — DB.SetQPSG gates
+  likeRangeForTerm's variable-pattern resolution. The transpiler now emits
+  db.SetQPSG(true/false) for `sqlite3_db_config db QPSG N` (processmisc.go
+  processDBConfig; regenerating testgen/like also emits SetDefensive-style
+  calls — NOTE regenerate one package at a time, the shared helpers
+  template has drifted from per-package committed helpers_test.go files).
+- **The JSON harness (go test .) has ~2-3k failing subtests with heavy
+  run-to-run variance**: two runs on the identical tree differed by 592/324
+  subtest names (after vs after). NEVER attribute single-run new-reds to a
+  change — re-run / compare standalone, and check the parent file at
+  baseline standalone (func2-1.8 fails standalone at baseline but passes
+  in some full-suite runs).

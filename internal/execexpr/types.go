@@ -70,6 +70,12 @@ type ExprContext interface {
 	CompareValuesCollate(a, b interface{}, collation string) int
 	CompareValuesWithCollate(left, right interface{}) int
 
+	// TCLParam resolves a $name / $::name parameter against the TCL
+	// variable table (the sqlite3 TCL driver binds TCL variables as SQL
+	// parameters, tclsqlite.c). Returns false for non-$ parameters and
+	// variables the table does not define; those stay NULL as before.
+	TCLParam(name string) (string, bool)
+
 	// Function registry.
 	Functions() *function.Registry
 	// OverloadProbe reports whether the current statement's scan context

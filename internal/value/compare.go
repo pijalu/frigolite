@@ -461,7 +461,8 @@ func Affinity(typeName string) rune {
 func stringCompare(a, b, collation string) int {
 	switch strings.ToUpper(collation) {
 	case "NOCASE":
-		return strings.Compare(strings.ToUpper(a), strings.ToUpper(b))
+		// sqlite3UpperToLower folds ASCII A-Z down; see SQLiteAsciiToLower.
+		return strings.Compare(SQLiteAsciiToLower(a), SQLiteAsciiToLower(b))
 	case "RTRIM":
 		return strings.Compare(strings.TrimRight(a, " "), strings.TrimRight(b, " "))
 	default:
@@ -546,4 +547,28 @@ func applyNumericAffinity(val interface{}) interface{} {
 	default:
 		return val
 	}
+}
+
+// SQLiteAsciiToLower folds ASCII 'A'-'Z' to 'a'-'z' and leaves every other
+// byte unchanged (sqlite3UpperToLower). Shared by every collation compare so
+// all NOCASE orderings agree with SQLite's (the bytes between 'Z' and 'a'
+// sort before 'Z' under NOCASE).
+func SQLiteAsciiToLower(s string) string {
+	hasUpper := false
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 'A' && s[i] <= 'Z' {
+			hasUpper = true
+			break
+		}
+	}
+	if !hasUpper {
+		return s
+	}
+	out := []byte(s)
+	for i, c := range out {
+		if c >= 'A' && c <= 'Z' {
+			out[i] = c + ('a' - 'A')
+		}
+	}
+	return string(out)
 }
