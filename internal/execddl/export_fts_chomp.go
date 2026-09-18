@@ -190,23 +190,31 @@ func (e *DDLExecutor) deleteFTSBlocksRangeWithMarker(tableName string, row ftsSe
 // position onward — fts.TruncateNode trims each node on the root-to-leaf
 // path and every trimmed block is rewritten IN PLACE under its own block id,
 // so untouched segments' id relationships stay stable. Returns the number of
-// segments deleted and the number truncated.
-func (e *DDLExecutor) chompFTSMerge(tableName string, level int, readers []segReader) (deleted, truncated int) {
+// segments deleted and the number truncated. An error (corrupt segment,
+// unreadable block, failed write) propagates to the caller, which ABORTS the
+// merge before writing the output %_segdir row — SQLite's chomp rc flows
+// back into sqlite3Fts3Incrmerge's rc and gates the release/hint writes.
+func (e *DDLExecutor) chompFTSMerge(tableName string, level int, readers []segReader) (deleted, truncated int, err error) {
 	for _, sr := range readers {
 		// Use the row's OWN level: a merge's source list can span levels
 		// (a single-leaf continuation output from level+1 re-merged as a
 		// source), so the segdir delete must target sr.row.level, not the
 		// iteration's base level.
 		if sr.reader.AtEOF() {
+			if sr.reader.Err() != nil {
+				// AtEOF is also true when the reader FAILED (corrupt
+				// block mid-segment). SQLite's chomp sees pSeg->aNode!=0
+				// only after a clean step; a failed reader means rc
+				// propagates and the whole merge aborts. Deleting the
+				// segment here would silently DROP its unmerged terms.
+				return deleted, truncated, fmt.Errorf("corrupt segment (chomp reader: %v)", sr.reader.Err())
+			}
 			// Delete the consumed segment's %_segments blocks before removing
 			// its %_segdir row (fts3DeleteSegment: blockid BETWEEN start AND
 			// leaves_end; guarded by iStartBlock != 0).
 			e.deleteFTSBlocksRangeWithMarker(tableName, sr.row, int(e.segdirRowLeavesEnd(sr.row.leavesEndBlock)))
 			e.deleteFTSSegdirIdx(tableName, sr.row.level, sr.row.idx)
 			deleted++
-			continue
-		}
-		if sr.reader.Err() != nil {
 			continue
 		}
 		// The reader's current term is SQLite's pSeg->zTerm chomp bound.
@@ -222,20 +230,22 @@ func (e *DDLExecutor) chompFTSMerge(tableName string, level int, readers []segRe
 		// valid leaf (0 for a root-only segment).
 		newRoot, iBlock := fts.TruncateNode(rootBlob, zTerm)
 		if newRoot == nil {
-			continue // corrupt root: leave the segment untouched
+			// Corrupt root: SQLite's fts3TruncateNode returns
+			// FTS_CORRUPT_VTAB and the merge aborts.
+			return deleted, truncated, fmt.Errorf("database disk image is malformed (chomp root)")
 		}
 		iNewStart := int64(0)
 		for iBlock != 0 {
 			iNewStart = iBlock
 			blk, res := e.readFTSBlock(tableName, int(iBlock))
 			if res != nil || blk == nil {
-				break
+				return deleted, truncated, fmt.Errorf("database disk image is malformed (chomp block %d)", iBlock)
 			}
 			nb, next := fts.TruncateNode(blk, zTerm)
 			if nb == nil {
-				break
+				return deleted, truncated, fmt.Errorf("database disk image is malformed (chomp node %d)", iBlock)
 			}
-			_ = e.ctx.Exec(&sql.UpdateStmt{
+			if ures := e.ctx.Exec(&sql.UpdateStmt{
 				Table: tableName + "_segments",
 				Assignments: []sql.Assignment{{
 					Column: "block",
@@ -246,7 +256,9 @@ func (e *DDLExecutor) chompFTSMerge(tableName string, level int, readers []segRe
 					Left:     &sql.ColumnRef{Name: "blockid"},
 					Right:    &sql.NumericLit{Value: fmt.Sprintf("%d", iNewStart)},
 				},
-			})
+			}); ures != nil && ures.Error != nil {
+				return deleted, truncated, ures.Error
+			}
 			iBlock = next
 		}
 		// Delete the leading dead run; SQL_CHOMP_SEGDIR keeps leaves_end_block.
@@ -257,7 +269,7 @@ func (e *DDLExecutor) chompFTSMerge(tableName string, level int, readers []segRe
 		truncated++
 	}
 	e.repackFTSSegdirLevel(tableName, level)
-	return deleted, truncated
+	return deleted, truncated, nil
 }
 
 // deleteFTSSegdirIdx deletes one %_segdir row at (level, idx).

@@ -342,6 +342,10 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 	// (nRem) decreases by (1 + leaf pages written) each iteration and the
 	// loop exits when it is exhausted.
 	nRem := nMerge
+	// mergeErr is the iteration's rc (SQLite's `rc` in sqlite3Fts3Incrmerge):
+	// any reader/writer/chomp failure aborts the WHOLE merge call before the
+	// output %_segdir row is written (`while( rc==SQLITE_OK )`).
+	var mergeErr error
 	// The %_stat id=1 hint is a LIST of (level, nSeg) pairs (SQLite's
 	// fts3IncrmergeHintPop/Push): each iteration POPS the first entry (and
 	// restores it if the fresh FIND takes precedence), and chomp PUSHES
@@ -485,6 +489,10 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		// No-replay continuation state: existing leaves keep their ids.
 		contStartBlock, contLeavesEnd := 0, 0
 		contBounds := []string(nil)
+		// The candidate root's own height and header child (fts3IncrmergeLoad's
+		// nHeight / aRoot[0] and the root blob's first varints): they drive the
+		// pending interior-node chain restore below.
+		contRootHeight, contRootFirstChild := 0, 0
 		contSize := int64(0)
 		contBare := false // candidate had NO size suffix: keep end_block bare
 		contLeaves := 0
@@ -513,8 +521,17 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 					contLeaves = mc.IBlock
 					if h, fb, bounds := fts.ParseSegmentRootBounds(fts.RootBlobBytes(last.root)); h > 0 && contStartBlock > 0 {
 						contBounds = bounds
+						contRootHeight = h
+						// contStartBlock stays the ROW's start_block — the first
+						// LEAF id (SQLite's pWriter->iStart = iStart from
+						// %_segdir; fts3IncrmergeLoad never re-derives it). The
+						// root's first child is only the chain-seed's header
+						// pointer — for a height>=2 root it is an INTERIOR
+						// block id, and writing it into start_block made
+						// leaves_end < start (the next merge then read the
+						// segment as empty and dropped its content).
 						if fb > 0 {
-							contStartBlock = fb
+							contRootFirstChild = fb
 						}
 					} else {
 						// A single-leaf output (root IS the leaf, no %_segments
@@ -572,8 +589,11 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 						nLeafEst = (endFirst - contStartBlock + 1) / 16
 						if h, fb, bounds := fts.ParseSegmentRootBounds(fts.RootBlobBytes(c.root)); h > 0 {
 							contBounds = bounds
+							contRootHeight = h
+							// Same as above: the row's start_block (first leaf)
+							// stays; the root's first child only seeds the chain.
 							if fb > 0 {
-								contStartBlock = fb
+								contRootFirstChild = fb
 							}
 						} else {
 							replacingOut = false
@@ -693,10 +713,14 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			// pWriter->aNodeWriter[0]): the buffer is already full, so the
 			// first appended term flushes it and the quota is charged exactly
 			// as SQLite's does (fts4merge 4.3: one source segment per
-			// merge=1,16 call, not two).
+			// merge=1,16 call, not two). A leaf that fails to parse is a
+			// corrupt segment — SQLite's read/parse failure sets rc and
+			// aborts the merge (fix 3), it does not silently skip the leaf.
 			if contLeavesEnd > 0 {
 				if lastLeaf, res := e.readFTSBlock(tableName, contLeavesEnd); res == nil && lastLeaf != nil {
-					writer.LoadLeaf(lastLeaf)
+					if !writer.LoadLeaf(lastLeaf) {
+						return
+					}
 					// nLeafData is cumulative across partial calls. Loading the
 					// last leaf restores its fill, but not this accounting value.
 					if contSize < 0 {
@@ -704,6 +728,9 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 					}
 					writer.SeedLeafData(int(contSize))
 					contReuseLeaf = true
+					writer.SetLeafNextID(contLeavesEnd)
+				} else if contLeavesEnd > 0 {
+					return
 				}
 			}
 		}
@@ -755,16 +782,24 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		freshNext := 0
 		if !replacingOut && useMarker {
 			markerID = allocFloor + nLeafEst*16
-			_ = e.ctx.Exec(&sql.InsertStmt{
-				Table:   tableName + "_segments",
-				Columns: []string{"blockid", "block"},
+			// The marker goes in with REPLACE semantics (fts3WriteSegment:
+			// "REPLACE INTO %_segments"), so a marker left behind by an
+			// aborted earlier merge cannot duplicate the rowid. A failed
+			// write aborts the merge before any source is touched
+			// (fts3IncrmergeWriter returns rc).
+			if mres := e.ctx.Exec(&sql.InsertStmt{
+				Table:     tableName + "_segments",
+				Columns:   []string{"blockid", "block"},
+				IsReplace: true,
 				Values: [][]sql.Expr{
 					{
 						&sql.NumericLit{Value: fmt.Sprintf("%d", markerID)},
 						&sql.NullLit{},
 					},
 				},
-			})
+			}); mres != nil && mres.Error != nil {
+				return
+			}
 			// Leaf allocation runs sequentially from just above the floor and
 			// never reaches the marker within one quota (nRem < nLeafEst*16);
 			// pin the cache there so cache invalidations cannot jump past it.
@@ -772,16 +807,62 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			ftsTable.SetNextBlockID(freshNext)
 		}
 		// Enable layered interior output (SQLite aNodeWriter): interior
-		// layer L allocates blocks at iStart + L*nLeafEst. Continuations
-		// seed layer 1 with the stored root's boundary separators so the
-		// pending node resumes exactly where the previous call stopped.
+		// layer L allocates blocks from its base slot iStart + L*nLeafEst.
+		// Continuations restore the WHOLE pending interior-node chain
+		// (fts3IncrmergeLoad): the root blob goes into layer nHeight, and
+		// each layer below it is the root-to-leaf chain of LAST children,
+		// loaded from %_segments so the restored nodes are re-written at
+		// their own slots.
 		hierStart := freshNext
 		if replacingOut {
 			hierStart = contStartBlock
 		}
 		writer.BeginHierarchy(hierStart, nLeafEst)
-		if replacingOut && len(contBounds) > 0 {
-			writer.SeedHierarchySeps(contStartBlock, contBounds)
+		if replacingOut && contRootHeight > 0 && contStartBlock > 0 {
+			// The last child of a node whose header child is fb and which
+			// carries n boundary entries is fb+n (children are consecutive).
+			lastLeaf := contRootFirstChild + len(contBounds)
+			if contRootHeight == 1 {
+				// Height-1 root: the pending layer-1 node IS the root blob;
+				// its slot is the layer-1 base (free — a height-1 root means
+				// layer 1 never overflowed in any earlier call).
+				writer.SeedHierarchyLayer(1, contRootFirstChild, contBounds, hierStart+nLeafEst)
+			} else if contRootHeight < fts.MaxHierLayers {
+				writer.SeedHierarchyLayer(contRootHeight, contRootFirstChild, contBounds, hierStart+contRootHeight*nLeafEst)
+				// Walk the last-child chain down (fts3IncrmergeLoad: for
+				// i=nHeight..1, aNodeWriter[i-1].iBlock = reader.iChild of
+				// layer i's restored node, and that block is LOADED into
+				// layer i-1's buffer). Seeding ONLY layer 1 with the root's
+				// boundaries was correct only for height-1 roots; for
+				// height>=2 it pointed layer 1 at an interior-layer slot
+				// with the wrong entries — the self-referential node that
+				// wedged later merges (fts4merge4 2.2.3.x plateau).
+				chainOK := true
+				for L := contRootHeight - 1; L >= 1; L-- {
+					blk, res := e.readFTSBlock(tableName, lastLeaf)
+					if res != nil || blk == nil {
+						chainOK = false
+						break
+					}
+					hh, fb2, b2 := fts.ParseSegmentRootBounds(blk)
+					if hh != L || fb2 <= 0 {
+						chainOK = false
+						break
+					}
+					writer.SeedHierarchyLayer(L, fb2, b2, lastLeaf)
+					lastLeaf = fb2 + len(b2)
+				}
+				if !chainOK {
+					return
+				}
+			} else {
+				// Root taller than FTS_MAX_APPENDABLE_HEIGHT: corrupt
+				// (fts3IncrmergeLoad returns FTS_CORRUPT_VTAB).
+				return
+			}
+			if lastLeaf != contLeavesEnd {
+				return
+			}
 		}
 		// SQLite nLeafData tracks bytes written for leaf nodes, including the
 		// height byte in each serialized leaf block.
@@ -789,7 +870,16 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		// contNext tracks the continuation's in-range allocation cursor
 		// (SQLite's aNodeWriter[0].iBlock increments inside iStart..iEnd).
 		contNext := int64(contLeavesEnd)
-		writeOutBlock := func(blk []byte) int {
+		// writeOutBlock persists one output block (leaf or interior node).
+		// ALL merge block writes use REPLACE semantics (fts3_write.c
+		// SQL_INSERT_SEGMENTS: "REPLACE INTO %_segments(blockid, block)") —
+		// a continuation re-writes its RESTORED pending interior node at its
+		// own slot, and a plain INSERT would fail on the duplicate rowid
+		// (silently swallowed, the stale bytes kept being served to readers
+		// and the chomp looped forever on the same block). A failed write
+		// aborts the merge (fts3WriteSegment's rc propagates through
+		// fts3IncrmergeAppend/fts3IncrmergePush).
+		writeOutBlock := func(blk []byte) (int, error) {
 			next, cached := ftsTable.NextBlockID()
 			reuseLeaf := contReuseLeaf
 			if contReuseLeaf {
@@ -827,27 +917,10 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			if firstBlock == 0 {
 				firstBlock = next
 			}
-			if reuseLeaf {
-				// The continuation's first flush OVERWRITES the existing last
-				// leaf block in place (SQLite's fts3IncrmergeLoad keeps
-				// aNodeWriter[0].iBlock and fts3WriteSegment REPLACES the row).
-				// A plain INSERT would leave the OLD block content behind as a
-				// duplicate rowid, breaking the term order (fts4merge 1.4:
-				// L2[3] block 29 kept its old "beta" tail while the new leaf
-				// also started at "beta" — "database disk image is malformed").
-				if dres := e.ctx.Exec(&sql.DeleteStmt{
-					Table: tableName + "_segments",
-					Where: &sql.BinaryOp{
-						Operator: "=",
-						Left:     &sql.ColumnRef{Name: "blockid"},
-						Right:    &sql.NumericLit{Value: fmt.Sprintf("%d", next)},
-					},
-				}); dres != nil && dres.Error != nil {
-				}
-			}
 			if ires := e.ctx.Exec(&sql.InsertStmt{
-				Table:   tableName + "_segments",
-				Columns: []string{"blockid", "block"},
+				Table:     tableName + "_segments",
+				Columns:   []string{"blockid", "block"},
+				IsReplace: true,
 				Values: [][]sql.Expr{
 					{
 						&sql.NumericLit{Value: fmt.Sprintf("%d", next)},
@@ -855,11 +928,12 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 					},
 				},
 			}); ires != nil && ires.Error != nil {
+				return 0, ires.Error
 			}
 			ftsTable.SetNextBlockID(next + 1)
 			outLeafData += len(blk)
 			lastWrittenBlock = next
-			return next
+			return next, nil
 		}
 		flushCount := 0
 		// mergedDoclists holds the MERGED doclist per merged term (SQLite's
@@ -913,17 +987,30 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			}
 			_ = nDoclist
 			if blk := writer.Append(term, merged); blk != nil {
-				writer.NoteFlushedID(writeOutBlock(blk))
+				id, werr := writeOutBlock(blk)
+				if werr != nil {
+					mergeErr = werr
+					break
+				}
+				writer.NoteFlushedID(id)
 			}
 			flushCount = writer.WorkDone()
 
-			// Each group reader advances to its next (unmerged) term.
+			// Each group reader advances to its next (unmerged) term. A
+			// reader error mid-scan is SQLITE_ERROR from
+			// sqlite3Fts3SegReaderStep: it aborts the merge (the do-while's
+			// `while( rc==SQLITE_ROW )` exits), skipping chomp and release —
+			// swallowing it used to leave sources half-read and duplicated
+			// (level, idx) rows behind.
 			for _, g := range group {
-
 				if nterm, nids, ndl, nsize, ok := g.reader.Next(); ok {
-
 					heap.Push(h, mergeHeapEntry{term: nterm, docIDs: nids, doclist: ndl, size: nsize, reader: g.reader, seq: g.seq})
+				} else if g.reader.Err() != nil {
+					mergeErr = g.reader.Err()
 				}
+			}
+			if mergeErr != nil {
+				break
 			}
 			if nMerge > 0 && flushCount >= nRem {
 				// The term that triggered the flush was appended to the new
@@ -936,19 +1023,37 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 				break
 			}
 		}
-
-		// Write the merged output at level+1. A continuation KEEPS the existing
-		// output row and its leaves in place (SQLite's fts3IncrmergeLoad
-		// appends inside the pre-allocated range); only new leaves are added.
-		// A fresh merge writes a new row (deleteFTSSegdirIdx was only needed
-		// by the old rebuild-on-every-call path).
-		if replacingOut {
-			// no row/blocks deletion: the existing leaves remain the segment
+		if mergeErr != nil {
+			// rc != SQLITE_OK: no chomp, no release, no %_segdir row, no
+			// hint store (fts3_write.c sqlite3Fts3Incrmerge gates every
+			// step on rc and `while(rc==SQLITE_OK)` exits the loop). The
+			// output blocks written so far are unreachable garbage without
+			// a segdir row, exactly like SQLite's unwritten buffers.
+			return
 		}
+
+		// Truncate each source segment to its unmerged terms (SQLite's
+		// fts3IncrmergeChomp / fts3TruncateSegment) — chompFTSMerge deletes
+		// fully-consumed segments and truncates the rest IN PLACE (trimmed
+		// blocks keep their ids, so no fresh allocation is needed). C's order
+		// is append → chomp → RELEASE: a chomp error must abort BEFORE the
+		// output %_segdir row (and before the release flushes) exist —
+		// swallowing it left sources un-truncated and duplicated (level,idx)
+		// rows (17 rows at level=2 idx=0).
+		_, truncated, chompErr := e.chompFTSMerge(tableName, level, readers)
+		if chompErr != nil {
+			return
+		}
+
 		// Release (fts3IncrmergeRelease): write the outstanding final leaf,
-		// then the segdir row over the writer's real layout.
+		// then the layered interior nodes, then the segdir row over the
+		// writer's real layout.
 		if blk := writer.TakeLeaf(); blk != nil {
-			writer.NoteFlushedID(writeOutBlock(blk))
+			id, werr := writeOutBlock(blk)
+			if werr != nil {
+				return
+			}
+			writer.NoteFlushedID(id)
 			// Release flush is outside fts3IncrmergeAppend and therefore does
 			// not contribute to nWork or this call's quota.
 		}
@@ -962,16 +1067,19 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 			leavesEndBlock = firstBlock + writer.LeavesFlushed() - 1
 		}
 		// Finalize the layered hierarchy: interior layers below the root are
-		// persisted as %_segments blocks at their pre-allocated slots
-		// (iStart + L*nLeafEst + seq); the highest non-empty layer becomes
-		// the root blob (fts3IncrmergeRelease). For segments small enough to
-		// need a single interior node this reproduces the legacy flat root
-		// byte-for-byte.
+		// persisted as %_segments blocks at their base slots (iStart +
+		// L*nLeafEst + seq for fresh layers; the LOADED slot for restored
+		// ones); the highest non-empty layer becomes the root blob
+		// (fts3IncrmergeRelease). For segments small enough to need a single
+		// interior node this reproduces the legacy flat root byte-for-byte.
 		rootBlob, interiorBlocks := writer.Finish()
 		for _, ib := range interiorBlocks {
+			// REPLACE semantics (fts3IncrmergeRelease → fts3WriteSegment): a
+			// restored pending node is re-written at its own block id.
 			if ires := e.ctx.Exec(&sql.InsertStmt{
-				Table:   tableName + "_segments",
-				Columns: []string{"blockid", "block"},
+				Table:     tableName + "_segments",
+				Columns:   []string{"blockid", "block"},
+				IsReplace: true,
 				Values: [][]sql.Expr{
 					{
 						&sql.NumericLit{Value: fmt.Sprintf("%d", ib.ID)},
@@ -979,6 +1087,7 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 					},
 				},
 			}); ires != nil && ires.Error != nil {
+				return
 			}
 		}
 		if rootBlob == nil {
@@ -1010,11 +1119,6 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		// end_block before appending. Do not add prior size a second time.
 		outSize := outLeafData
 		_ = outSize
-		// Truncate each source segment to its unmerged terms (SQLite's
-		// fts3IncrmergeChomp / fts3TruncateSegment) — chompFTSMerge deletes
-		// fully-consumed segments and truncates the rest IN PLACE (trimmed
-		// blocks keep their ids, so no fresh allocation is needed).
-		_, truncated := e.chompFTSMerge(tableName, level, readers)
 		// Write the %_segdir row now that the chomp's result is known: negate
 		// the size suffix when the merge was partial (SQLite's nLeafData *= -1
 		// when nSeg!=0 — promotion aborts on any negative candidate).
