@@ -92,7 +92,6 @@ var skipTestFiles = map[string]string{
 	// manipulations; the short-row file-format feature itself is a legacy
 	// on-disk format gap, not an ALTER TABLE feature. The ALTER semantics
 	// are covered by alter.test (G3.ALTER).
-	"alter2": "legacy file-format short-row tests (hexio helpers) not implemented",
 
 	// sort4: VDBE sorter internals driven by the test-only do_sorter_test
 	// helper (PMA size, external sort with limited cache, worker threads).
@@ -464,7 +463,6 @@ var skipTestFiles = map[string]string{
 	"cursorhint2": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
 	"dbfuzz001": "VFS/fault-injection harness N-A",
-	"e_expr":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// P1 remaining — whole-file N-A for deep gaps (engine would need unbudgeted port phase; per-test evidence in skiptests2.go)
 	"e_select":      "DISTINCT collation ordering P1.E-SQL deep gap N-A (e_select-5.x)",
 	"e_delete":      "multi-db trigger cascade P1.E-SQL deep gap N-A (e_delete-2.x)",
@@ -475,15 +473,15 @@ var skipTestFiles = map[string]string{
 	"temptable2":    "PRAGMA page_count / mmap_size / backup harness N-A (temptable2-4.x/8.x/10.x)",
 	"e_createtable": "CREATE TABLE type-noise P1.E-SQL deep gap N-A (engine CREATE TABLE type est.)",
 	"e_update":      "UPDATE aux schema + trigger cascade P1.E-SQL deep gap N-A",
-	"e_vacuum":      "VACUUM / file-size harness N-A (P1.E-SQL deep gap)",
+	"e_vacuum":      "VACUUM aux (attached-db vacuum) unimplemented ('unknown database aux') - the 2.x/3.x sections chain through it (downstream row-set divergence); 1.1.x.5 error-text checks are VACUUM failure-path specifics (T27 regen+run)",
+	"alter2":        "legacy file-format short-row semantics require the hexio file-format-byte patch (byte 44) + PRAGMA writable_schema sqlite_master surgery + sqlite3_db_config DEFENSIVE seam (T27 regen+run: 2/46 assertions fail on the untranspiled fixture machinery)",
 	"format4":       "legacy_file_format file-size harness N-A",
-	"keyword1":      "bare-keyword-as-identifier parser N-A (keyword1)",
 	"where8":        "hash/btree DISTINCT ordering fuzz N-A (where8-4.x SELECT planner)",
 	"e_uri":         "C test-VFS sqlite3_open_v2 URI probing (testvfs vfs1/vfs2/vfs3 custom VFS N-A)",
 	"e_wal":         "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"e_walauto":     "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"e_walckpt":     "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-B)",
-	"e_walhook":     "WAL/journal mode not implemented N-A",
+	"e_walhook":     "db wal_hook TCL-proc callback (sqlite3_wal_hook seam) untranspilable; hook contract covered natively (internal/pager/wal_test.go TestWalHookFires); WAL itself implemented (P7.WAL-G7)",
 	// enc: passes natively (test/enc.test UTF-8 storage tests, no UTF-16 dependency).
 	// enc2: passes natively (test/enc2.test UTF-8 collations/storage).
 	// enc3: superseded via Pure-Go supersession — test/enc3.test requires UTF-16
@@ -502,16 +500,36 @@ var skipTestFiles = map[string]string{
 	// no-op. NA_EVIDENCE vacuummem.
 	"vacuummem": "N/A: sqlite3_memory_used/highwater C-allocator watermark assertions (PORTPLAN section 1 malloc class; NA_EVIDENCE vacuummem)",
 	// enc4: passes natively.
-	"eval": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// (extension01 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 	"fallocate": "VFS/fault-injection harness N-A",
 
 	"fts-9fd058691": "FTS3/4/5 beyond basic module N-A",
-	"fts3atoken2":   "FTS3/4/5 beyond basic module N-A",
-	"fts3aux1":      "FTS3/4/5 beyond basic module N-A",
-	"fts3aux2":      "FTS3/4/5 beyond basic module N-A",
-	"fts3fault2":    "VFS/fault-injection harness N-A",
-	"fts3fault3":    "VFS/fault-injection harness N-A",
+	"fts3atoken2":   "fts3_tokenizer() two-arg tokenizer registry (C function-pointer blob + probe tokenizers) N-A C-extension seam; built-in tokenizers covered by P6.FTS-C",
+	// walmode/walnoshm/walslow/fts3ah re-skipped SHARPENED (T27-skipaudit):
+	// the stale "WAL/FTS not implemented" class was re-verified by regen+run.
+	"walmode":  "VFS sync-count + byte-exact file-size instrumentation (walmode-1.2/1.3/3.2) + engine gap: WAL-to-rollback journal conversion leaves a malformed image (probe-verified T27); journal_mode/WAL itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
+	"walnoshm": "testvfs -iversion 1 custom VFS (WAL requires locking_mode=EXCLUSIVE without shm) + second-connection lock contracts; testvfs instrumentation untranspilable; WAL itself implemented (P7.WAL-G7)",
+	"walslow":  "reopen_db close/reopen churn + save/restore_prng_state harness + byte-exact WAL file-size assertions (wal_file_size); 9x99 randomblob stress iterations exceed any harness budget; WAL itself implemented (P7.WAL-G7)",
+	"fts3ah":   "tcl2go cannot inline the user TCL proc bigtermdoc - doc fixtures become literal proc-call text; engine verified correct natively on the same 3x5000-char-term fixture (T27 probe)",
+	"fts3ao":   "engine gaps (T27 regen+run): snippet() renders leftmost column text instead of the MATCHed column (1.1/1.2) and FTS vtab RENAME lacks shadow-table collision validation/rollback - the 2.5-2.12 rename-failure section is fixture-cascading, so per-assertion skips would diverge state",
+	// FULL-SUITE-DRIFT.T27-skipaudit: the vague "deep-engine applicable gap
+	// DEFERRED (tracked for later phase)" class probed by regen+run; reasons
+	// sharpened to the concrete failing contract. zerodamage/widetab1/
+	// eval/scanstatus2 un-skipped (green or single per-assertion skip).
+	"e_expr": "typed-value operator matrix sections (6.x '||' concat pairs, IS/ISNOT pairs over the type matrix) - 110/282 assertions fail on cross-type coercion semantics (P1.E-SQL deep gap, T27 regen+run); scalar sections pass",
+	"eval":   "the eval-2.x section drives DELETE/UPDATE through test_eval() (C test_eval.c harness UDF writing via a second connection mid-scan) - the state-chain cannot be per-assertion skipped; engine eval() covers eval-1.1/3.x/4.x (T27 regen+run)",
+
+	"offset1": "LIMIT/OFFSET over compound (UNION ALL) selects applies per-arm instead of over the whole compound result - 11/24 assertions in offset1-1.2.x/1.3.x/2.x (engine compound-offset gap, T27 regen+run)",
+
+	"join9": "outer-join column synthesis: unmatched rows of the outer join fill right-side key columns with the left row's value (6 6 -) where C emits NULL (6 - -) - 11/30 assertions (engine outer-join NULL-fill gap, T27 regen+run)",
+
+	"starschema1": "EQP join-order: planner lacks star-schema fact-first reordering (C: SCAN t1 outer then 3-4 dimension SEARCHes; engine: SCAN x01 outer) - 8/9 EQP-pattern assertions (planner cost-model gap, T27 regen+run)",
+
+	"where9":     "count_steps harness proc (statement-count instrumentation + BEGIN/ROLLBACK pairing) untranspiled - the 6.2.x section's ROLLBACK has no active transaction; OR-branch scan-count wants unobservable (16 assertions, T27 regen+run)",
+	"fts3aux1":   "fts4aux virtual table is a NoopModule stub (internal/vtab/vtab.go); the %_stat vocabulary contract is not implemented",
+	"fts3aux2":   "fts4aux virtual table is a NoopModule stub (internal/vtab/vtab.go); the %_stat vocabulary contract is not implemented",
+	"fts3fault2": "VFS/fault-injection harness N-A",
+	"fts3fault3": "VFS/fault-injection harness N-A",
 
 	"fuzz":        "VFS/fault-injection harness N-A",
 	"fuzz-oss1":   "VFS/fault-injection harness N-A",
@@ -522,7 +540,6 @@ var skipTestFiles = map[string]string{
 	"fuzzer2":     "VFS/fault-injection harness N-A",
 	"fuzzerfault": "VFS/fault-injection harness N-A",
 
-	"join9": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"joinB": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"joinD": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"joinF": "deep-engine applicable gap DEFERRED (tracked for later phase)",
@@ -591,7 +608,7 @@ var skipTestFiles = map[string]string{
 	// header) run and pass; the whole file skip only removes the
 	// non-terminating fuzz loop.
 	"corruptC": "transpiler fuzzer loss (proc random + string-compare early-exit) makes the 3.x loop fsize*512 iterations; engine panic fixed natively (page-size deferral) + pinned",
-	"mmapwarm":    "VFS/fault-injection harness N-A",
+	"mmapwarm": "VFS/fault-injection harness N-A",
 	// P7.LOCK-C re-skips (evidence-based). multiplex*.test register a custom VFS
 	// via sqlite3_multiplex_initialize that shards a logical DB across chunk
 	// files (test.db-001, test.db-002, ...). Frigolite uses Go I/O directly and
@@ -601,7 +618,6 @@ var skipTestFiles = map[string]string{
 	"multiplex2":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
 	"multiplex3":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
 	"multiplex4":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
-	"offset1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"pagerfault":  "VFS/fault-injection harness N-A",
 	"pagerfault2": "VFS/fault-injection harness N-A",
 	"pagerfault3": "VFS/fault-injection harness N-A",
@@ -625,8 +641,7 @@ var skipTestFiles = map[string]string{
 	// no C-API and no such statement-statistics surface (mirrors the harness
 	// "Tests SQLite internal data structures/algorithms - frigolite has its
 	// own" class). Evidence: frigolite_lockc_test.go (TestScanStatusContract).
-	"scanstatus":  "sqlite3_stmt_scanstatus/sqlite3_db_scanstatus C-API introspection not implemented N-A (evidence frigolite_lockc_test.go)",
-	"scanstatus2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"scanstatus": "sqlite3_stmt_scanstatus/sqlite3_db_scanstatus C-API introspection not implemented N-A (evidence frigolite_lockc_test.go)",
 
 	// P7.LOCK-B re-skips (evidence-based, per plan/goals DoD #6 + 2026-05
 	// Pure-Go supersession policy). Shared-cache is a G7 milestone
@@ -657,7 +672,6 @@ var skipTestFiles = map[string]string{
 	"snapshot4":      "N-A G7 slice 4 superseded (testvfs-instrumented C-API harness sqlite3_snapshot_* — untranspilable, tcl2go emits empty stubs; the engine-visible xShmLock surface is pinned by frigolite_wallocks_test.go and the snapshot contract by frigolite_walsnapshot_test.go; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7 slice 4)",
 	"snapshot_fault": "VFS fault-injection harness N-A (sqlite3_test_control FAULT_INSTALL not in public Go API; supersedes pre-existing skip — no fragment transpilable)",
 	"snapshot_up":    "N-A G7 slice 4 superseded (C-API harness sqlite3_snapshot_open over an open read transaction — untranspilable, tcl2go emits empty stubs; pinned natively: frigolite_walsnapshot_test.go TestWalSnapshotOpenReanchorsReadTxn; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7 slice 4)",
-	"starschema1":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// symlink: superseded via Pure-Go supersession — test/symlink.test exercises
 	// unix-none VFS path truncation (1.4/1.5: PATH_MAX overflow), the
 	// sqlite3_open_v2 -nofollow flag (1.1.4 ATTACH of a symlink with no-follow),
@@ -708,15 +722,13 @@ var skipTestFiles = map[string]string{
 	"walbak":            "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-B)",
 	"walckptnoop":       "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-B)",
 	"walcksum":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-B)",
-	"walcrash":          "WAL/journal mode not implemented N-A",
-	"walcrash2":         "WAL/journal mode not implemented N-A",
-	"walcrash3":         "WAL/journal mode not implemented N-A",
-	"walcrash4":         "WAL/journal mode not implemented N-A",
-	"walfault":          "WAL/journal mode not implemented N-A",
-	"walfault2":         "WAL/journal mode not implemented N-A",
-	"walhook":           "WAL/journal mode not implemented N-A",
-	"walmode":           "WAL/journal mode not implemented N-A",
-	"walnoshm":          "WAL/journal mode not implemented N-A",
+	"walcrash":          "crashsql mid-WAL-write crash-recovery simulation N-A (crash/fault-injection §1 class); WAL recovery itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
+	"walcrash2":         "crashsql mid-WAL-write crash-recovery simulation N-A (crash/fault-injection §1 class); WAL recovery itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
+	"walcrash3":         "crashsql crash simulation + testvfs VFS instrumentation N-A (crash/fault-injection §1 class); WAL recovery itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
+	"walcrash4":         "faultsim (sqlite3_test_control) fault-injection harness N-A (§1 class); WAL recovery itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
+	"walfault":          "faultsim (sqlite3_test_control) fault-injection harness (94 faultsim_ call sites) N-A (§1 class); WAL itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
+	"walfault2":         "faultsim (sqlite3_test_control) fault-injection harness N-A (§1 class); WAL itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
+	"walhook":           "db wal_hook TCL-proc callback (sqlite3_wal_hook seam) untranspilable + byte-exact db/WAL file-size assertions (wal_file_size); hook contract covered natively (internal/pager/wal_test.go TestWalHookFires)",
 	"walprotocol":       "N-A G7 slice 1 superseded (xShmLock sequence instrumentation via testvfs filter — untranspilable, tcl2go emits empty stubs; the SQL-surface contracts — checkpoint triple {0 5 5}, two-connection commit visibility, recovery lock dance — are pinned natively: frigolite_walmulti_test.go + frigolite_wallocks_test.go + frigolite_walmvcc_test.go; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)",
 	"walprotocol2":      "N-A G7 slice 1 superseded (testvfs two-connection harness + BUSY_SNAPSHOT via sqlite3 extended codes — untranspilable, tcl2go emits empty stubs; the stale-snapshot-writer contract is pinned natively: frigolite_walmvcc_test.go TestWalMVCCWriterSnapshotBusy + busy-timeout retry via TestWalLockBusyTimeout; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)",
 	"walshared":         "N-A G7 slice 5 (WAL + shared-cache needs the btree table-lock layer — separate subsystem, deprecated upstream 3.43.0; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7 slice 5 + frigolite_shared_test.go)",
@@ -727,38 +739,25 @@ var skipTestFiles = map[string]string{
 	"shmlock":           "N-A G7 slice 2 (vfs_shmlock custom TCL command transpiles to SQL and errors — untranspilable harness; the full 8-slot matrix is ported natively as frigolite_wallocks_test.go TestShmLockMatrix via Pager.WALIndexLock, the vfs_shmlock parity seam; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)",
 	"walsetlk_recover":  "N-A G7 slice 2 (testfixture_nb subprocess + testvfs -fullshm harness — untranspilable, sharedB/P7.LOCK-A precedent; engine contract — corrupt -shm recovery blocked by a concurrent recovery reports 'database is locked' (BUSY_RECOVERY), recovery rebuilds the wal-index — covered by frigolite_wallocks_test.go TestWalLockRecoverBusy/TestWalLockCorruptShmRecovery; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)",
 	"walsetlk_snapshot": "N-A G7 slice 2 (testfixture_nb + testvfs -fullshm harness — untranspilable; the snapshot_open blocking mechanics belong to the slice-4 snapshot API; the underlying recovery-busy contract is covered by frigolite_wallocks_test.go TestWalLockRecoverBusy; evidence portplan/NA_EVIDENCE.md §P7.WAL-G7)",
-	"walseh1":           "WAL/journal mode not implemented N-A",
-	"walslow":           "WAL/journal mode not implemented N-A",
-	"walvfs":            "WAL/journal mode not implemented N-A",
-	"where9":            "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"widetab1":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"walseh1":           "SEH fault-injection via sqlite3_test_control_fault_install + FAULTSIM(seh) harness N-A (§1 class); WAL itself implemented (P7.WAL-G7)",
+	"walvfs":            "testvfs xSync-count + IOCAP_SEQUENTIAL + -iversion 2 VFS instrumentation; sync-count observability untranspilable; WAL itself implemented (P7.WAL-G7, evidence internal/pager/walview_test.go)",
 
 	"writecrash": "VFS/fault-injection harness N-A",
-	"zerodamage": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 	// ---- FTS3/4/5 family: the engine implements a basic fts3 module (the
 	// base fts package passes); these files exercise features beyond it
 	// (docsize tables, tokenizer modules, matchinfo, aux tables, FTS4
 	// options). Full FTS3/4/5 is documented N-A (see NOT_APPLICABLE.md). ----
-	"fts3ah":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3ai":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3aj":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3ak":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3al":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3am":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3an":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3ao":     "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3atoken": "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
-	"fts3auto":   "FTS3/4/5 feature beyond the basic module N-A (full FTS not implemented)",
+	"fts3atoken": "fts3_tokenizer() two-arg tokenizer registry (C function-pointer blob + test_tokenizer probe) N-A C-extension seam; built-in tokenizers covered by P6.FTS-C",
+	"fts3auto":   "TCL-computed oracle harness (get_near_results/do_fts3query_test/fts3_make_deferrable procs compute the wants in TCL) — untranspilable; the same contracts are covered by the generated fts3aa..ao matrix packages (fts3ai/ak/al/am un-skipped green in T27)",
 
 	"fts3malloc": "sqlite3_memdebug_fail OOM-injection C API N-A (malloc family class); deterministic paths covered by fts3query/fts3offsets/fts3sort",
 	"fts3shared": "shared-cache read-during-write locking ('database table is locked') requires G7 WAL/shared-cache phase N-A",
 	"fts3misc":   "200-column FTS3 schema row exceeds one page at TEST-default page_size 1024; b-tree overflow cells are G8 storage scope — scenario proven passing at page_size=4096 by TestFTS3MiscHighColumnPhraseNative",
 	"fts3rnd":    "randomized stress suite exceeds runtime budget (>600s); deterministic correctness covered by fts3query/fts3offsets/fts3sort suites (perf N-A)",
 
-	"json109": "remaining json1 function matrix long tail (P6.JSON next slice)",
-	"atof1":   "TCL expr rand/pow/format %.32e random float stress harness N-A",
-	"atof2":   "TCL expr rand/pow/format %.32e random float stress harness N-A",
+	"atof1": "TCL expr rand/pow/format %.32e random float stress harness N-A",
+	"atof2": "TCL expr rand/pow/format %.32e random float stress harness N-A",
 
 	"malloc3": "sqlite3_memdebug memory-accounting C API N-A",
 	"malloc4": "sqlite3_memdebug memory-accounting C API N-A",

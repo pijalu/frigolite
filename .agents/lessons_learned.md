@@ -6949,3 +6949,44 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   compound ORDER BY terms naming a result column — alias, or the
   column-reference name including a qualified ref's unqualified part
   ("InnerElem.ElemCode" is "ElemCode") — tkt3527 ElemView2 self-join.
+
+## T27-skipaudit (2026-09-18)
+- **Whole-file skip audit flow**: entries live in `tools/tcl2go/skiptestfiles.go`
+  (map literal `"name": "reason"`, NOT `skiptestfiles[name]`); per-assertion
+  skips live in `skiptests.go`/`skiptests2*.go`/`skiptests3.go`. Regen a single
+  package with `go run ./tools/tcl2go/ -testdir /Users/muaddib/dev/sqlite/test
+  <name>.test`; a no-arg regen does NOTHING unless -testdir exists (default
+  ori/ does not in worktrees). Whole-file skip stubs are 12 lines.
+- **Per-assertion skip suffix semantics**: the exact token `(no-side-effects)`
+  in the reason suppresses the skipped body's SQL; without it, do_execsql
+  bodies still run "SQL side effects only" (a perf-N-A skip MUST carry the
+  marker or the expensive setup still executes — fts3an-4.1: 287s -> 0.3s).
+  Per-assertion skips do NOT compose when the skipped assertions' side effects
+  are load-bearing for later assertions (eval-2.x test_eval state-chain) —
+  use a whole-file skip instead.
+- **Helpers templates are raw-string constants** (helpersTemplatePart1/2);
+  duplicating a helper in the template breaks EVERY fresh regen (T26-singles
+  added a second tclBracesBalanced). The generated helpers_text of each
+  committed package is a frozen COPY — template fixes only affect future
+  regens, so committed packages keep old semantics until regenerated.
+- **tclRegsub TCL replacement syntax**: TCL `&` = whole match, `\1` = group;
+  Go needs `$0`/`${1}` and `$$` for literal `$`. tclRegsub now converts
+  (fts3an bigtext regsub -all {[A-Za-z]+} $t "&$c" was emitting literal "&").
+- **Go base-0 ParseInt trap**: leading-zero SQL literals ("08") are OCTAL in
+  Go base-0 and fall through to ParseFloat -> REAL; SQLite's leading zeros are
+  base-10 INTEGER (evalNumericLit now parses base 10; hex handled earlier).
+  Symptom was sum() "returning" REAL (widetab1-410 6016.0).
+- **Superseded whole-file entries keep their stub packages** (swarmvtab et al.);
+  T26-alter deleted testgen/alterauth while keeping the map entry — the
+  map-consistent state is stub + entry.
+- **Audit dispositions (T27)**: 10 packages un-skipped green (fts3ai/ak/al/am,
+  fts3an+fts3aj via per-assertion skips, zerodamage, widetab1, keyword1,
+  scanstatus2 via per-assertion skip); 21 re-skips sharpened (13 WAL stale
+  "WAL not implemented" -> harness-class + G7 evidence; 7 FTS3 stale "full FTS
+  not implemented" -> concrete engine/transpiler gaps; e_expr/eval/offset1/
+  join9/starschema1/where9 vague DEFERRED -> concrete failing contracts);
+  json109 was a DEAD entry (upstream file no longer exists). Remaining engine
+  gaps found by probing: WAL->rollback conversion malformed image;
+  FTS vtab RENAME shadow propagation; snippet() column selection; offsets()
+  prefix hit counts; compound LIMIT/OFFSET; outer-join NULL-fill;
+  star-schema join reorder; VACUUM aux; same-file ATTACH.
