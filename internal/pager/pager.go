@@ -127,6 +127,16 @@ type Pager struct {
 	// stale journal (a different dbOrigSize means the journal belongs to
 	// a different database file).
 	journalDBOrigSize uint32
+	// journalPagesDone tracks the pages whose BEFORE image has already
+	// been recorded (or found absent — pages beyond the on-disk file)
+	// in the open rollback journal for the current transaction.
+	// pager.c parity: sqlite3PagerWrite journals each page once per
+	// transaction (pInJournal bitvec) and skips pages above dbOrigSize
+	// entirely — a page that did not exist when the transaction began
+	// has no before-image to protect (rollback truncates back to
+	// journalDBOrigSize). Reset whenever the journal epoch ends
+	// (open / finalize / rollback / close).
+	journalPagesDone map[uint32]bool
 	// journalRecC1/C2 are the running checksum state of the records
 	// appended so far; initialised from journalCksum1/2 after the
 	// header is written, advanced by journalChecksumUpdate on every
@@ -1642,22 +1652,66 @@ func (p *Pager) WritePage(pg *Page) error {
 		return err
 	}
 	// Record the BEFORE image of this page (on disk) into the open journal
-	// (only for the FIRST write — subsequent writes during the same
-	// transaction overwrite the BEFORE image; SQLite's journal only stores
-	// the most-recent before-image per page, and the journal's cksum
-	// chain covers the latest write).
-	if p.journalFile != nil {
-		off := int64(pg.PageNum-1) * int64(p.pageSize)
-		before := make([]byte, p.pageSize)
-		if _, err := p.file.ReadAt(before, off); err == nil {
-			if err := p.appendRollbackRecordLocked(pg.PageNum, before); err != nil {
-				p.mu.Unlock()
-				return err
-			}
-		}
+	// — at most once per page per transaction (pager.c sqlite3PagerWrite's
+	// pInJournal bitvec; a page already journalled keeps its original
+	// before-image, and pages above dbOrigSize are never journalled).
+	if err := p.journalBeforeImageLocked(pg.PageNum); err != nil {
+		p.mu.Unlock()
+		return err
 	}
 	p.mu.Unlock()
 	return nil
+}
+
+// journalBeforeImageLocked records the BEFORE image of pageNum in the open
+// rollback journal, at most once per transaction. A page already journalled
+// this transaction keeps the first-recorded before-image, so replaying the
+// journal restores the transaction-start state regardless of how many times
+// the page was rewritten (pager.c pager_write + pagerJournalPage: the
+// pInJournal bitvec skips re-journalling). Pages above journalDBOrigSize
+// did not exist when the transaction began — they have no before-image and
+// rollback restores them by truncation — so they are never recorded, but
+// they are still marked done to avoid a per-write ReadAt probe into EOF.
+// Caller holds p.mu.
+func (p *Pager) journalBeforeImageLocked(pageNum uint32) error {
+	if p.journalFile == nil || pageNum > p.journalDBOrigSize {
+		return nil
+	}
+	if p.journalPagesDone[pageNum] {
+		return nil
+	}
+	off := int64(pageNum-1) * int64(p.pageSize)
+	before := make([]byte, p.pageSize)
+	_, err := p.file.ReadAt(before, off)
+	switch {
+	case err == nil:
+		if err := p.appendRollbackRecordLocked(pageNum, before); err != nil {
+			return err
+		}
+		if p.journalPagesDone == nil {
+			p.journalPagesDone = make(map[uint32]bool)
+		}
+		p.journalPagesDone[pageNum] = true
+	case err == io.EOF:
+		// No on-disk image (page allocated during this transaction): no
+		// record needed — a short/missing read leaves `before` zeroed and
+		// unappended, and rollback truncates back to journalDBOrigSize.
+		if p.journalPagesDone == nil {
+			p.journalPagesDone = make(map[uint32]bool)
+		}
+		p.journalPagesDone[pageNum] = true
+	default:
+		// Transient read error: leave unmarked so the next write retries
+		// (matches the previous behavior of silently skipping the record).
+	}
+	return nil
+}
+
+// resetJournalPagesLocked clears the per-transaction journalled-page set.
+// Called when a journal epoch ends (journal open, commit finalize, rollback
+// playback, mode-switch close). Caller holds p.mu.
+func (p *Pager) resetJournalPagesLocked() {
+	p.journalPagesDone = nil
 }
 
 // walBeginWriteLocked acquires the WRITER shm lock for this connection's
@@ -2415,23 +2469,18 @@ func (p *Pager) flushPage(pageNum uint32) error {
 		// autovacuum-2.4.5, -2.5.1, -9.x, -10.1).
 		p.growHeaderSizeLocked(pageNum)
 	}
-	// Record the BEFORE image of this page in the rollback journal. The
-	// pg.Data we have here is the AFTER image (the in-memory dirty copy);
-	// the BEFORE image lives in the on-disk page. We must read it from
-	// the file BEFORE we overwrite it. (pager.c pager_write_pagelist /
-	// sqlite3PagerWrite: the BEFORE image is whatever is on disk; for a
-	// newly-allocated page the BEFORE is zeros, which is also what an
-	// OpenFile of a non-existent page would return.)
-	if p.journalFile != nil {
-		before := make([]byte, p.pageSize)
-		if _, err := p.file.ReadAt(before, off); err == nil {
-			// The on-disk byte may be short (file smaller than the
-			// page offset) — that means the page was never written
-			// before, so the BEFORE is all zeros (already the case).
-			if err := p.appendRollbackRecordLocked(pageNum, before); err != nil {
-				return err
-			}
-		}
+	// Record the BEFORE image of this page in the rollback journal — once
+	// per transaction (journalBeforeImageLocked's pInJournal parity); the
+	// WritePage path already journalled every pre-existing page it dirtied,
+	// so this is a no-op unless the page was dirtied without WritePage.
+	// The pg.Data we have here is the AFTER image (the in-memory dirty
+	// copy); the BEFORE image lives in the on-disk page. We must read it
+	// from the file BEFORE we overwrite it. (pager.c pager_write_pagelist:
+	// the BEFORE image is whatever is on disk; for a newly-allocated page
+	// the BEFORE is zeros, which is also what an OpenFile of a
+	// non-existent page would return.)
+	if err := p.journalBeforeImageLocked(pageNum); err != nil {
+		return err
 	}
 
 	if _, err := p.file.WriteAt(pg.Data, off); err != nil {

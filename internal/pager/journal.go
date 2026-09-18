@@ -379,6 +379,10 @@ func (p *Pager) openRollbackJournalLocked() error {
 	// Initialize the running-checksum state from the header seed.
 	p.journalRecC1 = p.journalCksum1
 	p.journalRecC2 = p.journalCksum2
+	// Fresh journal epoch: every page's before-image is recorded at most
+	// once until the journal is finalized or replayed (pInJournal bitvec
+	// lifetime in pager.c).
+	p.resetJournalPagesLocked()
 	return nil
 }
 
@@ -480,6 +484,10 @@ func (p *Pager) finalizeRollbackJournalLockedMulti(multiDB bool) error {
 	if p.journalFile == nil {
 		return nil
 	}
+	// The transaction is committed: the journalled-before-image epoch ends
+	// here (PERSIST/TRUNCATE keep the file open, but the next transaction
+	// must record fresh before-images).
+	p.resetJournalPagesLocked()
 	mode := p.journalMode
 	if mode == "" {
 		mode = "delete"
@@ -579,6 +587,9 @@ func (p *Pager) rollbackFromJournalLocked() error {
 	if p.journalFile == nil {
 		return nil
 	}
+	// Rollback replays the journal from disk; the current journalled-page
+	// epoch is over either way.
+	p.resetJournalPagesLocked()
 	// Read the journal records back: one sector header, then a stream of
 	// [4-byte BE pageNum][pageSize bytes of data][4-byte BE cksum] records
 	// (JOURNAL_PG_SZ = pageSize+8) — the exact layout DecodeJournalPages
