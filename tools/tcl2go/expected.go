@@ -475,6 +475,42 @@ func isSingleBracedStructuredLiteral(expr string) bool {
 // would strip the data braces a second time).
 func (tp *transpiler) expectLiteral(w tcl.RawWord) string {
 	nw, flat := normalizeExpectedWord(w)
+	// Resolve TCL backslash escapes the way TCL list parsing does when the
+	// word is consumed as a list: inside a braced literal the escapes stay
+	// verbatim, but the list comparison resolves them (e_fts3 8.2.2: a
+	// column named c\"1 — the want element compares as c"1).
+	nw = tcl.RawWord{Text: resolveTCLListEscapes(nw.Text), Braced: nw.Braced}
 	tp.expectPreFlattened = flat
 	return tp.goStringLiteral(nw)
+}
+
+// resolveTCLListEscapes resolves the TCL backslash substitutions a list
+// element parser applies: \n \t \r, and backslash followed by an arbitrary
+// character yields that character (Tcl(n) backslash substitution). A
+// trailing lone backslash stays verbatim.
+func resolveTCLListEscapes(s string) string {
+	if !strings.Contains(s, "\\") {
+		return s
+	}
+	var sb strings.Builder
+	sb.Grow(len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c != '\\' || i+1 >= len(s) {
+			sb.WriteByte(c)
+			continue
+		}
+		i++
+		switch s[i] {
+		case 'n':
+			sb.WriteByte('\n')
+		case 't':
+			sb.WriteByte('\t')
+		case 'r':
+			sb.WriteByte('\r')
+		default:
+			sb.WriteByte(s[i])
+		}
+	}
+	return sb.String()
 }

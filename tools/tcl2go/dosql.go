@@ -745,7 +745,11 @@ func (tp *transpiler) processFTSErrorTest(args []tcl.RawWord) {
 		return
 	}
 	sqlExpr := tp.collectSQLExpression(args[1:2])
-	expectedExpr := tp.expectLiteral(args[2])
+	// do_error_test's expectation is the BARE error message, while
+	// emitCatchSQLComparison expects catchsql's "1 <message>" form
+	// (TCL error flag + text). Prefix the message so the comparison
+	// dispatches to the error branch (e_fts3 2.1.x/7.2.x).
+	expectedExpr := tp.expectLiteral(tcl.RawWord{Text: "1 {" + args[2].Text + "}", Braced: true})
 	tp.emitLine("{ // %s", tp.goStringLiteral(args[0]))
 	tp.indent++
 	tp.emitCatchSQLComparison(tp.goStringLiteral(args[0]), sqlExpr, expectedExpr, args, "db")
