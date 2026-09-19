@@ -7458,3 +7458,38 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   blockids are INSERTED by the FTS writer (its blockid allocator reuses ids after chomps;
   blockIDHighWater/NextBlockID cache vs live tree), and legal btree splits of those duplicated
   rows then create divider/rowid disorder downstream. Owner: FTS/storage-allocation, not btree.
+
+## FULL-SUITE-DRIFT.T28-regressC (2026-09-19) — root-absorb pointer offset + free-before-parent-update
+- **T28's four "regressions" were ONE intro commit**: bisect over the three merges
+  (954705ae9 → dafd1c468 → 5193f1f70 → f2a494458) put all of alterdropcol/fts4aa/
+  tkt_6bfb98dfc0/update on a13648df2 (btreefix), and specifically on its NEW
+  root-absorb path (cascadeChildless → absorbSingleChildRoot). The merge-level
+  bisect took one round because each SHA ran all four packages in ~55s.
+- **Cell-pointer-array offsets have TWO conventions — mixing them corrupts interiors**:
+  `storage.CellPointer(data, base, i, ps)` reads at `base+8+i*2`, so callers pass
+  `coff + cellPtrOffset(type) - 8` (findLeafIndexInParent convention) — for an
+  INTERIOR page the array starts at 12, not 8. absorbSingleChildRoot passed the raw
+  `childCoff`, so absorbing an interior child served the rightmost-pointer bytes as
+  cell 0's pointer and copied garbage dividers (leftChild 0x05000000) into the root;
+  the next insert descended to page 0 ("database disk image is malformed"). LEAF
+  children worked, which is why the bug hid behind any test whose absorb got a leaf.
+- **Free surplus AFTER the parent update (btree.c:8952), never before**:
+  balanceCoversSingleSurvivor freed the emptied window children BEFORE choosing the
+  parent's new shape; when the root absorb was then skipped (errRootAbsorbNoFit —
+  C's hdrOffset<=nFree guard, btree.c:8918), the root kept dividers over FREED pages.
+  The next balance re-gathered the freed sibling, freed it AGAIN, and the freelist
+  handed one page number out TWICE (duplicate child references, silent row loss).
+  C's order — editPage/put4byte first, then `for(i=nNew;i<nOld;i++) freePage` — is
+  the invariant: a page may be freed only when nothing references it.
+- **A pin that passes on broken code is worthless — shape-match the failing test**:
+  the first pin (1024B pages, 600 rows) never reached the interior-child absorb and
+  passed with the bug still in. The tkt shape (512B pages, 400B payloads = 1 row/leaf,
+  74 rows → 3 levels) hits it on `delete all → re-insert`. Re-run the A/B after every
+  pin reshape; a fix verified only against a too-easy pin is not verified.
+- **Double-free detection in one run**: `FREE <n>` / `ALLOC pop <n>` prints in
+  Pager.FreePage / allocateFreelistLocked, then `sort | uniq -c | awk '$1>1'` on the
+  FREE stream finds double frees immediately; stack-print only the suspect pgno
+  (`if pgno == 34 { debug.PrintStack() }`) pinpoints both call sites (here:
+  balanceCoversSingleSurvivor's free loop vs balanceAllEmptyWindow's re-free).
+- **Pre-existing ≠ fixed**: fts4merge (4.1/4.2 datatype-mismatch/mismatch) was already
+  adjudicated pre-existing at the T27 census — do not absorb it into a btree fix.
