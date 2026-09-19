@@ -7349,3 +7349,47 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **PRAGMA database_list slot numbering**: aDb[1] is the TEMP slot (reserved per connection even when unmaterialized) — the first ATTACH lands at slot 2 ("0 main ... 2 aux2"), not 1.
 - **Doubled-quote edge is oracle-faithful**: `eval('SELECT ''bam''))` is an UNRECOGNIZED TOKEN in SQLite 3.54 (the escape consumes both quotes; the string never closes) — frigolite's lexer matches byte-for-byte. Verify engine AND oracle against the exact transpiled text before assuming a lexer bug; the TCL-suite expectations relied on version/TCL-processing divergence.
 - **randexpr mismatches ≠ lexer/arithmetic bugs**: probe isolated sub-pieces first (arithmetic, BETWEEN, exists, max-over-empty→NULL, COALESCE lazy all verified correct); the residual 8 mismatches are the correlated-aggregate promotion class — queued for the aggregate-owner tranche.
+
+## FULL-SUITE-DRIFT.T28-regressA (2026-09-19) — T26/T27 fleet-wave regression bisect
+
+- **New prepare-time re-parse validation EXPOSED a pre-existing writer bug**: the
+  corrupt-hexio wave's validateLoadedSchema (sqlite3InitCallback parity) re-parses
+  every stored schema row at preflight. ALTER TABLE RENAME's string-fallback
+  replaceTableNameInSQL had ALWAYS double-replaced when newName contains oldName
+  as an ASCII prefix (RENAME xyz TO "xyzሴabc": ApplyRenames substitutes
+  "xyzሴabc", then the bare \bxyz\b pass re-matches INSIDE the quoted name
+  because U+1234 is not a Go-regex word character) — storing
+  `CREATE TABLE ""xyzሴabc"ሴabc"(...)` which nothing re-parsed before. Lesson:
+  string-replacement passes over SQL text must skip quoted spans; and any new
+  schema re-parse must be expected to surface pre-existing stored-SQL rot
+  (fkey6's writable_schema hand-inserted row likewise).
+- **Rule for f(*) arity**: parse.y `expr ::= idj LP STAR RP` builds a ZERO-arg
+  call. Arity validation must compare 0 against the registered overloads
+  (count has 0- AND 1-arg overloads; test1.c registers the TCL x_count fixture
+  aggregate with nArg 0 and 1) — hard-coding "only count may take *" breaks
+  user aggregates (aggerror-1.1) while min(*)/max(*) still error via MinArgs>0.
+- **Compound-select limit exempts VALUES chains**: parserDoubleLinkSelect tests
+  the head's SF_MultiValue|SF_Values flags — a comma-linked VALUES compound
+  never counts against SQLITE_LIMIT_COMPOUND_SELECT, even nested in a scalar
+  subquery with limit 3 (values-4.x). Frigolite: skip when head.ValuesChain.
+- **Name-matching seams must use the SAME renderer**: T26-select renamed
+  unaliased expression columns to the tight raw span (exprResultName:
+  "b=count(*)"), but windowGroupColumnValue still matched via
+  sql.ExprString ("b = count(*)" — spaced). The mismatch silently fell through
+  to a re-evaluation whose row map held UNWRAPPED output values — losing the
+  column's TEXT affinity, so b=count(*) compared TEXT '2' vs INTEGER 2 with no
+  affinity conversion (TEXT>INTEGER) and returned 0 for EVERY group. Anywhere
+  a lookup keys on a rendered column name, mirror buildColumnNames exactly.
+- **Oracle tolerance beats source reading**: prepare.c:135's
+  newTnum>mxPage check LOOKS unconditional, yet oracle 3.54 tolerates an
+  out-of-range rootpage on a parseable CREATE row while writable_schema=ON
+  (CREATE TABLE t2 on fkey6-6.2's hand-inserted schema succeeds and heals the
+  page count). Empirically probe the ORACLE for both branches of every
+  writable_schema question — the -bail and version differences are real.
+- **writable_schema corrupt classes split**: parse-failure rows and autoindex
+  rootpage rows still report (generic) corrupt under writable_schema=ON
+  (corruptN-3.1/4.2); only the TABLE-row rootpage-range check is tolerant.
+- **`go test -C <dir>` beats cd in fleet worktrees**: agent cwd resets between
+  Bash calls; several probes silently ran in the MAIN checkout instead of the
+  worktree (and `cd` inside compound commands does not stick). Prefix every
+  command with `go -C` / `git -C` / absolute paths, and verify with pwd.

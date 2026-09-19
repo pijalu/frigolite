@@ -329,6 +329,22 @@ func (e *SelectEngine) windowGroupColumnValue(expr sql.Expr, alias string, row R
 			}
 		}
 	}
+	// Unaliased expression columns are named by their RAW SQL SPAN
+	// (exprResultName: tight symbol operators, select1-6.5 "f1+F2"), so the
+	// lookup must also try that rendering — sql.ExprString injects spaces
+	// ("b = count(*)" vs the stored "b=count(*)") and the mismatch drops into
+	// a re-evaluation that loses the source value's column affinity
+	// (window9-4.1.2: b=count(*) compared the group's TEXT value against the
+	// INTEGER aggregate with no affinity and returned 0 for every group).
+	if span := exprResultName(expr); !strings.EqualFold(span, name) {
+		for _, cn := range e.windowGroupOutputs {
+			if strings.EqualFold(span, cn) {
+				if v, exists := row.Get(cn); exists {
+					return unwrapCollatedValue(util.UnwrapColumnValue(v)), true
+				}
+			}
+		}
+	}
 	return nil, false
 }
 

@@ -137,8 +137,16 @@ func (e *Engine) validateLoadedSchemaCtx(ctx *DatabaseContext) error {
 			continue
 		}
 		// Rootpage beyond the database page count (src/prepare.c:134-140:
-		// db->init.newTnum > pData->mxPage when mxPage>0).
-		if mxPage > 0 && ent.RootPage > mxPage {
+		// db->init.newTnum > pData->mxPage when mxPage>0). With PRAGMA
+		// writable_schema ON the oracle tolerates an out-of-range rootpage on
+		// a parseable CREATE row: the object stays registered and the later
+		// DDL that allocates the page heals the file (fkey6-6.2 reopens a
+		// 1-page db whose hand-inserted t1 row claims rootpage 2 and CREATE
+		// TABLE t2 succeeds; a plain read reports the generic WriteSchema
+		// corrupt from the btree access itself). The named "invalid rootpage"
+		// still fires with writable_schema OFF (oracle: "malformed database
+		// schema (t1) - invalid rootpage").
+		if mxPage > 0 && ent.RootPage > mxPage && !e.settings.writableSchema {
 			return e.schemaCorrupt(ent.Name, "invalid rootpage")
 		}
 		trimmed := strings.TrimLeft(ent.SQL, " \t\r\n\f")
@@ -155,8 +163,8 @@ func (e *Engine) validateLoadedSchemaCtx(ctx *DatabaseContext) error {
 			// sqlite3Prepare on argv[4]; a parse error corrupts the
 			// schema with the parser's message). Parse results are
 			// memoized per SQL text.
-			if perr, ok := e.schemaParseOK[ent.SQL]; !ok {
-				_, perr = parse.ParseSQLSchema(ent.SQL)
+			if _, ok := e.schemaParseOK[ent.SQL]; !ok {
+				_, perr := parse.ParseSQLSchema(ent.SQL)
 				if e.schemaParseOK == nil {
 					e.schemaParseOK = map[string]error{}
 				}
