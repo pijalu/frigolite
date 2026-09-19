@@ -15,41 +15,55 @@ import (
 // checked (SQLite R-36018-21755: parent keys are not validated at CREATE).
 // The check runs regardless of PRAGMA foreign_keys. Returns nil when valid.
 func (c *ConstraintEnforcer) ValidateFKDefinitions(tableName string, colDefs []sql.ColumnDef, createSQL string) error {
-	hasCol := func(name string) bool {
-		for _, cd := range colDefs {
-			if strings.EqualFold(cd.Name, name) {
-				return true
-			}
-		}
-		return false
-	}
 	// Reuse the FK parser: a synthetic entry whose SQL is the CREATE TABLE
 	// text and name the table under construction (TableFKConstraints reads
 	// colDefs directly and table-level constraints via TableConstraints).
 	entry := &schema.Entry{Name: tableName, SQL: createSQL, Type: schema.TypeTable}
 	fks := c.TableFKConstraints(entry, colDefs)
 	for _, fk := range fks {
-		// A column-level REFERENCES with an explicit multi-column parent key
-		// is rejected: a single child column cannot map to several parent
-		// columns (e_fkey-28.1: CREATE TABLE c(jj REFERENCES p(x, y))).
-		if fk.ColumnLevel && len(fk.ChildCols) == 1 && len(fk.ParentCols) > 1 {
-			return fmt.Errorf("foreign key on %s should reference only one column of table %s", fk.ChildCols[0], fk.ParentRef)
-		}
-		// Explicit parent columns: cardinality must match the child key. This
-		// is checked BEFORE child-column existence (SQLite reports
-		// "number of columns..." for FOREIGN KEY(c,b) REFERENCES p(d) even
-		// though c is unknown).
-		if len(fk.ParentCols) > 0 && len(fk.ParentCols) != len(fk.ChildCols) {
-			return fmt.Errorf("number of columns in foreign key does not match the number of columns in the referenced table")
-		}
-		// Child key columns must exist in the child table.
-		for _, col := range fk.ChildCols {
-			if !hasCol(col) {
-				return fmt.Errorf("unknown column %q in foreign key definition", col)
-			}
+		if err := validateFKDefinition(colDefs, fk); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// validateFKDefinition validates one FK definition against the child table's
+// columns, mirroring sqlite3FkParseError: a column-level multi-column parent
+// key is rejected, the child/parent cardinalities must match, and every child
+// key column must exist.
+func validateFKDefinition(colDefs []sql.ColumnDef, fk FKConstraint) error {
+	// A column-level REFERENCES with an explicit multi-column parent key
+	// is rejected: a single child column cannot map to several parent
+	// columns (e_fkey-28.1: CREATE TABLE c(jj REFERENCES p(x, y))).
+	if fk.ColumnLevel && len(fk.ChildCols) == 1 && len(fk.ParentCols) > 1 {
+		return fmt.Errorf("foreign key on %s should reference only one column of table %s", fk.ChildCols[0], fk.ParentRef)
+	}
+	// Explicit parent columns: cardinality must match the child key. This
+	// is checked BEFORE child-column existence (SQLite reports
+	// "number of columns..." for FOREIGN KEY(c,b) REFERENCES p(d) even
+	// though c is unknown).
+	if len(fk.ParentCols) > 0 && len(fk.ParentCols) != len(fk.ChildCols) {
+		return fmt.Errorf("number of columns in foreign key does not match the number of columns in the referenced table")
+	}
+	// Child key columns must exist in the child table.
+	for _, col := range fk.ChildCols {
+		if !fkChildHasCol(colDefs, col) {
+			return fmt.Errorf("unknown column %q in foreign key definition", col)
+		}
+	}
+	return nil
+}
+
+// fkChildHasCol reports whether the child table declares a column of the
+// given name (case-insensitive).
+func fkChildHasCol(colDefs []sql.ColumnDef, name string) bool {
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // CheckForeignKeyViolations verifies that every non-NULL column value with a
@@ -123,29 +137,39 @@ func (c *ConstraintEnforcer) validateChildrenParentKeys(entry *schema.Entry, own
 			if !strings.Contains(strings.ToUpper(ent.SQL), "REFERENCES") {
 				continue
 			}
-			childColDefs := c.ctx.ParseColumnDefs(ent.Name, ent.SQL)
-			for _, fk := range c.TableFKConstraints(ent, childColDefs) {
-				pEntry, pCtx, rerr := c.fkResolveParent(ctx2, fk.ParentRef)
-				if rerr != nil || pCtx != ownCtx || !strings.EqualFold(pEntry.Name, entry.Name) {
-					continue
-				}
-				// fkey.c: inserting a single row into a parent table cannot
-				// cause (or fix) an immediate FK violation — the parent-key
-				// location (and mismatch error) is skipped for non-deferred
-				// child FKs when DeferFKs is off (e_fkey-19.2 vs 20.6).
-				if singleRowInsert && !fk.Deferred && !c.ctx.DeferForeignKeys() {
-					continue
-				}
-				pCols := fk.ParentCols
-				if len(pCols) == 0 {
-					pCols = c.fkParentPKColumns(entry, parentColDefs)
-				}
-				if len(pCols) == len(fk.ChildCols) && c.fkParentKeyValid(ownCtx, entry, parentColDefs, pCols) {
-					continue
-				}
-				return &Result{Error: fmt.Errorf("foreign key mismatch - %q referencing %q", ent.Name, fk.ParentRef)}
+			if res := c.childParentKeyMismatch(ctx2, ent, entry, parentColDefs, ownCtx, singleRowInsert); res != nil {
+				return res
 			}
 		}
+	}
+	return nil
+}
+
+// childParentKeyMismatch checks one candidate child table's FK constraints
+// against the given parent, returning the child's "foreign key mismatch"
+// error when a child FK cannot locate the parent key (sqlite3FkLocateIndex).
+func (c *ConstraintEnforcer) childParentKeyMismatch(ctx2 *DatabaseContext, ent, entry *schema.Entry, parentColDefs []sql.ColumnDef, ownCtx *DatabaseContext, singleRowInsert bool) *Result {
+	childColDefs := c.ctx.ParseColumnDefs(ent.Name, ent.SQL)
+	for _, fk := range c.TableFKConstraints(ent, childColDefs) {
+		pEntry, pCtx, rerr := c.fkResolveParent(ctx2, fk.ParentRef)
+		if rerr != nil || pCtx != ownCtx || !strings.EqualFold(pEntry.Name, entry.Name) {
+			continue
+		}
+		// fkey.c: inserting a single row into a parent table cannot
+		// cause (or fix) an immediate FK violation — the parent-key
+		// location (and mismatch error) is skipped for non-deferred
+		// child FKs when DeferFKs is off (e_fkey-19.2 vs 20.6).
+		if singleRowInsert && !fk.Deferred && !c.ctx.DeferForeignKeys() {
+			continue
+		}
+		pCols := fk.ParentCols
+		if len(pCols) == 0 {
+			pCols = c.fkParentPKColumns(entry, parentColDefs)
+		}
+		if len(pCols) == len(fk.ChildCols) && c.fkParentKeyValid(ownCtx, entry, parentColDefs, pCols) {
+			continue
+		}
+		return &Result{Error: fmt.Errorf("foreign key mismatch - %q referencing %q", ent.Name, fk.ParentRef)}
 	}
 	return nil
 }

@@ -447,6 +447,19 @@ type FKConstraint struct {
 // foreign_key_list reports them in reverse declaration order; the returned
 // slice mirrors that (last-declared FK first).
 func (c *ConstraintEnforcer) TableFKConstraints(entry *schema.Entry, colDefs []sql.ColumnDef) []FKConstraint {
+	fks := columnLevelFKConstraints(colDefs)
+	fks = append(fks, c.tableLevelFKConstraints(entry)...)
+	// SQLite prepends each FK to the head of its linked list; reverse to
+	// match PRAGMA foreign_key_list output (last declared = id 0).
+	for i, j := 0, len(fks)-1; i < j; i, j = i+1, j-1 {
+		fks[i], fks[j] = fks[j], fks[i]
+	}
+	return fks
+}
+
+// columnLevelFKConstraints parses the column-level REFERENCES clauses (in
+// column order) into FK constraints.
+func columnLevelFKConstraints(colDefs []sql.ColumnDef) []FKConstraint {
 	var fks []FKConstraint
 	for _, cd := range colDefs {
 		if cd.References == "" {
@@ -456,28 +469,41 @@ func (c *ConstraintEnforcer) TableFKConstraints(entry *schema.Entry, colDefs []s
 		if m == nil {
 			continue
 		}
-		var parentCols []string
-		if pc := strings.TrimSpace(m[2]); pc != "" {
-			// The parent column list may hold several columns (a single child
-			// column REFERENCES p(x, y) is an error — SQLite requires a
-			// one-to-one column mapping); split on commas like the parser does
-			// for table-level FOREIGN KEY clauses.
-			for _, part := range strings.Split(pc, ",") {
-				if name := strings.TrimSpace(part); name != "" {
-					parentCols = append(parentCols, name)
-				}
-			}
-		}
 		fks = append(fks, FKConstraint{
 			ChildCols:   []string{cd.Name},
 			ParentRef:   strings.TrimSpace(m[1]),
-			ParentCols:  parentCols,
+			ParentCols:  fkParentColsInRefs(m[2]),
 			OnDelete:    fkActionInRefs(m[3], "DELETE"),
 			OnUpdate:    fkActionInRefs(m[3], "UPDATE"),
 			Deferred:    strings.Contains(strings.ToUpper(m[4]), "INITIALLY DEFERRED"),
 			ColumnLevel: true,
 		})
 	}
+	return fks
+}
+
+// fkParentColsInRefs splits a REFERENCES parent-column list on commas (a
+// single child column REFERENCES p(x, y) is an error — SQLite requires a
+// one-to-one column mapping); it mirrors how the parser splits table-level
+// FOREIGN KEY clauses.
+func fkParentColsInRefs(pc string) []string {
+	pc = strings.TrimSpace(pc)
+	if pc == "" {
+		return nil
+	}
+	var parentCols []string
+	for _, part := range strings.Split(pc, ",") {
+		if name := strings.TrimSpace(part); name != "" {
+			parentCols = append(parentCols, name)
+		}
+	}
+	return parentCols
+}
+
+// tableLevelFKConstraints collects the table-level FOREIGN KEY constraints in
+// constraint order.
+func (c *ConstraintEnforcer) tableLevelFKConstraints(entry *schema.Entry) []FKConstraint {
+	var fks []FKConstraint
 	for _, tc := range c.ctx.TableConstraints(entry.Name, entry.SQL) {
 		if tc.Type != sql.ConstraintForeignKey || tc.RefTable == "" {
 			continue
@@ -494,11 +520,6 @@ func (c *ConstraintEnforcer) TableFKConstraints(entry *schema.Entry, colDefs []s
 			OnUpdate:   fkActionFromText(tc.RefAction, "UPDATE"),
 			Deferred:   tc.Deferred,
 		})
-	}
-	// SQLite prepends each FK to the head of its linked list; reverse to
-	// match PRAGMA foreign_key_list output (last declared = id 0).
-	for i, j := 0, len(fks)-1; i < j; i, j = i+1, j-1 {
-		fks[i], fks[j] = fks[j], fks[i]
 	}
 	return fks
 }
@@ -760,27 +781,37 @@ func (c *ConstraintEnforcer) checkDeferredFK(onlyImmediate bool) error {
 		if !c.fkParentDirty[key] {
 			continue
 		}
-		for _, ref := range c.ChildRefs(entry, key.ctx) {
-			childEntry, cerr := ref.ChildCtx.Schema.FindTable(ref.ChildTable)
-			if cerr != nil {
-				continue
-			}
-			cv, cerr := c.fkCheckChildTable(childEntry, ref.ChildCtx, onlyImmediate)
-			if cerr != nil {
-				// A child whose FK cannot be resolved (foreign key mismatch)
-				// is tolerated when scanning a PARENT's children: SQLite only
-				// reports the mismatch when the child row is written or on
-				// PRAGMA foreign_key_check, never while checking a parent
-				// DELETE/UPDATE (the child's stale FK cannot orphan rows).
-				continue
-			}
-			viols = append(viols, cv...)
+		cv, err := c.fkCheckParentDirtyChildren(entry, key, onlyImmediate)
+		if err != nil {
+			return err
 		}
+		viols = append(viols, cv...)
 	}
 	if len(viols) > 0 {
 		return fmt.Errorf("FOREIGN KEY constraint failed")
 	}
 	return nil
+}
+
+// fkCheckParentDirtyChildren re-validates every child table that references a
+// parent-dirty table. A child whose FK cannot be resolved is tolerated here:
+// SQLite only reports the mismatch when the child row is written or on PRAGMA
+// foreign_key_check, never while checking a parent DELETE/UPDATE (the child's
+// stale FK cannot orphan rows).
+func (c *ConstraintEnforcer) fkCheckParentDirtyChildren(entry *schema.Entry, key fkDirtyKey, onlyImmediate bool) ([]FKViolation, error) {
+	var viols []FKViolation
+	for _, ref := range c.ChildRefs(entry, key.ctx) {
+		childEntry, cerr := ref.ChildCtx.Schema.FindTable(ref.ChildTable)
+		if cerr != nil {
+			continue
+		}
+		cv, cerr := c.fkCheckChildTable(childEntry, ref.ChildCtx, onlyImmediate)
+		if cerr != nil {
+			continue
+		}
+		viols = append(viols, cv...)
+	}
+	return viols, nil
 }
 
 // fkCheckReplaceChildren verifies that the children of a table replaced by
