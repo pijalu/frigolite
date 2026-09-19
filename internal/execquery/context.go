@@ -429,12 +429,33 @@ var (
 )
 
 // ExecSelect executes a SELECT statement and returns its result.
+// ResetStatementCorrelatedScope clears the correlated-subquery row scope at
+// an engine statement boundary: outerRow/outerRows belong to the ENCLOSING
+// select's or DML statement's evaluation, and a stale value carried over from
+// a PREVIOUS statement would wrongly enable the correlated modes of FROM-less
+// and join-ON validation for this one (insert2-4.1).
+func (e *SelectEngine) ResetStatementCorrelatedScope() {
+	e.outerRow = nil
+	e.outerRows = nil
+}
+
 func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	// View reference counting (select.c Table.nTabRef) accumulates across the
 	// WHOLE statement expansion — including every UNION branch — and resets
 	// when the next top-level statement starts.
 	if e.viewRefDepth == 0 {
 		e.viewRefCounts = nil
+		// Per-statement reset of the deferred qualified-star error flag
+		// (same class as resultTooWide): a flag left over by a statement
+		// that failed on an earlier error — its replay is skipped by the
+		// res.Error == nil guard — must not fail the NEXT statement
+		// (misc1-9.1 after misc1-8.2's SELECT t1.*).
+		e.starNoSuchTable = ""
+		// NOTE: the correlated-subquery row scope (outerRow/outerRows) is
+		// NOT reset here — a DML statement sets it for its UPDATE-FROM /
+		// SET correlated subqueries before ExecSelect runs, and wiping it
+		// would break them (with1-4.3). The statement-boundary reset lives
+		// in Engine.Exec (ResetStatementCorrelatedScope).
 	}
 	e.viewRefDepth++
 	defer func() { e.viewRefDepth-- }()

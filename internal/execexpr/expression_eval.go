@@ -288,6 +288,16 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 		return nil, fmt.Errorf("ORDER BY may not be used with non-aggregate %s()", f.Name)
 	}
 
+	// COALESCE/IFNULL short-circuit (sqlite3ExprCodeTarget codes them with
+	// jumps): arguments after the first non-NULL are NEVER evaluated. This
+	// matters for side-effectful arguments — eval('ROLLBACK; ...') inside
+	// coalesce(b, eval(...)) must not run while b is non-NULL (misc8-1.4).
+	if fn.Type == function.TypeScalar && (upper == "COALESCE" || upper == "IFNULL") && f.OrderBy == nil {
+		if len(f.Args) < fn.MinArgs || (fn.MaxArgs > 0 && len(f.Args) > fn.MaxArgs) {
+			return nil, fmt.Errorf("wrong number of arguments to function %s()", f.Name)
+		}
+		return ev.evalCoalesceLazy(f.Args, row)
+	}
 	// Aggregate arguments evaluate inside an aggregate-argument marker (C
 	// resolves them to TK_AGG_COLUMN, which the fts5 aux overload rewrite
 	// does not match — aux calls inside aggregate arguments fail with the
@@ -296,18 +306,59 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 	if fn.Type == function.TypeAggregate {
 		restoreAggArg = ev.ctx.EnterAuxAggArg()
 	}
-	args, err := ev.evalFuncArgs(f, row)
+	// f(*) — SQLite's grammar (parse.y `expr ::= idj LP STAR RP`) builds a
+	// function call with ZERO arguments (sqlite3ExprFunction(pParse, 0, ...)):
+	// the star is not an argument expression. COUNT() is registered for 0..1
+	// arguments so count(*) keeps working; any other function now fails arity
+	// validation exactly like SQLite ("wrong number of arguments to function
+	// length()", func-1.1), instead of evaluating "*" as a string.
+	var args []interface{}
+	if isStarArgList(f.Args) {
+		args = []interface{}{}
+	} else {
+		var err error
+		args, err = ev.evalFuncArgs(f, row)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if restoreAggArg != nil {
 		restoreAggArg()
-	}
-	if err != nil {
-		return nil, err
 	}
 	if err := validateFuncArgs(fn, f, args); err != nil {
 		return nil, err
 	}
 
 	return ev.evalFuncCallDispatched(fn, f, upper, args)
+}
+
+// evalCoalesceLazy evaluates COALESCE/IFNULL arguments one at a time,
+// returning the first non-NULL value without evaluating the rest. Each value
+// is unwrapped (evalFuncArgs semantics) so the result carries no ColumnValue
+// or CollatedValue marker.
+func (ev *Evaluator) evalCoalesceLazy(argExprs []sql.Expr, row Row) (interface{}, error) {
+	for _, argExpr := range argExprs {
+		v, err := ev.evalExpr(argExpr, row)
+		if err != nil {
+			return nil, err
+		}
+		v = util.UnwrapColumnValue(v)
+		v = unwrapCollatedValue(v)
+		if v != nil {
+			return v, nil
+		}
+	}
+	return nil, nil
+}
+
+// isStarArgList reports whether the argument list is SQLite's lone "*" marker
+// (parser rule191/rule194: Args == [ColumnRef{Name: "*"}], no qualifier).
+func isStarArgList(args []sql.Expr) bool {
+	if len(args) != 1 {
+		return false
+	}
+	ref, ok := args[0].(*sql.ColumnRef)
+	return ok && ref.Name == "*" && ref.Table == ""
 }
 
 // evalFuncCallDispatched evaluates a function call after argument evaluation:
@@ -330,7 +381,10 @@ func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, 
 			return boolToInt(globValues(args[0], args[1])), nil
 		}
 		if strings.EqualFold(f.Name, "REGEXP") && len(args) == 2 {
-			return ev.evalRegexpOp(args[0], args[1], false)
+			// The FUNCTION form is regexp(P,X) — X matches pattern P — the
+			// reverse of the operator form X REGEXP P that evalRegexpOp
+			// implements (regexp1-1.3.2: regexp('by|christ',y)).
+			return ev.evalRegexpOp(args[1], args[0], false)
 		}
 		// base64/base85 enforce SQLITE_LIMIT_LENGTH on their output ("blob
 		// expanded to base64/base85 too big", basexx.c base64()/base85()).

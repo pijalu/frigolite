@@ -10,6 +10,7 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/value"
 	"github.com/pijalu/frigolite/internal/util"
 )
 
@@ -588,6 +589,11 @@ func rowKey(row []interface{}, colls []string) string {
 			parts[i] = "s:" + normalizeForKey(x, coll)
 		case []byte:
 			parts[i] = "b:" + string(x)
+		case value.ZeroBlob:
+			// A lazy zero blob deduplicates against a materialized blob of
+			// the same content (distinct-4.1: x'0000000000' and
+			// zeroblob(5) are one DISTINCT row).
+			parts[i] = "b:" + string(x.Bytes())
 		default:
 			parts[i] = "o:" + fmt.Sprintf("%v", util.UnwrapColumnValue(raw))
 		}

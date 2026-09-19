@@ -614,11 +614,16 @@ func (e *DDLExecutor) resolveIndexTable(ctx *DatabaseContext, s *sql.CreateIndex
 // validateIndexExpressions runs DQS validation and index-key-expression
 // validation for a CREATE INDEX before any schema write.
 func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs []sql.ColumnDef) *Result {
+	// resolve.c areDoubleQuotedStringsEnabled (NC_IsDDL branch): with the DQS
+	// DDL setting enabled — or writable_schema + DQS DML (the legacy schema
+	// load bypass) — an unresolvable double-quoted identifier becomes a
+	// string literal (TK_STRING) instead of an error.
+	allowDQS := e.dqsAllowedDDL()
 	// DDL double-quoted-string (DQS) validation: with DQS disabled for DDL, a
 	// double-quoted identifier in an index key or WHERE clause that does not
 	// resolve to a table column is an error. writable_schema + DQS DML allows
 	// the DDL (legacy schema load bypass).
-	if !e.dqsAllowedDDL() {
+	if !allowDQS {
 		for _, term := range s.Terms {
 			if err := e.validateDQSExpr(term.Expr, colDefs); err != nil {
 				return &Result{Error: err}
@@ -634,7 +639,6 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 	// functions (random(), julianday('now',...)), subqueries, window
 	// functions, and other prohibited constructs in index expressions
 	// (build.c sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction).
-	allowDQS := e.dqsAllowedDDL()
 	for _, term := range s.Terms {
 		if err := validateIndexColumnRefs(term.Expr, colDefs, allowDQS); err != nil {
 			return &Result{Error: err}
@@ -779,9 +783,10 @@ func (e *DDLExecutor) indexKeyForCreate(row RowMap, colDefs []sql.ColumnDef, key
 // term or partial-index WHERE clause against the table's column definitions
 // (build.c: "no such column: x"; index7-1.5 — an unresolved column must fail
 // the CREATE INDEX, not leak the index entry). allowDQS mirrors resolve.c's
-// areDoubleQuotedStringsEnabled: with DQS enabled, a double-quoted identifier
-// that matches no column becomes a string literal instead of an error
-// (alterqf/altermalloc3: index keys like one+"two"+"four").
+// areDoubleQuotedStringsEnabled: with DQS enabled, an unresolved
+// double-quoted identifier becomes a string literal (TK_STRING), not an
+// error (quote-2.2/3.5: z||"abc" / "a"||"x"; alterqf/altermalloc3:
+// one+"two"+"four").
 func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef, allowDQS bool) error {
 	if len(colDefs) == 0 || expr == nil {
 		return nil
@@ -804,6 +809,10 @@ func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef, allowDQS bo
 			if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
 				return
 			}
+		} else if allowDQS {
+			// DQS fallback: an unresolvable double-quoted identifier in the
+			// index expression evaluates as a string literal.
+			return
 		}
 		for _, cd := range colDefs {
 			if strings.EqualFold(cd.Name, ref.Name) {

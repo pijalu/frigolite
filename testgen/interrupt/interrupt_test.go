@@ -108,6 +108,15 @@ func Test_interrupt(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "interrrupt-2.1"
+		// FULL-SUITE-DRIFT.T26-misc fixture fix: TCL interrupt-1.2 is
+		// `DROP TABLE t1` — a plain DDL command the transpiler did not emit
+		// (marked "unsupported command"). Restore it so the re-create below
+		// matches the TCL fixture state (misc1-16.2 proves a same-session
+		// duplicate must error).
+		_res = db.Exec("DROP TABLE IF EXISTS t1")
+		if _res.Error != nil {
+			t.Errorf("fixture drop: %v", _res.Error)
+		}
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(300,400));\n    INSERT INTO t1 SELECT a+1, randstr(300,400) FROM t1;\n    INSERT INTO t1 SELECT a+2, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+4, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+8, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+16, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+32, a || '-' || b FROM t1;\n    COMMIT;\n    UPDATE t1 SET b=substr(b,-5,5);\n    SELECT count(*) from t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(300,400));\n    INSERT INTO t1 SELECT a+1, randstr(300,400) FROM t1;\n    INSERT INTO t1 SELECT a+2, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+4, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+8, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+16, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+32, a || '-' || b FROM t1;\n    COMMIT;\n    UPDATE t1 SET b=substr(b,-5,5);\n    SELECT count(*) from t1;\n  ")

@@ -429,13 +429,12 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 	// restrict the match to ("" for a whole-table match).
 	ftsTable, tableName, columnName, ok := ev.matchFTSLookup(v, row)
 	if !ok {
-		// Outside FTS tables the MATCH operator calls the registered
-		// match(RIGHT, LEFT) scalar function, the same argument order as
-		// like() (like.test 2.3/2.4: `db function match -argcount 2
-		// test_match` with x MATCH 'abc*' runs string match over the row
-		// value). With no registration SQLite errors; the harness always
-		// registers one before relying on MATCH.
-		if fn, found := ev.ctx.Functions().Find("match"); found && fn.ScalarFn != nil {
+		// SQLite compiles `expr MATCH expr` to the two-argument function
+		// match(RIGHT, LEFT) — like()'s argument order. A REAL registration
+		// (an application UDF, e.g. like.test 2.3/2.4 `db function match
+		// -argcount 2 test_match`) takes precedence over the modules'
+		// match/2 overload, so call it with (right, left).
+		if fn, found := ev.ctx.Functions().Find("match"); found && fn.ScalarFn != nil && !fn.Builtin {
 			left, lerr := ev.evalExprWithCollation(v.Left, row)
 			if lerr != nil {
 				return nil, lerr
@@ -450,6 +449,20 @@ func (ev *Evaluator) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) 
 			}
 			return boolToInt(out != nil && ToBool(out)), nil
 		}
+		// No real registration: the FTS/rtree modules' match/2 overload
+		// (sqlite3_overload_function → sqlite3InvalidFunction) fails when
+		// EVALUATED. A literal left operand can never reach a vtab MATCH
+		// constraint, so it always reaches evaluation (func-4.3/4.4:
+		// SELECT 'abc' MATCH 'xyz').
+		switch v.Left.(type) {
+		case *sql.StringLit, *sql.NumericLit, *sql.NullLit, *sql.BlobLit:
+			return nil, fmt.Errorf("unable to use function MATCH in the requested context")
+		}
+		// A column/expression left operand may belong to a statement whose
+		// MATCH constraint a virtual table's xBestIndex/xFilter already
+		// consumed (echo module vtab1-3.14/10-5, rtree geometry MATCH):
+		// SQLite emits no per-row code for the consumed term, so the
+		// residual row evaluation stays inert.
 		return int64(0), nil
 	}
 

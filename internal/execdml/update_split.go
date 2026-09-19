@@ -191,9 +191,13 @@ func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	// Enforce NOT NULL and CHECK constraints on the new values (SQLite checks
 	// these per-row during UPDATE; a violation aborts the whole statement).
 	// UPDATE OR IGNORE skips violating rows instead of aborting, so the
-	// per-row check happens inside applyUpdateIgnore (below).
-	if res := e.preCheckUpdate(s, tableEntry, colDefs, changes); res.Error != nil {
-		return res
+	// per-row check happens inside applyUpdateIgnore (below). Per-constraint
+	// ON CONFLICT clauses (statement OR-clause > column clause) may resolve a
+	// NOT NULL violation by substituting the column DEFAULT (REPLACE) or
+	// skipping the row (IGNORE) — notnull-2.6..2.9.
+	changes, pres := e.preCheckUpdate(s, tableEntry, colDefs, changes)
+	if pres.Error != nil {
+		return pres
 	}
 
 	// Handle RETURNING clause — evaluate against updated rows before applying
@@ -335,10 +339,15 @@ func (e *DMLExecutor) validateUpdateFromTarget(s *sql.UpdateStmt, targetTable st
 
 // preCheckUpdate enforces NOT NULL and CHECK constraints before an UPDATE is
 // applied, except under UPDATE OR IGNORE where per-row checks happen inside
-// applyUpdateIgnore.
-func (e *DMLExecutor) preCheckUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
+// applyUpdateIgnore. A NOT NULL violation is resolved by the effective
+// conflict action — statement OR-clause first, then the column's own
+// ON CONFLICT clause: REPLACE substitutes the column DEFAULT (no DEFAULT →
+// ABORT semantics, SQLite ON CONFLICT docs), IGNORE drops the row's change.
+// The (possibly filtered) change list is returned so skipped rows are not
+// applied or returned via RETURNING.
+func (e *DMLExecutor) preCheckUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) ([]updateChange, *Result) {
 	if strings.EqualFold(s.OnConflict, "IGNORE") {
-		return &Result{}
+		return changes, &Result{}
 	}
 	// Only materialize deferred SET values when there are constraints to
 	// check: the check needs the new values, but materializing here would
@@ -348,11 +357,98 @@ func (e *DMLExecutor) preCheckUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry
 		colIndex := buildColumnIndex(colDefs)
 		for i := range changes {
 			if err := e.materializeChangeValues(&changes[i], s, colIndex, colDefs); err != nil {
-				return &Result{Error: err}
+				return nil, &Result{Error: err}
 			}
 		}
 	}
-	return e.checkUpdateConstraints(tableEntry, colDefs, changes)
+	return e.resolveUpdateNotNullConflicts(s, tableEntry, colDefs, changes)
+}
+
+// resolveUpdateNotNullConflicts validates NOT NULL and CHECK constraints for
+// each change, resolving NOT NULL violations per the effective conflict
+// action (statement OR-clause overrides the column clause; the column's
+// ON CONFLICT clause applies otherwise; plain violations error). REPLACE
+// substitutes the column DEFAULT (looping for multiple NOT NULL columns);
+// IGNORE drops the change so the row is left untouched (notnull-2.9 keeps
+// {1 2 3 4 5} — the whole update of that row is skipped).
+func (e *DMLExecutor) resolveUpdateNotNullConflicts(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) ([]updateChange, *Result) {
+	if !hasNotNullOrCheckConstraint(colDefs) && len(e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL)) == 0 {
+		return changes, &Result{}
+	}
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	var pkCols map[int]bool
+	if withoutRowid {
+		pkCols = e.primaryKeyColIndices(tableEntry.Name, tableEntry.SQL, colDefs)
+	}
+	prevDML := e.currentDMLTable
+	e.currentDMLTable = tableEntry.Name
+	defer func() { e.currentDMLTable = prevDML }()
+
+	stmtClause := strings.ToUpper(s.OnConflict)
+	kept := make([]updateChange, 0, len(changes))
+	for _, ch := range changes {
+		for {
+			row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+			res := e.checkRowUpdateConstraints(ch.values, row, tableEntry, colDefs, withoutRowid, pkCols)
+			if res.Error == nil {
+				kept = append(kept, ch)
+				break
+			}
+			errStr := res.Error.Error()
+			if !strings.Contains(errStr, "NOT NULL constraint failed") {
+				return changes, res // CHECK (and other) violations stand
+			}
+			cd := violatedNotNullColumn(errStr, colDefs)
+			if cd == nil {
+				return changes, res
+			}
+			action := stmtClause
+			if action == "" {
+				action = cd.OnConflict
+			}
+			switch action {
+			case "IGNORE":
+				// Skip the whole row: the change is dropped.
+			case "REPLACE":
+				if cd.Default == nil {
+					// REPLACE without a DEFAULT uses ABORT semantics
+					// (SQLite ON CONFLICT clause documentation).
+					return changes, res
+				}
+				dv, derr := e.ctx.EvalExpr(cd.Default, nil)
+				if derr != nil {
+					return changes, &Result{Error: derr}
+				}
+				values := append([]interface{}(nil), ch.values...)
+				values[cdIndex(colDefs, cd.Name)] = dv
+				if gerr := e.computeGeneratedValues(colDefs, values); gerr != nil {
+					return changes, &Result{Error: gerr}
+				}
+				ch.values = values
+				continue // re-validate the substituted row
+			default:
+				return changes, res
+			}
+			break
+		}
+	}
+	return kept, &Result{}
+}
+
+// violatedNotNullColumn extracts the column definition named by a
+// "NOT NULL constraint failed: <table>.<column>" error.
+func violatedNotNullColumn(errStr string, colDefs []sql.ColumnDef) *sql.ColumnDef {
+	dot := strings.LastIndex(errStr, ".")
+	if dot < 0 {
+		return nil
+	}
+	name := errStr[dot+1:]
+	for i := range colDefs {
+		if strings.EqualFold(colDefs[i].Name, name) {
+			return &colDefs[i]
+		}
+	}
+	return nil
 }
 
 // updateHasConstraints reports whether an UPDATE target's columns carry

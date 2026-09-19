@@ -757,21 +757,9 @@ func Test_misc1(t *testing.T) {
 	fault_callbacks = ""
 	_ = fault_callbacks // suppress unused warning
 	// proc definition (not transpiled)
-	{ // do_test "misc1-19.11"
-		// sqlite3_test_control_fault_install fault_callback (unsupported command, not transpiled)
-		got := tclListFlatten(fault_callbacks)
-		want := tclListFlatten("0")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc1-19.11")
-		}
+	{ // "misc1-19.11" — skipped: FULL-SUITE-DRIFT.T26-misc N-A sqlite3_test_control_fault_install is a C-core test-control API (test1.c), not SQL surface; the callback counter cannot exist in a pure-Go engine (NA_EVIDENCE misc1)
 	}
-	{ // do_test "misc1-19.12"
-		// sqlite3_test_control_fault_install (unsupported command, not transpiled)
-		got := tclListFlatten(fault_callbacks)
-		want := tclListFlatten("0")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc1-19.12")
-		}
+	{ // "misc1-19.12" — skipped: same sqlite3_test_control_fault_install N-A (NA_EVIDENCE misc1)
 	}
 	{ // "misc1-20.1"
 		r = db.Query("\n  CREATE TABLE t0(x INTEGER DEFAULT(0==0) NOT NULL);\n  REPLACE INTO t0(x) VALUES('');\n  SELECT rowid, quote(x) FROM t0;\n")

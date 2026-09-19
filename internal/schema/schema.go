@@ -42,6 +42,42 @@ type Entry struct {
 	RowID    int64       // sqlite_schema rowid (set when read from the b-tree)
 }
 
+// sessionEntryKey builds the sessionCreated map key for an object.
+func sessionEntryKey(schemaType SchemaType, name string) string {
+	return string(schemaType) + "/" + strings.ToLower(name)
+}
+
+// noteSessionEntry records that an object was created in this session.
+func (m *Manager) noteSessionEntry(schemaType SchemaType, name string) {
+	if m.sessionCreated == nil {
+		m.sessionCreated = make(map[string]bool)
+	}
+	m.sessionCreated[sessionEntryKey(schemaType, name)] = true
+}
+
+// forgetSessionEntry drops the session record for a removed object.
+func (m *Manager) forgetSessionEntry(name string, schemaType SchemaType) {
+	if m.sessionCreated == nil {
+		return
+	}
+	if schemaType != "" {
+		delete(m.sessionCreated, sessionEntryKey(schemaType, name))
+		return
+	}
+	// Untyped removal (DROP TABLE x): forget every type for this name.
+	for key := range m.sessionCreated {
+		if strings.HasSuffix(key, "/"+strings.ToLower(name)) {
+			delete(m.sessionCreated, key)
+		}
+	}
+}
+
+// SessionCreated reports whether the named object was created through
+// AddEntry in this session (not read back from a persisted schema).
+func (m *Manager) SessionCreated(schemaType SchemaType, name string) bool {
+	return m.sessionCreated[sessionEntryKey(schemaType, name)]
+}
+
 // ColumnDef represents a column definition (replicated from sql.ColumnDef
 // to avoid importing the sql package).
 type ColumnDef struct {
@@ -100,6 +136,13 @@ type Manager struct {
 	cookieCacheKey   uint64
 	mutationEpoch    uint64
 	cookieCacheAll   []*Entry
+
+	// sessionCreated tracks objects created through AddEntry in THIS session
+	// (connection). It survives cache invalidations (the rows are re-read
+	// from the b-tree with LoadedFromDB set, which would otherwise make a
+	// same-session re-create look like a persisted schema) and is dropped on
+	// Remove and on connection close.
+	sessionCreated map[string]bool
 
 	// headerValidated records that the pager header's freelist/root-page
 	// fields have been checked against the page count (a corrupt image is
@@ -199,6 +242,7 @@ func (m *Manager) AddEntry(entry *Entry) error {
 	// Schema changed: drop the entry cache and bump the schema cookie so
 	// cookie-keyed caches (here and in the engine) see the DDL.
 	m.invalidateForMutation()
+	m.noteSessionEntry(entry.Type, entry.Name)
 
 	// Convert schema entry to a record and insert into page 1
 	values := []interface{}{
@@ -229,6 +273,7 @@ func (m *Manager) AddEntry(entry *Entry) error {
 // preserve a renamed entry's position in sqlite_schema).
 func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
 	m.invalidateForMutation()
+	m.noteSessionEntry(entry.Type, entry.Name)
 
 	values := []interface{}{
 		entry.Type,

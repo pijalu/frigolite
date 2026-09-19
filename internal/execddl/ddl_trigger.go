@@ -236,8 +236,10 @@ func writeValueTuple(b *strings.Builder, tuple []sql.Expr) {
 }
 
 // execCreateView implements CREATE VIEW.
-// empty table entry has been created.
-func (e *DDLExecutor) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *DatabaseContext, tableName string) *Result {
+// empty table entry has been created. ctasResult carries the pre-executed
+// SELECT result from the CREATE TABLE flow (already run before the table was
+// created, mirroring SQLite's prepare-time select compilation); nil runs it.
+func (e *DDLExecutor) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *DatabaseContext, tableName string, ctasResult *Result) *Result {
 	e.ctx.InvalidateTableCaches()
 	// The statement may have come from the parse cache (Prepare returns the
 	// cached AST for identical SQL text). deriveCTASColumns below would
@@ -248,10 +250,16 @@ func (e *DDLExecutor) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *Datab
 	sCopy := *s
 	s = &sCopy
 
-	// Execute the SELECT query
-	result := e.ctx.ExecSelect(s.AsSelect)
-	if result.Error != nil {
-		return result
+	// Execute the SELECT query. The select has already been executed by the
+	// CREATE TABLE flow BEFORE the table was created (prepate-time ordering:
+	// a select failure leaves no table behind, misc1-15.1.x); its result is
+	// carried in ctasResult. A nil ctasResult (direct entry) runs it here.
+	result := ctasResult
+	if result == nil {
+		result = e.ctx.ExecSelect(s.AsSelect)
+		if result.Error != nil {
+			return result
+		}
 	}
 	if len(result.Columns) > 0 {
 		e.deriveCTASColumns(s, result, tableName)

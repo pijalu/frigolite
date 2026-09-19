@@ -436,10 +436,15 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 	}
 	// A pager opened read-only (permission fallback) rejects DDL writes the
 	// same way (sqlite3PagerBegin SQLITE_READONLY); PRAGMA statements stay
-	// exempt so journal_mode can still be observed.
+	// exempt so journal_mode can still be observed. ATTACH/DETACH are also
+	// exempt: the read-only flag applies to the MAIN database only, and
+	// SQLite permits attaching a separate writable file to a read-only
+	// connection (misc7-7.3: OpenReadOnly + ATTACH test2.db AS aux).
 	if e.mainReadOnly() {
 		if _, isPragma := stmt.(*sql.PragmaStmt); !isPragma {
-			return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
+			if _, isAttach := stmt.(*sql.AttachStmt); !isAttach {
+				return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
+			}
 		}
 	}
 	// Invalidate table cache on any DDL operation to ensure consistency

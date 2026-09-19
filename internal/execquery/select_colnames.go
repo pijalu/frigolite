@@ -647,7 +647,7 @@ func derivedTableBadColumnRef(s *sql.SelectStmt) string {
 		if strings.EqualFold(cr.Table, "new") || strings.EqualFold(cr.Table, "old") {
 			return
 		}
-		if !local[cr.Table] {
+		if !local[strings.ToLower(cr.Table)] {
 			bad = cr.Table + "." + cr.Name
 		}
 	})

@@ -406,6 +406,13 @@ func Test_misc7(t *testing.T) {
 		}
 		{ // "misc7-23.1" — skipped: readonly-directory open via file attributes VFS N-A
 		}
+		// FULL-SUITE-DRIFT.T26-misc fixture fix: the TCL source's
+		// `file mkdir tst` + `forcecopy test.db tst/test.db`
+		// (misc7.test:548-550) are harness file commands the transpiler
+		// does not emit. Recreate the directory so the Open below matches
+		// the TCL fixture state (the 23.x assertions themselves remain
+		// N-A-skipped readonly-VFS tests).
+		os.MkdirAll("tst", 0o755)
 		db, err = frigolite.Open("tst/test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

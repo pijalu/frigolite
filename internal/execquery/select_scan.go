@@ -34,12 +34,69 @@ func (e *SelectEngine) distinctRows(rows [][]interface{}, rowMaps []RowMap, coll
 	}
 	if idxCols := e.coveringIndexForDistinct(s); len(idxCols) > 0 {
 		reorderByIndexCols(newRows, newMaps, idxCols)
+	} else if idxCols := e.partialCoverIndexForDistinct(s); len(idxCols) > 0 {
+		// An index whose LEADING columns are a prefix of the DISTINCT
+		// columns lets SQLite scan the index for those columns and fetch
+		// the rest, so the output follows the index-prefix order
+		// (distinct-2.3: i1(a,b) delivers (A,B,C) before (a,b,c)).
+		reorderByIndexCols(newRows, newMaps, idxCols)
 	}
+	// With no usable index SQLite keeps DISTINCT as a FILTER over the chosen
+	// scan: rows emerge in scan (first-occurrence) order — DISTINCT does not
+	// sort by itself (oracle 3.54: SELECT DISTINCT x FROM h1, h2 ON (x=b)
+	// returns One, Four).
 	return newRows, newMaps
 }
 
-// sortDistinctRows sorts DISTINCT rows by their result columns (like the temp
-// b-tree SQLite uses when no covering index exists).
+// partialCoverIndexForDistinct returns the leading columns of an explicitly
+// created index that form a PREFIX, in order, of the DISTINCT output columns
+// (single-table scan). Autoindexes are skipped: their ordering behavior is
+// not observable the same way, and reordering by them changes long-green
+// results. nil when no index qualifies.
+func (e *SelectEngine) partialCoverIndexForDistinct(s *sql.SelectStmt) []string {
+	if !distinctIndexApplicable(s) {
+		return nil
+	}
+	tableName, alias := distinctTableAlias(s)
+	need, ok := distinctNeededColumns(s, tableName, alias)
+	if !ok || len(need) == 0 {
+		return nil
+	}
+	entries, err := e.ctx.Schema().GetEntries("")
+	if err != nil {
+		return nil
+	}
+	needLower := make([]string, len(need))
+	for i, n := range need {
+		needLower[i] = strings.ToLower(n)
+	}
+	for _, entry := range entries {
+		if entry.Type != "index" || !strings.EqualFold(entry.TblName, tableName) {
+			continue
+		}
+		if strings.HasPrefix(strings.ToUpper(entry.Name), "SQLITE_AUTOINDEX_") {
+			continue
+		}
+		cols := e.ctx.ParseIndexColumns(entry.SQL)
+		if len(cols) == 0 {
+			continue
+		}
+		prefix := make([]string, 0, len(cols))
+		for i, c := range cols {
+			name := strings.ToLower(strings.TrimSpace(c))
+			if i >= len(needLower) || name != needLower[i] {
+				break
+			}
+			prefix = append(prefix, strings.TrimSpace(c))
+		}
+		if len(prefix) > 0 {
+			return prefix
+		}
+	}
+	return nil
+}
+
+// sortDistinctRows sorts DISTINCT rows by their result columns.
 //
 //lint:ignore U1000 retained for callers that need explicit DISTINCT sorting.
 func (e *SelectEngine) sortDistinctRows(rows [][]interface{}, maps []RowMap, colls []string) {

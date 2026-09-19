@@ -46,7 +46,7 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
 		tn = s.From.As
 	}
 	if tn != "" {
-		out[tn] = true
+		out[strings.ToLower(tn)] = true
 	}
 	if s.From.Subquery != nil {
 		collectFromTableNames(s.From.Subquery, out)
@@ -57,7 +57,7 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
 			jn = j.Table.As
 		}
 		if jn != "" {
-			out[jn] = true
+			out[strings.ToLower(jn)] = true
 		}
 		if j.Table.Subquery != nil {
 			collectFromTableNames(j.Table.Subquery, out)
@@ -260,6 +260,7 @@ func (v *joinOnValidator) addFromTable() {
 		return
 	}
 	v.addAvailableName(tn)
+	v.available[strings.ToLower(tn)] = true
 	v.addFromColumns()
 	v.addLeftTable(tn)
 }
@@ -564,6 +565,7 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn string) {
 	if tn != "" {
 		v.addAvailableName(tn)
+		v.available[strings.ToLower(tn)] = true
 		v.engine.collectJoinTableCols(v.s, join, tn, v.availableCols)
 	}
 	if join.Table.Subquery != nil {

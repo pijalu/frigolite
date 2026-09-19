@@ -101,7 +101,8 @@ func (p *percentileAgg) Step(args []interface{}) error {
 		return fmt.Errorf("input to %s is not numeric", p.name)
 	}
 	if math.IsInf(f, 0) || math.IsNaN(f) {
-		return fmt.Errorf("inf input to %s", p.name)
+		// percentile.c percentIsInfinity → percentError("Inf input to %s()")
+		return fmt.Errorf("Inf input to %s", p.name)
 	}
 	p.values = append(p.values, f)
 	return nil

@@ -463,24 +463,26 @@ func (e *Engine) CompileOptions() []string {
 // (seq 1) appears only once the temp btree has been materialized.
 func (e *Engine) DatabaseList() *execpragma.Result {
 	var rows [][]interface{}
-	seq := int64(0)
-	// Main database first (seq 0), then attached databases in ATTACH
-	// order (dbList preserves attachment order; the databases map does
-	// not, so iterating it would reorder rows non-deterministically).
-	rows = append(rows, []interface{}{seq, "main", e.mainDB.FilePath})
-	seq++
-	// Temp database at seq 1 — listed only once its btree is materialized:
-	// pragma.c PragTyp_DATABASE_LIST skips aDb[i].pBt==0 entries, and the
-	// temp btree opens lazily on first temp-schema use (attach4-1.2.1).
+	// Main database first (seq 0). aDb[1] is the TEMP slot — reserved for
+	// every connection even before the temp btree materializes — so the
+	// first ATTACH lands at slot 2 (pragma.c PragTyp_DATABASE_LIST reports
+	// each in-use aDb slot's index; misc8-4.1: "0 main ... 2 aux2 ...").
+	rows = append(rows, []interface{}{int64(0), "main", e.mainDB.FilePath})
+	// Temp row (slot 1) — listed only once its btree is materialized:
+	// PragTyp_DATABASE_LIST skips aDb[i].pBt==0 entries, and the temp
+	// btree opens lazily on first temp-schema use (attach4-1.2.1).
 	if e.tempBtreeOpen {
 		for _, ctx := range e.dbList {
 			if u := strings.ToUpper(ctx.Name); u == "TEMP" || u == "TEMPORARY" {
-				rows = append(rows, []interface{}{seq, "temp", ctx.FilePath})
-				seq++
+				rows = append(rows, []interface{}{int64(1), "temp", ctx.FilePath})
 				break
 			}
 		}
 	}
+	// Attached databases in ATTACH order starting at slot 2 (dbList
+	// preserves attachment order; the databases map does not, so iterating
+	// it would reorder rows non-deterministically).
+	seq := int64(2)
 	for _, ctx := range e.dbList {
 		upper := strings.ToUpper(ctx.Name)
 		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {

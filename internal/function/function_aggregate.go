@@ -162,13 +162,23 @@ func (s *sumAgg) Final() (interface{}, error) {
 			// the double sum kept running.
 			return nil, fmt.Errorf("integer overflow")
 		}
-		r := s.floatSum + s.rErr
-		if math.IsInf(r, 0) {
-			r = s.floatSum
+		// sumFinalize folds the compensation term in only when it is finite
+		// (func.c: `if( !sqlite3IsOverflow(p->rErr) )` — sqlite3IsOverflow
+		// is true for NaN and ±Inf). An input of ±Inf leaves rErr NaN
+		// ((Inf-t)+s) or ±Inf, and rSum alone is the correct IEEE result:
+		// sum(9e999) = Inf, not NaN (func-8.x / func-38.100).
+		r := s.floatSum
+		if !isOverflowDouble(s.rErr) {
+			r += s.rErr
 		}
 		return r, nil
 	}
 	return s.intSum, nil
+}
+
+// isOverflowDouble ports util.c sqlite3IsOverflow: true for NaN and ±Inf.
+func isOverflowDouble(f float64) bool {
+	return math.IsNaN(f) || math.IsInf(f, 0)
 }
 
 type totalAgg struct {

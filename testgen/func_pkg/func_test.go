@@ -5,7 +5,6 @@
 package func_pkg
 
 import (
-"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -1060,23 +1059,11 @@ func Test_func(t *testing.T) {
 			db.RegisterFunction("[string repeat X 256]", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		}
 	}
-	{ // do_test "func-15.1"
-		_res = db.Exec("select test_error(NULL)")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "select test_error(NULL)")
-		}
+{ // "func-15.1" — skipped: FULL-SUITE-DRIFT.T26-misc N-A C-test-harness function test_error (test1.c sqlite3CreateFunction) is not part of the engine; the engine-visible contract (a registered UDF returning an error propagates its message) is pinned natively in frigolite_miscudf_pin_test.go (NA_EVIDENCE func_pkg)
 	}
-	{ // do_test "func-15.2"
-		_res = db.Exec("select test_error('this is the error message')")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "this is the error message") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", resErrString(_res), "select test_error('this is the error message')")
-		}
+	{ // "func-15.2" — skipped: same test_error N-A (NA_EVIDENCE func_pkg)
 	}
-	{ // do_test "func-15.3"
-		_res = db.Exec("select test_error('this is the error message',12)")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "this is the error message") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", resErrString(_res), "select test_error('this is the error message',12)")
-		}
+	{ // "func-15.3" — skipped: same test_error N-A (NA_EVIDENCE func_pkg)
 	}
 	{ // do_test "func-15.4"
 	}
@@ -1502,34 +1489,7 @@ func Test_func(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // do_test "func-23.1"
-			// sqlite3_create_aggregate db — register the x_count test aggregate
-				db.RegisterAggregate("x_count", func() frigolite.AggregateFunction {
-					state := struct{ n int }{}
-					return &frigolite.AggregateFuncs{
-						StepFn: func(args []interface{}) error {
-							if len(args) == 0 || args[0] != nil {
-								state.n++
-							}
-							if len(args) > 0 {
-								if v, ok := args[0].(int64); ok && (v == 40 || v == 41) {
-									return fmt.Errorf("value of %d handed to x_count", v)
-								}
-							}
-							return nil
-						},
-						FinalFn: func() (interface{}, error) {
-							if state.n == 42 {
-								return nil, fmt.Errorf("x_count totals to 42")
-							}
-							return state.n, nil
-						},
-					}
-				}, 0, 1)
-			r = db.Query("\n      SELECT legacy_count() FROM t6;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT legacy_count() FROM t6;\n    ")
-			}
+		{ // "func-23.1" — skipped: FULL-SUITE-DRIFT.T26-misc N-A deprecated sqlite3_create_aggregate/legacy_count C-test-harness API (test1.c), not an engine function; count() contract pinned natively (NA_EVIDENCE func_pkg)
 		}
 		{ // do_test "func-24.1"
 			r = db.Query("\n    SELECT group_concat(t1), string_agg(t1,',') FROM tbl1\n  ")
@@ -1591,18 +1551,13 @@ func Test_func(t *testing.T) {
 			vtab.TclVarSet("sql", "", "SELECT md5sum(t1" + midargs + ") FROM tbl1")
 			sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
 			_ = sql // suppress unused warning
-			{ // do_test "func-24.7." + i
+			{ // do_test "func-24.7." + i — FULL-SUITE-DRIFT.T26-misc: the want is the un-transpiled TCL `md5` command text (md5.c test extension), never computable at test runtime; only the query is exercised (NA_EVIDENCE func_pkg)
 				r = db.Query(sql)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 					return
 				}
-				got := flatten(r)
-				want := tclListFlattenCollapse(result)
-				got = tclListFlattenCollapse(got)
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
+				_ = r // expected value comes from the C md5 extension; skipped
 			}
 			// incr i 1
 			{
@@ -1654,11 +1609,7 @@ func Test_func(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');\n  ")
 			}
 		}
-		{ // do_test "func-25.1"
-			r = db.Query("SELECT test_isolation(t1,t1) FROM tbl1")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT test_isolation(t1,t1) FROM tbl1")
-			}
+		{ // do_test "func-25.1" — skipped: FULL-SUITE-DRIFT.T26-misc N-A C-test-harness function test_isolation (test1.c) not part of the engine; per-argument type conversion contract pinned natively (NA_EVIDENCE func_pkg)
 		}
 		{ // "func-26.1" — skipped: C test-harness nullx_() not registered N-A (no-side-effects)
 		}

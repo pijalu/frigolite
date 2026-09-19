@@ -345,6 +345,13 @@ func (t *Tokenizer) tryComment() *Token {
 		return &tok
 	}
 	if ch == '/' && t.pos+1 < len(t.input) && t.input[t.pos+1] == '*' {
+		// tokenize.c CC_SLASH: "/*" at the very end of input (nothing after
+		// the '*' character) is NOT a comment — the '/' becomes a TK_SLASH
+		// token and the parser reports `near "*": syntax error`
+		// (tokenize-2.1: SELECT 1, 2 /*).
+		if t.pos+2 == len(t.input) {
+			return nil
+		}
 		t.skipBlockComment()
 		tok := t.Next()
 		return &tok
@@ -638,11 +645,21 @@ func (t *Tokenizer) readFraction(buf []byte) []byte {
 }
 
 // readExponent appends an exponent part (e/E[+-]digits) to buf if present.
+// tokenize.c consumes the exponent only when a digit follows it (optionally
+// after one +/-): for "1.0e+" the 'e' stays unconsumed and the trailing
+// IdChar loop then reports the whole "1.0e" as an unrecognized token.
 func (t *Tokenizer) readExponent(buf []byte) []byte {
 	if t.pos < len(t.input) && (t.input[t.pos] == 'e' || t.input[t.pos] == 'E') {
+		j := t.pos + 1
+		if j < len(t.input) && (t.input[j] == '+' || t.input[j] == '-') {
+			j++
+		}
+		if j >= len(t.input) || t.input[j] < '0' || t.input[j] > '9' {
+			return buf // no exponent: leave e/E for the IdChar tail check
+		}
 		buf = append(buf, t.input[t.pos])
 		t.pos++
-		if t.pos < len(t.input) && (t.input[t.pos] == '+' || t.input[t.pos] == '-') {
+		if t.input[t.pos] == '+' || t.input[t.pos] == '-' {
 			buf = append(buf, t.input[t.pos])
 			t.pos++
 		}

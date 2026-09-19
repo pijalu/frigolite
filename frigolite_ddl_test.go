@@ -155,8 +155,12 @@ func TestBuildIndex(t *testing.T) {
 	}
 }
 
-// TestDoubleCreateTable tests that creating an existing table is handled gracefully.
-// SQLite returns an error, but the compat test suite expects silent skipping.
+// TestDoubleCreateTable pins SQLite's duplicate-CREATE behavior: a second
+// identical CREATE TABLE in the SAME session errors with "table t already
+// exists" (misc1-16.2). The silent-skip accommodation applies only to
+// verbatim re-creates of schemas persisted by an EARLIER session (the JSON
+// harness's TCL database reset), which checkCreateTableExisting handles via
+// the schema Manager's session tracking.
 func TestDoubleCreateTable(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
@@ -165,10 +169,9 @@ func TestDoubleCreateTable(t *testing.T) {
 	if res.Error != nil {
 		t.Fatalf("create table failed: %v", res.Error)
 	}
-	// Second create should not error (silently skipped for compat)
 	res = db.Exec("CREATE TABLE t (id INTEGER)")
-	if res.Error != nil {
-		t.Errorf("second create table should not error: %v", res.Error)
+	if res.Error == nil || res.Error.Error() != "table t already exists" {
+		t.Errorf("second create table: expected %q, got %v", "table t already exists", res.Error)
 	}
 }
 

@@ -103,6 +103,19 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 		return res
 	}
 
+	// CREATE TABLE ... AS SELECT: SQLite compiles (and name-resolves) the
+	// SELECT at PREPARE time, before the CREATE TABLE program runs, so a
+	// resolution failure ("no such column: t9.c1", misc1-15.1.x) leaves NO
+	// table behind, and a self-referencing select still reports
+	// "no such table". Execute the select first; only then allocate/create.
+	var ctasResult *Result
+	if s.AsSelect != nil {
+		ctasResult = e.ctx.ExecSelect(s.AsSelect)
+		if ctasResult.Error != nil {
+			return ctasResult
+		}
+	}
+
 	pg, perr := allocateRootPage(ctx.Pager)
 	if perr != nil {
 		return &Result{Error: perr}
@@ -167,7 +180,7 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 		// path must register the table under the unqualified name in the
 		// target schema (SQLite stores "CREATE TABLE t1(...)", never
 		// "CREATE TABLE aux.t1(...)").
-		return e.execCreateTableAsSelect(s, ctx, tableName)
+		return e.execCreateTableAsSelect(s, ctx, tableName, ctasResult)
 	}
 
 	return &Result{Changes: 0}
@@ -441,8 +454,11 @@ func (e *DDLExecutor) checkCreateTableExisting(ctx *DatabaseContext, s *sql.Crea
 		// schema, which the compat harness produces after TCL database
 		// resets that are not modeled in JSON. A different schema still
 		// errors (e.g. "CREATE TABLE test2(two)" after "CREATE TABLE
-		// TEST2(one text)" raises "table test2 already exists").
-		if s.IfNotExists || (existing.SQL != "" && normalizedCreateTableSQL(existing.SQL) == normalizedCreateTableSQL(s.RawSQL)) {
+		// TEST2(one text)" raises "table test2 already exists"). The
+		// accommodation applies only to objects persisted by an EARLIER
+		// session (the TCL reset reopened the connection): a table created
+		// in this same session always errors like SQLite (misc1-16.2).
+		if s.IfNotExists || (!ctx.Schema.SessionCreated(schema.TypeTable, tableName) && existing.SQL != "" && normalizedCreateTableSQL(existing.SQL) == normalizedCreateTableSQL(s.RawSQL)) {
 			return &Result{}
 		}
 		return &Result{Error: fmt.Errorf("table %s already exists", tableName)}
