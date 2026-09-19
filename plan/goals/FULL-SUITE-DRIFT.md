@@ -2113,3 +2113,91 @@ Vs the T24 baseline (950/126/287): +92 pass, −94 fail; 105 of the 126
 T24 fails fixed. **11 regressions identified for T28 triage** (not in the
 T24 fail set): aggerror, alter, capi2, conflict, e_select2, fkey6, fts3d,
 fts4langid, pragma, values, window9 — bisect+fix owned by the T28 wave.
+
+### T28-regressA (2026-09-19): 8 of the 11 flagged regressions bisected and fixed
+
+Worktree fleet/regress-a (base 954705ae9). Goal: alter, conflict, pragma,
+fkey6, e_select2, values, window9, aggerror — all GREEN (-p 2, named
+packages). Bisect over main's first-parent merge sequence from the T24
+baseline 7c45cbf23, all 8 confirmed green there, then split per merge:
+
+| packages | introducing merge | root cause |
+|---|---|---|
+| alter, e_select2, fkey6 | 246f001d6 corrupt-hexio | new validateLoadedSchema re-parse exposed pre-existing stored-SQL rot |
+| values, window9, aggerror | 0f0399c8e select-grind | T26-select validation/naming regressions (see below) |
+| pragma | a8188b824 singles-a | f04ba8c23 database_list temp gate too narrow |
+| conflict | 6b8a67680 dml-index | validateConflictActions treated OE_Default as explicit ABORT |
+
+Fixes (each class oracle-checked against /usr/bin/sqlite3 3.54):
+
+1. **ALTER RENAME double-replacement (alter 20→0)** — the string-regex
+   fallback replaceTableNameInSQL re-matched the bare old name INSIDE the
+   quoted new name when newName contains oldName as an ASCII prefix (RENAME
+   xyz TO "xyzሴabc": \b ends at U+1234) storing
+   `CREATE TABLE ""xyzሴabc"ሴabc"(...)`; the bug predates the bisect point but
+   was invisible until validateLoadedSchema re-parsed stored rows at prepare.
+   Fix: quotedSpansOf scan — the bare-name pass now skips quoted spans
+   (string literals, quoted identifiers, [brackets]). Oracle: stored text is
+   `CREATE TABLE "xyzሴabc"(x UNIQUE)`.
+2. **CTAS stored name unquoted (e_select2 29→0)** — buildCreateTableSQL wrote
+   s.Name bare, so CREATE TEMP TABLE '%ss%' AS SELECT stored
+   `CREATE TABLE %ss%(...)` ("near "%": syntax error" on re-parse). Fix:
+   quotedStoredTableName quotes non-plain identifiers (and keyword tails),
+   mirroring sqlite3EndTable; oracle stores `CREATE TABLE "%ss%"(x)`.
+3. **writable_schema rootpage tolerance (fkey6 2→0)** — validateLoadedSchemaCtx
+   now skips the RootPage>mxPage check for parseable CREATE rows while
+   writable_schema is ON: oracle 3.54 lets CREATE TABLE t2 succeed on the
+   hand-inserted t1 row (rootpage 2, 1-page file) and heal the page count,
+   while writable_schema OFF still reports "malformed database schema (t1) -
+   invalid rootpage" and parse-failure/autoindex rows keep the generic
+   WriteSchema corrupt (corruptN-3.1/4.2 hold).
+4. **Compound-limit VALUES exemption (values 6→0)** — parse.y
+   parserDoubleLinkSelect checks the head's SF_MultiValue|SF_Values flags, so
+   a comma-linked VALUES compound never counts against
+   SQLITE_LIMIT_COMPOUND_SELECT even nested in a scalar subquery with limit 3
+   (values-4.x); frigolite's validator now skips head.ValuesChain chains.
+   select7-1.x's 501-term UNION ALL probe stays enforced.
+5. **f(*) star arity = zero-arg call (aggerror 3→0)** — validateAggregateStarArgs
+   hard-coded "only count may take *"; C's grammar turns f(*) into a 0-arg
+   call and the registry lookup decides (count has 0- and 1-arg overloads;
+   test1.c registers the x_count fixture with nArg 0 and 1). Fix: star calls
+   error only when the registered MinArgs > 0 — min(*)/max(*)/sum(*) keep
+   their "wrong number of arguments" errors (select1-2.6/2.9/2.14, func2).
+6. **window GROUP BY span-name match (window9 1→0)** — windowGroupColumnValue
+   matched precomputed group values via sql.ExprString ("b = count(*)") while
+   T26-select renamed output columns to the tight raw span ("b=count(*)");
+   the miss fell into re-evaluation over unwrapped values, losing TEXT
+   affinity — b=count(*) returned 0 for every group. Fix: the lookup also
+   tries exprResultName(expr). CASE-path correctness preserved (resolver01,
+   window1-B/E, filter1 all green).
+7. **database_list temp gate (pragma 1→0)** — f04ba8c23 listed temp only when
+   tempBtreeOpen, but the flag was set solely by PRAGMA temp.<x>; oracle:
+   SELECT * FROM sqlite_temp_master alone opens aDb[1].pBt and database_list
+   then reports the temp row (pragma-6.1). Fix: findTableUncached sets the
+   flag when a statement resolves sqlite_temp_master/sqlite_temp_schema;
+   attach4-1.2.1's fresh-connection no-temp pin still holds.
+8. **conflicting ON CONFLICT clauses (conflict 1→0)** — normalizeConflictAction
+   returned "ABORT" for a constraint with no explicit clause, so
+   UNIQUE(x,x) + UNIQUE(x,x) ON CONFLICT REPLACE looked explicitly
+   conflicting; build.c:4358 errors only when BOTH sides are explicit and
+   different (OE_Default adopts the explicit action). index-7.6 (PRIMARY KEY
+   ON CONFLICT FAIL + UNIQUE(a) ON CONFLICT IGNORE) still errors; conflict2/3,
+   without_rowid*, upsert*, index families green.
+
+Verification: the 8 target packages green; ~70 neighbor packages re-run green
+covering every origin-goal surface — corrupt-hexio (corrupt, corruptB/C/F/L/N,
+fts3corrupt4, misc4), select-grind (select1/2/3/4/5/7/D/H, where, whereL,
+wherelimit, wherelimit2, join, join8, orderby1, filter1, aggnested, subquery,
+in3, limit, func2, count), window family (window1-8/B/C/D/E/pushd/fault,
+resolver01), singles-a (attach, attach2, attach4, pragma2, trans2, rowid,
+autoinc, e_resolve, windowfault, sort5 via misc batch), dml-index (index,
+index6/7, indexedby, indexexpr1, insert/2/3, delete2, delete_pkg, e_fkey,
+fkey1/2/8, like), pairs/WR (alter3, altertab*, conflict2/3, upsert1-5,
+without_rowid1-7, update, update2, temptable2, intpkey, trigger1/2/4/7/B,
+triggerupfrom, trans, vacuum, savepoint, misc1, randexpr1, e_createtable,
+createtab). corrupt's failing-assertion set byte-identical with/without the
+fixes (pre-existing documented red). Gates: go build ./..., go vet ./...,
+TestSOLID_ (20 pkgs), quality_gate staticcheck/gocognit/gocyclo findings
+identical to baseline except one pre-existing SA4006 in schema_validate.go
+fixed; the single pre-commit gate (build + SOLID) green. Remaining flagged
+regressions not in this goal: capi2, fts3d, fts4langid (other T28 owners).

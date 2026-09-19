@@ -130,8 +130,14 @@ func saveRenamedEntry(schemaMgr *schema.Manager, entry *schema.Entry, newSQL str
 }
 
 // replaceTableNameInSQL replaces occurrences of oldName with the quoted new
-// name in SQL text, using word-boundary matching; empty-IN operands and
-// references to other schemas' tables are left untouched.
+// name in SQL text, using word-boundary matching; empty-IN operands,
+// references to other schemas' tables, and occurrences inside quoted spans
+// (string literals or quoted identifiers) are left untouched. Skipping quoted
+// spans matters when newName CONTAINS oldName as an ASCII prefix (RENAME xyz
+// TO "xyzሴabc"): the quote character ends the Go \b match (U+1234 is not an
+// ASCII word character), so the bare-name pass would otherwise re-replace the
+// old name INSIDE the already-substituted quoted new name and corrupt the
+// stored schema SQL ("malformed database schema" on the next parse).
 func replaceTableNameInSQL(sql, oldName, newName string) string {
 	// Quote newName for SQL only when it needs it; a name containing a
 	// double quote is stored doubled inside the identifier (SQLite stores
@@ -151,6 +157,7 @@ func replaceTableNameInSQL(sql, oldName, newName string) string {
 		return re2.ReplaceAllString(sql, quotedNew)
 	}
 	emptyInSpans := emptyINOperandSpans(sql)
+	quotedSpans := quotedSpansOf(sql)
 	re = regexp.MustCompile(`\b` + regexp.QuoteMeta(oldName) + `\b`)
 	idxs := re.FindAllStringIndex(sql, -1)
 	if len(idxs) == 0 {
@@ -164,6 +171,9 @@ func replaceTableNameInSQL(sql, oldName, newName string) string {
 			continue
 		}
 		if otherSchemaQualifiedRef(sql, idx[0]) {
+			continue
+		}
+		if inQuotedSpan(quotedSpans, idx[0]) {
 			continue
 		}
 		b.WriteString(sql[last:idx[0]])
@@ -272,4 +282,63 @@ func quoteFixToken(sqlStr string, i, end int, colSet map[string]bool) (string, i
 // embedded quotes doubled (SQLite %w semantics).
 func sqlQuoteIdentifier(name string) string {
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
+}
+
+// quotedSpansOf returns the [start, end) byte offsets of every quoted span in
+// sql: single-quoted string literals ('' escape), double-quoted identifiers
+// ("" escape), backtick-quoted and bracket-quoted identifiers. Callers use it
+// to keep string-replacement passes out of quoted text (a bare old-name match
+// inside a quoted identifier or literal must never be rewritten).
+func quotedSpansOf(sql string) [][2]int {
+	var spans [][2]int
+	i := 0
+	for i < len(sql) {
+		switch c := sql[i]; {
+		case c == '\'' || c == '"' || c == '`':
+			close := c
+			j := i + 1
+			closed := false
+			for j < len(sql) {
+				if sql[j] == close {
+					if j+1 < len(sql) && sql[j+1] == close {
+						j += 2
+						continue
+					}
+					j++
+					closed = true
+					break
+				}
+				j++
+			}
+			if closed {
+				spans = append(spans, [2]int{i, j})
+			}
+			i = j
+		case c == '[':
+			j := i + 1
+			for j < len(sql) && sql[j] != ']' {
+				j++
+			}
+			if j < len(sql) {
+				spans = append(spans, [2]int{i, j + 1})
+				i = j + 1
+			} else {
+				i = j
+			}
+		default:
+			i++
+		}
+	}
+	return spans
+}
+
+// inQuotedSpan reports whether byte offset off falls inside one of the quoted
+// spans produced by quotedSpansOf.
+func inQuotedSpan(spans [][2]int, off int) bool {
+	for _, s := range spans {
+		if off >= s[0] && off < s[1] {
+			return true
+		}
+	}
+	return false
 }

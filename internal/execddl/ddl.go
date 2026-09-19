@@ -219,10 +219,12 @@ func (e *DDLExecutor) runCreateTableValidations(ctx *DatabaseContext, s *sql.Cre
 }
 
 // normalizeConflictAction extracts a constraint's effective ON CONFLICT
-// action: the first resolution keyword found in the text, else the default
-// ABORT. The parser leaves stray text (e.g. a trailing ")") in the field for
-// table-level constraints without an explicit ON CONFLICT clause, so the
-// keyword scan is the reliable signal.
+// action: the first resolution keyword found in the text, else "" for
+// OE_Default (the parser leaves stray text (e.g. a trailing ")") in the field
+// for table-level constraints without an explicit ON CONFLICT clause, so the
+// keyword scan is the reliable signal). The empty result mirrors SQLite's
+// OE_Default: an absent clause is NOT an explicit ABORT (build.c:4358 treats
+// OE_Default like "unspecified" when reconciling duplicate constraints).
 func normalizeConflictAction(text string) string {
 	upper := strings.ToUpper(text)
 	for _, a := range []string{"FAIL", "IGNORE", "REPLACE", "ROLLBACK", "ABORT"} {
@@ -241,7 +243,7 @@ func normalizeConflictAction(text string) string {
 			}
 		}
 	}
-	return "ABORT"
+	return ""
 }
 
 // validateConflictActions rejects a table whose UNIQUE-equivalent constraints
@@ -286,7 +288,16 @@ func (e *DDLExecutor) validateConflictActions(s *sql.CreateTableStmt) *Result {
 	}
 	for i := range groups {
 		for j := i + 1; j < len(groups); j++ {
-			if groups[i].key == groups[j].key && groups[i].action != groups[j].action {
+			if groups[i].key != groups[j].key {
+				continue
+			}
+			ai, aj := groups[i].action, groups[j].action
+			if ai != aj && ai != "" && aj != "" {
+				// Both constraints carry explicit, different ON CONFLICT
+				// clauses (build.c:4358). When either side is OE_Default the
+				// duplicate is legal — the explicit action is simply adopted
+				// for the shared index (conflict-15.10: UNIQUE(x,x) plus
+				// UNIQUE(x,x) ON CONFLICT REPLACE).
 				return &Result{Error: fmt.Errorf("conflicting ON CONFLICT clauses specified")}
 			}
 		}
@@ -999,7 +1010,12 @@ func stripSchemaPrefixFromTableName(sqlStr string, tableIdx int) string {
 func (e *DDLExecutor) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
-	buf.WriteString(s.Name)
+	// The table name must re-parse: a non-plain identifier (e.g. the quoted
+	// '%ss%' of CREATE TEMP TABLE '%ss%' AS SELECT) is stored quoted, the way
+	// sqlite3EndTable renders it (e_select2-2.x: an unquoted %ss% in the
+	// stored schema text fails the schema re-parse with 'near "%": syntax
+	// error'). A schema prefix is kept and its tail quoted when needed.
+	buf.WriteString(quotedStoredTableName(s.Name))
 	buf.WriteString("(")
 	for i, col := range s.Columns {
 		if i > 0 {
@@ -1022,6 +1038,19 @@ func (e *DDLExecutor) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 		buf.WriteString(", STRICT")
 	}
 	return buf.String()
+}
+
+// quotedStoredTableName renders a table name for stored schema SQL: a plain
+// identifier is kept as-is; anything else (spaces, %, embedded quotes, a
+// leading digit) is double-quoted with embedded quotes doubled so the stored
+// CREATE text re-parses. A "schema.table" prefix keeps its qualifier and
+// quotes the tail.
+func quotedStoredTableName(name string) string {
+	if dot := strings.Index(name, "."); dot >= 0 {
+		prefix, tail := name[:dot+1], name[dot+1:]
+		return prefix + quoteIdentIfKeyword(tail)
+	}
+	return quoteIdentIfKeyword(name)
 }
 
 // quoteIdentIfKeyword double-quotes an identifier when it is a SQL keyword

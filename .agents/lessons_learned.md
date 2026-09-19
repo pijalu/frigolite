@@ -7357,3 +7357,46 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **FTS3 delete-marker tombstones are per-LANGUAGE in C**: every segreader is scoped by getAbsoluteLevel (level = 1024*(langid*nIndex + iIndex) + relLevel), so a tombstone under language 0 never cancels a language-1 posting. T27-ftsflush's docid-restart flush (a langid change flushes the pending batch mid-UPDATE) creates exactly that cross-language layout (S1 ins a@1,b@2 L0; S2 del a@1 L0; S3 ins a@1 L1; S4 del b@2 L0; pending b@2 L1) and the langid-blind loader erased 'a' entirely (fts4langid-6.1 integrity-check [T25]). Fix: FTS3Table.LoadSegmentsPerLanguage groups segdir rows by langid, loads each group into an isolated index (age order preserved: level DESC, idx ASC) and merges additively (InvertedIndex.MergeFrom); single-language tables load into one group = byte-identical behavior.
 - **PERF.T2 H2's schema-cookie bump made an EXISTING fts3 shadow-rename bug visible**: renameFTSShadowTables replaced the bare name inside the stored SQL, doubling the quotes of the persisted quoted form (`"xyz_content"` → `""ott_content""` → "malformed database schema (ott_content)" at the next prepare, because H2's DDL cookie bump now correctly triggers re-validation). The rename fix is the rtree pattern: replace the QUOTED identifier first, fall back to the bare name (oracle stores `CREATE TABLE "ott_content"(...)`).
 - **A skip/pin claim is only as good as its rerun surface**: fts4langid was "re-verified green" at 832176d96, but the regression came from a later commit touching the same paths. Regression adjudication should re-run the exact testgen package at the CLOSE sha of each suspect wave, not rely on per-agent claims from earlier baselines.
+## FULL-SUITE-DRIFT.T28-regressA (2026-09-19) — T26/T27 fleet-wave regression bisect
+
+- **New prepare-time re-parse validation EXPOSED a pre-existing writer bug**: the
+  corrupt-hexio wave's validateLoadedSchema (sqlite3InitCallback parity) re-parses
+  every stored schema row at preflight. ALTER TABLE RENAME's string-fallback
+  replaceTableNameInSQL had ALWAYS double-replaced when newName contains oldName
+  as an ASCII prefix (RENAME xyz TO "xyzሴabc": ApplyRenames substitutes
+  "xyzሴabc", then the bare \bxyz\b pass re-matches INSIDE the quoted name
+  because U+1234 is not a Go-regex word character) — storing
+  `CREATE TABLE ""xyzሴabc"ሴabc"(...)` which nothing re-parsed before. Lesson:
+  string-replacement passes over SQL text must skip quoted spans; and any new
+  schema re-parse must be expected to surface pre-existing stored-SQL rot
+  (fkey6's writable_schema hand-inserted row likewise).
+- **Rule for f(*) arity**: parse.y `expr ::= idj LP STAR RP` builds a ZERO-arg
+  call. Arity validation must compare 0 against the registered overloads
+  (count has 0- AND 1-arg overloads; test1.c registers the TCL x_count fixture
+  aggregate with nArg 0 and 1) — hard-coding "only count may take *" breaks
+  user aggregates (aggerror-1.1) while min(*)/max(*) still error via MinArgs>0.
+- **Compound-select limit exempts VALUES chains**: parserDoubleLinkSelect tests
+  the head's SF_MultiValue|SF_Values flags — a comma-linked VALUES compound
+  never counts against SQLITE_LIMIT_COMPOUND_SELECT, even nested in a scalar
+  subquery with limit 3 (values-4.x). Frigolite: skip when head.ValuesChain.
+- **Name-matching seams must use the SAME renderer**: T26-select renamed
+  unaliased expression columns to the tight raw span (exprResultName:
+  "b=count(*)"), but windowGroupColumnValue still matched via
+  sql.ExprString ("b = count(*)" — spaced). The mismatch silently fell through
+  to a re-evaluation whose row map held UNWRAPPED output values — losing the
+  column's TEXT affinity, so b=count(*) compared TEXT '2' vs INTEGER 2 with no
+  affinity conversion (TEXT>INTEGER) and returned 0 for EVERY group. Anywhere
+  a lookup keys on a rendered column name, mirror buildColumnNames exactly.
+- **Oracle tolerance beats source reading**: prepare.c:135's
+  newTnum>mxPage check LOOKS unconditional, yet oracle 3.54 tolerates an
+  out-of-range rootpage on a parseable CREATE row while writable_schema=ON
+  (CREATE TABLE t2 on fkey6-6.2's hand-inserted schema succeeds and heals the
+  page count). Empirically probe the ORACLE for both branches of every
+  writable_schema question — the -bail and version differences are real.
+- **writable_schema corrupt classes split**: parse-failure rows and autoindex
+  rootpage rows still report (generic) corrupt under writable_schema=ON
+  (corruptN-3.1/4.2); only the TABLE-row rootpage-range check is tolerant.
+- **`go test -C <dir>` beats cd in fleet worktrees**: agent cwd resets between
+  Bash calls; several probes silently ran in the MAIN checkout instead of the
+  worktree (and `cd` inside compound commands does not stick). Prefix every
+  command with `go -C` / `git -C` / absolute paths, and verify with pwd.

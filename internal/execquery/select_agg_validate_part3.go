@@ -13,9 +13,13 @@ import (
 
 // validateCompoundTermLimit enforces SQLITE_LIMIT_COMPOUND_SELECT (default
 // 500): a compound chain with more terms errors "too many terms in compound
-// SELECT" at prepare (select7-1.x's 501-term UNION ALL probe).
+// SELECT" at prepare (select7-1.x's 501-term UNION ALL probe). Pure-VALUES
+// compounds are exempt: the grammar check (parse.y parserDoubleLinkSelect)
+// tests `(p->selFlags & (SF_MultiValue|SF_Values))==0` on the chain head, so
+// VALUES('a'),('b'),... rows never count against the limit even inside a
+// scalar subquery (values-4.x: a 4-row VALUES subquery with limit 3 is legal).
 func (e *SelectEngine) validateCompoundTermLimit(s *sql.SelectStmt) error {
-	if s.Union == nil {
+	if s.Union == nil || s.ValuesChain {
 		return nil
 	}
 	n := 1
@@ -67,9 +71,16 @@ func (e *SelectEngine) validateAggregateStarArgs(s *sql.SelectStmt) error {
 			if !found || reg.Type != function.TypeAggregate {
 				return
 			}
-			name := strings.ToLower(v.Name)
-			// Star argument: only count(*) is legal; count(*,x) and any
-			// other aggregate's star are argument-count errors.
+			// Star argument: SQLite's grammar (parse.y `expr ::= idj LP STAR
+			// RP` → sqlite3ExprFunction(pParse, 0, ...)) turns f(*) into a
+			// ZERO-argument call. count is registered with both 0- and
+			// 1-arg overloads (func.c WAGGREGATE count,0 / count,1), so
+			// count(*) is legal, and the TCL fixture aggregate x_count is
+			// registered with nArg 0 and 1 (test1.c test_create_aggregate)
+			// so x_count(*) is legal too (aggerror-1.1). Any aggregate whose
+			// registered MINIMUM arity is > 0 errors — min(*)/max(*)/sum(*)
+			// keep "wrong number of arguments to function X()"
+			// (select1-2.6/2.9/2.14).
 			star := 0
 			for _, a := range v.Args {
 				if ref, ok := sql.UnwrapParenExpr(a).(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
@@ -77,7 +88,7 @@ func (e *SelectEngine) validateAggregateStarArgs(s *sql.SelectStmt) error {
 				}
 			}
 			if star > 0 {
-				if name != "count" || len(v.Args) != 1 {
+				if reg.MinArgs > 0 {
 					firstErr = fmt.Errorf("wrong number of arguments to function %s()", v.Name)
 				}
 				return
