@@ -141,6 +141,39 @@ consolidate stale points.
   2.10s (3.4x); remaining per-statement cost is the O(index) value scan —
   structural until index btrees become value-ordered (file-format change).
 
+## P9.PERF.T2 final discoveries (2026-09-19)
+
+- **Binary-seek deletes are safe for EXACT-byte matches only when the btree's
+  stored order is trustworthy — and this engine's index btrees are NOT.** The
+  first temptable2 fix replaced the full-walk DeleteIndexEntry with
+  SeekToKey+verify; boundary4's double rekey (extreme rowids, heavy
+  rebalancing) left an interior child pointer at page 0x2000000 and the seek
+  surfaced it as "database disk image is malformed". The walk-based
+  DeleteIndexEntry tolerates whatever the stored order is; any future seek
+  optimization must first make index storage value-ordered (file-format
+  change). The hang was fixed by batching instead: DeleteIndexEntries(targets)
+  walks every leaf once and removes one cell per target, and the UPDATE
+  delete phase funnels all changes' old keys through it (O(index) per
+  statement).
+- **BumpSchemaCookie is a no-op on pagers without a materialized header
+  image** (temp stores): len(p.header) < 44 → no cookie movement → a
+  cookie-keyed cache serves stale temp-table DDL ("table t1 already
+  exists"). The schema cache key therefore folds a local mutation epoch
+  with the cookie; the cookie still handles pager-restore (ROLLBACK
+  reverts the header image) and the epoch handles headerless pagers.
+- **UPDATE index maintenance fixed 14 pre-existing temptable2 reds** — the
+  stale secondary indexes (updates never maintained them) surfaced as data
+  mismatches in later integrity-sensitive subtests. The remaining
+  temptable2 runtime (4.1.2: full-table UPDATE over 100k blob rows with
+  cache_size=10, ~5min) is index-insert I/O through a 10-page cache —
+  correctness-preserving work SQLite also performs; the engine's per-insert
+  page access pattern under tiny caches is the remaining gap.
+- **Full-suite crashM is order/environment-sensitive, not engine
+  deterministic**: it ATTACHes test2.db?8_3_names=1 left behind by earlier
+  crash-simulation subprocesses whose kill timing varies with machine load.
+  It passes in isolation and in every constructed sequence
+  (8_3_names→crash*) on both fleet/perf2 and b26ffdf45.
+
 ## T26-SINGLES discoveries (2026-09-18)
 
 - **Stale has-triggers flag after DROP TABLE.** dropTableCascade removed the
