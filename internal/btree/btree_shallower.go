@@ -33,7 +33,6 @@ import (
 // and all-empty branches), because splicing such a husk out would lift its
 // subtree a level and break the all-leaves-same-depth invariant.
 func (t *BTree) cascadeChildless(pnum uint32) error {
-	println("DBG cascade from", pnum)
 	for {
 		pg, err := t.pager.ReadPage(pnum)
 		if err != nil {
@@ -62,7 +61,15 @@ func (t *BTree) cascadeChildless(pnum uint32) error {
 			// keep the parent legal instead (see the coversParent and
 			// all-empty branches in balanceNonroot).
 			if pnum == t.rootPage {
-				return t.absorbSingleChildRoot(pg, coff, rmp)
+				// C skips the absorption when the child's content cannot
+				// fit the root page (pParent->hdrOffset<=apNew[0]->nFree,
+				// src/btree.c:8918): the root stays an interior page over
+				// its single live child. Propagating errRootAbsorbNoFit as
+				// a hard error would fail a perfectly legal DELETE.
+				if err := t.absorbSingleChildRoot(pg, coff, rmp); err != nil && err != errRootAbsorbNoFit {
+					return err
+				}
+				return nil
 			}
 			return nil
 		}
@@ -176,8 +183,18 @@ func (t *BTree) absorbSingleChildRoot(rootPg *pager.Page, rootCoff int, childPgn
 	sizes := make([]int, int(childPage.CellCount))
 	total := 0
 	limit := rootCoff + cellPtrOffset(childPage.PageType) + int(childPage.CellCount)*2 + 2
+	// The child's cell-pointer array starts AFTER ITS OWN header: interior
+	// pages carry a 12-byte header (rightmost pointer at bytes 8-11), leaf
+	// pages an 8-byte header, and storage.CellPointer's base argument must
+	// be arrayStart-8 (the findLeafIndexInParent convention). Reading the
+	// array at the leaf offset for an INTERIOR child served the
+	// rightmost-pointer bytes as cell 0's pointer and shifted every
+	// subsequent pointer one slot, so garbage divider cells (leftChild
+	// 0x05000000 in tkt-6bfb98dfc0) were copied into the root and the next
+	// insert descended into page 0 ("database disk image is malformed").
+	childPtrBase := childCoff + cellPtrOffset(childPage.PageType) - 8
 	for i := 0; i < int(childPage.CellCount); i++ {
-		src := int(storage.CellPointer(childPg.Data, childCoff, i, int(t.pageSize)))
+		src := int(storage.CellPointer(childPg.Data, childPtrBase, i, int(t.pageSize)))
 		switch {
 		case isInterior:
 			_, n := util.GetVarint(childPg.Data[src+4:])
@@ -216,7 +233,7 @@ func (t *BTree) absorbSingleChildRoot(rootPg *pager.Page, rootCoff int, childPgn
 	// in autovacuum-1) and writes garbled cells into the root.
 	end := int(t.usableSize)
 	for i := int(childPage.CellCount) - 1; i >= 0; i-- {
-		src := int(storage.CellPointer(childPg.Data, childCoff, i, int(t.pageSize)))
+		src := int(storage.CellPointer(childPg.Data, childPtrBase, i, int(t.pageSize)))
 		sz := sizes[i]
 		start := end - sz
 		copy(rootPg.Data[start:start+sz], childPg.Data[src:src+sz])

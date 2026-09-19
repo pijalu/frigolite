@@ -767,20 +767,31 @@ func (t *BTree) balanceCoversSingleSurvivor(ctx *balanceNonrootContext, parent *
 			kept = append(kept, i)
 		}
 	}
-	// Free every window child that is not kept. Kept children hold cells,
-	// so every child reference that survives points at a page with
-	// nCell>=1 (moveToChild, btree.c:77872, rejects descended pages with
-	// nCell<1 — empty leaves may never sit below an interior page).
+	// Kept children hold cells, so every child reference that survives
+	// points at a page with nCell>=1 (moveToChild, btree.c:77872, rejects
+	// descended pages with nCell<1 — empty leaves may never sit below an
+	// interior page). The SURPLUS (emptied) children are freed only AFTER
+	// the parent's new shape is established below — btree.c balance_nonroot
+	// frees apOld[i] for i>=nNew at the very end (src/btree.c:8952), after
+	// editPage/put4byte dropped every reference to them. Freeing first left
+	// the parent's dividers pointing at freed pages whenever the root
+	// absorption below was skipped (errRootAbsorbNoFit): the stale divider
+	// made the next balance re-gather the freed sibling, free it AGAIN, and
+	// the double freelist entry handed one page number out twice
+	// (TestShallowerRootAbsorbInteriorChild: row loss + duplicate child).
 	keptSet := make(map[int]bool, len(kept))
 	for _, i := range kept {
 		keptSet[i] = true
 	}
-	for i, sp := range siblings {
-		if !keptSet[i] {
-			if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
-				return true, err
+	freeSurplus := func() error {
+		for i, sp := range siblings {
+			if !keptSet[i] {
+				if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
+					return err
+				}
 			}
 		}
+		return nil
 	}
 	if len(kept) >= 2 {
 		// Rewrite the parent over the kept (non-empty) children under
@@ -801,22 +812,30 @@ func (t *BTree) balanceCoversSingleSurvivor(ctx *balanceNonrootContext, parent *
 		if err := t.writeInteriorRootAt(ctx.parent.PageNum, children, seps); err != nil {
 			return true, err
 		}
-		return true, nil
+		return true, freeSurplus()
 	}
 	if ctx.isRoot {
 		// Single non-empty child of the ROOT: balance_shallower
 		// (btree.c:8918-8943) absorbs it into the root page — the root
 		// keeps its page number and the emptied child is freed. When the
 		// child's content exceeds the root's (smaller) usable area the
-		// absorption is skipped, exactly like C's hdrOffset<=nFree guard,
-		// and the root stays an interior page over its single child.
+		// absorption is skipped, exactly like C's hdrOffset<=nFree guard:
+		// C's parent update has by then replaced every window divider and
+		// repointed the rightmost pointer at apNew[0] (put4byte(pRight,
+		// apNew[nNew-1]), src/btree.c:8699), leaving the root a 0-cell
+		// interior page over the single survivor. Replicate that end state
+		// BEFORE freeing the surplus children — the earlier free-then-keep
+		// order left the freed pages referenced by the root's dividers.
 		if err := t.absorbSingleChildRoot(ctx.parent, parentCo, siblings[survivor].PageNum); err != nil {
 			if err == errRootAbsorbNoFit {
-				return true, nil
+				if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{siblings[survivor].PageNum}, nil); err != nil {
+					return true, err
+				}
+				return true, freeSurplus()
 			}
 			return true, err
 		}
-		return true, nil
+		return true, freeSurplus()
 	}
 	// Exactly ONE child with cells: the parent cannot hold a divider over
 	// a single child (0 dividers = a husk), and keeping an emptied child
@@ -949,5 +968,5 @@ func (t *BTree) balanceCoversSingleSurvivor(ctx *balanceNonrootContext, parent *
 			return true, err
 		}
 	}
-	return true, nil
+	return true, freeSurplus()
 }
