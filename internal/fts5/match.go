@@ -104,32 +104,44 @@ func (t *Table) MatchUniverse(where sql.Expr, evalExpr func(sql.Expr) (interface
 		if !applies {
 			continue
 		}
-		qv, err := evalExpr(bop.Right)
+		set, err := t.matchConjunctSet(bop.Right, col, evalExpr)
 		if err != nil {
 			return nil, err
 		}
-		// The query text is rendered with sqlite3_value_text semantics
-		// (fts5ExtractExprText): NULL yields "" — whose parse fails with
-		// C's "fts5: syntax error near \"\"" (fts5simple 6.2/6.3).
-		q := util.SQLiteValueString(util.UnwrapColumnValue(qv))
-		set, merr := t.MatchRowids(q, col)
-		if merr != nil {
-			return nil, merr
-		}
-		if result == nil {
-			result = make(map[int64]bool, len(set))
-			for rowid := range set {
-				result[rowid] = true
-			}
-			continue
-		}
-		for rowid := range result {
-			if !set[rowid] {
-				delete(result, rowid)
-			}
-		}
+		result = intersectInto(result, set)
 	}
 	return result, nil
+}
+
+// matchConjunctSet evaluates one MATCH conjunct's query text to its rowid
+// set. The query text is rendered with sqlite3_value_text semantics
+// (fts5ExtractExprText): NULL yields "" — whose parse fails with C's
+// "fts5: syntax error near \"\"" (fts5simple 6.2/6.3).
+func (t *Table) matchConjunctSet(rhs sql.Expr, col int, evalExpr func(sql.Expr) (interface{}, error)) (map[int64]bool, error) {
+	qv, err := evalExpr(rhs)
+	if err != nil {
+		return nil, err
+	}
+	q := util.SQLiteValueString(util.UnwrapColumnValue(qv))
+	return t.MatchRowids(q, col)
+}
+
+// intersectInto intersects set into result, materializing result on the
+// first set (nil result means "no constraint seen yet").
+func intersectInto(result, set map[int64]bool) map[int64]bool {
+	if result == nil {
+		out := make(map[int64]bool, len(set))
+		for rowid := range set {
+			out[rowid] = true
+		}
+		return out
+	}
+	for rowid := range result {
+		if !set[rowid] {
+			delete(result, rowid)
+		}
+	}
+	return result
 }
 
 // topAndConjuncts splits an expression into its top-level AND operands.

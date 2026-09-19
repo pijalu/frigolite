@@ -78,32 +78,9 @@ func newUnicode61(args []string) (Tokenizer, error) {
 		exceptions:       make(map[rune]bool),
 		categories:       []*unicode.RangeTable{unicode.L, unicode.N, unicode.Co},
 	}
-	cats := ""
-	for i := 0; i < len(args); i += 2 {
-		if i+1 >= len(args) {
-			return nil, tokenizerArgError()
-		}
-		switch strings.ToLower(args[i]) {
-		case "categories":
-			cats = args[i+1]
-		case "remove_diacritics":
-			switch args[i+1] {
-			case "0", "1", "2":
-				t.eRemoveDiacritic = int(args[i+1][0] - '0')
-			default:
-				return nil, tokenizerArgError()
-			}
-		case "tokenchars":
-			if err := t.addExceptions(args[i+1], true); err != nil {
-				return nil, err
-			}
-		case "separators":
-			if err := t.addExceptions(args[i+1], false); err != nil {
-				return nil, err
-			}
-		default:
-			return nil, tokenizerArgError()
-		}
+	cats, err := applyUnicode61Options(t, args)
+	if err != nil {
+		return nil, err
 	}
 	if cats != "" {
 		tables, err := parseCategories(cats)
@@ -113,6 +90,48 @@ func newUnicode61(args []string) (Tokenizer, error) {
 		t.categories = tables
 	}
 	return t, nil
+}
+
+// applyUnicode61Options applies the option/value pairs (unicode61Create's
+// option loop), returning any categories= specification.
+func applyUnicode61Options(t *unicode61Tokenizer, args []string) (string, error) {
+	cats := ""
+	for i := 0; i < len(args); i += 2 {
+		if i+1 >= len(args) {
+			return "", tokenizerArgError()
+		}
+		switch strings.ToLower(args[i]) {
+		case "categories":
+			cats = args[i+1]
+		case "remove_diacritics":
+			if err := t.setRemoveDiacritic(args[i+1]); err != nil {
+				return "", err
+			}
+		case "tokenchars":
+			if err := t.addExceptions(args[i+1], true); err != nil {
+				return "", err
+			}
+		case "separators":
+			if err := t.addExceptions(args[i+1], false); err != nil {
+				return "", err
+			}
+		default:
+			return "", tokenizerArgError()
+		}
+	}
+	return cats, nil
+}
+
+// setRemoveDiacritics applies remove_diacritics=0/1/2
+// (unicode61Create's bRemoveDiacritic branch).
+func (t *unicode61Tokenizer) setRemoveDiacritic(val string) error {
+	switch val {
+	case "0", "1", "2":
+		t.eRemoveDiacritic = int(val[0] - '0')
+	default:
+		return tokenizerArgError()
+	}
+	return nil
 }
 
 // parseCategories parses a category specification like "L* N* Co"
@@ -206,33 +225,49 @@ func (t *unicode61Tokenizer) Tokenize(text string) []Token {
 	var tokens []Token
 	i, n := 0, len(text)
 	for i < n {
-		for i < n {
-			r, size := decodeRune(text[i:])
-			if t.isAlnum(r) {
-				break
-			}
-			i += size
-		}
+		i = t.skipSeparators(text, i)
 		if i >= n {
 			break
 		}
-		start := i
-		var sb strings.Builder
-		for i < n {
-			r, size := decodeRune(text[i:])
-			cc := int(r)
-			if t.isAlnum(r) || fts.Unicode61IsDiacritic(cc) {
-				if out := t.fold(r); out != 0 {
-					sb.WriteRune(out)
-				}
-				i += size
-			} else {
-				break
-			}
-		}
-		tokens = append(tokens, Token{Term: sb.String(), Start: start, End: i})
+		var tok Token
+		tok.Start = i
+		tok.Term, i = t.scanToken(text, i)
+		tok.End = i
+		tokens = append(tokens, tok)
 	}
 	return tokens
+}
+
+// skipSeparators advances past non-token characters (unicode61Next's skip
+// loop).
+func (t *unicode61Tokenizer) skipSeparators(text string, i int) int {
+	n := len(text)
+	for i < n {
+		r, size := decodeRune(text[i:])
+		if t.isAlnum(r) {
+			break
+		}
+		i += size
+	}
+	return i
+}
+
+// scanToken consumes one token: a run of category chars plus diacritics,
+// each folded (unicode61Next's token loop).
+func (t *unicode61Tokenizer) scanToken(text string, i int) (string, int) {
+	n := len(text)
+	var sb strings.Builder
+	for i < n {
+		r, size := decodeRune(text[i:])
+		if !t.isAlnum(r) && !fts.Unicode61IsDiacritic(int(r)) {
+			break
+		}
+		if out := t.fold(r); out != 0 {
+			sb.WriteRune(out)
+		}
+		i += size
+	}
+	return sb.String(), i
 }
 
 // --- ascii ---

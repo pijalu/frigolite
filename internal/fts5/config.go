@@ -216,39 +216,57 @@ func gobbleWord(s string) (rest, word string, quoted bool, ok bool) {
 	if s == "" {
 		return "", "", false, false
 	}
-	switch s[0] {
-	case '\'', '"', '`', '[':
-		q := s[0]
-		closeQ := q
-		if q == '[' {
-			closeQ = ']'
-		}
-		var b strings.Builder
-		i := 1
-		for i < len(s) {
-			if s[i] == closeQ {
-				if q != '[' && i+1 < len(s) && s[i+1] == q {
-					// A doubled quote is an escaped quote.
-					b.WriteByte(q)
-					i += 2
-					continue
-				}
-				return s[i+1:], b.String(), true, true
-			}
-			b.WriteByte(s[i])
-			i++
-		}
-		return "", "", false, false
-	default:
-		i := 0
-		for i < len(s) && !isBarewordEnd(s[i]) {
-			i++
-		}
-		if i == 0 {
-			return "", "", false, false
-		}
-		return s[i:], s[:i], false, true
+	if isOpenQuoteByte(s[0]) {
+		return gobbleQuotedWord(s)
 	}
+	return gobbleBareword(s)
+}
+
+// isOpenQuoteByte reports whether b opens a quoted word ('\”, '"', '`', '[').
+func isOpenQuoteByte(b byte) bool {
+	switch b {
+	case '\'', '"', '`', '[':
+		return true
+	}
+	return false
+}
+
+// gobbleQuotedWord consumes a quoted word with doubled-quote escapes
+// (fts5ConfigGobbleWord's quote branch).
+func gobbleQuotedWord(s string) (rest, word string, quoted bool, ok bool) {
+	q := s[0]
+	closeQ := q
+	if q == '[' {
+		closeQ = ']'
+	}
+	var b strings.Builder
+	i := 1
+	for i < len(s) {
+		if s[i] == closeQ {
+			if q != '[' && i+1 < len(s) && s[i+1] == q {
+				// A doubled quote is an escaped quote.
+				b.WriteByte(q)
+				i += 2
+				continue
+			}
+			return s[i+1:], b.String(), true, true
+		}
+		b.WriteByte(s[i])
+		i++
+	}
+	return "", "", false, false
+}
+
+// gobbleBareword consumes one bareword (fts5ConfigGobbleWord's bare branch).
+func gobbleBareword(s string) (rest, word string, quoted bool, ok bool) {
+	i := 0
+	for i < len(s) && !isBarewordEnd(s[i]) {
+		i++
+	}
+	if i == 0 {
+		return "", "", false, false
+	}
+	return s[i:], s[:i], false, true
 }
 
 // isBarewordEnd reports whether byte b terminates a bareword (fts5_isopenquote
@@ -293,74 +311,86 @@ func parseColumn(cfg *Config, col, arg string) error {
 	return nil
 }
 
+// specialFlagFields maps each boolean directive to its Config setter; errName
+// is the directive named in the flag error text (the contentless_unindexed
+// error reuses the contentless_delete wording, fts5ConfigParseSpecial
+// copy-through).
+var specialFlagFields = []struct {
+	name    string
+	errName string
+	set     func(*Config, bool)
+}{
+	{"contentless_delete", "contentless_delete", func(c *Config, b bool) { c.ContentlessDelete = b }},
+	{"contentless_unindexed", "contentless_delete", func(c *Config, b bool) { c.ContentlessUnindexed = b }},
+	{"columnsize", "columnsize", func(c *Config, b bool) { c.ColumnSize = b }},
+	{"locale", "locale", func(c *Config, b bool) { c.Locale = b }},
+	{"tokendata", "tokendata", func(c *Config, b bool) { c.Tokendata = b }},
+}
+
 // parseSpecial dispatches one key=value option (fts5ConfigParseSpecial).
 func parseSpecial(cfg *Config, key, val string) error {
-	switch {
-	case strings.EqualFold(key, "prefix"):
+	if strings.EqualFold(key, "prefix") {
 		return parsePrefix(cfg, val)
-	case strings.EqualFold(key, "tokenize"):
+	}
+	if strings.EqualFold(key, "tokenize") {
 		return parseTokenize(cfg, val)
-	case strings.EqualFold(key, "content"):
-		if cfg.EContent != ContentNormal {
-			return fmt.Errorf("multiple content=... directives")
+	}
+	if strings.EqualFold(key, "content") {
+		return setDirectiveContent(cfg, val)
+	}
+	if strings.EqualFold(key, "content_rowid") {
+		return setDirectiveContentRowid(cfg, val)
+	}
+	if strings.EqualFold(key, "detail") {
+		return setDirectiveDetail(cfg, val)
+	}
+	for _, f := range specialFlagFields {
+		if !strings.EqualFold(key, f.name) {
+			continue
 		}
-		if val != "" {
-			cfg.EContent = ContentExternal
-			cfg.ContentTable = val
-		} else {
-			cfg.EContent = ContentNone
-		}
-		return nil
-	case strings.EqualFold(key, "contentless_delete"):
-		b, err := flagArg(val, "contentless_delete")
+		b, err := flagArg(val, f.errName)
 		if err != nil {
 			return err
 		}
-		cfg.ContentlessDelete = b
-		return nil
-	case strings.EqualFold(key, "contentless_unindexed"):
-		b, err := flagArg(val, "contentless_delete")
-		if err != nil {
-			return err
-		}
-		cfg.ContentlessUnindexed = b
-		return nil
-	case strings.EqualFold(key, "content_rowid"):
-		if cfg.ContentRowid != "" {
-			return fmt.Errorf("multiple content_rowid=... directives")
-		}
-		cfg.ContentRowid = val
-		return nil
-	case strings.EqualFold(key, "columnsize"):
-		b, err := flagArg(val, "columnsize")
-		if err != nil {
-			return err
-		}
-		cfg.ColumnSize = b
-		return nil
-	case strings.EqualFold(key, "locale"):
-		b, err := flagArg(val, "locale")
-		if err != nil {
-			return err
-		}
-		cfg.Locale = b
-		return nil
-	case strings.EqualFold(key, "detail"):
-		mode, ok := detailEnum(val)
-		if !ok {
-			return fmt.Errorf("malformed detail=... directive")
-		}
-		cfg.Detail = mode
-		return nil
-	case strings.EqualFold(key, "tokendata"):
-		b, err := flagArg(val, "tokendata")
-		if err != nil {
-			return err
-		}
-		cfg.Tokendata = b
+		f.set(cfg, b)
 		return nil
 	}
 	return fmt.Errorf("unrecognized option: \"%s\"", key)
+}
+
+// setDirectiveContent applies content= (fts5ConfigParseSpecial's content
+// branch): a value names the external content table, an empty value selects
+// contentless.
+func setDirectiveContent(cfg *Config, val string) error {
+	if cfg.EContent != ContentNormal {
+		return fmt.Errorf("multiple content=... directives")
+	}
+	if val != "" {
+		cfg.EContent = ContentExternal
+		cfg.ContentTable = val
+	} else {
+		cfg.EContent = ContentNone
+	}
+	return nil
+}
+
+// setDirectiveContentRowid applies content_rowid= (single-directive rule).
+func setDirectiveContentRowid(cfg *Config, val string) error {
+	if cfg.ContentRowid != "" {
+		return fmt.Errorf("multiple content_rowid=... directives")
+	}
+	cfg.ContentRowid = val
+	return nil
+}
+
+// setDirectiveDetail applies detail= (fts5ConfigSetEnum).
+func setDirectiveDetail(cfg *Config, val string) error {
+	mode, ok := detailEnum(val)
+	if !ok {
+		return fmt.Errorf("malformed detail=... directive")
+	}
+	cfg.Detail = mode
+	return nil
 }
 
 // flagArg parses a 0/1 flag value; the C error text reuses the
@@ -407,25 +437,35 @@ func parsePrefix(cfg *Config, val string) error {
 			break
 		}
 		first = false
-		if p == "" || p[0] < '0' || p[0] > '9' {
-			return fmt.Errorf("malformed prefix=... directive")
+		nPre, rest, err := scanPrefixLength(cfg, p)
+		if err != nil {
+			return err
 		}
-		if len(cfg.Prefix) >= FTS5MaxPrefixIndexes {
-			return fmt.Errorf("too many prefix indexes (max %d)", FTS5MaxPrefixIndexes)
-		}
-		i := 0
-		nPre := 0
-		for i < len(p) && p[i] >= '0' && p[i] <= '9' && nPre < 1000 {
-			nPre = nPre*10 + int(p[i]-'0')
-			i++
-		}
-		p = p[i:]
-		if nPre <= 0 || nPre >= 1000 {
-			return fmt.Errorf("prefix length out of range (max 999)")
-		}
+		p = rest
 		cfg.Prefix = append(cfg.Prefix, nPre)
 	}
 	return nil
+}
+
+// scanPrefixLength validates and consumes one prefix length: a digit run
+// (folding past three digits like C's 1000 guard) with value 1..999.
+func scanPrefixLength(cfg *Config, p string) (int, string, error) {
+	if p == "" || p[0] < '0' || p[0] > '9' {
+		return 0, "", fmt.Errorf("malformed prefix=... directive")
+	}
+	if len(cfg.Prefix) >= FTS5MaxPrefixIndexes {
+		return 0, "", fmt.Errorf("too many prefix indexes (max %d)", FTS5MaxPrefixIndexes)
+	}
+	i := 0
+	nPre := 0
+	for i < len(p) && p[i] >= '0' && p[i] <= '9' && nPre < 1000 {
+		nPre = nPre*10 + int(p[i]-'0')
+		i++
+	}
+	if nPre <= 0 || nPre >= 1000 {
+		return 0, "", fmt.Errorf("prefix length out of range (max 999)")
+	}
+	return nPre, p[i:], nil
 }
 
 // parseTokenize parses the tokenize= directive value into whitespace-separated
@@ -444,23 +484,9 @@ func parseTokenize(cfg *Config, val string) error {
 		if p == "" {
 			break
 		}
-		var word, rest string
-		if p[0] == '\'' {
-			r, ok := skipSQLLiteral(p)
-			if !ok {
-				return fmt.Errorf("parse error in tokenize directive")
-			}
-			rest = r
-			word = fts5Dequote(p[:len(p)-len(r)])
-		} else {
-			i := 0
-			for i < len(p) && isFts5BarewordByte(p[i]) {
-				i++
-			}
-			if i == 0 {
-				return fmt.Errorf("parse error in tokenize directive")
-			}
-			word, rest = p[:i], p[i:]
+		word, rest, err := nextTokenizeWord(p)
+		if err != nil {
+			return err
 		}
 		cfg.TokSpec = append(cfg.TokSpec, word)
 		p = rest
@@ -471,7 +497,28 @@ func parseTokenize(cfg *Config, val string) error {
 	return nil
 }
 
-// skipSQLLiteral consumes one '-quoted SQL literal with '' escapes
+// nextTokenizeWord consumes one whitespace-separated tokenizer word: a
+// '-quoted SQL literal (validated then dequoted) or a bareword
+// (fts5ConfigParseSpecial's tokenize branch).
+func nextTokenizeWord(p string) (rest, word string, err error) {
+	if p[0] == '\'' {
+		r, ok := skipSQLLiteral(p)
+		if !ok {
+			return "", "", fmt.Errorf("parse error in tokenize directive")
+		}
+		return r, fts5Dequote(p[:len(p)-len(r)]), nil
+	}
+	i := 0
+	for i < len(p) && isFts5BarewordByte(p[i]) {
+		i++
+	}
+	if i == 0 {
+		return "", "", fmt.Errorf("parse error in tokenize directive")
+	}
+	return p[i:], p[:i], nil
+}
+
+// skipSQLLiteral consumes one '-quoted SQL literal with ” escapes
 // (fts5ConfigSkipLiteral's quote branch). It returns the text after the
 // literal, or ok=false when the literal is unterminated.
 func skipSQLLiteral(s string) (rest string, ok bool) {
@@ -493,7 +540,7 @@ func skipSQLLiteral(s string) (rest string, ok bool) {
 }
 
 // fts5Dequote removes surrounding quotes (fts5Dequote): the quote character
-// is s[0] ('[', '\'', '"' or '`'); doubled quotes are escapes. s is returned
+// is s[0] ('[', '\”, '"' or '`'); doubled quotes are escapes. s is returned
 // unchanged when it does not start with an open-quote character.
 func fts5Dequote(s string) string {
 	if s == "" {

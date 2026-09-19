@@ -106,52 +106,78 @@ func skipRankLiteral(s string) (string, bool) {
 	}
 	switch s[0] {
 	case 'n', 'N':
-		if len(s) >= 4 && strings.EqualFold(s[:4], "null") {
-			return s[4:], true
-		}
-		return "", false
+		return skipRankNull(s)
 	case 'x', 'X':
-		if len(s) < 3 || s[1] != '\'' {
-			return "", false
-		}
-		i := 2
-		for i < len(s) && isRankHex(s[i]) {
-			i++
-		}
-		if i < len(s) && s[i] == '\'' && (i-2)%2 == 0 {
-			return s[i+1:], true
-		}
-		return "", false
+		return skipRankBlob(s)
 	case '\'':
-		for i := 1; i < len(s); i++ {
-			if s[i] == '\'' {
-				if i+1 < len(s) && s[i+1] == '\'' {
-					i++
-					continue
-				}
-				return s[i+1:], true
-			}
-		}
-		return "", false
+		return skipRankQuoted(s)
 	default:
-		i := 0
-		if s[i] == '+' || s[i] == '-' {
-			i++
-		}
-		for i < len(s) && s[i] >= '0' && s[i] <= '9' {
-			i++
-		}
-		if i < len(s) && s[i] == '.' && i+1 < len(s) && s[i+1] >= '0' && s[i+1] <= '9' {
-			i += 2
-			for i < len(s) && s[i] >= '0' && s[i] <= '9' {
-				i++
-			}
-		}
-		if i == 0 {
-			return "", false
-		}
-		return s[i:], true
+		return skipRankNumber(s)
 	}
+}
+
+// skipRankNull consumes NULL (case-insensitive).
+func skipRankNull(s string) (string, bool) {
+	if len(s) >= 4 && strings.EqualFold(s[:4], "null") {
+		return s[4:], true
+	}
+	return "", false
+}
+
+// skipRankBlob consumes X'...' with an even number of hex digits
+// (fts5ConfigSkipLiteral's blob branch).
+func skipRankBlob(s string) (string, bool) {
+	if len(s) < 3 || s[1] != '\'' {
+		return "", false
+	}
+	i := 2
+	for i < len(s) && isRankHex(s[i]) {
+		i++
+	}
+	if i < len(s) && s[i] == '\'' && (i-2)%2 == 0 {
+		return s[i+1:], true
+	}
+	return "", false
+}
+
+// skipRankQuoted consumes a '...' string with ” escapes.
+func skipRankQuoted(s string) (string, bool) {
+	for i := 1; i < len(s); i++ {
+		if s[i] != '\'' {
+			continue
+		}
+		if i+1 < len(s) && s[i+1] == '\'' {
+			i++
+			continue
+		}
+		return s[i+1:], true
+	}
+	return "", false
+}
+
+// skipRankNumber consumes a number with optional sign, integer part and
+// fractional part (fts5ConfigSkipLiteral's number branch).
+func skipRankNumber(s string) (string, bool) {
+	i := 0
+	if s[i] == '+' || s[i] == '-' {
+		i++
+	}
+	i = skipRankDigits(s, i)
+	if i < len(s) && s[i] == '.' && i+1 < len(s) && s[i+1] >= '0' && s[i+1] <= '9' {
+		i = skipRankDigits(s, i+2)
+	}
+	if i == 0 {
+		return "", false
+	}
+	return s[i:], true
+}
+
+// skipRankDigits advances past ASCII digits starting at i.
+func skipRankDigits(s string, i int) int {
+	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+		i++
+	}
+	return i
 }
 
 // isRankHex reports whether b is a hexadecimal digit.
@@ -216,15 +242,9 @@ func rankAtof(s string) float64 {
 	if i < len(s) && (s[i] == '+' || s[i] == '-') {
 		i++
 	}
-	n := i
-	for n < len(s) && s[n] >= '0' && s[n] <= '9' {
-		n++
-	}
+	n := skipRankDigits(s, i)
 	if n < len(s) && s[n] == '.' {
-		n++
-		for n < len(s) && s[n] >= '0' && s[n] <= '9' {
-			n++
-		}
+		n = skipRankDigits(s, n+1)
 	}
 	f, err := strconv.ParseFloat(s[:n], 64)
 	if err != nil {

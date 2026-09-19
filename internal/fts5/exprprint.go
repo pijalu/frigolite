@@ -150,54 +150,77 @@ func printExpr(t *Table, n queryNode) string {
 	case eofNode:
 		return `""`
 	case stringNode:
-		var sb strings.Builder
-		printColset(&sb, t, x.phrases[0].colset)
-		if len(x.phrases) > 1 {
-			sb.WriteString("NEAR(")
-		}
-		for i, ph := range x.phrases {
-			if i != 0 {
-				sb.WriteString(" ")
-			}
-			for j, tm := range ph.terms {
-				if j != 0 {
-					sb.WriteString(" + ")
-				}
-				sb.WriteString(`"`)
-				sb.WriteString(strings.ReplaceAll(tm.term, `"`, `""`))
-				sb.WriteString(`"`)
-				if tm.prefix {
-					sb.WriteString(" *")
-				}
-			}
-		}
-		if len(x.phrases) > 1 {
-			fmt.Fprintf(&sb, ", %d)", x.window)
-		}
-		return sb.String()
+		return printExprString(t, x)
 	default:
-		op, kids := combinatorParts(n)
-		var sb strings.Builder
-		for i, c := range kids {
-			sub := printExpr(t, c)
-			bare := false
-			switch c.(type) {
-			case stringNode, eofNode:
-				bare = true
-			}
-			if i != 0 {
-				sb.WriteString(op)
-			}
-			if bare {
-				sb.WriteString(sub)
-			} else {
-				sb.WriteString("(")
-				sb.WriteString(sub)
-				sb.WriteString(")")
-			}
-		}
-		return sb.String()
+		return printExprCombinator(t, n)
 	}
+}
+
+// printExprString renders one near cluster: the column filter, the phrases
+// joined by " ", and the NEAR(...) wrapper for multi-phrase clusters.
+func printExprString(t *Table, x stringNode) string {
+	var sb strings.Builder
+	printColset(&sb, t, x.phrases[0].colset)
+	if len(x.phrases) > 1 {
+		sb.WriteString("NEAR(")
+	}
+	for i, ph := range x.phrases {
+		if i != 0 {
+			sb.WriteString(" ")
+		}
+		printExprPhrase(&sb, ph)
+	}
+	if len(x.phrases) > 1 {
+		fmt.Fprintf(&sb, ", %d)", x.window)
+	}
+	return sb.String()
+}
+
+// printExprPhrase renders one phrase: terms joined by " + ", quoted with ""
+// escapes, each prefix term suffixed " *".
+func printExprPhrase(sb *strings.Builder, ph *phraseNode) {
+	for j, tm := range ph.terms {
+		if j != 0 {
+			sb.WriteString(" + ")
+		}
+		sb.WriteString(`"`)
+		sb.WriteString(strings.ReplaceAll(tm.term, `"`, `""`))
+		sb.WriteString(`"`)
+		if tm.prefix {
+			sb.WriteString(" *")
+		}
+	}
+}
+
+// printExprCombinator renders an AND/OR/NOT subtree: bare children for
+// STRING/EOF leaves, parenthesized otherwise.
+func printExprCombinator(t *Table, n queryNode) string {
+	op, kids := combinatorParts(n)
+	var sb strings.Builder
+	for i, c := range kids {
+		if i != 0 {
+			sb.WriteString(op)
+		}
+		sub := printExpr(t, c)
+		if exprRendersBare(c) {
+			sb.WriteString(sub)
+		} else {
+			sb.WriteString("(")
+			sb.WriteString(sub)
+			sb.WriteString(")")
+		}
+	}
+	return sb.String()
+}
+
+// exprRendersBare reports whether a child renders without parentheses (the
+// STRING/EOF leaves).
+func exprRendersBare(n queryNode) bool {
+	switch n.(type) {
+	case stringNode, eofNode:
+		return true
+	}
+	return false
 }
 
 // printColset renders a node's column filter ("col : " or "{a b} : ").
@@ -229,38 +252,7 @@ func printExprTcl(t *Table, nearsetCmd string, n queryNode) string {
 	case eofNode:
 		return "{}"
 	case stringNode:
-		var sb strings.Builder
-		sb.WriteString(nearsetCmd)
-		sb.WriteString(" ")
-		if cs := x.phrases[0].colset; cs != nil {
-			if len(cs) == 1 {
-				fmt.Fprintf(&sb, "-col %d ", cs[0])
-			} else {
-				fmt.Fprintf(&sb, "-col {%d", cs[0])
-				for _, c := range cs[1:] {
-					fmt.Fprintf(&sb, " %d", c)
-				}
-				sb.WriteString("} ")
-			}
-		}
-		if len(x.phrases) > 1 {
-			fmt.Fprintf(&sb, "-near %d ", x.window)
-		}
-		sb.WriteString("--")
-		for _, ph := range x.phrases {
-			sb.WriteString(" {")
-			for j, tm := range ph.terms {
-				if j != 0 {
-					sb.WriteString(" ")
-				}
-				sb.WriteString(tm.term)
-				if tm.prefix {
-					sb.WriteString("*")
-				}
-			}
-			sb.WriteString("}")
-		}
-		return sb.String()
+		return printExprTclString(nearsetCmd, x)
 	default:
 		op, kids := combinatorParts(n)
 		var sb strings.Builder
@@ -272,6 +264,50 @@ func printExprTcl(t *Table, nearsetCmd string, n queryNode) string {
 		}
 		return sb.String()
 	}
+}
+
+// printExprTclString renders one near cluster in TCL form: the nearset
+// command with -col/-near options and the phrase bodies.
+func printExprTclString(nearsetCmd string, x stringNode) string {
+	var sb strings.Builder
+	sb.WriteString(nearsetCmd)
+	sb.WriteString(" ")
+	printTclColset(&sb, x.phrases[0].colset)
+	if len(x.phrases) > 1 {
+		fmt.Fprintf(&sb, "-near %d ", x.window)
+	}
+	sb.WriteString("--")
+	for _, ph := range x.phrases {
+		sb.WriteString(" {")
+		for j, tm := range ph.terms {
+			if j != 0 {
+				sb.WriteString(" ")
+			}
+			sb.WriteString(tm.term)
+			if tm.prefix {
+				sb.WriteString("*")
+			}
+		}
+		sb.WriteString("}")
+	}
+	return sb.String()
+}
+
+// printTclColset renders the -col option: "N " for one column,
+// "{a b ...} " for several.
+func printTclColset(sb *strings.Builder, cs []int) {
+	if cs == nil {
+		return
+	}
+	if len(cs) == 1 {
+		fmt.Fprintf(sb, "-col %d ", cs[0])
+		return
+	}
+	fmt.Fprintf(sb, "-col {%d", cs[0])
+	for _, c := range cs[1:] {
+		fmt.Fprintf(sb, " %d", c)
+	}
+	sb.WriteString("} ")
 }
 
 // combinatorParts returns a node's operator word and children for the
