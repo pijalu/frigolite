@@ -67,22 +67,24 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
 
 ## 2. Current State (checkpoint 2026-09-16)
 
-- **Live full-suite baseline (2026-09-16/17, census stamp 2026-09-16T22:43:11Z,
-  concurrency 3 + §5g-6 serial adjudication of all 20 timeout-suspects
-  (-timeout 900s; 10 slow-but-green → pass, 10 confirmed fail in
+- **Live full-suite baseline (2026-09-19/20, census stamp 2026-09-19T23:22:27Z,
+  concurrency 3 + §5g-6 serial adjudication of all 17 timeout-suspects
+  (9 slow-but-green → pass incl. fts4merge4 at ~585s; 8 confirmed fail in
   adjudicated classes), ledger re-seeded + `tools/status --check` PASS:
-  950 PASS (69.7%), 126 FAIL, 287 SKIPPED, 0 timeout-suspects** of 1,363
-  testgen packages. Movement vs
-  the 2026-09-14 baseline (887/216/260): **+53 pass, −100 fail, +27 skip**
-  via the T23 tkt_hash tranche + the T24 12-agent fleet sweep of the
-  cluster index (conflict3, vtab1/3/6, trigger1/4/7/B, tkt-singles,
-  alter/alter3/altertab2/3, view/view3, fkey1/2, update/update2,
-  upsert4/5, collate3/4, func3/4, windowC/E, with1/2, lock/lock5, pcache,
-  trace/trace3, qrf01-3, rowvalue3/4 — see FULL-SUITE-DRIFT.md T24 log)
-  and the P6.FTS5 residue tranche (107→127/144; 17 reds adjudicated
-  architectural/slow/harness N-A). New bedrock blocker discovered:
-  internal/btree overflow-churn corruption (`deleteCellOnPage` never frees
-  overflow chains; blocks fts4merge4) — fleet/btree fix goal active.
+  1053 PASS (77.3%), 20 FAIL, 280 SKIPPED** of 1,362 testgen packages.
+  Movement vs the 2026-09-14 baseline (887/216/260): **+166 pass, −196
+  fail** via the T23-T28 tranche waves (22 fleet goals: tkt_hash,
+  btree corruption fixes ×3, 9 T26 cluster goals, harness fidelity
+  (2,922 subtests), skip-audit (−11 skips, 10 un-skipped), LIKE optimizer,
+  automerge convergence, FTS flush model, PERF.T1/T2 (speed family
+  0.24-0.91s from 445s), 3 regression tranches). Remaining 20 fails: 9
+  adjudicated fts5 architectural (circref/content/contentless×3/hash/
+  leftjoin/misc/unindexed), fts4merge 4.1/4.2 (pending FTS blockID
+  desync fix), 7 fts5 slow-class (serially confirmed, P9.PERF owners),
+  12 deep-engine/VFS singles (avfs, bigrow, btreefault, chunksize,
+  corrupt, fts3corrupt, mutex1, prefixes, ptrchng, shortread1, walbig,
+  walpersist). PERF residue: index btrees remain byte-ordered (O(index)
+  value-scans not O(log n) seeks); next tranche documented in T28 log.
 - **DRIFT ALERT (2026-09-03)**: the per-goal ✅ marks in §4 are
   *point-in-time goal-closure claims* — each goal's "no regression" gate only
   re-runs its own verify command, so transpiler regenerations and engine
