@@ -109,8 +109,8 @@ func (t *BTree) rewriteRootLeafAsInterior(root *pager.Page, rightmost uint32, co
 	} else {
 		root.Data[coff] = storage.PageTypeInteriorIndex
 	}
-	binary.BigEndian.PutUint16(root.Data[coff+3:coff+5], 0)                      // nCell = 0
+	binary.BigEndian.PutUint16(root.Data[coff+3:coff+5], 0)                    // nCell = 0
 	binary.BigEndian.PutUint16(root.Data[coff+5:coff+7], uint16(t.usableSize)) // content start (zeroPage)
-	binary.BigEndian.PutUint32(root.Data[coff+8:coff+12], rightmost)             // rightmost ptr
+	binary.BigEndian.PutUint32(root.Data[coff+8:coff+12], rightmost)           // rightmost ptr
 	return t.pager.WritePage(root)
 }

@@ -964,7 +964,7 @@ func writeLeafHalf(pg *pager.Page, coff int, half []splitEntry, usableSize int) 
 	// handed out again by the freelist pop), so freeblock and fragmentation
 	// must be reset explicitly — stale bytes there read as free-space
 	// corruption ("Fragmentation of N bytes reported as M").
-	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0)  // first freeblock
+	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0) // first freeblock
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], count)
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(end))
 	pg.Data[coff+7] = 0 // fragmented free bytes
@@ -1023,7 +1023,7 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+cellPtrOffset(rootPg.Data[rootCoff]):], uint16(cellStart))
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+3:rootCoff+5], 1)
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+5:rootCoff+7], uint16(cellStart))
-	rootPg.Data[rootCoff+7] = 0 // fragmented free bytes
+	rootPg.Data[rootCoff+7] = 0                                                 // fragmented free bytes
 	binary.BigEndian.PutUint32(rootPg.Data[rootCoff+8:rootCoff+12], rightChild) // rightmostPtr
 
 	if err := t.pager.WritePage(rootPg); err != nil {
