@@ -125,9 +125,15 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 	if pg.PageNum == 1 {
 		coff = 100
 	}
-	// Header: type(1) freeblock(2) cellCount(2)=0 contentOffset(2)=pageSize-4
+	// Header: type(1) freeblock(2) cellCount(2)=0 contentOffset(2)=usableSize
+	// zeroPage sets the empty page's cell content area to the USABLE size
+	// (put2byte(&data[hdr+5], pBt->usableSize), src/btree.c:2189): usable =
+	// pageSize - reserved (header byte 20). A hardcoded pageSize-4 leaves a
+	// 4-byte untracked tail that sqlite3 integrity_check reports as
+	// "Fragmentation of 4 bytes reported as 0" and every subsequent insert
+	// on the page packs from the shrunken end.
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], 0)
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(int(ctx.Pager.PageSize())-4))
+	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(ctx.Pager.UsableSize()))
 	if err := ctx.Pager.WritePage(pg); err != nil {
 		return &Result{Error: err}
 	}
@@ -897,8 +903,11 @@ func (e *DDLExecutor) ensureSQLiteSequenceTable(ctx *DatabaseContext) error {
 	if pg.PageNum == 1 {
 		coff = 100
 	}
+	// Empty-leaf header (zeroPage parity): the cell content area is the
+	// USABLE size (put2byte(&data[hdr+5], pBt->usableSize),
+	// src/btree.c:2189) — the same fix as the CREATE TABLE root above.
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], 0)
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(int(ctx.Pager.PageSize())-4))
+	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(ctx.Pager.UsableSize()))
 	if err := ctx.Pager.WritePage(pg); err != nil {
 		return err
 	}
