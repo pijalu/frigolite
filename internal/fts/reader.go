@@ -122,6 +122,32 @@ func PrefixCompressedAppendSize(prevTerm, zTerm string, nDoclist int) int {
 // The reader is deliberately permissive about doclist *content* (SQLite's
 // fts3SegReaderNext validates the doclist framing and only requires the last
 // byte to be 0 when the doclist is consumed); the term framing
+// MergeFrom additively merges another index's loaded postings into idx: every
+// posting of other is re-registered (addPosting's exact-triple dedupe keeps
+// shared postings single), documents referenced by any posting become visible,
+// and corrupt-term / aux-corrupt flags propagate. Delete-marker tombstones are
+// NOT replayed — other is expected to be an already-merged load result.
+//
+// The segment loader uses this to union per-language loads without letting one
+// language's tombstones cancel another language's postings (see
+// FTS3Table.LoadSegmentsPerLanguage).
+func (idx *InvertedIndex) MergeFrom(other *InvertedIndex) {
+	for term, postings := range other.index {
+		for _, p := range postings {
+			idx.addPosting(term, p.DocID, p.Column, p.Position)
+		}
+	}
+	for term := range other.corruptTerms {
+		if idx.corruptTerms == nil {
+			idx.corruptTerms = make(map[string]bool)
+		}
+		idx.corruptTerms[term] = true
+	}
+	if other.auxCorrupt {
+		idx.auxCorrupt = true
+	}
+}
+
 // (prefix/suffix/doclist length) must be structurally valid or the segment is
 // reported corrupt ("database disk image is malformed").
 func (idx *InvertedIndex) LoadSegment(root []byte, leavesEndBlock int, readBlock SegmentBlockReader) error {

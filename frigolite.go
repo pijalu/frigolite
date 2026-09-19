@@ -15,6 +15,7 @@
 package frigolite
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -1354,11 +1355,28 @@ func (db *DB) ErrorCodeFor(err error) string {
 // SQLITE_ERROR from sqlite3_step (the C API reports the specific extended
 // code only from sqlite3_finalize / sqlite3_extended_errcode). The lock /
 // snapshot / open-file family is classified by lockFamilyErrorCode first.
+// specialErrorCode classifies the families checked BEFORE the message switch
+// so their codes win: the lock/snapshot/open-file family and the step-time
+// halt carrier. The carrier reports the generic SQLITE_ERROR sqlite3_step
+// returns for a constraint halt (vdbe.c OP_Halt "rc = p->rc ? SQLITE_ERROR :
+// SQLITE_DONE"); the wrapped original classifies to the specific code on the
+// finalize path (stmt.go stepHaltError).
+func (db *DB) specialErrorCode(err error) (string, bool) {
+	if code, ok := lockFamilyErrorCode(err.Error()); ok {
+		return code, true
+	}
+	var halt stepHaltError
+	if errors.As(err, &halt) {
+		return "SQLITE_ERROR", true
+	}
+	return "", false
+}
+
 func (db *DB) errorCode(err error) string {
 	if err == nil {
 		return "SQLITE_OK"
 	}
-	if code, ok := lockFamilyErrorCode(err.Error()); ok {
+	if code, ok := db.specialErrorCode(err); ok {
 		return code
 	}
 	msg := err.Error()

@@ -210,7 +210,19 @@ func (e *DDLExecutor) renameFTSShadowTables(ctx *DatabaseContext, oldName, newNa
 		oldShadow := oldName + suffix
 		newShadow := newName + suffix
 		if ent, _, err := e.ctx.FindTable(oldShadow); err == nil && ent != nil {
-			newSQL := strings.Replace(ent.SQL, oldShadow, `"`+newShadow+`"`, 1)
+			// The stored CREATE may quote the shadow name ("xyz_content" —
+			// the persisted form after an earlier rename, or the oracle's
+			// own storage): replace the QUOTED identifier first so the
+			// bare-name substitution cannot land inside the quotes and
+			// double them (fts3d-6.6: ""ott_content"" failed to parse as
+			// "malformed database schema (ott_content)"). Fall back to the
+			// bare name for the unquoted in-memory form. Mirrors
+			// renameRTreeShadowTables and the oracle's stored text
+			// CREATE TABLE "ott_content"(...).
+			newSQL := strings.Replace(ent.SQL, sqlQuoteIdentifier(oldShadow), sqlQuoteIdentifier(newShadow), 1)
+			if newSQL == ent.SQL {
+				newSQL = strings.Replace(ent.SQL, oldShadow, sqlQuoteIdentifier(newShadow), 1)
+			}
 			_ = ctx.Schema.RenameTableEntryWithSQL(oldShadow, newShadow, newSQL, schema.TypeTable)
 		}
 	}

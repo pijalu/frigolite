@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -9,6 +10,41 @@ import (
 	"github.com/pijalu/frigolite/internal/exec"
 	"github.com/pijalu/frigolite/internal/sql"
 )
+
+// stepHaltError carries a constraint-class failure raised while STEPPING a
+// prepared statement (Stmt.Exec/Stmt.Step — the sqlite3_step emulation).
+// vdbe.c OP_Halt hands sqlite3_step the generic SQLITE_ERROR ("rc = p->rc ?
+// SQLITE_ERROR : SQLITE_DONE") while p->rc keeps the specific
+// SQLITE_CONSTRAINT for sqlite3_finalize (capi2-3.21 steps SQLITE_ERROR,
+// capi2-3.22 reads SQLITE_ERROR off sqlite3_errcode, capi2-3.23 finalizes
+// SQLITE_CONSTRAINT), and the legacy-prepare result-code whitelist
+// (vdbeapi.c sqlite3Step) admits only ROW/DONE/ERROR/BUSY/MISUSE. The
+// engine's error mapping reports the carrier as SQLITE_ERROR so generated
+// step helpers surface the C legacy code; the wrapped original still
+// classifies as SQLITE_CONSTRAINT on the finalize path.
+type stepHaltError struct{ err error }
+
+func (e stepHaltError) Error() string { return e.err.Error() }
+
+// Unwrap exposes the original halt error (the finalize path classifies the
+// unwrapped constraint error; errors.Is/As keep working over the carrier).
+func (e stepHaltError) Unwrap() error { return e.err }
+
+// stepHaltView wraps a step-time error in the SQLITE_ERROR carrier when its
+// own classification is a constraint-family halt C defers to finalize.
+func stepHaltView(err error, classify func(error) string) error {
+	if err == nil {
+		return nil
+	}
+	var carrier stepHaltError
+	if errors.As(err, &carrier) {
+		return err
+	}
+	if classify(err) == "SQLITE_CONSTRAINT" {
+		return stepHaltError{err: err}
+	}
+	return err
+}
 
 // Stmt is a reusable prepared SQL statement. It provides parameter binding and
 // row-at-a-time execution while retaining Frigolite's Result-based API.
@@ -157,7 +193,6 @@ func bindValueLen(v interface{}) (int64, bool) {
 	return 0, false
 }
 
-
 // BindInt binds an integer parameter.
 func (s *Stmt) BindInt(index, value int) error { return s.Bind(index, value) }
 
@@ -226,7 +261,13 @@ func (s *Stmt) Step() (bool, error) {
 			s.vmState = vmPoisoned
 			// Classify the error message so sqlite3_errcode emulation
 			// reports the proper code (e.g. malformed → SQLITE_CORRUPT).
-			s.db.engine.SetLastErr(r.Error.Error(), s.db.ErrorCodeFor(r.Error))
+			// Constraint halts surface as SQLITE_ERROR at step (vdbe.c
+			// OP_Halt); the specific code is deferred to finalize via the
+			// unwrapped s.lastErr.
+			halted := stepHaltView(r.Error, s.db.ErrorCodeFor)
+			code := s.db.ErrorCodeFor(halted)
+			r.Error = halted
+			s.db.engine.SetLastErr(r.Error.Error(), code)
 			return false, r.Error
 		}
 		s.lastErr = nil
@@ -281,7 +322,14 @@ func (s *Stmt) Exec() *Result {
 	if r.Error != nil {
 		s.lastErr = r.Error
 		s.vmState = vmPoisoned
-		s.db.engine.SetLastErr(r.Error.Error(), s.db.ErrorCodeFor(r.Error))
+		// sqlite3_step reports the generic SQLITE_ERROR for constraint
+		// halts (vdbe.c OP_Halt) — wrap so ErrorCodeFor-classified readers
+		// of this result see the step-level code, while s.lastErr keeps
+		// the unwrapped error for the finalize path (capi2-3.23).
+		halted := stepHaltView(r.Error, s.db.ErrorCodeFor)
+		code := s.db.ErrorCodeFor(halted)
+		r.Error = halted
+		s.db.engine.SetLastErr(r.Error.Error(), code)
 	} else {
 		s.lastErr = nil
 		s.vmState = vmDone

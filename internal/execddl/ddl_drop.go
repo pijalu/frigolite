@@ -1,11 +1,9 @@
 package execddl
 
 import (
-	"errors"
 	"fmt"
 
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
@@ -558,39 +556,40 @@ func (e *DDLExecutor) loadFTSSegmentsForIndex(tableName string, ftsTable *fts.FT
 			break
 		}
 	}
-	// Oldest first: higher level = older; within one level, lower idx = older.
-	sort.Slice(rows, func(a, b int) bool {
-		if rows[a].level != rows[b].level {
-			return rows[a].level > rows[b].level
-		}
-		return rows[a].idx < rows[b].idx
-	})
+	// Oldest first (within one language): higher level = older; within one
+	// level, lower idx = older. The grouping and per-language isolation live
+	// in LoadSegmentsPerLanguage.
+	segRows := make([]fts.SegmentRow, 0, len(rows))
 	for _, row := range rows {
-		if len(row.root) > 0 {
-			reader := func(blockID int) ([]byte, error) {
-				blk, res := e.readFTSBlock(tableName, blockID)
-				if res != nil {
-					return nil, fmt.Errorf("corrupt segment root")
-				}
-				if blk == nil {
-					return nil, fmt.Errorf("corrupt segment root")
-				}
-				return blk, nil
-			}
-			if lerr := ftsTable.LoadSegment(row.root, int(row.leavesEndBlock), reader); lerr != nil {
-				// A segment that fails to load (corrupt term structure) makes
-				// any SELECT/MATCH fail with "database disk image is
-				// malformed" (fts3corrupt4 12.1: a corrupt segdir root).
-				// UPDATE/DELETE skip the loadErr check (they use the
-				// in-memory index; fts3corrupt4 25.x succeeds). A STRUCTURAL
-				// break (interior chain) defeats every term lookup, so it is
-				// recorded as such (fts3corrupt7 3.x).
-				if errors.Is(lerr, fts.ErrSegmentStructure) {
-					ftsTable.SetStructuralLoadErr()
-				}
-				ftsTable.SetLoadErr(fmt.Errorf("database disk image is malformed"))
-			}
+		segRows = append(segRows, fts.SegmentRow{
+			Level:          row.level,
+			Idx:            row.idx,
+			LeavesEndBlock: int(row.leavesEndBlock),
+			Root:           row.root,
+		})
+	}
+	reader := func(blockID int) ([]byte, error) {
+		blk, res := e.readFTSBlock(tableName, blockID)
+		if res != nil {
+			return nil, fmt.Errorf("corrupt segment root")
 		}
+		if blk == nil {
+			return nil, fmt.Errorf("corrupt segment root")
+		}
+		return blk, nil
+	}
+	if firstErr, structural := ftsTable.LoadSegmentsPerLanguage(segRows, reader); firstErr != nil {
+		// A segment that fails to load (corrupt term structure) makes
+		// any SELECT/MATCH fail with "database disk image is
+		// malformed" (fts3corrupt4 12.1: a corrupt segdir root).
+		// UPDATE/DELETE skip the loadErr check (they use the
+		// in-memory index; fts3corrupt4 25.x succeeds). A STRUCTURAL
+		// break (interior chain) defeats every term lookup, so it is
+		// recorded as such (fts3corrupt7 3.x).
+		if structural {
+			ftsTable.SetStructuralLoadErr()
+		}
+		ftsTable.SetLoadErr(fmt.Errorf("database disk image is malformed"))
 	}
 }
 

@@ -1,6 +1,7 @@
 package fts
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -559,6 +560,80 @@ func (t *FTS3Table) LoadSegment(root []byte, leavesEndBlock int, readBlock Segme
 	err := t.index.LoadSegment(root, leavesEndBlock, readBlock)
 	t.statDirty = true
 	return err
+}
+
+// SegmentRow is one persisted %_segdir row handed to LoadSegmentsPerLanguage.
+type SegmentRow struct {
+	Level          int64
+	Idx            int64
+	LeavesEndBlock int
+	Root           []byte
+}
+
+// LoadSegmentsPerLanguage loads persisted segments so that a segment's
+// delete-marker tombstones only cancel postings contributed by segments of
+// the SAME language. SQLite never mixes languages inside one segreader: every
+// segment list is selected by absolute level (fts3.h getAbsoluteLevel folds
+// the language id in as level = 1024*(langid*nIndex + iIndex) + relLevel), so
+// a tombstone written under language 0 can never erase a posting written
+// under language 1 (fts4langid 6.1: after UPDATE vt0 SET lid=1 inside BEGIN,
+// the level-0 tombstone for docid 1 must not cancel the language-1 posting
+// the docid-restart flush wrote at level 1024).
+//
+// Rows are grouped by language ((level/1024)/nIndex); within a group the age
+// order is unchanged (higher absolute level = older, lower idx = older).
+// Each group loads into an isolated index that is merged additively into the
+// table's index, mirroring the per-language merge of C's segreaders.
+//
+// firstErr reports the first segment-load failure (the caller records
+// "database disk image is malformed"); structural is set when any failing
+// segment broke the node structure (ErrSegmentStructure).
+func (t *FTS3Table) LoadSegmentsPerLanguage(rows []SegmentRow, readBlock SegmentBlockReader) (firstErr error, structural bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	nIndex := 1 + len(t.prefixLengths)
+	if nIndex < 1 {
+		nIndex = 1
+	}
+	groups := map[int64][]SegmentRow{}
+	langs := []int64{}
+	for _, row := range rows {
+		lang := int64(0)
+		if row.Level >= 0 {
+			lang = (row.Level / 1024) / int64(nIndex)
+		}
+		if _, ok := groups[lang]; !ok {
+			langs = append(langs, lang)
+		}
+		groups[lang] = append(groups[lang], row)
+	}
+	sort.Slice(langs, func(a, b int) bool { return langs[a] < langs[b] })
+	for _, lang := range langs {
+		group := groups[lang]
+		sort.Slice(group, func(a, b int) bool {
+			if group[a].Level != group[b].Level {
+				return group[a].Level > group[b].Level
+			}
+			return group[a].Idx < group[b].Idx
+		})
+		iso := &FTS3Table{columnNames: append([]string(nil), t.columnNames...), index: NewInvertedIndex()}
+		for _, row := range group {
+			if len(row.Root) == 0 {
+				continue
+			}
+			if lerr := iso.LoadSegment(row.Root, row.LeavesEndBlock, readBlock); lerr != nil {
+				if firstErr == nil {
+					firstErr = lerr
+				}
+				if errors.Is(lerr, ErrSegmentStructure) {
+					structural = true
+				}
+			}
+		}
+		t.index.MergeFrom(iso.index)
+	}
+	t.statDirty = true
+	return firstErr, structural
 }
 
 // QueryHasCorruptTerm reports whether the given MATCH query reads a term whose
