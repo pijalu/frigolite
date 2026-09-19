@@ -273,11 +273,27 @@ func (t *BTree) removeEmptyIndexLeaf(leafNum uint32) error {
 // after DELETE/REPLACE so stale entries cannot pin overflow pages (which
 // stalled auto-vacuum truncation and corrupted integrity_check walks).
 func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
+	n, err := t.DeleteIndexEntries([][]byte{target})
+	return n > 0, err
+}
+
+// DeleteIndexEntries removes one index cell per target whose FULL payload
+// (local bytes reassembled with its overflow chain) equals the target bytes.
+// Index entries are unique per row (the rowid suffix is part of the record),
+// so at most one cell matches each target. Returns the number of entries
+// removed. This is the delete-side counterpart of InsertCell for
+// CellIndexLeaf entries written by execdml, and keeps index btrees consistent
+// after DELETE/REPLACE so stale entries cannot pin overflow pages. The walk
+// visits every leaf once and matches ALL targets per leaf — the indexed-UPDATE
+// maintenance path batches its per-row old-key deletions through here, so a
+// statement's cost is O(index) instead of O(changes x index) (which thrashed
+// the 10-page cache for minutes in temptable2 3.2).
+func (t *BTree) DeleteIndexEntries(targets [][]byte) (int, error) {
 	var leaves []uint32
 	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
-		return false, err
+		return 0, err
 	}
-	deleted := false
+	deleted := 0
 	for _, leafNum := range leaves {
 		// A leaf freed as a surplus empty sibling during an earlier
 		// iteration must be skipped (its type byte is the freelist
@@ -285,12 +301,12 @@ func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
 		if pager.IsPageOnFreelist(t.pager, leafNum) {
 			continue
 		}
-		found, err := t.deleteIndexEntryFromLeaf(leafNum, target)
+		found, err := t.deleteIndexEntryFromLeafBatch(leafNum, targets)
 		if err != nil {
 			return deleted, err
 		}
-		if found {
-			deleted = true
+		if found > 0 {
+			deleted += found
 			if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
 				return deleted, err
 			}
@@ -304,6 +320,66 @@ func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
 		return deleted, err
 	}
 	return deleted, nil
+}
+
+// deleteIndexEntryFromLeafBatch removes the cells on one index leaf whose FULL
+// payload equals any target. Unlike deleteAllMatchingFromLeaf's predicate
+// callback (which deliberately receives LOCAL-only payloads for FTS
+// performance), index-entry deletion must compare the complete record: an
+// overflowing index cell's local bytes are a prefix of the target and would
+// never match without reassembly (readOverflow). Returns the number of cells
+// removed.
+func (t *BTree) deleteIndexEntryFromLeafBatch(leafNum uint32, targets [][]byte) (int, error) {
+	pg, err := t.pager.ReadPage(leafNum)
+	if err != nil {
+		return 0, err
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return 0, err
+	}
+	if page.PageType != storage.PageTypeLeafIndex {
+		return 0, nil
+	}
+	encoded := make([][]byte, 0, int(page.CellCount))
+	decoded := make([]storage.Cell, int(page.CellCount))
+	for i := 0; i < int(page.CellCount); i++ {
+		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))
+		c, derr := storage.DecodeCell(pg.Data, int(p), storage.CellIndexLeaf, int(t.usableSize))
+		if derr != nil {
+			return 0, derr
+		}
+		decoded[i] = *c
+		encoded = append(encoded, storage.EncodeCell(c))
+	}
+	var keep []int
+	var deletedIdx []int
+	for i := 0; i < len(encoded); i++ {
+		full, ferr := t.readOverflow(&decoded[i])
+		if ferr != nil {
+			return 0, ferr
+		}
+		match := false
+		for _, target := range targets {
+			if bytes.Equal(full.Payload, target) {
+				match = true
+				break
+			}
+		}
+		if match {
+			deletedIdx = append(deletedIdx, i)
+			continue
+		}
+		keep = append(keep, i)
+	}
+	if len(deletedIdx) == 0 {
+		return 0, nil
+	}
+	if _, err := t.finishLeafDelete(pg, page, encoded, keep, decoded, deletedIdx, int64(len(deletedIdx))); err != nil {
+		return 0, err
+	}
+	return len(deletedIdx), nil
 }
 
 // deleteIndexEntryFromLeaf removes the cells on one index leaf whose FULL

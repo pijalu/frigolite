@@ -2522,6 +2522,38 @@ func (p *Pager) DirtyPageCount() int {
 // 24) directly from the file, bypassing the page cache (so commits by other
 // connections are observed even before a cache invalidation). It reports
 // whether a counter is available (false for in-memory pagers).
+// SchemaCookie returns the database header's schema cookie (offset 40):
+// SQLite's schema-version counter, incremented whenever the schema changes
+// (btree.c OP_SetCookie semantics). The in-memory image participates in
+// Snapshot/Restore, so the cookie reverts when a DDL transaction rolls back —
+// cookie-keyed caches stay consistent across restores.
+func (p *Pager) SchemaCookie() uint32 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	if len(p.header) < 44 {
+		return 0
+	}
+	return binary.BigEndian.Uint32(p.header[40:44])
+}
+
+// BumpSchemaCookie increments the schema cookie and marks page 1 dirty so the
+// new value reaches the file (flushPage stamps p.header into the page-1
+// buffer right before the write). Schema mutations call this so cookie-keyed
+// caches see DDL.
+func (p *Pager) BumpSchemaCookie() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if len(p.header) < 44 {
+		return
+	}
+	c := binary.BigEndian.Uint32(p.header[40:44]) + 1
+	binary.BigEndian.PutUint32(p.header[40:44], c)
+	if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
+		copy(pg.Data[:HeaderSize], p.header)
+	}
+	p.dirty[1] = true
+}
+
 func (p *Pager) FileChangeCounter() (uint32, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()

@@ -281,6 +281,14 @@ func cursorExhausted(cursor *btree.Cursor) bool {
 // OLD PK key and insert a PK-first CellIndexLeaf (rowid seeks/writes would
 // fail on the 0x0a pages).
 func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootPage uint32, ch updateChange, writeRowID int64, finalValues []interface{}, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	// Index maintenance (update.c UXF): remove the OLD row's entries from the
+	// indexes this change touches before the cell delete; the NEW entries are
+	// written after the re-insert below.
+	if tableEntry != nil {
+		if err := e.deleteUpdateIndexEntries(tableEntry, colDefs, ch, writeRowID); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	var oldKey [][]interface{}
 	if withoutRowid {
@@ -327,6 +335,13 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 	}
 	if err := tree.InsertCell(newCell); err != nil {
 		return &Result{Error: err}
+	}
+	// Write the NEW row's entries into the indexes this change touches (the
+	// insert phase; finalValues is the post-trigger row actually stored).
+	if tableEntry != nil {
+		if err := e.writeUpdateIndexEntriesFor(tableEntry, colDefs, ch.oldValues, ch.rowID, finalValues, writeRowID); err != nil {
+			return &Result{Error: err}
+		}
 	}
 	if writeRowID != ch.rowID {
 		// The old rowid (possibly the table's largest) is gone; force the

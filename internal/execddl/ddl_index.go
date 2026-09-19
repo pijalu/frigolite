@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
+	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
@@ -360,7 +361,14 @@ func (e *DDLExecutor) insertIndexKeyRow(tableCtx *DatabaseContext, tableEntry *s
 	if res := e.enforceIndexUnique(s, tableCtx, tableEntry, indexName, indexValues, keyExprs, seenKeys, allColumnKeys); res != nil {
 		return res
 	}
-	// Encode and insert into index b-tree
+	// Encode and insert into index b-tree. Row-map key values carry
+	// *util.ColumnValue (affinity) / *execexpr.CollatedValue markers; SQLite
+	// stores raw values in index keys, and encoding a wrapper would stringify
+	// the Go struct (e.g. "&{3 73}") as the stored key — corrupting every
+	// backfilled (CREATE INDEX) entry.
+	for i, v := range indexValues {
+		indexValues[i] = unwrapDDLIndexKeyValue(v)
+	}
 	payload, err := storage.EncodeRecord(indexValues)
 	if err != nil {
 		return &Result{Error: err}
@@ -811,4 +819,21 @@ func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef, allowDQS bo
 		err = fmt.Errorf("no such column: %s", ref.Name)
 	})
 	return err
+}
+
+// unwrapDDLIndexKeyValue peels value wrappers (*util.ColumnValue affinity
+// markers, *execexpr.CollatedValue collation markers) until a raw storage
+// value remains.
+func unwrapDDLIndexKeyValue(v interface{}) interface{} {
+	for j := 0; j < 8; j++ {
+		switch t := v.(type) {
+		case *util.ColumnValue:
+			v = t.Value
+		case *execexpr.CollatedValue:
+			v = t.Value
+		default:
+			return v
+		}
+	}
+	return v
 }

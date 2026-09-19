@@ -77,7 +77,7 @@ func Test_speed4p(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 	var script string
 	_ = script // pre-declared from TCL source
-	var list string
+	var list *tclListBuilder
 	_ = list // pre-declared from TCL source
 	var ii2 string
 	_ = ii2 // pre-declared from TCL source
@@ -129,17 +129,15 @@ func Test_speed4p(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		// incr jj 1
 		{
 			_n, _err := strconv.Atoi(jj)
-			if _err == nil {
-				jj = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			jj = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("\n  CREATE INDEX i1 ON t1(t);\n  CREATE INDEX i2 ON t2(t);\n  CREATE INDEX i3 ON t3(t);\n  COMMIT;\n")
@@ -173,7 +171,7 @@ func Test_speed4p(t *testing.T) {
 	_res = db.Exec("\n   CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);\n")
 	// speed_trial speed4p-insert-ignore 50000 row {\n  INSERT OR IGNORE INTO t5 SELECT t, i FROM t... (unsupported command, not transpiled)
 	_dbeval0 := tclExecSQL(db, "SELECT t FROM t5")
-	list = _dbeval0
+	_ = _dbeval0
 	_ = list // suppress unused warning
 	vtab.TclVarSet("script", "", "\n  db eval BEGIN\n  foreach t $::list {\n    db eval {UPDATE t5 SET i=i+1 WHERE t=$t}\n  }\n  db eval COMMIT\n")
 	script = "\n  db eval BEGIN\n  foreach t $::list {\n    db eval {UPDATE t5 SET i=i+1 WHERE t=$t}\n  }\n  db eval COMMIT\n"
@@ -184,19 +182,18 @@ func Test_speed4p(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(op TEXT, r INTEGER, i INTEGER, t TEXT);\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TRIGGER t4_trigger1 AFTER INSERT ON t4 BEGIN\n    INSERT INTO log VALUES('INSERT INTO t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger2 AFTER UPDATE ON t4 BEGIN\n    INSERT INTO log VALUES('UPDATE OF t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger3 AFTER DELETE ON t4 BEGIN\n    INSERT INTO log VALUES('DELETE OF t4', old.rowid, old.i, old.t);\n  END;\n  BEGIN;\n")
 	}
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("ii", "", "1")
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-		list = tclListAppend(list, ii, "number_name $ii")
+		list.Append(ii, "number_name $ii")
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {ii name} $::list {\n    db eval {INSERT INTO t4 VALUES(NULL, $ii, $name)}\n  }\n")
@@ -204,7 +201,7 @@ func Test_speed4p(t *testing.T) {
 	_ = script // suppress unused warning
 	// speed_trial_tcl speed4p-trigger1 10000 stmt $script (unsupported command, not transpiled)
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("ii", "", "1")
 	ii = "1"
@@ -212,13 +209,12 @@ func Test_speed4p(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
 		ii2 = tclExprWith("$ii*2", map[string]string{"ii": ii})
 		_ = ii2 // suppress unused warning
-		list = tclListAppend(list, ii, ii2, "number_name $ii2")
+		list.Append(ii, ii2, "number_name $ii2")
 		// incr ii 2
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 2)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 2)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {ii ii2 name} $::list {\n    db eval {\n      UPDATE t4 SET i = $ii2, t = $name WHERE rowid = $ii;\n    }\n  }\n")
@@ -238,19 +234,18 @@ func Test_speed4p(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t4;\n  DROP TABLE log;\n  VACUUM;\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  BEGIN;\n")
 	}
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("ii", "", "1")
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-		list = tclListAppend(list, ii, "number_name $ii")
+		list.Append(ii, "number_name $ii")
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {ii name} $::list {\n    db eval {INSERT INTO t4 VALUES(NULL, $ii, $name);}\n  }\n")
@@ -258,7 +253,7 @@ func Test_speed4p(t *testing.T) {
 	_ = script // suppress unused warning
 	// speed_trial_tcl speed4p-notrigger1 10000 stmt $script (unsupported command, not transpiled)
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("ii", "", "1")
 	ii = "1"
@@ -266,13 +261,12 @@ func Test_speed4p(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
 		ii2 = tclExprWith("$ii*2", map[string]string{"ii": ii})
 		_ = ii2 // suppress unused warning
-		list = tclListAppend(list, ii, ii2, "number_name $ii2")
+		list.Append(ii, ii2, "number_name $ii2")
 		// incr ii 2
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 2)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 2)
 		}
 	}
 	vtab.TclVarSet("script", "", "\n  foreach {ii ii2 name} $::list {\n    db eval {\n      UPDATE t4 SET i = $ii2, t = $name WHERE rowid = $ii;\n    }\n  }\n")
@@ -288,4 +282,5 @@ func Test_speed4p(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	// speed_trial_summary speed4 (unsupported command, not transpiled)
+
 }

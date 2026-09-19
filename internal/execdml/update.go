@@ -271,6 +271,152 @@ func (e *DMLExecutor) rowMatchesWhere(where sql.Expr, row Row) (bool, error) {
 	return match, nil
 }
 
+// deleteUpdateIndexEntries removes the OLD row's entries from every index an
+// UPDATE change touches (the delete phase; call BEFORE the row's table cell
+// is removed). SQLite maintains an index only when the statement assigns one
+// of its key columns, a column its expression keys or partial predicate
+// references, or the rowid (update.c UXF); the same touch rule applies here
+// via indexTouchesChangedCols, with a rowid re-key touching every index.
+func (e *DMLExecutor) deleteUpdateIndexEntries(tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, writeRowID int64) error {
+	return e.deleteUpdateIndexEntriesFor(tableEntry, colDefs, []updateChange{c})
+}
+
+// deleteUpdateIndexEntriesFor removes the OLD row entries of every change
+// from the indexes the change touches, batching the per-index cell deletions
+// into ONE btree walk per index (a statement's delete cost is O(index), not
+// O(changes x index). The trigger paths evaluate SET per row after the scan,
+// so old/new values arrive per change.
+func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) error {
+	if len(changes) == 0 {
+		return nil
+	}
+	// Union of touched indexes across changes, per index name (a rowid re-key
+	// touches every index; see maintainedUpdateIndexes).
+	defsByName := make(map[string]indexDef)
+	changeTargets := make(map[string]map[int64][]interface{}, len(changes)) // defName -> rowid -> key values
+	colIndex := buildColumnIndex(colDefs)
+	for _, c := range changes {
+		defs, _ := e.maintainedUpdateIndexes(tableEntry, colDefs, c, updateWriteRowID(c))
+		if len(defs) == 0 {
+			continue
+		}
+		oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
+		for _, def := range defs {
+			defsByName[def.Name] = def
+			if inIndex, werr := e.indexRowIncluded(def, oldRow); werr != nil {
+				return werr
+			} else if !inIndex {
+				continue
+			}
+			oldValues := e.rowMapColumnValues(oldRow, colDefs)
+			indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, oldValues, oldRow)
+			if kerr != nil {
+				return kerr
+			}
+			targets := changeTargets[def.Name]
+			if targets == nil {
+				targets = make(map[int64][]interface{})
+				changeTargets[def.Name] = targets
+			}
+			targets[c.rowID] = append(indexValues, c.rowID)
+		}
+	}
+	for name, targets := range changeTargets {
+		def := defsByName[name]
+		if err := e.deleteIndexCellsBatch(def, targets); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// writeUpdateIndexEntries writes the NEW row's entries to every index an
+// UPDATE change touches (the insert phase; call AFTER the re-inserted cell is
+// visible).
+func (e *DMLExecutor) writeUpdateIndexEntries(tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, writeRowID int64) error {
+	return e.writeUpdateIndexEntriesFor(tableEntry, colDefs, c.oldValues, c.rowID, c.values, writeRowID)
+}
+
+// writeUpdateIndexEntriesFor is writeUpdateIndexEntries with explicit old/new
+// values (writeUpdateCell's trigger path passes the post-trigger values).
+func (e *DMLExecutor) writeUpdateIndexEntriesFor(tableEntry *schema.Entry, colDefs []sql.ColumnDef, oldValues []interface{}, oldRowID int64, newValues []interface{}, writeRowID int64) error {
+	c := updateChange{rowID: oldRowID, oldValues: oldValues, values: newValues}
+	defs, colIndex := e.maintainedUpdateIndexes(tableEntry, colDefs, c, writeRowID)
+	if len(defs) == 0 {
+		return nil
+	}
+	newRow := buildRowMapFromValues(newValues, colDefs, writeRowID)
+	for _, def := range defs {
+		if inIndex, werr := e.indexRowIncluded(def, newRow); werr != nil {
+			return werr
+		} else if !inIndex {
+			continue
+		}
+		indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, newValues, newRow)
+		if kerr != nil {
+			return kerr
+		}
+		if err := e.writeIndexCell(def, append(indexValues, writeRowID)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// maintainedUpdateIndexes returns the indexes a change touches plus the
+// resolved column index; an empty result skips both phases.
+func (e *DMLExecutor) maintainedUpdateIndexes(tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, writeRowID int64) ([]indexDef, map[string]int) {
+	defs := e.allTableIndexes(tableEntry.Name)
+	if len(defs) == 0 {
+		return nil, nil
+	}
+	changed := make(map[string]bool, len(colDefs))
+	for i := range c.oldValues {
+		if i >= len(c.values) || i >= len(colDefs) {
+			continue
+		}
+		if !valuesIdenticalForIndex(c.oldValues[i], c.values[i]) {
+			changed[strings.ToLower(colDefs[i].Name)] = true
+		}
+	}
+	rowidChanged := writeRowID != c.rowID
+	var maintained []indexDef
+	for _, def := range defs {
+		if rowidChanged || indexTouchesChangedCols(def, colDefs, changed) {
+			maintained = append(maintained, def)
+		}
+	}
+	if len(maintained) == 0 {
+		return nil, nil
+	}
+	return maintained, buildColumnIndex(colDefs)
+}
+
+// valuesIdenticalForIndex reports whether a column's old and new values are
+// the same index key value (type-aware: an int64->float64 rewrite changes the
+// stored key encoding even when the values compare equal).
+func valuesIdenticalForIndex(a, b interface{}) bool {
+	au, bu := util.UnwrapColumnValue(a), util.UnwrapColumnValue(b)
+	if au == nil && bu == nil {
+		return true
+	}
+	if au == nil || bu == nil {
+		return false
+	}
+	if util.CompareValues(au, bu) != 0 {
+		return false
+	}
+	af, aIsFloat := au.(float64)
+	bf, bIsFloat := bu.(float64)
+	if aIsFloat != bIsFloat {
+		return false
+	}
+	if aIsFloat && (af == float64(int64(af))) != (bf == float64(int64(bf))) {
+		return false
+	}
+	return true
+}
+
 func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, changes []updateChange) *Result {
 	if len(changes) == 0 {
 		return &Result{}
@@ -291,6 +437,22 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 	// the OLD PK payloads instead of rowids. Snapshot each change's old
 	// PK key (declared order) for the delete predicate below.
 	wrOldKeys, wrEntry := e.wrSnapshotOldKeys(tableName, changes)
+
+	// Remove every change's OLD entries from the indexes the UPDATE touches
+	// (update.c maintains indexes over assigned columns; see
+	// deleteUpdateIndexEntries). The NEW entries are written per row by
+	// writeUpdatedCellWR below.
+	var idxColDefs []sql.ColumnDef
+	var idxTableEntry *schema.Entry
+	if te, _, terr := e.ctx.FindTable(tableName); terr == nil && te != nil {
+		idxTableEntry = te
+		idxColDefs = e.ctx.ParseColumnDefs(te.Name, te.SQL)
+	}
+	if idxTableEntry != nil {
+		if err := e.deleteUpdateIndexEntriesFor(idxTableEntry, idxColDefs, changes); err != nil {
+			return &Result{Error: err}
+		}
+	}
 
 	tree := e.dmlTableBTree(tableName, rootPage)
 	if wrEntry != nil {
@@ -389,6 +551,14 @@ func (e *DMLExecutor) writeUpdatedCellWR(tableName string, tree *btree.BTree, ro
 		return err
 	}
 	e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, writeRowID)
+	// Write the NEW row's entries into every index the change touches (the
+	// insert phase; the OLD entries were removed by deleteUpdateIndexEntries
+	// before the table cell delete).
+	if te, _, terr := e.ctx.FindTable(tableName); terr == nil && te != nil {
+		if err := e.writeUpdateIndexEntries(te, e.ctx.ParseColumnDefs(te.Name, te.SQL), c, writeRowID); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -635,6 +805,11 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return false, &Result{Error: fmt.Errorf("constraint failed")}
 	}
+	// Index maintenance (update.c UXF): remove the OLD row's entries from the
+	// indexes this change touches before the cell delete.
+	if err := e.deleteUpdateIndexEntries(tableEntry, colDefs, c, updateWriteRowID(c)); err != nil {
+		return false, &Result{Error: err}
+	}
 	deletedCells, err := e.deleteRowCells(tableEntry, colDefs, c.rowID, c.oldValues)
 	if err != nil {
 		return false, &Result{Error: err}
@@ -679,6 +854,11 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 		return false, &Result{Error: err}
 	}
 	e.ctx.BumpRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage, writeRowID)
+	// Write the NEW row's entries into the indexes this change touches (the
+	// insert phase; the OLD entries were removed above).
+	if err := e.writeUpdateIndexEntries(tableEntry, colDefs, c, writeRowID); err != nil {
+		return false, &Result{Error: err}
+	}
 	// Fire the preupdate hook with the old and new row values (UPDATE OR
 	// REPLACE's in-place update write).
 	rowID := c.rowID

@@ -63,7 +63,7 @@ func Test_speed1p(t *testing.T) {
 	_ = txt // pre-declared from TCL source
 	var n string
 	_ = n // pre-declared from TCL source
-	var list string
+	var list *tclListBuilder
 	_ = list // pre-declared from TCL source
 	var i string
 	_ = i // pre-declared from TCL source
@@ -124,7 +124,7 @@ func Test_speed1p(t *testing.T) {
 		}
 	}
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "1")
 	i = "1"
@@ -134,7 +134,7 @@ func Test_speed1p(t *testing.T) {
 		_ = _r // suppress unused warning
 		x = "number_name $r"
 		_ = x // suppress unused warning
-		list = tclListAppend(list, i, _r, x)
+		list.Append(i, _r, x)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -149,7 +149,7 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial_tcl speed1p-insert1 50000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "1")
 	i = "1"
@@ -159,7 +159,7 @@ func Test_speed1p(t *testing.T) {
 		_ = _r // suppress unused warning
 		x = "number_name $r"
 		_ = x // suppress unused warning
-		list = tclListAppend(list, i, _r, x)
+		list.Append(i, _r, x)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -174,7 +174,7 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial_tcl speed1p-insert2 50000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "0")
 	i = "0"
@@ -184,7 +184,7 @@ func Test_speed1p(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-		list = tclListAppend(list, lwr, upr)
+		list.Append(lwr, upr)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -199,13 +199,13 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial_tcl speed1p-select1 [expr {50*50000}] row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "0")
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-		list = tclListAppend(list, "%" + "number_name $i" + "%")
+		list.Append("%" + "number_name $i" + "%")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -223,7 +223,7 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial speed1p-createidx 150000 row {\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b... (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "0")
 	i = "0"
@@ -233,7 +233,7 @@ func Test_speed1p(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-		list = tclListAppend(list, lwr, upr)
+		list.Append(lwr, upr)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -248,7 +248,7 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial_tcl speed1p-select3 5000 stmt $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "1")
 	i = "1"
@@ -256,7 +256,7 @@ func Test_speed1p(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id = "1"
 		_ = id // suppress unused warning
-		list = tclListAppend(list, id)
+		list.Append(id)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -271,7 +271,7 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial_tcl speed1p-select4 100000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "1")
 	i = "1"
@@ -279,7 +279,7 @@ func Test_speed1p(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id = "1"
 		_ = id // suppress unused warning
-		list = tclListAppend(list, id)
+		list.Append(id)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -294,7 +294,7 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial_tcl speed1p-select5 100000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	_dbeval0 := tclExecSQL(db, "SELECT c FROM t1 ORDER BY random() LIMIT 50000")
-	list = _dbeval0
+	_ = _dbeval0
 	_ = list // suppress unused warning
 	vtab.TclVarSet("script", "", "\n  foreach c $::list {\n    db eval {SELECT c FROM t1 WHERE c=$c}\n  }\n")
 	script = "\n  foreach c $::list {\n    db eval {SELECT c FROM t1 WHERE c=$c}\n  }\n"
@@ -304,7 +304,7 @@ func Test_speed1p(t *testing.T) {
 	_res = db.Exec("COMMIT")
 	// speed_trial speed1p-vacuum 100000 row VACUUM (unsupported command, not transpiled)
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "0")
 	i = "0"
@@ -314,7 +314,7 @@ func Test_speed1p(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+1)*2", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-		list = tclListAppend(list, lwr, upr)
+		list.Append(lwr, upr)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -329,7 +329,7 @@ func Test_speed1p(t *testing.T) {
 	// speed_trial_tcl speed1p-update1 5000 stmt $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "0")
 	i = "0"
@@ -337,7 +337,7 @@ func Test_speed1p(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-		list = tclListAppend(list, i, _r)
+		list.Append(i, _r)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -353,7 +353,7 @@ func Test_speed1p(t *testing.T) {
 	_res = db.Exec("COMMIT")
 	// speed_trial speed1p-update3 50000 row {\n  UPDATE t1 SET c=a;\n} (unsupported command, not transpiled)
 	vtab.TclVarSet("list", "", "")
-	list = ""
+	list = &tclListBuilder{}
 	_ = list // suppress unused warning
 	vtab.TclVarSet("i", "", "1")
 	i = "1"
@@ -361,7 +361,7 @@ func Test_speed1p(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-		list = tclListAppend(list, i, "number_name $r")
+		list.Append(i, "number_name $r")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -396,4 +396,5 @@ func Test_speed1p(t *testing.T) {
 	// eval (dynamic, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)
+
 }

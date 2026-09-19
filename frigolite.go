@@ -1153,6 +1153,11 @@ func (db *DB) Exec(sqlStr string) *Result {
 	}
 
 	texts := splitSQLStatements(sqlStr)
+	// The whole-batch BEGIN EXCLUSIVE check is a property of the batch TEXT,
+	// not of any single statement: compute it once (a per-statement
+	// EqualFold over the whole batch made multi-statement batches O(n^2) in
+	// the batch length).
+	wholeBatchBeginExclusive := strings.EqualFold(strings.TrimSpace(strings.TrimSuffix(sqlStr, ";")), "BEGIN EXCLUSIVE")
 	var lastResult *exec.Result
 	for si, stmt := range stmts {
 		stmtText := ""
@@ -1183,7 +1188,7 @@ func (db *DB) Exec(sqlStr string) *Result {
 			return execResult(res)
 		}
 		lastResult = res
-		if strings.EqualFold(strings.TrimSpace(strings.TrimSuffix(sqlStr, ";")), "BEGIN EXCLUSIVE") {
+		if wholeBatchBeginExclusive {
 			db.engine.BeginExclusive()
 		}
 		if res.LastInsertRowID > 0 {

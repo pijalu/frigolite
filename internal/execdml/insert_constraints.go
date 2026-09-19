@@ -266,17 +266,39 @@ func (e *DMLExecutor) indexKeyValuesForRow(def indexDef, colDefs []sql.ColumnDef
 	return indexValues, nil
 }
 
-// writeIndexCell encodes and inserts one index entry, tracking root page
-// changes after splits.
+// indexStorageValues unwraps the value wrappers a row map may carry
+// (*util.ColumnValue affinity markers, *execexpr.CollatedValue collation
+// markers) before the key list is serialized into an index cell. SQLite
+// stores raw values in index keys; encoding a wrapper would fall through to
+// the record encoder's %v stringify and write the Go struct dump (e.g.
+// "&{3 73}") as a TEXT key — corrupting the index content for every
+// backfilled (CREATE INDEX) entry and desyncing delete-side payloads.
+func indexStorageValues(indexValues []interface{}) {
+	for i, v := range indexValues {
+		indexValues[i] = unwrapIndexKeyValue(v)
+	}
+}
 
-// writeIndexCell encodes and inserts one index entry, tracking root page
-// changes after splits.
+// unwrapIndexKeyValue peels value wrappers until a raw storage value remains
+// (bounded: wrappers do not nest deeper than a collation-over-affinity pair).
+func unwrapIndexKeyValue(v interface{}) interface{} {
+	for j := 0; j < 8; j++ {
+		switch t := v.(type) {
+		case *util.ColumnValue:
+			v = t.Value
+		case *execexpr.CollatedValue:
+			v = t.Value
+		default:
+			return v
+		}
+	}
+	return v
+}
 
-// writeIndexCell encodes and inserts one index entry, tracking root page
-// changes after splits.
 // writeIndexCell encodes and inserts one index entry, tracking root page
 // changes after splits.
 func (e *DMLExecutor) writeIndexCell(def indexDef, indexValues []interface{}) error {
+	indexStorageValues(indexValues)
 	payload, err := storage.EncodeRecord(indexValues)
 	if err != nil {
 		return err
@@ -386,6 +408,7 @@ func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schem
 //     UNIQUE index (always clause-less) reports "UNIQUE constraint failed"
 //     and nothing is deleted (tkt-4a03edc4c8: IPK REPLACE + b UNIQUE FAIL
 //     leaves both original rows in place and errors on t1.b).
+//
 // Only the per-constraint path uses this: a statement-level OR REPLACE
 // overrides the column clauses (verified against sqlite3) and keeps the
 // delete-everything behavior. skip=true tells the caller to drop the row.

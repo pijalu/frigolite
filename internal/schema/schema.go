@@ -82,12 +82,24 @@ type Manager struct {
 	// clear its own derived caches (tableCache, rowid sequences).
 	externalInvalidated bool
 
-	// entriesCache caches GetEntries results to avoid repeated schema scans.
-	// Invalidated by AddEntry. Not thread-safe — callers must ensure single-
-	// goroutine access, which holds for the current architecture (each DB has
-	// its own Manager, and operations on a single DB are sequential).
-	entriesCache map[SchemaType][]*Entry
-	cacheValid   bool
+	// Cookie-keyed schema entry cache: GetEntries walks the schema btree once
+	// per SCHEMA VERSION and serves later reads from the snapshot. The key
+	// folds the header schema cookie (offset 40 — SQLite's schema-version
+	// counter) with a local mutation epoch: every schema mutation bumps the
+	// cookie AND the epoch (BumpSchemaCookie is a no-op on pagers without a
+	// materialized header image — e.g. temp stores — so the epoch keeps the
+	// key moving there), a ROLLBACK of a DDL transaction reverts the cookie
+	// with the restored page-1 header image, and an external connection's
+	// commit drops the cache outright. This replaces the historically
+	// disabled blind cache, whose stale entries diverged from the btree
+	// after DDL + pager-restore cycles (FK torture "table X already
+	// exists"): the key tracks exactly the btree content. Not thread-safe —
+	// callers must ensure single-goroutine access, which holds (each DB has
+	// its own Manager; access is sequential).
+	cookieCacheValid bool
+	cookieCacheKey   uint64
+	mutationEpoch    uint64
+	cookieCacheAll   []*Entry
 
 	// headerValidated records that the pager header's freelist/root-page
 	// fields have been checked against the page count (a corrupt image is
@@ -178,15 +190,15 @@ func (m *Manager) Init() error {
 // sqlite_schema (PRAGMA writable_schema=ON), which SQLite treats as a schema
 // change: subsequent table lookups must see the updated rootpages/SQL.
 func (m *Manager) InvalidateCache() {
-	m.cacheValid = false
-	m.entriesCache = nil
+	m.cookieCacheValid = false
+	m.cookieCacheAll = nil
 }
 
 // AddEntry adds a new entry to the schema.
 func (m *Manager) AddEntry(entry *Entry) error {
-	// Invalidate schema cache since the schema has changed
-	m.cacheValid = false
-	m.entriesCache = nil
+	// Schema changed: drop the entry cache and bump the schema cookie so
+	// cookie-keyed caches (here and in the engine) see the DDL.
+	m.invalidateForMutation()
 
 	// Convert schema entry to a record and insert into page 1
 	values := []interface{}{
@@ -216,8 +228,7 @@ func (m *Manager) AddEntry(entry *Entry) error {
 // addEntryWithRowID inserts a schema entry using an explicit rowid (used to
 // preserve a renamed entry's position in sqlite_schema).
 func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
-	m.cacheValid = false
-	m.entriesCache = nil
+	m.invalidateForMutation()
 
 	values := []interface{}{
 		entry.Type,
@@ -335,7 +346,22 @@ func (m *Manager) checkExternalMod() {
 		m.pager.InvalidateCache()
 		m.lastOwnCounter = counter
 		m.externalInvalidated = true
+		// The external commit may have carried DDL: the re-read page 1 carries
+		// a new schema cookie, but drop the entry cache regardless — the
+		// in-memory header image is not re-synced by InvalidateCache.
+		m.cookieCacheValid = false
+		m.cookieCacheAll = nil
+		m.mutationEpoch++
 	}
+}
+
+// invalidateForMutation drops the entry cache and bumps the header schema
+// cookie (a schema mutation happened).
+func (m *Manager) invalidateForMutation() {
+	m.cookieCacheValid = false
+	m.cookieCacheAll = nil
+	m.mutationEpoch++
+	m.pager.BumpSchemaCookie()
 }
 
 // GetEntries returns all schema entries of the given type.
@@ -356,18 +382,33 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 		}
 		m.headerValidated = true
 	}
-	// NOTE: the schema cache is intentionally disabled (always read fresh).
-	// The schema btree lives on page 1 of each database; a stale cache here
-	// diverges from the btree after DDL + pager restore cycles, causing
-	// "table X already exists" / "no such table" errors in the FK torture
-	// tests. The btree is small, so a fresh read per call is cheap.
-	var entries []*Entry
+	// Serve from the cookie-keyed cache when the schema version is unchanged
+	// (the common case within and across DML statements: DML hits the schema
+	// 2-3 times per statement).
+	key := m.cacheKey()
+	if m.cookieCacheValid && m.cookieCacheKey == key {
+		return filterEntries(m.cookieCacheAll, schemaType), nil
+	}
+
+	all, err := m.walkSchemaBTree()
+	if err != nil {
+		return nil, err
+	}
+
+	m.cookieCacheAll = all
+	m.cookieCacheKey = m.cacheKey()
+	m.cookieCacheValid = true
+	return filterEntries(all, schemaType), nil
+}
+
+// walkSchemaBTree reads every sqlite_schema row (page-1 b-tree walk).
+func (m *Manager) walkSchemaBTree() ([]*Entry, error) {
 	tree := btree.NewSchemaBTree(m.pager)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
 	}
-
+	var all []*Entry
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil {
@@ -380,31 +421,47 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 			}
 			return nil, fmt.Errorf("database disk image is malformed")
 		}
-
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
 			return nil, fmt.Errorf("database disk image is malformed")
 		}
 		if len(rec.Values) >= 5 {
-			entry := &Entry{
+			all = append(all, &Entry{
 				Type:     SchemaType(toString(rec.Values[0])),
 				Name:     toString(rec.Values[1]),
 				TblName:  toString(rec.Values[2]),
 				RootPage: uint32(toInt64(rec.Values[3])),
 				SQL:      toString(rec.Values[4]),
 				RowID:    cell.RowID,
-			}
-			if schemaType == "" || entry.Type == schemaType {
-				entries = append(entries, entry)
-			}
+			})
 		}
 		ok, err := cursor.Next()
 		if err != nil || !ok {
 			break
 		}
 	}
+	return all, nil
+}
 
-	return entries, nil
+// cacheKey folds the schema cookie with the local mutation epoch (the epoch
+// covers pagers without a header image, where the cookie cannot move).
+func (m *Manager) cacheKey() uint64 {
+	return uint64(m.pager.SchemaCookie())<<32 ^ m.mutationEpoch
+}
+
+// filterEntries returns the entries of one type (all entries when schemaType
+// is empty), as a fresh slice sharing the cached Entry pointers.
+func filterEntries(entries []*Entry, schemaType SchemaType) []*Entry {
+	if schemaType == "" {
+		return entries
+	}
+	var out []*Entry
+	for _, e := range entries {
+		if e.Type == schemaType {
+			out = append(out, e)
+		}
+	}
+	return out
 }
 
 // FindTable returns the schema entry for a table.
@@ -780,8 +837,7 @@ func (m *Manager) UpdateEntry(name, newSQL string) error {
 // preserving its rowid, type, tbl_name, and SQL. Used when a table b-tree
 // split moves the root page so sqlite_schema stays correct across reopens.
 func (m *Manager) UpdateEntryRoot(name string, newRoot uint32) error {
-	m.cacheValid = false
-	m.entriesCache = nil
+	m.invalidateForMutation()
 
 	searchName := name
 	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {

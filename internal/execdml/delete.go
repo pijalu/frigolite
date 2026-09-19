@@ -318,7 +318,15 @@ func rowTrueRowID(row RowMap) (int64, bool) {
 // DELETE's WHERE clause (in rowid order), for trigger firing and RETURNING.
 // WITHOUT ROWID tables store PK-first index cells, so each decoded record is
 // remapped to declared order before the WHERE row map is built.
+//
+// A point-lookup WHERE (rowid = <const> or col = <const> on an index's
+// leading column) collects candidates through seeks instead of a full scan
+// (see seek.go); the full WHERE is still evaluated per candidate row, so the
+// returned row set is identical to the scan's.
 func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]RowMap, error) {
+	if rows, ok := e.seekDeleteRows(tree, s, tableEntry, colDefs); ok {
+		return rows, nil
+	}
 	var deletedRows []RowMap
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -357,6 +365,41 @@ func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, ta
 		}
 	}
 	return deletedRows, nil
+}
+
+// seekDeleteRows collects DELETE candidate rows through a point-lookup plan:
+// rowid = <const> seeks the table b-tree directly, col = <const> reads the
+// driving index and seeks each candidate rowid. ok=false falls back to the
+// full scan (no plan, or a candidate lookup/evaluation anomaly).
+func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]RowMap, bool) {
+	plan := e.planDMLSeek(tableEntry, colDefs, s.Where, tableEntry.Name, e.currentDMLCtx)
+	if plan == nil {
+		return nil, false
+	}
+	rowIDs, ok := e.seekCandidateRowIDs(tableEntry.Name, tableEntry.RootPage, plan)
+	if !ok {
+		return nil, false
+	}
+	var deletedRows []RowMap
+	for _, rowID := range rowIDs {
+		// SQLITE_TEST interrupt countdown: one op per row examined
+		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
+		if err := e.ctx.CheckProgress(); err != nil {
+			return nil, false
+		}
+		row, found, err := e.fetchSeekRow(tree, tableEntry.Name, tableEntry.RootPage, tableEntry.SQL, colDefs, rowID)
+		if err != nil || !found {
+			return nil, false
+		}
+		match, err := e.rowMatchesWhere(s.Where, row)
+		if err != nil {
+			return nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		if match {
+			deletedRows = append(deletedRows, row)
+		}
+	}
+	return deletedRows, true
 }
 
 // execDeleteBulk executes a DELETE without RETURNING. SQLite's delete.c

@@ -115,7 +115,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-	sql.WriteString("INSERT INTO t1 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n")
+		sql.WriteString("INSERT INTO t1 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -135,7 +135,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-	sql.WriteString("INSERT INTO t2 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n")
+		sql.WriteString("INSERT INTO t2 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -157,7 +157,7 @@ func Test_speed2(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-	sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
+		sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -173,7 +173,7 @@ func Test_speed2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-	sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE c LIKE '%" + "number_name $i" + "%';")
+		sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE c LIKE '%" + "number_name $i" + "%';")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -194,7 +194,7 @@ func Test_speed2(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-	sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
+		sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -210,7 +210,7 @@ func Test_speed2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-	sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE c LIKE '%" + "number_name $i" + "%';")
+		sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE c LIKE '%" + "number_name $i" + "%';")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -233,7 +233,7 @@ func Test_speed2(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-	sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
+		sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -251,7 +251,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id = "1"
 		_ = id // suppress unused warning
-	sql.WriteString("SELECT c=='hi' FROM t1 WHERE rowid=" + id + ";\n")
+		sql.WriteString("SELECT c=='hi' FROM t1 WHERE rowid=" + id + ";\n")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -269,7 +269,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id = "1"
 		_ = id // suppress unused warning
-	sql.WriteString("SELECT c FROM t1 WHERE a=" + id + ";")
+		sql.WriteString("SELECT c FROM t1 WHERE a=" + id + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -294,7 +294,7 @@ func Test_speed2(t *testing.T) {
 					c = tclStr(_dbevalRows0.Rows[_ri][_ci])
 			}
 		}
-	sql.WriteString("SELECT c FROM t1 WHERE c='" + c + "';")
+		sql.WriteString("SELECT c FROM t1 WHERE c='" + c + "';")
 		if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 		if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 	}
@@ -315,7 +315,7 @@ func Test_speed2(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-	sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
+		sql.WriteString("SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -333,7 +333,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id = "1"
 		_ = id // suppress unused warning
-	sql.WriteString("SELECT c=='hi' FROM t1 WHERE rowid=" + id + ";\n")
+		sql.WriteString("SELECT c=='hi' FROM t1 WHERE rowid=" + id + ";\n")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -351,7 +351,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id = "1"
 		_ = id // suppress unused warning
-	sql.WriteString("SELECT c FROM t1 WHERE a=" + id + ";")
+		sql.WriteString("SELECT c FROM t1 WHERE a=" + id + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -376,7 +376,7 @@ func Test_speed2(t *testing.T) {
 					c = tclStr(_dbevalRows4.Rows[_ri][_ci])
 			}
 		}
-	sql.WriteString("SELECT c FROM t1 WHERE c='" + c + "';")
+		sql.WriteString("SELECT c FROM t1 WHERE c='" + c + "';")
 		if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
 		if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
 	}
@@ -396,7 +396,7 @@ func Test_speed2(t *testing.T) {
 		_ = lwr // suppress unused warning
 		upr = tclExprWith("($i+1)*2", map[string]string{"i": i})
 		_ = upr // suppress unused warning
-	sql.WriteString("UPDATE t1 SET b=b*2 WHERE a>=" + lwr + " AND a<" + upr + ";")
+		sql.WriteString("UPDATE t1 SET b=b*2 WHERE a>=" + lwr + " AND a<" + upr + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -416,7 +416,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-	sql.WriteString("UPDATE t1 SET b=" + _r + " WHERE a=" + i + ";")
+		sql.WriteString("UPDATE t1 SET b=" + _r + " WHERE a=" + i + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -437,7 +437,7 @@ func Test_speed2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-	sql.WriteString("UPDATE t1 SET c='" + "number_name $r" + "' WHERE a=" + i + ";")
+		sql.WriteString("UPDATE t1 SET c='" + "number_name $r" + "' WHERE a=" + i + ";")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
