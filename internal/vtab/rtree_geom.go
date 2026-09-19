@@ -27,12 +27,12 @@ import (
 // QueryFn is nil the marker drives the 1st-generation xGeom contract;
 // otherwise it drives the 2nd-generation xQueryFunc (RtreeQueryInfo) one.
 type RtreeGeometry struct {
-	Name      string          // registered SQL function name ("cube", "circle")
-	Params    []float64       // numeric arguments, sqlite3_rtree_geometry.aParam
-	SqlParams []interface{}   // raw arguments (apSqlParam analogue)
-	QueryFn   RtreeQueryFunc  // xQueryFunc (nil for 1st-generation callbacks)
-	fn        RtreeGeomFunc   // xGeom
-	user      interface{}     // per-statement cache slot (pUser/xDelUser analogue)
+	Name      string         // registered SQL function name ("cube", "circle")
+	Params    []float64      // numeric arguments, sqlite3_rtree_geometry.aParam
+	SqlParams []interface{}  // raw arguments (apSqlParam analogue)
+	QueryFn   RtreeQueryFunc // xQueryFunc (nil for 1st-generation callbacks)
+	fn        RtreeGeomFunc  // xGeom
+	user      interface{}    // per-statement cache slot (pUser/xDelUser analogue)
 }
 
 // eWithin / eParentWithin values (rtree.c NOT_WITHIN / PARTLY_WITHIN /

@@ -12,8 +12,6 @@ import (
 	"strings"
 	"sync"
 	"unicode/utf8"
-
-	"github.com/pijalu/frigolite/internal/value"
 )
 
 // ZipfileModule implements the zipfile virtual table (ext/misc/zipfile.c):
@@ -156,41 +154,49 @@ func (m *ZipfileModule) connect(args []string, createOK bool) (VirtualTable, err
 		// NULL/empty archive source (SELECT * FROM zipfile(NULL)).
 		return nil, fmt.Errorf("error in zipfile module: cannot open file: %s", args[0])
 	}
-	if len(args) > 0 {
-		// The argument may be "name = value" form (CREATE VIRTUAL TABLE)
-		// or a bare value (table-function call).
-		a := strings.TrimSpace(args[0])
-		if eq := strings.Index(a, "="); eq >= 0 && !strings.ContainsAny(a[:eq], "/.") {
-			a = strings.TrimSpace(a[eq+1:])
-		}
-		a = unquoteVtabArg(a)
-		if looksLikeFilePath(a) {
-			if st, serr := os.Stat(a); serr == nil && st.IsDir() {
-				// SQLite's zipfile opens the archive lazily; a directory
-				// connects fine (empty central directory) and only the
-				// first write fails (zipfile.test 8.1.x).
-				v.filePath = a
-				return v, nil
-			}
-			if _, serr := os.Stat(a); serr != nil {
-				if !createOK {
-					// The table-valued form reads an EXISTING archive;
-					// only the CREATE VIRTUAL TABLE form creates one
-					// (zipfile.test 19.x).
-					return nil, fmt.Errorf("error in zipfile module: cannot open file: %s", a)
-				}
-				f, ferr := os.OpenFile(a, os.O_CREATE|os.O_RDWR, 0644)
-				if ferr != nil {
-					return nil, fmt.Errorf("error in zipfile module: cannot open file: %s", a)
-				}
-				f.Close()
-			}
-			v.filePath = a
-		} else {
-			v.dataArg = a
-		}
+	// The argument may be "name = value" form (CREATE VIRTUAL TABLE)
+	// or a bare value (table-function call).
+	a := strings.TrimSpace(args[0])
+	if eq := strings.Index(a, "="); eq >= 0 && !strings.ContainsAny(a[:eq], "/.") {
+		a = strings.TrimSpace(a[eq+1:])
+	}
+	a = unquoteVtabArg(a)
+	if !looksLikeFilePath(a) {
+		v.dataArg = a
+		return v, nil
+	}
+	if err := v.bindFilePath(a, createOK); err != nil {
+		return nil, err
 	}
 	return v, nil
+}
+
+// bindFilePath resolves a file-path archive source (zipfile.c's fopen path):
+// a directory connects as an empty archive; a missing file is created only
+// by the CREATE VIRTUAL TABLE form.
+func (v *zipfileVTab) bindFilePath(a string, createOK bool) error {
+	if st, serr := os.Stat(a); serr == nil && st.IsDir() {
+		// SQLite's zipfile opens the archive lazily; a directory
+		// connects fine (empty central directory) and only the
+		// first write fails (zipfile.test 8.1.x).
+		v.filePath = a
+		return nil
+	}
+	if _, serr := os.Stat(a); serr != nil {
+		if !createOK {
+			// The table-valued form reads an EXISTING archive;
+			// only the CREATE VIRTUAL TABLE form creates one
+			// (zipfile.test 19.x).
+			return fmt.Errorf("error in zipfile module: cannot open file: %s", a)
+		}
+		f, ferr := os.OpenFile(a, os.O_CREATE|os.O_RDWR, 0644)
+		if ferr != nil {
+			return fmt.Errorf("error in zipfile module: cannot open file: %s", a)
+		}
+		f.Close()
+	}
+	v.filePath = a
+	return nil
 }
 
 // unquoteVtabArg strips one level of matching quotes from an argv value.
@@ -317,114 +323,150 @@ func (v *zipfileVTab) archiveSource() string {
 // It understands stored and deflate members plus the extended-timestamp
 // extra field (0x5455) used by zipfile.c.
 func zipParseEntries(raw []byte) ([]zipEntry, error) {
-	eocd := bytes.LastIndex(raw, []byte{0x50, 0x4b, 0x05, 0x06})
-	if eocd < 0 {
-		if len(raw) == 0 {
-			return nil, nil
-		}
-		// zipfileReadEOCD reports this defect verbatim; the engine adds no
-		// "error in zipfile module:" prefix to it (zipfile2 4.3.*).
-		return nil, fmt.Errorf("cannot find end of central directory record")
-	}
-	n := int(binary.LittleEndian.Uint16(raw[eocd+10 : eocd+12]))
-	off := int(binary.LittleEndian.Uint32(raw[eocd+16 : eocd+20]))
-	// zipfile.c zipfileLoadDirectory: a central directory that claims
-	// entries outside the image is corruption (zipfile.test 17.x).
-	if n > 0 && (off < 0 || off+46 > len(raw) || binary.LittleEndian.Uint32(raw[off:off+4]) != 0x02014b50) {
-		return nil, fmt.Errorf("error in zipfile module: zip archive is corrupt")
+	n, off, err := zipCentralDirectory(raw)
+	if err != nil {
+		return nil, err
 	}
 	var out []zipEntry
 	for i := 0; i < n; i++ {
-		// zipfile.c requires EVERY declared central-directory record to be
-		// present with a valid signature; a truncated or mis-signed record is
-		// corruption, never a silent truncation (zipfile2 3.3 patched PK
-		// signatures must error).
-		if off+46 > len(raw) || binary.LittleEndian.Uint32(raw[off:off+4]) != 0x02014b50 {
-			return nil, fmt.Errorf("error in zipfile module: zip archive is corrupt")
-		}
-		e := zipEntry{
-			method:  binary.LittleEndian.Uint16(raw[off+10 : off+12]),
-			dosTime: binary.LittleEndian.Uint16(raw[off+12 : off+14]),
-			dosDate: binary.LittleEndian.Uint16(raw[off+14 : off+16]),
-			crc:     binary.LittleEndian.Uint32(raw[off+16 : off+20]),
-			mode:    uint32(binary.LittleEndian.Uint32(raw[off+38:off+42])) >> 16,
-		}
-		szComp := int(binary.LittleEndian.Uint32(raw[off+20 : off+24]))
-		nName := int(binary.LittleEndian.Uint16(raw[off+28 : off+30]))
-		nExtra := int(binary.LittleEndian.Uint16(raw[off+30 : off+32]))
-		lho := int(binary.LittleEndian.Uint32(raw[off+42 : off+46]))
-		if off+46+nName+nExtra > len(raw) {
-			return nil, fmt.Errorf("error in zipfile module: zip archive is corrupt")
-		}
-		e.name = string(raw[off+46 : off+46+nName])
-		// Extended timestamp (0x5455) in the central directory carries the
-		// unix mtime; fall back to decoding the DOS fields.
-		extra := raw[off+46+nName : off+46+nName+nExtra]
-		e.munix = dosToUnix(e.dosDate, e.dosTime)
-		for j := 0; j+5 <= len(extra); {
-			id := binary.LittleEndian.Uint16(extra[j : j+2])
-			sz := int(binary.LittleEndian.Uint16(extra[j+2 : j+4]))
-			if id == 0x5455 && sz >= 5 {
-				e.munix = int64(binary.LittleEndian.Uint32(extra[j+5 : j+9]))
-				e.hasUTStamp = true
-				break
-			}
-			j += 4 + sz
-		}
-		// Payload lives after the local header's name+extra.
-		// Local headers may carry the only extended timestamp (SQLite accepts
-		// it when the central-directory extra field omits UT).
-		if !e.hasUTStamp && lho+30 <= len(raw) {
-			ln := int(binary.LittleEndian.Uint16(raw[lho+26 : lho+28]))
-			lx := int(binary.LittleEndian.Uint16(raw[lho+28 : lho+30]))
-			if lho+30+ln+lx <= len(raw) {
-				if ts, ok := zipUTTimestamp(raw[lho+30+ln : lho+30+ln+lx]); ok {
-					e.munix, e.hasUTStamp = ts, true
-				}
-			}
-		}
-		// Payload lives after the local header's name+extra.
-		// zipfile.c reads the LFH with a signed 32-bit offset; an offset
-		// that is negative or past the image is a read failure
-		// ("failed to read LFH at offset %lld", zipfile.test 17.x).
-		signedLho := int64(int32(uint32(lho)))
-		if signedLho < 0 || lho+30 > len(raw) {
-			return nil, fmt.Errorf("error in zipfile module: failed to read LFH at offset %d", signedLho)
-		}
-		// zipfileReadLFH verifies the local-header magic and reports the
-		// read failure with the record's offset (zipfile2 3.3/8.x patched
-		// signatures must fail with this message).
-		if binary.LittleEndian.Uint32(raw[lho:lho+4]) != 0x04034b50 {
-			return nil, fmt.Errorf("error in zipfile module: failed to read LFH at offset %d", signedLho)
-		}
-		nLN := int(binary.LittleEndian.Uint16(raw[lho+26 : lho+28]))
-		nLX := int(binary.LittleEndian.Uint16(raw[lho+28 : lho+30]))
-		start := lho + 30 + nLN + nLX
-		end := start + szComp
-		if end <= len(raw) {
-			payload := raw[start:end]
-			e.raw = payload
-			switch e.method {
-			case 0, 8:
-				// zipfile.c decompresses during cursor reads and surfaces zlib
-				// failures as statement errors (zipfile2 4.1: a patched deflate
-				// stream must fail the SELECT with "inflate() failed").
-				data, err := zipInflate(e.method, payload, e.crc, int(binary.LittleEndian.Uint32(raw[off+24:off+28])))
-				if err != nil {
-					return nil, err
-				}
-				e.data = data
-			default:
-				// Unknown methods keep only the stored payload: sqlite's data
-				// column returns NULL for them (zipfileColumn's method guard),
-				// while rawdata still exposes e.raw (zipfile2 4.2).
-				e.data = nil
-			}
+		e, next, perr := zipParseEntry(raw, off)
+		if perr != nil {
+			return nil, perr
 		}
 		out = append(out, e)
-		off += 46 + nName + nExtra
+		off = next
 	}
 	return out, nil
+}
+
+// zipCentralDirectory locates the EOCD and returns the entry count and the
+// central-directory offset (zipfileReadEOCD + zipfileLoadDirectory's
+// prologue).
+func zipCentralDirectory(raw []byte) (n, off int, err error) {
+	eocd := bytes.LastIndex(raw, []byte{0x50, 0x4b, 0x05, 0x06})
+	if eocd < 0 {
+		if len(raw) == 0 {
+			return 0, 0, nil
+		}
+		// zipfileReadEOCD reports this defect verbatim; the engine adds no
+		// "error in zipfile module:" prefix to it (zipfile2 4.3.*).
+		return 0, 0, fmt.Errorf("cannot find end of central directory record")
+	}
+	n = int(binary.LittleEndian.Uint16(raw[eocd+10 : eocd+12]))
+	off = int(binary.LittleEndian.Uint32(raw[eocd+16 : eocd+20]))
+	// zipfile.c zipfileLoadDirectory: a central directory that claims
+	// entries outside the image is corruption (zipfile.test 17.x).
+	if n > 0 && (off < 0 || off+46 > len(raw) || binary.LittleEndian.Uint32(raw[off:off+4]) != 0x02014b50) {
+		return 0, 0, fmt.Errorf("error in zipfile module: zip archive is corrupt")
+	}
+	return n, off, nil
+}
+
+// zipParseEntry parses one central-directory record at off, returning the
+// entry and the offset of the next record (zipfileLoadDirectory's body).
+func zipParseEntry(raw []byte, off int) (zipEntry, int, error) {
+	// zipfile.c requires EVERY declared central-directory record to be
+	// present with a valid signature; a truncated or mis-signed record is
+	// corruption, never a silent truncation (zipfile2 3.3 patched PK
+	// signatures must error).
+	if off+46 > len(raw) || binary.LittleEndian.Uint32(raw[off:off+4]) != 0x02014b50 {
+		return zipEntry{}, 0, fmt.Errorf("error in zipfile module: zip archive is corrupt")
+	}
+	e := zipEntry{
+		method:  binary.LittleEndian.Uint16(raw[off+10 : off+12]),
+		dosTime: binary.LittleEndian.Uint16(raw[off+12 : off+14]),
+		dosDate: binary.LittleEndian.Uint16(raw[off+14 : off+16]),
+		crc:     binary.LittleEndian.Uint32(raw[off+16 : off+20]),
+		mode:    uint32(binary.LittleEndian.Uint32(raw[off+38:off+42])) >> 16,
+	}
+	szComp := int(binary.LittleEndian.Uint32(raw[off+20 : off+24]))
+	nName := int(binary.LittleEndian.Uint16(raw[off+28 : off+30]))
+	nExtra := int(binary.LittleEndian.Uint16(raw[off+30 : off+32]))
+	lho := int(binary.LittleEndian.Uint32(raw[off+42 : off+46]))
+	if off+46+nName+nExtra > len(raw) {
+		return zipEntry{}, 0, fmt.Errorf("error in zipfile module: zip archive is corrupt")
+	}
+	e.name = string(raw[off+46 : off+46+nName])
+	e.applyUTTimestamps(raw, off, nName, nExtra, lho)
+	if err := e.readLFHPayload(raw, off, szComp, lho); err != nil {
+		return zipEntry{}, 0, err
+	}
+	return e, off + 46 + nName + nExtra, nil
+}
+
+// applyUTTimestamps resolves the entry's unix mtime: the central-directory
+// extended timestamp (0x5455), else the local header's, else the DOS fields.
+func (e *zipEntry) applyUTTimestamps(raw []byte, off, nName, nExtra, lho int) {
+	// Extended timestamp (0x5455) in the central directory carries the
+	// unix mtime; fall back to decoding the DOS fields.
+	e.munix = dosToUnix(e.dosDate, e.dosTime)
+	extra := raw[off+46+nName : off+46+nName+nExtra]
+	for j := 0; j+5 <= len(extra); {
+		id := binary.LittleEndian.Uint16(extra[j : j+2])
+		sz := int(binary.LittleEndian.Uint16(extra[j+2 : j+4]))
+		if id == 0x5455 && sz >= 5 {
+			e.munix = int64(binary.LittleEndian.Uint32(extra[j+5 : j+9]))
+			e.hasUTStamp = true
+			break
+		}
+		j += 4 + sz
+	}
+	// Local headers may carry the only extended timestamp (SQLite accepts
+	// it when the central-directory extra field omits UT).
+	if !e.hasUTStamp && lho+30 <= len(raw) {
+		ln := int(binary.LittleEndian.Uint16(raw[lho+26 : lho+28]))
+		lx := int(binary.LittleEndian.Uint16(raw[lho+28 : lho+30]))
+		if lho+30+ln+lx <= len(raw) {
+			if ts, ok := zipUTTimestamp(raw[lho+30+ln : lho+30+ln+lx]); ok {
+				e.munix, e.hasUTStamp = ts, true
+			}
+		}
+	}
+}
+
+// readLFHPayload locates the member payload behind the local header and
+// decompresses it (zipfileReadLFH + zipfileDecompress). A payload running
+// past the image end leaves raw/data unset (the entry still scans).
+func (e *zipEntry) readLFHPayload(raw []byte, off, szComp, lho int) error {
+	// zipfile.c reads the LFH with a signed 32-bit offset; an offset
+	// that is negative or past the image is a read failure
+	// ("failed to read LFH at offset %lld", zipfile.test 17.x).
+	signedLho := int64(int32(uint32(lho)))
+	if signedLho < 0 || lho+30 > len(raw) {
+		return fmt.Errorf("error in zipfile module: failed to read LFH at offset %d", signedLho)
+	}
+	// zipfileReadLFH verifies the local-header magic and reports the
+	// read failure with the record's offset (zipfile2 3.3/8.x patched
+	// signatures must fail with this message).
+	if binary.LittleEndian.Uint32(raw[lho:lho+4]) != 0x04034b50 {
+		return fmt.Errorf("error in zipfile module: failed to read LFH at offset %d", signedLho)
+	}
+	nLN := int(binary.LittleEndian.Uint16(raw[lho+26 : lho+28]))
+	nLX := int(binary.LittleEndian.Uint16(raw[lho+28 : lho+30]))
+	start := lho + 30 + nLN + nLX
+	end := start + szComp
+	if end > len(raw) {
+		return nil
+	}
+	payload := raw[start:end]
+	e.raw = payload
+	switch e.method {
+	case 0, 8:
+		// zipfile.c decompresses during cursor reads and surfaces zlib
+		// failures as statement errors (zipfile2 4.1: a patched deflate
+		// stream must fail the SELECT with "inflate() failed").
+		data, err := zipInflate(e.method, payload, e.crc, int(binary.LittleEndian.Uint32(raw[off+24:off+28])))
+		if err != nil {
+			return err
+		}
+		e.data = data
+	default:
+		// Unknown methods keep only the stored payload: sqlite's data
+		// column returns NULL for them (zipfileColumn's method guard),
+		// while rawdata still exposes e.raw (zipfile2 4.2).
+		e.data = nil
+	}
+	return nil
 }
 
 // zipInflate decompresses payload for method 0 (stored) or 8 (deflate),
@@ -559,28 +601,31 @@ func (c *zipCursor) Next() bool {
 	return c.idx < len(c.entries)
 }
 
+// zipColumnFuncs maps the scalar columns to their readers (zipfileColumn).
+var zipColumnFuncs = [...]func(e *zipEntry) interface{}{
+	0: func(e *zipEntry) interface{} { return zipEntryName(e.name) },
+	1: func(e *zipEntry) interface{} { return int64(e.mode) },
+	2: func(e *zipEntry) interface{} { return e.munix },
+	3: func(e *zipEntry) interface{} { return int64(len(e.data)) },
+	6: func(e *zipEntry) interface{} { return int64(e.method) },
+}
+
 // Column implements Cursor.
 func (c *zipCursor) Column(idx int) (interface{}, error) {
 	if c.idx < 0 || c.idx >= len(c.entries) {
 		return nil, fmt.Errorf("no row")
 	}
-	e := c.entries[c.idx]
+	if idx < len(zipColumnFuncs) && zipColumnFuncs[idx] != nil {
+		return zipColumnFuncs[idx](&c.entries[c.idx]), nil
+	}
+	return c.computedColumn(idx)
+}
+
+// computedColumn reads the state-dependent columns: the rawdata/data pair
+// and the z cursor context.
+func (c *zipCursor) computedColumn(idx int) (interface{}, error) {
+	e := &c.entries[c.idx]
 	switch idx {
-	case 0:
-		// zipfile.c stores the entry name via sqlite3_mprintf("%.*s"), so a
-		// name embedding NUL truncates at the first NUL byte when returned
-		// as TEXT (zipfile.test 22.x crafted archive: "A\0BBB…" reads as
-		// "A").
-		if i := strings.IndexByte(e.name, 0); i >= 0 {
-			return e.name[:i], nil
-		}
-		return e.name, nil
-	case 1:
-		return int64(e.mode), nil
-	case 2:
-		return e.munix, nil
-	case 3:
-		return int64(len(e.data)), nil
 	case 4:
 		if e.isDir() {
 			return nil, nil
@@ -592,19 +637,7 @@ func (c *zipCursor) Column(idx int) (interface{}, error) {
 		if e.isDir() {
 			return nil, nil
 		}
-		// data: unzip-on-read. Unknown compression methods return NULL
-		// without error (zipfileColumn's method guard; zipfile2 4.2 expects
-		// data IS NULL with method=9).
-		switch e.method {
-		case 0:
-			return e.data, nil
-		case 8:
-			return e.data, nil
-		default:
-			return nil, nil
-		}
-	case 6:
-		return int64(e.method), nil
+		return zipEntryData(e), nil
 	case 7:
 		// z column: cursor context for zipfile_cds() (SQLite passes a
 		// live cursor id; this port encodes archive path + entry index).
@@ -613,658 +646,28 @@ func (c *zipCursor) Column(idx int) (interface{}, error) {
 	return nil, fmt.Errorf("sqlite_zipfile: invalid column index %d", idx)
 }
 
+// zipEntryName renders the entry name (zipfile.c stores the entry name via
+// sqlite3_mprintf("%.*s"), so a name embedding NUL truncates at the first
+// NUL byte when returned as TEXT — zipfile.test 22.x crafted archive:
+// "A\0BBB…" reads as "A").
+func zipEntryName(name string) string {
+	if i := strings.IndexByte(name, 0); i >= 0 {
+		return name[:i]
+	}
+	return name
+}
+
+// zipEntryData returns the data column: the unzip-on-read payload; unknown
+// compression methods return NULL without error (zipfileColumn's method
+// guard; zipfile2 4.2 expects data IS NULL with method=9).
+func zipEntryData(e *zipEntry) interface{} {
+	switch e.method {
+	case 0, 8:
+		return e.data
+	default:
+		return nil
+	}
+}
+
 // Close implements Cursor.
 func (c *zipCursor) Close() error { return nil }
-
-// --- write support ---
-
-// RowUpdater marks the instance writable.
-func (v *zipfileVTab) RowUpdater() {}
-
-// InsertRow appends (or replaces) one member; sz/rawdata must be NULL.
-func (v *zipfileVTab) InsertRow(values []interface{}) (int64, error) {
-	return v.insertRow(values, "")
-}
-
-// InsertRowConflict implements ConflictAwareInserter: REPLACE overwrites a
-// same-name entry, IGNORE skips the row silently, other actions keep the
-// duplicate-name error.
-func (v *zipfileVTab) InsertRowConflict(values []interface{}, resolve string) (int64, error) {
-	return v.insertRow(values, resolve)
-}
-
-func (v *zipfileVTab) insertRow(values []interface{}, resolve string) (int64, error) {
-	get := func(i int) interface{} {
-		if i < len(values) {
-			return values[i]
-		}
-		return nil
-	}
-	name := ""
-	if s, ok := get(0).(string); ok {
-		name = s
-	}
-	// zipfile.c accepts a NULL name (stored as ""); no error is raised.
-	if get(4) != nil {
-		return 0, fmt.Errorf("rawdata must be NULL")
-	}
-	if get(3) != nil {
-		return 0, fmt.Errorf("sz must be NULL")
-	}
-	mode, mtime, method, data, werr := v.writeParams(get(1), get(2), get(6), get(5))
-	if werr != nil {
-		return 0, werr
-	}
-	if get(6) == nil && len(data) > 0 {
-		// zipfile.c xUpdate: a NULL method auto-selects deflate only when
-		// it actually shrinks the payload; otherwise the entry stays
-		// stored (method 0).
-		if len(zipDeflate(8, data)) < len(data) {
-			method = 8
-		} else {
-			method = 0
-		}
-	}
-	entries, err := v.loadEntries()
-	if err != nil {
-		return 0, err
-	}
-	entry, err := zipFinalizeEntry(name, mode, mtime, method, data)
-	if err != nil {
-		return 0, err
-	}
-	for i := range entries {
-		// zipfileComparePath treats a trailing slash as insignificant:
-		// inserting 'file1' (as a directory) collides with 'file1/'.
-		if strings.TrimSuffix(entries[i].name, "/") == strings.TrimSuffix(entry.name, "/") {
-			switch resolve {
-			case "IGNORE":
-				return 0, nil // OR IGNORE: skip silently
-			case "REPLACE":
-				// Drop the stale entry; the replacement is appended below.
-				// Duplicate names are unique up to this point, so scanning
-				// further would only miss removals behind mutated indices.
-				entries = append(entries[:i], entries[i+1:]...)
-			default:
-				return 0, fmt.Errorf("duplicate name: %q", entry.name)
-			}
-		}
-	}
-	entries = append(entries, entry)
-	return 0, v.storeArchive(entries)
-}
-
-// UpdateRow applies changes keyed on the original name (column 0).
-func (v *zipfileVTab) UpdateRow(oldValues, newValues []interface{}) error {
-	return v.updateRow(oldValues, newValues, "")
-}
-
-// UpdateRowConflict applies SQLite's statement-level conflict policy to
-// zipfile's name-keyed xUpdate operation.
-func (v *zipfileVTab) UpdateRowConflict(oldValues, newValues []interface{}, resolve string) error {
-	return v.updateRow(oldValues, newValues, resolve)
-}
-
-func (v *zipfileVTab) updateRow(oldValues, newValues []interface{}, resolve string) error {
-	if len(oldValues) == 0 || len(newValues) == 0 {
-		return fmt.Errorf("zipfile: fullname is required")
-	}
-	oldName, _ := oldValues[0].(string)
-	entries, err := v.loadEntries()
-	if err != nil {
-		return err
-	}
-	idx := -1
-	for i := range entries {
-		if entries[i].name == oldName {
-			idx = i
-			break
-		}
-	}
-	if idx < 0 {
-		return fmt.Errorf("zipfile: no such entry: %s", oldName)
-	}
-	e := entries[idx]
-	setStr := func(i int, dst *string) {
-		if i < len(newValues) {
-			if s, ok := newValues[i].(string); ok {
-				*dst = s
-			}
-		}
-	}
-	isNull := func(i int) bool {
-		return i < len(newValues) && newValues[i] == interface{}(ExplicitNull{})
-	}
-	setInt := func(i int, dst *int64) {
-		if i < len(newValues) {
-			if n, ok := asInt64(newValues[i]); ok {
-				*dst = n
-			}
-		}
-	}
-	var modeI, mtimeI, methodI int64
-	modeI, mtimeI, methodI = int64(e.mode), e.munix, int64(e.method)
-	var modeErr error
-	setMode := func(i int) {
-		if isNull(i) {
-			modeI = 0 // explicit NULL: let zipFinalizeEntry default it
-			return
-		}
-		if i < len(newValues) {
-			switch m := newValues[i].(type) {
-			case string:
-				parsed, perr := ZipParseModeText(m)
-				if perr != nil {
-					modeErr = perr
-					return
-				}
-				modeI = int64(parsed)
-			default:
-				if n, ok := asInt64(newValues[i]); ok {
-					modeI = n
-				}
-			}
-		}
-	}
-	newName := e.name
-	setStr(0, &newName)
-	setMode(1)
-	if modeErr != nil {
-		return modeErr
-	}
-	setInt(2, &mtimeI)
-	setInt(6, &methodI)
-	var data []byte
-	hasData := false
-	if len(newValues) > 5 {
-		if str, ok := newValues[5].(string); ok {
-			data = []byte(str)
-			hasData = true
-		}
-	}
-	if !hasData && e.data == nil {
-		data = nil // still a directory entry
-	} else if !hasData {
-		data = e.data // column untouched: keep existing content
-	}
-	if len(newValues) > 5 && (newValues[5] == nil || isNull(5)) {
-		data = nil // explicit NULL clears the payload (directory entry)
-	}
-	entry, err := zipFinalizeEntry(newName, uint32(modeI), mtimeI, uint16(methodI), data)
-	if err != nil {
-		return err
-	}
-	// zipfileComparePath: renaming onto an existing other entry is a
-	// duplicate-name constraint error (zipfile.test 11.6).
-	for i := range entries {
-		if i == idx || strings.TrimSuffix(entries[i].name, "/") != strings.TrimSuffix(entry.name, "/") {
-			continue
-		}
-		switch strings.ToUpper(resolve) {
-		case "IGNORE":
-			return nil
-		case "REPLACE":
-			entries = append(entries[:i], entries[i+1:]...)
-			if i < idx {
-				idx--
-			}
-		default:
-			return fmt.Errorf("duplicate name: %q", entry.name)
-		}
-		break
-	}
-	entries[idx] = entry
-	return v.storeArchive(entries)
-}
-
-// DeleteRow removes the member with oldValues[0]'s name.
-func (v *zipfileVTab) DeleteRow(oldValues []interface{}) error {
-	name, _ := oldValues[0].(string)
-	entries, err := v.loadEntries()
-	if err != nil {
-		return err
-	}
-	out := entries[:0]
-	for _, e := range entries {
-		if e.name != name {
-			out = append(out, e)
-		}
-	}
-	return v.storeArchive(out)
-}
-
-// writeParams coerces the INSERT value forms (text mode like '0644', NULLs).
-func (v *zipfileVTab) writeParams(modeV, mtimeV, methodV, dataV interface{}) (uint32, int64, uint16, []byte, error) {
-	mode := uint32(0)
-	switch m := modeV.(type) {
-	case string:
-		parsed, perr := ZipParseModeText(m)
-		if perr != nil {
-			return 0, 0, 0, nil, fmt.Errorf("zipfile: parse error in mode: %s", m)
-		}
-		mode = parsed
-	case int64:
-		mode = uint32(m)
-	}
-	var mtime int64
-	if n, ok := asInt64(mtimeV); ok {
-		mtime = n
-	}
-	method := uint16(0)
-	if n, ok := asInt64(methodV); ok {
-		method = uint16(n)
-	}
-	var data []byte
-	switch d := dataV.(type) {
-	case string:
-		data = []byte(d)
-	case []byte:
-		data = d
-	default:
-		// INTEGER/REAL payload: SQLite renders value_text ("10" for 10).
-		if n, ok := asInt64(d); ok {
-			data = []byte(strconv.FormatInt(n, 10))
-		}
-	}
-	return mode, mtime, method, data, nil
-}
-
-// zipFinalizeEntry applies zipfile.c's directory/file consistency rules:
-// NULL data marks a directory (name gains a trailing slash), the mode must
-// agree with the directory bit, and an absent mode defaults per kind.
-func zipFinalizeEntry(name string, mode uint32, mtime int64, method uint16, data []byte) (zipEntry, error) {
-	bIsDir := data == nil
-	if method != 0 && method != 8 {
-		return zipEntry{}, fmt.Errorf("unknown compression method: %d", method)
-	}
-	if mode == 0 {
-		if bIsDir {
-			mode = 0040000 + 0755
-		} else {
-			mode = 0100000 + 0644
-		}
-	}
-	isDirMode := mode&0040000 != 0
-	if isDirMode != bIsDir {
-		return zipEntry{}, fmt.Errorf("zipfile: mode does not match data")
-	}
-	if bIsDir {
-		// zipfile.c zipfileStep: "If this is a directory entry, ensure
-		// that there is exactly one '/' at the end of the path." A name
-		// without one gains it; duplicate trailing slashes collapse
-		// ("dir3//" stores as "dir3/"), keeping a bare "/" intact.
-		if !strings.HasSuffix(name, "/") {
-			name += "/"
-		} else {
-			for len(name) > 1 && name[len(name)-2] == '/' {
-				name = name[:len(name)-1]
-			}
-		}
-		data = nil
-	}
-	return newZipEntry(name, mode, mtime, method, data), nil
-}
-
-// ZipParseModeText converts a TCL/zipfile mode string ("-rw-r--r--") to a
-// unix mode (0100644); octal strings pass through ParseUint.
-func ZipParseModeText(m string) (uint32, error) {
-	if len(m) == 10 && (m[0] == '-' || m[0] == 'd') {
-		var perm uint32
-		for i := 1; i < 10; i++ {
-			switch m[i] {
-			case 'r', 'w', 'x':
-				perm |= 1 << uint(9-i)
-			}
-		}
-		typ := uint32(0100000)
-		if m[0] == 'd' {
-			typ = 0040000
-		}
-		return typ | perm, nil
-	}
-	n, err := strconv.ParseUint(strings.TrimPrefix(m, "0"), 8, 32)
-	if err != nil {
-		return 0, fmt.Errorf("zipfile: parse error in mode: %s", m)
-	}
-	return uint32(n), nil
-}
-
-// newZipEntry fills derived fields (crc, dos time).
-func newZipEntry(name string, mode uint32, mtime int64, method uint16, data []byte) zipEntry {
-	dd, dt := zipDosFromUnix(mtime)
-	return zipEntry{
-		name: name, mode: mode, munix: mtime, method: method,
-		data: data, crc: crc32.ChecksumIEEE(data),
-		dosTime: dt, dosDate: dd, hasUTStamp: true,
-	}
-}
-
-// storeArchive serializes entries back to the bound source using the same
-// record layout as zipfile.c (LFH+CDF with 9-byte extended-timestamp extra).
-func (v *zipfileVTab) storeArchive(entries []zipEntry) error {
-	out := zipSerialize(entries)
-	if v.filePath != "" {
-		if err := os.WriteFile(v.filePath, out, 0644); err != nil {
-			// zipfile.c: fopen(zFile, "ab+") failure — e.g. the path is a
-			// directory (zipfile.test 8.1.2/8.2.2).
-			return fmt.Errorf("zipfile: failed to open file %s for writing", v.filePath)
-		}
-		return nil
-	}
-	zipBlobSave(v.dataArg, string(out))
-	v.dataArg = string(out)
-	return nil
-}
-
-// zipSerialize renders members as a complete zip archive image
-// (local headers + central directory + EOCD).
-func zipSerialize(entries []zipEntry) []byte {
-	var buf bytes.Buffer
-	type cdsOff struct {
-		entry  zipEntry
-		offset int
-	}
-	var cdss []cdsOff
-	for _, e := range entries {
-		comp := zipDeflate(e.method, e.data)
-		extra := zipUTExtra(e.munix)
-		off := buf.Len()
-		// Local file header.
-		buf.Write(u32le(0x04034b50))
-		buf.Write(u16le(20))                  // version needed
-		buf.Write(u16le(0x800))               // flags: UTF-8 names
-		buf.Write(u16le(e.method))            //
-		buf.Write(u16le(e.dosTime))           //
-		buf.Write(u16le(e.dosDate))           //
-		buf.Write(u32le(e.crc))               //
-		buf.Write(u32le(uint32(len(comp))))   // compressed size
-		buf.Write(u32le(uint32(len(e.data)))) // uncompressed size
-		buf.Write(u16le(uint16(len(e.name)))) //
-		buf.Write(u16le(uint16(len(extra))))  //
-		buf.WriteString(e.name)               //
-		buf.Write(extra)                      //
-		buf.Write(comp)                       //
-		cdss = append(cdss, cdsOff{e, off})   //
-	}
-	cdStart := buf.Len()
-	for _, co := range cdss {
-		e := co.entry
-		comp := zipDeflate(e.method, e.data)
-		extra := zipUTExtra(e.munix)
-		buf.Write(u32le(0x02014b50))
-		buf.Write(u16le((3 << 8) + 30))       // version made by
-		buf.Write(u16le(20))                  // version needed
-		buf.Write(u16le(0x800))               // flags
-		buf.Write(u16le(e.method))            //
-		buf.Write(u16le(e.dosTime))           //
-		buf.Write(u16le(e.dosDate))           //
-		buf.Write(u32le(e.crc))               //
-		buf.Write(u32le(uint32(len(comp))))   //
-		buf.Write(u32le(uint32(len(e.data)))) //
-		buf.Write(u16le(uint16(len(e.name)))) //
-		buf.Write(u16le(uint16(len(extra))))  //
-		buf.Write(u16le(0))                   // comment len
-		buf.Write(u16le(0))                   // disk start
-		buf.Write(u16le(0))                   // internal attrs
-		buf.Write(u32le(e.mode << 16))        // external attrs
-		buf.Write(u32le(uint32(co.offset)))   // local header offset
-		buf.WriteString(e.name)
-		buf.Write(extra)
-	}
-	cdSize := buf.Len() - cdStart
-	buf.Write(u32le(0x06054b50))
-	buf.Write(u16le(0)) // disk
-	buf.Write(u16le(0)) // first disk
-	buf.Write(u16le(uint16(len(cdss))))
-	buf.Write(u16le(uint16(len(cdss))))
-	buf.Write(u32le(uint32(cdSize)))
-	buf.Write(u32le(uint32(cdStart)))
-	buf.Write(u16le(0)) // comment len
-
-	return buf.Bytes()
-}
-
-func zipUTTimestamp(extra []byte) (int64, bool) {
-	for i := 0; i+9 <= len(extra); {
-		id := binary.LittleEndian.Uint16(extra[i : i+2])
-		n := int(binary.LittleEndian.Uint16(extra[i+2 : i+4]))
-		if id == 0x5455 && n >= 5 {
-			return int64(binary.LittleEndian.Uint32(extra[i+5 : i+9])), true
-		}
-		if i+4+n > len(extra) {
-			break
-		}
-		i += 4 + n
-	}
-	return 0, false
-}
-
-func zipUTExtra(munix int64) []byte {
-	b := make([]byte, 9)
-	binary.LittleEndian.PutUint16(b[0:2], 0x5455)
-	binary.LittleEndian.PutUint16(b[2:4], 5)
-	b[4] = 1
-	binary.LittleEndian.PutUint32(b[5:9], uint32(munix))
-	return b
-}
-
-func u16le(v uint16) []byte { b := make([]byte, 2); binary.LittleEndian.PutUint16(b, v); return b }
-func u32le(v uint32) []byte { b := make([]byte, 4); binary.LittleEndian.PutUint32(b, v); return b }
-
-// WithoutRowidVTab marks the schema WITHOUT ROWID.
-func (v *zipfileVTab) WithoutRowid() bool { return true }
-
-// ZipScalar builds a single-entry archive for the zipfile() SQL scalar
-// function (zipfile.c's multi-argument scalar form).
-func ZipScalar(name string, mtime int64, data []byte, method uint16, mode uint32) ([]byte, error) {
-	if method != 0 && method != 8 {
-		return nil, fmt.Errorf("illegal method value: %d", method)
-	}
-	isDir := data == nil
-	if !isDir && strings.HasSuffix(name, "/") {
-		return nil, fmt.Errorf("non-directory name must not end with /")
-	}
-	e := newZipEntry(name, mode, mtime, method, data)
-	v := &zipfileVTab{dataArg: ""}
-	_ = v
-	var buf bytes.Buffer
-	comp := zipDeflate(e.method, e.data)
-	extra := zipUTExtra(e.munix)
-	buf.Write(u32le(0x04034b50))
-	buf.Write(u16le(20))
-	buf.Write(u16le(0x800))
-	buf.Write(u16le(e.method))
-	buf.Write(u16le(e.dosTime))
-	buf.Write(u16le(e.dosDate))
-	buf.Write(u32le(e.crc))
-	buf.Write(u32le(uint32(len(comp))))
-	buf.Write(u32le(uint32(len(e.data))))
-	buf.Write(u16le(uint16(len(e.name))))
-	buf.Write(u16le(uint16(len(extra))))
-	buf.WriteString(e.name)
-	buf.Write(extra)
-	buf.Write(comp)
-	off := buf.Len()
-	buf.Write(u32le(0x02014b50))
-	buf.Write(u16le((3 << 8) + 30))
-	buf.Write(u16le(20))
-	buf.Write(u16le(0x800))
-	buf.Write(u16le(e.method))
-	buf.Write(u16le(e.dosTime))
-	buf.Write(u16le(e.dosDate))
-	buf.Write(u32le(e.crc))
-	buf.Write(u32le(uint32(len(comp))))
-	buf.Write(u32le(uint32(len(e.data))))
-	buf.Write(u16le(uint16(len(e.name))))
-	buf.Write(u16le(uint16(len(extra))))
-	buf.Write(u16le(0))
-	buf.Write(u16le(0))
-	buf.Write(u16le(0))
-	buf.Write(u32le(e.mode << 16))
-	buf.Write(u32le(uint32(off)))
-	buf.WriteString(e.name)
-	buf.Write(extra)
-	cdSize := buf.Len() - off
-	buf.Write(u32le(0x06054b50))
-	buf.Write(u16le(0))
-	buf.Write(u16le(0))
-	buf.Write(u16le(1))
-	buf.Write(u16le(1))
-	buf.Write(u32le(uint32(cdSize)))
-	buf.Write(u32le(uint32(off)))
-	buf.Write(u16le(0))
-	return buf.Bytes(), nil
-}
-
-// ZipCdsSentinelPrefix marks a z-column value carrying cursor context for
-// the zipfile_cds() overload. SQLite passes a live cursor id through
-// xFindFunction; this port materializes rows eagerly, so the context is
-// encoded into the value itself (archive path + entry index).
-const ZipCdsSentinelPrefix = "\x1fzipcds:"
-
-// ZipCdsJSON rebuilds the central-directory-structure JSON that
-// zipfile.c's zipfile_cds() returns for one archive member.
-func ZipCdsJSON(path string, idx int) interface{} {
-	v := &zipfileVTab{filePath: path}
-	entries, err := v.loadEntries()
-	if err != nil || idx < 0 || idx >= len(entries) {
-		return nil
-	}
-	e := entries[idx]
-	return fmt.Sprintf(`{"version-made-by":%d,"version-to-extract":%d,"flags":%d,"compression":%d,"time":%d,"date":%d,"crc32":%d,"compressed-size":%d,"uncompressed-size":%d,"file-name-length":%d,"extra-field-length":%d,"file-comment-length":0,"disk-number-start":0,"internal-attr":0,"external-attr":%d,"offset":0}`,
-		3<<8|30, 20, 0x800, e.method, e.dosTime, e.dosDate, e.crc,
-		len(zipDeflate(e.method, e.data)), len(e.data), len(e.name), 9, e.mode<<16)
-}
-
-// ZipEntrySpec is one member accumulated by the zipfile() aggregate.
-type ZipEntrySpec struct {
-	Name   string
-	Mode   uint32
-	Mtime  int64
-	Method uint16
-	Data   []byte
-}
-
-// zipMemCeiling mirrors SQLite's largest single allocation (sqlite3Malloc
-// rejects nByte above 0x7fffff00 with SQLITE_NOMEM): assembling an archive
-// whose members exceed this cumulative staging size fails with "out of
-// memory" before any member payload is deflated (zipfile.test 23.0).
-const zipMemCeiling = int64(0x7fffff00)
-
-// ZipAgg implements the zipfile() aggregate (zipfile.c zipStep/xFinal):
-// each input row contributes one member and Final serializes the combined
-// archive. As an aggregate it yields exactly ONE blob per group — the
-// source of SQLite's INSERT INTO t SELECT zipfile(...) FROM t row counts.
-type ZipAgg struct {
-	entries    []ZipEntrySpec
-	stagedZero int64 // cumulative declared size of zeroblob members seen so far
-}
-
-// Step accumulates one member, validating like zipStep.
-func (z *ZipAgg) Step(args []interface{}) error {
-	// zipStep accepts exactly the 2-, 4-, and 5-argument forms.
-	if len(args) != 2 && len(args) != 4 && len(args) != 5 {
-		return fmt.Errorf("wrong number of arguments to function zipfile()")
-	}
-	if args[0] == nil {
-		return fmt.Errorf("first argument to zipfile() must be non-NULL")
-	}
-	name, _ := args[0].(string)
-	get := func(i int) interface{} {
-		if i < len(args) {
-			return args[i]
-		}
-		return nil
-	}
-	modeArg, mtimeArg, methodArg, dataArg := interface{}(nil), interface{}(nil), interface{}(nil), get(1)
-	if len(args) >= 4 {
-		modeArg, mtimeArg, dataArg = get(1), get(2), get(3)
-		methodArg = get(4)
-	}
-	mode := uint32(0) // zipFinalizeEntry defaults by kind
-	switch mv := modeArg.(type) {
-	case string:
-		parsed, perr := ZipParseModeText(mv)
-		if perr != nil {
-			return fmt.Errorf("zipfile: parse error in mode: %s", mv)
-		}
-		mode = parsed
-	default:
-		if modeArg != nil {
-			if n, ok := AsVtabInt64(modeArg); ok {
-				mode = uint32(n)
-			}
-		}
-	}
-	var mtime int64
-	if mtimeArg != nil {
-		if n, ok := AsVtabInt64(mtimeArg); ok {
-			mtime = n
-		}
-	}
-	method := uint16(0)
-	if methodArg != nil {
-		n, ok := AsVtabInt64(methodArg)
-		if !ok {
-			return fmt.Errorf("illegal method value: %v", methodArg)
-		}
-		method = uint16(n)
-		if method != 0 && method != 8 {
-			return fmt.Errorf("illegal method value: %d", n)
-		}
-	}
-	var data []byte
-	switch d := dataArg.(type) {
-	case string:
-		data = []byte(d)
-	case []byte:
-		data = d
-	case value.ZeroBlob:
-		// zeroblob(N) members stage lazily in SQLite: only the declared size
-		// matters until the archive is assembled. Crossing SQLite's largest
-		// single allocation fails the statement with NOMEM ("out of memory")
-		// exactly as sqlite3VdbeMemExpandBlob would.
-		z.stagedZero += int64(d.N)
-		if z.stagedZero > zipMemCeiling {
-			return fmt.Errorf("out of memory")
-		}
-		if d.N > 0 {
-			data = make([]byte, d.N) // zero-filled by allocation semantics
-		}
-	default:
-		if d != nil {
-			if n, ok := AsVtabInt64(d); ok {
-				data = []byte(strconv.FormatInt(n, 10))
-			}
-		}
-	}
-	if methodArg == nil && len(data) > 0 && len(zipDeflate(8, data)) < len(data) {
-		method = 8
-	}
-	if data != nil && len(name) > 0 && name[len(name)-1] == '/' {
-		return fmt.Errorf("non-directory name must not end with /")
-	}
-	entry, err := zipFinalizeEntry(name, mode, mtime, method, data)
-	if err != nil {
-		return err
-	}
-	z.entries = append(z.entries, ZipEntrySpec{
-		Name: entry.name, Mode: entry.mode, Mtime: entry.munix,
-		Method: entry.method, Data: entry.data,
-	})
-	return nil
-}
-
-// Final serializes the accumulated members into one archive blob.
-func (z *ZipAgg) Final() (interface{}, error) {
-	entries := make([]zipEntry, 0, len(z.entries))
-	for _, s := range z.entries {
-		entries = append(entries, newZipEntry(s.Name, s.Mode, s.Mtime, s.Method, s.Data))
-	}
-	out := zipSerialize(entries)
-	if len(out) > 1<<30 {
-		// C hits SQLITE_NOMEM assembling giant archives.
-		return nil, fmt.Errorf("out of memory")
-	}
-	return out, nil
-}
