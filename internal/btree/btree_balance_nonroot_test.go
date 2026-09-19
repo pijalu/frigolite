@@ -88,62 +88,61 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 	leftPg, _ = pg.ReadPage(2)
 	rightPg, _ = pg.ReadPage(3)
 
-	// Run balanceNonroot with iParentIdx = -1 (rightmost-child).
+	// Run balanceNonroot with iParentIdx = -1 (rightmost-child). The
+	// parent IS the btree root here, matching maybeRebalanceAfterDelete's
+	// isRoot plumbing.
 	ctx := &balanceNonrootContext{
 		parent:     parentPg,
 		iParentIdx: -1,
 		page:       rightPg,
+		isRoot:     true,
 	}
 	_, err := bt.balanceNonroot(ctx)
 	if err != nil {
 		t.Fatalf("balanceNonroot: %v", err)
 	}
 
-	// After balance: SQLite's positional page reuse (apNew[i] = apOld[i],
-	// src/btree.c:8617) keeps the LEFTMOST gathered page as the sole
-	// survivor and frees the surplus HIGHEST-numbered page
-	// (freePage(apOld[nNew..nOld)), src/btree.c:8960). Page 2 therefore
-	// holds all 3 cells and page 3 returns to the freelist. Freeing the
-	// rightmost page is what keeps the file truncatable from the right
-	// during auto/incremental vacuum (src/btree.c:3822-3984).
-	leftPg2, _ := pg.ReadPage(2)
-	lp, err := storage.ParsePage(leftPg2.Data, 1024, lcoff)
+	// After balance: the redistribution packs all 3 cells onto the
+	// leftmost gathered page (apNew[0] = apOld[0], src/btree.c:8617) and
+	// frees the surplus highest-numbered page (freePage(apOld[nNew..nOld)),
+	// src/btree.c:8960). The parent (the btree ROOT) is then left with 0
+	// dividers over that single child, which trips the balance_shallower
+	// absorption (isRoot && pParent->nCell==0, src/btree.c:8918-8943): the
+	// child's content is copied INTO the root — the root keeps its page
+	// number — and the child is freed. Page 1 therefore ends up the leaf
+	// holding rows 6/7/8 and BOTH children (2 and 3) return to the
+	// freelist. Freeing the highest-numbered pages is what keeps the file
+	// truncatable from the right during auto/incremental vacuum.
+	rootPg2, _ := pg.ReadPage(1)
+	rp, err := storage.ParsePage(rootPg2.Data, 1024, pcoff)
 	if err != nil {
-		t.Fatalf("ParsePage survivor (left sibling): %v", err)
+		t.Fatalf("ParsePage absorbed root: %v", err)
 	}
-	if lp.CellCount != 3 {
-		t.Errorf("survivor cell count: got %d, want 3", lp.CellCount)
+	if rp.PageType != storage.PageTypeLeafTable {
+		t.Errorf("absorbed root type: got %#02x, want leaf table", rp.PageType)
+	}
+	if rp.CellCount != 3 {
+		t.Errorf("absorbed root cell count: got %d, want 3", rp.CellCount)
 	}
 	// Verify the rowids are present and in ascending order (walk order).
 	var got []int64
-	for i := uint16(0); i < lp.CellCount; i++ {
-		cp := int(storage.CellPointer(leftPg2.Data, lcoff, int(i), 1024))
-		c, err := storage.DecodeCell(leftPg2.Data, cp, storage.CellTableLeaf, 1024)
+	for i := uint16(0); i < rp.CellCount; i++ {
+		cp := int(storage.CellPointer(rootPg2.Data, pcoff, int(i), 1024))
+		c, err := storage.DecodeCell(rootPg2.Data, cp, storage.CellTableLeaf, 1024)
 		if err != nil {
-			t.Errorf("survivor cell %d: decode: %v", i, err)
+			t.Errorf("absorbed root cell %d: decode: %v", i, err)
 			continue
 		}
 		got = append(got, c.RowID)
 	}
 	if len(got) != 3 || got[0] != 6 || got[1] != 7 || got[2] != 8 {
-		t.Errorf("survivor rowids: got %v, want [6 7 8]", got)
+		t.Errorf("absorbed root rowids: got %v, want [6 7 8]", got)
 	}
-	// The freed page's type byte is its freelist chain pointer.
+	// The emptied children return to the freelist.
+	if !pager.IsPageOnFreelist(pg, 2) {
+		t.Errorf("page 2 not on freelist after absorption")
+	}
 	if !pager.IsPageOnFreelist(pg, 3) {
 		t.Errorf("page 3 not on freelist after balance (surplus page must be freed)")
-	}
-	// The parent should now reference only the survivor (rightmost = 2),
-	// with no divider cells (a single child needs no divider).
-	parentPg2, _ := pg.ReadPage(1)
-	pp, err := storage.ParsePage(parentPg2.Data, 1024, pcoff)
-	if err != nil {
-		t.Fatalf("ParsePage parent: %v", err)
-	}
-	rmp := pp.RightmostPtr
-	if rmp != 2 {
-		t.Errorf("parent rightmost: got %d, want 2", rmp)
-	}
-	if pp.CellCount != 0 {
-		t.Errorf("parent cell count: got %d, want 0", pp.CellCount)
 	}
 }

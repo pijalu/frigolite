@@ -241,43 +241,12 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 		c0 = int(parent.CellCount) - (nOldFull - 1)
 	}
 	if bca.nCell() == 0 {
-		// All gathered cells vanished: every window sibling is empty.
-		// The window's children must be UNLINKED from the parent, not
-		// just freed — freeing them while their dividers remain makes
-		// every later walk read a freed page ("database disk image is
-		// malformed"). Drop the window's dividers (and the rightmost
-		// pointer when the window includes child CellCount), free the
-		// empty pages, then let the parent itself be collapsed upward
-		// if it lost its last child (cascadeChildless).
-		if c0 < 0 {
-			c0 = 0
+		handled, err := t.balanceAllEmptyWindow(ctx, parent, siblings, c0, c1, parentCo)
+		if err != nil || handled {
+			return ctx.parent, err
 		}
-		if c1 > int(parent.CellCount) {
-			c1 = int(parent.CellCount)
-		}
-		if c1-c0 > 0 {
-			if err := t.removeInteriorCellRange(ctx.parent, parent, c0, c1-c0); err != nil {
-				return nil, err
-			}
-		}
-		if c1 >= int(parent.CellCount) {
-			// The window includes the rightmost child: it is empty too —
-			// drop the reference.
-			binary.BigEndian.PutUint32(ctx.parent.Data[parentCo+8:parentCo+12], 0)
-		}
-		for _, sp := range siblings {
-			if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
-				return nil, err
-			}
-		}
-		if err := t.pager.WritePage(ctx.parent); err != nil {
-			return nil, fmt.Errorf("balanceNonroot: write parent: %w", err)
-		}
-		if err := t.cascadeChildless(ctx.parent.PageNum); err != nil {
-			return nil, err
-		}
-		return ctx.parent, nil
 	}
+
 	// Greedy packing: boundaries only advance when the current page is
 	// full, so every survivor receives at least one cell and every
 	// surplus (nNew..nOld) page is empty by construction. The per-page
@@ -318,6 +287,12 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 	// starts at the parent's first child) AND c1==CellCount (window ends
 	// at the parent's rightmost-child pointer).
 	coversParent := c0 <= 0 && c1 >= int(parent.CellCount)
+	if coversParent && nNewFull == 1 {
+		handled, err := t.balanceCoversSingleSurvivor(ctx, parent, siblings, c0, c1, parentCo)
+		if err != nil || handled {
+			return ctx.parent, err
+		}
+	}
 	if coversParent {
 		for _, sp := range siblings[nNewFull:] {
 			if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
@@ -368,7 +343,14 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 		}
 		// Uniform parent rebuild (balance_nonroot tail): one divider
 		// per survivor boundary, last survivor is the rightmost child.
+		// A single survivor leaves the parent with 0 dividers over one
+		// child — a passthrough husk — which cascadeChildless splices
+		// (balance_shallower); with more survivors the parent keeps
+		// nNew-1 >= 1 dividers and the cascade is a no-op.
 		if err := t.writeInteriorRootAt(ctx.parent.PageNum, children, seps); err != nil {
+			return nil, err
+		}
+		if err := t.cascadeChildless(ctx.parent.PageNum); err != nil {
 			return nil, err
 		}
 		return ctx.parent, nil
@@ -630,101 +612,6 @@ func readLastRowID(data []byte, coff int, cellType storage.CellType, usableSize,
 	return c.RowID
 }
 
-// cascadeChildless collapses interior pages that lost their last child.
-// After a balance frees an emptied subtree, an interior page may be left
-// with 0 cell-children and a dead rightmost pointer — SQLite's
-// balance_deeper/balance_shallower collapse these upward until a live
-// ancestor remains (src/btree.c:8115-8205). pnum is walked upward: a
-// non-root interior page with no live children has its reference dropped
-// from its own parent, is freed, and the check repeats one level up.
-// The root is rewritten as an empty leaf of the matching type.
-// A 0-cell interior page whose rightmost child is still live is left
-// alone (the single-child collapse is the documented shallower gap).
-func (t *BTree) cascadeChildless(pnum uint32) error {
-	for {
-		pg, err := t.pager.ReadPage(pnum)
-		if err != nil {
-			return err
-		}
-		coff := contentOffset(pnum)
-		page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-		if err != nil {
-			return err
-		}
-		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
-			return nil // leaf: nothing to collapse
-		}
-		rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-		if page.CellCount != 0 || (rmp != 0 && !pager.IsPageOnFreelist(t.pager, rmp)) {
-			return nil // the page still has live children
-		}
-		// No live children. Root: rewrite as an empty leaf and stop.
-		if pnum == t.rootPage {
-			if page.PageType == storage.PageTypeInteriorTable {
-				pg.Data[coff] = storage.PageTypeLeafTable
-			} else {
-				pg.Data[coff] = storage.PageTypeLeafIndex
-			}
-			binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0)
-			binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.pageSize))
-			pg.Data[coff+7] = 0
-			binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], 0)
-			pager.MarkPageDirtyForVacuum(t.pager, pnum)
-			return nil
-		}
-		// Non-root: unlink from the parent, free, and cascade upward.
-		parentPgno, _, err := t.findParentByWalk(pnum)
-		if err != nil {
-			return nil // no parent found; nothing to unlink
-		}
-		parentPg, err := t.pager.ReadPage(parentPgno)
-		if err != nil {
-			return err
-		}
-		pco := contentOffset(parentPg.PageNum)
-		parentPage, err := storage.ParsePage(parentPg.Data, int(t.pageSize), pco)
-		if err != nil {
-			return err
-		}
-		idx, err := t.findLeafIndexInParent(parentPg, pnum)
-		if err != nil {
-			return nil
-		}
-		if idx >= 0 {
-			if err := t.removeInteriorCellRange(parentPg, parentPage, idx, 1); err != nil {
-				return err
-			}
-		} else {
-			// pnum was the parent's RIGHTMOST child. A parent with n cells
-			// holds n+1 children; dropping the rightmost pointer alone would
-			// leave n cells with n children (an invalid node the cursor walk
-			// reads as "descend to page 0"). balance_shallower instead pulls
-			// the LAST divider up into the rightmost slot: the last cell's
-			// left child becomes the rightmost pointer and the cell count
-			// drops by one, keeping children == cells+1.
-			if parentPage.CellCount > 0 {
-				last := int(parentPage.CellCount) - 1
-				ptroff := cellPtrOffset(parentPage.PageType)
-				lastOff := int(binary.BigEndian.Uint16(parentPg.Data[pco+ptroff+last*2 : pco+ptroff+last*2+2]))
-				lastChild := binary.BigEndian.Uint32(parentPg.Data[lastOff : lastOff+4])
-				if err := t.removeInteriorCellRange(parentPg, parentPage, last, 1); err != nil {
-					return err
-				}
-				binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], lastChild)
-			} else {
-				binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], 0)
-			}
-		}
-		if err := t.pager.WritePage(parentPg); err != nil {
-			return err
-		}
-		if err := t.freePageWithPtrmap(pnum); err != nil {
-			return err
-		}
-		pnum = parentPgno
-	}
-}
-
 // removeInteriorCell removes cell i from an interior page. The
 // divider cell at index i is dropped; subsequent cells are
 // shifted down.
@@ -743,4 +630,324 @@ func (t *BTree) removeInteriorCell(pg *pager.Page, page *storage.BTreePage, i in
 	page.CellCount--
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
 	return nil
+}
+
+// balanceAllEmptyWindow handles the all-empty balance branch: every
+// gathered sibling held no cells. Returns handled=true when the caller is
+// done (it returns immediately).
+func (t *BTree) balanceAllEmptyWindow(ctx *balanceNonrootContext, parent *storage.BTreePage, siblings []*pager.Page, c0, c1, parentCo int) (bool, error) {
+	// All gathered cells vanished: every window sibling is empty.
+	// C-faithful all-empty balance (balance_nonroot with nCell==0): the
+	// window's children and their dividers all go away — every emptied
+	// child's key range is empty, so dropping its divider loses nothing —
+	// and only pages that keep a reference may survive. The previous port
+	// freed every window sibling while dropping only dividers [c0..c1)
+	// and zeroing the rightmost pointer based on the post-removal cell
+	// count, so the surviving divider d_c1 was left pointing at a FREED
+	// page. The next allocation re-issues that page number to a fresh
+	// leaf and the tree then holds one child under two parents ("2nd
+	// reference to page N" in sqlite3 integrity_check): seeks route
+	// through the stale divider into the reused page, REPLACE deletes
+	// miss the row it lands beside, and interior splits walk into the
+	// duplicate (fts4merge4 wipe-churn: "UNIQUE constraint failed:
+	// t2_segments.blockid", "interior rebalance did not converge",
+	// "database disk image is malformed"). The over-eager rmp-clear
+	// (c1 compared against the REDUCED cell count) additionally orphaned
+	// a live rightmost subtree OUTSIDE the window (98 "Page N: never
+	// used").
+	if c0 < 0 {
+		c0 = 0
+	}
+	if c1 > int(parent.CellCount) {
+		c1 = int(parent.CellCount)
+	}
+	nOrig := int(parent.CellCount)
+	fullWindow := nOrig-(c1-c0) == 0
+	if ctx.isRoot && fullWindow {
+		// Root absorption (balance-shallower, btree.c:8918-8943): the
+		// root's whole subtree is dead — rewrite the root (which keeps
+		// its page number; schema entries reference it) as an empty leaf
+		// and free every child.
+		for _, sp := range siblings {
+			if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
+				return true, err
+			}
+		}
+		coff := parentCo
+		if parent.PageType == storage.PageTypeInteriorTable {
+			ctx.parent.Data[coff] = storage.PageTypeLeafTable
+		} else {
+			ctx.parent.Data[coff] = storage.PageTypeLeafIndex
+		}
+		binary.BigEndian.PutUint16(ctx.parent.Data[coff+1:coff+3], 0)
+		binary.BigEndian.PutUint16(ctx.parent.Data[coff+3:coff+5], 0)
+		binary.BigEndian.PutUint16(ctx.parent.Data[coff+5:coff+7], uint16(t.usableSize))
+		ctx.parent.Data[coff+7] = 0
+		binary.BigEndian.PutUint32(ctx.parent.Data[coff+8:coff+12], 0)
+		pager.MarkPageDirtyForVacuum(t.pager, ctx.parent.PageNum)
+		return true, nil
+	}
+	if fullWindow {
+		// Non-root parent whose whole child set is in the window: the
+		// parent's subtree is dead — free every child, drop every divider
+		// and clear the rightmost pointer, and let the dead-child cascade
+		// unlink the parent itself (balance()'s upward walk). Keeping any
+		// emptied child alive under a divider is NOT an option:
+		// moveToChild (btree.c:77872) rejects every descended page with
+		// nCell<1, so an empty leaf may never sit below an interior page.
+		for _, sp := range siblings {
+			if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
+				return true, err
+			}
+		}
+		binary.BigEndian.PutUint32(ctx.parent.Data[parentCo+8:parentCo+12], 0)
+		binary.BigEndian.PutUint16(ctx.parent.Data[parentCo+3:parentCo+5], 0)
+		if err := t.pager.WritePage(ctx.parent); err != nil {
+			return true, fmt.Errorf("balanceNonroot: write parent: %w", err)
+		}
+		if err := t.cascadeChildless(ctx.parent.PageNum); err != nil {
+			return true, err
+		}
+		return true, nil
+	}
+	// Partial window: the parent keeps dividers OUTSIDE [c0..c1], so after
+	// dropping the window's dividers (INCLUDING d_c1 — child c1 is empty,
+	// and a surviving d_c1 was the stale-reference bug) and the rightmost
+	// pointer when the window holds it, the parent still holds at least
+	// one divider. Free every emptied window child.
+	dropCount := c1 - c0 + 1
+	if c1 >= nOrig {
+		dropCount = c1 - c0
+		binary.BigEndian.PutUint32(ctx.parent.Data[parentCo+8:parentCo+12], 0)
+	}
+	if dropCount > 0 {
+		if err := t.removeInteriorCellRange(ctx.parent, parent, c0, dropCount); err != nil {
+			return true, err
+		}
+	}
+	for _, sp := range siblings {
+		if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
+			return true, err
+		}
+	}
+	if err := t.pager.WritePage(ctx.parent); err != nil {
+		return true, fmt.Errorf("balanceNonroot: write parent: %w", err)
+	}
+	return true, nil
+}
+
+// balanceCoversSingleSurvivor handles coversParent with nNew==1: every
+// surviving cell fits one page, so most window children emptied. Keeps the
+// children that still hold cells under their original dividers, borrows a
+// divider for a single-survivor non-root parent, and absorbs a single
+// surviving child into the ROOT (balance_shallower, btree.c:8918-8943).
+// Returns handled=true.
+func (t *BTree) balanceCoversSingleSurvivor(ctx *balanceNonrootContext, parent *storage.BTreePage, siblings []*pager.Page, c0, c1, parentCo int) (bool, error) {
+	// Degenerate redistribution: every surviving cell fits on one page (a
+	// mass DELETE emptied most of the window's children).
+	ptrBase := parentCo + cellPtrOffset(parent.PageType)
+	cellCounts := make([]int, len(siblings))
+	survivor := -1 // first child with cells, -1 when none
+	for i, sp := range siblings {
+		spPage, perr := storage.ParsePage(sp.Data, int(t.pageSize), contentOffset(sp.PageNum))
+		if perr != nil {
+			return true, perr
+		}
+		cellCounts[i] = int(spPage.CellCount)
+		if spPage.CellCount > 0 && survivor < 0 {
+			survivor = i
+		}
+	}
+	if survivor < 0 {
+		return true, fmt.Errorf("balanceNonroot: coversParent with no surviving cells")
+	}
+	kept := make([]int, 0, 3)
+	for i := range siblings {
+		if cellCounts[i] > 0 {
+			kept = append(kept, i)
+		}
+	}
+	// Free every window child that is not kept. Kept children hold cells,
+	// so every child reference that survives points at a page with
+	// nCell>=1 (moveToChild, btree.c:77872, rejects descended pages with
+	// nCell<1 — empty leaves may never sit below an interior page).
+	keptSet := make(map[int]bool, len(kept))
+	for _, i := range kept {
+		keptSet[i] = true
+	}
+	for i, sp := range siblings {
+		if !keptSet[i] {
+			if err := t.freePageWithPtrmap(sp.PageNum); err != nil {
+				return true, err
+			}
+		}
+	}
+	if len(kept) >= 2 {
+		// Rewrite the parent over the kept (non-empty) children under
+		// their ORIGINAL dividers: cells do not move, keys stay
+		// monotonic, all children keep their depth, and the parent keeps
+		// kept-1 >= 1 dividers. This case must run BEFORE the root
+		// absorption below — absorbing only the FIRST non-empty child
+		// while freeing the rest destroyed every other non-empty sibling
+		// (18 schema rows lost in autovacuum-2.4.7's DROP loop).
+		children := make([]uint32, 0, len(kept))
+		seps := make([]uint64, 0, len(kept))
+		for _, i := range kept {
+			children = append(children, siblings[i].PageNum)
+			if i != kept[len(kept)-1] {
+				seps = append(seps, t.cellKeyAt(ctx.parent, ptrBase, c0+i))
+			}
+		}
+		if err := t.writeInteriorRootAt(ctx.parent.PageNum, children, seps); err != nil {
+			return true, err
+		}
+		return true, nil
+	}
+	if ctx.isRoot {
+		// Single non-empty child of the ROOT: balance_shallower
+		// (btree.c:8918-8943) absorbs it into the root page — the root
+		// keeps its page number and the emptied child is freed. When the
+		// child's content exceeds the root's (smaller) usable area the
+		// absorption is skipped, exactly like C's hdrOffset<=nFree guard,
+		// and the root stays an interior page over its single child.
+		if err := t.absorbSingleChildRoot(ctx.parent, parentCo, siblings[survivor].PageNum); err != nil {
+			if err == errRootAbsorbNoFit {
+				return true, nil
+			}
+			return true, err
+		}
+		return true, nil
+	}
+	// Exactly ONE child with cells: the parent cannot hold a divider over
+	// a single child (0 dividers = a husk), and keeping an emptied child
+	// under a divider is illegal. C's balance() walks up to the
+	// grandparent here and redistributes the dividers of the parent and
+	// its sibling INTERIOR pages, which hands this parent a divider from
+	// an adjacent sibling at the same level. Outcome-equivalent local
+	// transform: BORROW the outermost divider of an adjacent interior
+	// sibling that can spare one (>=2 dividers). The borrowed divider's
+	// child sits at the same depth as the surviving child and on the
+	// correct side of the borrowed key, so all invariants hold and the
+	// grandparent is untouched.
+	borrowed := false
+	if gpgno, _, gerr := t.findParentByWalk(ctx.parent.PageNum); gerr == nil {
+		gpg, rerr := t.pager.ReadPage(gpgno)
+		if rerr == nil {
+			gcoff := contentOffset(gpg.PageNum)
+			gpage, perr := storage.ParsePage(gpg.Data, int(t.pageSize), gcoff)
+			if perr == nil {
+				gn := int(gpage.CellCount)
+				gbase := gcoff + cellPtrOffset(gpage.PageType)
+				pidx, ferr := t.findLeafIndexInParent(gpg, ctx.parent.PageNum)
+				if ferr == nil {
+					// The parent's OWN bound at the grandparent: the divider
+					// key routing keys <= K_P to the parent (absent when the
+					// parent is the grandparent's rightmost child).
+					var kPOld uint64
+					hasKPOld := false
+					if pidx >= 0 {
+						kPOld = t.cellKeyAt(gpg, gbase, pidx)
+						hasKPOld = true
+					}
+					// candidate donor: the interior sibling IMMEDIATELY to
+					// the right of the parent (a LEFT donor is impossible:
+					// the left sibling's outermost child holds keys ABOVE
+					// the right sibling's remaining rows — moving it into
+					// the parent's low side breaks divider/leaf monotonic
+					// order, "Rowid N out of order" in sqlite3
+					// integrity_check — C's redistribution instead repacks
+					// the whole window's boundaries monotonically).
+					type cand struct {
+						pgno uint32
+						left bool
+					}
+					var cands []cand
+					if pidx >= 0 {
+						if pidx+1 <= gn-1 {
+							cp := storage.CellPointer(gpg.Data, gbase-8, pidx+1, int(t.pageSize))
+							cands = append(cands, cand{binary.BigEndian.Uint32(gpg.Data[cp : cp+4]), false})
+						} else {
+							r := binary.BigEndian.Uint32(gpg.Data[gcoff+8 : gcoff+12])
+							if r != 0 {
+								cands = append(cands, cand{r, false})
+							}
+						}
+					}
+					for _, cd := range cands {
+						dpg, derr := t.pager.ReadPage(cd.pgno)
+						if derr != nil {
+							continue
+						}
+						dcoff := contentOffset(dpg.PageNum)
+						dpage, dperr := storage.ParsePage(dpg.Data, int(t.pageSize), dcoff)
+						if dperr != nil || dpage.PageType != storage.PageTypeInteriorTable || int(dpage.CellCount) < 2 {
+							continue
+						}
+						// The donor's outermost divider (child + key).
+						var xi int
+						if cd.left {
+							xi = int(dpage.CellCount) - 1
+						}
+						xoff := int(binary.BigEndian.Uint16(dpg.Data[dcoff+cellPtrOffset(dpage.PageType)+xi*2:]))
+						x := binary.BigEndian.Uint32(dpg.Data[xoff : xoff+4])
+						k, _ := util.GetVarint(dpg.Data[xoff+4:])
+						if cd.left {
+							// Borrowed child holds the donor's LOWEST keys,
+							// below every surviving key: it becomes the
+							// parent's FIRST child, bounded by its own key.
+							// The grandparent's divider for the parent (K_P,
+							// which still bounds the surviving child and now
+							// X too) is unchanged.
+							if err := t.removeInteriorCellRange(dpg, dpage, xi, 1); err != nil {
+								return true, err
+							}
+							if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{x, siblings[survivor].PageNum}, []uint64{k}); err != nil {
+								return true, err
+							}
+						} else {
+							// Borrowed child holds keys just ABOVE the
+							// parent's old bound K_P: it becomes the parent's
+							// LAST child. The parent's internal divider stays
+							// K_P (bounding the surviving child), and the
+							// GRANDPARENT'S divider for the parent is re-keyed
+							// from K_P to K so the borrowed keys route into
+							// the parent.
+							if err := t.removeInteriorCellRange(dpg, dpage, 0, 1); err != nil {
+								return true, err
+							}
+							if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{siblings[survivor].PageNum, x}, []uint64{kPOld}); err != nil {
+								return true, err
+							}
+							if hasKPOld {
+								if err := t.removeInteriorCellRange(gpg, gpage, pidx, 1); err != nil {
+									return true, err
+								}
+								if err := t.insertInteriorDividerAt(gpg, gpage, pidx, ctx.parent.PageNum, k); err != nil {
+									return true, err
+								}
+								if err := t.pager.WritePage(gpg); err != nil {
+									return true, err
+								}
+							}
+						}
+						if err := t.pager.WritePage(dpg); err != nil {
+							return true, err
+						}
+						borrowed = true
+						break
+					}
+				}
+			}
+		}
+	}
+	if !borrowed {
+		// No donor available (every adjacent sibling is a 1-divider
+		// interior): leave the parent with the single survivor only — the
+		// transient 0-divider state C's balance() also produces before its
+		// upward cascade — rather than failing the delete.
+		if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{siblings[survivor].PageNum}, nil); err != nil {
+			return true, err
+		}
+	}
+	return true, nil
 }

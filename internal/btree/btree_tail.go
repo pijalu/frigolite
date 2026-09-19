@@ -14,19 +14,22 @@ import (
 
 func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error) {
 	var deleted int64
-	// Collect all leaf pages — the tree may have multiple levels.
-	var leaves []uint32
-	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
-		return 0, err
-	}
 	// The sweep runs in passes: balanceNonroot (invoked when a leaf
 	// empties) can redistribute surviving cells into a leaf that was
-	// already swept earlier in this pass. SQLite's row-by-row OP_Delete
-	// keeps its cursor position across balances; this bulk sweep instead
-	// re-runs the leaf list until a full pass deletes nothing, so no
-	// migrated cell is stranded.
+	// already swept earlier in this pass — and its root-absorption path
+	// can demote the interior root INTO a leaf holding surviving rows —
+	// so the leaf set is RE-COLLECTED at the start of every pass. The
+	// previous single collection never visited rows that moved onto the
+	// root page mid-sweep (DELETE FROM leaving 8 of 500 rows behind).
+	// SQLite's row-by-row OP_Delete keeps its cursor position across
+	// balances; this bulk sweep instead re-runs the leaf list until a
+	// full pass deletes nothing, so no migrated cell is stranded.
 	for {
 		passDeleted := int64(0)
+		var leaves []uint32
+		if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
+			return deleted, err
+		}
 		for _, leafNum := range leaves {
 			// balanceNonroot may have freed this page as a surplus empty
 			// sibling during an earlier iteration of this loop; a freed
@@ -171,7 +174,6 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	// tree walk (findParentByWalk) for now.
 	parentPgno, _, err := t.findParentByWalk(leafNum)
 	if err != nil {
-		// No parent (this leaf is the root) or already free.
 		return nil
 	}
 	parentPg, err := t.pager.ReadPage(parentPgno)
@@ -188,6 +190,7 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 		parent:     parentPg,
 		iParentIdx: iParentIdx,
 		page:       leafPg,
+		isRoot:     parentPgno == t.rootPage,
 	}
 	_, err = t.balanceNonroot(ctx)
 	return err
@@ -684,6 +687,7 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 			copy(pg.Data[start:start+len(cells[i].data)], cells[i].data)
 			binary.BigEndian.PutUint16(pg.Data[ptrBase+i*2:ptrBase+i*2+2], uint16(start))
 		}
+
 		page.CellContent = uint16(start)
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
 		// After compaction there is no fragmented free space.
