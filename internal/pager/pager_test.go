@@ -23,7 +23,7 @@ import (
 // chainCountsLocked walks the chain from header[32:36] and returns the
 // (trunkCount, leafCount) it sees. Caller holds p.mu.
 func chainCountsLocked(p *Pager) (int, int) {
-	if p.header == nil || len(p.header) < 40 {
+	if len(p.header) < 40 {
 		return 0, 0
 	}
 	trunk := 0

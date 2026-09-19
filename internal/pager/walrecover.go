@@ -62,76 +62,111 @@ func (w *walWriter) walIndexRecoverBodyLocked() error {
 		if _, err := w.file.ReadAt(buf, 0); err != nil {
 			return err
 		}
-		magic := binary.BigEndian.Uint32(buf[0:])
-		szPage := binary.BigEndian.Uint32(buf[8:])
-		// An invalid magic or page size means the WAL contains no valid
-		// data: recovery finishes with an empty wal-index (wal.c "finished").
-		if magic&0xFFFFFFFE != WalMagic || szPage&(szPage-1) != 0 ||
-			szPage > 65536 || szPage < 512 {
+		szPage, ck1, ck2, ok, err := w.parseRecoverHeaderLocked(buf)
+		if err != nil {
+			return err
+		}
+		if !ok {
 			return w.finishRecoveryLocked(aFrameCksum)
 		}
-		w.hdr.BigEndCksum = magic&1 != 0
-		w.nCkpt = binary.BigEndian.Uint32(buf[12:])
-		w.hdr.ASalt = [2]uint32{
-			binary.BigEndian.Uint32(buf[16:]),
-			binary.BigEndian.Uint32(buf[20:]),
-		}
-		// Verify the WAL header checksum; its value seeds the frame chain.
-		ck1, ck2 := WalChecksumBytes(w.hdr.BigEndCksum, buf[:WalHdrSize-8], 0, 0)
-		if ck1 != binary.BigEndian.Uint32(buf[24:]) ||
-			ck2 != binary.BigEndian.Uint32(buf[28:]) {
-			return w.finishRecoveryLocked(aFrameCksum)
-		}
-		// Verify the WAL format version (wal.c: SQLITE_CANTOPEN on mismatch).
-		if version := binary.BigEndian.Uint32(buf[4:]); version != WalMaxVersion {
-			return fmt.Errorf("pager: open wal %s: unable to open database file", w.path)
-		}
-
 		// Walk the frames. C builds the hash tables in a private zeroed
 		// buffer and memcpy's page-by-page into the wal-index; slice 1 runs
 		// under the registry writer section, so the (pre-zeroed) shared
 		// buffers are populated directly.
-		frameSize := int64(szPage) + WalFrameHdrSize
-		iLastFrame := (nSize - WalHdrSize) / frameSize
-		for iPg := 0; iPg <= walFramePageOf(uint32(iLastFrame)); iPg++ {
-			loc := newWalHashLoc(w.wi.pageLocked(iPg), iPg)
-			loc.zeroMapping()
-			w.wi.markDirtyLocked(iPg)
-		}
-		for iFrame := int64(1); iFrame <= iLastFrame; iFrame++ {
-			off := walFrameOffset(int(iFrame), szPage)
-			fh := make([]byte, WalFrameHdrSize)
-			if _, err := w.file.ReadAt(fh, off); err != nil {
-				break // short read: torn frame
-			}
-			data := make([]byte, szPage)
-			if _, err := w.file.ReadAt(data, off+WalFrameHdrSize); err != nil {
-				break
-			}
-			// walDecodeFrame: salts must match the WAL header and the
-			// cumulative checksum must equal the frame's stored pair.
-			ck1, ck2 = WalChecksumBytes(w.hdr.BigEndCksum, fh[:8], ck1, ck2)
-			ck1, ck2 = WalChecksumBytes(w.hdr.BigEndCksum, data, ck1, ck2)
-			if binary.BigEndian.Uint32(fh[8:]) != w.hdr.ASalt[0] ||
-				binary.BigEndian.Uint32(fh[12:]) != w.hdr.ASalt[1] ||
-				ck1 != binary.BigEndian.Uint32(fh[16:]) ||
-				ck2 != binary.BigEndian.Uint32(fh[20:]) {
-				break
-			}
-			pgno := binary.BigEndian.Uint32(fh[0:])
-			if err := w.wi.appendLocked(uint32(iFrame), pgno, 0); err != nil {
-				return err
-			}
-			// A non-zero nTruncate marks the commit record (wal.c mxFrame).
-			if nTruncate := binary.BigEndian.Uint32(fh[4:]); nTruncate != 0 {
-				w.hdr.MxFrame = uint32(iFrame)
-				w.hdr.NPage = nTruncate
-				setPageSizeForHdr(&w.hdr, szPage)
-				aFrameCksum = [2]uint32{ck1, ck2}
-			}
+		aFrameCksum, err = w.recoverWalkFramesLocked(nSize, szPage, ck1, ck2)
+		if err != nil {
+			return err
 		}
 	}
 	return w.finishRecoveryLocked(aFrameCksum)
+}
+
+// parseRecoverHeaderLocked validates the -wal header for recovery: magic,
+// page size (power of two in [512, 65536]), header checksum, and format
+// version. ok=false means the WAL contains no valid data — recovery
+// finishes with an empty wal-index (wal.c "finished"). A version mismatch
+// is the SQLITE_CANTOPEN family error. On success the recovered header
+// fields (BigEndCksum, nCkpt, ASalt) are adopted into w.hdr and the header
+// checksum seeds (ck1/ck2) are returned for the frame chain. Caller holds
+// the CKPT+RECOVER range and the wal-index writer section.
+func (w *walWriter) parseRecoverHeaderLocked(buf []byte) (szPage, ck1, ck2 uint32, ok bool, err error) {
+	magic := binary.BigEndian.Uint32(buf[0:])
+	szPage = binary.BigEndian.Uint32(buf[8:])
+	// An invalid magic or page size means the WAL contains no valid
+	// data: recovery finishes with an empty wal-index (wal.c "finished").
+	if magic&0xFFFFFFFE != WalMagic || szPage&(szPage-1) != 0 ||
+		szPage > 65536 || szPage < 512 {
+		return 0, 0, 0, false, nil
+	}
+	w.hdr.BigEndCksum = magic&1 != 0
+	w.nCkpt = binary.BigEndian.Uint32(buf[12:])
+	w.hdr.ASalt = [2]uint32{
+		binary.BigEndian.Uint32(buf[16:]),
+		binary.BigEndian.Uint32(buf[20:]),
+	}
+	// Verify the WAL header checksum; its value seeds the frame chain.
+	ck1, ck2 = WalChecksumBytes(w.hdr.BigEndCksum, buf[:WalHdrSize-8], 0, 0)
+	if ck1 != binary.BigEndian.Uint32(buf[24:]) ||
+		ck2 != binary.BigEndian.Uint32(buf[28:]) {
+		return 0, 0, 0, false, nil
+	}
+	// Verify the WAL format version (wal.c: SQLITE_CANTOPEN on mismatch).
+	if version := binary.BigEndian.Uint32(buf[4:]); version != WalMaxVersion {
+		return 0, 0, 0, false, fmt.Errorf("pager: open wal %s: unable to open database file", w.path)
+	}
+	return szPage, ck1, ck2, true, nil
+}
+
+// recoverWalkFramesLocked walks every frame of the -wal (wal.c's recovery
+// frame loop): each frame's cumulative checksum is advanced over its header
+// and data (walDecodeFrame validity rules), a frame failing the salt or
+// checksum check stops the walk (torn/invalid tail), and each valid frame's
+// pgno→frame mapping is appended to the shared hash tables. A non-zero
+// nTruncate marks the commit record (wal.c mxFrame). Returns the checksum
+// chain at the last commit record. Caller holds the CKPT+RECOVER range and
+// the wal-index writer section.
+func (w *walWriter) recoverWalkFramesLocked(nSize int64, szPage uint32, ck1, ck2 uint32) ([2]uint32, error) {
+	var aFrameCksum [2]uint32
+	frameSize := int64(szPage) + WalFrameHdrSize
+	iLastFrame := (nSize - WalHdrSize) / frameSize
+	for iPg := 0; iPg <= walFramePageOf(uint32(iLastFrame)); iPg++ {
+		loc := newWalHashLoc(w.wi.pageLocked(iPg), iPg)
+		loc.zeroMapping()
+		w.wi.markDirtyLocked(iPg)
+	}
+	for iFrame := int64(1); iFrame <= iLastFrame; iFrame++ {
+		off := walFrameOffset(int(iFrame), szPage)
+		fh := make([]byte, WalFrameHdrSize)
+		if _, err := w.file.ReadAt(fh, off); err != nil {
+			break // short read: torn frame
+		}
+		data := make([]byte, szPage)
+		if _, err := w.file.ReadAt(data, off+WalFrameHdrSize); err != nil {
+			break
+		}
+		// walDecodeFrame: salts must match the WAL header and the
+		// cumulative checksum must equal the frame's stored pair.
+		ck1, ck2 = WalChecksumBytes(w.hdr.BigEndCksum, fh[:8], ck1, ck2)
+		ck1, ck2 = WalChecksumBytes(w.hdr.BigEndCksum, data, ck1, ck2)
+		if binary.BigEndian.Uint32(fh[8:]) != w.hdr.ASalt[0] ||
+			binary.BigEndian.Uint32(fh[12:]) != w.hdr.ASalt[1] ||
+			ck1 != binary.BigEndian.Uint32(fh[16:]) ||
+			ck2 != binary.BigEndian.Uint32(fh[20:]) {
+			break
+		}
+		pgno := binary.BigEndian.Uint32(fh[0:])
+		if err := w.wi.appendLocked(uint32(iFrame), pgno, 0); err != nil {
+			return aFrameCksum, err
+		}
+		// A non-zero nTruncate marks the commit record (wal.c mxFrame).
+		if nTruncate := binary.BigEndian.Uint32(fh[4:]); nTruncate != 0 {
+			w.hdr.MxFrame = uint32(iFrame)
+			w.hdr.NPage = nTruncate
+			setPageSizeForHdr(&w.hdr, szPage)
+			aFrameCksum = [2]uint32{ck1, ck2}
+		}
+	}
+	return aFrameCksum, nil
 }
 
 // finishRecoveryLocked publishes the recovered header and resets the
