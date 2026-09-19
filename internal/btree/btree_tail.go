@@ -385,59 +385,6 @@ func (t *BTree) deleteIndexEntryFromLeafBatch(leafNum uint32, targets [][]byte) 
 	return len(deletedIdx), nil
 }
 
-// deleteIndexEntryFromLeaf removes the cells on one index leaf whose FULL
-// payload equals target. Unlike deleteAllMatchingFromLeaf's predicate
-// callback (which deliberately receives LOCAL-only payloads for FTS
-// performance), index-entry deletion must compare the complete record:
-// an overflowing index cell's local bytes are a prefix of the target and
-// would never match without reassembly (readOverflow).
-func (t *BTree) deleteIndexEntryFromLeaf(leafNum uint32, target []byte) (bool, error) {
-	pg, err := t.pager.ReadPage(leafNum)
-	if err != nil {
-		return false, err
-	}
-	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-	if err != nil {
-		return false, err
-	}
-	if page.PageType != storage.PageTypeLeafIndex {
-		return false, nil
-	}
-	encoded := make([][]byte, 0, int(page.CellCount))
-	decoded := make([]storage.Cell, int(page.CellCount))
-	for i := 0; i < int(page.CellCount); i++ {
-		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))
-		c, derr := storage.DecodeCell(pg.Data, int(p), storage.CellIndexLeaf, int(t.usableSize))
-		if derr != nil {
-			return false, derr
-		}
-		decoded[i] = *c
-		encoded = append(encoded, storage.EncodeCell(c))
-	}
-	var keep []int
-	var deletedIdx []int
-	for i := 0; i < len(encoded); i++ {
-		full, ferr := t.readOverflow(&decoded[i])
-		if ferr != nil {
-			return false, ferr
-		}
-		match := bytes.Equal(full.Payload, target)
-		if match {
-			deletedIdx = append(deletedIdx, i)
-			continue
-		}
-		keep = append(keep, i)
-	}
-	if len(deletedIdx) == 0 {
-		return false, nil
-	}
-	if _, err := t.finishLeafDelete(pg, page, encoded, keep, decoded, deletedIdx, int64(len(deletedIdx))); err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
 // findLeafIndexInParent returns the cell-pointer index of leaf in
 // parentPg's cell array, or -1 if leaf is the rightmost-child.
 // Returns 0 for the leftmost cell-child.
@@ -541,8 +488,9 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 // finishLeafDelete completes a leaf-cell deletion: it frees the deleted
 // cells' overflow-page chains, rewrites the surviving cells contiguously
 // from the end of the usable area, and persists the page. Shared by
-// deleteAllMatchingFromLeaf (predicate deletes) and deleteIndexEntryFromLeaf
-// (full-payload index-entry deletes). `encoded` holds each cell's encoded
+// deleteAllMatchingFromLeaf (predicate deletes) and
+// deleteIndexEntryFromLeafBatch (full-payload index-entry deletes).
+// `encoded` holds each cell's encoded
 // bytes, `keep` the survivor indices, `decoded`/`deletedIdx` the decoded
 // cells whose overflow chains must be freed, and `deleted` the running
 // deletion count.

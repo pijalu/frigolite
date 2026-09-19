@@ -43,7 +43,6 @@ type balanceNonrootContext struct {
 	parent     *pager.Page // parent interior page
 	iParentIdx int         // index of the page being balanced in parent's cell pointer array (-1 == rightmost-child)
 	page       *pager.Page // the page being balanced
-	aOvflSpace []byte      // page-size bytes of overflow scratch (unused in our simplified port)
 	isRoot     bool        // true if parent is the btree root
 }
 
@@ -579,21 +578,6 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 	return nil
 }
 
-// readFirstRowID returns the rowid of the first cell of a table-leaf
-// page (its decoded header is parsed from the raw page bytes).
-func readFirstRowID(data []byte, coff int, cellType storage.CellType, usableSize, pageSize int) int64 {
-	page, err := storage.ParsePage(data, pageSize, coff)
-	if err != nil || page.CellCount == 0 {
-		return 0
-	}
-	cp := storage.CellPointer(data, coff, 0, usableSize)
-	c, err := storage.DecodeCell(data, int(cp), cellType, usableSize)
-	if err != nil {
-		return 0
-	}
-	return c.RowID
-}
-
 // readLastRowID returns the rowid of the LAST cell of a table-leaf page.
 // Used by balanceNonroot's divider convention: each separator between
 // sibling i and sibling i+1 is the LAST rowid of sibling i (sqlite3
@@ -610,26 +594,6 @@ func readLastRowID(data []byte, coff int, cellType storage.CellType, usableSize,
 		return 0
 	}
 	return c.RowID
-}
-
-// removeInteriorCell removes cell i from an interior page. The
-// divider cell at index i is dropped; subsequent cells are
-// shifted down.
-func (t *BTree) removeInteriorCell(pg *pager.Page, page *storage.BTreePage, i int) error {
-	coff := contentOffset(pg.PageNum)
-	ptrBase := coff + cellPtrOffset(page.PageType) - 8
-	for k := i; k < int(page.CellCount)-1; k++ {
-		src := ptrBase + (k+1)*2 + 8
-		dst := ptrBase + k*2 + 8
-		copy(pg.Data[dst:dst+2], pg.Data[src:src+2])
-	}
-	// Zero the last pointer slot.
-	zp := ptrBase + (int(page.CellCount)-1)*2 + 8
-	pg.Data[zp] = 0
-	pg.Data[zp+1] = 0
-	page.CellCount--
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
-	return nil
 }
 
 // balanceAllEmptyWindow handles the all-empty balance branch: every

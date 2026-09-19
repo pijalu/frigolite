@@ -1132,15 +1132,6 @@ func (t *BTree) cellKeyAt(pg *pager.Page, ptrBase, idx int) uint64 {
 	return k
 }
 
-// setCellKeyAt rewrites the divider key of the interior cell at idx. The
-// varint is written in place — divider keys are rowids whose width can grow,
-// so the caller must reserve room via the same 14-byte slack used by
-// applyChildSplits' room check.
-func (t *BTree) setCellKeyAt(pg *pager.Page, ptrBase, idx int, key uint64) {
-	off := int(binary.BigEndian.Uint16(pg.Data[ptrBase+idx*2 : ptrBase+idx*2+2]))
-	util.PutVarint(pg.Data[off+4:], key)
-}
-
 func (t *BTree) encodeInteriorCell(leftChild uint32, rowID uint64) []byte {
 	ridLen := util.VarintLen(rowID)
 	buf := make([]byte, 4+ridLen)

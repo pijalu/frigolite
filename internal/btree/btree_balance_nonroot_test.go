@@ -85,7 +85,6 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 
 	// Re-read everything (pager may have invalidated buffers).
 	parentPg, _ = pg.ReadPage(1)
-	leftPg, _ = pg.ReadPage(2)
 	rightPg, _ = pg.ReadPage(3)
 
 	// Run balanceNonroot with iParentIdx = -1 (rightmost-child). The

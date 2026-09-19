@@ -53,35 +53,6 @@ func (h *btreeHarness) insert() {
 	h.live[id] = cell.Payload
 }
 
-func (h *btreeHarness) overwrite() {
-	if h.next < 4 {
-		return
-	}
-	id := h.next - 2
-	pl := []byte(fmt.Sprintf("over-%d", id))
-	cell := &storage.Cell{Type: storage.CellTableLeaf, RowID: id, Payload: pl}
-	if err := h.tr.InsertCell(cell); err != nil {
-		h.t.Fatalf("overwrite %d: %v", id, err)
-	}
-	h.live[id] = pl
-}
-
-func (h *btreeHarness) deleteRange() {
-	from := h.next - 9
-	if from < 1 {
-		from = 1
-	}
-	to := from + 4
-	if _, err := h.tr.DeleteCellsWhere(func(c *storage.Cell) bool {
-		return c.RowID >= from && c.RowID <= to
-	}); err != nil {
-		h.t.Fatalf("delete [%d..%d]: %v", from, to, err)
-	}
-	for id := from; id <= to; id++ {
-		delete(h.live, id)
-	}
-}
-
 func (h *btreeHarness) verify(context string) {
 	// Full walk: reachable leaves must yield exactly the live keys in order.
 	var leaves []uint32
@@ -370,42 +341,6 @@ func (h *btreeHarness) dupCrossPageParents() string {
 		}
 	}
 	return msg
-}
-
-// dupChildRefs returns a description of any child page referenced more than
-// once across all interior pages, or "" when clean.
-func (h *btreeHarness) dupChildRefs() string {
-	seen := map[uint32]uint32{}
-	msg := ""
-	for pn := uint32(2); pn < 4000; pn++ {
-		pg, rerr := h.tr.pager.ReadPage(pn)
-		if rerr != nil || pg == nil {
-			continue
-		}
-		coff := contentOffset(pg.PageNum)
-		page, perr := storage.ParsePage(pg.Data, int(h.tr.pageSize), coff)
-		if perr != nil || page.PageType != storage.PageTypeInteriorTable {
-			continue
-		}
-		counts := map[uint32]int{}
-		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pg.Data, coff+4, i, int(h.tr.pageSize)))
-			child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-			counts[child]++
-			k, _ := util.GetVarint(pg.Data[cellOff+4:])
-			_ = k
-		}
-		for child, n := range counts {
-			if n > 1 {
-				seen[child] += uint32(n)
-			}
-		}
-		_ = msg
-	}
-	for child := range seen {
-		return fmt.Sprintf("child %d multi-referenced", child)
-	}
-	return ""
 }
 
 func TestBtreeDuplicateTrace(t *testing.T) {

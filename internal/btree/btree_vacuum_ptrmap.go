@@ -8,7 +8,6 @@ package btree
 
 import (
 	"encoding/binary"
-	"errors"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -79,81 +78,6 @@ func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
 		}
 	}
 	return nil
-}
-
-// findParentInOverflowChain walks the btree rooted at `rootPgno`
-// looking for `target` as the overflow next-pointer of any leaf
-// cell. Overflow pages are not btree children — they hang off
-// leaf cells — so a separate scan is needed. Returns the owning
-// cell's page number on success, errNotInBtree if `target` is not
-// in the chain.
-func (t *BTree) findParentInOverflowChain(rootPgno, target uint32) (uint32, error) {
-	if rootPgno == 0 {
-		return 0, errNotInBtree
-	}
-	if pager.IsPageOnFreelist(t.pager, rootPgno) {
-		return 0, errNotInBtree
-	}
-	pg, err := t.pager.ReadPage(rootPgno)
-	if err != nil {
-		return 0, err
-	}
-	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-	if err != nil {
-		return 0, err
-	}
-	var cellType storage.CellType
-	var ptrBase int
-	switch page.PageType {
-	case storage.PageTypeLeafTable:
-		cellType = storage.CellTableLeaf
-		ptrBase = coff
-	case storage.PageTypeLeafIndex:
-		cellType = storage.CellIndexLeaf
-		ptrBase = coff
-	case storage.PageTypeInteriorTable:
-		cellType = storage.CellTableInterior
-		ptrBase = coff + cellPtrOffset(page.PageType) - 8
-	case storage.PageTypeInteriorIndex:
-		cellType = storage.CellIndexInterior
-		ptrBase = coff + cellPtrOffset(page.PageType) - 8
-	default:
-		return 0, errNotInBtree
-	}
-	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
-		if cellOff+4 > len(pg.Data) {
-			continue
-		}
-		c, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.usableSize))
-		if err != nil {
-			continue
-		}
-		if c.Overflow == target {
-			return pg.PageNum, nil
-		}
-		if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
-			if c.LeftPtr != 0 {
-				if p, err := t.findParentInOverflowChain(c.LeftPtr, target); err == nil {
-					return p, nil
-				} else if !errors.Is(err, errNotInBtree) {
-					return 0, err
-				}
-			}
-		}
-	}
-	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
-		rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-		if rmp != 0 {
-			if p, err := t.findParentInOverflowChain(rmp, target); err == nil {
-				return p, nil
-			} else if !errors.Is(err, errNotInBtree) {
-				return 0, err
-			}
-		}
-	}
-	return 0, errNotInBtree
 }
 
 // schemaCursor opens a cursor on the schema btree (rooted at page 1).

@@ -88,20 +88,6 @@ func (b *balanceCellArray) finalizeRegionEnds(pageEnds []int) {
 	b.regionEnd = append(b.regionEnd, 0x7FFFFFFF)
 }
 
-// cellEnd returns apEnd[ix] for cell i. Mirrors the C b.ixNx[]
-// walk: for k such that ixNx[k]<=i<ixNx[k+1], apEnd[k].
-func (b *balanceCellArray) cellEnd(i int) int {
-	for k := 0; k < len(b.regionIx)-1; k++ {
-		if i < b.regionIx[k+1] {
-			return b.regionEnd[k]
-		}
-	}
-	if len(b.regionEnd) == 0 {
-		return 0x7FFFFFFF
-	}
-	return b.regionEnd[len(b.regionEnd)-1]
-}
-
 // nCell returns the number of cells in the array.
 func (b *balanceCellArray) nCell() int { return len(b.cells) }
 
@@ -159,51 +145,6 @@ func (t *BTree) rebuildPage(pg *pager.Page, b *balanceCellArray, iFirst, nCell i
 	pg.Data[coff+7] = 0                                               // frag free
 	_ = page
 	return nil
-}
-
-// pageInsertArray inserts cells from b (in the range [iFirst, iFirst+nCell))
-// into pg's cell content area. pData is the current end-of-content
-// (lowest byte) — cells grow downward from there. pCellptr is the
-// current end of the cell pointer array — cell pointers grow upward
-// from there. The caller has pre-allocated space for both.
-//
-// Returns 0 on success, 1 if cells don't fit (caller should defragment
-// or rebuild).
-//
-// Reference: src/btree.c::pageInsertArray (line 7723).
-func (t *BTree) pageInsertArray(pg *pager.Page, pBegin int, pData *int, pCellptr *int, b *balanceCellArray, iFirst, nCell int) int {
-	if nCell <= 0 {
-		return 0
-	}
-	usableStart := int(t.usableSize)
-	for i := iFirst; i < iFirst+nCell; i++ {
-		c := b.cells[i]
-		if *pData-len(c.cells) < pBegin {
-			return 1
-		}
-		*pData -= len(c.cells)
-		copy(pg.Data[*pData:*pData+len(c.cells)], c.cells)
-		binary.BigEndian.PutUint16(pg.Data[*pCellptr:*pCellptr+2], uint16(*pData))
-		*pCellptr += 2
-		_ = usableStart
-	}
-	return 0
-}
-
-// pageFreeArray returns the number of cells that were in pg's
-// aData region (i.e. cells whose backing memory was in pg.Data,
-// not in the divider-cell aSpace1 buffer). The C version uses
-// pointer arithmetic to test this; we approximate by checking
-// whether the cell bytes' start address falls within pg.Data's
-// backing array. In our Go model this is approximated as "every
-// cell whose data isn't a copy from aSpace1" — for the rebalance
-// tests, every cell that is removed came from a real page, so
-// this returns nCell.
-//
-// Reference: src/btree.c::pageFreeArray (line 7780).
-func (t *BTree) pageFreeArray(pg *pager.Page, b *balanceCellArray, iFirst, nCell int) int {
-	_ = pg
-	return nCell
 }
 
 // editPage applies a cell redistribution to pg. It removes the
