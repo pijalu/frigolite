@@ -88,31 +88,6 @@ func (e *SelectEngine) fts5PrepareAux(where sql.Expr, t5 *fts5.Table, hasMatch b
 	return t5.PrepareAuxMulti(constraints)
 }
 
-// firstFTS5MatchConstraint extracts the first MATCH conjunct's query string
-// and column restriction for the given fts5 table.
-func (e *SelectEngine) firstFTS5MatchConstraint(where sql.Expr, t5 *fts5.Table) (string, int, bool) {
-	for _, conjunct := range fts5TopLevelConjuncts(where) {
-		bop, ok := conjunct.(*sql.BinaryOp)
-		if !ok || bop.Operator != "MATCH" {
-			continue
-		}
-		col, applies := fts5MatchConstraintColumn(bop.Left, t5)
-		if !applies {
-			continue
-		}
-		qv, err := e.ctx.EvalExpr(bop.Right, nil)
-		if err != nil {
-			return "", -1, false
-		}
-		q, ok := util.UnwrapColumnValue(qv).(string)
-		if !ok {
-			continue
-		}
-		return q, col, true
-	}
-	return "", -1, false
-}
-
 // fts5RankOverride resolves the WHERE's `rank MATCH '...'` / `rank = '...'`
 // constraint (the per-cursor rank function override; fts5_main.c
 // fts5BestIndexMethod treats MATCH and EQ on the rank HIDDEN column as the

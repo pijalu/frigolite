@@ -147,31 +147,3 @@ func wrRemapToDeclared(values []interface{}, order []int, colDefs []sql.ColumnDe
 	}
 }
 
-// wrRemapRowMapsToDeclared rebuilds row maps whose values were captured in
-// storage order back into declared-order maps. Values are looked up by
-// column name so wrapped ColumnValue/collation wrappers survive intact.
-func wrRemapRowMapsToDeclared(maps []RowMap, order []int, colDefs []sql.ColumnDef) []RowMap {
-	out := make([]RowMap, len(maps))
-	for i, m := range maps {
-		nm := make(RowMap, len(m))
-		for k, v := range m {
-			nm[k] = v
-		}
-		if len(order) == len(colDefs) {
-			storageVals := make([]interface{}, len(colDefs))
-			for s, di := range order {
-				if di < len(colDefs) {
-					storageVals[s] = m[colDefs[di].Name]
-				}
-			}
-			wrRemapToDeclared(storageVals, order, colDefs)
-			for di, cd := range colDefs {
-				if di < len(storageVals) {
-					nm[cd.Name] = storageVals[di]
-				}
-			}
-		}
-		out[i] = nm
-	}
-	return out
-}

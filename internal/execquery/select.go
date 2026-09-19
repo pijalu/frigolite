@@ -695,6 +695,20 @@ func (e *SelectEngine) execSelectOuterAgg(s *sql.SelectStmt, allRowMaps []RowMap
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 
+// evalLimitOffsetExprs evaluates a statement's LIMIT and OFFSET expressions
+// (either may be nil) via evalLimitExpr.
+func (e *SelectEngine) evalLimitOffsetExprs(limit, offset sql.Expr) (sql.Expr, sql.Expr, error) {
+	lExpr, lErr := e.evalLimitExpr(limit)
+	if lErr != nil {
+		return nil, nil, lErr
+	}
+	oExpr, oErr := e.evalLimitExpr(offset)
+	if oErr != nil {
+		return nil, nil, oErr
+	}
+	return lExpr, oExpr, nil
+}
+
 // evalLimitExpr evaluates a LIMIT/OFFSET expression (which may be a scalar
 // subquery) to a numeric literal so applyLimitOffset can consume it. When
 // evaluation fails or the value is not numeric (e.g. a correlated expression),

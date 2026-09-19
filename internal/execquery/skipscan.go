@@ -78,94 +78,6 @@ func hasTopLevelOR(expr sql.Expr) bool {
 	return false
 }
 
-// commonOrBranchConstraints and splitTopLevelOr remain available for future
-// per-branch skip-scan work in the OR-index optimization
-// (internal/execdml/or.go::bestIndexForOrBranch). The skip-scan path itself
-// bails on top-level OR for now (see trySkipScanPlan), so these helpers are
-// not exercised at runtime. Keep them around for the planned OR-with-skip-
-// scan follow-on.
-
-// commonOrBranchConstraints returns the columns that are constrained by EVERY
-// top-level OR branch (intersection of branch constraint sets), along with a
-// synthetic WHERE expression composed only of the universally-constrained
-// column predicates. SQLite's per-branch OR optimization gives each branch its
-// own skip-scan WhereLoop (or regular lookup); we approximate that with a
-// common-prefix WHERE that the skip-scan planner then handles identically.
-//
-// For the skip-scan EQP output, this returns a plan where the unconstrained
-// leading cols come from any branch variation (ANY), and the constrained cols
-// are the ones present in every branch (so they're always constrained when
-// skip-scan iterates).
-func commonOrBranchConstraints(where sql.Expr, tableName string) (map[string]bool, sql.Expr) {
-	branches := splitTopLevelOr(where)
-	if len(branches) < 2 {
-		return nil, where
-	}
-	common := constrainedColumnNames(branches[0], tableName)
-	if len(common) == 0 {
-		return nil, where
-	}
-	for _, br := range branches[1:] {
-		cols := constrainedColumnNames(br, tableName)
-		for c := range common {
-			if !cols[c] {
-				delete(common, c)
-			}
-		}
-	}
-	if len(common) == 0 {
-		return nil, where
-	}
-	var parts []sql.Expr
-	for _, br := range branches {
-		walkExpr(br, func(e sql.Expr) {
-			bin, ok := e.(*sql.BinaryOp)
-			if !ok {
-				return
-			}
-			if bin.Operator == "AND" || bin.Operator == "OR" {
-				return
-			}
-			col, ok := bin.Left.(*sql.ColumnRef)
-			if !ok {
-				return
-			}
-			if col.Table != "" && !strings.EqualFold(col.Table, tableName) {
-				return
-			}
-			if common[strings.ToLower(col.Name)] {
-				parts = append(parts, e)
-			}
-		})
-	}
-	var commonWhere sql.Expr
-	if len(parts) == 0 {
-		commonWhere = where
-	} else {
-		commonWhere = parts[0]
-		for _, p := range parts[1:] {
-			commonWhere = &sql.BinaryOp{Operator: "AND", Left: commonWhere, Right: p}
-		}
-	}
-	return common, commonWhere
-}
-
-// splitTopLevelOr splits an expression into its top-level OR branches.
-func splitTopLevelOr(expr sql.Expr) []sql.Expr {
-	if expr == nil {
-		return nil
-	}
-	switch e := expr.(type) {
-	case *sql.BinaryOp:
-		if strings.EqualFold(e.Operator, "OR") {
-			return append(splitTopLevelOr(e.Left), splitTopLevelOr(e.Right)...)
-		}
-	case *sql.ParenExpr:
-		return splitTopLevelOr(e.Expr)
-	}
-	return []sql.Expr{expr}
-}
-
 // trySkipScanPlan examines all indexes on tableName for skip-scan candidates:
 // an index where the first K columns are unconstrained by WHERE but later
 // columns are, with avg repeats at level K+1 (from stat1) >= 18. Returns the
@@ -593,10 +505,3 @@ func (e *SelectEngine) withoutRowidPKCols(tableName string) []string {
 	return out
 }
 
-// estimateSelectivityForTable is a coarse fallback for the skip-scan
-// per-row estimate. Uses the unconstrained-table default (0.5) so the
-// skip-scan estimate roughly matches a half-table scan and the tiebreak
-// against the regular index estimate uses cost rather than row count.
-func estimateSelectivityForTable(e *SelectEngine, nRow int64) float64 {
-	return 0.5
-}

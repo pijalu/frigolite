@@ -444,14 +444,6 @@ func (v *joinOnValidator) validateJoins() error {
 	return nil
 }
 
-// addLowerKeys merges the keys of src into dst, lower-cased, so lookups
-// against dst are case-insensitive like SQLite name resolution.
-func addLowerKeys(src, dst map[string]bool) {
-	for k := range src {
-		dst[strings.ToLower(k)] = true
-	}
-}
-
 // addLowerTableNames merges FROM-operand names into a table-name lookup set:
 // each name is keyed lower-cased, and a schema-qualified name (main.t4) is
 // additionally keyed by its bare table name, since SQLite matches column

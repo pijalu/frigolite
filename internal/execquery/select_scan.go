@@ -403,11 +403,6 @@ func distinctIndexOrder(e *SelectEngine, entry *schema.Entry, tableEntry *schema
 	return order
 }
 
-// scanTableRows iterates over all cells, applies WHERE, builds output rows.
-func (e *SelectEngine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap, error) {
-	return e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, "")
-}
-
 // scanTableRowsWithSQL scans with the table's CREATE SQL so WITHOUT ROWID
 // index-leaf records (PK-first) can be remapped to declared order. Empty
 // createSQL disables the remap (legacy callers without schema context).

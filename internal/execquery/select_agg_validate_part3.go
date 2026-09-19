@@ -46,11 +46,8 @@ func (e *SelectEngine) validateAggregateStarArgs(s *sql.SelectStmt) error {
 			clauses = append(clauses, col.Expr)
 		}
 	}
-	clauses = append(clauses, s.Where)
-	clauses = append(clauses, s.Having)
-	for _, g := range s.GroupBy {
-		clauses = append(clauses, g)
-	}
+	clauses = append(clauses, s.Where, s.Having)
+	clauses = append(clauses, s.GroupBy...)
 	for _, ob := range s.OrderBy {
 		clauses = append(clauses, ob.Expr)
 	}
