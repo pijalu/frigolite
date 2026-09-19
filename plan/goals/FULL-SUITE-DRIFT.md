@@ -2099,3 +2099,17 @@ All merged into main; per-tranche commits prefixed on their fleet branches.
   oracle SEARCH lines, 22 shapes verified). Remaining hotspots
   documented (index btrees byte-ordered → O(index) value-scans;
   temptable2 4.1.2 tiny-cache I/O; partial-index rowid ranges).
+
+### T27 close run (2026-09-19)
+Census stamp 2026-09-19T15:21:07Z (-concurrency 3), ledger re-seeded,
+--check PASS. All 17 timeout-suspects serially adjudicated (-timeout 900s):
+9 slow-but-green → pass (avtrans, fts3b, fts3defer, fts4check,
+fts4merge4 — fully green after T27-ftsflush at ~842s, fts5bigpl,
+intarray, rtreeH, tkt_d11f09d36e); 8 confirmed fail in adjudicated
+classes (fts4merge pre-existing 4.1/4.2; fts5aj/bigid/contentless2/
+delete/merge/optimize/prefix slow classes). Final: 1042 pass / 32 fail /
+280 skip of 1362, 8 slow-but-green suspects (serially confirmed).
+Vs the T24 baseline (950/126/287): +92 pass, −94 fail; 105 of the 126
+T24 fails fixed. **11 regressions identified for T28 triage** (not in the
+T24 fail set): aggerror, alter, capi2, conflict, e_select2, fkey6, fts3d,
+fts4langid, pragma, values, window9 — bisect+fix owned by the T28 wave.
