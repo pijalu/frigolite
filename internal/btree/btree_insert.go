@@ -1,15 +1,14 @@
 // Package btree implements a B+Tree on top of the pager.
-// This file holds the insert/split machinery for both table and index
-// b-trees (cell insertion, page splitting, interior cell management).
+// This file holds the insert path's orchestration: routing a new cell to the
+// leaf/interior handler, dropping same-key table cells before insert, and
+// the retry loop that re-balances a full parent interior page.
 package btree
 
 import (
-	"encoding/binary"
 	"fmt"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
-	"github.com/pijalu/frigolite/internal/util"
 )
 
 // InsertCell inserts a cell into the b-tree.
@@ -50,123 +49,6 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 	return nil
 }
 
-// relocateRootSplit keeps the splitting root's page number stable. The split
-// has already rewritten the root as its left segment and allocated the right
-// siblings S1..Sk; one more page is allocated as the final child slot so the
-// segment contents rotate down one slot (S1←left, Si←R(i-1), new←Rk), and the
-// root page is rewritten as an interior node over the relocated children.
-func (t *BTree) relocateRootSplit(splits []leafSplitResult) error {
-	rootPg, err := t.pager.ReadPage(t.rootPage)
-	if err != nil {
-		return err
-	}
-	left := make([]byte, len(rootPg.Data))
-	copy(left, rootPg.Data)
-
-	// Final child slot: allocated last so it carries the highest page
-	// number, matching btree.c's up-front child allocation order. It is a
-	// child of the root (balance_deeper ptrmapPut PTRMAP_BTREE pRoot->pgno,
-	// src/btree.c:9028); the split siblings were parented to the root by
-	// splitLeafMulti.
-	tail, err2 := t.allocBtreeNode(t.rootPage)
-	if err2 != nil {
-		return err2
-	}
-
-	prev := left
-	for _, s := range splits {
-		dst, err := t.pager.ReadPage(s.pageNum)
-		if err != nil {
-			return err
-		}
-		cur := make([]byte, len(dst.Data))
-		copy(cur, dst.Data)
-		copy(dst.Data, prev)
-		if err := t.pager.WritePage(dst); err != nil {
-			return err
-		}
-		prev = cur
-	}
-	copy(tail.Data, prev)
-	if err := t.pager.WritePage(tail); err != nil {
-		return err
-	}
-
-	// Children in key order after the rotation; seps[i] separates child i
-	// from child i+1 (splits[i].medianKey semantics are unchanged).
-	children := make([]uint32, 0, len(splits)+1)
-	seps := make([]uint64, 0, len(splits))
-	for _, s := range splits {
-		children = append(children, s.pageNum)
-		seps = append(seps, s.medianKey)
-	}
-	children = append(children, tail.PageNum)
-	// The rotation above moved page content (and everything it references)
-	// between the child slots: S1 now holds the old root's children (when
-	// the split node was an interior page), and each later slot holds the
-	// previous segment's content. Every moved page's references must be
-	// re-pointed at their new owner in the pointer map (btree.c
-	// balance_deeper's ptrmapPut over every moved cell's child,
-	// src/btree.c:9028, plus ptrmapPutOvflPtr for overflow chains at
-	// 8783/8025) — setChildPtrmaps covers both: btree children of
-	// relocated interior pages and the overflow chains of relocated leaf
-	// cells. Without the interior re-pointing, autovacuum's AllocateRootPage
-	// relocation later reads a STALE parent for a relocated occupant
-	// ("parent N does not reference child M", corruptB-3.1.1).
-	for _, ch := range children {
-		if t.ptrmapEnabled() {
-			cpg, err := t.pager.ReadPage(ch)
-			if err != nil {
-				return err
-			}
-			if err := t.setChildPtrmaps(cpg, ch); err != nil {
-				return err
-			}
-		}
-	}
-	return t.writeInteriorRootAt(t.rootPage, children, seps)
-}
-
-// writeInteriorRootAt rewrites page dst as a fresh interior node over the
-// ordered children: cell j points at children[j] with separator seps[j], and
-// children[len-1] is the rightmost pointer.
-func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []uint64) error {
-	pg, err := t.pager.ReadPage(dst)
-	if err != nil {
-		return err
-	}
-	coff := contentOffset(dst)
-	for i := range pg.Data {
-		pg.Data[i] = 0
-	}
-	if t.isTable {
-		pg.Data[coff] = storage.PageTypeInteriorTable
-	} else {
-		pg.Data[coff] = storage.PageTypeInteriorIndex
-	}
-	cellCount := uint16(0)
-	contentStart := int(t.pageSize)
-	if len(seps) > 0 {
-		cellData := t.encodeInteriorCell(children[0], seps[0])
-		contentStart = int(t.pageSize) - len(cellData)
-		copy(pg.Data[contentStart:], cellData)
-		cellCount = 1
-	}
-	binary.BigEndian.PutUint16(pg.Data[coff+cellPtrOffset(pg.Data[coff]):], uint16(contentStart))
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], cellCount)
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(contentStart))
-	binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], children[len(children)-1]) // rightmostPtr
-	if err := t.pager.WritePage(pg); err != nil {
-		return err
-	}
-	for i := 1; i < len(seps); i++ {
-		if err := t.addInteriorCellToPage(dst, children[i], seps[i], children[i+1]); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // insertPage inserts a cell into the page at pageNum.
 // Returns the new pages produced by a split (each with the median key
 // separating it from the previous page), or nil when no split occurred. The
@@ -193,134 +75,6 @@ func (t *BTree) insertPage(pageNum uint32, parentPgno uint32, newCell *storage.C
 	}
 }
 
-// prepareCell writes overflow pages for a cell whose payload exceeds what
-// fits in the cell itself, mutating the cell to reference the overflow chain
-// (PayloadLen = full length, LocalLen = local portion, Overflow = first
-// overflow page). The Payload slice is left intact so callers can still use
-// the full key for ordering comparisons. For cells that fit, it leaves the
-// cell unchanged.
-func (t *BTree) prepareCell(c *storage.Cell, ownerPgno uint32) error {
-	// Already prepared (balance_deeper re-enters the insert on the child
-	// page after the root-level call): keep the existing overflow chain
-	// instead of allocating a duplicate one.
-	if c.Overflow != 0 && c.LocalLen > 0 && c.PayloadLen == len(c.Payload) {
-		return nil
-	}
-	cellType := storage.CellTableLeaf
-	if !t.isTable {
-		cellType = storage.CellIndexLeaf
-	}
-	plen := len(c.Payload)
-	local := storage.LocalPayloadSize(plen, int(t.usableSize), cellType)
-	if local >= plen {
-		return nil
-	}
-	first, err := t.writeOverflowPages(c.Payload[local:], ownerPgno)
-	if err != nil {
-		return err
-	}
-	c.Overflow = first
-	c.PayloadLen = plen
-	c.LocalLen = local
-	return nil
-}
-
-// writeOverflowPages stores payload on a chain of overflow pages and returns
-// the first page number. Each overflow page holds up to pageSize-4 payload
-// bytes, prefixed with a 4-byte big-endian next-page pointer (0 = last).
-// ownerPgno is the btree page holding the cell that owns the chain: the
-// first overflow's ptrmap entry is PtrmapOverflow1 with parent=ownerPgno
-// (btree.c fillInCell ptrmapPutOvfl, src/btree.c:9557), continuation pages
-// are PtrmapOverflow2 chained to the previous overflow (src/btree.c:9766).
-func (t *BTree) writeOverflowPages(payload []byte, ownerPgno uint32) (uint32, error) {
-	chunk := int(t.usableSize) - 4
-	var first uint32
-	var prev *pager.Page
-	pos := 0
-	for pos < len(payload) {
-		var pg *pager.Page
-		var err error
-		if prev == nil {
-			pg, err = t.allocOverflow(ownerPgno)
-		} else {
-			pg, err = t.allocOverflowNext(prev.PageNum)
-		}
-		if err != nil {
-			return 0, err
-		}
-		end := pos + chunk
-		if end > len(payload) {
-			end = len(payload)
-		}
-		copy(pg.Data[4:], payload[pos:end])
-		if prev != nil {
-			binary.BigEndian.PutUint32(prev.Data[0:4], pg.PageNum)
-			if err := t.pager.WritePage(prev); err != nil {
-				return 0, err
-			}
-		} else {
-			first = pg.PageNum
-		}
-		prev = pg
-		pos = end
-	}
-	if prev != nil {
-		binary.BigEndian.PutUint32(prev.Data[0:4], 0) // last page
-		if err := t.pager.WritePage(prev); err != nil {
-			return 0, err
-		}
-	}
-	return first, nil
-}
-
-// readOverflow expands a decoded cell's local payload to the full payload by
-// following the overflow chain. The returned cell is a copy when expansion is
-// needed; the input cell is never mutated so it can still be re-encoded.
-// Cells without overflow are returned unchanged.
-//
-// The chain is bounded by the file's own geometry (btree.c accessPayload
-// parity): every overflow page lives in the database file, so a payload can
-// never exceed numPages usable-size chunks. A corrupt cell whose payload
-// length promises more than the file can hold reports
-// "database disk image is malformed" BEFORE any allocation — without this
-// bound a garbage payload length makes the assembly allocate gigabytes
-// (corrupt-2.x junk-in-the-file probes).
-func (t *BTree) readOverflow(c *storage.Cell) (*storage.Cell, error) {
-	if c.Overflow == 0 {
-		return c, nil
-	}
-	if c.PayloadLen < 0 ||
-		uint64(c.PayloadLen) > uint64(t.pager.NumPages())*uint64(t.usableSize-4) {
-		return nil, fmt.Errorf("database disk image is malformed")
-	}
-	full := make([]byte, 0, c.PayloadLen)
-	full = append(full, c.Payload...)
-	pageNum := c.Overflow
-	remaining := c.PayloadLen - len(c.Payload)
-	for remaining > 0 {
-		pg, err := t.pager.ReadPage(pageNum)
-		if err != nil {
-			return nil, err
-		}
-		next := binary.BigEndian.Uint32(pg.Data[0:4])
-		chunk := int(t.usableSize) - 4
-		n := chunk
-		if n > remaining {
-			n = remaining
-		}
-		full = append(full, pg.Data[4:4+n]...)
-		remaining -= n
-		pageNum = next
-		if pageNum == 0 && remaining > 0 {
-			return nil, fmt.Errorf("btree: overflow chain ended early")
-		}
-	}
-	c2 := *c
-	c2.Payload = full
-	c2.Overflow = 0
-	return &c2, nil
-}
-
 // insertLeafPage inserts a cell into a leaf page. If the leaf is full, it
 // splits (possibly into multiple pages). Returns the new pages produced by
 // the split (empty when the cell was inserted in place).
@@ -343,14 +97,8 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 	// AND the new cell via splitLeafMulti, duplicating the rowid
 	// (fts4merge4 2.2.x: duplicate %_segdir rows).
 	if t.isTable {
-		if idx := t.findInsertPositionTable(pg, page, newCell.RowID); idx < int(page.CellCount) {
-			cellOff := int(storage.CellPointer(pg.Data, coff, idx, int(t.pageSize)))
-			_, n := util.GetVarint(pg.Data[cellOff:])
-			if midRowID, _ := util.GetVarint(pg.Data[cellOff+n:]); int64(midRowID) == newCell.RowID {
-				if err := t.deleteCellOnPage(pg, page, idx); err != nil {
-					return nil, err
-				}
-			}
+		if err := t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID); err != nil {
+			return nil, err
 		}
 	}
 
@@ -362,6 +110,29 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 		return nil, nil
 	}
 
+	return t.splitFullLeaf(pg, page, parentPgno, newCell, cellData)
+}
+
+// dropTableLeafDuplicateRowid deletes an existing table-leaf cell with the
+// same rowid as the incoming cell (a no-op when the cell at the insert
+// position has a different rowid).
+func (t *BTree) dropTableLeafDuplicateRowid(pg *pager.Page, page *storage.BTreePage, rowID int64) error {
+	coff := contentOffset(pg.PageNum)
+	idx := t.findInsertPositionTable(pg, page, rowID)
+	if idx >= int(page.CellCount) {
+		return nil
+	}
+	if t.tableLeafRowidAt(pg, coff, idx) != rowID {
+		return nil
+	}
+	return t.deleteCellOnPage(pg, page, idx)
+}
+
+// splitFullLeaf handles a full leaf: a ROOT whose usable area cannot hold the
+// cell even when empty reconciles through balance_deeper; everything else
+// splits across multiple pages (splitLeafMulti).
+func (t *BTree) splitFullLeaf(pg *pager.Page, page *storage.BTreePage, parentPgno uint32, newCell *storage.Cell, cellData []byte) ([]leafSplitResult, error) {
+	coff := contentOffset(pg.PageNum)
 	// Leaf is full. If the cell's local form cannot fit this page even when
 	// the page is EMPTY, no redistribution can ever place it here: the page
 	// is a ROOT whose usable area is smaller than the largest legal cell.
@@ -435,1000 +206,92 @@ func (t *BTree) insertInteriorPage(pg *pager.Page, page *storage.BTreePage, pare
 		// precheck-noroom again and the insert failed outright). Mirror the
 		// loop: split the left page repeatedly, each split moving its last
 		// cell to a fresh sibling, until the half that owns the split child
-		// can take the chain. Successive left-page splits nest rightward
-		// (split #2's page sorts between the left page and split #1's page),
-		// so the dividers returned to the parent are in reverse accumulation
-		// order.
-		var outs []leafSplitResult
-		for tries := 0; tries < 4096; tries++ {
-			// Re-parse the left page: the previous iteration's split rewrote
-			// pg.Data in place, so the caller's parsed `page` header (cell
-			// count/content start) is stale.
-			coff := contentOffset(pg.PageNum)
-			page, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-			if perr != nil {
-				return nil, perr
-			}
-			newInteriorNum, splitKey, serr := t.splitInteriorPage(pg, page, parentPgno)
-			if serr != nil {
-				return nil, serr
-			}
-			outs = append(outs, leafSplitResult{pageNum: newInteriorNum, medianKey: splitKey})
-			// Locate the original child across the left page and every split
-			// sibling, left to right.
-			order := make([]uint32, 0, len(outs)+1)
-			order = append(order, pg.PageNum)
-			for i := len(outs) - 1; i >= 0; i-- {
-				order = append(order, outs[i].pageNum)
-			}
-			target, ferr := t.locateChildAmong(order, childPageNum)
-			if ferr != nil {
-				return nil, ferr
-			}
-			if target == 0 {
-				return nil, fmt.Errorf("btree: parent split lost child %d", childPageNum)
-			}
-			tp, rerr := t.pager.ReadPage(target)
-			if rerr != nil {
-				return nil, rerr
-			}
-			tpage, perr := storage.ParsePage(tp.Data, int(t.pageSize), contentOffset(tp.PageNum))
-			if perr != nil {
-				return nil, perr
-			}
-			if aerr := t.applyChildSplits(tp, tpage, childPageNum, childSplits); aerr == nil {
-				// The chain found a home; hand every divider up in
-				// left-to-right order.
-				rev := make([]leafSplitResult, len(outs))
-				for i := range outs {
-					rev[i] = outs[len(outs)-1-i]
-				}
-				return rev, nil
-			} else if aerr != errInteriorFull {
-				return nil, aerr
-			}
-			// Still full: balance further and try again. The apply is atomic
-			// (exact precheck before any mutation), so the retry sees a clean
-			// page.
-		}
-		return nil, fmt.Errorf("btree: interior rebalance did not converge (page %d)", pg.PageNum)
+		// can take the chain.
+		return t.retryChildSplitApply(pg, parentPgno, childPageNum, childSplits)
 	}
 
 	return nil, nil
 }
 
-// errInteriorFull signals that an interior page has no room for the
-// separator cells of a child split.
-var errInteriorFull = fmt.Errorf("btree: interior page full, cannot add child pointer")
-
-// applyChildSplits updates this interior page after a child page split into
-// len(splits)+1 pages. SQLite's balance_nonroot semantics for a table b-tree:
-// the parent cell that pointed at the splitting child keeps its LEFT child
-// but gets its divider KEY replaced by the first split's median; each new
-// sibling page is inserted right after it carrying the PREVIOUS upper bound,
-// so the last new cell ends up with the original divider as its key and no
-// unrelated subtree pointer is ever touched.
-//
-//	cell_j = (C, Kold)            →  (C, D1), (P1, D2), …, (Pn-1, Kold)
-func (t *BTree) applyChildSplits(pg *pager.Page, page *storage.BTreePage, origChild uint32, splits []leafSplitResult) error {
-	coff := contentOffset(pg.PageNum)
-	ptroff := cellPtrOffset(page.PageType)
-	ptrBase := coff + ptroff
-
-	// Locate the cell pointing at the original child.
-	idx := -1
-	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
-		if binary.BigEndian.Uint32(pg.Data[cellOff:cellOff+4]) == origChild {
-			idx = i
-			break
+// retryChildSplitApply repeatedly splits the left interior page, each split
+// moving its last cell to a fresh sibling, until the half that owns the split
+// child can take the separator chain. Successive left-page splits nest
+// rightward (split #2's page sorts between the left page and split #1's
+// page), so the dividers returned to the parent are in reverse accumulation
+// order and are handed up left-to-right.
+func (t *BTree) retryChildSplitApply(pg *pager.Page, parentPgno, childPageNum uint32, childSplits []leafSplitResult) ([]leafSplitResult, error) {
+	var outs []leafSplitResult
+	for tries := 0; tries < 4096; tries++ {
+		// Re-parse the left page: the previous iteration's split rewrote
+		// pg.Data in place, so the caller's parsed `page` header (cell
+		// count/content start) is stale.
+		coff := contentOffset(pg.PageNum)
+		page, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+		if perr != nil {
+			return nil, perr
 		}
-	}
-	if idx < 0 && page.RightmostPtr == origChild {
-		// The split child is the rightmost pointer: it has no divider cell.
-		// Append one divider cell per split page and move the rightmost
-		// pointer to the LAST new page:
-		//   rightmost=C, splits=[(P1,D1)..(Pn,Dn)]  →
-		//   cells += (C,D1),(P1,D2)…(Pn-1,Dn);  rightmost = Pn
-		for si := 0; si < len(splits); si++ {
-			leftOfCell := origChild
-			if si > 0 {
-				leftOfCell = splits[si-1].pageNum
-			}
-			newData := t.encodeInteriorCell(leftOfCell, splits[si].medianKey)
-			ncStart := int(page.CellContent) - len(newData)
-			nCount := int(page.CellCount) + 1
-			ncPtrEnd := coff + ptroff + nCount*2 + 2
-			if ncStart < ncPtrEnd || page.CellContent == 0 {
-				return errInteriorFull
-			}
-			copy(pg.Data[ncStart:], newData)
-			binary.BigEndian.PutUint16(pg.Data[ptrBase+int(page.CellCount)*2:], uint16(ncStart))
-			page.CellCount = uint16(nCount)
-			// Advance the content pointer: the next appended cell must land
-			// BELOW this one. Without this, iteration si+1 recomputes ncStart
-			// from the stale offset and overwrites cell si's bytes (both cell
-			// pointers then read identical child/key data — duplicate adjacent
-			// separators, orphaned keys).
-			page.CellContent = uint16(ncStart)
-			binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(nCount))
-			binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(ncStart))
+		newInteriorNum, splitKey, serr := t.splitInteriorPage(pg, page, parentPgno)
+		if serr != nil {
+			return nil, serr
 		}
-		binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], splits[len(splits)-1].pageNum)
-		return t.pager.WritePage(pg)
-	}
-	if idx < 0 {
-		return fmt.Errorf("btree: parent %d has no cell for split child %d", pg.PageNum, origChild)
-	}
-
-	// EXACT room precheck — applyChildSplits must be ATOMIC: a mid-chain
-	// errInteriorFull would leave partially-mutated page data visible through
-	// the pager cache, and the retry-after-parent-split then desyncs the
-	// structure and orphans whole subtrees (fts4opt churn: keys stranded on
-	// unreachable pages).
-	//
-	// Per split i: the current cell is RELOCATED (4 + varint(D_i) bytes — a
-	// wider divider varint must never be written in place, it would overrun
-	// the neighbor) and one sibling cell (4 + varint(Kold)) is appended.
-	n := len(splits)
-	carrierKey := t.cellKeyAt(pg, ptrBase, idx)
-	dataNeed := 0
-	for _, cs := range splits {
-		dataNeed += 4 + util.VarintLen(cs.medianKey)
-	}
-	dataNeed += n * (4 + util.VarintLen(carrierKey))
-	cellContentEnd := int(page.CellContent)
-	ptrNeed := coff + ptroff + (int(page.CellCount)+n)*2 + 2
-	if cellContentEnd == 0 {
-		return errInteriorFull
-	}
-	if cellContentEnd-dataNeed < ptrNeed {
-		return errInteriorFull
-	}
-
-	// Carry the upper bound through the chain: the ORIGINAL cell's key.
-	deadBytes := 0
-	for si, cs := range splits {
-		// Re-key the current cell: it now bounds curLeft by cs.medianKey.
-		curLeft := origChild
-		if si > 0 {
-			curLeft = splits[si-1].pageNum
-		}
-		_ = curLeft // the located cell's left child already equals curLeft
-		// Re-key by RELOCATING the cell: writing a wider varint in place
-		// would overrun the cell's bytes into its neighbor (the source of
-		// duplicate/garbled separators after this fix landed).
-		curChildOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+idx*2 : ptrBase+idx*2+2]))
-		curChild := binary.BigEndian.Uint32(pg.Data[curChildOff : curChildOff+4])
-		rekeyed := t.encodeInteriorCell(curChild, cs.medianKey)
-		_, oldKeyLen := util.GetVarint(pg.Data[curChildOff+4:])
-		deadBytes += 4 + oldKeyLen // the relocated divider's bytes are abandoned above
-		rkStart := int(page.CellContent) - len(rekeyed)
-		if rkStart < coff+ptroff+(int(page.CellCount)+1)*2+2 {
-			return errInteriorFull
-		}
-		copy(pg.Data[rkStart:], rekeyed)
-		binary.BigEndian.PutUint16(pg.Data[ptrBase+idx*2:], uint16(rkStart))
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(rkStart))
-		page.CellContent = uint16(rkStart)
-		// Insert the new sibling cell AFTER it, carrying carrierKey.
-		newData := t.encodeInteriorCell(cs.pageNum, carrierKey)
-		ncStart := int(page.CellContent) - len(newData)
-		nCount := int(page.CellCount) + 1
-		ncPtrEnd := coff + ptroff + nCount*2 + 2
-		if ncStart < ncPtrEnd {
-			return errInteriorFull
-		}
-		copy(pg.Data[ncStart:], newData)
-		// Advance the content pointer past the sibling cell: the next
-		// iteration's relocated cell must land BELOW it, otherwise the two
-		// writes overlap and both cell pointers read identical bytes.
-		page.CellContent = uint16(ncStart)
-		// Shift pointers [idx+1..CellCount) right by one.
-		for i := int(page.CellCount); i > idx+1; i-- {
-			src := ptrBase + (i-1)*2
-			dst := ptrBase + i*2
-			pg.Data[dst] = pg.Data[src]
-			pg.Data[dst+1] = pg.Data[src+1]
-		}
-		binary.BigEndian.PutUint16(pg.Data[ptrBase+(idx+1)*2:], uint16(ncStart))
-		page.CellCount = uint16(nCount)
-		binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(nCount))
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(ncStart))
-		idx++
-	}
-	if deadBytes > 0 {
-		// Every re-key RELOCATED a divider, abandoning its old bytes above
-		// the new content start. Those bytes are inside the content area but
-		// belong to no cell — untracked free space that sqlite3
-		// integrity_check reports as "Fragmentation of N bytes reported as
-		// M". Repack the surviving dividers contiguously (defragmentPage
-		// parity) so no untracked hole remains.
-		if err := t.defragmentInterior(pg, page); err != nil {
-			return err
-		}
-	}
-	return t.pager.WritePage(pg)
-}
-
-// addInteriorCellToPage reads the page at pageNum and adds a child pointer
-// cell for the given split key and new sibling page.
-func (t *BTree) addInteriorCellToPage(pageNum, childPageNum uint32, childSplitKey uint64, childNewSibling uint32) error {
-	pg, err := t.pager.ReadPage(pageNum)
-	if err != nil {
-		return err
-	}
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), contentOffset(pg.PageNum))
-	if err != nil {
-		return err
-	}
-	return t.addInteriorCell(pg, page, childPageNum, childSplitKey, childNewSibling)
-}
-
-// writeLeafCell inserts a cell at the correct position in a leaf page.
-// Assumes the page has room (call leafHasRoom first).
-func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int) error {
-	if page == nil {
-		var err error
-		page, err = storage.ParsePage(pg.Data, int(t.pageSize), coff)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Find insertion position
-	var insertIdx int
-	if t.isTable {
-		insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
-	} else {
-		insertIdx = t.findInsertPositionIndex(pg, page, newCell.Payload)
-	}
-
-	// SQLite's table b-tree REPLACES a cell with the same rowid rather than
-	// inserting a duplicate (sqlite3BtreeInsert with the same key overwrites).
-	// The engine's position search returns the first cell with rowid >= the
-	// target; if that cell has the SAME rowid, remove it first so the normal
-	// insert below writes a single cell (a second cell with the same rowid
-	// makes DELETE/UPDATE/seek hit the wrong row and duplicates appear in
-	// scans — fts4merge4 2.2.x: the L0 flush and L2 output re-used rowids
-	// 33/34, creating duplicate %_segdir rows).
-	if t.isTable && insertIdx < int(page.CellCount) {
-		cellOff := int(storage.CellPointer(pg.Data, coff, insertIdx, int(t.pageSize)))
-		_, n := util.GetVarint(pg.Data[cellOff:])
-		midRowID, _ := util.GetVarint(pg.Data[cellOff+n:])
-		if int64(midRowID) == newCell.RowID {
-			if err := t.deleteCellOnPage(pg, page, insertIdx); err != nil {
-				return err
-			}
-			// Recompute the insertion position after the deletion.
-			insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
-		}
-	}
-
-	// Compute cell placement
-	cellPtrEnd := coff + storage.CellPointerOffset + int(page.CellCount)*2 + 2
-	cellContentEnd := int(page.CellContent)
-	var cellStart int
-	if cellContentEnd == 0 {
-		// Fresh (zero-initialized) page: the first cell ends at the usable
-		// end (zeroPage sets the content pointer to usableSize; btree.c
-		// packs cells from cbrk=usableSize with no page-end reservation).
-		cellStart = int(t.usableSize) - len(cellData) - int(page.FragFree)
-	} else {
-		cellStart = cellContentEnd - len(cellData)
-	}
-
-	if cellStart < cellPtrEnd {
-		return fmt.Errorf("btree: page is full")
-	}
-
-	// Shift cell pointers
-	ptrBase := coff + storage.CellPointerOffset
-	for i := int(page.CellCount); i > insertIdx; i-- {
-		src := ptrBase + (i-1)*2
-		dst := ptrBase + i*2
-		pg.Data[dst] = pg.Data[src]
-		pg.Data[dst+1] = pg.Data[src+1]
-	}
-
-	// Write cell data and pointer
-	copy(pg.Data[cellStart:], cellData)
-	binary.BigEndian.PutUint16(pg.Data[ptrBase+insertIdx*2:ptrBase+insertIdx*2+2], uint16(cellStart))
-
-	// Update header
-	page.CellCount++
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
-	if cellContentEnd == 0 || cellStart < cellContentEnd {
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(cellStart))
-	}
-
-	return t.pager.WritePage(pg)
-}
-
-// splitEntry is a cell plus its encoded byte form and (for index b-trees)
-// its full sort key, used during leaf splitting.
-type splitEntry struct {
-	cell     *storage.Cell
-	cellData []byte
-	key      []byte // sort key for index b-trees (full payload)
-}
-
-// splitLeafMulti splits a full leaf page's cells — plus the incoming new cell
-// — across the original page and as many newly allocated pages as needed,
-// distributing by size so every page fits (SQLite's balance_nonroot
-// rebalances across multiple pages when no two-way split can hold the cells).
-// Returns the new pages in order, each with the median key separating it from
-// the previous page (the first cell's key of that page).
-func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPgno uint32, newCell *storage.Cell, newCellData []byte) ([]leafSplitResult, error) {
-	coff := contentOffset(pg.PageNum)
-	// Split children hang off the splitting page's parent (btree.c
-	// balance_nonroot ptrmapPut PTRMAP_BTREE pParent->pgno, src/btree.c:8023);
-	// when the splitting page IS the root, they hang off the root itself
-	// (balance_deeper, src/btree.c:9028) — parentPgno==0 marks that case.
-	ptrParent := parentPgno
-	if ptrParent == 0 {
-		ptrParent = pg.PageNum
-	}
-
-	cellType := storage.CellTableLeaf
-	if !t.isTable {
-		cellType = storage.CellIndexLeaf
-	}
-
-	cells, err := t.readCellsForSplit(pg, page, coff, cellType, newCell, newCellData)
-	if err != nil {
-		return nil, err
-	}
-	sortSplitCells(cells, t.isTable, t.compareKey)
-
-	// Greedily partition the sorted cells into pages: each page takes the
-	// longest prefix that fits. Every page holds at least one cell (a single
-	// cell whose local payload is oversized goes alone — prepareCell caps the
-	// local payload so this is defensive).
-	var partitions [][]splitEntry
-	cur := []splitEntry{}
-	flush := func() {
-		if len(cur) > 0 {
-			partitions = append(partitions, cur)
-			cur = nil
-		}
-	}
-	for _, c := range cells {
-		if len(cur) > 0 {
-			probe := append(append([]splitEntry{}, cur...), c)
-			if !leafCellsFit(cellDatas(probe), coff, int(t.usableSize)) {
-				flush()
-			}
-		}
-		cur = append(cur, c)
-	}
-	flush()
-	if len(partitions) == 0 {
-		return nil, fmt.Errorf("btree: split failed: cannot balance leaf pages")
-	}
-
-	// Clear original leaf content (except page type)
-	for i := coff + 1; i < int(t.pageSize); i++ {
-		pg.Data[i] = 0
-	}
-
-	// Write the first partition to the original leaf.
-	if err := writeLeafHalf(pg, coff, partitions[0], int(t.usableSize)); err != nil {
-		return nil, err
-	}
-	// Pre-allocate every new page, then write each partition. There is no
-	// right-sibling chain pointer: btree pages carry no page-end trailer
-	// (cells pack from usableSize) and traversal follows the parent's
-	// child pointers.
-	nNew := len(partitions) - 1
-	newPages := make([]*pager.Page, 0, nNew)
-	for i := 0; i < nNew; i++ {
-		np, aerr := t.allocBtreeNode(ptrParent)
+		outs = append(outs, leafSplitResult{pageNum: newInteriorNum, medianKey: splitKey})
+		order := childOrderAmongSplits(pg, outs)
+		done, aerr := t.applyChildSplitsToFirstFit(order, childPageNum, childSplits)
 		if aerr != nil {
 			return nil, aerr
 		}
-		newPages = append(newPages, np)
-	}
-	if err := t.pager.WritePage(pg); err != nil {
-		return nil, err
-	}
-	results := make([]leafSplitResult, 0, nNew)
-	for pi := 1; pi < len(partitions); pi++ {
-		newPg := newPages[pi-1]
-		newCoff := contentOffset(newPg.PageNum)
-		newPg.Data[newCoff] = pg.Data[coff] // same page type
-		if err := writeLeafHalf(newPg, newCoff, partitions[pi], int(t.usableSize)); err != nil {
-			return nil, err
-		}
-		// Cells that moved to this new page take their overflow chains with
-		// them: re-parent each chain's FIRST page to the new owner (btree.c
-		// balance_nonroot ptrmapPutOvflPtr, src/btree.c:8025/8783). Later
-		// chain pages keep their OVFL2 parent (the previous overflow page).
-		if t.ptrmapEnabled() {
-			for _, e := range partitions[pi] {
-				if e.cell.Overflow != 0 {
-					if werr := t.pager.WritePtrmap(e.cell.Overflow, storage.PtrmapOverflow1, newPg.PageNum); werr != nil {
-						return nil, werr
-					}
-				}
+		if done {
+			// The chain found a home; hand every divider up in
+			// left-to-right order.
+			rev := make([]leafSplitResult, len(outs))
+			for i := range outs {
+				rev[i] = outs[len(outs)-1-i]
 			}
+			return rev, nil
 		}
-		// No page-end chain pointer (btree.c pages carry no trailer): the
-		// cell content area runs to usableSize.
-		if err := t.pager.WritePage(newPg); err != nil {
-			return nil, err
-		}
-		var medianKey uint64
-		if t.isTable {
-			// SQLite's leafData separator convention (btree.c:8813): the
-			// divider cell between two sibling leaves carries the LAST
-			// rowid of the LEFT sibling (left subtree holds keys <= key,
-			// right subtree holds keys > key — sqlite3BtreeTableMoveto
-			// descends into the separator's left child on key==rowid).
-			// Using MIN(right) instead (the engine's pre-fix convention)
-			// made the right subtree overlap the boundary row, breaking
-			// sqlite3 integrity_check on every table btree split
-			// (incrvacuum2 4.1: doubling leaves produced "right child
-			// Rowid N out of order" starting at iter 1).
-			left := partitions[pi-1]
-			medianKey = uint64(left[len(left)-1].cell.RowID)
-		} else {
-			// Index btrees (non-leafData): the divider is the FIRST cell of
-			// the RIGHT sibling (btree.c:8820, pCell -= 4 branch) — the left
-			// subtree holds keys < medianKey and the right subtree holds
-			// keys >= medianKey (sqlite3BtreeIndexMoveto: equal keys go
-			// right).
-			medianKey = uint64(len(partitions[pi][0].cellData))
-		}
-		results = append(results, leafSplitResult{pageNum: newPg.PageNum, medianKey: medianKey})
+		// Still full: balance further and try again. The apply is atomic
+		// (exact precheck before any mutation), so the retry sees a clean
+		// page.
 	}
-	return results, nil
+	return nil, fmt.Errorf("btree: interior rebalance did not converge (page %d)", pg.PageNum)
 }
 
-// leafSplitResult is one new page produced by splitLeafMulti: the page number
-// and the median key separating it from the previous page.
-type leafSplitResult struct {
-	pageNum   uint32
-	medianKey uint64
+// childOrderAmongSplits returns the original left page followed by every
+// split sibling, left to right.
+func childOrderAmongSplits(pg *pager.Page, outs []leafSplitResult) []uint32 {
+	order := make([]uint32, 0, len(outs)+1)
+	order = append(order, pg.PageNum)
+	for i := len(outs) - 1; i >= 0; i-- {
+		order = append(order, outs[i].pageNum)
+	}
+	return order
 }
 
-// readCellsForSplit decodes the existing cells on a leaf page plus the new
-// cell into a unified split-entry list, ready for redistribution.
-func (t *BTree) readCellsForSplit(pg *pager.Page, page *storage.BTreePage, coff int, cellType storage.CellType, newCell *storage.Cell, newCellData []byte) ([]splitEntry, error) {
-	var cells []splitEntry
-	for i := uint16(0); i < page.CellCount; i++ {
-		cellOff := int(storage.CellPointer(pg.Data, coff, int(i), int(t.pageSize)))
-		c, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.usableSize))
-		if err != nil {
-			return nil, err
-		}
-
-		e := splitEntry{c, storage.EncodeCell(c), nil}
-		if !t.isTable {
-			full, err := t.readOverflow(c)
-			if err != nil {
-				return nil, err
-			}
-			e.key = full.Payload
-		}
-		cells = append(cells, e)
+// applyChildSplitsToFirstFit locates the original child among the ordered
+// pages and applies its split chain to the page that holds it. Returns
+// done=true once the chain finds a home; a false return with nil error means
+// every candidate page was still errInteriorFull and the caller must balance
+// further.
+func (t *BTree) applyChildSplitsToFirstFit(order []uint32, childPageNum uint32, childSplits []leafSplitResult) (bool, error) {
+	target, ferr := t.locateChildAmong(order, childPageNum)
+	if ferr != nil {
+		return false, ferr
 	}
-	// Include the new cell in the redistribution — REPLACING any existing
-	// cell with the same key (SQLite's sqlite3BtreeInsert overwrites in
-	// place; the non-split path dedupes in writeLeafCell, and the split
-	// path must too, otherwise overwriting a full page's boundary rowid
-	// writes the rowid twice — duplicate rowids across/within partitions,
-	// fts4opt churn: rowid 229 duplicated on leaf 171).
-	for i := 0; i < len(cells); i++ {
-		if t.isTable && cells[i].cell.RowID == newCell.RowID {
-			cells = append(cells[:i], cells[i+1:]...)
-			i--
-		}
+	if target == 0 {
+		return false, fmt.Errorf("btree: parent split lost child %d", childPageNum)
 	}
-	cells = append(cells, splitEntry{newCell, newCellData, newCell.Payload})
-	return cells, nil
-}
-
-// sortSplitCells orders cells by key (rowid for tables, full payload for
-// indexes).
-func sortSplitCells(cells []splitEntry, isTable bool, cmp func(a, b []byte) int) {
-	if isTable {
-		bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
-			return a.cell.RowID > b.cell.RowID
-		})
-		return
+	tp, rerr := t.pager.ReadPage(target)
+	if rerr != nil {
+		return false, rerr
 	}
-	bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
-		return cmp(a.key, b.key) > 0
-	})
-}
-
-// bubbleSortSplitCells sorts cells in place using a "greater than"
-// comparison, keeping entries with equal keys in their original order.
-func bubbleSortSplitCells(cells []splitEntry, greater func(a, b splitEntry) bool) {
-	for i := 0; i < len(cells); i++ {
-		for j := i + 1; j < len(cells); j++ {
-			if greater(cells[i], cells[j]) {
-				cells[i], cells[j] = cells[j], cells[i]
-			}
-		}
+	tpage, perr := storage.ParsePage(tp.Data, int(t.pageSize), contentOffset(tp.PageNum))
+	if perr != nil {
+		return false, perr
 	}
-}
-
-// writeLeafHalf writes a slice of split entries to a leaf page starting at
-// the given content offset, appending cells from the end of the usable area
-// downward, and updates the page header's cell count and content end.
-func writeLeafHalf(pg *pager.Page, coff int, half []splitEntry, usableSize int) error {
-	var count uint16
-	end := usableSize // cells pack from the usable end (zeroPage convention)
-	for i := range half {
-		d := half[i].cellData
-		start := end - len(d)
-		ptrOff := coff + storage.CellPointerOffset + int(count)*2
-		if start < ptrOff+2 {
-			return fmt.Errorf("btree: split failed: leaf half full")
-		}
-		copy(pg.Data[start:], d)
-		binary.BigEndian.PutUint16(pg.Data[ptrOff:], uint16(start))
-		count++
-		end = start
+	if aerr := t.applyChildSplits(tp, tpage, childPageNum, childSplits); aerr == nil {
+		return true, nil
+	} else if aerr != errInteriorFull {
+		return false, aerr
 	}
-	// Full header rewrite (zeroPage parity): the page may be a cached
-	// buffer from an earlier incarnation (freed leaf/overflow/trunk page
-	// handed out again by the freelist pop), so freeblock and fragmentation
-	// must be reset explicitly — stale bytes there read as free-space
-	// corruption ("Fragmentation of N bytes reported as M").
-	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0) // first freeblock
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], count)
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(end))
-	pg.Data[coff+7] = 0 // fragmented free bytes
-	return nil
-}
-
-// cellDatas extracts the encoded cell byte slices from a split entry list.
-func cellDatas(cells []splitEntry) [][]byte {
-	out := make([][]byte, len(cells))
-	for i, c := range cells {
-		out[i] = c.cellData
-	}
-	return out
-}
-
-// leafCellsFit reports whether the given cell byte slices fit in a leaf page
-// with the given content offset, leaving room for the cell pointer array.
-func leafCellsFit(cells [][]byte, coff, usableSize int) bool {
-	total := 0
-	for _, d := range cells {
-		total += len(d)
-	}
-	ptrEnd := coff + storage.CellPointerOffset + len(cells)*2 + 2
-	contentEnd := usableSize // cells pack from the usable end (no page-end trailer)
-	return contentEnd-total >= ptrEnd
-}
-
-// createInteriorRoot creates an interior page pointing to two children.
-func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChild uint32) (*pager.Page, error) {
-	// The schema b-tree (sqlite_schema) is permanently rooted at page 1:
-	// page 1 is the database file header page and cannot be demoted to a
-	// child. When its root splits, page 1 becomes an interior page and the
-	// split halves are moved to newly allocated pages (SQLite semantics).
-	if t.rootPage == 1 {
-		return t.createInteriorRootAtPage1(medianKey, rightChild)
-	}
-	rootPg, err := t.allocRootpage()
-	if err != nil {
-		return nil, err
-	}
-	rootCoff := contentOffset(rootPg.PageNum)
-
-	if t.isTable {
-		rootPg.Data[rootCoff] = storage.PageTypeInteriorTable
-	} else {
-		rootPg.Data[rootCoff] = storage.PageTypeInteriorIndex
-	}
-
-	// One cell: {leftChild, medianKey}
-	cellData := t.encodeInteriorCell(leftChild, medianKey)
-	cellStart := int(t.usableSize) - len(cellData)
-	copy(rootPg.Data[cellStart:], cellData)
-	// Full header rewrite: the allocated root may be a cached buffer from
-	// an earlier incarnation — freeblock and fragmentation must be reset.
-	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+1:rootCoff+3], 0) // first freeblock
-	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+cellPtrOffset(rootPg.Data[rootCoff]):], uint16(cellStart))
-	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+3:rootCoff+5], 1)
-	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+5:rootCoff+7], uint16(cellStart))
-	rootPg.Data[rootCoff+7] = 0                                                 // fragmented free bytes
-	binary.BigEndian.PutUint32(rootPg.Data[rootCoff+8:rootCoff+12], rightChild) // rightmostPtr
-
-	if err := t.pager.WritePage(rootPg); err != nil {
-		return nil, err
-	}
-	return rootPg, nil
-}
-
-// createInteriorRootAtPage1 converts page 1 (the schema b-tree root, which
-// must remain the root because it is the file header page) into an interior
-// page after a split. The split's lower half currently stored in page 1 is
-// moved to a newly allocated leaf so page 1 becomes a pure interior page
-// pointing to both halves.
-func (t *BTree) createInteriorRootAtPage1(medianKey uint64, rightChild uint32) (*pager.Page, error) {
-	pg1, err := t.pager.ReadPage(1)
-	if err != nil {
-		return nil, err
-	}
-
-	// Move page 1's current content to a fresh page. Page 1's b-tree
-	// content lives at offset 100 (after the file header) while a normal
-	// page's content starts at offset 0, so the b-tree header and cell
-	// pointer array are relocated; the cell data offsets are absolute
-	// positions within the page and copy verbatim. The relocated page
-	// keeps its ORIGINAL page type: this path runs both for the classic
-	// first leaf split (page 1 holds leaf content) AND when a split
-	// bubbles up from an interior child (page 1 then holds INTERIOR
-	// entries plus its rightmost pointer). Relocating an interior page 1
-	// as a leaf orphaned that entire subtree — every row under it vanished
-	// from scans and seeks while its cells stayed on the now-unreferenced
-	// pages (fts4opt 2.x churn: blockids went "missing" after DELETE FROM
-	// + regrowth crossed the second root split).
-	oldType := pg1.Data[contentOffset(1)]
-	interior := oldType == storage.PageTypeInteriorTable || oldType == storage.PageTypeInteriorIndex
-	oldHdrLen := 8
-	if interior {
-		oldHdrLen = 12 // interior pages carry the rightmost pointer at 8..12
-	}
-	// The relocated lower half becomes a child of page 1, which stays the
-	// schema b-tree's root (balance_deeper semantics on the header page).
-	newLeft, err := t.allocBtreeNode(1)
-	if err != nil {
-		return nil, err
-	}
-	hdrLen := oldHdrLen
-
-	copy(newLeft.Data, pg1.Data)
-	copy(newLeft.Data[0:hdrLen], pg1.Data[100:100+hdrLen])
-	n := int(binary.BigEndian.Uint16(pg1.Data[103:105]))
-	copy(newLeft.Data[hdrLen:hdrLen+2*n], pg1.Data[100+hdrLen:100+hdrLen+2*n])
-	newLeft.Data[0] = oldType
-	if err := t.pager.WritePage(newLeft); err != nil {
-		return nil, err
-	}
-
-	// Convert page 1 into an interior page: one cell {newLeft, medianKey}
-	// and rightmostChild = rightChild. Keep the 100-byte file header.
-	rootCoff := contentOffset(1)
-	pg1.Data[rootCoff] = storage.PageTypeInteriorTable
-	for i := rootCoff + 1; i < int(t.pageSize); i++ {
-		pg1.Data[i] = 0
-	}
-	cellData := t.encodeInteriorCell(newLeft.PageNum, medianKey)
-	cellStart := int(t.pageSize) - len(cellData)
-	copy(pg1.Data[cellStart:], cellData)
-	binary.BigEndian.PutUint16(pg1.Data[rootCoff+cellPtrOffset(pg1.Data[rootCoff]):], uint16(cellStart))
-	binary.BigEndian.PutUint16(pg1.Data[rootCoff+3:rootCoff+5], 1)
-	binary.BigEndian.PutUint16(pg1.Data[rootCoff+5:rootCoff+7], uint16(cellStart))
-	binary.BigEndian.PutUint32(pg1.Data[rootCoff+8:rootCoff+12], rightChild) // rightmostPtr
-
-	if err := t.pager.WritePage(pg1); err != nil {
-		return nil, err
-	}
-	return pg1, nil
-}
-
-// cellPtrOffset returns the cell pointer array offset for a given page type.
-// Interior pages have a 12-byte header (rightmost pointer at bytes 8-11),
-// so cell pointers start at byte 12. Leaf pages have an 8-byte header.
-func cellPtrOffset(pageType byte) int {
-	if pageType == storage.PageTypeInteriorTable || pageType == storage.PageTypeInteriorIndex {
-		return 12
-	}
-	return 8
-}
-
-// encodeInteriorCell creates an interior cell: 4-byte leftChild + rowID varint.
-// cellKeyAt reads the divider key of the interior cell at pointer index idx.
-func (t *BTree) cellKeyAt(pg *pager.Page, ptrBase, idx int) uint64 {
-	off := int(binary.BigEndian.Uint16(pg.Data[ptrBase+idx*2 : ptrBase+idx*2+2]))
-	k, _ := util.GetVarint(pg.Data[off+4:])
-	return k
-}
-
-func (t *BTree) encodeInteriorCell(leftChild uint32, rowID uint64) []byte {
-	ridLen := util.VarintLen(rowID)
-	buf := make([]byte, 4+ridLen)
-	binary.BigEndian.PutUint32(buf[:4], leftChild)
-	util.PutVarint(buf[4:], rowID)
-	return buf
-}
-
-// splitInteriorPage splits a full interior page into two pages.
-// parentPgno is the splitting page's parent (0 when it is the root): the new
-// right half stays a child of that same parent (btree.c balance_nonroot
-// ptrmapPut(pBt, pgnoNew, PTRMAP_BTREE, pParent->pgno), src/btree.c:8023),
-// or of the root itself when the root splits in place (balance_deeper).
-func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, parentPgno uint32) (uint32, uint64, error) {
-	coff := contentOffset(pg.PageNum)
-	ptroff := cellPtrOffset(page.PageType)
-	// CellPointer adds 8 to the given offset. For interior pages (ptroff=12),
-	// we pass coff+4 so it computes coff+4+8+i*2 = coff+12+i*2.
-	ptrBase := coff + ptroff - 8
-
-	// Collect all interior cells (leftChild, key pairs) and the rightmost pointer
-	type interiorEntry struct {
-		leftChild uint32
-		key       uint64
-	}
-	var entries []interiorEntry
-	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
-		leftChild := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		key, _ := util.GetVarint(pg.Data[cellOff+4:])
-		entries = append(entries, interiorEntry{leftChild, key})
-	}
-	rightmostChild := page.RightmostPtr
-
-	// Greedy tail split (btree.c balance_nonroot): the left page keeps
-	// every cell that already fit — it was full, not half-full — and only
-	// the LAST cell moves to the new right page (together with the old
-	// rightmost pointer). The next divider inserted by the parent then
-	// finds room in whichever half it sorts into. A midpoint split left
-	// interiors permanently half-full, doubling their count
-	// (sqllimits1-7.7.3: 11 interior pages vs the reference 7).
-	//
-	// The boundary entry entries[splitIdx-1] is consumed as the divider
-	// handed to the parent: its key becomes the separator and its left
-	// child becomes the left page's rightmost pointer. The right page
-	// keeps entries[splitIdx..] — AT LEAST ONE cell. The previous port
-	// kept the right page EMPTY (0 dividers + rightmost pointer): SQLite
-	// never produces a 0-cell interior page (balance_nonroot gives every
-	// new page a share of the cells) and cannot even read through one —
-	// the seek descends the rightmost chain past dead nodes and the fts4
-	// merge churn grew sixteen of these husks under one root
-	// (fts4merge4 wipe-churn tx16: "database disk image is malformed" on
-	// every t2_segments/t2_segdir scan, REPLACE seeks silently missing
-	// rows behind the husks). Three cells are the minimum for a legal
-	// split (1 left + 1 divider + 1 right); below that the caller's
-	// balance loop must stop rather than manufacture a husk.
-	if len(entries) < 3 {
-		// Too few dividers to split legally: the caller's balance loop
-		// must stop here rather than index past the end.
-		return 0, 0, fmt.Errorf("btree: interior page %d has no cells to split", pg.PageNum)
-	}
-	splitIdx := len(entries) - 1
-
-	// The key at splitIdx-1 goes up to the parent (it's the separator
-	// between the two halves); its left child becomes the left page's
-	// rightmost pointer.
-	splitKey := entries[splitIdx-1].key
-
-	// Left page keeps entries[0..splitIdx) and its rightmost child becomes entries[splitIdx].leftChild
-	// Right page keeps entries[splitIdx+1..) and the original rightmostChild
-
-	// Allocate new interior page, parented to the splitting page's parent
-	// (or to the splitting root itself when parentPgno == 0).
-	ptrParent := parentPgno
-	if ptrParent == 0 {
-		ptrParent = pg.PageNum
-	}
-	newPg, err := t.allocBtreeNode(ptrParent)
-	if err != nil {
-		return 0, 0, err
-	}
-	newCoff := contentOffset(newPg.PageNum)
-	// The allocated page may be a cached buffer from an earlier incarnation:
-	// zero it before rewriting (zeroPage parity) so freeblock/fragmentation
-	// and stale cell bytes never survive.
-	for i := newCoff; i < int(t.pageSize); i++ {
-		newPg.Data[i] = 0
-	}
-	newPg.Data[newCoff] = page.PageType // same interior type
-
-	// Clear original interior page content (except page type)
-	for i := coff + 1; i < int(t.pageSize); i++ {
-		pg.Data[i] = 0
-	}
-
-	// Rewrite left page: entries[0..splitIdx-1), rightmost = entries[splitIdx-1].leftChild
-	// (entries[splitIdx-1] itself is consumed as the parent divider).
-	leftRightmost := entries[splitIdx-1].leftChild
-	leftCellContentEnd := int(t.pageSize) // track content end in local var
-	for i := 0; i < splitIdx-1; i++ {
-		cellData := t.encodeInteriorCell(entries[i].leftChild, entries[i].key)
-		cellPtrEnd := coff + ptroff + i*2 + 2
-		cellStart := leftCellContentEnd - len(cellData)
-		if cellStart < cellPtrEnd {
-			return 0, 0, fmt.Errorf("btree: interior split failed: left page overflow")
-		}
-		copy(pg.Data[cellStart:], cellData)
-		binary.BigEndian.PutUint16(pg.Data[coff+ptroff+i*2:], uint16(cellStart))
-		leftCellContentEnd = cellStart
-	}
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(splitIdx-1))
-	if splitIdx-1 > 0 {
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(leftCellContentEnd))
-	} else {
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.pageSize))
-	}
-	binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], leftRightmost)
-
-	// Write right page: entries[splitIdx..) — never empty (see the guard
-	// above) — with the original rightmost pointer.
-	rightCount := 0
-	rightCellContentEnd := int(t.pageSize)
-	for i := splitIdx; i < len(entries); i++ {
-		cellData := t.encodeInteriorCell(entries[i].leftChild, entries[i].key)
-		cellPtrEnd := newCoff + ptroff + rightCount*2 + 2
-		cellStart := rightCellContentEnd - len(cellData)
-		if cellStart < cellPtrEnd {
-			return 0, 0, fmt.Errorf("btree: interior split failed: right page overflow")
-		}
-		copy(newPg.Data[cellStart:], cellData)
-		binary.BigEndian.PutUint16(newPg.Data[newCoff+ptroff+rightCount*2:], uint16(cellStart))
-		rightCellContentEnd = cellStart
-		rightCount++
-	}
-	binary.BigEndian.PutUint16(newPg.Data[newCoff+3:newCoff+5], uint16(rightCount))
-	binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(rightCellContentEnd))
-	binary.BigEndian.PutUint32(newPg.Data[newCoff+8:newCoff+12], rightmostChild)
-
-	// Re-parent the children that moved to the right half (btree.c
-	// balance_nonroot: ptrmapPut(pBt, key, PTRMAP_BTREE, pNew->pgno),
-	// src/btree.c:8780 + 8950) — including the original rightmost pointer.
-	if t.ptrmapEnabled() {
-		for i := splitIdx; i < len(entries); i++ {
-			if err := t.pager.WritePtrmap(entries[i].leftChild, storage.PtrmapBtree, newPg.PageNum); err != nil {
-				return 0, 0, err
-			}
-		}
-		if err := t.pager.WritePtrmap(rightmostChild, storage.PtrmapBtree, newPg.PageNum); err != nil {
-			return 0, 0, err
-		}
-	}
-
-	if err := t.pager.WritePage(pg); err != nil {
-		return 0, 0, err
-	}
-	if err := t.pager.WritePage(newPg); err != nil {
-		return 0, 0, err
-	}
-
-	return newPg.PageNum, splitKey, nil
-}
-
-// childInPage returns true if `child` is one of the cells' leftChild or the rightmost pointer.
-func (t *BTree) childInPage(pg *pager.Page, page *storage.BTreePage, child uint32, coff int) bool {
-	ptroff := cellPtrOffset(page.PageType)
-	ptrBase := coff + ptroff
-	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
-		if binary.BigEndian.Uint32(pg.Data[cellOff:cellOff+4]) == child {
-			return true
-		}
-	}
-	return page.RightmostPtr == child
-}
-
-// locateChildAmong scans the given pages (in order) and returns the page
-// number that contains the given child (either as a cell's leftChild or the
-// rightmost pointer). Returns 0 if none of them holds it.
-func (t *BTree) locateChildAmong(pageNums []uint32, child uint32) (uint32, error) {
-	for _, pn := range pageNums {
-		pg, err := t.pager.ReadPage(pn)
-		if err != nil {
-			return 0, err
-		}
-		coff := contentOffset(pn)
-		page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-		if err != nil {
-			return 0, err
-		}
-		if t.childInPage(pg, page, child, coff) {
-			return pn, nil
-		}
-	}
-	return 0, nil
-}
-
-// findChildPageForInsert returns the child page that should receive the new cell.
-func (t *BTree) findChildPageForInsert(pg *pager.Page, page *storage.BTreePage, cell *storage.Cell) uint32 {
-	if !t.isTable {
-		return page.RightmostPtr // for index b-trees, always append to rightmost
-	}
-	coff := contentOffset(pg.PageNum)
-	// Binary search on row IDs in interior page. CellPointer adds 8 internally,
-	// so passing coff+4 yields coff+12, the interior cell-pointer array offset
-	// (header 8 + 4-byte rightmost pointer).
-	//
-	// Convention matches SQLite's leafData splitter (btree.c:8813, paired
-	// with seekInInteriorTable): the divider cell between two sibling leaves
-	// holds the LAST rowid of the LEFT sibling. A new row with rowID <=
-	// divider belongs to the LEFT child (this cell's child); a row with
-	// rowID > divider belongs to the RIGHT subtree (next cell's left child,
-	// or rightmost). The pre-fix engine used MIN(right) and <=, which kept
-	// the engine self-consistent but produced files that sqlite3 integrity_check
-	// rejected.
-	lo, hi := 0, int(page.CellCount)-1
-	for lo <= hi {
-		mid := (lo + hi) / 2
-		cellOff := int(storage.CellPointer(pg.Data, coff+4, mid, int(t.pageSize)))
-		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
-		if int64(midRowID) < cell.RowID {
-			lo = mid + 1
-		} else {
-			hi = mid - 1
-		}
-	}
-	if lo < int(page.CellCount) {
-		cellOff := int(storage.CellPointer(pg.Data, coff+4, lo, int(t.pageSize)))
-		return binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-	}
-	return page.RightmostPtr
-}
-
-// addInteriorCell adds a new cell to an interior page.
-func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChild uint32, key uint64, rightChild uint32) error {
-	coff := contentOffset(pg.PageNum)
-	cellData := t.encodeInteriorCell(leftChild, key)
-	ptroff := cellPtrOffset(page.PageType)
-
-	// Compute space
-	cellPtrEnd := coff + ptroff + int(page.CellCount)*2 + 2
-	cellContentEnd := int(page.CellContent)
-	var cellStart int
-	if cellContentEnd == 0 {
-		// Fresh (zero-initialized) page: cells pack from the usable end
-		// (zeroPage convention), not the raw page end.
-		cellStart = int(t.usableSize) - len(cellData) - int(page.FragFree)
-	} else {
-		cellStart = cellContentEnd - len(cellData)
-	}
-	if cellStart < cellPtrEnd {
-		return fmt.Errorf("btree: interior page full, cannot add child pointer")
-	}
-
-	// Find the insert position by key so interior cells stay sorted.
-	// The new cell is the separator "leftChild ... key ... rightChild"; it
-	// belongs after every existing cell whose key is < key.
-	ptrBase := coff + ptroff
-	insertIdx := int(page.CellCount)
-	for i := int(page.CellCount) - 1; i >= 0; i-- {
-		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
-		ekey, _ := util.GetVarint(pg.Data[cellOff+4:])
-		if ekey <= key {
-			insertIdx = i + 1
-			break
-		}
-		insertIdx = i
-	}
-
-	// Shift cells at [insertIdx..CellCount) right by one slot.
-	for i := int(page.CellCount); i > insertIdx; i-- {
-		src := ptrBase + (i-1)*2
-		dst := ptrBase + i*2
-		pg.Data[dst] = pg.Data[src]
-		pg.Data[dst+1] = pg.Data[src+1]
-	}
-
-	copy(pg.Data[cellStart:], cellData)
-	binary.BigEndian.PutUint16(pg.Data[ptrBase+insertIdx*2:], uint16(cellStart))
-
-	page.CellCount++
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
-	if cellContentEnd == 0 || cellStart < cellContentEnd {
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(cellStart))
-	}
-
-	// If the new key is the largest, the new child becomes the rightmost;
-	// otherwise the cell that follows the new separator (the old pointer to
-	// the split leaf) must be repointed to the new sibling. The separator
-	// {leftChild, key} routes keys < key to leftChild and keys >= key to
-	// the NEXT cell's left child (or the rightmost pointer for the last
-	// cell), so the sibling becomes the next cell's left child.
-	if insertIdx == int(page.CellCount)-1 {
-		binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], rightChild)
-	} else {
-		nextOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+(insertIdx+1)*2 : ptrBase+(insertIdx+1)*2+2]))
-		binary.BigEndian.PutUint32(pg.Data[nextOff:nextOff+4], rightChild)
-	}
-
-	return t.pager.WritePage(pg)
+	return false, nil
 }
