@@ -366,11 +366,7 @@ func jsonReplaceStep(cur *jsonNode, c jsonPathComponent) (*jsonNode, bool) {
 func jsonReplaceLeaf(cur *jsonNode, c jsonPathComponent, value *jsonNode) {
 	if c.isIdx {
 		if cur.kind == jsonArray {
-			pos := c.index
-			if c.tail {
-				pos += int64(len(cur.arr))
-			}
-			if pos >= 0 && pos < int64(len(cur.arr)) {
+			if pos, ok := jsonArrayPos(cur, c); ok {
 				cur.arr[pos] = value
 			}
 		}
@@ -405,52 +401,75 @@ func fnJSON_ARRAY_INSERT(args []interface{}) (interface{}, error) {
 		return nil, err
 	}
 	for i := 1; i < len(args); i += 2 {
-		path := toString(args[i])
-		comps, perr := parseJSONPath(path)
-		if perr != nil {
-			// An unterminated final "[.." specifier is reported as a
-			// non-array-element target rather than a bad path.
-			if k := strings.LastIndexByte(path, '['); k >= 0 && !strings.Contains(path[k:], "]") {
-				return nil, fmt.Errorf("not an array element: '%s'", path)
-			}
-			return nil, badJSONPath(path)
+		if err := jsonArrayInsertPair(root, toString(args[i]), args[i+1]); err != nil {
+			return nil, err
 		}
-		if len(comps) == 0 || !comps[len(comps)-1].isIdx {
-			return nil, fmt.Errorf("not an array element: '%s'", path)
-		}
-		val, verr := jsonInsertValue(args[i+1])
-		if verr != nil {
-			return nil, verr
-		}
-		// Resolve the parent container, creating missing intermediates.
-		cur := root
-		alive := true
-		for j := 0; j < len(comps)-1 && alive; j++ {
-			next := comps[j+1]
-			nxt, ok := jsonInsertStep(cur, comps[j], next)
-			if !ok {
-				alive = false
-				break
-			}
-			cur = nxt
-		}
-		if !alive || cur.kind != jsonArray {
-			continue // silent no-op (e.g. '$[0]' against an object root)
-		}
-		last := comps[len(comps)-1]
-		pos := last.index
-		if last.tail {
-			pos = int64(len(cur.arr)) + last.index
-		}
-		if pos < 0 || pos > int64(len(cur.arr)) {
-			continue // out-of-range insert is ignored
-		}
-		arr := append(cur.arr, nil)
-		copy(arr[pos+1:], arr[pos:])
-		arr[pos] = val
-		cur.arr = arr
 	}
 	return JSONText(jsonSerialize(root)), nil
+}
+
+// jsonArrayInsertPair applies one P,V pair of json_array_insert: V is
+// inserted into the array at path P. The final path component must be an
+// array-element specifier ([N] or [#±N]); a parent that resolves to a
+// non-array or an out-of-range position is a silent no-op.
+func jsonArrayInsertPair(root *jsonNode, path string, rawValue interface{}) error {
+	comps, err := jsonArrayInsertPath(path)
+	if err != nil {
+		return err
+	}
+	if len(comps) == 0 || !comps[len(comps)-1].isIdx {
+		return fmt.Errorf("not an array element: '%s'", path)
+	}
+	val, verr := jsonInsertValue(rawValue)
+	if verr != nil {
+		return verr
+	}
+	cur, ok := jsonInsertParent(root, comps)
+	if !ok || cur.kind != jsonArray {
+		return nil // silent no-op (e.g. '$[0]' against an object root)
+	}
+	last := comps[len(comps)-1]
+	pos := last.index
+	if last.tail {
+		pos = int64(len(cur.arr)) + last.index
+	}
+	if pos < 0 || pos > int64(len(cur.arr)) {
+		return nil // out-of-range insert is ignored
+	}
+	arr := append(cur.arr, nil)
+	copy(arr[pos+1:], arr[pos:])
+	arr[pos] = val
+	cur.arr = arr
+	return nil
+}
+
+// jsonInsertParent resolves the container holding comps' final component,
+// creating missing intermediates (json_insert creation rule). It reports
+// false when an intermediate could not be traversed or created.
+func jsonInsertParent(root *jsonNode, comps []jsonPathComponent) (*jsonNode, bool) {
+	cur := root
+	for j := 0; j < len(comps)-1; j++ {
+		nxt, ok := jsonInsertStep(cur, comps[j], comps[j+1])
+		if !ok {
+			return nil, false
+		}
+		cur = nxt
+	}
+	return cur, true
+}
+
+// jsonArrayInsertPath parses the path of a json_array_insert pair. An
+// unterminated final "[.." specifier is reported as a non-array-element
+// target rather than a bad path.
+func jsonArrayInsertPath(path string) ([]jsonPathComponent, error) {
+	comps, perr := parseJSONPath(path)
+	if perr != nil {
+		if k := strings.LastIndexByte(path, '['); k >= 0 && !strings.Contains(path[k:], "]") {
+			return nil, fmt.Errorf("not an array element: '%s'", path)
+		}
+		return nil, badJSONPath(path)
+	}
+	return comps, nil
 }
 
 // fnJSON_REMOVE implements json_remove(X,P,...): each path whose full chain
@@ -484,52 +503,71 @@ func fnJSON_REMOVE(args []interface{}) (interface{}, error) {
 	return JSONText(jsonSerialize(root)), nil
 }
 
+// jsonArrayPos resolves an [N] / [#±N] path component against the array
+// arr: '#' forms count back from the array end. It reports whether pos is
+// an in-range element index.
+func jsonArrayPos(arr *jsonNode, c jsonPathComponent) (int, bool) {
+	pos := c.index
+	if c.tail {
+		pos += int64(len(arr.arr))
+	}
+	return int(pos), pos >= 0 && pos < int64(len(arr.arr))
+}
+
+// jsonRemoveStep resolves comps[i] during json_remove traversal (no
+// creation; missing steps stop the walk).
+func jsonRemoveStep(cur *jsonNode, c jsonPathComponent) (*jsonNode, bool) {
+	if !c.isIdx {
+		if cur.kind != jsonObject {
+			return nil, false
+		}
+		return jsonObjectGet(cur, c.key)
+	}
+	if cur.kind != jsonArray {
+		return nil, false
+	}
+	pos, ok := jsonArrayPos(cur, c)
+	if !ok {
+		return nil, false
+	}
+	return cur.arr[pos], true
+}
+
 func jsonRemoveAt(root *jsonNode, comps []jsonPathComponent) {
 	cur := root
 	for i, c := range comps {
 		if i == len(comps)-1 {
-			if c.isIdx {
-				if cur.kind != jsonArray {
-					return
-				}
-				pos := c.index
-				if c.tail {
-					pos += int64(len(cur.arr))
-				}
-				if pos >= 0 && pos < int64(len(cur.arr)) {
-					cur.arr = append(cur.arr[:pos], cur.arr[pos+1:]...)
-				}
-				return
-			}
-			if cur.kind == jsonObject {
-				for j := range cur.obj {
-					if cur.obj[j].key == c.key {
-						cur.obj = append(cur.obj[:j], cur.obj[j+1:]...)
-						return
-					}
-				}
-			}
+			jsonRemoveLeaf(cur, c)
 			return
 		}
-		var nxt *jsonNode
-		var ok bool
-		if c.isIdx {
-			if cur.kind == jsonArray {
-				pos := c.index
-				if c.tail {
-					pos += int64(len(cur.arr))
-				}
-				if pos >= 0 && pos < int64(len(cur.arr)) {
-					nxt, ok = cur.arr[pos], true
-				}
-			}
-		} else if cur.kind == jsonObject {
-			nxt, ok = jsonObjectGet(cur, c.key)
-		}
+		nxt, ok := jsonRemoveStep(cur, c)
 		if !ok {
 			return
 		}
 		cur = nxt
+	}
+}
+
+// jsonRemoveLeaf deletes the final path component from cur: an array
+// element by resolved index, or an object member by key. Out-of-range
+// indexes and missing keys are silently ignored.
+func jsonRemoveLeaf(cur *jsonNode, c jsonPathComponent) {
+	if c.isIdx {
+		if cur.kind != jsonArray {
+			return
+		}
+		if pos, ok := jsonArrayPos(cur, c); ok {
+			cur.arr = append(cur.arr[:pos], cur.arr[pos+1:]...)
+		}
+		return
+	}
+	if cur.kind == jsonObject {
+		for j := range cur.obj {
+			if cur.obj[j].key == c.key {
+				cur.obj = append(cur.obj[:j], cur.obj[j+1:]...)
+				return
+			}
+		}
 	}
 }
 
@@ -576,32 +614,39 @@ func jsonApplyPatch(target, patch *jsonNode) {
 		return
 	}
 	for _, pr := range patch.obj {
-		if pr.value == nil || pr.value.kind == jsonNull {
-			jsonObjectRemoveKey(target, pr.key)
-			continue
-		}
-		existing, found := jsonObjectGet(target, pr.key)
-		switch {
-		case found && existing.kind == jsonObject && pr.value.kind == jsonObject:
-			// RFC-7396: object members merge recursively.
-			jsonApplyPatch(existing, pr.value)
-		case pr.value.kind == jsonObject:
-			// Merge into a fresh object so null leaves disappear
-			// (json104-220: {"a":{"bb":{"ccc":null}}} -> {"a":{"bb":{}}}).
-			newObj := &jsonNode{kind: jsonObject}
-			jsonApplyPatch(newObj, pr.value)
-			jsonUpsertMember(target, pr.key, newObj)
-		case found:
-			// Replace the existing member in place (no duplicates).
-			for i := range target.obj {
-				if target.obj[i].key == pr.key {
-					target.obj[i].value = pr.value
-					break
-				}
+		jsonApplyPatchMember(target, pr)
+	}
+}
+
+// jsonApplyPatchMember applies one patch member onto a target object per
+// RFC-7396: null deletes the key, objects merge recursively, everything
+// else replaces or appends the member.
+func jsonApplyPatchMember(target *jsonNode, pr jsonPair) {
+	if pr.value == nil || pr.value.kind == jsonNull {
+		jsonObjectRemoveKey(target, pr.key)
+		return
+	}
+	existing, found := jsonObjectGet(target, pr.key)
+	switch {
+	case found && existing.kind == jsonObject && pr.value.kind == jsonObject:
+		// RFC-7396: object members merge recursively.
+		jsonApplyPatch(existing, pr.value)
+	case pr.value.kind == jsonObject:
+		// Merge into a fresh object so null leaves disappear
+		// (json104-220: {"a":{"bb":{"ccc":null}}} -> {"a":{"bb":{}}}).
+		newObj := &jsonNode{kind: jsonObject}
+		jsonApplyPatch(newObj, pr.value)
+		jsonUpsertMember(target, pr.key, newObj)
+	case found:
+		// Replace the existing member in place (no duplicates).
+		for i := range target.obj {
+			if target.obj[i].key == pr.key {
+				target.obj[i].value = pr.value
+				break
 			}
-		default:
-			target.obj = append(target.obj, jsonPair{key: pr.key, value: pr.value})
 		}
+	default:
+		target.obj = append(target.obj, jsonPair{key: pr.key, value: pr.value})
 	}
 }
 

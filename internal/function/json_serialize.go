@@ -170,40 +170,50 @@ func jsonPrettyIndent(sb *strings.Builder, indent string, depth int) {
 func jsonPrettyNode(sb *strings.Builder, n *jsonNode, indent string, depth int) {
 	switch n.kind {
 	case jsonObject:
-		if len(n.obj) == 0 {
-			sb.WriteString("{}")
-			return
-		}
-		sb.WriteString("{")
-		for i, pr := range n.obj {
-			if i > 0 {
-				sb.WriteString(",")
-			}
-			jsonPrettyIndent(sb, indent, depth+1)
-			sb.WriteString(jsonQuoteString(pr.key))
-			sb.WriteString(" : ")
-			jsonPrettyNode(sb, pr.value, indent, depth+1)
-		}
-		jsonPrettyIndent(sb, indent, depth)
-		sb.WriteString("}")
+		jsonPrettyObject(sb, n, indent, depth)
 	case jsonArray:
-		if len(n.arr) == 0 {
-			sb.WriteString("[]")
-			return
-		}
-		sb.WriteString("[")
-		for i, el := range n.arr {
-			if i > 0 {
-				sb.WriteString(",")
-			}
-			jsonPrettyIndent(sb, indent, depth+1)
-			jsonPrettyNode(sb, el, indent, depth+1)
-		}
-		jsonPrettyIndent(sb, indent, depth)
-		sb.WriteString("]")
+		jsonPrettyArray(sb, n, indent, depth)
 	default:
 		sb.WriteString(jsonSerialize(n))
 	}
+}
+
+// jsonPrettyObject renders an object, one member per line ("key" : value).
+func jsonPrettyObject(sb *strings.Builder, n *jsonNode, indent string, depth int) {
+	if len(n.obj) == 0 {
+		sb.WriteString("{}")
+		return
+	}
+	sb.WriteString("{")
+	for i, pr := range n.obj {
+		if i > 0 {
+			sb.WriteString(",")
+		}
+		jsonPrettyIndent(sb, indent, depth+1)
+		sb.WriteString(jsonQuoteString(pr.key))
+		sb.WriteString(" : ")
+		jsonPrettyNode(sb, pr.value, indent, depth+1)
+	}
+	jsonPrettyIndent(sb, indent, depth)
+	sb.WriteString("}")
+}
+
+// jsonPrettyArray renders an array, one element per line.
+func jsonPrettyArray(sb *strings.Builder, n *jsonNode, indent string, depth int) {
+	if len(n.arr) == 0 {
+		sb.WriteString("[]")
+		return
+	}
+	sb.WriteString("[")
+	for i, el := range n.arr {
+		if i > 0 {
+			sb.WriteString(",")
+		}
+		jsonPrettyIndent(sb, indent, depth+1)
+		jsonPrettyNode(sb, el, indent, depth+1)
+	}
+	jsonPrettyIndent(sb, indent, depth)
+	sb.WriteString("]")
 }
 
 // jsonQuoteString renders a Go string as a quoted JSON string literal.

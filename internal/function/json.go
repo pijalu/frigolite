@@ -94,61 +94,101 @@ func parseJSON(src string) (*jsonNode, error) {
 
 func (p *jsonParser) skipWS() {
 	for p.pos < len(p.src) {
-		switch c := p.src[p.pos]; {
-		case c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == 0x0b || c == 0x0c:
-			p.pos++
-		case c == 0xc2 && p.pos+1 < len(p.src) && p.src[p.pos+1] == 0xa0:
-			// U+00A0 NBSP
-			p.pos += 2
-		case c == 0xc2 && p.pos+1 < len(p.src) && p.src[p.pos+1] == 0x85:
-			// U+0085 NEL
-			p.pos += 2
-		case c == 0xe2 && p.pos+2 < len(p.src) && p.src[p.pos+1] == 0x80 &&
-			(p.src[p.pos+2] == 0xa8 || p.src[p.pos+2] == 0xa9):
-			// U+2028 LINE SEPARATOR / U+2029 PARAGRAPH SEPARATOR
-			p.pos += 3
-		case c == 0xe1 && p.pos+2 < len(p.src) && p.src[p.pos+1] == 0x9a && p.src[p.pos+2] == 0x80:
-			// U+1680 OGHAM SPACE MARK
-			p.pos += 3
-		case c == 0xe2 && p.pos+2 < len(p.src) && p.src[p.pos+1] == 0x80 &&
-			p.src[p.pos+2] >= 0x80 && p.src[p.pos+2] <= 0x8a:
-			// U+2000..U+200A EN QUAD .. HAIR SPACE
-			p.pos += 3
-		case c == 0xe2 && p.pos+2 < len(p.src) && p.src[p.pos+1] == 0x80 &&
-			(p.src[p.pos+2] == 0xaf):
-			// U+202F NARROW NO-BREAK SPACE
-			p.pos += 3
-		case c == 0xe2 && p.pos+2 < len(p.src) && p.src[p.pos+1] == 0x81 && p.src[p.pos+2] == 0x9f:
-			// U+205F MEDIUM MATHEMATICAL SPACE
-			p.pos += 3
-		case c == 0xe3 && p.pos+2 < len(p.src) && p.src[p.pos+1] == 0x80 && p.src[p.pos+2] == 0x80:
-			// U+3000 IDEOGRAPHIC SPACE
-			p.pos += 3
-		case c == 0xef && p.pos+2 < len(p.src) && p.src[p.pos+1] == 0xbb && p.src[p.pos+2] == 0xbf:
-			// U+FEFF ZERO WIDTH NO-BREAK SPACE (BOM)
-			p.pos += 3
-		case c == '/':
-			// JSON5 comments: // to end of line, /* block */.
-			if p.pos+1 < len(p.src) && p.src[p.pos+1] == '/' {
-				for p.pos < len(p.src) && p.src[p.pos] != '\n' {
-					p.pos++
-				}
-				continue
+		c := p.src[p.pos]
+		if c == '/' {
+			if !p.skipJSON5Comment() {
+				return
 			}
-			if p.pos+1 < len(p.src) && p.src[p.pos+1] == '*' {
-				end := strings.Index(p.src[p.pos+2:], "*/")
-				if end < 0 {
-					p.pos = len(p.src)
-				} else {
-					p.pos += 2 + end + 2
-				}
-				continue
-			}
-			return
-		default:
+			continue
+		}
+		w := jsonSpaceWidth(p.src, p.pos)
+		if w == 0 {
 			return
 		}
+		p.pos += w
 	}
+}
+
+// skipJSON5Comment consumes a // or /* */ comment at p.pos (the '/' byte).
+// It reports whether a comment was consumed; a lone '/' is not a comment.
+func (p *jsonParser) skipJSON5Comment() bool {
+	if p.pos+1 >= len(p.src) {
+		return false
+	}
+	switch p.src[p.pos+1] {
+	case '/':
+		for p.pos < len(p.src) && p.src[p.pos] != '\n' {
+			p.pos++
+		}
+		return true
+	case '*':
+		end := strings.Index(p.src[p.pos+2:], "*/")
+		if end < 0 {
+			p.pos = len(p.src)
+		} else {
+			p.pos += 2 + end + 2
+		}
+		return true
+	}
+	return false
+}
+
+// jsonASCIISpace reports the single-byte JSON whitespace characters.
+func jsonASCIISpace(c byte) bool {
+	switch c {
+	case ' ', '\t', '\n', '\r', 0x0b, 0x0c:
+		return true
+	}
+	return false
+}
+
+// jsonSpace3 maps the fixed three-byte whitespace sequences to their width.
+var jsonSpace3 = map[[3]byte]int{
+	{0xe1, 0x9a, 0x80}: 3, // U+1680 OGHAM SPACE MARK
+	{0xe2, 0x81, 0x9f}: 3, // U+205F MEDIUM MATHEMATICAL SPACE
+	{0xe3, 0x80, 0x80}: 3, // U+3000 IDEOGRAPHIC SPACE
+	{0xef, 0xbb, 0xbf}: 3, // U+FEFF ZERO WIDTH NO-BREAK SPACE (BOM)
+}
+
+// jsonSpaceWidth returns the byte width of the Unicode whitespace sequence
+// starting at src[i] (the whitespace set accepted by SQLite's relaxed JSON
+// reader, src/json.c jsonParseSkipWs), or 0 when src[i] is not whitespace.
+func jsonSpaceWidth(src string, i int) int {
+	c := src[i]
+	if jsonASCIISpace(c) {
+		return 1
+	}
+	if c == 0xc2 && i+1 < len(src) && (src[i+1] == 0xa0 || src[i+1] == 0x85) {
+		return 2 // U+00A0 NBSP, U+0085 NEL
+	}
+	if c < 0xe0 || i+2 >= len(src) {
+		return 0
+	}
+	if _, ok := jsonSpace3[[3]byte{src[i], src[i+1], src[i+2]}]; ok {
+		return 3
+	}
+	return jsonSpaceWidthE2(src, i)
+}
+
+// jsonSpaceWidthE2 classifies the U+2xxx whitespace sequences (lead 0xe2).
+func jsonSpaceWidthE2(src string, i int) int {
+	if i+2 >= len(src) {
+		return 0
+	}
+	if src[i+1] == 0x80 {
+		switch c := src[i+2]; {
+		case c == 0xa8 || c == 0xa9: // U+2028 LINE SEPARATOR / U+2029 PARAGRAPH SEPARATOR
+			return 3
+		case c >= 0x80 && c <= 0x8a: // U+2000..U+200A EN QUAD .. HAIR SPACE
+			return 3
+		case c == 0xaf: // U+202F NARROW NO-BREAK SPACE
+			return 3
+		}
+	}
+	if src[i+1] == 0x81 && src[i+2] == 0x9f { // U+205F MEDIUM MATHEMATICAL SPACE
+		return 3
+	}
+	return 0
 }
 
 func (p *jsonParser) peek() byte {
@@ -282,17 +322,22 @@ func (p *jsonParser) parseKey() (string, error) {
 	}
 	start := p.pos
 	for p.pos < len(p.src) {
-		c = p.src[p.pos]
-		if c == '_' || c == '$' || c >= 0x80 || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') {
-			p.pos++
-			continue
+		if !isJSON5IdentChar(p.src[p.pos]) {
+			break
 		}
-		break
+		p.pos++
 	}
 	if p.pos == start {
 		return "", p.fail()
 	}
 	return p.src[start:p.pos], nil
+}
+
+// isJSON5IdentChar reports the relaxed-mode (JSON5) unquoted-key characters:
+// identifier characters plus '$' and any non-ASCII byte.
+func isJSON5IdentChar(c byte) bool {
+	return c == '_' || c == '$' || c >= 0x80 ||
+		(c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
 }
 
 // parseArray parses [ v1, v2, ... ] with optional trailing comma.
@@ -407,24 +452,35 @@ func (p *jsonParser) parseEscape(sb *strings.Builder) error {
 		sb.WriteRune(rune(hi<<4 | lo))
 		return nil
 	}
-	if e == '\n' {
-		// JSON5 line continuation: backslash followed by a line terminator
-		// contributes nothing to the string value.
+	if p.escapeLineContinuation(e) {
 		return nil
 	}
-	if e == '\r' {
+	return p.fail()
+}
+
+// escapeLineContinuation consumes the JSON5 line-continuation escapes that
+// may follow a backslash: a line terminator contributes nothing to the
+// string value. It reports whether e was one.
+func (p *jsonParser) escapeLineContinuation(e byte) bool {
+	switch e {
+	case '\n':
+		// Line continuation.
+		return true
+	case '\r':
 		// \r\n counts as one terminator.
 		if p.peek() == '\n' {
 			p.pos++
 		}
-		return nil
-	}
-	if e == 0xe2 && p.pos+2 < len(p.src) && p.src[p.pos] == 0x80 && (p.src[p.pos+1] == 0xa8 || p.src[p.pos+1] == 0xa9) {
+		return true
+	case 0xe2:
 		// \U+2028 / \U+2029 are JSON5 line terminators too.
-		p.pos += 2
-		return nil
+		if p.pos+2 < len(p.src) && p.src[p.pos] == 0x80 &&
+			(p.src[p.pos+1] == 0xa8 || p.src[p.pos+1] == 0xa9) {
+			p.pos += 2
+			return true
+		}
 	}
-	return p.fail()
+	return false
 }
 
 // parseUnicodeEscape parses \uXXXX, combining surrogate pairs.
@@ -658,6 +714,26 @@ func hexVal(c byte) int {
 	}
 }
 
+// jsonKeySimpleEscapes maps the single-character escape letters of a
+// double-quoted path key to their decoded byte.
+var jsonKeySimpleEscapes = map[byte]byte{
+	'n': '\n', 't': '\t', 'r': '\r', 'b': '\b', 'f': '\f',
+}
+
+// decodeJSONKeyHex decodes a fixed-width hex escape (\uXXXX or \xHH) whose
+// letter is at s[i]. It returns the decoded rune, the digit count consumed,
+// and whether the escape was well-formed (enough digits remain).
+func decodeJSONKeyHex(s string, i, ndigits int) (r rune, n int, ok bool) {
+	if i+ndigits >= len(s) {
+		return rune(s[i]), 0, false
+	}
+	v := 0
+	for k := 1; k <= ndigits; k++ {
+		v = v<<4 | hexVal(s[i+k])
+	}
+	return rune(v), ndigits, true
+}
+
 // decodeJSONKeyEscapes resolves backslash escapes inside a double-quoted
 // JSON path key (\" \\ \/ \b \f \n \r \t and \uXXXX).
 func decodeJSONKeyEscapes(s string) string {
@@ -667,40 +743,37 @@ func decodeJSONKeyEscapes(s string) string {
 			sb.WriteByte(s[i])
 			continue
 		}
-		i++
-		switch s[i] {
-		case 'u':
-			if i+4 < len(s) {
-				r := rune(hexVal(s[i+1])<<12 | hexVal(s[i+2])<<8 | hexVal(s[i+3])<<4 | hexVal(s[i+4]))
-				sb.WriteRune(r)
-				i += 4
-				continue
-			}
-			sb.WriteByte('u')
-		case 'n':
-			sb.WriteByte('\n')
-		case 't':
-			sb.WriteByte('\t')
-		case 'r':
-			sb.WriteByte('\r')
-		case 'b':
-			sb.WriteByte('\b')
-		case 'f':
-			sb.WriteByte('\f')
-		case 'x':
-			// JSON5 \xHH escape.
-			if i+2 < len(s) {
-				r := rune(hexVal(s[i+1])<<4 | hexVal(s[i+2]))
-				sb.WriteRune(r)
-				i += 2
-				continue
-			}
-			sb.WriteByte('x')
-		default:
-			sb.WriteByte(s[i])
-		}
+		i += decodeOneJSONKeyEscape(s, i+1, &sb)
 	}
 	return sb.String()
+}
+
+// decodeOneJSONKeyEscape decodes the escape whose letter is at s[i] and
+// appends it to sb. It returns the number of source bytes consumed,
+// including the escape letter itself.
+func decodeOneJSONKeyEscape(s string, i int, sb *strings.Builder) int {
+	switch c := s[i]; c {
+	case 'u':
+		if r, n, ok := decodeJSONKeyHex(s, i, 4); ok {
+			sb.WriteRune(r)
+			return 1 + n
+		}
+		sb.WriteByte('u')
+	case 'x':
+		// JSON5 \xHH escape.
+		if r, n, ok := decodeJSONKeyHex(s, i, 2); ok {
+			sb.WriteRune(r)
+			return 1 + n
+		}
+		sb.WriteByte('x')
+	default:
+		if b, ok := jsonKeySimpleEscapes[c]; ok {
+			sb.WriteByte(b)
+		} else {
+			sb.WriteByte(c)
+		}
+	}
+	return 1
 }
 
 // infNode builds a signed Infinity number node from parsed Infinity

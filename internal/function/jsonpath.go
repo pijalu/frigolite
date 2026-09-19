@@ -53,26 +53,7 @@ func parsePathKey(path string, i int) (string, int, bool) {
 		return "", 0, false
 	}
 	if path[i] == '"' || path[i] == '\'' {
-		// Quoted key: "..." or '...' (relaxed). Double-quoted keys decode
-		// backslash escapes (\" \\ \uXXXX ...) so the decoded text compares
-		// against raw stored labels.
-		q := path[i]
-		i++
-		start := i
-		for i < len(path) && path[i] != q {
-			if path[i] == '\\' && q == '"' && i+1 < len(path) {
-				i++
-			}
-			i++
-		}
-		if i >= len(path) {
-			return "", 0, false
-		}
-		raw := path[start:i]
-		if q == '\'' || !strings.ContainsRune(raw, '\\') {
-			return raw, i + 1, true
-		}
-		return decodeJSONKeyEscapes(raw), i + 1, true
+		return parsePathQuotedKey(path, i)
 	}
 	start := i
 	for i < len(path) && path[i] != '.' && path[i] != '[' {
@@ -83,6 +64,29 @@ func parsePathKey(path string, i int) (string, int, bool) {
 	}
 	// Bare keys compare RAW against stored labels: backslashes are literal.
 	return path[start:i], i, true
+}
+
+// parsePathQuotedKey scans the quoted key form of a path step: "..." or
+// '...' (relaxed). Double-quoted keys decode backslash escapes (\" \\
+// \uXXXX ...) so the decoded text compares against raw stored labels.
+func parsePathQuotedKey(path string, i int) (string, int, bool) {
+	q := path[i]
+	i++
+	start := i
+	for i < len(path) && path[i] != q {
+		if path[i] == '\\' && q == '"' && i+1 < len(path) {
+			i++
+		}
+		i++
+	}
+	if i >= len(path) {
+		return "", 0, false
+	}
+	raw := path[start:i]
+	if q == '\'' || !strings.ContainsRune(raw, '\\') {
+		return raw, i + 1, true
+	}
+	return decodeJSONKeyEscapes(raw), i + 1, true
 }
 
 // parsePathIndex parses a [N] or [#] / [#-N] / [#+N] path step starting at
@@ -195,18 +199,27 @@ func fnJSON_EXTRACT(args []interface{}) (interface{}, error) {
 		return nil, nil
 	}
 	if len(args) == 2 {
-		comps, err := parseJSONPath(toString(args[1]))
-		if err != nil {
-			return nil, err
-		}
-		node, ok := jsonLookup(root, comps)
-		if !ok {
-			return nil, nil
-		}
-		return jsonNodeToValue(node), nil
+		return jsonExtractOne(root, toString(args[1]))
 	}
-	// Multiple paths: return a JSON array with one element per path
-	// (missing paths become null), matching SQLite json_extract(X,P1,P2,...).
+	return jsonExtractMany(root, args)
+}
+
+// jsonExtractOne resolves a single path against root (json_extract(X,P)).
+func jsonExtractOne(root *jsonNode, path string) (interface{}, error) {
+	comps, err := parseJSONPath(path)
+	if err != nil {
+		return nil, err
+	}
+	node, ok := jsonLookup(root, comps)
+	if !ok {
+		return nil, nil
+	}
+	return jsonNodeToValue(node), nil
+}
+
+// jsonExtractMany returns a JSON array with one element per path (missing
+// paths become null), matching SQLite json_extract(X,P1,P2,...).
+func jsonExtractMany(root *jsonNode, args []interface{}) (interface{}, error) {
 	nodes := make([]*jsonNode, 0, len(args)-1)
 	for i := 1; i < len(args); i++ {
 		comps, perr := parseJSONPath(toString(args[i]))

@@ -21,16 +21,9 @@ func fnJSON_VALID(args []interface{}) (interface{}, error) {
 	if len(args) == 0 || args[0] == nil {
 		return nil, nil
 	}
-	// Flag bitmask (src/json.c jsonValidFunc): 0x01 accepts strict
-	// RFC-8259 JSON, 0x02 accepts JSON5 extensions, 0x04/0x08 control BLOB
-	// (JSONB) checking depth.
-	flags := 1
-	if len(args) > 1 {
-		f, ok := args[1].(int64)
-		if !ok || f < 1 || f > 15 {
-			return nil, fmt.Errorf("FLAGS parameter to json_valid() must be between 1 and 15")
-		}
-		flags = int(f)
+	flags, err := jsonValidFlags(args)
+	if err != nil {
+		return nil, err
 	}
 	v := util.UnwrapColumnValue(args[0])
 	if b, ok := v.([]byte); ok && (flags&0x0c) != 0 {
@@ -39,10 +32,7 @@ func fnJSON_VALID(args []interface{}) (interface{}, error) {
 		// validity — a corrupt tail (label without value, json101-26.2)
 		// fails 0x08 but may pass 0x04. Either way the blob is NOT
 		// re-interpreted as TEXT when a BLOB flag is set.
-		if flags&0x04 != 0 {
-			return boolToInt64(jsonbHeaderCheck(b)), nil
-		}
-		return boolToInt64(isJSONBBlob(b)), nil
+		return validBlobCheck(b, flags), nil
 	}
 	src, err := jsonArgText(v)
 	if err != nil {
@@ -59,6 +49,30 @@ func fnJSON_VALID(args []interface{}) (interface{}, error) {
 		return int64(1), nil
 	}
 	return boolToInt64(isStrictJSON(src)), nil
+}
+
+// jsonValidFlags parses the optional FLAGS argument (1..15) of json_valid.
+// The flag bitmask (src/json.c jsonValidFunc): 0x01 accepts strict
+// RFC-8259 JSON, 0x02 accepts JSON5 extensions, 0x04/0x08 control BLOB
+// (JSONB) checking depth. Without the argument the default is 1.
+func jsonValidFlags(args []interface{}) (int, error) {
+	if len(args) <= 1 {
+		return 1, nil
+	}
+	f, ok := args[1].(int64)
+	if !ok || f < 1 || f > 15 {
+		return 0, fmt.Errorf("FLAGS parameter to json_valid() must be between 1 and 15")
+	}
+	return int(f), nil
+}
+
+// validBlobCheck applies the JSONB BLOB-checking flags of json_valid: 0x04
+// is the superficial header check, anything else the full structural scan.
+func validBlobCheck(b []byte, flags int) int64 {
+	if flags&0x04 != 0 {
+		return boolToInt64(jsonbHeaderCheck(b))
+	}
+	return boolToInt64(isJSONBBlob(b))
 }
 
 // fnJSON_ERROR_POSITION implements json_error_position(X): 0 when X parses
@@ -221,28 +235,9 @@ func (s *strictScanner) str() error {
 		c := s.src[s.pos]
 		switch c {
 		case '\\':
-			s.pos++
-			if s.pos >= len(s.src) {
-				return fmt.Errorf("unterminated escape")
+			if err := s.scanEscape(); err != nil {
+				return err
 			}
-			// RFC-8259 allows only these escapes (plus \uXXXX).
-			switch e := s.src[s.pos]; e {
-			case '"', '\\', '/', 'b', 'f', 'n', 'r', 't':
-			case 'u':
-				if s.pos+4 >= len(s.src) {
-					return fmt.Errorf("malformed \\u escape")
-				}
-				for k := 1; k <= 4; k++ {
-					h := s.src[s.pos+k]
-					if !isHexDigitByte(h) {
-						return fmt.Errorf("malformed \\u escape")
-					}
-				}
-				s.pos += 4
-			default:
-				return fmt.Errorf("invalid escape character %q", e)
-			}
-			s.pos++
 		case '"':
 			s.pos++
 			return nil
@@ -256,6 +251,41 @@ func (s *strictScanner) str() error {
 	return fmt.Errorf("unterminated string")
 }
 
+// scanEscape consumes one backslash escape of a strict JSON string (s.pos
+// sits on the backslash). RFC-8259 allows only these escapes plus \uXXXX.
+func (s *strictScanner) scanEscape() error {
+	s.pos++
+	if s.pos >= len(s.src) {
+		return fmt.Errorf("unterminated escape")
+	}
+	switch e := s.src[s.pos]; e {
+	case '"', '\\', '/', 'b', 'f', 'n', 'r', 't':
+	case 'u':
+		if err := s.scanHex4(); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid escape character %q", e)
+	}
+	s.pos++
+	return nil
+}
+
+// scanHex4 validates and consumes the four hex digits of a \uXXXX escape
+// (s.pos sits on the 'u').
+func (s *strictScanner) scanHex4() error {
+	if s.pos+4 >= len(s.src) {
+		return fmt.Errorf("malformed \\u escape")
+	}
+	for k := 1; k <= 4; k++ {
+		if !isHexDigitByte(s.src[s.pos+k]) {
+			return fmt.Errorf("malformed \\u escape")
+		}
+	}
+	s.pos += 4
+	return nil
+}
+
 func isHexDigitByte(c byte) bool {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
@@ -265,38 +295,52 @@ func (s *strictScanner) number() error {
 		s.pos++
 	}
 	digitsStart := s.pos
-	for isJSONDigit(s.peek()) {
-		s.pos++
-	}
-	if s.pos == digitsStart {
+	if !s.scanDigits() {
 		return fmt.Errorf("malformed number")
 	}
 	// Leading zeros are not allowed ("00", "01").
 	if s.src[digitsStart] == '0' && s.pos-digitsStart > 1 {
 		return fmt.Errorf("leading zero in number")
 	}
-	if s.peek() == '.' {
-		s.pos++
-		frac := s.pos
-		for isJSONDigit(s.peek()) {
-			s.pos++
-		}
-		if s.pos == frac {
-			return fmt.Errorf("malformed fraction")
-		}
+	if err := s.scanFraction(); err != nil {
+		return err
 	}
-	if c := s.peek(); c == 'e' || c == 'E' {
+	return s.scanExponent()
+}
+
+// scanDigits consumes a maximal run of ASCII digits; it reports whether at
+// least one digit was present.
+func (s *strictScanner) scanDigits() bool {
+	start := s.pos
+	for isJSONDigit(s.peek()) {
 		s.pos++
-		if c := s.peek(); c == '+' || c == '-' {
-			s.pos++
-		}
-		exp := s.pos
-		for isJSONDigit(s.peek()) {
-			s.pos++
-		}
-		if s.pos == exp {
-			return fmt.Errorf("malformed exponent")
-		}
+	}
+	return s.pos != start
+}
+
+// scanFraction consumes the ".digits" fraction of a number, if present.
+func (s *strictScanner) scanFraction() error {
+	if s.peek() != '.' {
+		return nil
+	}
+	s.pos++
+	if !s.scanDigits() {
+		return fmt.Errorf("malformed fraction")
+	}
+	return nil
+}
+
+// scanExponent consumes the "e[+-]digits" exponent of a number, if present.
+func (s *strictScanner) scanExponent() error {
+	if c := s.peek(); c != 'e' && c != 'E' {
+		return nil
+	}
+	s.pos++
+	if c := s.peek(); c == '+' || c == '-' {
+		s.pos++
+	}
+	if !s.scanDigits() {
+		return fmt.Errorf("malformed exponent")
 	}
 	return nil
 }
@@ -320,41 +364,55 @@ func fnJSON_TYPE(args []interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	node := root
-	if len(args) > 1 {
-		// sqlite jsonTypeFunc: a NULL path yields SQL NULL (no result is set).
-		if args[1] == nil {
-			return nil, nil
-		}
-		comps, perr := parseJSONPath(toString(args[1]))
-		if perr != nil {
-			return nil, perr
-		}
-		found, ok := jsonLookup(root, comps)
-		if !ok {
-			return nil, nil
-		}
-		node = found
+	node, err := jsonTypeTarget(root, args)
+	if err != nil {
+		return nil, err
 	}
-	switch node.kind {
-	case jsonObject:
-		return "object", nil
-	case jsonArray:
-		return "array", nil
-	case jsonTrue:
-		return "true", nil
-	case jsonFalse:
-		return "false", nil
-	case jsonNull:
-		return "null", nil
-	case jsonString:
-		return "text", nil
-	case jsonNumber:
-		if node.isInt {
-			return "integer", nil
-		}
-		return "real", nil
-	default:
+	return jsonTypeName(node), nil
+}
+
+// jsonTypeTarget resolves the node json_type reports on: the root itself,
+// or the value at the path argument P (sqlite jsonTypeFunc: a NULL path
+// yields no result).
+func jsonTypeTarget(root *jsonNode, args []interface{}) (*jsonNode, error) {
+	if len(args) <= 1 {
+		return root, nil
+	}
+	// sqlite jsonTypeFunc: a NULL path yields SQL NULL (no result is set).
+	if args[1] == nil {
 		return nil, nil
 	}
+	comps, perr := parseJSONPath(toString(args[1]))
+	if perr != nil {
+		return nil, perr
+	}
+	found, ok := jsonLookup(root, comps)
+	if !ok {
+		return nil, nil
+	}
+	return found, nil
+}
+
+var jsonTypeNames = map[jsonKind]string{
+	jsonObject: "object",
+	jsonArray:  "array",
+	jsonTrue:   "true",
+	jsonFalse:  "false",
+	jsonNull:   "null",
+	jsonString: "text",
+}
+
+// jsonTypeName is SQLite's jsonTypeFunc name for a node's kind ("integer"/
+// "real" for numbers).
+func jsonTypeName(n *jsonNode) interface{} {
+	if n.kind == jsonNumber {
+		if n.isInt {
+			return "integer"
+		}
+		return "real"
+	}
+	if name, ok := jsonTypeNames[n.kind]; ok {
+		return name
+	}
+	return nil
 }
