@@ -132,7 +132,7 @@ func (p *Pager) SetAutoVacuum(on bool) {
 	if !on {
 		return
 	}
-	if p.header == nil || len(p.header) < HeaderSize {
+	if len(p.header) < HeaderSize {
 		// File opened empty (header not yet allocated by schema.Init).
 		// Synthesize a default header so the LargestBTreePage write
 		// has somewhere to land. schema.Init's own SetHeader call will
@@ -283,7 +283,7 @@ func (p *Pager) ApplyReservedBytes(n uint32) {
 	}
 	p.reserved = n
 	p.requestedReserve = 0
-	if p.header != nil && len(p.header) >= 21 {
+	if len(p.header) >= 21 {
 		p.header[20] = byte(n)
 		p.dirty[1] = true
 		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
@@ -399,77 +399,89 @@ func (p *Pager) SetJournalMode(mode string) error {
 	m := strings.ToLower(strings.TrimSpace(mode))
 	switch m {
 	case "wal":
-		if p.wal != nil {
-			return nil // already in WAL mode
-		}
-		if p.file == nil {
-			return fmt.Errorf("pager: cannot enable WAL on in-memory pager")
-		}
-		// Switching from PERSIST/TRUNCATE to WAL: close and unlink the
-		// existing rollback-journal file (it is no longer the active
-		// sidecar). Fire xClose + xDelete via the testvfs hook.
-		prev := p.journalMode
-		if p.journalFile != nil && (prev == "persist" || prev == "truncate") {
-			jpath := p.journalFile.Name()
-			_ = p.journalFile.Close()
-			p.journalFile = nil
-			if h := p.journalFileOpHookFn(); h != nil {
-				h("xClose", jpath)
-			}
-			if h := p.journalFileOpHookFn(); h != nil {
-				h("xDelete", jpath)
-			}
-			_ = os.Remove(jpath)
-		}
-		w, err := openWal(p, p.path, p.pageSize)
-		if err != nil {
-			return err
-		}
-		p.wal = w
-		p.journalMode = "wal"
-		return nil
+		return p.enableWALModeLocked()
 	case "delete", "truncate", "persist", "memory", "off", "wal2":
-		// Legacy rollback-journal modes. The mode is recorded so that
-		// PRAGMA journal_mode reports it on read-back; the commit path
-		// honours it when materialising / disposing of the rollback
-		// journal (see the transaction commit/rollback handlers). "delete"
-		// is the SQLite default and keeps the legacy direct-flush path.
-		if p.wal != nil {
-			p.wal.Close()
-			p.wal = nil
-		}
-		// Switching journal modes may need to close + unlink an
-		// already-open journal file (the previous mode opened it under
-		// its own policy, but the new mode may want to start fresh or
-		// handle it differently). We close + unlink in every
-		// cross-mode transition (not just PERSIST/TRUNCATE → *) so a
-		// DELETE-mode implicit open (the engine opens one on the first
-		// write of an empty database) does not leak into a subsequent
-		// PERSIST/TRUNCATE session — otherwise the new mode's first
-		// transaction sees the stale DELETE-mode file already open and
-		// skips xOpen (journal2.test 2.2 — PRAGMA persist; CREATE TABLE
-		// → expected xOpen, but the file is already open).
-		prev := p.journalMode
-		if p.journalFile != nil && m != prev {
-			jpath := p.journalFile.Name()
-			_ = p.journalFile.Close()
-			p.journalFile = nil
-			if h := p.journalFileOpHookFn(); h != nil {
-				h("xClose", jpath)
-			}
-			if h := p.journalFileOpHookFn(); h != nil {
-				h("xDelete", jpath)
-			}
-			_ = os.Remove(jpath)
-		}
-		p.journalMode = m
-		return nil
+		return p.setLegacyJournalModeLocked(m)
 	default:
 		// SQLite treats an unrecognised journal mode token as a no-op:
 		// the current mode is left unchanged and the statement returns
 		// the current mode without an error (test/journal.c jrnlmode-1.8).
 		return nil
 	}
+}
+
+// enableWALModeLocked applies PRAGMA journal_mode=wal: it creates the
+// "-wal"/"-shm" companions via openWal, writes a WAL header, and routes
+// future commits through the WAL writer (the main file is then only updated
+// by an explicit Checkpoint). Caller holds p.mu.
+func (p *Pager) enableWALModeLocked() error {
+	if p.wal != nil {
+		return nil // already in WAL mode
+	}
+	if p.file == nil {
+		return fmt.Errorf("pager: cannot enable WAL on in-memory pager")
+	}
+	// Switching from PERSIST/TRUNCATE to WAL: close and unlink the
+	// existing rollback-journal file (it is no longer the active
+	// sidecar). Fire xClose + xDelete via the testvfs hook.
+	prev := p.journalMode
+	if p.journalFile != nil && (prev == "persist" || prev == "truncate") {
+		p.discardJournalSidecarLocked()
+	}
+	w, err := openWal(p, p.path, p.pageSize)
+	if err != nil {
+		return err
+	}
+	p.wal = w
+	p.journalMode = "wal"
+	return nil
+}
+
+// setLegacyJournalModeLocked applies one of the legacy rollback-journal
+// modes (delete/truncate/persist/memory/off/wal2). The mode is recorded so
+// that PRAGMA journal_mode reports it on read-back; the commit path honours
+// it when materialising / disposing of the rollback journal (see the
+// transaction commit/rollback handlers). "delete" is the SQLite default and
+// keeps the legacy direct-flush path. Caller holds p.mu.
+func (p *Pager) setLegacyJournalModeLocked(m string) error {
+	if p.wal != nil {
+		p.wal.Close()
+		p.wal = nil
+	}
+	// Switching journal modes may need to close + unlink an
+	// already-open journal file (the previous mode opened it under
+	// its own policy, but the new mode may want to start fresh or
+	// handle it differently). We close + unlink in every
+	// cross-mode transition (not just PERSIST/TRUNCATE → *) so a
+	// DELETE-mode implicit open (the engine opens one on the first
+	// write of an empty database) does not leak into a subsequent
+	// PERSIST/TRUNCATE session — otherwise the new mode's first
+	// transaction sees the stale DELETE-mode file already open and
+	// skips xOpen (journal2.test 2.2 — PRAGMA persist; CREATE TABLE
+	// → expected xOpen, but the file is already open).
+	prev := p.journalMode
+	if p.journalFile != nil && m != prev {
+		p.discardJournalSidecarLocked()
+	}
+	p.journalMode = m
+	return nil
+}
+
+// discardJournalSidecarLocked closes and unlinks the open rollback-journal
+// sidecar, firing xClose + xDelete through the testvfs-equivalent hook
+// (journal2 suite). Used on journal-mode switches where the sidecar is no
+// longer the active journal under the new mode. Caller holds p.mu.
+func (p *Pager) discardJournalSidecarLocked() {
+	jpath := p.journalFile.Name()
+	_ = p.journalFile.Close()
+	p.journalFile = nil
+	if h := p.journalFileOpHookFn(); h != nil {
+		h("xClose", jpath)
+	}
+	if h := p.journalFileOpHookFn(); h != nil {
+		h("xDelete", jpath)
+	}
+	_ = os.Remove(jpath)
 }
 
 // JournalMode reports the active journal mode ("wal", "delete", "truncate",

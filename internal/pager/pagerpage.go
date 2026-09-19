@@ -158,7 +158,7 @@ func (p *Pager) AllocateRootpage() *Page {
 		return nil
 	}
 	p.mu.Lock()
-	if p.header != nil && len(p.header) >= 56 && p.autoVacuum {
+	if len(p.header) >= 56 && p.autoVacuum {
 		current := binary.BigEndian.Uint32(p.header[52:56])
 		if pg.PageNum > current {
 			binary.BigEndian.PutUint32(p.header[52:56], pg.PageNum)

@@ -86,6 +86,14 @@ func (p *Pager) Restore(s *PagerState) {
 	if s.header != nil {
 		p.header = append([]byte(nil), s.header...)
 	}
+	p.restoreFileImageLocked(s)
+}
+
+// restoreFileImageLocked aligns the database FILE with the snapshot image:
+// the file is truncated back to the snapshot size in both directions, the
+// restored header bytes are persisted to offset 0, and the external-change
+// stamp is re-baselined. Caller holds p.mu.
+func (p *Pager) restoreFileImageLocked(s *PagerState) {
 	// Restore the file size so the on-disk image matches the snapshot's
 	// page count in BOTH directions: a transaction may have appended
 	// pages (AllocatePage extends the file) or SHRUNK it (in-transaction

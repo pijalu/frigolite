@@ -38,27 +38,7 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 		deadline = time.Now().Add(w.busyTimeout)
 	}
 	for {
-		err := w.wi.WriterSection(func() error {
-			// The snapshot-consistency check (sqlite3WalBeginWriteTransaction's
-			// memcmp): the shared header must still match the pin.
-			pin := w.hdr
-			changed, ok := w.wi.tryRefreshLocked(&pin)
-			if !ok {
-				// Corrupt header under the WRITER lock: recover (its caller
-				// contract) — the rebuilt state becomes the pin.
-				if rerr := w.walIndexRecoverLocked(); rerr != nil {
-					return rerr
-				}
-				return nil
-			}
-			if changed && !pin.Equal(&w.hdr) {
-				return errWalBusySnapshot
-			}
-			if changed {
-				w.adoptHeaderLocked()
-			}
-			return nil
-		})
+		err := w.wi.WriterSection(w.checkWriteSnapshot)
 		if err == nil {
 			return adopted, nil
 		}
@@ -69,13 +49,7 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 			// page yet, so dropping the cache is the pager_reset parity.
 			// The caller must ALSO drop its schema/table caches: rowid
 			// counters derived from the pre-retry snapshot are stale.
-			_ = w.wi.WriterSection(func() error {
-				if ch, ok := w.wi.tryRefreshLocked(&w.hdr); ok && ch {
-					w.adoptHeaderLocked()
-					adopted = true
-				}
-				return nil
-			})
+			adopted = w.refreshStalePinLocked() || adopted
 			p.pages = make(map[uint32]*Page)
 			p.header = nil
 			continue
@@ -84,6 +58,46 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 		w.writeLock = false
 		return adopted, err
 	}
+}
+
+// checkWriteSnapshot is the WRITER-lock snapshot-consistency check run under
+// the wal-index writer section (sqlite3WalBeginWriteTransaction's memcmp):
+// the shared header must still match this connection's pin. An unparsable
+// header under the WRITER lock is recovered (its caller contract) and the
+// rebuilt state becomes the pin; a header moved past the pin reports
+// errWalBusySnapshot.
+func (w *walWriter) checkWriteSnapshot() error {
+	pin := w.hdr
+	changed, ok := w.wi.tryRefreshLocked(&pin)
+	if !ok {
+		// Corrupt header under the WRITER lock: recover (its caller
+		// contract) — the rebuilt state becomes the pin.
+		return w.walIndexRecoverLocked()
+	}
+	if changed && !pin.Equal(&w.hdr) {
+		return errWalBusySnapshot
+	}
+	if changed {
+		w.adoptHeaderLocked()
+	}
+	return nil
+}
+
+// refreshStalePinLocked re-runs the wal-index refresh under the WRITER lock
+// (the stale-snapshot retry path): a moved shared header is adopted into
+// this connection's cached view. Reports whether the header had changed
+// (the caller's "adopted" signal). Never fails: a failed refresh leaves the
+// pin as-is and the next iteration re-runs the consistency check.
+func (w *walWriter) refreshStalePinLocked() bool {
+	adopted := false
+	_ = w.wi.WriterSection(func() error {
+		if ch, ok := w.wi.tryRefreshLocked(&w.hdr); ok && ch {
+			w.adoptHeaderLocked()
+			adopted = true
+		}
+		return nil
+	})
+	return adopted
 }
 
 // WALBeginWrite opens the WAL write transaction eagerly for a writing
