@@ -2030,3 +2030,72 @@ RESIDUE (engine gap — like-opt scan, SELECT-core owner):
   breaks result correctness (verified: `x LIKE 'x%'` then returns every
   row). Contract and reproduction are pinned in
   frigolite_dml_t26_pin_test.go TestSQLiteLikeCallCounterPin.
+
+## T27 wave (2026-09-17): next-generation tranches on the T26 base
+
+All merged into main; per-tranche commits prefixed on their fleet branches.
+
+- **T26-misc (fleet/misc-func e7e09c284)**: 18/19 goal packages green on the
+  branch (misc1/3/4/5/7/8, func_pkg, nan, quote, tokenize, percentile,
+  regexp1, randexpr1, existsexpr, notnull, null, colname, distinct;
+  resolver01 flipped by T26-select as collateral) + evidence skips
+  (nan-3.1 raw page-end layout, randexpr1 x8 correlated-aggregate
+  promotion, existsexpr x5 EQP semi-join transform). Correlated-scope
+  statement reset moved from ExecSelect to Engine.Exec (with1-4.3 vs
+  insert2-4.1 both hold).
+- **T27-skipaudit (fleet/skip-audit 72bcd8369)**: 257 whole-file skips
+  audited — 10 packages un-skipped green (fts3ai/ak/al/am/an/aj,
+  zerodamage, widetab1, keyword1, scanstatus2), 21 re-skips with sharpened
+  current reasons (13 stale WAL-era reasons replaced by the real VFS/
+  harness seams), 225 confirmed, json109 dead entry removed (−11 net).
+  Incidental fixes: duplicate tclBracesBalanced template function (broke
+  every fresh regen), TCL regsub replacement syntax (&, \N → $0, ${1}),
+  leading-zero literals parsed base-10 INTEGER (widetab1-410).
+- **T27-like (fleet/like-opt ed61eec0e)**: testgen/like 13→0. like.c range
+  synthesis (prefix extraction, wildcard-set/escape/UTF-8 aware,
+  0xBF-carry upper bound, '@' rule) + elision gating the matcher (exact
+  like()/glob() counts incl. NOCASE blob two-pass TERM_LIKECOND emulation);
+  NOCASE folds DOWN (sqlite3UpperToLower); invalid UTF-8 → U+FFFD
+  equivalence; QPSG emission (sqlite3_db_config) with $::var parameter
+  binding. 330-line pin battery, oracle-verified.
+- **T27-automerge (fleet/automerge ad49957e5)**: automerge grind now
+  byte-for-byte per transaction vs the instrumented oracle (AMQ/AMIT/
+  AMCHOMP trace, page_size 1024), converging to the TCL-expected
+  `0:4 1:3 2:1`. Landed: REPLACE into %_segments, whole pending
+  interior-chain restore (SeedHierarchyLayer with per-layer baseID),
+  error-abort before the output segdir row, Finish() root-layer fix,
+  absolute leaf-flush guard, height-aware SegmentStreamReader,
+  start_block continuation fix. fts4merge4 8→5.
+- **T27-ftsflush (fleet/fts-flush bf0d32738)**: fts4merge4 5→0 — all 8
+  grid assertions green (~620s serial; slow-but-green class). Root cause
+  corrected vs handoff: automerge persistence in %_stat id=2 (0xff reopen
+  sentinel, restore on flush) + fts3PendingTermsDocid docid-restart flush
+  (UPDATE #2 of the same row), NOT per-statement xSavepoint (disproved by
+  three oracle probes at page_size 1024). Transpiler: multi-var foreach
+  literal tracking (openclose reopen emission), dispatch comparison
+  semantics, tclAutocommit runtime. fts4onepass-4.0 skip REMOVED.
+  Handoff: btree interior-rebalance non-convergence (T27-btreefix owns).
+- **P9.PERF.T1 (fleet/perf beaab9e73)**: speed1 29.4s→0.31s (~95x),
+  speed2 48.3s→0.31s (~155x), speed1p 445.4s→9.4s (~47x). Root cause of
+  the "10-100x" residue was transpiler-side O(n²) string accumulation
+  (speed_trial unsupported → strings built, never executed) — amortized
+  appends for provably write-only accumulators only. Engine wins: pager
+  journals each page's before-image once per tx (pInJournal bitvec,
+  pager.c parity) → Insert1 −58%; per-row regexp/table-flag re-derivation
+  eliminated → Update3 −66%. New frigolite_perf_bench_test.go benchmark
+  battery.
+- **P9.PERF.T2 (fleet/perf2, 9 commits)**: SELECT WHERE rowid= ~950x
+  (seek-driven rowid_seek.go); indexed point UPDATE 3.4x (seek.go
+  conjunct analysis: rowid pins → btree seek, index pins → value-scan
+  with byte-level prefilter — engine index btrees are serial-type-BYTE
+  ordered, binary value-seek proven unusable); schema-cookie entry cache
+  (header cookie + mutation epoch, exact invalidation — replaces the
+  historically-disabled blind cache; DDL bumps cookie via
+  pager.BumpSchemaCookie) → insert allocs −69%; tclListAppend amortized →
+  speed1p 9.42s→0.254s (family 0.24-0.91s); **UPDATE now maintains
+  secondary indexes** (update.c UXF — was leaving stale entries; fixes
+  14 temptable2 reds); index-key storage unwrapped (was stringifying
+  ColumnValue wrappers as TEXT keys); EQP parity (UPDATE/DELETE emit
+  oracle SEARCH lines, 22 shapes verified). Remaining hotspots
+  documented (index btrees byte-ordered → O(index) value-scans;
+  temptable2 4.1.2 tiny-cache I/O; partial-index rowid ranges).
