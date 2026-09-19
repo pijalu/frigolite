@@ -531,39 +531,6 @@ func (e *DDLExecutor) ftsSegdirNextRowID(tableName string) int64 {
 	return maxID + 1
 }
 
-// updateFTSShadowRowRange updates an existing %_segdir row with an EXPLICIT
-// block range (the truncation writer allocated and wrote the blocks once).
-// nLeafData is the truncated segment's leaf-data size (end_block TEXT
-// "<endBlock> <nLeafData>", SQLite fts3TruncateSegment/fts3WriteSegdir).
-func (e *DDLExecutor) updateFTSShadowRowRange(tableName string, level, idx, startBlock, leavesEndBlock int, nLeafData int, root []byte, endBlockID ...int) {
-	segdir := tableName + "_segdir"
-	var endBlockExpr sql.Expr
-	if len(endBlockID) > 0 && endBlockID[0] > leavesEndBlock {
-		// Merge-output continuation: end_block keeps the segment's ORIGINAL
-		// pre-allocated range end (the marker id) — appends stay inside the
-		// reservation and never move iEnd (fts3_write.c fts3IncrmergeLoad).
-		endBlockExpr = &sql.StringLit{Value: fmt.Sprintf("%d %d", endBlockID[0], nLeafData)}
-	} else if leavesEndBlock > 0 {
-		endBlockExpr = &sql.StringLit{Value: fmt.Sprintf("%d %d", leavesEndBlock, nLeafData)}
-	} else {
-		endBlockExpr = &sql.StringLit{Value: fmt.Sprintf("0 %d", len(root))}
-	}
-	_ = e.ctx.Exec(&sql.UpdateStmt{
-		Table: segdir,
-		Assignments: []sql.Assignment{
-			{Column: "start_block", Value: &sql.NumericLit{Value: fmt.Sprintf("%d", startBlock)}},
-			{Column: "leaves_end_block", Value: &sql.NumericLit{Value: fmt.Sprintf("%d", leavesEndBlock)}},
-			{Column: "end_block", Value: endBlockExpr},
-			{Column: "root", Value: &sql.BlobLit{Value: root}},
-		},
-		Where: &sql.BinaryOp{
-			Operator: "AND",
-			Left:     &sql.BinaryOp{Operator: "=", Left: &sql.ColumnRef{Name: "level"}, Right: &sql.NumericLit{Value: fmt.Sprintf("%d", level)}},
-			Right:    &sql.BinaryOp{Operator: "=", Left: &sql.ColumnRef{Name: "idx"}, Right: &sql.NumericLit{Value: fmt.Sprintf("%d", idx)}},
-		},
-	})
-}
-
 // ftSSegmentIdx returns the next idx value for a %_segdir level (the largest
 // existing idx + 1, or 0 when the level has no rows). SQLite numbers segments
 // within a level 0..n-1 in creation order (fts3.c fts3AllocateSegdirIdx).

@@ -95,22 +95,10 @@ func (e *DMLExecutor) checkEarlierChanges(changes []updateChange, i int, c updat
 	return &Result{}
 }
 
-// checkLiveTableConflicts scans the table for rows whose ORIGINAL values
+// checkLiveTableConflictsWR scans the table for rows whose ORIGINAL values
 // conflict with a change's NEW values, excluding the row being updated and
 // rows already processed (j < i), whose current NEW values were checked
 // pairwise by checkEarlierChanges.
-// checkLiveTableConflicts scans the table for rows whose ORIGINAL values
-// conflict with a change's NEW values, excluding the row being updated and
-// rows already processed (j < i), whose current NEW values were checked
-// pairwise by checkEarlierChanges.
-func (e *DMLExecutor) checkLiveTableConflicts(tree *btree.BTree, earlier []updateChange, c updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableName string) *Result {
-	entry, _, err := e.ctx.FindTable(tableName)
-	if err != nil || entry == nil {
-		return &Result{Error: err}
-	}
-	return e.checkLiveTableConflictsWR(tree, earlier, c, colDefs, colIndex, uniqueCols, idxColsList, entry, e.ctx.WRStorageOrder(entry.SQL, colDefs))
-}
-
 func (e *DMLExecutor) checkLiveTableConflictsWR(tree *btree.BTree, earlier []updateChange, c updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableEntry *schema.Entry, wrOrder []int) *Result {
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -199,9 +187,11 @@ func wrKeyMatchesCell(cell *storage.Cell, keys []wrOldKey, createSQL string, col
 	return false
 }
 
-// checkCellConflictWR is checkCellConflict with WITHOUT ROWID awareness:
-// PK-first records are remapped to declared order, and rows in wrSkip
-// (matched by OLD PK key) are ignored instead of every RowID-0 row.
+// checkCellConflictWR reports a conflict for one table cell, or nil to
+// continue scanning. WITHOUT ROWID awareness: PK-first records are remapped
+// to declared order, and rows in wrSkip (matched by OLD PK key) are ignored
+// instead of every RowID-0 row. An empty result stops the scan (a record that
+// could not be decoded is treated as no conflict).
 func (e *DMLExecutor) checkCellConflictWR(cell *storage.Cell, c updateChange, skip map[int64]bool, wrSkip []wrOldKey, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableEntry *schema.Entry, wrOrder []int) *Result {
 	if len(wrOrder) > 0 {
 		if wrKeyMatchesCell(cell, wrSkip, tableEntry.SQL, colDefs) {
@@ -230,25 +220,6 @@ func updateSkipRowIDs(earlier []updateChange, rowID int64) map[int64]bool {
 		skip[ch.rowID] = true
 	}
 	return skip
-}
-
-// checkCellConflict reports a conflict for one table cell, or nil to continue
-// scanning. Rows in the skip set are ignored. An empty result stops the scan
-// (a record that could not be decoded is treated as no conflict).
-func (e *DMLExecutor) checkCellConflict(cell *storage.Cell, c updateChange, skip map[int64]bool, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableName string) *Result {
-	if skip[cell.RowID] {
-		return nil
-	}
-	rec, err := storage.DecodeRecord(cell.Payload)
-	if err != nil || rec == nil {
-		return &Result{}
-	}
-	// A later change (j > i) still holds its ORIGINAL values (not yet
-	// written), which the table scan sees.
-	if e.valuesConflict(rec.Values, c.values, cell.RowID, c.rowID, colDefs, colIndex, uniqueCols, idxColsList) {
-		return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, rec.Values, c.values, cell.RowID, c.rowID, uniqueCols, idxColsList)}
-	}
-	return nil
 }
 
 // checkUpdateConstraints validates NOT NULL and CHECK constraints on the new

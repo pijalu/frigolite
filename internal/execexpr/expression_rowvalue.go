@@ -919,11 +919,6 @@ func nilBinaryFn(v int64) binaryOpFn {
 	return func(ev *Evaluator, l, r interface{}) (interface{}, error) { return v, nil }
 }
 
-// nilResultFn returns a fixed interface{} result for an operator.
-func nilResultFn(v interface{}) binaryOpFn {
-	return func(ev *Evaluator, l, r interface{}) (interface{}, error) { return v, nil }
-}
-
 // evalEqualityOp evaluates = with SQLite's type-matching rule: when a TEXT
 // column value is compared with a value that has no column affinity and the
 // actual types differ (TEXT vs numeric), they are not equal.

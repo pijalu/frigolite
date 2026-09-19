@@ -711,7 +711,7 @@ func (e *DDLExecutor) updateFTSDoc(tableName string, ftsTable *fts.FTS3Table, co
 		// docid changes; a stale row at the old docid breaks the integrity
 		// check's per-document size walk — fts4onepass 3.x.4: UPDATE ft2 SET
 		// docid=-1 leaves a stale %_docsize row 4).
-		if newRowID != docID && ftsTable.NoDocsize() == false {
+		if newRowID != docID && !ftsTable.NoDocsize() {
 			e.deleteFTSDocsizeRow(tableName, docID)
 			e.writeFTSDocsizeRowDDL(tableName, newRowID, ftsTable)
 		}

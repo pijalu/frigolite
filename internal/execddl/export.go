@@ -455,17 +455,12 @@ func (e *DDLExecutor) RunFTSIntegrityCheck(tableName string) *Result {
 	return nil
 }
 
-// freshFTSFromSegments builds a fresh FTS table whose in-memory index is
-// populated solely from the persisted %_segdir/%_segments rows, mirroring how
-// a reopened connection sees the index (fts3.c fts3SegReaderNext). The fresh
-// table shares the original's schema options (tokenizer, columns, content=).
-// freshFTSFromSegments loads ALL bands into one index (reopen semantics).
-func (e *DDLExecutor) freshFTSFromSegments(tableName string, orig *fts.FTS3Table) (*fts.FTS3Table, error) {
-	return e.freshFTSFromSegmentsForIndex(tableName, orig, -1)
-}
-
-// freshFTSFromSegmentsForIndex builds a fresh FTS table from ONE band's
-// segments (iIndex -1 loads every band).
+// freshFTSFromSegmentsForIndex builds a fresh FTS table whose in-memory index
+// is populated solely from the persisted %_segdir/%_segments rows, mirroring
+// how a reopened connection sees the index (fts3.c fts3SegReaderNext). The
+// fresh table shares the original's schema options (tokenizer, columns,
+// content=). iIndex selects ONE band's segments (-1 loads every band, the
+// reopen semantics).
 func (e *DDLExecutor) freshFTSFromSegmentsForIndex(tableName string, orig *fts.FTS3Table, iIndex int) (*fts.FTS3Table, error) {
 	entry, _, err := e.ctx.FindTable(tableName)
 	if err != nil || entry == nil {

@@ -114,15 +114,10 @@ func groupHasNull(group []int, values []interface{}) bool {
 	return false
 }
 
-// scanGroupForMatch walks a cursor looking for a record matching all group
-// columns against the inserted values.
-func (e *DMLExecutor) scanGroupForMatch(cursor *btree.Cursor, colDefs []sql.ColumnDef, group []int, values []interface{}) (int64, []interface{}, int, bool) {
-	return e.scanGroupForMatchWR(cursor, colDefs, group, values, "")
-}
-
-// scanGroupForMatchWR is scanGroupForMatch with the table's CREATE SQL so
-// WITHOUT ROWID PK-first records are remapped to declared order before the
-// positional allMatch comparison.
+// scanGroupForMatchWR walks a cursor looking for a record matching all group
+// columns against the inserted values; the table's CREATE SQL lets WITHOUT
+// ROWID PK-first records be remapped to declared order before the positional
+// allMatch comparison.
 func (e *DMLExecutor) scanGroupForMatchWR(cursor *btree.Cursor, colDefs []sql.ColumnDef, group []int, values []interface{}, createSQL string) (int64, []interface{}, int, bool) {
 	for {
 		cell, err := cursor.ReadCell()

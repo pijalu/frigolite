@@ -149,9 +149,7 @@ func (e *Engine) materializeTableList(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 		// right after its own row (pragma.c tableList emits each module's
 		// xShadowName results). Only modules frigolite implements with
 		// rtree-style %_suffix shadows are recognized.
-		for _, sh := range rtreeShadowRows(entries[i], filterName) {
-			rows = append(rows, sh)
-		}
+		rows = append(rows, rtreeShadowRows(entries[i], filterName)...)
 	}
 
 	// sqlite_schema and sqlite_temp_schema (5 columns each).

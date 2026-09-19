@@ -58,29 +58,6 @@ func (e *DDLExecutor) segdirRowLastTerm(tableName string, row ftsSegdirRow) stri
 	return ""
 }
 
-// segdirRowEndBlockID extracts the end_block column's FIRST value (the last
-// block id — for a merge output the pre-allocated range end, i.e. the NULL
-// marker row; fts3ReadEndBlockField). Returns 0 when absent.
-func segdirRowEndBlockID(v interface{}) int {
-	switch eb := v.(type) {
-	case string:
-		fields := strings.Fields(eb)
-		if len(fields) >= 1 {
-			id, _ := strconv.Atoi(fields[0])
-			return id
-		}
-	case []byte:
-		fields := strings.Fields(string(eb))
-		if len(fields) >= 1 {
-			id, _ := strconv.Atoi(fields[0])
-			return id
-		}
-	case int64:
-		return int(eb)
-	}
-	return 0
-}
-
 // segdirRowSize extracts the leaf-data SIZE from a %_segdir row's end_block
 // TEXT "<end> <size>" suffix (fts3ReadEndBlockField). A continuation output
 // carries the ACCUMULATED size of every append (SQLite's pWriter->nLeafData
@@ -236,49 +213,6 @@ func (e *DDLExecutor) segdirRowStreamDoclists(tableName string, rootVal, leavesE
 		}
 	}
 	return ids, termDoclists, nil
-}
-
-// segdirRowDocIDs returns the doc IDs contained in one %_segdir row's segment
-// (its root blob plus %_segments leaf blocks), read into a throwaway index so
-// the live in-memory index is untouched. A corrupt segment returns an error
-// (the caller fails the operation with "database disk image is malformed").
-func (e *DDLExecutor) segdirRowDocIDs(tableName string, rootVal, leavesEndVal interface{}) ([]int64, error) {
-	root := fts.RootBlobBytes(rootVal)
-	if len(root) == 0 {
-		return nil, nil
-	}
-	reader := func(blockID int) ([]byte, error) {
-		blk, res := e.readFTSBlock(tableName, blockID)
-		if res != nil {
-			return nil, fmt.Errorf("corrupt segment root")
-		}
-		return blk, nil
-	}
-	// Stream the segment's docids lazily (fts.SegmentStreamReader) instead of
-	// materializing the whole segment into an InvertedIndex — the crisis merge
-	// reads every source segment this way, so the InvertedIndex construction
-	// (an addPosting per posting, including position lists) made the 30040-doc
-	// automerge O(segment size) per crisis merge, O(n^2) over many flushes
-	// (fts4merge4 2.2.x).
-	sr := fts.NewSegmentStreamReader(root, int(e.segdirRowLeavesEnd(leavesEndVal)), reader)
-	seen := make(map[int64]bool)
-	var ids []int64
-	for {
-		_, docIDs, _, _, ok := sr.Next()
-		if !ok {
-			if sr.Err() != nil {
-				return nil, sr.Err()
-			}
-			break
-		}
-		for _, id := range docIDs {
-			if !seen[id] {
-				seen[id] = true
-				ids = append(ids, id)
-			}
-		}
-	}
-	return ids, nil
 }
 
 // ftsNodeSize returns the FTS segment node size: the table's nodesize=

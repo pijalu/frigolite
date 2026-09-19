@@ -921,30 +921,6 @@ func (e *Engine) reindexTargetInDb(ctx *DatabaseContext, name string) bool {
 	return false
 }
 
-// legacyTargetExistsForReindex checks a bare name across all databases
-// (collations resolved by the caller).
-func (e *Engine) legacyTargetExistsForReindex(name string) bool {
-	// Collations first (REINDEX collation-name) — built-in BINARY/NOCASE/
-	// RTRIM always resolve; user collations via Functions().
-	switch strings.ToUpper(name) {
-	case "BINARY", "NOCASE", "RTRIM":
-		return true
-	}
-	// User-registered collations (db collate) resolve too.
-	if e.collationExists(name) {
-		return true
-	}
-	for _, ctx := range e.databases {
-		if ent, err := ctx.Schema.FindTable(name); err == nil && ent != nil {
-			return true
-		}
-		if ent, err := ctx.Schema.FindIndex(name); err == nil && ent != nil {
-			return true
-		}
-	}
-	return false
-}
-
 // collationExists reports whether a collation (built-in or user-registered)
 // is known on this connection.
 func (e *Engine) collationExists(name string) bool {

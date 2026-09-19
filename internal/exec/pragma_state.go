@@ -976,6 +976,7 @@ func (e *Engine) Synchronous(schema, value string) *execpragma.Result {
 			}
 			return &execpragma.Result{}
 		}
+		//lint:ignore ST1005 message text matches the SQLite oracle verbatim
 		return &execpragma.Result{Error: fmt.Errorf("Safety level may not be changed inside a transaction")}
 	}
 	upper := strings.ToUpper(schema)

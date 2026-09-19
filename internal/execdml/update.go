@@ -498,12 +498,6 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 	return &Result{Changes: int64(len(changes))}
 }
 
-// writeUpdatedCell re-inserts one updated row (encode, insert at the
-// possibly re-keyed rowid, bump the rowid cache).
-func (e *DMLExecutor) writeUpdatedCell(tableName string, tree *btree.BTree, rootPage uint32, c updateChange) error {
-	return e.writeUpdatedCellWR(tableName, tree, rootPage, c, nil)
-}
-
 // wrSnapshotOldKeys snapshots each change's OLD PK key (declared order) for
 // a WITHOUT ROWID table's delete phase; wrEntry is nil for rowid tables.
 func (e *DMLExecutor) wrSnapshotOldKeys(tableName string, changes []updateChange) ([][]interface{}, *schema.Entry) {
