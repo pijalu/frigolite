@@ -1,192 +1,191 @@
 {
  "version": 1,
- "generated_at": "2026-09-19T15:21:07Z+serial-adjudication-T27-close",
+ "generated_at": "2026-09-19T21:28:10Z+serial-adjudication-T28-close",
  "concurrency": 3,
  "timeout": "1m0s",
  "packages": {
   "affinity2": {
    "state": "pass",
-   "duration": "823ms"
+   "duration": "724ms"
   },
   "affinity3": {
    "state": "pass",
-   "duration": "824ms"
+   "duration": "725ms"
   },
   "aggerror": {
-   "state": "fail",
-   "duration": "819ms",
-   "error": "TO t1 SELECT a+8 FROM t1;\n            INSERT INTO t1 SELECT a+16 FROM t1;\n            INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n            SELECT x_count(*) FROM t1;\n          \n    aggerror_test.go:98: query error: wrong number of arguments to function x_count()\n          sql: \n            INSERT INTO t1 VALUES(40);\n            SELECT x_count(*) FROM t1;\n          \n    aggerror_test.go:110: query error: wrong number of arguments to function x_count()\n          sql: \n            SELECT x_count(*) FROM t1\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/aggerror\t0.337s\nFAIL"
+   "state": "pass",
+   "duration": "718ms"
   },
   "aggfault": {
    "state": "pass",
-   "duration": "704ms"
+   "duration": "727ms"
   },
   "aggnested": {
    "state": "pass",
-   "duration": "728ms"
+   "duration": "747ms"
   },
   "aggorderby": {
    "state": "pass",
-   "duration": "2.597s"
+   "duration": "2.604s"
   },
   "alias": {
    "state": "pass",
-   "duration": "625ms"
+   "duration": "630ms"
   },
   "all": {
    "state": "pass",
-   "duration": "597ms"
+   "duration": "604ms"
   },
   "alter": {
-   "state": "fail",
-   "duration": "670ms",
-   "error": "ed database schema (xyz\u1234abc) - near \"xyz\u1234abc\": syntax error\n          sql: ALTER TABLE sqlite_stat1 ADD COLUMN xyz\n    alter_test.go:861: query error: malformed database schema (xyz\u1234abc) - near \"xyz\u1234abc\": syntax error\n          sql: \n          CREATE TABLE t16a(a TEXT, b REAL, c INT, PRIMARY KEY(a,b)) WITHOUT rowid;\n          INSERT INTO t16a VALUES('abc',1.25,99);\n          ALTER TABLE t16a ADD COLUMN d TEXT DEFAULT 'xyzzy';\n          INSERT INTO t16a VALUES('cba',5.5,98,'fizzle');\n          SELECT * FROM t16a ORDER BY a;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter\t0.236s\nFAIL"
+   "state": "pass",
+   "duration": "669ms"
   },
   "alter2": {
    "state": "skipped"
   },
   "alter3": {
    "state": "pass",
-   "duration": "672ms"
+   "duration": "661ms"
   },
   "alter4": {
    "state": "pass",
-   "duration": "679ms"
+   "duration": "645ms"
   },
   "alterauth": {
    "state": "skipped"
   },
   "alterauth2": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "608ms"
   },
   "altercol": {
    "state": "pass",
-   "duration": "781ms"
+   "duration": "735ms"
   },
   "altercons": {
    "state": "pass",
-   "duration": "725ms"
+   "duration": "699ms"
   },
   "altercons2": {
    "state": "pass",
-   "duration": "669ms"
+   "duration": "644ms"
   },
   "altercons3": {
    "state": "pass",
-   "duration": "716ms"
+   "duration": "699ms"
   },
   "altercorrupt": {
    "state": "pass",
-   "duration": "712ms"
+   "duration": "695ms"
   },
   "alterdropcol": {
-   "state": "pass",
-   "duration": "53.683s"
+   "state": "fail",
+   "duration": "52.094s",
+   "error": "cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\nDBG cascade from 2\n--- FAIL: Test_alterdropcol (51.44s)\n    alterdropcol_test.go:535: query error: database disk image is malformed\n          sql: \n            SELECT count(*), c FROM t1 GROUP BY c;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alterdropcol\t51.654s\nFAIL"
   },
   "alterdropcol2": {
    "state": "pass",
-   "duration": "625ms"
+   "duration": "606ms"
   },
   "alterfault": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "581ms"
   },
   "alterlegacy": {
    "state": "pass",
-   "duration": "657ms"
+   "duration": "654ms"
   },
   "altermalloc": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "620ms"
   },
   "altermalloc2": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "622ms"
   },
   "altermalloc3": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "593ms"
   },
   "alterqf": {
    "state": "pass",
-   "duration": "643ms"
+   "duration": "631ms"
   },
   "altertab": {
    "state": "pass",
-   "duration": "692ms"
+   "duration": "680ms"
   },
   "altertab2": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "632ms"
   },
   "altertab3": {
    "state": "pass",
-   "duration": "1.247s"
+   "duration": "1.264s"
   },
   "altertrig": {
    "state": "pass",
-   "duration": "590ms"
+   "duration": "587ms"
   },
   "amatch1": {
    "state": "pass",
-   "duration": "2.532s"
+   "duration": "2.45s"
   },
   "analyze": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "595ms"
   },
   "analyze3": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "581ms"
   },
   "analyze4": {
    "state": "pass",
-   "duration": "601ms"
+   "duration": "586ms"
   },
   "analyze5": {
    "state": "pass",
-   "duration": "578ms"
+   "duration": "567ms"
   },
   "analyze6": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "625ms"
   },
   "analyze7": {
    "state": "pass",
-   "duration": "1.36s"
+   "duration": "1.363s"
   },
   "analyze8": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "593ms"
   },
   "analyze9": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "610ms"
   },
   "analyzeC": {
    "state": "pass",
-   "duration": "578ms"
+   "duration": "575ms"
   },
   "analyzeD": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "592ms"
   },
   "analyzeE": {
    "state": "pass",
-   "duration": "573ms"
+   "duration": "583ms"
   },
   "analyzeF": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "588ms"
   },
   "analyzeG": {
    "state": "pass",
-   "duration": "605ms"
+   "duration": "580ms"
   },
   "analyzer1": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "587ms"
   },
   "atof1": {
    "state": "skipped"
@@ -196,31 +195,31 @@
   },
   "atomic": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "569ms"
   },
   "atomic2": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "594ms"
   },
   "attach": {
    "state": "pass",
-   "duration": "656ms"
+   "duration": "614ms"
   },
   "attach2": {
    "state": "pass",
-   "duration": "618ms"
+   "duration": "607ms"
   },
   "attach3": {
    "state": "pass",
-   "duration": "578ms"
+   "duration": "598ms"
   },
   "attach4": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "608ms"
   },
   "attachmalloc": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "597ms"
   },
   "auth": {
    "state": "skipped"
@@ -236,69 +235,68 @@
   },
   "autoinc": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "640ms"
   },
   "autoindex1": {
    "state": "pass",
-   "duration": "762ms"
+   "duration": "800ms"
   },
   "autoindex2": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "610ms"
   },
   "autoindex3": {
    "state": "pass",
-   "duration": "584ms"
+   "duration": "575ms"
   },
   "autoindex4": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "595ms"
   },
   "autoindex5": {
    "state": "pass",
-   "duration": "574ms"
+   "duration": "577ms"
   },
   "autovacuum": {
    "state": "pass",
-   "duration": "4.119s"
+   "duration": "3.847s"
   },
   "autovacuum2": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "570ms"
   },
   "autovacuum_ioerr2": {
    "state": "pass",
-   "duration": "575ms"
+   "duration": "582ms"
   },
   "avfs": {
    "state": "fail",
-   "duration": "590ms",
-   "error": "--- FAIL: Test_avfs (0.01s)\n    avfs_test.go:244: result mismatch\n          got:  [fosAvfs $fa]\n          want: [4096]\n          body: do_test 1.4\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/avfs\t0.218s\nFAIL"
+   "duration": "593ms",
+   "error": "--- FAIL: Test_avfs (0.01s)\n    avfs_test.go:244: result mismatch\n          got:  [fosAvfs $fa]\n          want: [4096]\n          body: do_test 1.4\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/avfs\t0.227s\nFAIL"
   },
   "avtrans": {
    "state": "pass",
-   "duration": "1m0.605s",
-   "error": "ine_core.go:811 +0x3c0\ngithub.com/pijalu/frigolite.(*DB).Exec(0x6eae4d0b6720, {0x100d00ef3, 0xed})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1181 +0x2c0\ngithub.com/pijalu/frigolite/testgen/avtrans.Test_avtrans(0x6eae4cd9ad88)\n\t/Users/muaddib/dev/frigolite/testgen/avtrans/avtrans_test.go:1237 +0x5ae8\ntesting.tRunner(0x6eae4cd9ad88, 0x1011835a8)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/avtrans\t60.230s\nFAIL"
+   "duration": "1m0.624s"
   },
   "backcompat": {
    "state": "pass",
-   "duration": "601ms"
+   "duration": "584ms"
   },
   "backup": {
    "state": "pass",
-   "duration": "2.967s"
+   "duration": "2.814s"
   },
   "backup2": {
    "state": "pass",
-   "duration": "781ms"
+   "duration": "758ms"
   },
   "backup4": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "600ms"
   },
   "backup5": {
    "state": "pass",
-   "duration": "607ms"
+   "duration": "595ms"
   },
   "backup_ioerr": {
    "state": "skipped"
@@ -308,15 +306,15 @@
   },
   "badutf": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "586ms"
   },
   "badutf2": {
    "state": "pass",
-   "duration": "584ms"
+   "duration": "594ms"
   },
   "basexx1": {
    "state": "pass",
-   "duration": "729ms"
+   "duration": "714ms"
   },
   "bestindex1": {
    "state": "skipped"
@@ -368,36 +366,36 @@
   },
   "between": {
    "state": "pass",
-   "duration": "605ms"
+   "duration": "586ms"
   },
   "bigfile": {
    "state": "pass",
-   "duration": "591ms"
+   "duration": "586ms"
   },
   "bigfile2": {
    "state": "pass",
-   "duration": "585ms"
+   "duration": "587ms"
   },
   "bigmmap": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "593ms"
   },
   "bigrow": {
    "state": "fail",
-   "duration": "948ms",
-   "error": "89 i 9290 j 9291 k 9292 l 9293 m 9294 n 9295 o 9296 p 9297 q 9298 r 9299 s 9300 t 9301 u 9302 v 9303 w 9304 x 9305 y 9306 z 9307 a 9308 b 9309 c 9310 d 9311 e 9312 f 9313 g 9314 h 9315 i 9316 j 9317 k 9318 l 9319 m 9320 n 9321 o 9322 p 9323 q 9324 r 9325 s 9326 t 9327 u 9328 v 9329 w 9330 x 9331 y 9332 z 9333 a 9334 b 9335 c 9336 d 9337 e 9338 f 9339 g 9340 h 9341 i 9342 j 9343 k 9344 l 9345 m 9346 n 9347 o 9348 p 9349 q 9350 r 9351 s 9352 t 9353 u 9354 v 9355 w 9356 x 9357 y 9358 z 9359 a 9360]\n          body: do_test bigrow-2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/bigrow\t0.549s\nFAIL"
+   "duration": "915ms",
+   "error": "89 i 9290 j 9291 k 9292 l 9293 m 9294 n 9295 o 9296 p 9297 q 9298 r 9299 s 9300 t 9301 u 9302 v 9303 w 9304 x 9305 y 9306 z 9307 a 9308 b 9309 c 9310 d 9311 e 9312 f 9313 g 9314 h 9315 i 9316 j 9317 k 9318 l 9319 m 9320 n 9321 o 9322 p 9323 q 9324 r 9325 s 9326 t 9327 u 9328 v 9329 w 9330 x 9331 y 9332 z 9333 a 9334 b 9335 c 9336 d 9337 e 9338 f 9339 g 9340 h 9341 i 9342 j 9343 k 9344 l 9345 m 9346 n 9347 o 9348 p 9349 q 9350 r 9351 s 9352 t 9353 u 9354 v 9355 w 9356 x 9357 y 9358 z 9359 a 9360]\n          body: do_test bigrow-2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/bigrow\t0.539s\nFAIL"
   },
   "bigsort": {
    "state": "pass",
-   "duration": "3.941s"
+   "duration": "3.843s"
   },
   "bind": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "610ms"
   },
   "bind2": {
    "state": "pass",
-   "duration": "594ms"
+   "duration": "574ms"
   },
   "bindxfer": {
    "state": "skipped"
@@ -407,40 +405,40 @@
   },
   "blob": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "596ms"
   },
   "bloom1": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "616ms"
   },
   "boundary1": {
    "state": "pass",
-   "duration": "1.378s"
+   "duration": "1.308s"
   },
   "boundary2": {
    "state": "pass",
-   "duration": "2.807s"
+   "duration": "2.679s"
   },
   "boundary3": {
    "state": "pass",
-   "duration": "1.579s"
+   "duration": "1.565s"
   },
   "boundary4": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "588ms"
   },
   "btree01": {
    "state": "pass",
-   "duration": "1.617s"
+   "duration": "1.371s"
   },
   "btree02": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "643ms"
   },
   "btreefault": {
    "state": "fail",
-   "duration": "587ms",
-   "error": "--- FAIL: Test_btreefault (0.01s)\n    btreefault_test.go:147: result mismatch\n          got:  [25 a 25 b 25 c]\n          want: [25 a 25 b]\n          body: do_test 2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/btreefault\t0.224s\nFAIL"
+   "duration": "621ms",
+   "error": "--- FAIL: Test_btreefault (0.01s)\n    btreefault_test.go:147: result mismatch\n          got:  [25 a 25 b 25 c]\n          want: [25 a 25 b]\n          body: do_test 2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/btreefault\t0.239s\nFAIL"
   },
   "busy": {
    "state": "skipped"
@@ -450,97 +448,96 @@
   },
   "cache": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "592ms"
   },
   "cacheflush": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "601ms"
   },
   "cachespill": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "601ms"
   },
   "capi2": {
-   "state": "fail",
-   "duration": "602ms",
-   "error": "--- FAIL: Test_capi2 (0.01s)\n    capi2_test.go:438: result mismatch\n          got:  [SQLITE_CONSTRAINT]\n          want: [SQLITE_ERROR]\n          body: do_test capi2-3.22\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/capi2\t0.229s\nFAIL"
-  },
-  "capi3": {
-   "state": "pass",
-   "duration": "597ms"
-  },
-  "capi3b": {
-   "state": "pass",
-   "duration": "598ms"
-  },
-  "capi3c": {
-   "state": "pass",
-   "duration": "590ms"
-  },
-  "capi3d": {
-   "state": "pass",
-   "duration": "604ms"
-  },
-  "capi3e": {
    "state": "pass",
    "duration": "592ms"
   },
+  "capi3": {
+   "state": "pass",
+   "duration": "598ms"
+  },
+  "capi3b": {
+   "state": "pass",
+   "duration": "613ms"
+  },
+  "capi3c": {
+   "state": "pass",
+   "duration": "602ms"
+  },
+  "capi3d": {
+   "state": "pass",
+   "duration": "600ms"
+  },
+  "capi3e": {
+   "state": "pass",
+   "duration": "598ms"
+  },
   "carray01": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "602ms"
   },
   "carray02": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "596ms"
   },
   "carrayfault": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "601ms"
   },
   "cast": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "613ms"
   },
   "cffault": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "601ms"
   },
   "changes": {
    "state": "pass",
-   "duration": "53.304s"
+   "duration": "52.488s"
   },
   "changes2": {
    "state": "pass",
-   "duration": "582ms"
+   "duration": "603ms"
   },
   "check": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "621ms"
   },
   "checkfault": {
    "state": "pass",
-   "duration": "583ms"
+   "duration": "696ms"
   },
   "chunksize": {
    "state": "fail",
-   "duration": "583ms",
-   "error": "--- FAIL: Test_chunksize (0.00s)\n    chunksize_test.go:114: result mismatch\n          got:  [2048]\n          want: [32768]\n          body: do_test 1.2\n    chunksize_test.go:114: result mismatch\n          got:  [2048]\n          want: [32768]\n          body: do_test 2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/chunksize\t0.209s\nFAIL"
+   "duration": "605ms",
+   "error": "--- FAIL: Test_chunksize (0.00s)\n    chunksize_test.go:114: result mismatch\n          got:  [2048]\n          want: [32768]\n          body: do_test 1.2\n    chunksize_test.go:114: result mismatch\n          got:  [2048]\n          want: [32768]\n          body: do_test 2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/chunksize\t0.232s\nFAIL"
   },
   "cksumvfs": {
    "state": "pass",
-   "duration": "5.817s"
+   "duration": "5.77s"
   },
   "close_pkg": {
    "state": "pass",
-   "duration": "586ms"
+   "duration": "587ms"
   },
   "closure01": {
    "state": "pass",
-   "duration": "9.362s"
+   "duration": "9.273s"
   },
   "coalesce": {
    "state": "pass",
-   "duration": "586ms"
+   "duration": "583ms"
   },
   "collate1": {
    "state": "pass",
@@ -548,180 +545,179 @@
   },
   "collate2": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "610ms"
   },
   "collate3": {
    "state": "pass",
-   "duration": "591ms"
+   "duration": "600ms"
   },
   "collate4": {
    "state": "pass",
-   "duration": "601ms"
+   "duration": "629ms"
   },
   "collate5": {
    "state": "pass",
-   "duration": "708ms"
+   "duration": "701ms"
   },
   "collate6": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "601ms"
   },
   "collate7": {
    "state": "pass",
-   "duration": "585ms"
+   "duration": "590ms"
   },
   "collate8": {
    "state": "pass",
-   "duration": "623ms"
+   "duration": "580ms"
   },
   "collate9": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "583ms"
   },
   "collateA": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "595ms"
   },
   "collateB": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "570ms"
   },
   "colmeta": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "594ms"
   },
   "colname": {
    "state": "pass",
-   "duration": "395ms"
+   "duration": "571ms"
   },
   "columncount": {
    "state": "pass",
-   "duration": "600ms"
+   "duration": "587ms"
   },
   "conflict": {
-   "state": "fail",
-   "duration": "658ms",
-   "error": "--- FAIL: Test_conflict (0.08s)\n    conflict_test.go:936: query error: conflicting ON CONFLICT clauses specified\n          sql: \n          CREATE TABLE t1(\n            x PRIMARY KEY,\n            UNIQUE(x,x),\n            UNIQUE(x,x) ON CONFLICT REPLACE\n          );\n          INSERT INTO t1(x) VALUES(1);\n          SELECT * FROM t1;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict\t0.278s\nFAIL"
+   "state": "pass",
+   "duration": "651ms"
   },
   "conflict2": {
    "state": "pass",
-   "duration": "704ms"
+   "duration": "689ms"
   },
   "conflict3": {
    "state": "pass",
-   "duration": "623ms"
+   "duration": "603ms"
   },
   "contrib01": {
    "state": "pass",
-   "duration": "666ms"
+   "duration": "593ms"
   },
   "corrupt": {
    "state": "fail",
-   "duration": "20.925s",
-   "error": "--- FAIL: Test_corrupt (20.32s)\n    corrupt_test.go:462: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n              INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/corrupt\t20.534s\nFAIL"
+   "duration": "20.416s",
+   "error": "--- FAIL: Test_corrupt (19.85s)\n    corrupt_test.go:462: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n              INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/corrupt\t20.054s\nFAIL"
   },
   "corrupt2": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "513ms"
   },
   "corrupt3": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "592ms"
   },
   "corrupt4": {
    "state": "pass",
-   "duration": "580ms"
+   "duration": "585ms"
   },
   "corrupt5": {
    "state": "pass",
-   "duration": "575ms"
+   "duration": "589ms"
   },
   "corrupt6": {
    "state": "pass",
-   "duration": "586ms"
+   "duration": "606ms"
   },
   "corrupt7": {
    "state": "pass",
-   "duration": "588ms"
+   "duration": "591ms"
   },
   "corrupt8": {
    "state": "pass",
-   "duration": "1.347s"
+   "duration": "1.388s"
   },
   "corrupt9": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "608ms"
   },
   "corruptA": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "588ms"
   },
   "corruptB": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "640ms"
   },
   "corruptC": {
    "state": "skipped"
   },
   "corruptD": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "601ms"
   },
   "corruptE": {
    "state": "pass",
-   "duration": "581ms"
+   "duration": "589ms"
   },
   "corruptF": {
    "state": "pass",
-   "duration": "774ms"
+   "duration": "795ms"
   },
   "corruptG": {
    "state": "pass",
-   "duration": "581ms"
+   "duration": "614ms"
   },
   "corruptH": {
    "state": "pass",
-   "duration": "585ms"
+   "duration": "610ms"
   },
   "corruptI": {
    "state": "pass",
-   "duration": "585ms"
+   "duration": "601ms"
   },
   "corruptJ": {
    "state": "pass",
-   "duration": "583ms"
+   "duration": "589ms"
   },
   "corruptK": {
    "state": "pass",
-   "duration": "584ms"
+   "duration": "597ms"
   },
   "corruptL": {
    "state": "pass",
-   "duration": "2.062s"
+   "duration": "2.025s"
   },
   "corruptM": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "588ms"
   },
   "corruptN": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "627ms"
   },
   "cost": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "630ms"
   },
   "count": {
    "state": "pass",
-   "duration": "1.353s"
+   "duration": "1.356s"
   },
   "countofview": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "596ms"
   },
   "coveridxscan": {
    "state": "pass",
-   "duration": "570ms"
+   "duration": "597ms"
   },
   "crash": {
    "state": "skipped"
@@ -749,23 +745,23 @@
   },
   "crashM": {
    "state": "pass",
-   "duration": "815ms"
+   "duration": "816ms"
   },
   "createtab": {
    "state": "pass",
-   "duration": "690ms"
+   "duration": "694ms"
   },
   "cse": {
    "state": "pass",
-   "duration": "580ms"
+   "duration": "600ms"
   },
   "csv01": {
    "state": "pass",
-   "duration": "680ms"
+   "duration": "685ms"
   },
   "ctime": {
    "state": "pass",
-   "duration": "583ms"
+   "duration": "575ms"
   },
   "cursorhint": {
    "state": "skipped"
@@ -775,126 +771,126 @@
   },
   "dataversion1": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "616ms"
   },
   "date": {
    "state": "pass",
-   "duration": "825ms"
+   "duration": "841ms"
   },
   "date2": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "621ms"
   },
   "date3": {
    "state": "pass",
-   "duration": "584ms"
+   "duration": "623ms"
   },
   "date4": {
    "state": "pass",
-   "duration": "811ms"
+   "duration": "817ms"
   },
   "date5": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "611ms"
   },
   "dbdata": {
    "state": "pass",
-   "duration": "583ms"
+   "duration": "617ms"
   },
   "dbfuzz001": {
    "state": "skipped"
   },
   "dbpage": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "602ms"
   },
   "dbpagefault": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "599ms"
   },
   "dbstatus": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "593ms"
   },
   "dbstatus2": {
    "state": "pass",
-   "duration": "1.678s"
+   "duration": "1.748s"
   },
   "decimal": {
    "state": "pass",
-   "duration": "1.532s"
+   "duration": "1.369s"
   },
   "default_pkg": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "632ms"
   },
   "delete2": {
    "state": "pass",
-   "duration": "607ms"
+   "duration": "469ms"
   },
   "delete3": {
    "state": "pass",
-   "duration": "4.377s"
+   "duration": "4.207s"
   },
   "delete4": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "622ms"
   },
   "delete_db": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "557ms"
   },
   "delete_pkg": {
    "state": "pass",
-   "duration": "1.133s"
+   "duration": "1.09s"
   },
   "descidx1": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "564ms"
   },
   "descidx2": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "577ms"
   },
   "descidx3": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "603ms"
   },
   "diskfull": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "555ms"
   },
   "distinct": {
    "state": "pass",
-   "duration": "425ms"
+   "duration": "628ms"
   },
   "distinct2": {
    "state": "pass",
-   "duration": "704ms"
+   "duration": "730ms"
   },
   "distinctagg": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "610ms"
   },
   "e_blobbytes": {
    "state": "pass",
-   "duration": "2.009s"
+   "duration": "1.888s"
   },
   "e_blobclose": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "596ms"
   },
   "e_blobopen": {
    "state": "pass",
-   "duration": "657ms"
+   "duration": "636ms"
   },
   "e_blobwrite": {
    "state": "pass",
-   "duration": "657ms"
+   "duration": "620ms"
   },
   "e_changes": {
    "state": "pass",
-   "duration": "689ms"
+   "duration": "637ms"
   },
   "e_createtable": {
    "state": "skipped"
@@ -904,46 +900,45 @@
   },
   "e_droptrigger": {
    "state": "pass",
-   "duration": "743ms"
+   "duration": "708ms"
   },
   "e_dropview": {
    "state": "pass",
-   "duration": "586ms"
+   "duration": "576ms"
   },
   "e_expr": {
    "state": "skipped"
   },
   "e_fkey": {
    "state": "pass",
-   "duration": "905ms"
+   "duration": "903ms"
   },
   "e_fts3": {
    "state": "pass",
-   "duration": "724ms"
+   "duration": "730ms"
   },
   "e_insert": {
    "state": "pass",
-   "duration": "628ms"
+   "duration": "610ms"
   },
   "e_reindex": {
    "state": "pass",
-   "duration": "690ms"
+   "duration": "743ms"
   },
   "e_resolve": {
    "state": "pass",
-   "duration": "683ms"
+   "duration": "748ms"
   },
   "e_select": {
    "state": "skipped"
   },
   "e_select2": {
-   "state": "fail",
-   "duration": "619ms",
-   "error": "base schema (%ss%) - near \"%\": syntax error\n          sql: CREATE TEMP TABLE '%ss%' AS SELECT +y AS x FROM t5\n    e_select2_test.go:315: exec error: malformed database schema (%ss%) - near \"%\": syntax error\n          sql: DROP TABLE '%ss%'\n    e_select2_test.go:309: exec error: malformed database schema (%ss%) - near \"%\": syntax error\n          sql: CREATE TEMP TABLE '%ss%' AS SELECT +y AS x FROM t5\n    e_select2_test.go:315: exec error: malformed database schema (%ss%) - near \"%\": syntax error\n          sql: DROP TABLE '%ss%'\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/e_select2\t0.204s\nFAIL"
+   "state": "pass",
+   "duration": "696ms"
   },
   "e_totalchanges": {
    "state": "pass",
-   "duration": "861ms"
+   "duration": "801ms"
   },
   "e_update": {
    "state": "skipped"
@@ -968,235 +963,234 @@
   },
   "emptytable": {
    "state": "pass",
-   "duration": "815ms"
+   "duration": "763ms"
   },
   "enc": {
    "state": "pass",
-   "duration": "724ms"
+   "duration": "721ms"
   },
   "enc2": {
    "state": "pass",
-   "duration": "742ms"
+   "duration": "744ms"
   },
   "enc3": {
    "state": "skipped"
   },
   "enc4": {
    "state": "pass",
-   "duration": "709ms"
+   "duration": "711ms"
   },
   "eqp": {
    "state": "pass",
-   "duration": "695ms"
+   "duration": "688ms"
   },
   "eqp2": {
    "state": "pass",
-   "duration": "754ms"
+   "duration": "791ms"
   },
   "errmsg": {
    "state": "pass",
-   "duration": "721ms"
+   "duration": "762ms"
   },
   "errofst1": {
    "state": "pass",
-   "duration": "691ms"
+   "duration": "747ms"
   },
   "eval": {
    "state": "skipped"
   },
   "exclusive": {
    "state": "pass",
-   "duration": "743ms"
+   "duration": "756ms"
   },
   "exclusive2": {
    "state": "pass",
-   "duration": "741ms"
+   "duration": "757ms"
   },
   "exec": {
    "state": "pass",
-   "duration": "701ms"
+   "duration": "722ms"
   },
   "exists": {
    "state": "pass",
-   "duration": "741ms"
+   "duration": "729ms"
   },
   "existsexpr": {
    "state": "pass",
-   "duration": "1.062s"
+   "duration": "1.046s"
   },
   "existsexpr2": {
    "state": "pass",
-   "duration": "742ms"
+   "duration": "730ms"
   },
   "existsfault": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "641ms"
   },
   "expr": {
    "state": "pass",
-   "duration": "683ms"
+   "duration": "648ms"
   },
   "expr2": {
    "state": "pass",
-   "duration": "574ms"
+   "duration": "578ms"
   },
   "exprfault": {
    "state": "pass",
-   "duration": "717ms"
+   "duration": "636ms"
   },
   "exprfault2": {
    "state": "pass",
-   "duration": "660ms"
+   "duration": "620ms"
   },
   "expridx1": {
    "state": "pass",
-   "duration": "3.614s"
+   "duration": "3.616s"
   },
   "expridx2": {
    "state": "pass",
-   "duration": "649ms"
+   "duration": "631ms"
   },
   "extension01": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "631ms"
   },
   "external_reader": {
    "state": "pass",
-   "duration": "636ms"
+   "duration": "633ms"
   },
   "extraquick": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "631ms"
   },
   "fallocate": {
    "state": "skipped"
   },
   "filectrl": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "645ms"
   },
   "filefmt": {
    "state": "pass",
-   "duration": "660ms"
+   "duration": "670ms"
   },
   "filter1": {
    "state": "pass",
-   "duration": "667ms"
+   "duration": "671ms"
   },
   "filter2": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "633ms"
   },
   "filterfault": {
    "state": "pass",
-   "duration": "677ms"
+   "duration": "645ms"
   },
   "fkey1": {
    "state": "pass",
-   "duration": "696ms"
+   "duration": "657ms"
   },
   "fkey2": {
    "state": "pass",
-   "duration": "975ms"
+   "duration": "983ms"
   },
   "fkey3": {
    "state": "pass",
-   "duration": "716ms"
+   "duration": "702ms"
   },
   "fkey4": {
    "state": "pass",
-   "duration": "666ms"
+   "duration": "683ms"
   },
   "fkey5": {
    "state": "pass",
-   "duration": "731ms"
+   "duration": "660ms"
   },
   "fkey6": {
-   "state": "fail",
-   "duration": "685ms",
-   "error": "  CREATE TABLE t2(\n                y INTEGER PRIMARY KEY,\n                z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n            );\n          \n    fkey6_test.go:370: query error: database disk image is malformed\n          sql: \n            BEGIN;\n              INSERT INTO t2 VALUES(1,0),(2,1);\n              CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n              INSERT INTO t3 VALUES(3,3);\n              PRAGMA defer_foreign_keys=ON;\n              DELETE FROM t2;\n            COMMIT;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey6\t0.244s\nFAIL"
+   "state": "pass",
+   "duration": "617ms"
   },
   "fkey7": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "557ms"
   },
   "fkey8": {
    "state": "pass",
-   "duration": "707ms"
+   "duration": "675ms"
   },
   "fkey_malloc": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "636ms"
   },
   "fordelete": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "590ms"
   },
   "format4": {
    "state": "skipped"
   },
   "fpconv1": {
    "state": "pass",
-   "duration": "2.338s"
+   "duration": "2.251s"
   },
   "fts3": {
    "state": "pass",
-   "duration": "715ms"
+   "duration": "636ms"
   },
   "fts3aa": {
    "state": "pass",
-   "duration": "664ms"
+   "duration": "633ms"
   },
   "fts3ab": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "607ms"
   },
   "fts3ac": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "613ms"
   },
   "fts3ad": {
    "state": "pass",
-   "duration": "649ms"
+   "duration": "627ms"
   },
   "fts3ae": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "611ms"
   },
   "fts3af": {
    "state": "pass",
-   "duration": "645ms"
+   "duration": "624ms"
   },
   "fts3ag": {
    "state": "pass",
-   "duration": "638ms"
+   "duration": "599ms"
   },
   "fts3ah": {
    "state": "skipped"
   },
   "fts3ai": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "567ms"
   },
   "fts3aj": {
    "state": "pass",
-   "duration": "647ms"
+   "duration": "633ms"
   },
   "fts3ak": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "577ms"
   },
   "fts3al": {
    "state": "pass",
-   "duration": "593ms"
+   "duration": "568ms"
   },
   "fts3am": {
    "state": "pass",
-   "duration": "682ms"
+   "duration": "662ms"
   },
   "fts3an": {
    "state": "pass",
-   "duration": "710ms"
+   "duration": "681ms"
   },
   "fts3ao": {
    "state": "skipped"
@@ -1218,111 +1212,108 @@
   },
   "fts3b": {
    "state": "pass",
-   "duration": "1m0.565s",
-   "error": "rigolite/frigolite_vacuum.go:73 +0x18c\ngithub.com/pijalu/frigolite.(*DB).Exec(0x3d71f24a7e0, {0x1025347ee, 0x6})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1171 +0x2ec\ngithub.com/pijalu/frigolite/testgen/fts3b.Test_fts3b(0x3d71f2c0d88)\n\t/Users/muaddib/dev/frigolite/testgen/fts3b/fts3b_test.go:119 +0x62c\ntesting.tRunner(0x3d71f2c0d88, 0x1029d3248)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3b\t60.204s\nFAIL"
+   "duration": "1m0.574s"
   },
   "fts3c": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "665ms"
   },
   "fts3comp1": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "631ms"
   },
   "fts3conf": {
    "state": "pass",
-   "duration": "717ms"
+   "duration": "780ms"
   },
   "fts3corrupt": {
    "state": "fail",
-   "duration": "695ms",
-   "error": "sql: \n          CREATE VIRTUAL TABLE f using fts3(a,b);\n          CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n          INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n          INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                                       x'000131030102000103323334050101010200');\n          INSERT INTO f_segments (blockid) values (16);\n          INSERT INTO f_segments values (0, x'');\n          INSERT INTO f_stat VALUES (1,x'cf0f01');\n          INSERT INTO f(f) VALUES ('merge=1');\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3corrupt\t0.245s\nFAIL"
+   "duration": "667ms",
+   "error": "sql: \n          CREATE VIRTUAL TABLE f using fts3(a,b);\n          CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n          INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n          INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                                       x'000131030102000103323334050101010200');\n          INSERT INTO f_segments (blockid) values (16);\n          INSERT INTO f_segments values (0, x'');\n          INSERT INTO f_stat VALUES (1,x'cf0f01');\n          INSERT INTO f(f) VALUES ('merge=1');\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3corrupt\t0.254s\nFAIL"
   },
   "fts3corrupt2": {
    "state": "pass",
-   "duration": "3.223s"
+   "duration": "3.339s"
   },
   "fts3corrupt3": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "678ms"
   },
   "fts3corrupt4": {
    "state": "pass",
-   "duration": "1.8s"
+   "duration": "1.792s"
   },
   "fts3corrupt5": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "607ms"
   },
   "fts3corrupt6": {
    "state": "pass",
-   "duration": "1.217s"
+   "duration": "1.16s"
   },
   "fts3corrupt7": {
    "state": "pass",
-   "duration": "1.849s"
+   "duration": "1.854s"
   },
   "fts3cov": {
    "state": "pass",
-   "duration": "625ms"
+   "duration": "618ms"
   },
   "fts3d": {
-   "state": "fail",
-   "duration": "631ms",
-   "error": "--- FAIL: Test_fts3d (0.01s)\n    fts3d_test.go:296: query error: malformed database schema (ott_content) - near \"ott_content\": syntax error\n          sql:  \n            ALTER TABLE xyz RENAME TO ott;\n            SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3d\t0.218s\nFAIL"
+   "state": "pass",
+   "duration": "617ms"
   },
   "fts3defer": {
    "state": "pass",
-   "duration": "1m0.618s",
-   "error": "o:811 +0x3c0\ngithub.com/pijalu/frigolite.(*DB).Query(0x7cb47474a7e0, {0x100d010e2, 0x33b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1265 +0x33c\ngithub.com/pijalu/frigolite/testgen/fts3defer.Test_fts3defer(0x7cb4747c0d88)\n\t/Users/muaddib/dev/frigolite/testgen/fts3defer/fts3defer_test.go:215 +0xb30\ntesting.tRunner(0x7cb4747c0d88, 0x10117a978)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3defer\t60.210s\nFAIL"
+   "duration": "1m0.597s"
   },
   "fts3defer2": {
    "state": "pass",
-   "duration": "1.469s"
+   "duration": "1.468s"
   },
   "fts3defer3": {
    "state": "pass",
-   "duration": "701ms"
+   "duration": "698ms"
   },
   "fts3drop": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "602ms"
   },
   "fts3dropmod": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "596ms"
   },
   "fts3e": {
    "state": "pass",
-   "duration": "638ms"
+   "duration": "607ms"
   },
   "fts3expr": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "617ms"
   },
   "fts3expr2": {
    "state": "pass",
-   "duration": "586ms"
+   "duration": "589ms"
   },
   "fts3expr3": {
    "state": "pass",
-   "duration": "689ms"
+   "duration": "614ms"
   },
   "fts3expr4": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "602ms"
   },
   "fts3expr5": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "605ms"
   },
   "fts3f": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "605ms"
   },
   "fts3fault": {
    "state": "pass",
-   "duration": "773ms"
+   "duration": "769ms"
   },
   "fts3fault2": {
    "state": "skipped"
@@ -1332,57 +1323,57 @@
   },
   "fts3first": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "618ms"
   },
   "fts3fuzz001": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "629ms"
   },
   "fts3integrity": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "605ms"
   },
   "fts3join": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "613ms"
   },
   "fts3malloc": {
    "state": "skipped"
   },
   "fts3matchinfo": {
    "state": "pass",
-   "duration": "732ms"
+   "duration": "723ms"
   },
   "fts3matchinfo2": {
    "state": "pass",
-   "duration": "594ms"
+   "duration": "595ms"
   },
   "fts3misc": {
    "state": "skipped"
   },
   "fts3near": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "619ms"
   },
   "fts3offsets": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "601ms"
   },
   "fts3prefix": {
    "state": "pass",
-   "duration": "654ms"
+   "duration": "647ms"
   },
   "fts3prefix2": {
    "state": "pass",
-   "duration": "1.814s"
+   "duration": "1.82s"
   },
   "fts3query": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "608ms"
   },
   "fts3rank": {
    "state": "pass",
-   "duration": "685ms"
+   "duration": "603ms"
   },
   "fts3rnd": {
    "state": "skipped"
@@ -1396,131 +1387,129 @@
   },
   "fts3snippet2": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "622ms"
   },
   "fts3sort": {
    "state": "pass",
-   "duration": "14.83s"
+   "duration": "14.913s"
   },
   "fts3tok1": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "601ms"
   },
   "fts3tok_err": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "594ms"
   },
   "fts3varint": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "593ms"
   },
   "fts4aa": {
-   "state": "pass",
-   "duration": "3.506s"
+   "state": "fail",
+   "duration": "2.135s",
+   "error": "rmed [SEG9]\n          sql: \n            SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n          \n    fts4aa_test.go:194: query error: database disk image is malformed [SEG9]\n          sql: \n            SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n          \n    fts4aa_test.go:200: query error: database disk image is malformed [SEG9]\n          sql: \n              SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n               WHERE t1 MATCH 'joseph died in egypt'\n               ORDER BY docid;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4aa\t1.764s\nFAIL"
   },
   "fts4check": {
    "state": "pass",
-   "duration": "1m0.605s",
-   "error": ", 0x3fdee36c47e0, {0x103397f99?, 0x4?}, {0x10339b442?, 0x9?}, 0x4e20)\n\t/Users/muaddib/dev/frigolite/testgen/fts4check/fts4check_test.go:62 +0x254\ngithub.com/pijalu/frigolite/testgen/fts4check.Test_fts4check(0x3fdee37a2d88)\n\t/Users/muaddib/dev/frigolite/testgen/fts4check/fts4check_test.go:243 +0x4bc\ntesting.tRunner(0x3fdee37a2d88, 0x10382e838)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4check\t60.224s\nFAIL"
+   "duration": "1m0.598s"
   },
   "fts4content": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "629ms"
   },
   "fts4docid": {
    "state": "pass",
-   "duration": "691ms"
+   "duration": "618ms"
   },
   "fts4growth": {
    "state": "pass",
-   "duration": "21.257s"
+   "duration": "21.339s"
   },
   "fts4growth2": {
    "state": "pass",
-   "duration": "659ms"
+   "duration": "630ms"
   },
   "fts4incr": {
    "state": "pass",
-   "duration": "14.938s"
+   "duration": "14.874s"
   },
   "fts4intck1": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "605ms"
   },
   "fts4langid": {
-   "state": "fail",
-   "duration": "3.493s",
-   "error": "--- FAIL: Test_fts4langid (2.88s)\n    fts4langid_test.go:791: query error: database disk image is malformed [T25]\n          sql: \n          INSERT INTO vt0(vt0) VALUES('integrity-check');\n          PRAGMA integrity_check;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4langid\t3.103s\nFAIL"
+   "state": "pass",
+   "duration": "3.479s"
   },
   "fts4lastrowid": {
    "state": "pass",
-   "duration": "656ms"
+   "duration": "589ms"
   },
   "fts4merge": {
    "state": "fail",
-   "duration": "1m0.631s",
-   "error": "confirmed fail: pre-existing 4.1/4.2 assertions (T27-automerge adjudication)"
+   "duration": "1m0.606s",
+   "error": "serial adjudication T28 close (-timeout 900s): confirmed fail: pre-existing 4.1/4.2 (T28 adjudication)"
   },
   "fts4merge2": {
    "state": "pass",
-   "duration": "1.033s"
+   "duration": "1.043s"
   },
   "fts4merge3": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "601ms"
   },
   "fts4merge4": {
    "state": "pass",
-   "duration": "1m0.704s",
-   "error": "c0\ngithub.com/pijalu/frigolite.(*DB).Exec(0x6403e5a66000, {0x6403fd7a2000, 0x30dfe})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1181 +0x2c0\ngithub.com/pijalu/frigolite/testgen/fts4merge4.Test_fts4merge4(0x6403e51c8d88)\n\t/Users/muaddib/dev/frigolite/testgen/fts4merge4/fts4merge4_test.go:257 +0x10b4\ntesting.tRunner(0x6403e51c8d88, 0x104a5f008)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4merge4\t60.244s\nFAIL"
+   "duration": "1m0.479s"
   },
   "fts4merge5": {
    "state": "pass",
-   "duration": "727ms"
+   "duration": "644ms"
   },
   "fts4min": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "587ms"
   },
   "fts4noti": {
    "state": "pass",
-   "duration": "670ms"
+   "duration": "671ms"
   },
   "fts4onepass": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "609ms"
   },
   "fts4opt": {
    "state": "pass",
-   "duration": "19.812s"
+   "duration": "20.014s"
   },
   "fts4record": {
    "state": "pass",
-   "duration": "593ms"
+   "duration": "595ms"
   },
   "fts4rename": {
    "state": "pass",
-   "duration": "600ms"
+   "duration": "591ms"
   },
   "fts4umlaut": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "622ms"
   },
   "fts4unicode": {
    "state": "pass",
-   "duration": "53.846s"
+   "duration": "53.556s"
   },
   "fts4upfrom": {
    "state": "pass",
-   "duration": "663ms"
+   "duration": "626ms"
   },
   "fts5aa": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "622ms"
   },
   "fts5ab": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "611ms"
   },
   "fts5ac": {
    "state": "pass",
@@ -1528,36 +1517,36 @@
   },
   "fts5ad": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "610ms"
   },
   "fts5ae": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "607ms"
   },
   "fts5af": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "603ms"
   },
   "fts5ag": {
    "state": "pass",
-   "duration": "569ms"
+   "duration": "566ms"
   },
   "fts5ah": {
    "state": "pass",
-   "duration": "591ms"
+   "duration": "601ms"
   },
   "fts5ai": {
    "state": "pass",
-   "duration": "563ms"
+   "duration": "562ms"
   },
   "fts5aj": {
    "state": "fail",
-   "duration": "1m0.637s",
-   "error": "confirmed fail: P9.PERF slow class (re-adjudicated T27)"
+   "duration": "1m0.63s",
+   "error": "serial adjudication T28 close (-timeout 900s): P9.PERF slow class"
   },
   "fts5ak": {
    "state": "pass",
-   "duration": "561ms"
+   "duration": "589ms"
   },
   "fts5al": {
    "state": "pass",
@@ -1565,96 +1554,95 @@
   },
   "fts5alter": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "587ms"
   },
   "fts5auto": {
    "state": "pass",
-   "duration": "580ms"
+   "duration": "586ms"
   },
   "fts5aux": {
    "state": "skipped"
   },
   "fts5aux2": {
    "state": "pass",
-   "duration": "582ms"
+   "duration": "579ms"
   },
   "fts5auxdata": {
    "state": "pass",
-   "duration": "587ms"
+   "duration": "577ms"
   },
   "fts5bigid": {
    "state": "fail",
-   "duration": "1m0.585s",
-   "error": "confirmed fail: P9.PERF slow class (re-adjudicated T27)"
+   "duration": "1m0.594s",
+   "error": "serial adjudication T28 close (-timeout 900s): P9.PERF slow class"
   },
   "fts5bigpl": {
    "state": "pass",
-   "duration": "1m1.166s",
-   "error": "0x3c0\ngithub.com/pijalu/frigolite.(*DB).Exec(0x79a51d7a6720, {0x79a583bbe000, 0x11e1a31b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1181 +0x2c0\ngithub.com/pijalu/frigolite/testgen/fts5bigpl.Test_fts5bigpl(0x79a51d7c8d88)\n\t/Users/muaddib/dev/frigolite/testgen/fts5bigpl/fts5bigpl_test.go:116 +0x6bc\ntesting.tRunner(0x79a51d7c8d88, 0x101266348)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5bigpl\t60.790s\nFAIL"
+   "duration": "1m1.032s"
   },
   "fts5bigtok": {
    "state": "pass",
-   "duration": "1.305s"
+   "duration": "1.139s"
   },
   "fts5blob": {
    "state": "pass",
-   "duration": "678ms"
+   "duration": "867ms"
   },
   "fts5cat": {
    "state": "pass",
-   "duration": "861ms"
+   "duration": "615ms"
   },
   "fts5circref": {
    "state": "fail",
-   "duration": "635ms",
-   "error": "go:114: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            INSERT INTO tt(a) VALUES('one two three');\n          \n    fts5circref_test.go:114: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            INSERT INTO tt(a) VALUES('one two three');\n          \n    fts5circref_test.go:114: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            INSERT INTO tt(a) VALUES('one two three');\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5circref\t0.230s\nFAIL"
+   "duration": "632ms",
+   "error": "go:114: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            INSERT INTO tt(a) VALUES('one two three');\n          \n    fts5circref_test.go:114: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            INSERT INTO tt(a) VALUES('one two three');\n          \n    fts5circref_test.go:114: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            INSERT INTO tt(a) VALUES('one two three');\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5circref\t0.246s\nFAIL"
   },
   "fts5colset": {
    "state": "skipped"
   },
   "fts5columnsize": {
    "state": "pass",
-   "duration": "745ms"
+   "duration": "791ms"
   },
   "fts5config": {
    "state": "skipped"
   },
   "fts5conflict": {
    "state": "pass",
-   "duration": "699ms"
+   "duration": "709ms"
   },
   "fts5connect": {
    "state": "pass",
-   "duration": "701ms"
+   "duration": "675ms"
   },
   "fts5content": {
    "state": "fail",
-   "duration": "676ms",
-   "error": "  want: [one two]\n    fts5content_test.go:642: result mismatch\n          got:  [{}]\n          want: [one]\n    fts5content_test.go:654: result mismatch\n          got:  [{}]\n          want: [2]\n    fts5content_test.go:697: expected error containing \"fts5: missing row 2 from content table 'main'.'t1'\", got: <nil>\n          sql: \n          SELECT * FROM ft('two');\n    fts5content_test.go:704: expected error containing \"SQLITE_CORRUPT_VTAB\", got: <nil>\n          sql: \n          SELECT rowid, fts5_columntext(ft, 0) FROM ft('two');\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5content\t0.253s\nFAIL"
+   "duration": "637ms",
+   "error": "  want: [one two]\n    fts5content_test.go:642: result mismatch\n          got:  [{}]\n          want: [one]\n    fts5content_test.go:654: result mismatch\n          got:  [{}]\n          want: [2]\n    fts5content_test.go:697: expected error containing \"fts5: missing row 2 from content table 'main'.'t1'\", got: <nil>\n          sql: \n          SELECT * FROM ft('two');\n    fts5content_test.go:704: expected error containing \"SQLITE_CORRUPT_VTAB\", got: <nil>\n          sql: \n          SELECT rowid, fts5_columntext(ft, 0) FROM ft('two');\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5content\t0.267s\nFAIL"
   },
   "fts5contentless": {
    "state": "fail",
-   "duration": "669ms",
-   "error": "--- FAIL: Test_fts5contentless (0.01s)\n    fts5contentless_test.go:203: result mismatch\n          got:  [00000000000000]\n          want: [00000000FF000001000000]\n    fts5contentless_test.go:221: result mismatch\n          got:  [1 {} 2 {}]\n          want: [1 1 2 2]\n    fts5contentless_test.go:227: query error: no such table: fts5_structure\n          sql: \n          SELECT level, segment, loc1, loc2 FROM fts5_structure(\n            (SELECT block FROM x2_data WHERE id=10)\n          )\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5contentless\t0.243s\nFAIL"
+   "duration": "633ms",
+   "error": "--- FAIL: Test_fts5contentless (0.01s)\n    fts5contentless_test.go:203: result mismatch\n          got:  [00000000000000]\n          want: [00000000FF000001000000]\n    fts5contentless_test.go:221: result mismatch\n          got:  [1 {} 2 {}]\n          want: [1 1 2 2]\n    fts5contentless_test.go:227: query error: no such table: fts5_structure\n          sql: \n          SELECT level, segment, loc1, loc2 FROM fts5_structure(\n            (SELECT block FROM x2_data WHERE id=10)\n          )\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5contentless\t0.216s\nFAIL"
   },
   "fts5contentless2": {
    "state": "fail",
-   "duration": "1m0.632s",
-   "error": "confirmed fail: P9.PERF slow class (re-adjudicated T27)"
+   "duration": "1m0.609s",
+   "error": "serial adjudication T28 close (-timeout 900s): P9.PERF slow class"
   },
   "fts5contentless3": {
    "state": "fail",
-   "duration": "779ms",
-   "error": "[3]\n          want: [200]\n    fts5contentless3_test.go:270: result mismatch\n          got:  [3]\n          want: [203]\n    fts5contentless3_test.go:299: result mismatch\n          got:  [3]\n          want: [197]\n    fts5contentless3_test.go:311: result mismatch\n          got:  [3]\n          want: [200]\n    fts5contentless3_test.go:317: query error: no such table: fts5_structure\n          sql: \n          SELECT level, segment, npgtombstone FROM fts5_structure(\n            (SELECT block FROM ft_data WHERE id=10)\n          )\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5contentless3\t0.372s\nFAIL"
+   "duration": "730ms",
+   "error": "[3]\n          want: [200]\n    fts5contentless3_test.go:270: result mismatch\n          got:  [3]\n          want: [203]\n    fts5contentless3_test.go:299: result mismatch\n          got:  [3]\n          want: [197]\n    fts5contentless3_test.go:311: result mismatch\n          got:  [3]\n          want: [200]\n    fts5contentless3_test.go:317: query error: no such table: fts5_structure\n          sql: \n          SELECT level, segment, npgtombstone FROM fts5_structure(\n            (SELECT block FROM ft_data WHERE id=10)\n          )\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5contentless3\t0.317s\nFAIL"
   },
   "fts5contentless4": {
    "state": "fail",
-   "duration": "1.135s",
-   "error": "--- FAIL: Test_fts5contentless4 (0.05s)\n    fts5contentless4_test.go:86: query error: no such table: fts5_structure\n          sql: \n          SELECT level, segment, nentry, nentrytombstone FROM fts5_structure((\n            SELECT block FROM ft_data WHERE id=10\n          ))\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5contentless4\t0.284s\nFAIL"
+   "duration": "720ms",
+   "error": "--- FAIL: Test_fts5contentless4 (0.07s)\n    fts5contentless4_test.go:86: query error: no such table: fts5_structure\n          sql: \n          SELECT level, segment, nentry, nentrytombstone FROM fts5_structure((\n            SELECT block FROM ft_data WHERE id=10\n          ))\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5contentless4\t0.323s\nFAIL"
   },
   "fts5contentless5": {
    "state": "pass",
-   "duration": "705ms"
+   "duration": "1.266s"
   },
   "fts5corrupt": {
    "state": "skipped"
@@ -1667,7 +1655,7 @@
   },
   "fts5corrupt4": {
    "state": "pass",
-   "duration": "1.706s"
+   "duration": "1.876s"
   },
   "fts5corrupt5": {
    "state": "skipped"
@@ -1683,89 +1671,89 @@
   },
   "fts5corruptbig": {
    "state": "pass",
-   "duration": "1.097s"
+   "duration": "915ms"
   },
   "fts5delete": {
    "state": "fail",
-   "duration": "1m0.697s",
-   "error": "confirmed fail: P6.FTS5 slow class (re-adjudicated T27)"
+   "duration": "1m1.393s",
+   "error": "serial adjudication T28 close (-timeout 900s): P6.FTS5 slow class"
   },
   "fts5detail": {
    "state": "skipped"
   },
   "fts5determin": {
    "state": "pass",
-   "duration": "1.021s"
+   "duration": "973ms"
   },
   "fts5dlidx": {
    "state": "pass",
-   "duration": "601ms"
+   "duration": "662ms"
   },
   "fts5doclist": {
    "state": "pass",
-   "duration": "1.696s"
+   "duration": "1.648s"
   },
   "fts5ea": {
    "state": "pass",
-   "duration": "600ms"
+   "duration": "587ms"
   },
   "fts5eb": {
    "state": "pass",
-   "duration": "606ms"
+   "duration": "602ms"
   },
   "fts5expr": {
    "state": "pass",
-   "duration": "697ms"
+   "duration": "666ms"
   },
   "fts5fault1": {
    "state": "skipped"
   },
   "fts5fault2": {
    "state": "pass",
-   "duration": "808ms"
+   "duration": "777ms"
   },
   "fts5fault3": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "582ms"
   },
   "fts5fault4": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "628ms"
   },
   "fts5fault5": {
    "state": "pass",
-   "duration": "647ms"
+   "duration": "604ms"
   },
   "fts5fault6": {
    "state": "skipped"
   },
   "fts5fault7": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "592ms"
   },
   "fts5fault8": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "591ms"
   },
   "fts5fault9": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "598ms"
   },
   "fts5faultA": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "585ms"
   },
   "fts5faultB": {
    "state": "pass",
-   "duration": "611ms"
+   "duration": "600ms"
   },
   "fts5faultD": {
    "state": "pass",
-   "duration": "593ms"
+   "duration": "576ms"
   },
   "fts5faultE": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "591ms"
   },
   "fts5faultF": {
    "state": "skipped"
@@ -1781,155 +1769,155 @@
   },
   "fts5first": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "591ms"
   },
   "fts5full": {
    "state": "pass",
-   "duration": "4.91s"
+   "duration": "4.645s"
   },
   "fts5fuzz1": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "595ms"
   },
   "fts5hash": {
    "state": "fail",
-   "duration": "808ms",
-   "error": "--- FAIL: Test_fts5hash (0.20s)\n    fts5hash_test.go:137: result mismatch\n          got:  [3]\n          want: [2]\n    fts5hash_test.go:149: result mismatch\n          got:  [0]\n          want: [1]\n    fts5hash_test.go:161: result mismatch\n          got:  [0]\n          want: [1]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5hash\t0.417s\nFAIL"
+   "duration": "775ms",
+   "error": "--- FAIL: Test_fts5hash (0.20s)\n    fts5hash_test.go:137: result mismatch\n          got:  [3]\n          want: [2]\n    fts5hash_test.go:149: result mismatch\n          got:  [0]\n          want: [1]\n    fts5hash_test.go:161: result mismatch\n          got:  [0]\n          want: [1]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5hash\t0.403s\nFAIL"
   },
   "fts5integrity": {
    "state": "skipped"
   },
   "fts5integrity2": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "594ms"
   },
   "fts5interrupt": {
    "state": "skipped"
   },
   "fts5join": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "584ms"
   },
   "fts5lastrowid": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "590ms"
   },
   "fts5leftjoin": {
    "state": "fail",
-   "duration": "619ms",
-   "error": "--- FAIL: Test_fts5leftjoin (0.01s)\n    fts5leftjoin_test.go:136: expected error containing \"no query solution\", got: <nil>\n          sql: \n          SELECT * FROM t0 LEFT JOIN t1 ON t0.b MATCH '1';\n    fts5leftjoin_test.go:167: expected error containing \"no query solution\", got: <nil>\n          sql: \n          SELECT * FROM  t0 \n          LEFT JOIN ( SELECT 0 AS col_0 ) \n          ON ((((t0.c1 MATCH '1')AND(CASE WHEN t0.c0 THEN CAST(t0.c1 AS INTEGER) ELSE 1 END))));\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5leftjoin\t0.223s\nFAIL"
+   "duration": "597ms",
+   "error": "--- FAIL: Test_fts5leftjoin (0.01s)\n    fts5leftjoin_test.go:136: expected error containing \"no query solution\", got: <nil>\n          sql: \n          SELECT * FROM t0 LEFT JOIN t1 ON t0.b MATCH '1';\n    fts5leftjoin_test.go:167: expected error containing \"no query solution\", got: <nil>\n          sql: \n          SELECT * FROM  t0 \n          LEFT JOIN ( SELECT 0 AS col_0 ) \n          ON ((((t0.c1 MATCH '1')AND(CASE WHEN t0.c0 THEN CAST(t0.c1 AS INTEGER) ELSE 1 END))));\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5leftjoin\t0.225s\nFAIL"
   },
   "fts5limits": {
    "state": "pass",
-   "duration": "607ms"
+   "duration": "584ms"
   },
   "fts5locale": {
    "state": "skipped"
   },
   "fts5matchinfo": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "592ms"
   },
   "fts5merge": {
    "state": "fail",
-   "duration": "1m0.662s",
-   "error": "confirmed fail: P6.FTS5 slow class (re-adjudicated T27)"
+   "duration": "1m0.584s",
+   "error": "serial adjudication T28 close (-timeout 900s): P6.FTS5 slow class"
   },
   "fts5merge2": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "590ms"
   },
   "fts5misc": {
    "state": "fail",
-   "duration": "5.947s",
-   "error": "esult mismatch\n          got:  [{}]\n          want: [b world {}]\n    fts5misc_test.go:490: result mismatch\n          got:  [{}]\n          want: [b world {}]\n    fts5misc_test.go:502: result mismatch\n          got:  [{}]\n          want: [3 4 b b]\n    fts5misc_test.go:579: query error: unable to open database: /one\n          sql: \n          PRAGMA locking_mode=EXCLUSIVE;\n          BEGIN;\n          ATTACH 'file:/one?vfs=memdb' AS aux1;\n          ATTACH 'file:/one?vfs=memdb' AS aux2;\n          CREATE VIRTUAL TABLE t1 USING fts5(x);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5misc\t5.558s\nFAIL"
+   "duration": "5.601s",
+   "error": "esult mismatch\n          got:  [{}]\n          want: [b world {}]\n    fts5misc_test.go:490: result mismatch\n          got:  [{}]\n          want: [b world {}]\n    fts5misc_test.go:502: result mismatch\n          got:  [{}]\n          want: [3 4 b b]\n    fts5misc_test.go:579: query error: unable to open database: /one\n          sql: \n          PRAGMA locking_mode=EXCLUSIVE;\n          BEGIN;\n          ATTACH 'file:/one?vfs=memdb' AS aux1;\n          ATTACH 'file:/one?vfs=memdb' AS aux2;\n          CREATE VIRTUAL TABLE t1 USING fts5(x);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5misc\t5.234s\nFAIL"
   },
   "fts5multi": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "592ms"
   },
   "fts5multiclient": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "603ms"
   },
   "fts5near": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "598ms"
   },
   "fts5onepass": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "627ms"
   },
   "fts5optimize": {
    "state": "fail",
-   "duration": "1m0.647s",
-   "error": "confirmed fail: P6.FTS5 slow class (re-adjudicated T27)"
+   "duration": "1m0.568s",
+   "error": "serial adjudication T28 close (-timeout 900s): P6.FTS5 slow class"
   },
   "fts5optimize2": {
    "state": "pass",
-   "duration": "44.049s"
+   "duration": "37.423s"
   },
   "fts5optimize3": {
    "state": "pass",
-   "duration": "52.61s"
+   "duration": "43.629s"
   },
   "fts5origintext": {
    "state": "pass",
-   "duration": "595ms"
+   "duration": "601ms"
   },
   "fts5origintext2": {
    "state": "skipped"
   },
   "fts5origintext3": {
    "state": "pass",
-   "duration": "590ms"
+   "duration": "576ms"
   },
   "fts5origintext4": {
    "state": "pass",
-   "duration": "649ms"
+   "duration": "573ms"
   },
   "fts5origintext5": {
    "state": "skipped"
   },
   "fts5origintext6": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "575ms"
   },
   "fts5phrase": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "610ms"
   },
   "fts5plan": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "587ms"
   },
   "fts5porter": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "597ms"
   },
   "fts5porter2": {
    "state": "pass",
-   "duration": "605ms"
+   "duration": "576ms"
   },
   "fts5prefix": {
    "state": "fail",
-   "duration": "1m0.622s",
-   "error": "confirmed fail: P6.FTS5 slow class (re-adjudicated T27)"
+   "duration": "1m0.592s",
+   "error": "serial adjudication T28 close (-timeout 900s): P6.FTS5 slow class"
   },
   "fts5prefix2": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "632ms"
   },
   "fts5query": {
    "state": "pass",
-   "duration": "824ms"
+   "duration": "811ms"
   },
   "fts5rank": {
    "state": "skipped"
   },
   "fts5rebuild": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "596ms"
   },
   "fts5restart": {
    "state": "skipped"
@@ -1942,72 +1930,72 @@
   },
   "fts5secure": {
    "state": "pass",
-   "duration": "4.208s"
+   "duration": "3.373s"
   },
   "fts5secure2": {
    "state": "pass",
-   "duration": "721ms"
+   "duration": "618ms"
   },
   "fts5secure3": {
    "state": "skipped"
   },
   "fts5secure4": {
    "state": "pass",
-   "duration": "3.812s"
+   "duration": "2.935s"
   },
   "fts5secure5": {
    "state": "pass",
-   "duration": "1.696s"
+   "duration": "1.123s"
   },
   "fts5secure6": {
    "state": "skipped"
   },
   "fts5secure7": {
    "state": "pass",
-   "duration": "5.592s"
+   "duration": "4.185s"
   },
   "fts5secure8": {
    "state": "pass",
-   "duration": "676ms"
+   "duration": "604ms"
   },
   "fts5securefault": {
    "state": "pass",
-   "duration": "672ms"
+   "duration": "641ms"
   },
   "fts5simple": {
    "state": "pass",
-   "duration": "1.1s"
+   "duration": "979ms"
   },
   "fts5simple2": {
    "state": "pass",
-   "duration": "680ms"
+   "duration": "654ms"
   },
   "fts5simple3": {
    "state": "pass",
-   "duration": "705ms"
+   "duration": "662ms"
   },
   "fts5synonym": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "613ms"
   },
   "fts5synonym2": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "605ms"
   },
   "fts5tok1": {
    "state": "skipped"
   },
   "fts5tok2": {
    "state": "pass",
-   "duration": "2.964s"
+   "duration": "2.899s"
   },
   "fts5tokendata": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "602ms"
   },
   "fts5tokenizer": {
    "state": "pass",
-   "duration": "670ms"
+   "duration": "644ms"
   },
   "fts5tokenizer2": {
    "state": "skipped"
@@ -2017,59 +2005,59 @@
   },
   "fts5trigram": {
    "state": "pass",
-   "duration": "670ms"
+   "duration": "637ms"
   },
   "fts5trigram2": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "630ms"
   },
   "fts5ubsan": {
    "state": "pass",
-   "duration": "649ms"
+   "duration": "596ms"
   },
   "fts5umlaut": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "637ms"
   },
   "fts5unicode": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "645ms"
   },
   "fts5unicode2": {
    "state": "skipped"
   },
   "fts5unicode3": {
    "state": "pass",
-   "duration": "1.676s"
+   "duration": "1.602s"
   },
   "fts5unicode4": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "612ms"
   },
   "fts5unindexed": {
    "state": "fail",
-   "duration": "670ms",
-   "error": "--- FAIL: Test_fts5unindexed (0.01s)\n    fts5unindexed_test.go:182: result mismatch\n          got:  [1 10 11]\n          want: [1 10]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5unindexed\t0.238s\nFAIL"
+   "duration": "614ms",
+   "error": "--- FAIL: Test_fts5unindexed (0.01s)\n    fts5unindexed_test.go:182: result mismatch\n          got:  [1 10 11]\n          want: [1 10]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts5unindexed\t0.225s\nFAIL"
   },
   "fts5unindexed2": {
    "state": "pass",
-   "duration": "689ms"
+   "duration": "639ms"
   },
   "fts5update": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "618ms"
   },
   "fts5update2": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "640ms"
   },
   "fts5version": {
    "state": "pass",
-   "duration": "645ms"
+   "duration": "609ms"
   },
   "fts5vocab": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "689ms"
   },
   "fts5vocab2": {
    "state": "skipped"
@@ -2079,43 +2067,43 @@
   },
   "full": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "643ms"
   },
   "func2": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "664ms"
   },
   "func3": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "653ms"
   },
   "func4": {
    "state": "pass",
-   "duration": "684ms"
+   "duration": "670ms"
   },
   "func5": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "665ms"
   },
   "func6": {
    "state": "pass",
-   "duration": "689ms"
+   "duration": "677ms"
   },
   "func7": {
    "state": "pass",
-   "duration": "667ms"
+   "duration": "672ms"
   },
   "func8": {
    "state": "pass",
-   "duration": "678ms"
+   "duration": "661ms"
   },
   "func9": {
    "state": "pass",
-   "duration": "659ms"
+   "duration": "654ms"
   },
   "func_pkg": {
    "state": "pass",
-   "duration": "683ms"
+   "duration": "886ms"
   },
   "fuzz": {
    "state": "skipped"
@@ -2131,7 +2119,7 @@
   },
   "fuzz_malloc": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "643ms"
   },
   "fuzz_oss1": {
    "state": "skipped"
@@ -2147,70 +2135,70 @@
   },
   "gcfault": {
    "state": "pass",
-   "duration": "673ms"
+   "duration": "605ms"
   },
   "gencol1": {
    "state": "pass",
-   "duration": "710ms"
+   "duration": "637ms"
   },
   "having": {
    "state": "pass",
-   "duration": "687ms"
+   "duration": "608ms"
   },
   "hexlit": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "601ms"
   },
   "hidden": {
    "state": "pass",
-   "duration": "697ms"
+   "duration": "600ms"
   },
   "hook": {
    "state": "pass",
-   "duration": "754ms"
+   "duration": "646ms"
   },
   "hook2": {
    "state": "pass",
-   "duration": "681ms"
+   "duration": "621ms"
   },
   "icu": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "596ms"
   },
   "ieee754": {
    "state": "pass",
-   "duration": "662ms"
+   "duration": "603ms"
   },
   "imposter1": {
    "state": "skipped"
   },
   "in": {
    "state": "pass",
-   "duration": "700ms"
+   "duration": "639ms"
   },
   "in2": {
    "state": "pass",
-   "duration": "8.631s"
+   "duration": "8.47s"
   },
   "in3": {
    "state": "pass",
-   "duration": "663ms"
+   "duration": "647ms"
   },
   "in4": {
    "state": "pass",
-   "duration": "673ms"
+   "duration": "644ms"
   },
   "in5": {
    "state": "pass",
-   "duration": "654ms"
+   "duration": "632ms"
   },
   "in6": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "619ms"
   },
   "in7": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "612ms"
   },
   "incrblob": {
    "state": "skipped"
@@ -2220,14 +2208,14 @@
   },
   "incrblob3": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "610ms"
   },
   "incrblob4": {
    "state": "skipped"
   },
   "incrblob_err": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "605ms"
   },
   "incrblobfault": {
    "state": "pass",
@@ -2235,139 +2223,138 @@
   },
   "incrcorrupt": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "624ms"
   },
   "incrvacuum": {
    "state": "pass",
-   "duration": "1.322s"
+   "duration": "1.268s"
   },
   "incrvacuum2": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "618ms"
   },
   "incrvacuum3": {
    "state": "pass",
-   "duration": "782ms"
+   "duration": "766ms"
   },
   "incrvacuum_ioerr": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "612ms"
   },
   "index": {
    "state": "pass",
-   "duration": "681ms"
+   "duration": "688ms"
   },
   "index2": {
    "state": "pass",
-   "duration": "1.018s"
+   "duration": "1.029s"
   },
   "index3": {
    "state": "pass",
-   "duration": "647ms"
+   "duration": "586ms"
   },
   "index4": {
    "state": "pass",
-   "duration": "1.618s"
+   "duration": "1.593s"
   },
   "index5": {
    "state": "pass",
-   "duration": "2.45s"
+   "duration": "2.423s"
   },
   "index6": {
    "state": "pass",
-   "duration": "2.796s"
+   "duration": "2.856s"
   },
   "index7": {
    "state": "pass",
-   "duration": "9.128s"
+   "duration": "9.01s"
   },
   "index8": {
    "state": "pass",
-   "duration": "628ms"
+   "duration": "604ms"
   },
   "index9": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "585ms"
   },
   "indexA": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "613ms"
   },
   "indexedby": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "596ms"
   },
   "indexexpr1": {
    "state": "pass",
-   "duration": "659ms"
+   "duration": "622ms"
   },
   "indexexpr2": {
    "state": "pass",
-   "duration": "636ms"
+   "duration": "608ms"
   },
   "indexexpr3": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "571ms"
   },
   "indexfault": {
    "state": "pass",
-   "duration": "934ms"
+   "duration": "835ms"
   },
   "init": {
    "state": "skipped"
   },
   "insert": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "600ms"
   },
   "insert2": {
    "state": "pass",
-   "duration": "703ms"
+   "duration": "696ms"
   },
   "insert3": {
    "state": "pass",
-   "duration": "695ms"
+   "duration": "662ms"
   },
   "insert4": {
    "state": "pass",
-   "duration": "676ms"
+   "duration": "668ms"
   },
   "insert5": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "625ms"
   },
   "insertfault": {
    "state": "pass",
-   "duration": "623ms"
+   "duration": "603ms"
   },
   "instr": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "603ms"
   },
   "instrfault": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "660ms"
   },
   "intarray": {
    "state": "pass",
-   "duration": "1m0.617s",
-   "error": "_core.go:811 +0x3c0\ngithub.com/pijalu/frigolite.(*DB).Exec(0x27a2bd500780, {0x1051e25e0, 0x2f})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1181 +0x2c0\ngithub.com/pijalu/frigolite/testgen/intarray.Test_intarray(0x27a2bd548d88)\n\t/Users/muaddib/dev/frigolite/testgen/intarray/intarray_test.go:213 +0xc78\ntesting.tRunner(0x27a2bd548d88, 0x10566b190)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/intarray\t60.216s\nFAIL"
+   "duration": "1m0.628s"
   },
   "interrupt": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "618ms"
   },
   "interrupt2": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "593ms"
   },
   "intpkey": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "600ms"
   },
   "intreal": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "621ms"
   },
   "io": {
    "state": "skipped"
@@ -2392,60 +2379,60 @@
   },
   "istrue": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "583ms"
   },
   "join": {
    "state": "pass",
-   "duration": "540ms"
+   "duration": "660ms"
   },
   "join2": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "614ms"
   },
   "join3": {
    "state": "pass",
-   "duration": "749ms"
+   "duration": "762ms"
   },
   "join4": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "568ms"
   },
   "join5": {
    "state": "pass",
-   "duration": "1.975s"
+   "duration": "1.858s"
   },
   "join6": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "578ms"
   },
   "join7": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "616ms"
   },
   "join8": {
    "state": "pass",
-   "duration": "693ms"
+   "duration": "675ms"
   },
   "join9": {
    "state": "skipped"
   },
   "joinA": {
    "state": "pass",
-   "duration": "650ms"
+   "duration": "619ms"
   },
   "joinB": {
    "state": "skipped"
   },
   "joinC": {
    "state": "pass",
-   "duration": "791ms"
+   "duration": "692ms"
   },
   "joinD": {
    "state": "skipped"
   },
   "joinE": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "576ms"
   },
   "joinF": {
    "state": "skipped"
@@ -2458,154 +2445,154 @@
   },
   "journal1": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "566ms"
   },
   "journal2": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "606ms"
   },
   "journal3": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "555ms"
   },
   "jrnlmode": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "635ms"
   },
   "jrnlmode2": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "586ms"
   },
   "jrnlmode3": {
    "state": "pass",
-   "duration": "643ms"
+   "duration": "604ms"
   },
   "json101": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "630ms"
   },
   "json102": {
    "state": "pass",
-   "duration": "685ms"
+   "duration": "647ms"
   },
   "json103": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "598ms"
   },
   "json104": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "624ms"
   },
   "json105": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "562ms"
   },
   "json106": {
    "state": "pass",
-   "duration": "12.71s"
+   "duration": "12.041s"
   },
   "json107": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "623ms"
   },
   "json108": {
    "state": "pass",
-   "duration": "597ms"
+   "duration": "572ms"
   },
   "json501": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "584ms"
   },
   "json502": {
    "state": "pass",
-   "duration": "593ms"
+   "duration": "581ms"
   },
   "jsonb01": {
    "state": "pass",
-   "duration": "594ms"
+   "duration": "573ms"
   },
   "keyword1": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "654ms"
   },
   "lastinsert": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "583ms"
   },
   "laststmtchanges": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "573ms"
   },
   "like": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "611ms"
   },
   "like2": {
    "state": "pass",
-   "duration": "694ms"
+   "duration": "658ms"
   },
   "like3": {
    "state": "pass",
-   "duration": "628ms"
+   "duration": "611ms"
   },
   "limit": {
    "state": "pass",
-   "duration": "42.017s"
+   "duration": "39.735s"
   },
   "limit2": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "656ms"
   },
   "literal": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "571ms"
   },
   "literal2": {
    "state": "pass",
-   "duration": "597ms"
+   "duration": "579ms"
   },
   "loadext": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "569ms"
   },
   "loadext2": {
    "state": "pass",
-   "duration": "591ms"
+   "duration": "574ms"
   },
   "lock": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "581ms"
   },
   "lock2": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "573ms"
   },
   "lock3": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "578ms"
   },
   "lock4": {
    "state": "skipped"
   },
   "lock5": {
    "state": "pass",
-   "duration": "879ms"
+   "duration": "744ms"
   },
   "lock6": {
    "state": "pass",
-   "duration": "584ms"
+   "duration": "569ms"
   },
   "lock7": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "581ms"
   },
   "lookaside": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "570ms"
   },
   "main": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "582ms"
   },
   "malloc": {
    "state": "skipped"
@@ -2633,88 +2620,88 @@
   },
   "mallocA": {
    "state": "pass",
-   "duration": "595ms"
+   "duration": "583ms"
   },
   "mallocAll": {
    "state": "pass",
-   "duration": "597ms"
+   "duration": "578ms"
   },
   "mallocB": {
    "state": "pass",
-   "duration": "590ms"
+   "duration": "572ms"
   },
   "mallocC": {
    "state": "pass",
-   "duration": "593ms"
+   "duration": "568ms"
   },
   "mallocD": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "576ms"
   },
   "mallocE": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "576ms"
   },
   "mallocF": {
    "state": "pass",
-   "duration": "595ms"
+   "duration": "568ms"
   },
   "mallocG": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "567ms"
   },
   "mallocH": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "571ms"
   },
   "mallocI": {
    "state": "skipped"
   },
   "mallocJ": {
    "state": "pass",
-   "duration": "590ms"
+   "duration": "570ms"
   },
   "mallocK": {
    "state": "skipped"
   },
   "mallocL": {
    "state": "pass",
-   "duration": "606ms"
+   "duration": "575ms"
   },
   "mallocM": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "577ms"
   },
   "manydb": {
    "state": "skipped"
   },
   "mem5": {
    "state": "pass",
-   "duration": "581ms"
+   "duration": "580ms"
   },
   "memdb": {
    "state": "pass",
-   "duration": "12.723s"
+   "duration": "11.354s"
   },
   "memdb1": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "623ms"
   },
   "memdb2": {
    "state": "pass",
-   "duration": "588ms"
+   "duration": "576ms"
   },
   "memjournal": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "593ms"
   },
   "memjournal2": {
    "state": "pass",
-   "duration": "26.635s"
+   "duration": "24.206s"
   },
   "memleak": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "574ms"
   },
   "memsubsys1": {
    "state": "skipped"
@@ -2724,59 +2711,59 @@
   },
   "merge1": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "579ms"
   },
   "minmax": {
    "state": "pass",
-   "duration": "669ms"
+   "duration": "630ms"
   },
   "minmax2": {
    "state": "pass",
-   "duration": "611ms"
+   "duration": "605ms"
   },
   "minmax3": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "597ms"
   },
   "minmax4": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "600ms"
   },
   "misc1": {
    "state": "pass",
-   "duration": "514ms"
+   "duration": "616ms"
   },
   "misc2": {
    "state": "pass",
-   "duration": "783ms"
+   "duration": "770ms"
   },
   "misc3": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "620ms"
   },
   "misc4": {
    "state": "pass",
-   "duration": "479ms"
+   "duration": "629ms"
   },
   "misc5": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "713ms"
   },
   "misc6": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "585ms"
   },
   "misc7": {
    "state": "pass",
-   "duration": "517ms"
+   "duration": "590ms"
   },
   "misc8": {
    "state": "pass",
-   "duration": "456ms"
+   "duration": "587ms"
   },
   "misuse": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "583ms"
   },
   "mjournal": {
    "state": "skipped"
@@ -2798,7 +2785,7 @@
   },
   "mmapfault": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "584ms"
   },
   "mmapwarm": {
    "state": "skipped"
@@ -2817,148 +2804,148 @@
   },
   "mutex1": {
    "state": "fail",
-   "duration": "617ms",
-   "error": "--- FAIL: Test_mutex1 (0.00s)\n    mutex1_test.go:121: result mismatch\n          got:  [{}]\n          want: [0]\n          body: do_test mutex1-1.5\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/mutex1\t0.218s\nFAIL"
+   "duration": "557ms",
+   "error": "--- FAIL: Test_mutex1 (0.00s)\n    mutex1_test.go:121: result mismatch\n          got:  [{}]\n          want: [0]\n          body: do_test mutex1-1.5\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/mutex1\t0.206s\nFAIL"
   },
   "mutex2": {
    "state": "skipped"
   },
   "nan": {
    "state": "pass",
-   "duration": "503ms"
+   "duration": "605ms"
   },
   "nockpt": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "564ms"
   },
   "nolock": {
    "state": "skipped"
   },
   "normalize": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "597ms"
   },
   "notify1": {
    "state": "pass",
-   "duration": "628ms"
+   "duration": "558ms"
   },
   "notify2": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "605ms"
   },
   "notify3": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "571ms"
   },
   "notnull": {
    "state": "pass",
-   "duration": "507ms"
+   "duration": "615ms"
   },
   "notnull2": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "613ms"
   },
   "notnullfault": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "590ms"
   },
   "null": {
    "state": "pass",
-   "duration": "478ms"
+   "duration": "608ms"
   },
   "nulls1": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "623ms"
   },
   "nulls2": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "611ms"
   },
   "numcast": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "620ms"
   },
   "numindex1": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "614ms"
   },
   "offset1": {
    "state": "skipped"
   },
   "openv2": {
    "state": "pass",
-   "duration": "580ms"
+   "duration": "602ms"
   },
   "orderby1": {
    "state": "pass",
-   "duration": "1.223s"
+   "duration": "1.118s"
   },
   "orderby2": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "601ms"
   },
   "orderby3": {
    "state": "pass",
-   "duration": "590ms"
+   "duration": "657ms"
   },
   "orderby4": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "639ms"
   },
   "orderby5": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "633ms"
   },
   "orderby6": {
    "state": "pass",
-   "duration": "1.726s"
+   "duration": "1.676s"
   },
   "orderby7": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "583ms"
   },
   "orderby8": {
    "state": "pass",
-   "duration": "643ms"
+   "duration": "637ms"
   },
   "orderby9": {
    "state": "pass",
-   "duration": "611ms"
+   "duration": "596ms"
   },
   "orderbyA": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "561ms"
   },
   "orderbyB": {
    "state": "pass",
-   "duration": "611ms"
+   "duration": "607ms"
   },
   "oserror": {
    "state": "skipped"
   },
   "ovfl": {
    "state": "pass",
-   "duration": "912ms"
+   "duration": "889ms"
   },
   "p_8_3_names": {
    "state": "pass",
-   "duration": "1.348s"
+   "duration": "1.313s"
   },
   "pager1": {
    "state": "pass",
-   "duration": "708ms"
+   "duration": "675ms"
   },
   "pager2": {
    "state": "pass",
-   "duration": "3.305s"
+   "duration": "3.259s"
   },
   "pager3": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "542ms"
   },
   "pager4": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "590ms"
   },
   "pagerfault": {
    "state": "skipped"
@@ -2971,40 +2958,39 @@
   },
   "pageropt": {
    "state": "pass",
-   "duration": "598ms"
+   "duration": "579ms"
   },
   "pagesize": {
    "state": "pass",
-   "duration": "662ms"
+   "duration": "658ms"
   },
   "parser1": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "582ms"
   },
   "pcache": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "592ms"
   },
   "pcache2": {
    "state": "pass",
-   "duration": "590ms"
+   "duration": "572ms"
   },
   "pendingrace": {
    "state": "pass",
-   "duration": "654ms"
+   "duration": "602ms"
   },
   "percentile": {
    "state": "pass",
-   "duration": "12.11s"
+   "duration": "11.665s"
   },
   "permutations": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "631ms"
   },
   "pragma": {
-   "state": "fail",
-   "duration": "824ms",
-   "error": "--- FAIL: Test_pragma (0.14s)\n    pragma_test.go:809: result mismatch\n          got:  [0 main 2 aux]\n          want: [0 main 1 temp 2 aux]\n          body: do_test pragma-6.1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/pragma\t0.359s\nFAIL"
+   "state": "pass",
+   "duration": "807ms"
   },
   "pragma2": {
    "state": "pass",
@@ -3012,44 +2998,44 @@
   },
   "pragma3": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "560ms"
   },
   "pragma4": {
    "state": "pass",
-   "duration": "1.052s"
+   "duration": "1.063s"
   },
   "pragma5": {
    "state": "pass",
-   "duration": "606ms"
+   "duration": "604ms"
   },
   "pragma6": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "602ms"
   },
   "pragmafault": {
    "state": "pass",
-   "duration": "744ms"
+   "duration": "600ms"
   },
   "prefixes": {
    "state": "fail",
-   "duration": "611ms",
-   "error": "--- FAIL: Test_prefixes (0.00s)\n    prefixes_test.go:142: result mismatch\n          got:  [5000]\n          want: [0]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/prefixes\t0.215s\nFAIL"
+   "duration": "578ms",
+   "error": "--- FAIL: Test_prefixes (0.00s)\n    prefixes_test.go:142: result mismatch\n          got:  [5000]\n          want: [0]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/prefixes\t0.216s\nFAIL"
   },
   "printf": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "594ms"
   },
   "printf2": {
    "state": "pass",
-   "duration": "702ms"
+   "duration": "578ms"
   },
   "progress": {
    "state": "skipped"
   },
   "ptrchng": {
    "state": "fail",
-   "duration": "587ms",
-   "error": ") FROM t1 WHERE x=4\n          \n    ptrchng_test.go:118: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'text', 'bytes', 'text') FROM t1\n          \n    ptrchng_test.go:124: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'blob', 'bytes', 'blob') FROM t1\n          \n    ptrchng_test.go:130: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'text', 'bytes', 'blob') FROM t1\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/ptrchng\t0.197s\nFAIL"
+   "duration": "626ms",
+   "error": ") FROM t1 WHERE x=4\n          \n    ptrchng_test.go:118: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'text', 'bytes', 'text') FROM t1\n          \n    ptrchng_test.go:124: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'blob', 'bytes', 'blob') FROM t1\n          \n    ptrchng_test.go:130: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'text', 'bytes', 'blob') FROM t1\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/ptrchng\t0.249s\nFAIL"
   },
   "pushdown": {
    "state": "skipped"
@@ -3065,259 +3051,258 @@
   },
   "qrf04": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "572ms"
   },
   "qrf05": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "645ms"
   },
   "qrf06": {
    "state": "pass",
-   "duration": "625ms"
+   "duration": "589ms"
   },
   "queryonly": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "605ms"
   },
   "quick": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "612ms"
   },
   "quickcheck": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "603ms"
   },
   "quota": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "599ms"
   },
   "quota2": {
    "state": "pass",
-   "duration": "660ms"
+   "duration": "676ms"
   },
   "quota_glob": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "591ms"
   },
   "quote": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "622ms"
   },
   "randexpr1": {
    "state": "pass",
-   "duration": "3.146s"
+   "duration": "2.954s"
   },
   "rbu": {
    "state": "pass",
-   "duration": "591ms"
+   "duration": "587ms"
   },
   "rdonly": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "593ms"
   },
   "readonly": {
    "state": "pass",
-   "duration": "2.319s"
+   "duration": "2.323s"
   },
   "recover_pkg": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "606ms"
   },
   "regexp1": {
    "state": "pass",
-   "duration": "662ms"
+   "duration": "635ms"
   },
   "regexp2": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "644ms"
   },
   "reindex": {
    "state": "pass",
-   "duration": "649ms"
+   "duration": "629ms"
   },
   "reservebytes": {
    "state": "pass",
-   "duration": "1.297s"
+   "duration": "1.235s"
   },
   "resetdb": {
    "state": "pass",
-   "duration": "607ms"
+   "duration": "584ms"
   },
   "resolver01": {
    "state": "pass",
-   "duration": "590ms"
+   "duration": "611ms"
   },
   "returning1": {
    "state": "pass",
-   "duration": "685ms"
+   "duration": "627ms"
   },
   "returningfault": {
    "state": "pass",
-   "duration": "597ms"
+   "duration": "604ms"
   },
   "rollback": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "596ms"
   },
   "rollback2": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "614ms"
   },
   "rollbackfault": {
    "state": "skipped"
   },
   "round1": {
    "state": "pass",
-   "duration": "1.043s"
+   "duration": "1.005s"
   },
   "rowallock": {
    "state": "pass",
-   "duration": "606ms"
+   "duration": "592ms"
   },
   "rowhash": {
    "state": "pass",
-   "duration": "965ms"
+   "duration": "888ms"
   },
   "rowid": {
    "state": "pass",
-   "duration": "841ms"
+   "duration": "779ms"
   },
   "rowvalue": {
    "state": "pass",
-   "duration": "690ms"
+   "duration": "650ms"
   },
   "rowvalue2": {
    "state": "pass",
-   "duration": "14.758s"
+   "duration": "13.596s"
   },
   "rowvalue3": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "643ms"
   },
   "rowvalue4": {
    "state": "pass",
-   "duration": "672ms"
+   "duration": "675ms"
   },
   "rowvalue5": {
    "state": "skipped"
   },
   "rowvalue6": {
    "state": "pass",
-   "duration": "658ms"
+   "duration": "811ms"
   },
   "rowvalue7": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "771ms"
   },
   "rowvalue8": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "633ms"
   },
   "rowvalue9": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "632ms"
   },
   "rowvalueA": {
    "state": "pass",
-   "duration": "734ms"
+   "duration": "760ms"
   },
   "rowvaluefault": {
    "state": "pass",
-   "duration": "601ms"
+   "duration": "608ms"
   },
   "rowvaluevtab": {
    "state": "pass",
-   "duration": "876ms"
+   "duration": "781ms"
   },
   "rtree": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "553ms"
   },
   "rtree1": {
    "state": "pass",
-   "duration": "1.076s"
+   "duration": "1.072s"
   },
   "rtree2": {
    "state": "pass",
-   "duration": "41.19s"
+   "duration": "37.533s"
   },
   "rtree3": {
    "state": "pass",
-   "duration": "2.673s"
+   "duration": "2.491s"
   },
   "rtree4": {
    "state": "pass",
-   "duration": "49.406s"
+   "duration": "44.219s"
   },
   "rtree5": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "660ms"
   },
   "rtree6": {
    "state": "pass",
-   "duration": "604ms"
+   "duration": "585ms"
   },
   "rtree7": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "648ms"
   },
   "rtree8": {
    "state": "skipped"
   },
   "rtree9": {
    "state": "pass",
-   "duration": "3.157s"
+   "duration": "2.976s"
   },
   "rtreeA": {
    "state": "skipped"
   },
   "rtreeB": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "579ms"
   },
   "rtreeC": {
    "state": "pass",
-   "duration": "1.007s"
+   "duration": "970ms"
   },
   "rtreeD": {
    "state": "pass",
-   "duration": "586ms"
+   "duration": "580ms"
   },
   "rtreeE": {
    "state": "pass",
-   "duration": "53.533s"
+   "duration": "48.716s"
   },
   "rtreeF": {
    "state": "pass",
-   "duration": "603ms"
+   "duration": "583ms"
   },
   "rtreeG": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "585ms"
   },
   "rtreeH": {
    "state": "pass",
-   "duration": "1m0.602s",
-   "error": "ec/engine_core.go:811 +0x3c0\ngithub.com/pijalu/frigolite.(*DB).Exec(0x42753cd5c7e0, {0x10114e280, 0x10b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1181 +0x2c0\ngithub.com/pijalu/frigolite/testgen/rtreeH.Test_rtreeH(0x42753cdd2d88)\n\t/Users/muaddib/dev/frigolite/testgen/rtreeH/rtreeH_test.go:193 +0xe1c\ntesting.tRunner(0x42753cdd2d88, 0x1015c6448)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreeH\t60.209s\nFAIL"
+   "duration": "1m0.583s"
   },
   "rtreeI": {
    "state": "pass",
-   "duration": "595ms"
+   "duration": "617ms"
   },
   "rtreeJ": {
    "state": "skipped"
   },
   "rtreecheck": {
    "state": "pass",
-   "duration": "1.311s"
+   "duration": "1.273s"
   },
   "rtreecirc": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "585ms"
   },
   "rtreeconnect": {
    "state": "pass",
-   "duration": "596ms"
+   "duration": "581ms"
   },
   "rtreedoc": {
    "state": "skipped"
@@ -3333,148 +3318,148 @@
   },
   "savepoint": {
    "state": "pass",
-   "duration": "677ms"
+   "duration": "671ms"
   },
   "savepoint2": {
    "state": "pass",
-   "duration": "13.06s"
+   "duration": "13.558s"
   },
   "savepoint4": {
    "state": "skipped"
   },
   "savepoint5": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "571ms"
   },
   "savepoint6": {
    "state": "skipped"
   },
   "savepoint7": {
    "state": "pass",
-   "duration": "677ms"
+   "duration": "746ms"
   },
   "savepointfault": {
    "state": "pass",
-   "duration": "599ms"
+   "duration": "590ms"
   },
   "scanstatus": {
    "state": "skipped"
   },
   "scanstatus2": {
    "state": "pass",
-   "duration": "645ms"
+   "duration": "625ms"
   },
   "schema": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "607ms"
   },
   "schema2": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "616ms"
   },
   "schema3": {
    "state": "pass",
-   "duration": "585ms"
+   "duration": "601ms"
   },
   "schema4": {
    "state": "pass",
-   "duration": "643ms"
+   "duration": "611ms"
   },
   "schema5": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "602ms"
   },
   "schema6": {
    "state": "pass",
-   "duration": "643ms"
+   "duration": "615ms"
   },
   "schemafault": {
    "state": "pass",
-   "duration": "645ms"
+   "duration": "565ms"
   },
   "securedel": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "657ms"
   },
   "securedel2": {
    "state": "pass",
-   "duration": "2.405s"
+   "duration": "2.337s"
   },
   "seekscan1": {
    "state": "pass",
-   "duration": "2.416s"
+   "duration": "2.335s"
   },
   "select1": {
    "state": "pass",
-   "duration": "3.614s"
+   "duration": "3.682s"
   },
   "select2": {
    "state": "pass",
-   "duration": "1.726s"
+   "duration": "1.69s"
   },
   "select3": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "621ms"
   },
   "select4": {
    "state": "pass",
-   "duration": "657ms"
+   "duration": "632ms"
   },
   "select5": {
    "state": "pass",
-   "duration": "659ms"
+   "duration": "613ms"
   },
   "select6": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "606ms"
   },
   "select7": {
    "state": "pass",
-   "duration": "667ms"
+   "duration": "615ms"
   },
   "select8": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "603ms"
   },
   "select9": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "607ms"
   },
   "selectA": {
    "state": "pass",
-   "duration": "657ms"
+   "duration": "626ms"
   },
   "selectB": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "604ms"
   },
   "selectC": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "594ms"
   },
   "selectD": {
    "state": "pass",
-   "duration": "660ms"
+   "duration": "607ms"
   },
   "selectE": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "595ms"
   },
   "selectF": {
    "state": "pass",
-   "duration": "664ms"
+   "duration": "618ms"
   },
   "selectG": {
    "state": "pass",
-   "duration": "7.349s"
+   "duration": "10.774s"
   },
   "selectH": {
    "state": "pass",
-   "duration": "594ms"
+   "duration": "598ms"
   },
   "session": {
    "state": "pass",
-   "duration": "607ms"
+   "duration": "574ms"
   },
   "shared": {
    "state": "skipped"
@@ -3502,11 +3487,11 @@
   },
   "sharedA": {
    "state": "pass",
-   "duration": "597ms"
+   "duration": "587ms"
   },
   "sharedB": {
    "state": "pass",
-   "duration": "601ms"
+   "duration": "589ms"
   },
   "shared_err": {
    "state": "skipped"
@@ -3516,81 +3501,81 @@
   },
   "shell1": {
    "state": "pass",
-   "duration": "605ms"
+   "duration": "578ms"
   },
   "shell2": {
    "state": "pass",
-   "duration": "592ms"
+   "duration": "607ms"
   },
   "shell3": {
    "state": "pass",
-   "duration": "600ms"
+   "duration": "588ms"
   },
   "shell4": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "605ms"
   },
   "shell5": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "604ms"
   },
   "shell6": {
    "state": "pass",
-   "duration": "628ms"
+   "duration": "607ms"
   },
   "shell7": {
    "state": "pass",
-   "duration": "611ms"
+   "duration": "591ms"
   },
   "shell8": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "605ms"
   },
   "shell9": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "609ms"
   },
   "shellA": {
    "state": "skipped"
   },
   "shellB": {
    "state": "pass",
-   "duration": "647ms"
+   "duration": "603ms"
   },
   "shmlock": {
    "state": "skipped"
   },
   "shortread1": {
    "state": "fail",
-   "duration": "641ms",
-   "error": "--- FAIL: Test_shortread1 (0.00s)\n    shortread1_test.go:73: query error: cannot commit - no transaction is active\n          sql: \n            COMMIT;\n            SELECT count(*) FROM t1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/shortread1\t0.208s\nFAIL"
+   "duration": "607ms",
+   "error": "--- FAIL: Test_shortread1 (0.00s)\n    shortread1_test.go:73: query error: cannot commit - no transaction is active\n          sql: \n            COMMIT;\n            SELECT count(*) FROM t1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/shortread1\t0.215s\nFAIL"
   },
   "shrink": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "615ms"
   },
   "sidedelete": {
    "state": "pass",
-   "duration": "1.514s"
+   "duration": "1.438s"
   },
   "skipscan1": {
    "state": "skipped"
   },
   "skipscan2": {
    "state": "pass",
-   "duration": "1.097s"
+   "duration": "1.064s"
   },
   "skipscan3": {
    "state": "pass",
-   "duration": "1.395s"
+   "duration": "1.321s"
   },
   "skipscan5": {
    "state": "pass",
-   "duration": "602ms"
+   "duration": "563ms"
   },
   "skipscan6": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "581ms"
   },
   "snapshot": {
    "state": "skipped"
@@ -3612,84 +3597,84 @@
   },
   "soak": {
    "state": "pass",
-   "duration": "636ms"
+   "duration": "591ms"
   },
   "softheap1": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "582ms"
   },
   "sort": {
    "state": "pass",
-   "duration": "15.93s"
+   "duration": "15.895s"
   },
   "sort2": {
    "state": "pass",
-   "duration": "623ms"
+   "duration": "568ms"
   },
   "sort3": {
    "state": "pass",
-   "duration": "9.939s"
+   "duration": "9.641s"
   },
   "sort4": {
    "state": "skipped"
   },
   "sort5": {
    "state": "pass",
-   "duration": "1.21s"
+   "duration": "1.139s"
   },
   "sorterref": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "585ms"
   },
   "sortfault": {
    "state": "pass",
-   "duration": "815ms"
+   "duration": "775ms"
   },
   "speed1": {
    "state": "pass",
-   "duration": "659ms"
+   "duration": "616ms"
   },
   "speed1p": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "605ms"
   },
   "speed2": {
    "state": "pass",
-   "duration": "686ms"
+   "duration": "635ms"
   },
   "speed3": {
    "state": "pass",
-   "duration": "1.511s"
+   "duration": "1.421s"
   },
   "speed4": {
    "state": "skipped"
   },
   "speed4p": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "608ms"
   },
   "spellfix": {
    "state": "pass",
-   "duration": "8.239s"
+   "duration": "7.755s"
   },
   "spellfix2": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "579ms"
   },
   "spellfix3": {
    "state": "pass",
-   "duration": "611ms"
+   "duration": "586ms"
   },
   "spellfix4": {
    "state": "pass",
-   "duration": "1.513s"
+   "duration": "1.482s"
   },
   "sqldiff1": {
    "state": "skipped"
   },
   "sqllimits1": {
    "state": "pass",
-   "duration": "31.122s"
+   "duration": "28.15s"
   },
   "sqllog": {
    "state": "skipped"
@@ -3699,50 +3684,50 @@
   },
   "stat": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "602ms"
   },
   "statfault": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "600ms"
   },
   "stmt": {
    "state": "pass",
-   "duration": "636ms"
+   "duration": "594ms"
   },
   "stmtrand": {
    "state": "pass",
-   "duration": "672ms"
+   "duration": "584ms"
   },
   "stmtvtab1": {
    "state": "skipped"
   },
   "strict1": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "594ms"
   },
   "strict2": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "590ms"
   },
   "subjournal": {
    "state": "pass",
-   "duration": "666ms"
+   "duration": "622ms"
   },
   "subquery": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "620ms"
   },
   "subquery2": {
    "state": "pass",
-   "duration": "625ms"
+   "duration": "595ms"
   },
   "subselect": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "604ms"
   },
   "substr": {
    "state": "pass",
-   "duration": "625ms"
+   "duration": "590ms"
   },
   "subtype1": {
    "state": "skipped"
@@ -3761,7 +3746,7 @@
   },
   "swarmvtabfault": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "593ms"
   },
   "symlink": {
    "state": "skipped"
@@ -3771,249 +3756,249 @@
   },
   "sync": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "593ms"
   },
   "sync2": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "597ms"
   },
   "syscall": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "600ms"
   },
   "sysfault": {
    "state": "skipped"
   },
   "tabfunc01": {
    "state": "pass",
-   "duration": "680ms"
+   "duration": "627ms"
   },
   "table": {
    "state": "skipped"
   },
   "tableapi": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "600ms"
   },
   "tableopts": {
    "state": "pass",
-   "duration": "657ms"
+   "duration": "630ms"
   },
   "tclsqlite": {
    "state": "skipped"
   },
   "tempdb": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "577ms"
   },
   "tempdb2": {
    "state": "pass",
-   "duration": "662ms"
+   "duration": "644ms"
   },
   "tempfault": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "611ms"
   },
   "temptable": {
    "state": "pass",
-   "duration": "697ms"
+   "duration": "645ms"
   },
   "temptable2": {
    "state": "skipped"
   },
   "temptable3": {
    "state": "pass",
-   "duration": "688ms"
+   "duration": "629ms"
   },
   "temptrigger": {
    "state": "pass",
-   "duration": "692ms"
+   "duration": "663ms"
   },
   "thread001": {
    "state": "pass",
-   "duration": "653ms"
+   "duration": "635ms"
   },
   "thread002": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "632ms"
   },
   "thread003": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "610ms"
   },
   "thread004": {
    "state": "pass",
-   "duration": "671ms"
+   "duration": "636ms"
   },
   "thread005": {
    "state": "pass",
-   "duration": "656ms"
+   "duration": "636ms"
   },
   "thread1": {
    "state": "pass",
-   "duration": "1.261s"
+   "duration": "639ms"
   },
   "thread2": {
    "state": "pass",
-   "duration": "653ms"
+   "duration": "639ms"
   },
   "thread3": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "642ms"
   },
   "timediff1": {
    "state": "pass",
-   "duration": "700ms"
+   "duration": "672ms"
   },
   "tkt1435": {
    "state": "pass",
-   "duration": "670ms"
+   "duration": "620ms"
   },
   "tkt1443": {
    "state": "pass",
-   "duration": "658ms"
+   "duration": "596ms"
   },
   "tkt1444": {
    "state": "pass",
-   "duration": "636ms"
+   "duration": "629ms"
   },
   "tkt1449": {
    "state": "pass",
-   "duration": "689ms"
+   "duration": "653ms"
   },
   "tkt1473": {
    "state": "pass",
-   "duration": "665ms"
+   "duration": "635ms"
   },
   "tkt1501": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "621ms"
   },
   "tkt1512": {
    "state": "pass",
-   "duration": "645ms"
+   "duration": "629ms"
   },
   "tkt1514": {
    "state": "pass",
-   "duration": "658ms"
+   "duration": "612ms"
   },
   "tkt1536": {
    "state": "pass",
-   "duration": "658ms"
+   "duration": "635ms"
   },
   "tkt1537": {
    "state": "pass",
-   "duration": "675ms"
+   "duration": "638ms"
   },
   "tkt1567": {
    "state": "pass",
-   "duration": "757ms"
+   "duration": "724ms"
   },
   "tkt1644": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "649ms"
   },
   "tkt1667": {
    "state": "pass",
-   "duration": "1.289s"
+   "duration": "1.221s"
   },
   "tkt1873": {
    "state": "pass",
-   "duration": "620ms"
+   "duration": "588ms"
   },
   "tkt2141": {
    "state": "pass",
-   "duration": "636ms"
+   "duration": "595ms"
   },
   "tkt2192": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "639ms"
   },
   "tkt2213": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "601ms"
   },
   "tkt2251": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "651ms"
   },
   "tkt2285": {
    "state": "pass",
-   "duration": "633ms"
+   "duration": "643ms"
   },
   "tkt2332": {
    "state": "pass",
-   "duration": "690ms"
+   "duration": "729ms"
   },
   "tkt2339": {
    "state": "pass",
-   "duration": "669ms"
+   "duration": "639ms"
   },
   "tkt2391": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "619ms"
   },
   "tkt2409": {
    "state": "skipped"
   },
   "tkt2450": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "594ms"
   },
   "tkt2565": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "710ms"
   },
   "tkt2640": {
    "state": "pass",
-   "duration": "643ms"
+   "duration": "691ms"
   },
   "tkt2643": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "624ms"
   },
   "tkt2686": {
    "state": "pass",
-   "duration": "3.556s"
+   "duration": "3.378s"
   },
   "tkt2767": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "596ms"
   },
   "tkt2817": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "591ms"
   },
   "tkt2820": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "576ms"
   },
   "tkt2822": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "594ms"
   },
   "tkt2832": {
    "state": "pass",
-   "duration": "635ms"
+   "duration": "580ms"
   },
   "tkt2854": {
    "state": "skipped"
   },
   "tkt2920": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "614ms"
   },
   "tkt2927": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "586ms"
   },
   "tkt2942": {
    "state": "pass",
-   "duration": "606ms"
+   "duration": "601ms"
   },
   "tkt3080": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "591ms"
   },
   "tkt3093": {
    "state": "skipped"
@@ -4024,114 +4009,114 @@
   },
   "tkt3201": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "601ms"
   },
   "tkt3292": {
    "state": "pass",
-   "duration": "608ms"
+   "duration": "610ms"
   },
   "tkt3298": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "610ms"
   },
   "tkt3334": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "612ms"
   },
   "tkt3346": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "612ms"
   },
   "tkt3357": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "592ms"
   },
   "tkt3363": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "651ms"
   },
   "tkt3419": {
    "state": "pass",
-   "duration": "601ms"
+   "duration": "641ms"
   },
   "tkt3424": {
    "state": "pass",
-   "duration": "657ms"
+   "duration": "618ms"
   },
   "tkt3442": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "648ms"
   },
   "tkt3457": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "711ms"
   },
   "tkt3461": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "684ms"
   },
   "tkt3493": {
    "state": "pass",
-   "duration": "650ms"
+   "duration": "668ms"
   },
   "tkt3508": {
    "state": "pass",
-   "duration": "656ms"
+   "duration": "741ms"
   },
   "tkt3522": {
    "state": "pass",
-   "duration": "666ms"
+   "duration": "740ms"
   },
   "tkt3527": {
    "state": "pass",
-   "duration": "689ms"
+   "duration": "629ms"
   },
   "tkt3541": {
    "state": "pass",
-   "duration": "703ms"
+   "duration": "755ms"
   },
   "tkt3554": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "756ms"
   },
   "tkt3581": {
    "state": "pass",
-   "duration": "675ms"
+   "duration": "746ms"
   },
   "tkt35xx": {
    "state": "pass",
-   "duration": "681ms"
+   "duration": "749ms"
   },
   "tkt3630": {
    "state": "pass",
-   "duration": "671ms"
+   "duration": "743ms"
   },
   "tkt3718": {
    "state": "skipped"
   },
   "tkt3731": {
    "state": "pass",
-   "duration": "673ms"
+   "duration": "744ms"
   },
   "tkt3757": {
    "state": "pass",
-   "duration": "660ms"
+   "duration": "735ms"
   },
   "tkt3761": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "732ms"
   },
   "tkt3762": {
    "state": "pass",
-   "duration": "739ms"
+   "duration": "876ms"
   },
   "tkt3773": {
    "state": "pass",
-   "duration": "702ms"
+   "duration": "684ms"
   },
   "tkt3791": {
    "state": "pass",
-   "duration": "691ms"
+   "duration": "682ms"
   },
   "tkt3793": {
    "state": "skipped"
@@ -4141,126 +4126,126 @@
   },
   "tkt3824": {
    "state": "pass",
-   "duration": "716ms"
+   "duration": "646ms"
   },
   "tkt3832": {
    "state": "pass",
-   "duration": "690ms"
+   "duration": "748ms"
   },
   "tkt3838": {
    "state": "pass",
-   "duration": "685ms"
+   "duration": "749ms"
   },
   "tkt3841": {
    "state": "pass",
-   "duration": "708ms"
+   "duration": "642ms"
   },
   "tkt3871": {
    "state": "pass",
-   "duration": "729ms"
+   "duration": "781ms"
   },
   "tkt3879": {
    "state": "pass",
-   "duration": "678ms"
+   "duration": "740ms"
   },
   "tkt3911": {
    "state": "pass",
-   "duration": "710ms"
+   "duration": "736ms"
   },
   "tkt3918": {
    "state": "pass",
-   "duration": "708ms"
+   "duration": "745ms"
   },
   "tkt3922": {
    "state": "pass",
-   "duration": "649ms"
+   "duration": "730ms"
   },
   "tkt3929": {
    "state": "pass",
-   "duration": "763ms"
+   "duration": "744ms"
   },
   "tkt3935": {
    "state": "pass",
-   "duration": "722ms"
+   "duration": "715ms"
   },
   "tkt3992": {
    "state": "pass",
-   "duration": "715ms"
+   "duration": "703ms"
   },
   "tkt3997": {
    "state": "pass",
-   "duration": "718ms"
+   "duration": "666ms"
   },
   "tkt4018": {
    "state": "pass",
-   "duration": "1.662s"
+   "duration": "1.673s"
   },
   "tkt_02a8e81d44": {
    "state": "pass",
-   "duration": "676ms"
+   "duration": "731ms"
   },
   "tkt_18458b1a": {
    "state": "pass",
-   "duration": "677ms"
+   "duration": "729ms"
   },
   "tkt_26ff0c2d1e": {
    "state": "pass",
-   "duration": "674ms"
+   "duration": "655ms"
   },
   "tkt_2a5629202f": {
    "state": "pass",
-   "duration": "706ms"
+   "duration": "657ms"
   },
   "tkt_2d1a5c67d": {
    "state": "pass",
-   "duration": "669ms"
+   "duration": "666ms"
   },
   "tkt_2ea2425d34": {
    "state": "pass",
-   "duration": "593ms"
+   "duration": "666ms"
   },
   "tkt_31338dca7e": {
    "state": "pass",
-   "duration": "715ms"
+   "duration": "555ms"
   },
   "tkt_313723c356": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "688ms"
   },
   "tkt_385a5b56b9": {
    "state": "pass",
-   "duration": "643ms"
+   "duration": "688ms"
   },
   "tkt_38cb5df375": {
    "state": "pass",
-   "duration": "698ms"
+   "duration": "648ms"
   },
   "tkt_3998683a16": {
    "state": "pass",
-   "duration": "670ms"
+   "duration": "694ms"
   },
   "tkt_3a77c9714e": {
    "state": "pass",
-   "duration": "677ms"
+   "duration": "692ms"
   },
   "tkt_3fe897352e": {
    "state": "skipped"
   },
   "tkt_4a03edc4c8": {
    "state": "pass",
-   "duration": "691ms"
+   "duration": "648ms"
   },
   "tkt_4c86b126f2": {
    "state": "pass",
-   "duration": "684ms"
+   "duration": "722ms"
   },
   "tkt_4dd95f6943": {
    "state": "pass",
-   "duration": "946ms"
+   "duration": "1.015s"
   },
   "tkt_4ef7e3cfca": {
    "state": "pass",
-   "duration": "716ms"
+   "duration": "640ms"
   },
   "tkt_54844eea3f": {
    "state": "pass",
@@ -4268,27 +4253,28 @@
   },
   "tkt_5d863f876e": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "633ms"
   },
   "tkt_5e10420e8d": {
    "state": "pass",
-   "duration": "697ms"
+   "duration": "625ms"
   },
   "tkt_5ee23731f": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "659ms"
   },
   "tkt_6bfb98dfc0": {
-   "state": "pass",
-   "duration": "624ms"
+   "state": "fail",
+   "duration": "663ms",
+   "error": "LECT x+16, randomblob(400) FROM t1;\n            INSERT INTO t1 SELECT x+32, randomblob(400) FROM t1;\n            INSERT INTO t1 SELECT x+64, randomblob(400) FROM t1 WHERE x<10;\n            CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN new.x=74 BEGIN\n              DELETE FROM t1;\n              INSERT INTO t1 VALUES(75, randomblob(400));\n              INSERT INTO t1 VALUES(76, randomblob(400));\n            END;\n            INSERT INTO t1 VALUES(74, randomblob(400));\n            SELECT x, length(y) FROM t1 ORDER BY x;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_6bfb98dfc0\t0.235s\nFAIL"
   },
   "tkt_752e1646fc": {
    "state": "pass",
-   "duration": "674ms"
+   "duration": "557ms"
   },
   "tkt_78e04e52ea": {
    "state": "pass",
-   "duration": "673ms"
+   "duration": "697ms"
   },
   "tkt_7a31705a7e6": {
    "state": "skipped"
@@ -4298,34 +4284,34 @@
   },
   "tkt_80ba201079": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "695ms"
   },
   "tkt_80e031a00f": {
    "state": "pass",
-   "duration": "688ms"
+   "duration": "644ms"
   },
   "tkt_8454a207b9": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "669ms"
   },
   "tkt_868145d012": {
    "state": "pass",
-   "duration": "618ms"
+   "duration": "664ms"
   },
   "tkt_8c63ff0ec": {
    "state": "pass",
-   "duration": "704ms"
+   "duration": "639ms"
   },
   "tkt_91e2e8ba6f": {
    "state": "pass",
-   "duration": "701ms"
+   "duration": "722ms"
   },
   "tkt_99378177930f87bd": {
    "state": "skipped"
   },
   "tkt_9a8b09f8e6": {
    "state": "pass",
-   "duration": "662ms"
+   "duration": "724ms"
   },
   "tkt_9d68c883": {
    "state": "skipped"
@@ -4335,67 +4321,66 @@
   },
   "tkt_a7b7803e": {
    "state": "pass",
-   "duration": "676ms"
+   "duration": "632ms"
   },
   "tkt_a7debbe0": {
    "state": "pass",
-   "duration": "683ms"
+   "duration": "722ms"
   },
   "tkt_a8a0d2996a": {
    "state": "pass",
-   "duration": "663ms"
+   "duration": "715ms"
   },
   "tkt_b1d3a2e531": {
    "state": "pass",
-   "duration": "683ms"
+   "duration": "718ms"
   },
   "tkt_b351d95f9": {
    "state": "pass",
-   "duration": "671ms"
+   "duration": "730ms"
   },
   "tkt_b72787b1": {
    "state": "pass",
-   "duration": "692ms"
+   "duration": "726ms"
   },
   "tkt_b75a9ca6b0": {
    "state": "pass",
-   "duration": "739ms"
+   "duration": "725ms"
   },
   "tkt_ba7cbfaedc": {
    "state": "pass",
-   "duration": "737ms"
+   "duration": "766ms"
   },
   "tkt_bd484a090c": {
    "state": "pass",
-   "duration": "683ms"
+   "duration": "760ms"
   },
   "tkt_bdc6bbbb38": {
    "state": "skipped"
   },
   "tkt_c48d99d690": {
    "state": "pass",
-   "duration": "721ms"
+   "duration": "765ms"
   },
   "tkt_c694113d5": {
    "state": "pass",
-   "duration": "713ms"
+   "duration": "724ms"
   },
   "tkt_cbd054fa6b": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "717ms"
   },
   "tkt_d11f09d36e": {
    "state": "pass",
-   "duration": "1m0.725s",
-   "error": "/pijalu/frigolite.(*DB).Exec(0x5636e92767e0, {0x100baed37, 0x3d})\n\t/Users/muaddib/dev/frigolite/frigolite.go:1181 +0x2c0\ngithub.com/pijalu/frigolite/testgen/tkt_d11f09d36e.Test_tkt_d11f09d36e(0x5636e92ecd88)\n\t/Users/muaddib/dev/frigolite/testgen/tkt_d11f09d36e/tkt-d11f09d36e_test.go:103 +0x4b4\ntesting.tRunner(0x5636e92ecd88, 0x10102a3d0)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_d11f09d36e\t60.226s\nFAIL"
+   "duration": "1m0.706s"
   },
   "tkt_d635236375": {
    "state": "pass",
-   "duration": "713ms"
+   "duration": "628ms"
   },
   "tkt_d82e3f3721": {
    "state": "pass",
-   "duration": "690ms"
+   "duration": "636ms"
   },
   "tkt_f3e5abed55": {
    "state": "skipped"
@@ -4405,236 +4390,237 @@
   },
   "tkt_f777251dc7a": {
    "state": "pass",
-   "duration": "676ms"
+   "duration": "651ms"
   },
   "tkt_f7b4edec": {
    "state": "pass",
-   "duration": "669ms"
+   "duration": "637ms"
   },
   "tkt_f973c7ac31": {
    "state": "pass",
-   "duration": "659ms"
+   "duration": "638ms"
   },
   "tkt_fa7bf5ec": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "633ms"
   },
   "tkt_fc62af4523": {
    "state": "pass",
-   "duration": "671ms"
+   "duration": "653ms"
   },
   "tkt_fc7bd6358f": {
    "state": "pass",
-   "duration": "656ms"
+   "duration": "642ms"
   },
   "tokenize": {
    "state": "pass",
-   "duration": "685ms"
+   "duration": "632ms"
   },
   "tpch01": {
    "state": "pass",
-   "duration": "692ms"
+   "duration": "639ms"
   },
   "trace": {
    "state": "pass",
-   "duration": "658ms"
+   "duration": "639ms"
   },
   "trace2": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "618ms"
   },
   "trace3": {
    "state": "pass",
-   "duration": "665ms"
+   "duration": "634ms"
   },
   "trans": {
    "state": "pass",
-   "duration": "2.714s"
+   "duration": "2.433s"
   },
   "trans2": {
    "state": "skipped"
   },
   "trans3": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "577ms"
   },
   "transitive1": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "607ms"
   },
   "trigger1": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "596ms"
   },
   "trigger2": {
    "state": "pass",
-   "duration": "785ms"
+   "duration": "805ms"
   },
   "trigger3": {
    "state": "pass",
-   "duration": "623ms"
+   "duration": "614ms"
   },
   "trigger4": {
    "state": "pass",
-   "duration": "759ms"
+   "duration": "685ms"
   },
   "trigger5": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "607ms"
   },
   "trigger6": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "610ms"
   },
   "trigger7": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "608ms"
   },
   "trigger8": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "609ms"
   },
   "trigger9": {
    "state": "pass",
-   "duration": "636ms"
+   "duration": "615ms"
   },
   "triggerA": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "638ms"
   },
   "triggerB": {
    "state": "pass",
-   "duration": "1.071s"
+   "duration": "1.002s"
   },
   "triggerC": {
    "state": "skipped"
   },
   "triggerD": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "577ms"
   },
   "triggerE": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "597ms"
   },
   "triggerF": {
    "state": "pass",
-   "duration": "646ms"
+   "duration": "588ms"
   },
   "triggerG": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "590ms"
   },
   "triggerupfrom": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "595ms"
   },
   "trustschema1": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "593ms"
   },
   "types": {
    "state": "pass",
-   "duration": "673ms"
+   "duration": "634ms"
   },
   "types2": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "621ms"
   },
   "types3": {
    "state": "pass",
-   "duration": "617ms"
+   "duration": "580ms"
   },
   "unhex": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "588ms"
   },
   "unionall": {
    "state": "pass",
-   "duration": "645ms"
+   "duration": "618ms"
   },
   "unionall2": {
    "state": "pass",
-   "duration": "623ms"
+   "duration": "604ms"
   },
   "unionallfault": {
    "state": "pass",
-   "duration": "622ms"
+   "duration": "564ms"
   },
   "unionvtab": {
    "state": "pass",
-   "duration": "698ms"
+   "duration": "628ms"
   },
   "unionvtabfault": {
    "state": "skipped"
   },
   "unique": {
    "state": "pass",
-   "duration": "662ms"
+   "duration": "593ms"
   },
   "unique2": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "622ms"
   },
   "unixexcl": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "580ms"
   },
   "unordered": {
    "state": "pass",
-   "duration": "634ms"
+   "duration": "632ms"
   },
   "update": {
-   "state": "pass",
-   "duration": "1.319s"
+   "state": "fail",
+   "duration": "1.171s",
+   "error": "DBG cascade from 5\nDBG cascade from 5\nDBG cascade from 5\nDBG cascade from 135\n--- FAIL: Test_update (0.57s)\n    update_test.go:1449: query error: database disk image is malformed\n          sql: \n            UPDATE t2 SET rowid=rowid-1;\n            SELECT count(*) FROM t2 WHERE a=rowid+1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/update\t0.769s\nFAIL"
   },
   "update2": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "627ms"
   },
   "upfrom1": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "635ms"
   },
   "upfrom2": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "581ms"
   },
   "upfrom3": {
    "state": "pass",
-   "duration": "625ms"
+   "duration": "640ms"
   },
   "upfrom4": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "639ms"
   },
   "upfromfault": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "748ms"
   },
   "upsert1": {
    "state": "pass",
-   "duration": "655ms"
+   "duration": "647ms"
   },
   "upsert2": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "609ms"
   },
   "upsert3": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "609ms"
   },
   "upsert4": {
    "state": "pass",
-   "duration": "654ms"
+   "duration": "624ms"
   },
   "upsert5": {
    "state": "pass",
-   "duration": "772ms"
+   "duration": "736ms"
   },
   "upsertfault": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "582ms"
   },
   "uri": {
    "state": "skipped"
@@ -4644,165 +4630,164 @@
   },
   "utf16align": {
    "state": "pass",
-   "duration": "597ms"
+   "duration": "552ms"
   },
   "vacuum": {
    "state": "pass",
-   "duration": "1.152s"
+   "duration": "994ms"
   },
   "vacuum2": {
    "state": "pass",
-   "duration": "639ms"
+   "duration": "579ms"
   },
   "vacuum3": {
    "state": "pass",
-   "duration": "3.244s"
+   "duration": "3.014s"
   },
   "vacuum4": {
    "state": "pass",
-   "duration": "614ms"
+   "duration": "559ms"
   },
   "vacuum5": {
    "state": "pass",
-   "duration": "1.825s"
+   "duration": "1.754s"
   },
   "vacuum6": {
    "state": "pass",
-   "duration": "26.017s"
+   "duration": "24.905s"
   },
   "vacuum_into": {
    "state": "pass",
-   "duration": "696ms"
+   "duration": "657ms"
   },
   "vacuummem": {
    "state": "skipped"
   },
   "values": {
-   "state": "fail",
-   "duration": "674ms",
-   "error": " 3),\n                (4, 4),\n                (5, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n          \n    values_test.go:338: result mismatch\n          got:  [{}]\n          want: [1 1 2 2 3 3 4 4 5 a]\n    values_test.go:344: exec error: too many terms in compound SELECT\n          sql: \n            DELETE FROM x1;\n            INSERT INTO x1 VALUES\n                (1, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d'), ('e')) ))\n          \n    values_test.go:356: result mismatch\n          got:  [{}]\n          want: [1 a]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/values\t0.253s\nFAIL"
+   "state": "pass",
+   "duration": "640ms"
   },
   "valuesfault": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "596ms"
   },
   "varint": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "580ms"
   },
   "veryquick": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "577ms"
   },
   "view": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "630ms"
   },
   "view2": {
    "state": "pass",
-   "duration": "651ms"
+   "duration": "579ms"
   },
   "view3": {
    "state": "pass",
-   "duration": "4.54s"
+   "duration": "3.98s"
   },
   "vtab1": {
    "state": "pass",
-   "duration": "1.987s"
+   "duration": "1.919s"
   },
   "vtab2": {
    "state": "pass",
-   "duration": "607ms"
+   "duration": "578ms"
   },
   "vtab3": {
    "state": "pass",
-   "duration": "624ms"
+   "duration": "591ms"
   },
   "vtab4": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "594ms"
   },
   "vtab5": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "584ms"
   },
   "vtab6": {
    "state": "pass",
-   "duration": "638ms"
+   "duration": "602ms"
   },
   "vtab7": {
    "state": "skipped"
   },
   "vtab8": {
    "state": "pass",
-   "duration": "613ms"
+   "duration": "576ms"
   },
   "vtab9": {
    "state": "pass",
-   "duration": "631ms"
+   "duration": "580ms"
   },
   "vtabA": {
    "state": "pass",
-   "duration": "609ms"
+   "duration": "588ms"
   },
   "vtabB": {
    "state": "pass",
-   "duration": "615ms"
+   "duration": "577ms"
   },
   "vtabC": {
    "state": "pass",
-   "duration": "773ms"
+   "duration": "740ms"
   },
   "vtabD": {
    "state": "pass",
-   "duration": "3.396s"
+   "duration": "3.191s"
   },
   "vtabE": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "586ms"
   },
   "vtabF": {
    "state": "pass",
-   "duration": "627ms"
+   "duration": "593ms"
   },
   "vtabH": {
    "state": "pass",
-   "duration": "1.586s"
+   "duration": "2.778s"
   },
   "vtabI": {
    "state": "pass",
-   "duration": "618ms"
+   "duration": "586ms"
   },
   "vtabJ": {
    "state": "pass",
-   "duration": "688ms"
+   "duration": "589ms"
   },
   "vtabK": {
    "state": "pass",
-   "duration": "610ms"
+   "duration": "609ms"
   },
   "vtabL": {
    "state": "pass",
-   "duration": "676ms"
+   "duration": "577ms"
   },
   "vtab_alter": {
    "state": "pass",
-   "duration": "648ms"
+   "duration": "636ms"
   },
   "vtab_err": {
    "state": "pass",
-   "duration": "680ms"
+   "duration": "616ms"
   },
   "vtab_shared": {
    "state": "pass",
-   "duration": "679ms"
+   "duration": "643ms"
   },
   "vtabdistinct": {
    "state": "skipped"
   },
   "vtabdrop": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "646ms"
   },
   "vtabrhs1": {
    "state": "skipped"
@@ -4842,12 +4827,12 @@
   },
   "walbig": {
    "state": "fail",
-   "duration": "663ms",
-   "error": "--- FAIL: Test_walbig (0.00s)\n    walbig_test.go:99: exec error: file is not a database\n          sql:  INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 \n    walbig_test.go:109: query error: file is not a database\n          sql:  SELECT a FROM t1 ORDER BY a \n    walbig_test.go:115: query error: file is not a database\n          sql:  SELECT b FROM t1 ORDER BY b \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walbig\t0.218s\nFAIL"
+   "duration": "634ms",
+   "error": "--- FAIL: Test_walbig (0.00s)\n    walbig_test.go:99: exec error: file is not a database\n          sql:  INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 \n    walbig_test.go:109: query error: file is not a database\n          sql:  SELECT a FROM t1 ORDER BY a \n    walbig_test.go:115: query error: file is not a database\n          sql:  SELECT b FROM t1 ORDER BY b \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walbig\t0.216s\nFAIL"
   },
   "walblock": {
    "state": "pass",
-   "duration": "670ms"
+   "duration": "628ms"
   },
   "walckptnoop": {
    "state": "skipped"
@@ -4884,12 +4869,12 @@
   },
   "waloverwrite": {
    "state": "pass",
-   "duration": "770ms"
+   "duration": "736ms"
   },
   "walpersist": {
    "state": "fail",
-   "duration": "635ms",
-   "error": "pplied\n          sql:  INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) \n    walpersist_test.go:165: exec error: table t1 has 1 columns but 2 values were supplied\n          sql:  INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) \n    walpersist_test.go:165: exec error: table t1 has 1 columns but 2 values were supplied\n          sql:  INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) \n    walpersist_test.go:181: result mismatch\n          got:  [8416]\n          want: [0]\n          body: do_test walpersist-3.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walpersist\t0.224s\nFAIL"
+   "duration": "638ms",
+   "error": "pplied\n          sql:  INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) \n    walpersist_test.go:165: exec error: table t1 has 1 columns but 2 values were supplied\n          sql:  INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) \n    walpersist_test.go:165: exec error: table t1 has 1 columns but 2 values were supplied\n          sql:  INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) \n    walpersist_test.go:181: result mismatch\n          got:  [8416]\n          want: [0]\n          body: do_test walpersist-3.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walpersist\t0.229s\nFAIL"
   },
   "walprotocol": {
    "state": "skipped"
@@ -4902,15 +4887,15 @@
   },
   "walro": {
    "state": "pass",
-   "duration": "626ms"
+   "duration": "595ms"
   },
   "walro2": {
    "state": "pass",
-   "duration": "637ms"
+   "duration": "599ms"
   },
   "walrofault": {
    "state": "pass",
-   "duration": "642ms"
+   "duration": "610ms"
   },
   "walseh1": {
    "state": "skipped"
@@ -4938,38 +4923,38 @@
   },
   "walthread": {
    "state": "pass",
-   "duration": "630ms"
+   "duration": "608ms"
   },
   "walvfs": {
    "state": "skipped"
   },
   "where": {
    "state": "pass",
-   "duration": "6.926s"
+   "duration": "6.628s"
   },
   "where2": {
    "state": "pass",
-   "duration": "953ms"
+   "duration": "876ms"
   },
   "where3": {
    "state": "pass",
-   "duration": "668ms"
+   "duration": "615ms"
   },
   "where4": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "615ms"
   },
   "where5": {
    "state": "pass",
-   "duration": "653ms"
+   "duration": "582ms"
   },
   "where6": {
    "state": "pass",
-   "duration": "691ms"
+   "duration": "581ms"
   },
   "where7": {
    "state": "pass",
-   "duration": "711ms"
+   "duration": "647ms"
   },
   "where8": {
    "state": "skipped"
@@ -4979,43 +4964,43 @@
   },
   "whereA": {
    "state": "pass",
-   "duration": "618ms"
+   "duration": "642ms"
   },
   "whereB": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "599ms"
   },
   "whereC": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "607ms"
   },
   "whereD": {
    "state": "pass",
-   "duration": "632ms"
+   "duration": "605ms"
   },
   "whereE": {
    "state": "pass",
-   "duration": "716ms"
+   "duration": "669ms"
   },
   "whereF": {
    "state": "pass",
-   "duration": "662ms"
+   "duration": "630ms"
   },
   "whereG": {
    "state": "pass",
-   "duration": "650ms"
+   "duration": "654ms"
   },
   "whereH": {
    "state": "pass",
-   "duration": "680ms"
+   "duration": "612ms"
   },
   "whereI": {
    "state": "pass",
-   "duration": "675ms"
+   "duration": "694ms"
   },
   "whereJ": {
    "state": "pass",
-   "duration": "644ms"
+   "duration": "675ms"
   },
   "whereK": {
    "state": "pass",
@@ -5023,39 +5008,39 @@
   },
   "whereL": {
    "state": "pass",
-   "duration": "710ms"
+   "duration": "760ms"
   },
   "whereM": {
    "state": "pass",
-   "duration": "703ms"
+   "duration": "728ms"
   },
   "whereN": {
    "state": "pass",
-   "duration": "653ms"
+   "duration": "664ms"
   },
   "wherefault": {
    "state": "pass",
-   "duration": "664ms"
+   "duration": "723ms"
   },
   "wherelfault": {
    "state": "pass",
-   "duration": "658ms"
+   "duration": "721ms"
   },
   "wherelimit": {
    "state": "pass",
-   "duration": "686ms"
+   "duration": "737ms"
   },
   "wherelimit2": {
    "state": "pass",
-   "duration": "674ms"
+   "duration": "752ms"
   },
   "wherelimit3": {
    "state": "pass",
-   "duration": "671ms"
+   "duration": "745ms"
   },
   "widetab1": {
    "state": "pass",
-   "duration": "681ms"
+   "duration": "726ms"
   },
   "win32heap": {
    "state": "skipped"
@@ -5071,155 +5056,154 @@
   },
   "window1": {
    "state": "pass",
-   "duration": "1.055s"
+   "duration": "993ms"
   },
   "window2": {
    "state": "pass",
-   "duration": "688ms"
+   "duration": "706ms"
   },
   "window3": {
    "state": "pass",
-   "duration": "3.934s"
+   "duration": "3.564s"
   },
   "window4": {
    "state": "pass",
-   "duration": "693ms"
+   "duration": "643ms"
   },
   "window5": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "588ms"
   },
   "window6": {
    "state": "pass",
-   "duration": "641ms"
+   "duration": "617ms"
   },
   "window7": {
    "state": "pass",
-   "duration": "628ms"
+   "duration": "584ms"
   },
   "window8": {
    "state": "pass",
-   "duration": "1.199s"
+   "duration": "1.104s"
   },
   "window9": {
-   "state": "fail",
-   "duration": "608ms",
-   "error": "--- FAIL: Test_window9 (0.01s)\n    window9_test.go:254: result mismatch\n          got:  [1 0 1,2 2 0 1,2]\n          want: [1 0 1,2 2 1 1,2]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/window9\t0.207s\nFAIL"
+   "state": "pass",
+   "duration": "583ms"
   },
   "windowA": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "575ms"
   },
   "windowB": {
    "state": "pass",
-   "duration": "616ms"
+   "duration": "597ms"
   },
   "windowC": {
    "state": "pass",
-   "duration": "618ms"
+   "duration": "582ms"
   },
   "windowD": {
    "state": "pass",
-   "duration": "619ms"
+   "duration": "585ms"
   },
   "windowE": {
    "state": "pass",
-   "duration": "726ms"
+   "duration": "591ms"
   },
   "windowerr": {
    "state": "pass",
-   "duration": "645ms"
+   "duration": "558ms"
   },
   "windowfault": {
    "state": "pass",
-   "duration": "772ms"
+   "duration": "730ms"
   },
   "windowpushd": {
    "state": "pass",
-   "duration": "652ms"
+   "duration": "593ms"
   },
   "with1": {
    "state": "pass",
-   "duration": "4.411s"
+   "duration": "4.244s"
   },
   "with2": {
    "state": "pass",
-   "duration": "663ms"
+   "duration": "626ms"
   },
   "with3": {
    "state": "pass",
-   "duration": "612ms"
+   "duration": "599ms"
   },
   "with4": {
    "state": "pass",
-   "duration": "611ms"
+   "duration": "634ms"
   },
   "with5": {
    "state": "pass",
-   "duration": "606ms"
+   "duration": "647ms"
   },
   "with6": {
    "state": "pass",
-   "duration": "629ms"
+   "duration": "637ms"
   },
   "withM": {
    "state": "pass",
-   "duration": "594ms"
+   "duration": "619ms"
   },
   "without_rowid1": {
    "state": "pass",
-   "duration": "746ms"
+   "duration": "760ms"
   },
   "without_rowid2": {
    "state": "pass",
-   "duration": "589ms"
+   "duration": "633ms"
   },
   "without_rowid3": {
    "state": "pass",
-   "duration": "938ms"
+   "duration": "840ms"
   },
   "without_rowid4": {
    "state": "pass",
-   "duration": "768ms"
+   "duration": "712ms"
   },
   "without_rowid5": {
    "state": "pass",
-   "duration": "640ms"
+   "duration": "630ms"
   },
   "without_rowid6": {
    "state": "pass",
-   "duration": "1.309s"
+   "duration": "1.269s"
   },
   "without_rowid7": {
    "state": "pass",
-   "duration": "661ms"
+   "duration": "609ms"
   },
   "writecrash": {
    "state": "skipped"
   },
   "zeroblob": {
    "state": "pass",
-   "duration": "674ms"
+   "duration": "609ms"
   },
   "zeroblobfault": {
    "state": "pass",
-   "duration": "659ms"
+   "duration": "644ms"
   },
   "zerodamage": {
    "state": "pass",
-   "duration": "1.508s"
+   "duration": "1.377s"
   },
   "zipfile": {
    "state": "pass",
-   "duration": "775ms"
+   "duration": "691ms"
   },
   "zipfile2": {
    "state": "pass",
-   "duration": "653ms"
+   "duration": "587ms"
   },
   "zipfilefault": {
    "state": "pass",
-   "duration": "621ms"
+   "duration": "569ms"
   }
  }
 }

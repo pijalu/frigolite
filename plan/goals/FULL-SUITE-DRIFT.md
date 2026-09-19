@@ -2201,3 +2201,15 @@ TestSOLID_ (20 pkgs), quality_gate staticcheck/gocognit/gocyclo findings
 identical to baseline except one pre-existing SA4006 in schema_validate.go
 fixed; the single pre-commit gate (build + SOLID) green. Remaining flagged
 regressions not in this goal: capi2, fts3d, fts4langid (other T28 owners).
+
+### T28 close run (2026-09-20)
+Census stamp 2026-09-19T21:28:10Z (-concurrency 3), ledger re-seeded,
+--check PASS, all 17 suspects serially adjudicated (9 slow-but-green →
+pass incl. fts4merge4; 8 confirmed: fts4merge pre-existing 4.1/4.2 +
+fts5 slow classes). Final: 1049 pass / 25 fail / 280 skip of 1362.
+4 NEW regressions (alterdropcol, fts4aa, tkt_6bfb98dfc0, update) from the
+last three merges — T28-regressC bisecting. Remaining fail tail after
+regressC: ~21 packages (9 adjudicated fts5 architectural/slow + 12
+deep-engine/VFS-flavored singles: avfs, bigrow, btreefault, chunksize,
+corrupt, fts3corrupt, mutex1, prefixes, ptrchng, shortread1, walbig,
+walpersist + fts4merge 4.1/4.2).
