@@ -123,13 +123,23 @@ func jsonbHeaderCheck(b []byte) bool {
 	if c&0x0f <= 2 && sz != 0 { // null/true/false must be empty
 		return false
 	}
-	if sz > 7 || (c != 0x7b && c != 0x5b && !(c >= '0' && c <= '9')) {
+	if !jsonbLooksLikeText(c, sz) {
 		return true
 	}
 	// Tiny payload that could be plain TEXT ("{..."/"[..."/digits): full
 	// validity check decides (sqlite jsonbValidityCheck(p,0,nBlob,1)==0).
 	ok, _ := jsonbElementValid(b, 0)
 	return ok && jsonbElementEnd(b, 0) == len(b)
+}
+
+// jsonbLooksLikeText reports whether a tiny container/number payload could
+// double as plain TEXT ('{' / '[' / leading digit first byte), needing the
+// full validity check to tell them apart.
+func jsonbLooksLikeText(c byte, sz int) bool {
+	if sz > 7 {
+		return false
+	}
+	return c == 0x7b || c == 0x5b || (c >= '0' && c <= '9')
 }
 
 // isJSONBBlob reports whether b is a fully valid JSONB document: the first
@@ -155,52 +165,63 @@ func jsonbElementEnd(b []byte, i int) int {
 
 // jsonbElementValid structurally validates the element at offset i.
 func jsonbElementValid(b []byte, i int) (bool, int) {
-	t := b[i] & 0x0f
 	end := jsonbElementEnd(b, i)
 	if end < 0 || end > len(b) {
 		return false, 0
 	}
-	switch t {
+	switch b[i] & 0x0f {
 	case 11: // array
-		off := i + 1
-		if b[i]>>4 > 11 {
-			off = i + jsonbHeaderLen(b, i)
-		}
-		for off < end {
-			if off >= len(b) || b[off]&0x0f > 12 {
-				return false, 0
-			}
-			v, next := jsonbElementValid(b, off)
-			if !v || next <= off {
-				return false, 0
-			}
-			off = next
-		}
-		return off == end, end
+		return jsonbArrayValid(b, i, end)
 	case 12: // object: alternating label/value elements
-		off := i + jsonbHeaderLen(b, i)
-		for off < end {
-			if off >= len(b) || b[off]&0x0f < 7 || b[off]&0x0f > 10 {
-				return false, 0 // label must be a text element
-			}
-			v, labelEnd := jsonbElementValid(b, off)
-			if !v || labelEnd >= end {
-				return false, 0
-			}
-			off = labelEnd
-			if off >= len(b) || b[off]&0x0f > 12 {
-				return false, 0
-			}
-			v, valEnd := jsonbElementValid(b, off)
-			if !v {
-				return false, 0
-			}
-			off = valEnd
-		}
-		return true, end
+		return jsonbObjectValid(b, i, end)
 	default:
 		return true, end
 	}
+}
+
+// jsonbArrayValid validates the children of the array element at i: each
+// must be a well-formed element consuming a disjoint span up to end.
+func jsonbArrayValid(b []byte, i, end int) (bool, int) {
+	off := i + 1
+	if b[i]>>4 > 11 {
+		off = i + jsonbHeaderLen(b, i)
+	}
+	for off < end {
+		if off >= len(b) || b[off]&0x0f > 12 {
+			return false, 0
+		}
+		v, next := jsonbElementValid(b, off)
+		if !v || next <= off {
+			return false, 0
+		}
+		off = next
+	}
+	return off == end, end
+}
+
+// jsonbObjectValid validates the label/value element pairs of the object
+// element at i; every label must itself be a text element (types 7..10).
+func jsonbObjectValid(b []byte, i, end int) (bool, int) {
+	off := i + jsonbHeaderLen(b, i)
+	for off < end {
+		if off >= len(b) || b[off]&0x0f < 7 || b[off]&0x0f > 10 {
+			return false, 0 // label must be a text element
+		}
+		v, labelEnd := jsonbElementValid(b, off)
+		if !v || labelEnd >= end {
+			return false, 0
+		}
+		off = labelEnd
+		if off >= len(b) || b[off]&0x0f > 12 {
+			return false, 0
+		}
+		v, valEnd := jsonbElementValid(b, off)
+		if !v {
+			return false, 0
+		}
+		off = valEnd
+	}
+	return true, end
 }
 
 // jsonbHeaderLen returns the header length of the element at i.
@@ -224,39 +245,45 @@ func jsonbPayloadSize(b []byte, i int) (n, sz int, err error) {
 		return 0, 0, fmt.Errorf("malformed JSON")
 	}
 	h := b[i] >> 4
-	switch {
-	case h <= 11:
+	if h <= 11 {
 		n, sz = 1, int(h)
-	case h == 12:
-		if i+1 >= len(b) {
+	} else {
+		var ok bool
+		if n, sz, ok = jsonbLongPayloadSize(b, i, h); !ok {
 			return 0, 0, fmt.Errorf("malformed JSON")
 		}
-		n, sz = 2, int(b[i+1])
-	case h == 13:
-		if i+2 >= len(b) {
-			return 0, 0, fmt.Errorf("malformed JSON")
-		}
-		n, sz = 3, int(binary.BigEndian.Uint16(b[i+1:i+3]))
-	case h == 14:
-		if i+4 >= len(b) {
-			return 0, 0, fmt.Errorf("malformed JSON")
-		}
-		n, sz = 5, int(binary.BigEndian.Uint32(b[i+1:i+5]))
-	default:
-		if i+8 >= len(b) {
-			return 0, 0, fmt.Errorf("malformed JSON")
-		}
-		s := binary.BigEndian.Uint64(b[i+1 : i+9])
-		if s > uint64(math.MaxInt32) {
-			return 0, 0, fmt.Errorf("malformed JSON")
-		}
-		n, sz = 9, int(s)
 	}
 	// Containment: the element (header plus payload) must fit in the blob.
 	if i+n+sz > len(b) {
 		return 0, 0, fmt.Errorf("malformed JSON")
 	}
 	return n, sz, nil
+}
+
+// jsonbLongPayloadSize decodes the multi-byte payload size forms (header
+// high nibble 12..15: the payload size as a 1/2/4/8-byte big-endian integer
+// in the width bytes following the header byte). ok is false when the size
+// field is truncated or an 8-byte size overflows the int32 payload limit.
+func jsonbLongPayloadSize(b []byte, i int, h byte) (n, sz int, ok bool) {
+	width := 1 << (h - 12) // size-field bytes: 12->1, 13->2, 14->4, 15->8
+	if i+width >= len(b) {
+		return 0, 0, false
+	}
+	switch width {
+	case 1:
+		sz = int(b[i+1])
+	case 2:
+		sz = int(binary.BigEndian.Uint16(b[i+1 : i+3]))
+	case 4:
+		sz = int(binary.BigEndian.Uint32(b[i+1 : i+5]))
+	default:
+		s := binary.BigEndian.Uint64(b[i+1 : i+9])
+		if s > uint64(math.MaxInt32) {
+			return 0, 0, false
+		}
+		sz = int(s)
+	}
+	return 1 + width, sz, true
 }
 
 // ElemType returns the element-type nibble at offset i.
@@ -366,100 +393,114 @@ func (jb *JSONBlob) TranslateText(i int) (string, error) {
 //   - a TEXT5 payload ending in a dangling or truncated escape,
 //   - a container whose children overrun the container (j>iEnd) or an
 //     object with an odd number of members (label without value).
+//
+// jsonbAtomText is the literal text emitted for the JSONB atom types
+// (JSONB_NULL, JSONB_TRUE, JSONB_FALSE).
+var jsonbAtomText = map[byte]string{0: "null", 1: "true", 2: "false"}
+
 func (jb *JSONBlob) appendText(sb []byte, i int) ([]byte, int, error) {
 	n, sz := jb.HeaderSize(i)
 	if n == 0 {
 		return sb, len(jb.b) + 1, jsonParseErr()
 	}
-	var err error
+	if t := jb.ElemType(i); t <= 10 {
+		return jb.appendTextScalar(sb, i, n, sz, t)
+	}
+	if jb.ElemType(i) == 11 { // array
+		return jb.appendTextArray(sb, i, n, sz)
+	}
+	return jb.appendTextObject(sb, i, n, sz)
+}
+
+// appendTextScalar renders the non-container element at i (types 0..10).
+// The payload slice is derived from the header size here.
+func (jb *JSONBlob) appendTextScalar(sb []byte, i, n, sz int, t byte) ([]byte, int, error) {
+	if txt, ok := jsonbAtomText[t]; ok {
+		return append(sb, txt...), i + 1, nil
+	}
 	payload := jb.b[i+n : i+n+sz]
-	t := jb.ElemType(i)
+	var err error
 	switch t {
-	case 0:
-		return append(sb, "null"...), i + 1, nil
-	case 1:
-		return append(sb, "true"...), i + 1, nil
-	case 2:
-		return append(sb, "false"...), i + 1, nil
 	case 3, 5: // INT, FLOAT: payload is already canonical JSON number text
 		if sz == 0 {
 			return sb, i + n + sz, jsonParseErr()
 		}
 		return append(sb, payload...), i + n + sz, nil
 	case 4: // INT5: 0xHEX integer literal — render as decimal
-		sb, err = jb.appendInt5(sb, payload)
-		if err != nil {
+		if sb, err = jb.appendInt5(sb, payload); err != nil {
 			return sb, 0, err
 		}
-		return sb, i + n + sz, nil
 	case 6: // FLOAT5: literal missing digits beside "." — insert them
-		sb, err = jb.appendFloat5(sb, payload)
-		if err != nil {
+		if sb, err = jb.appendFloat5(sb, payload); err != nil {
 			return sb, 0, err
 		}
-		return sb, i + n + sz, nil
-	case 7: // TEXT: plain, escape as JSON string
+	case 7, 10: // TEXT, TEXTRAW: SQL text that needs escaping
 		return appendJSONEscaped(sb, string(payload)), i + n + sz, nil
 	case 8: // TEXTJ: already JSON-escaped body
 		sb = append(sb, '"')
 		sb = append(sb, payload...)
 		return append(sb, '"'), i + n + sz, nil
 	case 9: // TEXT5: JSON5 escape forms — translate to JSON escapes
-		sb, err = jb.appendText5(sb, payload)
-		if err != nil {
+		if sb, err = jb.appendText5(sb, payload); err != nil {
 			return sb, 0, err
 		}
-		return sb, i + n + sz, nil
-	case 10: // TEXTRAW: SQL text that needs escaping
-		return appendJSONEscaped(sb, string(payload)), i + n + sz, nil
-	case 11: // array
-		sb = append(sb, '[')
-		end := i + n + sz
-		j := i + n
-		first := true
-		for j < end {
-			var err error
-			if !first {
+	default:
+		return sb, i + n + sz, jsonParseErr() // unreachable: 0..10 enumerated
+	}
+	return sb, i + n + sz, nil
+}
+
+// appendTextArray renders the array element at i as JSON text.
+func (jb *JSONBlob) appendTextArray(sb []byte, i, n, sz int) ([]byte, int, error) {
+	sb = append(sb, '[')
+	end := i + n + sz
+	j := i + n
+	first := true
+	for j < end {
+		var err error
+		if !first {
+			sb = append(sb, ',')
+		}
+		first = false
+		sb, j, err = jb.appendText(sb, j)
+		if err != nil {
+			return sb, j, err
+		}
+	}
+	if j > end {
+		return sb, j, jsonParseErr()
+	}
+	return append(sb, ']'), j, nil
+}
+
+// appendTextObject renders the object element at i as JSON text. Elements
+// alternate label, value: ':' follows a label, ',' separates members
+// (sqlite appends after each child and trims the trailing one; emitting
+// between elements is equivalent).
+func (jb *JSONBlob) appendTextObject(sb []byte, i, n, sz int) ([]byte, int, error) {
+	sb = append(sb, '{')
+	end := i + n + sz
+	j := i + n
+	cnt := 0
+	for j < end {
+		var err error
+		if cnt > 0 {
+			if cnt%2 == 1 {
+				sb = append(sb, ':')
+			} else {
 				sb = append(sb, ',')
 			}
-			first = false
-			sb, j, err = jb.appendText(sb, j)
-			if err != nil {
-				return sb, j, err
-			}
 		}
-		if j > end {
-			return sb, j, jsonParseErr()
+		sb, j, err = jb.appendText(sb, j)
+		if err != nil {
+			return sb, j, err
 		}
-		return append(sb, ']'), j, nil
-	default: // object
-		sb = append(sb, '{')
-		end := i + n + sz
-		j := i + n
-		cnt := 0
-		for j < end {
-			var err error
-			// Elements alternate label, value: ':' follows a label, ','
-			// separates members (sqlite appends after each child and trims
-			// the trailing one; emitting between elements is equivalent).
-			if cnt > 0 {
-				if cnt%2 == 1 {
-					sb = append(sb, ':')
-				} else {
-					sb = append(sb, ',')
-				}
-			}
-			sb, j, err = jb.appendText(sb, j)
-			if err != nil {
-				return sb, j, err
-			}
-			cnt++
-		}
-		if cnt%2 != 0 || j > end {
-			return sb, j, jsonParseErr()
-		}
-		return append(sb, '}'), j, nil
+		cnt++
 	}
+	if cnt%2 != 0 || j > end {
+		return sb, j, jsonParseErr()
+	}
+	return append(sb, '}'), j, nil
 }
 
 // appendInt5 renders an INT5 payload (sign?0xHEX) as a decimal integer
@@ -534,13 +575,7 @@ func (jb *JSONBlob) appendText5(sb []byte, payload []byte) ([]byte, error) {
 		if c != '\\' && c != '"' && c > 0x1f {
 			// Ordinary run: copy until the next special byte.
 			start := k
-			for k < len(payload) {
-				c = payload[k]
-				if c == '\\' || c == '"' || c <= 0x1f {
-					break
-				}
-				k++
-			}
+			k = text5RunEnd(payload, k)
 			sb = append(sb, payload[start:k]...)
 			continue
 		}
@@ -554,42 +589,90 @@ func (jb *JSONBlob) appendText5(sb []byte, payload []byte) ([]byte, error) {
 			sb = append(sb, hexDigits[c>>4], hexDigits[c&0xf])
 			k++
 		default: // backslash escape
-			if k+1 >= len(payload) {
-				return sb, jsonParseErr()
+			var used int
+			var err error
+			if sb, used, err = appendText5Escape(sb, payload, k); err != nil {
+				return sb, err
 			}
-			switch e := payload[k+1]; e {
-			case '\'':
-				sb = append(sb, '\'')
-			case 'v':
-				sb = append(sb, "\\u000b"...)
-			case 'x':
-				if k+3 >= len(payload) {
-					return sb, jsonParseErr()
-				}
-				sb = append(sb, "\\u00"...)
-				sb = append(sb, payload[k+2], payload[k+3])
-				k += 2
-			case '0':
-				sb = append(sb, "\\u0000"...)
-			case '\r':
-				if k+2 < len(payload) && payload[k+2] == '\n' {
-					k++ // \<CR><LF> is one line continuation
-				}
-			case '\n':
-				// Line continuation: emit nothing.
-			case 0xe2:
-				if k+3 >= len(payload) || payload[k+2] != 0x80 ||
-					(payload[k+3] != 0xa8 && payload[k+3] != 0xa9) {
-					return sb, jsonParseErr()
-				}
-				k += 2
-			default:
-				sb = append(sb, payload[k], payload[k+1])
-			}
-			k += 2
+			k += used
 		}
 	}
 	return append(sb, '"'), nil
+}
+
+// text5RunEnd returns the offset of the next special byte (backslash, quote
+// or control) at or after k.
+func text5RunEnd(payload []byte, k int) int {
+	for k < len(payload) {
+		c := payload[k]
+		if c == '\\' || c == '"' || c <= 0x1f {
+			break
+		}
+		k++
+	}
+	return k
+}
+
+// appendText5Escape renders one backslash escape of a TEXT5 payload (k sits
+// on the backslash). It returns the updated buffer and the number of payload
+// bytes consumed (2 plus any escape-specific continuation bytes), or a parse
+// error for malformed forms.
+func appendText5Escape(sb []byte, payload []byte, k int) ([]byte, int, error) {
+	if k+1 >= len(payload) {
+		return sb, 0, jsonParseErr()
+	}
+	used := 2
+	switch e := payload[k+1]; e {
+	case '\'':
+		sb = append(sb, '\'')
+	case 'v':
+		sb = append(sb, "\\u000b"...)
+	case 'x':
+		var err error
+		if used, err = appendText5Hex2(sb, payload, k); err != nil {
+			return sb, 0, err
+		}
+	case '0':
+		sb = append(sb, "\\u0000"...)
+	case '\r':
+		if text5CRLF(payload, k) {
+			used = 3 // \<CR><LF> is one line continuation
+		}
+	case '\n':
+		// Line continuation: emit nothing.
+	case 0xe2:
+		if !text5LineSep(payload, k) {
+			return sb, 0, jsonParseErr()
+		}
+		used = 4 // \U+2028 / \U+2029 line separator
+	default:
+		sb = append(sb, payload[k], payload[k+1])
+	}
+	return sb, used, nil
+}
+
+// appendText5Hex2 renders a \xHH escape as \u00HH; it reports the bytes
+// consumed (4) or a parse error when the two hex digits are missing.
+func appendText5Hex2(sb []byte, payload []byte, k int) (int, error) {
+	if k+3 >= len(payload) {
+		return 0, jsonParseErr()
+	}
+	sb = append(sb, "\\u00"...)
+	sb = append(sb, payload[k+2], payload[k+3])
+	return 4, nil
+}
+
+// text5CRLF reports whether a \<CR> escape is followed by <LF>, making one
+// line continuation.
+func text5CRLF(payload []byte, k int) bool {
+	return k+2 < len(payload) && payload[k+2] == '\n'
+}
+
+// text5LineSep reports whether the bytes at k form a \U+2028 / \U+2029
+// line-separator escape (backslash, e2 80, a8/a9).
+func text5LineSep(payload []byte, k int) bool {
+	return k+3 < len(payload) && payload[k+2] == 0x80 &&
+		(payload[k+3] == 0xa8 || payload[k+3] == 0xa9)
 }
 
 // hexDigit maps one ASCII hex digit to its value.
@@ -642,30 +725,37 @@ func (jb *JSONBlob) lookupStep(cur int, c jsonPathComponent) (value, label int, 
 	end := cur + n + sz
 	off := cur + n
 	if jb.ElemType(cur) == 12 { // object: alternating label/value elements
-		for off < end {
-			li := off
-			ln, lsz := jb.HeaderSize(li)
-			if ln == 0 {
-				break
-			}
-			vi := li + ln + lsz
-			vn, vsz := jb.HeaderSize(vi)
-			if vn == 0 {
-				break
-			}
-			if c.isIdx {
-				// Object members are not addressable by index; no match here.
-				off = vi + vn + vsz
-				continue
-			}
-			if jb.Key(li) == c.key {
-				return vi, li, true
-			}
-			off = vi + vn + vsz
-		}
-		return 0, -1, false
+		return jb.lookupObjectStep(off, end, c)
 	}
 	// array
+	return jb.lookupArrayStep(off, end, c)
+}
+
+// lookupObjectStep scans an object's label/value pairs for a key match.
+// Object members are not addressable by index; index steps skip members.
+func (jb *JSONBlob) lookupObjectStep(off, end int, c jsonPathComponent) (value, label int, ok bool) {
+	for off < end {
+		li := off
+		ln, lsz := jb.HeaderSize(li)
+		if ln == 0 {
+			break
+		}
+		vi := li + ln + lsz
+		vn, vsz := jb.HeaderSize(vi)
+		if vn == 0 {
+			break
+		}
+		if !c.isIdx && jb.Key(li) == c.key {
+			return vi, li, true
+		}
+		off = vi + vn + vsz
+	}
+	return 0, -1, false
+}
+
+// lookupArrayStep scans an array's elements for the c.index-th one.
+// Text steps do not match array elements.
+func (jb *JSONBlob) lookupArrayStep(off, end int, c jsonPathComponent) (value, label int, ok bool) {
 	if !c.isIdx {
 		return 0, -1, false
 	}

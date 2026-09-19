@@ -41,50 +41,54 @@ func jsonbEncodeElement(out []byte, n *jsonNode) []byte {
 		})
 	case jsonArray:
 		children := make([][]byte, 0, len(n.arr))
-		total := 0
 		for _, el := range n.arr {
-			c := jsonbEncodeElement(nil, el)
-			children = append(children, c)
-			total += len(c)
+			children = append(children, jsonbEncodeElement(nil, el))
 		}
-		return jsonbAppendHeader(out, total, jsonbArray, func(b []byte) []byte {
-			for _, c := range children {
-				b = append(b, c...)
-			}
-			return b
-		})
+		return jsonbEncodeChildren(out, children, jsonbArray)
 	case jsonObject:
-		total := 0
 		children := make([][]byte, 0, len(n.obj)*2)
 		for _, pr := range n.obj {
 			children = append(children, jsonbEncodeElement(nil, &jsonNode{kind: jsonString, str: pr.key}))
 			children = append(children, jsonbEncodeElement(nil, pr.value))
 		}
-		for _, c := range children {
-			total += len(c)
-		}
-		return jsonbAppendHeader(out, total, jsonbObject, func(b []byte) []byte {
-			for _, c := range children {
-				b = append(b, c...)
-			}
-			return b
-		})
+		return jsonbEncodeChildren(out, children, jsonbObject)
 	default: // jsonNumber
-		typ := byte(jsonbInt)
-		if !n.isInt {
-			typ = jsonbFloat
-		}
-		text := n.text
-		if text == "" {
-			text = strconv.FormatInt(n.i64, 10)
-			if !n.isInt {
-				text = jsonNumberText(n.num)
-			}
-		}
-		return jsonbAppendHeader(out, len(text), typ, func(b []byte) []byte {
-			return append(b, text...)
-		})
+		return jsonbEncodeNumber(out, n)
 	}
+}
+
+// jsonbEncodeChildren encodes the already-encoded child elements under one
+// container header of the given type.
+func jsonbEncodeChildren(out []byte, children [][]byte, elemType byte) []byte {
+	total := 0
+	for _, c := range children {
+		total += len(c)
+	}
+	return jsonbAppendHeader(out, total, elemType, func(b []byte) []byte {
+		for _, c := range children {
+			b = append(b, c...)
+		}
+		return b
+	})
+}
+
+// jsonbEncodeNumber encodes a number node: integers as JSONB_INT (decimal
+// text), reals as JSONB_FLOAT.
+func jsonbEncodeNumber(out []byte, n *jsonNode) []byte {
+	typ := byte(jsonbInt)
+	if !n.isInt {
+		typ = jsonbFloat
+	}
+	text := n.text
+	if text == "" {
+		text = strconv.FormatInt(n.i64, 10)
+		if !n.isInt {
+			text = jsonNumberText(n.num)
+		}
+	}
+	return jsonbAppendHeader(out, len(text), typ, func(b []byte) []byte {
+		return append(b, text...)
+	})
 }
 
 // jsonbAppendHeader writes the type/size header followed by the payload

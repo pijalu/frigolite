@@ -114,53 +114,12 @@ func jsonExpand(zSrc string, p *jsonPrng, eType int, r uint32) string {
 			}
 			continue
 		}
-		var z string
-		if r == 0 || (r < 1000 && uint32(p.int()%1000) <= r) {
-			// azJsonAtoms holds one row per atom pair ([0]=JSON, [1]=JSON5),
-			// so the draw indexes rows directly (C computes k over
-			// count(flat)/2 which equals the number of pairs).
-			k := int(p.int() % uint32(len(azJsonAtoms)))
-			z = azJsonAtoms[k][eType]
-		} else {
-			k := int(p.int() % uint32(len(azJsonTemplate)))
-			z = azJsonTemplate[k][eType]
-		}
-		if strings.Contains(z, "XX") {
-			y := p.int()
-			if y&0xff == (y>>8)&0xff {
-				y += 0x100
-			}
-			for (y&0xff == (y>>16)&0xff) || ((y>>8)&0xff == (y>>16)&0xff) {
-				y += 0x10000
-			}
-			var sb strings.Builder
-			for pos := 0; pos < len(z); pos++ {
-				if pos+1 < len(z) && z[pos] == 'X' && z[pos+1] == 'X' {
-					sb.WriteByte(hexDigits[y%16])
-					y /= 16
-					sb.WriteByte(hexDigits[y%16])
-					y /= 16
-					pos++
-					continue
-				}
-				sb.WriteByte(z[pos])
-			}
-			z = sb.String()
-		} else if strings.Contains(z, "DD") {
-			y := p.int()
-			var sb strings.Builder
-			for pos := 0; pos < len(z); pos++ {
-				if pos+1 < len(z) && z[pos] == 'D' && z[pos+1] == 'D' {
-					sb.WriteByte("0123456789"[y%10])
-					y /= 10
-					sb.WriteByte("0123456789"[y%10])
-					y /= 10
-					pos++
-					continue
-				}
-				sb.WriteByte(z[pos])
-			}
-			z = sb.String()
+		z := jsonExpandAtom(p, eType, r)
+		switch {
+		case strings.Contains(z, "XX"):
+			z = jsonExpandSubstHex(z, p.int())
+		case strings.Contains(z, "DD"):
+			z = jsonExpandSubstDec(z, p.int())
 		}
 		if j+len(z) < strsz {
 			copy(zDest[j:], z)
@@ -168,6 +127,56 @@ func jsonExpand(zSrc string, p *jsonPrng, eType int, r uint32) string {
 		}
 	}
 	return string(zDest[:j])
+}
+
+// jsonExpandAtom draws one expansion atom for a '%' placeholder: either an
+// atom (always when r==0, else with the r/1000 probability) or a nested
+// template. azJsonAtoms holds one row per atom pair ([0]=JSON, [1]=JSON5),
+// so the draw indexes rows directly (C computes k over count(flat)/2 which
+// equals the number of pairs).
+func jsonExpandAtom(p *jsonPrng, eType int, r uint32) string {
+	if r == 0 || (r < 1000 && uint32(p.int()%1000) <= r) {
+		k := int(p.int() % uint32(len(azJsonAtoms)))
+		return azJsonAtoms[k][eType]
+	}
+	k := int(p.int() % uint32(len(azJsonTemplate)))
+	return azJsonTemplate[k][eType]
+}
+
+// jsonExpandSubstHex replaces each "XX" pair of z with two hex digits drawn
+// from y, nudging y first so the three bytes stay distinct (randomjson.c).
+func jsonExpandSubstHex(z string, y uint32) string {
+	if y&0xff == (y>>8)&0xff {
+		y += 0x100
+	}
+	for (y&0xff == (y>>16)&0xff) || ((y>>8)&0xff == (y>>16)&0xff) {
+		y += 0x10000
+	}
+	return jsonExpandSubst(z, "XX", hexDigits, 16, y)
+}
+
+// jsonExpandSubstDec replaces each "DD" pair of z with two decimal digits
+// drawn from y.
+func jsonExpandSubstDec(z string, y uint32) string {
+	return jsonExpandSubst(z, "DD", "0123456789", 10, y)
+}
+
+// jsonExpandSubst walks z replacing consecutive marker pairs with digit
+// pairs consumed from y, most significant first.
+func jsonExpandSubst(z, marker, digits string, base int, y uint32) string {
+	var sb strings.Builder
+	for pos := 0; pos < len(z); pos++ {
+		if pos+1 < len(z) && z[pos] == marker[0] && z[pos+1] == marker[1] {
+			sb.WriteByte(digits[y%uint32(base)])
+			y /= uint32(base)
+			sb.WriteByte(digits[y%uint32(base)])
+			y /= uint32(base)
+			pos++
+			continue
+		}
+		sb.WriteByte(z[pos])
+	}
+	return sb.String()
 }
 
 // randomJSONFunc ports randomjson.c randJsonFunc: four expansion passes
