@@ -390,13 +390,25 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 		return filterEntries(m.cookieCacheAll, schemaType), nil
 	}
 
-	var all []*Entry
+	all, err := m.walkSchemaBTree()
+	if err != nil {
+		return nil, err
+	}
+
+	m.cookieCacheAll = all
+	m.cookieCacheKey = m.cacheKey()
+	m.cookieCacheValid = true
+	return filterEntries(all, schemaType), nil
+}
+
+// walkSchemaBTree reads every sqlite_schema row (page-1 b-tree walk).
+func (m *Manager) walkSchemaBTree() ([]*Entry, error) {
 	tree := btree.NewSchemaBTree(m.pager)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
 	}
-
+	var all []*Entry
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil {
@@ -409,7 +421,6 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 			}
 			return nil, fmt.Errorf("database disk image is malformed")
 		}
-
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
 			return nil, fmt.Errorf("database disk image is malformed")
@@ -429,11 +440,7 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 			break
 		}
 	}
-
-	m.cookieCacheAll = all
-	m.cookieCacheKey = m.cacheKey()
-	m.cookieCacheValid = true
-	return filterEntries(all, schemaType), nil
+	return all, nil
 }
 
 // cacheKey folds the schema cookie with the local mutation epoch (the epoch
