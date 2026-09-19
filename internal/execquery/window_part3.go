@@ -611,143 +611,72 @@ func (e *SelectEngine) checkWindowFuncWithoutOver(expr sql.Expr) error {
 	return nil
 }
 
+// windowInExprChildren returns the child expressions the nested-window
+// detection walkers (windowFuncWithoutOver, windowFuncInExpr) visit for a
+// node. FuncCall FILTER subtrees and RowValue nodes are not visited, matching
+// the original walkers' scope.
+func windowInExprChildren(expr sql.Expr) []sql.Expr {
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		kids := make([]sql.Expr, 0, len(v.Args)+len(v.OrderBy))
+		kids = append(kids, v.Args...)
+		for _, ob := range v.OrderBy {
+			kids = append(kids, ob.Expr)
+		}
+		return kids
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
+		left, right := BinaryExprOperands(expr)
+		return []sql.Expr{left, right}
+	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
+		return []sql.Expr{singleExprOperand(expr)}
+	case *sql.Between:
+		return []sql.Expr{v.Operand, v.Low, v.High}
+	case *sql.InList:
+		kids := make([]sql.Expr, 0, len(v.List)+1)
+		kids = append(kids, v.Operand)
+		kids = append(kids, v.List...)
+		return kids
+	case *sql.CaseExpr:
+		return caseExprChildren(v)
+	}
+	return nil
+}
+
 // windowFuncWithoutOver returns the name of the first built-in window function
 // found in expr that has no OVER clause, or "".
 func (e *SelectEngine) windowFuncWithoutOver(expr sql.Expr) string {
-	switch v := expr.(type) {
-	case *sql.FuncCall:
-		if v.Over == nil && windowOnlyFuncs[strings.ToUpper(v.Name)] {
+	if fc, ok := expr.(*sql.FuncCall); ok {
+		if fc.Over == nil && windowOnlyFuncs[strings.ToUpper(fc.Name)] {
 			// A registered scalar function shadows the built-in window name:
 			// SQLite resolves rank(...) without OVER to the scalar function
 			// when one is registered (the test build registers rank() via
 			// install_fts3_rank_function — src/test_func.c). Only flag the
 			// misuse when no scalar of that name exists.
-			if fn, ok := e.ctx.Functions().Find(v.Name); !ok || fn.Type != function.TypeScalar {
-				return v.Name
+			if fn, ok := e.ctx.Functions().Find(fc.Name); !ok || fn.Type != function.TypeScalar {
+				return fc.Name
 			}
 		}
-		for _, arg := range v.Args {
-			if name := e.windowFuncWithoutOver(arg); name != "" {
-				return name
-			}
-		}
-		for _, ob := range v.OrderBy {
-			if name := e.windowFuncWithoutOver(ob.Expr); name != "" {
-				return name
-			}
-		}
-		return ""
-	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
-		left, right := BinaryExprOperands(v)
-		if name := e.windowFuncWithoutOver(left); name != "" {
-			return name
-		}
-		return e.windowFuncWithoutOver(right)
-	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
-		return e.windowFuncWithoutOver(singleExprOperand(v))
-	case *sql.Between:
-		if name := e.windowFuncWithoutOver(v.Operand); name != "" {
-			return name
-		}
-		if name := e.windowFuncWithoutOver(v.Low); name != "" {
-			return name
-		}
-		return e.windowFuncWithoutOver(v.High)
-	case *sql.InList:
-		if name := e.windowFuncWithoutOver(v.Operand); name != "" {
-			return name
-		}
-		for _, item := range v.List {
-			if name := e.windowFuncWithoutOver(item); name != "" {
-				return name
-			}
-		}
-		return ""
-	case *sql.CaseExpr:
-		if name := e.windowFuncWithoutOver(v.Operand); name != "" {
-			return name
-		}
-		for _, w := range v.Whens {
-			if name := e.windowFuncWithoutOver(w.When); name != "" {
-				return name
-			}
-			if name := e.windowFuncWithoutOver(w.Then); name != "" {
-				return name
-			}
-		}
-		if v.Else != nil {
-			return e.windowFuncWithoutOver(v.Else)
-		}
-		return ""
-	default:
-		return ""
 	}
+	for _, kid := range windowInExprChildren(expr) {
+		if name := e.windowFuncWithoutOver(kid); name != "" {
+			return name
+		}
+	}
+	return ""
 }
 
 // windowFuncInExpr returns the name of the first window function (with OVER)
 // found in expr, or "".
 func (e *SelectEngine) windowFuncInExpr(expr sql.Expr) string {
-	switch v := expr.(type) {
-	case *sql.FuncCall:
-		if v.Over != nil {
-			return v.Name
-		}
-		for _, arg := range v.Args {
-			if name := e.windowFuncInExpr(arg); name != "" {
-				return name
-			}
-		}
-		for _, ob := range v.OrderBy {
-			if name := e.windowFuncInExpr(ob.Expr); name != "" {
-				return name
-			}
-		}
-		return ""
-	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
-		left, right := BinaryExprOperands(v)
-		if name := e.windowFuncInExpr(left); name != "" {
-			return name
-		}
-		return e.windowFuncInExpr(right)
-	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
-		return e.windowFuncInExpr(singleExprOperand(v))
-	case *sql.Between:
-		if name := e.windowFuncInExpr(v.Operand); name != "" {
-			return name
-		}
-		if name := e.windowFuncInExpr(v.Low); name != "" {
-			return name
-		}
-		return e.windowFuncInExpr(v.High)
-	case *sql.InList:
-		if name := e.windowFuncInExpr(v.Operand); name != "" {
-			return name
-		}
-		for _, item := range v.List {
-			if name := e.windowFuncInExpr(item); name != "" {
-				return name
-			}
-		}
-		return ""
-	case *sql.CaseExpr:
-		if name := e.windowFuncInExpr(v.Operand); name != "" {
-			return name
-		}
-		for _, w := range v.Whens {
-			if name := e.windowFuncInExpr(w.When); name != "" {
-				return name
-			}
-			if name := e.windowFuncInExpr(w.Then); name != "" {
-				return name
-			}
-		}
-		if v.Else != nil {
-			return e.windowFuncInExpr(v.Else)
-		}
-		return ""
-	default:
-		return ""
+	if fc, ok := expr.(*sql.FuncCall); ok && fc.Over != nil {
+		return fc.Name
 	}
+	for _, kid := range windowInExprChildren(expr) {
+		if name := e.windowFuncInExpr(kid); name != "" {
+			return name
+		}
+	}
+	return ""
 }
 
 // windowLimitColRef returns the first column reference found inside a window

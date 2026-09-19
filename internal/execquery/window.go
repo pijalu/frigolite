@@ -39,112 +39,55 @@ func (e *SelectEngine) selectHasWindowFuncs(columns []sql.SelectColumn) bool {
 // exprHasWindowFunc reports whether an expression tree contains a window
 // function call.
 func (e *SelectEngine) exprHasWindowFunc(expr sql.Expr) bool {
+	var found []*sql.FuncCall
+	e.collectWindowFuncs(expr, &found)
+	return len(found) > 0
+}
+
+// collectWindowChildren returns an expression node's child expressions in the
+// window-collector traversal order: FuncCall nodes contribute their args,
+// aggregate ORDER BY terms and FILTER clause; the composite node kinds follow
+// in the same order the dedicated walkers used.
+func collectWindowChildren(expr sql.Expr) []sql.Expr {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
-		if v.Over != nil {
-			return true
-		}
-		for _, arg := range v.Args {
-			if e.exprHasWindowFunc(arg) {
-				return true
-			}
-		}
+		kids := make([]sql.Expr, 0, len(v.Args)+len(v.OrderBy)+1)
+		kids = append(kids, v.Args...)
 		for _, ob := range v.OrderBy {
-			if e.exprHasWindowFunc(ob.Expr) {
-				return true
-			}
+			kids = append(kids, ob.Expr)
 		}
-		if v.Filter != nil && e.exprHasWindowFunc(v.Filter) {
-			return true
+		if v.Filter != nil {
+			kids = append(kids, v.Filter)
 		}
-		return false
+		return kids
 	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
-		left, right := BinaryExprOperands(v)
-		return e.exprHasWindowFunc(left) || e.exprHasWindowFunc(right)
+		left, right := BinaryExprOperands(expr)
+		return []sql.Expr{left, right}
 	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
-		return e.exprHasWindowFunc(singleExprOperand(v))
+		return []sql.Expr{singleExprOperand(expr)}
 	case *sql.Between:
-		return e.exprHasWindowFunc(v.Operand) || e.exprHasWindowFunc(v.Low) || e.exprHasWindowFunc(v.High)
+		return []sql.Expr{v.Operand, v.Low, v.High}
 	case *sql.InList:
-		if e.exprHasWindowFunc(v.Operand) {
-			return true
-		}
-		for _, item := range v.List {
-			if e.exprHasWindowFunc(item) {
-				return true
-			}
-		}
-		return false
+		kids := make([]sql.Expr, 0, len(v.List)+1)
+		kids = append(kids, v.Operand)
+		kids = append(kids, v.List...)
+		return kids
 	case *sql.CaseExpr:
-		if e.exprHasWindowFunc(v.Operand) {
-			return true
-		}
-		for _, w := range v.Whens {
-			if e.exprHasWindowFunc(w.When) || e.exprHasWindowFunc(w.Then) {
-				return true
-			}
-		}
-		if v.Else != nil && e.exprHasWindowFunc(v.Else) {
-			return true
-		}
-		return false
+		return caseExprChildren(v)
 	case *sql.RowValue:
-		for _, item := range v.Values {
-			if e.exprHasWindowFunc(item) {
-				return true
-			}
-		}
-		return false
-	default:
-		return false
+		return v.Values
 	}
+	return nil
 }
 
 // collectWindowFuncs appends every window function call node found in expr to
 // out, in a deterministic depth-first order.
 func (e *SelectEngine) collectWindowFuncs(expr sql.Expr, out *[]*sql.FuncCall) {
-	switch v := expr.(type) {
-	case *sql.FuncCall:
-		if v.Over != nil {
-			*out = append(*out, v)
-		}
-		for _, arg := range v.Args {
-			e.collectWindowFuncs(arg, out)
-		}
-		for _, ob := range v.OrderBy {
-			e.collectWindowFuncs(ob.Expr, out)
-		}
-		if v.Filter != nil {
-			e.collectWindowFuncs(v.Filter, out)
-		}
-	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
-		left, right := BinaryExprOperands(v)
-		e.collectWindowFuncs(left, out)
-		e.collectWindowFuncs(right, out)
-	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
-		e.collectWindowFuncs(singleExprOperand(v), out)
-	case *sql.Between:
-		e.collectWindowFuncs(v.Operand, out)
-		e.collectWindowFuncs(v.Low, out)
-		e.collectWindowFuncs(v.High, out)
-	case *sql.InList:
-		e.collectWindowFuncs(v.Operand, out)
-		for _, item := range v.List {
-			e.collectWindowFuncs(item, out)
-		}
-	case *sql.CaseExpr:
-		e.collectWindowFuncs(v.Operand, out)
-		for _, w := range v.Whens {
-			e.collectWindowFuncs(w.When, out)
-			e.collectWindowFuncs(w.Then, out)
-		}
-		if v.Else != nil {
-			e.collectWindowFuncs(v.Else, out)
-		}
-	case *sql.RowValue:
-		for _, item := range v.Values {
-			e.collectWindowFuncs(item, out)
-		}
+	if fc, ok := expr.(*sql.FuncCall); ok && fc.Over != nil {
+		*out = append(*out, fc)
+	}
+	for _, kid := range collectWindowChildren(expr) {
+		e.collectWindowFuncs(kid, out)
 	}
 }
 
@@ -155,11 +98,52 @@ func (e *SelectEngine) execWindowPass(s *sql.SelectStmt, rowMaps []RowMap, colDe
 	if !e.selectHasWindowFuncs(s.Columns) {
 		return nil
 	}
-	// Collect all window function nodes in the select columns AND the ORDER BY
-	// clause (deduplicated by node pointer so a shared node is computed once).
-	// ORDER BY window expressions are separate AST nodes from their SELECT-list
-	// twins (e.g. ORDER BY RANK() OVER w on SELECT ... RANK() OVER w AS r), so
-	// they must be computed too for the trailing sort to resolve them.
+	nodes := e.collectWindowNodes(s)
+	results, err := e.computeWindowNodeResults(nodes, s.Windows, rowMaps)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	// When no explicit ORDER BY exists, emit rows ordered by the concatenation
+	// of every window's key (PARTITION BY + ORDER BY), in window order — the
+	// first window's key is primary. SQLite produces this order by nesting one
+	// subquery per distinct window: the innermost is sorted by the last
+	// window's key and each outer level re-sorts stably by the previous
+	// window's key, so the first window's key ends up primary. We reproduce it
+	// by applying each window's stable key sort to a running permutation in
+	// reverse window order.
+	order := e.windowEmitOrder(nodes, s, rowMaps)
+	rows := make([][]interface{}, len(rowMaps))
+	for oi, origIdx := range order {
+		rows[oi] = e.buildWindowOutputRow(s.Columns, colDefs, rowMaps[origIdx], origIdx, results)
+	}
+	columns := e.buildColumnNames(s.Columns, colDefs, s)
+	// Rebuild row maps from the output rows so join materialization and a
+	// trailing ORDER BY resolve result column names (including window
+	// function result columns like "count(*) OVER (...)"). Also carry the
+	// source row's columns so an ORDER BY term referencing a source column
+	// not projected in the output (e.g. ORDER BY d on SELECT ... quote(d))
+	// still resolves.
+	outMaps := buildResultRowMaps(rows, columns)
+	e.mergeSourceColsIntoOutMaps(outMaps, rowMaps, order, s.Columns)
+	// Store each ORDER BY window function's computed value under its rendered
+	// expression key so a trailing ORDER BY term that repeats the window
+	// expression (a distinct AST node, e.g. ORDER BY RANK() OVER w) resolves
+	// it without recomputing.
+	e.storeOrderByWindowKeys(nodes, results, outMaps, order)
+	return &Result{
+		Columns: columns,
+		Rows:    rows,
+		rowMaps: outMaps,
+	}
+}
+
+// collectWindowNodes gathers the statement's window function nodes: the select
+// columns AND the ORDER BY clause, deduplicated by node pointer so a shared
+// node is computed once. ORDER BY window expressions are separate AST nodes
+// from their SELECT-list twins (e.g. ORDER BY RANK() OVER w on SELECT ...
+// RANK() OVER w AS r), so they must be computed too for the trailing sort to
+// resolve them.
+func (e *SelectEngine) collectWindowNodes(s *sql.SelectStmt) []*sql.FuncCall {
 	var nodes []*sql.FuncCall
 	seen := make(map[*sql.FuncCall]bool)
 	addNodes := func(cols []sql.SelectColumn) {
@@ -180,25 +164,27 @@ func (e *SelectEngine) execWindowPass(s *sql.SelectStmt, rowMaps []RowMap, colDe
 		obCols = append(obCols, sql.SelectColumn{Expr: ob.Expr})
 	}
 	addNodes(obCols)
+	return nodes
+}
 
-	// Compute results per window function node.
+// computeWindowNodeResults computes the per-row window values for every window
+// function node.
+func (e *SelectEngine) computeWindowNodeResults(nodes []*sql.FuncCall, windows []sql.WindowDef, rowMaps []RowMap) (map[*sql.FuncCall][]interface{}, error) {
 	results := make(map[*sql.FuncCall][]interface{}, len(nodes))
 	for _, fn := range nodes {
-		vals, _, err := e.computeWindowFunc(fn, s.Windows, rowMaps)
+		vals, _, err := e.computeWindowFunc(fn, windows, rowMaps)
 		if err != nil {
-			return &Result{Error: err}
+			return nil, err
 		}
 		results[fn] = vals
 	}
+	return results, nil
+}
 
-	// Build output rows, substituting window values. When no explicit ORDER BY
-	// exists, emit rows ordered by the concatenation of every window's key
-	// (PARTITION BY + ORDER BY), in window order — the first window's key is
-	// primary. SQLite produces this order by nesting one subquery per distinct
-	// window: the innermost is sorted by the last window's key and each outer
-	// level re-sorts stably by the previous window's key, so the first window's
-	// key ends up primary. We reproduce it by applying each window's stable key
-	// sort to a running permutation in reverse window order.
+// windowEmitOrder returns the output row permutation: identity when an
+// explicit ORDER BY (or set operation) drives the final order; otherwise the
+// running window-key sort described in execWindowPass.
+func (e *SelectEngine) windowEmitOrder(nodes []*sql.FuncCall, s *sql.SelectStmt, rowMaps []RowMap) []int {
 	order := make([]int, len(rowMaps))
 	for i := range rowMaps {
 		order[i] = i
@@ -209,43 +195,44 @@ func (e *SelectEngine) execWindowPass(s *sql.SelectStmt, rowMaps []RowMap, colDe
 			order = e.sortPermByWindowKey(over, rowMaps, order)
 		}
 	}
-	rows := make([][]interface{}, len(rowMaps))
-	for oi, origIdx := range order {
-		rows[oi] = e.buildWindowOutputRow(s.Columns, colDefs, rowMaps[origIdx], origIdx, results)
-	}
-	columns := e.buildColumnNames(s.Columns, colDefs, s)
-	// Rebuild row maps from the output rows so join materialization and a
-	// trailing ORDER BY resolve result column names (including window
-	// function result columns like "count(*) OVER (...)"). Also carry the
-	// source row's columns so an ORDER BY term referencing a source column
-	// not projected in the output (e.g. ORDER BY d on SELECT ... quote(d))
-	// still resolves.
-	outMaps := buildResultRowMaps(rows, columns)
-	// For output columns that are plain column references (e.g. SELECT color),
-	// prefer the source row value (which carries the column's declared
-	// collation) so ORDER BY honors it. Other output columns (expressions,
-	// window results) keep the output value.
+	return order
+}
+
+// mergeSourceColsIntoOutMaps overlays the source rows' columns on the output
+// row maps: for output columns that are plain column references (e.g. SELECT
+// color), the source row value wins (it carries the column's declared
+// collation so ORDER BY honors it); other source columns fill gaps so the
+// output maps keep source-only columns.
+func (e *SelectEngine) mergeSourceColsIntoOutMaps(outMaps []RowMap, rowMaps []RowMap, order []int, columns []sql.SelectColumn) {
 	plainCols := make(map[string]bool)
-	for _, col := range s.Columns {
+	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Table == "" && ref.Name != "*" {
 			plainCols[ref.Name] = true
 		}
 	}
 	for oi, origIdx := range order {
 		if oi < len(outMaps) && origIdx < len(rowMaps) {
-			for k, v := range rowMaps[origIdx] {
-				if plainCols[k] {
-					outMaps[oi][k] = v
-				} else if _, exists := outMaps[oi][k]; !exists {
-					outMaps[oi][k] = v
-				}
-			}
+			mergeSourceRowCols(outMaps[oi], rowMaps[origIdx], plainCols)
 		}
 	}
-	// Store each ORDER BY window function's computed value under its rendered
-	// expression key so a trailing ORDER BY term that repeats the window
-	// expression (a distinct AST node, e.g. ORDER BY RANK() OVER w) resolves
-	// it without recomputing.
+}
+
+// mergeSourceRowCols overlays one source row's columns on an output row map:
+// plain column references take the source value (which carries the column's
+// declared collation); other source columns fill gaps.
+func mergeSourceRowCols(out, src RowMap, plainCols map[string]bool) {
+	for k, v := range src {
+		if plainCols[k] {
+			out[k] = v
+		} else if _, exists := out[k]; !exists {
+			out[k] = v
+		}
+	}
+}
+
+// storeOrderByWindowKeys writes each window function's computed value into the
+// output row maps under its rendered expression key, in output order.
+func (e *SelectEngine) storeOrderByWindowKeys(nodes []*sql.FuncCall, results map[*sql.FuncCall][]interface{}, outMaps []RowMap, order []int) {
 	for _, fn := range nodes {
 		if fn == nil {
 			continue
@@ -257,11 +244,6 @@ func (e *SelectEngine) execWindowPass(s *sql.SelectStmt, rowMaps []RowMap, colDe
 				outMaps[oi][key] = vals[origIdx]
 			}
 		}
-	}
-	return &Result{
-		Columns: columns,
-		Rows:    rows,
-		rowMaps: outMaps,
 	}
 }
 
@@ -305,29 +287,17 @@ func (e *SelectEngine) windowGroupColumnValue(expr sql.Expr, alias string, row R
 	if e.windowGroupOutputs == nil || e.exprHasWindowFunc(expr) {
 		return nil, false
 	}
-	for _, cn := range e.windowGroupOutputs {
-		if alias != "" && strings.EqualFold(alias, cn) {
-			if v, exists := row.Get(cn); exists {
-				return unwrapCollatedValue(util.UnwrapColumnValue(v)), true
-			}
-		}
+	if v, ok := windowGroupLookup(alias, e.windowGroupOutputs, row); ok {
+		return v, true
 	}
 	name := sql.ExprString(expr)
-	for _, cn := range e.windowGroupOutputs {
-		if strings.EqualFold(name, cn) {
-			if v, exists := row.Get(cn); exists {
-				return unwrapCollatedValue(util.UnwrapColumnValue(v)), true
-			}
-		}
+	if v, ok := windowGroupLookup(name, e.windowGroupOutputs, row); ok {
+		return v, true
 	}
 	// Resolve by the SELECT-list alias (e.g. sum(y) AS s: the partition or
 	// window expression sum(y) resolves to the s output column).
-	for _, sc := range e.windowGroupCols {
-		if sc.As != "" && strings.EqualFold(sql.ExprString(sc.Expr), name) {
-			if v, exists := row.Get(sc.As); exists {
-				return unwrapCollatedValue(util.UnwrapColumnValue(v)), true
-			}
-		}
+	if v, ok := e.windowGroupAliasLookup(name, row); ok {
+		return v, true
 	}
 	// Unaliased expression columns are named by their RAW SQL SPAN
 	// (exprResultName: tight symbol operators, select1-6.5 "f1+F2"), so the
@@ -337,11 +307,34 @@ func (e *SelectEngine) windowGroupColumnValue(expr sql.Expr, alias string, row R
 	// (window9-4.1.2: b=count(*) compared the group's TEXT value against the
 	// INTEGER aggregate with no affinity and returned 0 for every group).
 	if span := exprResultName(expr); !strings.EqualFold(span, name) {
-		for _, cn := range e.windowGroupOutputs {
-			if strings.EqualFold(span, cn) {
-				if v, exists := row.Get(cn); exists {
-					return unwrapCollatedValue(util.UnwrapColumnValue(v)), true
-				}
+		return windowGroupLookup(span, e.windowGroupOutputs, row)
+	}
+	return nil, false
+}
+
+// windowGroupLookup returns the row value stored under the GROUP BY output
+// column whose name matches want (case-insensitive), or ok=false.
+func windowGroupLookup(want string, outputs []string, row RowMap) (interface{}, bool) {
+	if want == "" {
+		return nil, false
+	}
+	for _, cn := range outputs {
+		if strings.EqualFold(want, cn) {
+			if v, exists := row.Get(cn); exists {
+				return unwrapCollatedValue(util.UnwrapColumnValue(v)), true
+			}
+		}
+	}
+	return nil, false
+}
+
+// windowGroupAliasLookup resolves a group output by the SELECT-list alias
+// (e.g. sum(y) AS s: the expression sum(y) resolves to the s output column).
+func (e *SelectEngine) windowGroupAliasLookup(name string, row RowMap) (interface{}, bool) {
+	for _, sc := range e.windowGroupCols {
+		if sc.As != "" && strings.EqualFold(sql.ExprString(sc.Expr), name) {
+			if v, exists := row.Get(sc.As); exists {
+				return unwrapCollatedValue(util.UnwrapColumnValue(v)), true
 			}
 		}
 	}
@@ -354,62 +347,11 @@ func (e *SelectEngine) windowGroupColumnValue(expr sql.Expr, alias string, row R
 func (e *SelectEngine) substituteWindowValues(expr sql.Expr, rowIdx int, results map[*sql.FuncCall][]interface{}) sql.Expr {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
-		if v.Over != nil {
-			if vals, ok := results[v]; ok && rowIdx >= 0 && rowIdx < len(vals) {
-				return valueLiteralExpr(vals[rowIdx])
-			}
-			return &sql.NullLit{}
-		}
-		clone := *v
-		clone.Args = e.substituteWindowExprList(v.Args, rowIdx, results)
-		clone.OrderBy = e.substituteWindowOrderBy(v.OrderBy, rowIdx, results)
-		if v.Filter != nil {
-			clone.Filter = e.substituteWindowValues(v.Filter, rowIdx, results)
-		}
-		return &clone
-	case *sql.BinaryOp:
-		clone := *v
-		clone.Left = e.substituteWindowValues(v.Left, rowIdx, results)
-		clone.Right = e.substituteWindowValues(v.Right, rowIdx, results)
-		return &clone
-	case *sql.IsDistinctFrom:
-		clone := *v
-		clone.Left = e.substituteWindowValues(v.Left, rowIdx, results)
-		clone.Right = e.substituteWindowValues(v.Right, rowIdx, results)
-		return &clone
-	case *sql.IsNotDistinctFrom:
-		clone := *v
-		clone.Left = e.substituteWindowValues(v.Left, rowIdx, results)
-		clone.Right = e.substituteWindowValues(v.Right, rowIdx, results)
-		return &clone
-	case *sql.UnaryOp:
-		clone := *v
-		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
-		return &clone
-	case *sql.ParenExpr:
-		clone := *v
-		clone.Expr = e.substituteWindowValues(v.Expr, rowIdx, results)
-		return &clone
-	case *sql.CastExpr:
-		clone := *v
-		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
-		return &clone
-	case *sql.IsNull:
-		clone := *v
-		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
-		return &clone
-	case *sql.IsNotNull:
-		clone := *v
-		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
-		return &clone
-	case *sql.IsTrue:
-		clone := *v
-		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
-		return &clone
-	case *sql.IsFalse:
-		clone := *v
-		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
-		return &clone
+		return e.substituteWindowFuncCall(v, rowIdx, results)
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
+		return e.substituteWindowPairNode(expr, rowIdx, results)
+	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
+		return e.substituteWindowUnaryNode(expr, rowIdx, results)
 	case *sql.Between:
 		clone := *v
 		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
@@ -462,6 +404,84 @@ func (e *SelectEngine) substituteWindowOrderBy(terms []sql.OrderByTerm, rowIdx i
 	return out
 }
 
+// substituteWindowFuncCall substitutes one function-call node: a window call
+// becomes its precomputed value literal; a plain call clones with substituted
+// args, aggregate ORDER BY terms and FILTER.
+func (e *SelectEngine) substituteWindowFuncCall(fc *sql.FuncCall, rowIdx int, results map[*sql.FuncCall][]interface{}) sql.Expr {
+	if fc.Over != nil {
+		if vals, ok := results[fc]; ok && rowIdx >= 0 && rowIdx < len(vals) {
+			return valueLiteralExpr(vals[rowIdx])
+		}
+		return &sql.NullLit{}
+	}
+	clone := *fc
+	clone.Args = e.substituteWindowExprList(fc.Args, rowIdx, results)
+	clone.OrderBy = e.substituteWindowOrderBy(fc.OrderBy, rowIdx, results)
+	if fc.Filter != nil {
+		clone.Filter = e.substituteWindowValues(fc.Filter, rowIdx, results)
+	}
+	return &clone
+}
+
+// substituteWindowPairNode clones a two-operand node (BinaryOp /
+// Is[Not]DistinctFrom) and substitutes both operands' window values.
+func (e *SelectEngine) substituteWindowPairNode(expr sql.Expr, rowIdx int, results map[*sql.FuncCall][]interface{}) sql.Expr {
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		clone := *v
+		clone.Left = e.substituteWindowValues(v.Left, rowIdx, results)
+		clone.Right = e.substituteWindowValues(v.Right, rowIdx, results)
+		return &clone
+	case *sql.IsDistinctFrom:
+		clone := *v
+		clone.Left = e.substituteWindowValues(v.Left, rowIdx, results)
+		clone.Right = e.substituteWindowValues(v.Right, rowIdx, results)
+		return &clone
+	case *sql.IsNotDistinctFrom:
+		clone := *v
+		clone.Left = e.substituteWindowValues(v.Left, rowIdx, results)
+		clone.Right = e.substituteWindowValues(v.Right, rowIdx, results)
+		return &clone
+	}
+	return expr
+}
+
+// substituteWindowUnaryNode clones a single-operand node and substitutes the
+// operand's window values.
+func (e *SelectEngine) substituteWindowUnaryNode(expr sql.Expr, rowIdx int, results map[*sql.FuncCall][]interface{}) sql.Expr {
+	switch v := expr.(type) {
+	case *sql.UnaryOp:
+		clone := *v
+		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
+		return &clone
+	case *sql.ParenExpr:
+		clone := *v
+		clone.Expr = e.substituteWindowValues(v.Expr, rowIdx, results)
+		return &clone
+	case *sql.CastExpr:
+		clone := *v
+		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
+		return &clone
+	case *sql.IsNull:
+		clone := *v
+		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
+		return &clone
+	case *sql.IsNotNull:
+		clone := *v
+		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
+		return &clone
+	case *sql.IsTrue:
+		clone := *v
+		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
+		return &clone
+	case *sql.IsFalse:
+		clone := *v
+		clone.Operand = e.substituteWindowValues(v.Operand, rowIdx, results)
+		return &clone
+	}
+	return expr
+}
+
 // computeWindowFunc computes the per-row values for one window function call
 // across the input row set. Named windows (OVER win) are resolved from the
 // statement's WINDOW clause. It returns the per-input-row values and the
@@ -512,41 +532,56 @@ func (e *SelectEngine) resolveWindowDef(over *sql.WindowDef, windows []sql.Windo
 	// Resolve a named-window reference: by Name ("OVER name") or by BaseName
 	// ("OVER (name ORDER BY ...)"). Merge the base window's clauses with the
 	// OVER's explicit additions.
+	if merged, ok := e.resolveNamedWindow(over, windows); ok {
+		return merged
+	}
+	return over
+}
+
+// resolveNamedWindow resolves a named-window reference against the WINDOW
+// clause and overlays the OVER's explicit additions. ok=false when the OVER
+// is inline (no reference name) or the name has no WINDOW entry.
+func (e *SelectEngine) resolveNamedWindow(over *sql.WindowDef, windows []sql.WindowDef) (*sql.WindowDef, bool) {
 	refName := over.Name
 	if refName == "" {
 		refName = over.BaseName
 	}
 	if refName == "" {
-		return over
+		return over, false
 	}
 	for i := range windows {
-		if windows[i].Name == refName {
-			base := windows[i]
-			// Follow a chain of named-window references (win2 AS (win1 ORDER BY
-			// b)): the effective definition is the base's clauses merged with
-			// the intermediate definition's additions, then the OVER's.
-			for base.BaseName != "" && base.Name != base.BaseName {
-				parent, ok := e.findNamedWindow(base.BaseName, windows)
-				if !ok {
-					break
-				}
-				base = mergeWindowDefs(parent, base)
-			}
-			merged := base
-			if len(over.Partitions) > 0 {
-				merged.Partitions = over.Partitions
-			}
-			if len(over.OrderBy) > 0 {
-				merged.OrderBy = over.OrderBy
-			}
-			if over.Frame != nil {
-				merged.Frame = over.Frame
-				merged.FrameSpec = over.FrameSpec
-			}
-			return &merged
+		if windows[i].Name != refName {
+			continue
 		}
+		merged := e.mergeWindowChain(windows[i], windows)
+		// The OVER's explicit clauses override the base window's.
+		if len(over.Partitions) > 0 {
+			merged.Partitions = over.Partitions
+		}
+		if len(over.OrderBy) > 0 {
+			merged.OrderBy = over.OrderBy
+		}
+		if over.Frame != nil {
+			merged.Frame = over.Frame
+			merged.FrameSpec = over.FrameSpec
+		}
+		return &merged, true
 	}
-	return over
+	return over, false
+}
+
+// mergeWindowChain follows a chain of named-window references (win2 AS (win1
+// ORDER BY b)): the effective definition is the base's clauses merged with
+// the intermediate definitions' additions.
+func (e *SelectEngine) mergeWindowChain(base sql.WindowDef, windows []sql.WindowDef) sql.WindowDef {
+	for base.BaseName != "" && base.Name != base.BaseName {
+		parent, ok := e.findNamedWindow(base.BaseName, windows)
+		if !ok {
+			break
+		}
+		base = mergeWindowDefs(parent, base)
+	}
+	return base
 }
 
 // mergeWindowDefs merges a derived window definition (derived, which may
@@ -575,34 +610,55 @@ func (e *SelectEngine) windowPartitions(over *sql.WindowDef, rowMaps []RowMap) (
 	// resolve.c window resolution: PARTITION BY expressions of a window
 	// definition must resolve against the FROM rows — an unknown bare column
 	// errors "no such column: NAME" instead of silently evaluating to NULL
-	// (windowB-19.x: PARTITION BY fake_column). Validated against the first
-	// row (all rows share the same column space). Window ORDER BY terms are
-	// NOT validated here: they may be correlated references to an outer
-	// query's columns (window1-55.x: row_number() OVER (ORDER BY t1_id)
-	// inside an IN-subquery over t3), which do not exist in the local row.
-	// The same holds for PARTITION BY in a correlated subquery (window1-44.x:
-	// d IN (SELECT sum(c) OVER (PARTITION BY d ...) FROM t3) FROM (SELECT *
-	// FROM t2) — d resolves to the outer t2 column), so the validation only
-	// runs for statements evaluated without an outer row scope.
-	if len(rowMaps) > 0 && e.outerRow == nil && len(e.outerRows) == 0 {
-		for _, ex := range over.Partitions {
-			if err := validateWindowExprColumns(ex, rowMaps[0]); err != nil {
-				return nil, err
-			}
-		}
+	// (windowB-19.x: PARTITION BY fake_column). See validateWindowPartitionCols.
+	if err := e.validateWindowPartitionCols(over, rowMaps); err != nil {
+		return nil, err
 	}
 	if len(over.Partitions) == 0 {
-		part := make([]winRow, len(rowMaps))
-		for i, row := range rowMaps {
-			part[i] = winRow{row: row, origIdx: i}
-		}
-		return [][]winRow{part}, nil
+		return singleWindowPartition(rowMaps), nil
 	}
+	return e.groupWindowPartitions(over.Partitions, rowMaps)
+}
+
+// validateWindowPartitionCols checks the window's PARTITION BY expressions
+// against the first FROM row (all rows share the same column space). Window
+// ORDER BY terms are NOT validated here: they may be correlated references to
+// an outer query's columns (window1-55.x: row_number() OVER (ORDER BY t1_id)
+// inside an IN-subquery over t3), which do not exist in the local row. The
+// same holds for PARTITION BY in a correlated subquery (window1-44.x:
+// d IN (SELECT sum(c) OVER (PARTITION BY d ...) FROM t3) FROM (SELECT *
+// FROM t2) — d resolves to the outer t2 column), so the validation only
+// runs for statements evaluated without an outer row scope.
+func (e *SelectEngine) validateWindowPartitionCols(over *sql.WindowDef, rowMaps []RowMap) error {
+	if len(rowMaps) == 0 || e.outerRow != nil || len(e.outerRows) != 0 {
+		return nil
+	}
+	for _, ex := range over.Partitions {
+		if err := validateWindowExprColumns(ex, rowMaps[0]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// singleWindowPartition returns the whole row set as one partition (a window
+// with no PARTITION BY).
+func singleWindowPartition(rowMaps []RowMap) [][]winRow {
+	part := make([]winRow, len(rowMaps))
+	for i, row := range rowMaps {
+		part[i] = winRow{row: row, origIdx: i}
+	}
+	return [][]winRow{part}
+}
+
+// groupWindowPartitions groups rows by the PARTITION BY key, emitting the
+// partitions in SQLite's key order.
+func (e *SelectEngine) groupWindowPartitions(partitions []sql.Expr, rowMaps []RowMap) ([][]winRow, error) {
 	groups := make(map[string][]winRow)
 	keyVals := make(map[string][]interface{})
 	var order []string
 	for i, row := range rowMaps {
-		key, vals, err := e.windowPartitionKey(over.Partitions, row)
+		key, vals, err := e.windowPartitionKey(partitions, row)
 		if err != nil {
 			return nil, err
 		}
@@ -732,37 +788,43 @@ func (e *SelectEngine) sortPermByWindowKey(over *sql.WindowDef, rowMaps []RowMap
 // then ORDER BY expressions.
 func (e *SelectEngine) windowKeyCompare(over *sql.WindowDef, a, b RowMap) int {
 	for _, p := range over.Partitions {
-		coll, _ := execexpr.ExprCollation(p)
-		pe := stripCollate(p)
-		vi, errI := e.ctx.EvalExpr(pe, a)
-		vj, errJ := e.ctx.EvalExpr(pe, b)
-		// In GROUP BY window mode, a partition expression that is itself a
-		// GROUP BY aggregate (e.g. PARTITION BY sum(y)) resolves from the
-		// output column value (matching windowPartitionKey).
-		if e.windowGroupOutputs != nil {
-			if ov, ok := e.windowGroupColumnValue(p, "", a); ok {
-				vi = ov
-			}
-			if ov, ok := e.windowGroupColumnValue(p, "", b); ok {
-				vj = ov
-			}
-		}
-		if errI != nil || errJ != nil {
-			continue
-		}
-		viRaw, collI := execexpr.ExtractValue(vi)
-		vjRaw, collJ := execexpr.ExtractValue(vj)
-		if coll == "" {
-			coll = collI
-		}
-		if coll == "" {
-			coll = collJ
-		}
-		if cmp := e.ctx.CompareValuesCollate(viRaw, vjRaw, coll); cmp != 0 {
+		if cmp := e.windowPartitionTermCompare(p, a, b); cmp != 0 {
 			return cmp
 		}
 	}
 	return e.compareCollatedOrderBy(over.OrderBy, a, b)
+}
+
+// windowPartitionTermCompare compares two rows under one PARTITION BY term
+// (collation aware). Unevaluable terms compare equal (0).
+func (e *SelectEngine) windowPartitionTermCompare(p sql.Expr, a, b RowMap) int {
+	coll, _ := execexpr.ExprCollation(p)
+	pe := stripCollate(p)
+	vi, errI := e.ctx.EvalExpr(pe, a)
+	vj, errJ := e.ctx.EvalExpr(pe, b)
+	// In GROUP BY window mode, a partition expression that is itself a
+	// GROUP BY aggregate (e.g. PARTITION BY sum(y)) resolves from the
+	// output column value (matching windowPartitionKey).
+	if e.windowGroupOutputs != nil {
+		if ov, ok := e.windowGroupColumnValue(p, "", a); ok {
+			vi = ov
+		}
+		if ov, ok := e.windowGroupColumnValue(p, "", b); ok {
+			vj = ov
+		}
+	}
+	if errI != nil || errJ != nil {
+		return 0
+	}
+	viRaw, collI := execexpr.ExtractValue(vi)
+	vjRaw, collJ := execexpr.ExtractValue(vj)
+	if coll == "" {
+		coll = collI
+	}
+	if coll == "" {
+		coll = collJ
+	}
+	return e.ctx.CompareValuesCollate(viRaw, vjRaw, coll)
 }
 
 // computePartitionWindowValues fills results[origIdx] for every row in the
@@ -872,39 +934,55 @@ func validateWindowExprColumns(expr sql.Expr, row RowMap) error {
 	if expr == nil {
 		return nil
 	}
+	if bad := windowUnresolvedColRef(expr, row); bad != "" {
+		return fmt.Errorf("no such column: %s", bad)
+	}
+	return nil
+}
+
+// windowUnresolvedColRef returns the first unresolvable column reference name
+// in expr (""): rowid aliases are always accepted, qualified references may
+// use "table.column" keys, and subquery subtrees are skipped.
+func windowUnresolvedColRef(expr sql.Expr, row RowMap) string {
 	var bad string
 	WalkExprFull(expr, func(n sql.Expr) {
 		if bad != "" {
 			return
 		}
-		switch n.(type) {
-		case *sql.Subquery, *sql.ExistsExpr:
-			return
-		}
-		ref, ok := n.(*sql.ColumnRef)
-		if !ok {
-			return
-		}
-		lower := strings.ToLower(ref.Name)
-		if lower == "rowid" || lower == "_rowid_" || lower == "oid" {
-			return
-		}
-		name := ref.Name
-		if ref.Table != "" {
-			// Qualified refs may be stored as "table.column" keys.
-			if _, exists := row.Get(ref.Table + "." + ref.Name); !exists {
-				if _, exists2 := row.Get(ref.Name); !exists2 {
-					bad = ref.Table + "." + ref.Name
-				}
-			}
-			return
-		}
-		if _, exists := row.Get(name); !exists {
+		if name := windowUnresolvedRefName(n, row); name != "" {
 			bad = name
 		}
 	})
-	if bad != "" {
-		return fmt.Errorf("no such column: %s", bad)
+	return bad
+}
+
+// windowUnresolvedRefName returns n's unresolved column name, or "" when n is
+// not a column reference, is a rowid alias, is inside a skipped subtree, or
+// resolves against row.
+func windowUnresolvedRefName(n sql.Expr, row RowMap) string {
+	switch n.(type) {
+	case *sql.Subquery, *sql.ExistsExpr:
+		return ""
 	}
-	return nil
+	ref, ok := n.(*sql.ColumnRef)
+	if !ok {
+		return ""
+	}
+	lower := strings.ToLower(ref.Name)
+	if lower == "rowid" || lower == "_rowid_" || lower == "oid" {
+		return ""
+	}
+	if ref.Table != "" {
+		// Qualified refs may be stored as "table.column" keys.
+		if _, exists := row.Get(ref.Table + "." + ref.Name); !exists {
+			if _, exists2 := row.Get(ref.Name); !exists2 {
+				return ref.Table + "." + ref.Name
+			}
+		}
+		return ""
+	}
+	if _, exists := row.Get(ref.Name); !exists {
+		return ref.Name
+	}
+	return ""
 }

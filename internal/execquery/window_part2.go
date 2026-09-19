@@ -130,60 +130,86 @@ func (e *SelectEngine) rangeFrameValueRange(over *sql.WindowDef, f *sql.WindowFr
 	lo := curNum
 	hi := curNum
 	hiInclusive := true
+	desc := over.OrderBy[0].Desc
+	row := part[current].row
 	// Start bound. UNBOUNDED PRECEDING/FOLLOWING extend to the partition's
 	// extremes; numeric offsets adjust lo/hi per the direction.
-	switch {
-	case f.Start.Kind == "UNBOUNDED PRECEDING" && !over.OrderBy[0].Desc:
-		lo = math.Inf(-1)
-	case f.Start.Kind == "UNBOUNDED PRECEDING" && over.OrderBy[0].Desc:
-		hi = math.Inf(1)
-	case f.Start.Kind == "UNBOUNDED FOLLOWING" && !over.OrderBy[0].Desc:
-		hi = math.Inf(1)
-	case f.Start.Kind == "UNBOUNDED FOLLOWING" && over.OrderBy[0].Desc:
-		lo = math.Inf(-1)
-	case f.Start.Kind == "CURRENT ROW" && !over.OrderBy[0].Desc:
-		lo = curNum
-	case f.Start.Kind == "CURRENT ROW" && over.OrderBy[0].Desc:
-		hi = curNum
-	case f.Start.Kind == "PRECEDING" && !over.OrderBy[0].Desc:
-		lo = curNum - e.rangeOffsetVal(f.Start, part[current].row, true, &ok)
-	case f.Start.Kind == "PRECEDING" && over.OrderBy[0].Desc:
-		hi = curNum + e.rangeOffsetVal(f.Start, part[current].row, true, &ok)
-	case f.Start.Kind == "FOLLOWING" && !over.OrderBy[0].Desc:
-		lo = curNum + e.rangeOffsetVal(f.Start, part[current].row, true, &ok)
-	case f.Start.Kind == "FOLLOWING" && over.OrderBy[0].Desc:
-		hi = curNum - e.rangeOffsetVal(f.Start, part[current].row, true, &ok)
-	}
+	e.applyRangeStartBound(f.Start, desc, curNum, row, &lo, &hi, &ok)
 	if !ok {
 		return 0, 0, false, false
 	}
 	// End bound.
-	switch {
-	case f.End.Kind == "UNBOUNDED PRECEDING" && !over.OrderBy[0].Desc:
-		hi = math.Inf(-1)
-	case f.End.Kind == "UNBOUNDED PRECEDING" && over.OrderBy[0].Desc:
-		lo = math.Inf(-1)
-	case f.End.Kind == "UNBOUNDED FOLLOWING" && !over.OrderBy[0].Desc:
-		hi = math.Inf(1)
-	case f.End.Kind == "UNBOUNDED FOLLOWING" && over.OrderBy[0].Desc:
-		lo = math.Inf(-1)
-	case f.End.Kind == "CURRENT ROW" && !over.OrderBy[0].Desc:
-		hi = curNum
-	case f.End.Kind == "CURRENT ROW" && over.OrderBy[0].Desc:
-		lo = curNum
-	case f.End.Kind == "PRECEDING" && !over.OrderBy[0].Desc:
-		hi = curNum - e.rangeOffsetVal(f.End, part[current].row, false, &ok)
-	case f.End.Kind == "PRECEDING" && over.OrderBy[0].Desc:
-		lo = curNum + e.rangeOffsetVal(f.End, part[current].row, false, &ok)
-	case f.End.Kind == "FOLLOWING" && !over.OrderBy[0].Desc:
-		hi = curNum + e.rangeOffsetVal(f.End, part[current].row, false, &ok)
-	case f.End.Kind == "FOLLOWING" && over.OrderBy[0].Desc:
-		lo = curNum - e.rangeOffsetVal(f.End, part[current].row, false, &ok)
-	}
+	e.applyRangeEndBound(f.End, desc, curNum, row, &lo, &hi, &ok)
 	if !ok {
 		return 0, 0, false, false
 	}
 	return lo, hi, hiInclusive, true
+}
+
+// applyRangeStartBound folds the frame's START bound into the value window
+// [lo, hi]. A failed offset evaluation clears ok (the caller bails out of the
+// value-range path).
+func (e *SelectEngine) applyRangeStartBound(b sql.FrameBound, desc bool, cur float64, row RowMap, lo, hi *float64, ok *bool) {
+	if desc {
+		switch b.Kind {
+		case "UNBOUNDED PRECEDING":
+			*hi = math.Inf(1)
+		case "UNBOUNDED FOLLOWING":
+			*lo = math.Inf(-1)
+		case "CURRENT ROW":
+			*hi = cur
+		case "PRECEDING":
+			*hi = cur + e.rangeOffsetVal(b, row, true, ok)
+		case "FOLLOWING":
+			*hi = cur - e.rangeOffsetVal(b, row, true, ok)
+		}
+		return
+	}
+	switch b.Kind {
+	case "UNBOUNDED PRECEDING":
+		*lo = math.Inf(-1)
+	case "UNBOUNDED FOLLOWING":
+		*hi = math.Inf(1)
+	case "CURRENT ROW":
+		*lo = cur
+	case "PRECEDING":
+		*lo = cur - e.rangeOffsetVal(b, row, true, ok)
+	case "FOLLOWING":
+		*lo = cur + e.rangeOffsetVal(b, row, true, ok)
+	}
+}
+
+// applyRangeEndBound folds the frame's END bound into the value window
+// [lo, hi]. A failed offset evaluation clears ok (the caller bails out of the
+// value-range path).
+func (e *SelectEngine) applyRangeEndBound(b sql.FrameBound, desc bool, cur float64, row RowMap, lo, hi *float64, ok *bool) {
+	if desc {
+		switch b.Kind {
+		case "UNBOUNDED PRECEDING":
+			*lo = math.Inf(-1)
+		case "UNBOUNDED FOLLOWING":
+			*lo = math.Inf(-1)
+		case "CURRENT ROW":
+			*lo = cur
+		case "PRECEDING":
+			*lo = cur + e.rangeOffsetVal(b, row, false, ok)
+		case "FOLLOWING":
+			*lo = cur - e.rangeOffsetVal(b, row, false, ok)
+		}
+		return
+	}
+	switch b.Kind {
+	case "UNBOUNDED PRECEDING":
+		*hi = math.Inf(-1)
+	case "UNBOUNDED FOLLOWING":
+		*hi = math.Inf(1)
+	case "CURRENT ROW":
+		*hi = cur
+	case "PRECEDING":
+		*hi = cur - e.rangeOffsetVal(b, row, false, ok)
+	case "FOLLOWING":
+		*hi = cur + e.rangeOffsetVal(b, row, false, ok)
+	}
 }
 
 // rangeOffsetVal evaluates a RANGE frame bound's numeric offset, setting ok to
@@ -203,8 +229,32 @@ func (e *SelectEngine) rangeOffsetVal(b sql.FrameBound, row RowMap, isStart bool
 // (NULLS FIRST / ASC default) or end (NULLS LAST / DESC default) and are in
 // frame only when the frame's boundary on their side is unbounded.
 func (e *SelectEngine) rangeFrameBoundsInRange(orderBy []sql.OrderByTerm, part []winRow, current int, lo, hi float64, hiInclusive bool) (int, int) {
-	n := len(part)
-	inRange := func(num float64) bool {
+	nullsInFrame := rangeNullsInFrame(orderBy, lo, hi)
+	start := e.rangeFrameStartIndex(orderBy, part, lo, hi, hiInclusive, nullsInFrame)
+	end := e.rangeFrameEndIndex(orderBy, part, start, lo, hi, hiInclusive, nullsInFrame)
+	return start, end
+}
+
+// rangeNullsInFrame reports whether NULL ORDER BY rows fall inside the frame.
+// NULLs are their own peer group: they sort at the partition's start (NULLS
+// FIRST / ASC default) or end (NULLS LAST / DESC default) and are in frame
+// only when the frame's boundary on their side is unbounded.
+func rangeNullsInFrame(orderBy []sql.OrderByTerm, lo, hi float64) bool {
+	nullsAtStart := !(orderBy[0].NullsLast || (orderBy[0].Desc && !orderBy[0].NullsFirst))
+	if nullsAtStart {
+		// NULLs at the partition start: in frame when the START bound is
+		// unbounded (ASC: lo=-Inf; DESC: hi=+Inf).
+		return (!orderBy[0].Desc && math.IsInf(lo, -1)) || (orderBy[0].Desc && math.IsInf(hi, 1))
+	}
+	// NULLs at the partition end: in frame when the END bound is unbounded
+	// (ASC: hi=+Inf; DESC: lo=-Inf).
+	return (!orderBy[0].Desc && math.IsInf(hi, 1)) || (orderBy[0].Desc && math.IsInf(lo, -1))
+}
+
+// rangeInRangePred builds the value-in-window predicate for the value range
+// [lo, hi] (hi inclusive when hiInclusive).
+func rangeInRangePred(lo, hi float64, hiInclusive bool) func(float64) bool {
+	return func(num float64) bool {
 		if num < lo {
 			return false
 		}
@@ -213,17 +263,13 @@ func (e *SelectEngine) rangeFrameBoundsInRange(orderBy []sql.OrderByTerm, part [
 		}
 		return num < hi
 	}
-	nullsAtStart := !(orderBy[0].NullsLast || (orderBy[0].Desc && !orderBy[0].NullsFirst))
-	nullsInFrame := false
-	if nullsAtStart {
-		// NULLs at the partition start: in frame when the START bound is
-		// unbounded (ASC: lo=-Inf; DESC: hi=+Inf).
-		nullsInFrame = (!orderBy[0].Desc && math.IsInf(lo, -1)) || (orderBy[0].Desc && math.IsInf(hi, 1))
-	} else {
-		// NULLs at the partition end: in frame when the END bound is
-		// unbounded (ASC: hi=+Inf; DESC: lo=-Inf).
-		nullsInFrame = (!orderBy[0].Desc && math.IsInf(hi, 1)) || (orderBy[0].Desc && math.IsInf(lo, -1))
-	}
+}
+
+// rangeFrameStartIndex finds the first partition index whose value is inside
+// the value window, honoring the NULL placement rules.
+func (e *SelectEngine) rangeFrameStartIndex(orderBy []sql.OrderByTerm, part []winRow, lo, hi float64, hiInclusive, nullsInFrame bool) int {
+	inRange := rangeInRangePred(lo, hi, hiInclusive)
+	n := len(part)
 	start := n
 	for i := 0; i < n; i++ {
 		v, err := e.evalWindowExprValueNoUnwrap(orderBy[0].Expr, part[i].row)
@@ -245,6 +291,14 @@ func (e *SelectEngine) rangeFrameBoundsInRange(orderBy []sql.OrderByTerm, part [
 			break
 		}
 	}
+	return start
+}
+
+// rangeFrameEndIndex scans from start for one past the last row whose value
+// is inside the value window.
+func (e *SelectEngine) rangeFrameEndIndex(orderBy []sql.OrderByTerm, part []winRow, start int, lo, hi float64, hiInclusive, nullsInFrame bool) int {
+	inRange := rangeInRangePred(lo, hi, hiInclusive)
+	n := len(part)
 	end := start
 	for i := start; i < n; i++ {
 		v, err := e.evalWindowExprValueNoUnwrap(orderBy[0].Expr, part[i].row)
@@ -262,7 +316,7 @@ func (e *SelectEngine) rangeFrameBoundsInRange(orderBy []sql.OrderByTerm, part [
 			end = i + 1
 		}
 	}
-	return start, end
+	return end
 }
 
 // rangeEndIndexForCurrent returns the index one past the last peer of the
@@ -321,7 +375,13 @@ func (e *SelectEngine) rangeFrameOffset(b sql.FrameBound, row RowMap, isStart bo
 	if err != nil {
 		return 0, fmt.Errorf("%s", errMsg)
 	}
-	v = util.UnwrapColumnValue(unwrapCollatedValue(v))
+	return rangeOffsetNumeric(util.UnwrapColumnValue(unwrapCollatedValue(v)), errMsg)
+}
+
+// rangeOffsetNumeric validates one RANGE offset value: SQLite RANGE offsets
+// accept any non-negative NUMBER (integers and fractions like 4.5);
+// non-numeric or negative values are errors.
+func rangeOffsetNumeric(v interface{}, errMsg string) (float64, error) {
 	switch x := v.(type) {
 	case int64:
 		if x < 0 {
@@ -329,23 +389,25 @@ func (e *SelectEngine) rangeFrameOffset(b sql.FrameBound, row RowMap, isStart bo
 		}
 		return float64(x), nil
 	case float64:
-		if x < 0 || math.IsNaN(x) || math.IsInf(x, 0) {
-			return 0, fmt.Errorf("%s", errMsg)
-		}
-		return x, nil
+		return rangeOffsetNonNegative(x, errMsg)
 	default:
 		// SQLite accepts a numeric TEXT value (e.g. '2.0') as a RANGE offset;
 		// non-numeric text ('' , '2.0x') is an error.
 		if s, ok := v.(string); ok {
-			s = strings.TrimSpace(s)
-			if f, err := strconv.ParseFloat(s, 64); err == nil {
-				if f >= 0 && !math.IsNaN(f) && !math.IsInf(f, 0) {
-					return f, nil
-				}
+			if f, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err == nil {
+				return rangeOffsetNonNegative(f, errMsg)
 			}
 		}
 		return 0, fmt.Errorf("%s", errMsg)
 	}
+}
+
+// rangeOffsetNonNegative accepts a finite non-negative float RANGE offset.
+func rangeOffsetNonNegative(f float64, errMsg string) (float64, error) {
+	if f >= 0 && !math.IsNaN(f) && !math.IsInf(f, 0) {
+		return f, nil
+	}
+	return 0, fmt.Errorf("%s", errMsg)
 }
 
 // rangeOffsetIndex returns the partition index that starts the peer group at
@@ -365,32 +427,10 @@ func (e *SelectEngine) rangeOffsetIndex(orderBy []sql.OrderByTerm, part []winRow
 	// row's peer group (SQLite: RANGE offsets only apply to numeric values).
 	curNum, curOK := windowRangeNumeric(curVal)
 	if !curOK {
-		start := e.rangePeerStart(orderBy, part, current)
-		if isStart {
-			return start, nil
-		}
-		end := start
-		for end+1 < len(part) && e.winRowsArePeers(orderBy, part[current], part[end+1]) {
-			end++
-		}
-		return end, nil
+		return e.rangeOffsetPeerGroupIndex(orderBy, part, current, isStart), nil
 	}
 
-	// Compute the value range [lo, hi] this bound includes. PRECEDING bounds
-	// reach values before the current row (smaller for ASC, larger for DESC);
-	// FOLLOWING bounds reach values after it.
-	lo := curNum
-	hi := curNum
-	switch {
-	case dir == "PRECEDING" && !orderBy[0].Desc:
-		lo = curNum - off
-	case dir == "PRECEDING" && orderBy[0].Desc:
-		hi = curNum + off
-	case dir == "FOLLOWING" && !orderBy[0].Desc:
-		hi = curNum + off
-	case dir == "FOLLOWING" && orderBy[0].Desc:
-		lo = curNum - off
-	}
+	lo, hi := rangeValueWindow(dir, orderBy[0].Desc, curNum, off)
 
 	// The frame excludes the current row at the side the bound closes: a
 	// PRECEDING end excludes values >= cur, a FOLLOWING start excludes values
@@ -399,44 +439,8 @@ func (e *SelectEngine) rangeOffsetIndex(orderBy []sql.OrderByTerm, part []winRow
 	//   END   of a PRECEDING bound: [cur-off, cur)  (current excluded)
 	//   START of a FOLLOWING bound: (cur, cur+off]  (current excluded)
 	//   END   of a FOLLOWING bound: [cur, cur+off]  (current included)
-	n := len(part)
 	if isStart {
-		// The START boundary is the LOWEST index whose value is in the range,
-		// scanning down from the current row. A FOLLOWING start excludes the
-		// current row, so scanning begins one row past it.
-		startAt := current
-		lowest := current
-		if dir == "FOLLOWING" {
-			startAt = current + 1
-			lowest = current + 1
-		}
-		if startAt >= n {
-			startAt = n - 1
-		}
-		if lowest >= n {
-			lowest = n - 1
-		}
-		for i := startAt; i >= 0; i-- {
-			v, err := e.evalWindowExprValueNoUnwrap(orderBy[0].Expr, part[i].row)
-			if err != nil {
-				continue
-			}
-			num, isNum := windowRangeNumeric(v)
-			if !isNum {
-				break
-			}
-			inRange := num >= lo && num <= hi
-			if dir == "FOLLOWING" {
-				// The current row is excluded: values must be strictly greater.
-				inRange = num > curNum && num <= hi
-			}
-			if inRange {
-				lowest = i
-			} else {
-				break
-			}
-		}
-		return lowest, nil
+		return e.rangeStartBoundary(orderBy, part, current, dir, lo, hi, curNum), nil
 	}
 	// The END boundary is the HIGHEST index whose value is in the range. A
 	// PRECEDING end excludes the current row (scan down from current-1); a
@@ -444,30 +448,120 @@ func (e *SelectEngine) rangeOffsetIndex(orderBy []sql.OrderByTerm, part []winRow
 	// threshold is INCLUSIVE: ASC ends at values >= cur-off, DESC at values
 	// >= cur+off.
 	if dir == "PRECEDING" {
-		threshold := curNum - off
-		if orderBy[0].Desc {
-			threshold = curNum + off
-		}
-		last := current - 1
-		for last >= 0 {
-			v, err := e.evalWindowExprValueNoUnwrap(orderBy[0].Expr, part[last].row)
-			if err != nil {
-				last--
-				continue
-			}
-			num, isNum := windowRangeNumeric(v)
-			if !isNum {
-				last--
-				continue
-			}
-			if num >= threshold {
-				break
-			}
-			last--
-		}
-		return last, nil
+		return e.rangeEndPrecedingBoundary(orderBy, part, current, orderBy[0].Desc, curNum, off), nil
 	}
 	// FOLLOWING end: scan up from the current row (current included).
+	return e.rangeEndFollowingBoundary(orderBy, part, current, lo, hi), nil
+}
+
+// rangeOffsetPeerGroupIndex handles a RANGE offset bound whose current row
+// value is non-numeric: the bound degenerates to the current row's peer group
+// (its start index, or end index when isStart is false).
+func (e *SelectEngine) rangeOffsetPeerGroupIndex(orderBy []sql.OrderByTerm, part []winRow, current int, isStart bool) int {
+	start := e.rangePeerStart(orderBy, part, current)
+	if isStart {
+		return start
+	}
+	end := start
+	for end+1 < len(part) && e.winRowsArePeers(orderBy, part[current], part[end+1]) {
+		end++
+	}
+	return end
+}
+
+// rangeValueWindow computes the inclusive value range [lo, hi] that one RANGE
+// offset bound covers around the current row's value. PRECEDING bounds reach
+// values before the current row (smaller for ASC, larger for DESC); FOLLOWING
+// bounds reach values after it.
+func rangeValueWindow(dir string, desc bool, curNum, off float64) (float64, float64) {
+	lo := curNum
+	hi := curNum
+	switch {
+	case dir == "PRECEDING" && !desc:
+		lo = curNum - off
+	case dir == "PRECEDING" && desc:
+		hi = curNum + off
+	case dir == "FOLLOWING" && !desc:
+		hi = curNum + off
+	case dir == "FOLLOWING" && desc:
+		lo = curNum - off
+	}
+	return lo, hi
+}
+
+// rangeStartBoundary resolves the START boundary: the LOWEST index whose value
+// is in the range, scanning down from the current row. A FOLLOWING start
+// excludes the current row, so scanning begins one row past it.
+func (e *SelectEngine) rangeStartBoundary(orderBy []sql.OrderByTerm, part []winRow, current int, dir string, lo, hi, curNum float64) int {
+	n := len(part)
+	startAt := current
+	lowest := current
+	if dir == "FOLLOWING" {
+		startAt = current + 1
+		lowest = current + 1
+	}
+	if startAt >= n {
+		startAt = n - 1
+	}
+	if lowest >= n {
+		lowest = n - 1
+	}
+	for i := startAt; i >= 0; i-- {
+		v, err := e.evalWindowExprValueNoUnwrap(orderBy[0].Expr, part[i].row)
+		if err != nil {
+			continue
+		}
+		num, isNum := windowRangeNumeric(v)
+		if !isNum {
+			break
+		}
+		inRange := num >= lo && num <= hi
+		if dir == "FOLLOWING" {
+			// The current row is excluded: values must be strictly greater.
+			inRange = num > curNum && num <= hi
+		}
+		if inRange {
+			lowest = i
+		} else {
+			break
+		}
+	}
+	return lowest
+}
+
+// rangeEndPrecedingBoundary resolves a PRECEDING END boundary: the HIGHEST
+// index (scanning down from current-1) whose value is at or above the
+// inclusive threshold.
+func (e *SelectEngine) rangeEndPrecedingBoundary(orderBy []sql.OrderByTerm, part []winRow, current int, desc bool, curNum, off float64) int {
+	threshold := curNum - off
+	if desc {
+		threshold = curNum + off
+	}
+	last := current - 1
+	for last >= 0 {
+		v, err := e.evalWindowExprValueNoUnwrap(orderBy[0].Expr, part[last].row)
+		if err != nil {
+			last--
+			continue
+		}
+		num, isNum := windowRangeNumeric(v)
+		if !isNum {
+			last--
+			continue
+		}
+		if num >= threshold {
+			break
+		}
+		last--
+	}
+	return last
+}
+
+// rangeEndFollowingBoundary resolves a FOLLOWING END boundary: the HIGHEST
+// index (scanning up from the current row, current included) whose value is
+// in the range.
+func (e *SelectEngine) rangeEndFollowingBoundary(orderBy []sql.OrderByTerm, part []winRow, current int, lo, hi float64) int {
+	n := len(part)
 	last := current
 	for last+1 < n {
 		v, err := e.evalWindowExprValueNoUnwrap(orderBy[0].Expr, part[last+1].row)
@@ -484,7 +578,7 @@ func (e *SelectEngine) rangeOffsetIndex(orderBy []sql.OrderByTerm, part []winRow
 			break
 		}
 	}
-	return last, nil
+	return last
 }
 
 // rangePeerStart returns the index of the first row in the current row's
@@ -651,34 +745,46 @@ func (e *SelectEngine) evalConstGroupOffset(b sql.FrameBound) (int, error) {
 // groupsOffsetIndex returns the row index of the peer group off groups before
 // (PRECEDING) or after (FOLLOWING) the current row's group.
 func (e *SelectEngine) groupsOffsetIndex(groupStart []int, current int, dir string, off int, isStart bool) int {
-	n := len(groupStart)
 	if off == 0 {
 		return groupStart[current]
 	}
 	if dir == "PRECEDING" {
-		// Walk back off groups. target starts at the current group's start;
-		// each step moves to the previous group's start.
-		target := groupStart[current]
-		for i := 0; i < off; i++ {
-			if target <= 0 {
-				target = -1
-				break
-			}
-			target = groupStart[target-1]
-		}
-		if target < 0 {
-			// For an END (PRECEDING) bound, going before the partition means the
-			// frame is empty; for a START bound it clamps to the first group.
-			if !isStart {
-				return -1
-			}
-			return 0
-		}
-		return target
+		return groupsPrecedingIndex(groupStart, current, off, isStart)
 	}
 	// FOLLOWING: the group containing the current row's groupStart is the
 	// group of index currentGroup. The group after it (off groups later) is
 	// found by walking the groupStart boundaries forward.
+	return groupsFollowingIndex(groupStart, current, off, isStart)
+}
+
+// groupsPrecedingIndex walks back off peer groups from the current row's
+// group. Going before the partition means an empty frame for an END bound;
+// a START bound clamps to the first group.
+func groupsPrecedingIndex(groupStart []int, current, off int, isStart bool) int {
+	// target starts at the current group's start; each step moves to the
+	// previous group's start.
+	target := groupStart[current]
+	for i := 0; i < off; i++ {
+		if target <= 0 {
+			target = -1
+			break
+		}
+		target = groupStart[target-1]
+	}
+	if target < 0 {
+		if !isStart {
+			return -1
+		}
+		return 0
+	}
+	return target
+}
+
+// groupsFollowingIndex walks forward off peer groups from the current row's
+// group. Going beyond the partition clamps to the last group for an END
+// bound; a START bound means the frame is empty.
+func groupsFollowingIndex(groupStart []int, current, off int, isStart bool) int {
+	n := len(groupStart)
 	currentGroup := groupStart[current]
 	// Find the start of the next group after currentGroup.
 	target := currentGroup
@@ -692,8 +798,6 @@ func (e *SelectEngine) groupsOffsetIndex(groupStart []int, current int, dir stri
 			return target
 		}
 		if end+1 >= n {
-			// Going beyond the partition: an END bound clamps to the last
-			// group; a START bound means the frame is empty.
 			if !isStart {
 				return n - 1
 			}
@@ -750,14 +854,7 @@ func (e *SelectEngine) computeAggregateWindow(fn *sql.FuncCall, over *sql.Window
 		// A non-aggregate scalar used as a window function: evaluate it per
 		// row (SQLite errors for non-window functions used with OVER, but
 		// scalar functions with OVER evaluate per row).
-		for _, wr := range part {
-			v, err := e.ctx.EvalExpr(fn, wr.row)
-			if err != nil {
-				results[wr.origIdx] = nil
-				continue
-			}
-			results[wr.origIdx] = util.UnwrapColumnValue(unwrapCollatedValue(v))
-		}
+		e.evalScalarWindowFallback(fn, part, results)
 		return nil
 	}
 
@@ -770,43 +867,73 @@ func (e *SelectEngine) computeAggregateWindow(fn *sql.FuncCall, over *sql.Window
 	}
 
 	for i, wr := range part {
-		start, end, err := e.frameBounds(over, part, i)
+		result, err := e.aggWindowRowResult(reg, fn, over, part, i)
 		if err != nil {
 			return err
 		}
-		if end < start {
-			end = start
-		}
-
-		agg := reg.AggregateFn()
-		var frameRows []RowMap
-		if fn.Distinct {
-			frameRows = e.dedupeAggRowsWindow(fn, part, start, end)
-		} else {
-			frameRows = make([]RowMap, 0, end-start)
-			for j := start; j < end; j++ {
-				if e.windowExcludesRow(over, i, j, part) {
-					continue
-				}
-				if !e.aggRowPassesFilter(fn, part[j].row) {
-					continue
-				}
-				frameRows = append(frameRows, part[j].row)
-			}
-		}
-		// Aggregate ORDER BY terms apply within the frame.
-		if len(fn.OrderBy) > 0 {
-			frameRows = e.sortRowMapsByOrderBy(fn.OrderBy, frameRows)
-		}
-		for _, r := range frameRows {
-			if err := agg.Step(e.windowEvalAggArgs(fn, r)); err != nil {
-				return err
-			}
-		}
-		result, _ := agg.Final()
 		results[wr.origIdx] = result
 	}
 	return nil
+}
+
+// evalScalarWindowFallback evaluates a non-aggregate function used with OVER
+// once per partition row.
+func (e *SelectEngine) evalScalarWindowFallback(fn *sql.FuncCall, part []winRow, results []interface{}) {
+	for _, wr := range part {
+		v, err := e.ctx.EvalExpr(fn, wr.row)
+		if err != nil {
+			results[wr.origIdx] = nil
+			continue
+		}
+		results[wr.origIdx] = util.UnwrapColumnValue(unwrapCollatedValue(v))
+	}
+}
+
+// aggWindowRowResult steps the aggregate over one partition row's frame and
+// returns its final value.
+func (e *SelectEngine) aggWindowRowResult(reg *function.Func, fn *sql.FuncCall, over *sql.WindowDef, part []winRow, i int) (interface{}, error) {
+	start, end, err := e.frameBounds(over, part, i)
+	if err != nil {
+		return nil, err
+	}
+	if end < start {
+		end = start
+	}
+
+	agg := reg.AggregateFn()
+	frameRows := e.collectAggFrameRows(fn, over, part, i, start, end)
+	// Aggregate ORDER BY terms apply within the frame.
+	if len(fn.OrderBy) > 0 {
+		frameRows = e.sortRowMapsByOrderBy(fn.OrderBy, frameRows)
+	}
+	for _, r := range frameRows {
+		if err := agg.Step(e.windowEvalAggArgs(fn, r)); err != nil {
+			return nil, err
+		}
+	}
+	result, _ := agg.Final()
+	return result, nil
+}
+
+// collectAggFrameRows gathers the frame's input rows for partition row i,
+// honoring DISTINCT dedup, EXCLUDE clauses and FILTER. When fn is DISTINCT
+// the pre-deduped frame rows are used (dedupeAggRowsWindow applies its own
+// filter/exclude handling).
+func (e *SelectEngine) collectAggFrameRows(fn *sql.FuncCall, over *sql.WindowDef, part []winRow, i, start, end int) []RowMap {
+	if fn.Distinct {
+		return e.dedupeAggRowsWindow(fn, part, start, end)
+	}
+	frameRows := make([]RowMap, 0, end-start)
+	for j := start; j < end; j++ {
+		if e.windowExcludesRow(over, i, j, part) {
+			continue
+		}
+		if !e.aggRowPassesFilter(fn, part[j].row) {
+			continue
+		}
+		frameRows = append(frameRows, part[j].row)
+	}
+	return frameRows
 }
 
 // windowEvalAggArgs evaluates a window aggregate function's arguments against
@@ -816,42 +943,13 @@ func (e *SelectEngine) computeAggregateWindow(fn *sql.FuncCall, over *sql.Window
 func (e *SelectEngine) windowEvalAggArgs(fn *sql.FuncCall, row RowMap) []interface{} {
 	args := make([]interface{}, len(fn.Args))
 	for i, arg := range fn.Args {
-		resolved := false
 		if e.windowGroupOutputs != nil {
 			if af, ok := arg.(*sql.FuncCall); ok {
-				name := sql.ExprString(af)
-				// A nested aggregate precomputed over the aggregate input rows
-				// (storeWindowNestedAggs) is stored under its expression-string
-				// key (e.g. "sum(a)" in min(sum(a)) OVER ()); prefer it.
-				if v, exists := row.Get(name); exists {
-					args[i] = util.UnwrapColumnValue(v)
-					resolved = true
-				}
-				for _, cn := range e.windowGroupOutputs {
-					if strings.EqualFold(name, cn) {
-						if v, exists := row.Get(cn); exists {
-							args[i] = util.UnwrapColumnValue(v)
-							resolved = true
-							break
-						}
-					}
-				}
-				// Resolve by the SELECT-list alias (e.g. max(z) AS m).
-				if !resolved {
-					for _, sc := range e.windowGroupCols {
-						if sc.As != "" && strings.EqualFold(sql.ExprString(sc.Expr), name) {
-							if v, exists := row.Get(sc.As); exists {
-								args[i] = util.UnwrapColumnValue(v)
-								resolved = true
-								break
-							}
-						}
-					}
+				if v, resolved := e.windowResolveGroupAggArg(af, row); resolved {
+					args[i] = v
+					continue
 				}
 			}
-		}
-		if resolved {
-			continue
 		}
 		v, err := e.ctx.EvalExpr(arg, row)
 		if err != nil {
@@ -861,6 +959,36 @@ func (e *SelectEngine) windowEvalAggArgs(fn *sql.FuncCall, row RowMap) []interfa
 		}
 	}
 	return args
+}
+
+// windowResolveGroupAggArg resolves a window aggregate's argument that is
+// itself an aggregate matching a GROUP BY output column (e.g. sum(b) in
+// sum(sum(b)) OVER ...) to the row's output-column value instead of letting
+// the caller re-aggregate. Reports the value and whether it resolved.
+func (e *SelectEngine) windowResolveGroupAggArg(af *sql.FuncCall, row RowMap) (interface{}, bool) {
+	name := sql.ExprString(af)
+	// A nested aggregate precomputed over the aggregate input rows
+	// (storeWindowNestedAggs) is stored under its expression-string
+	// key (e.g. "sum(a)" in min(sum(a)) OVER ()); prefer it.
+	if v, exists := row.Get(name); exists {
+		return util.UnwrapColumnValue(v), true
+	}
+	for _, cn := range e.windowGroupOutputs {
+		if strings.EqualFold(name, cn) {
+			if v, exists := row.Get(cn); exists {
+				return util.UnwrapColumnValue(v), true
+			}
+		}
+	}
+	// Resolve by the SELECT-list alias (e.g. max(z) AS m).
+	for _, sc := range e.windowGroupCols {
+		if sc.As != "" && strings.EqualFold(sql.ExprString(sc.Expr), name) {
+			if v, exists := row.Get(sc.As); exists {
+				return util.UnwrapColumnValue(v), true
+			}
+		}
+	}
+	return nil, false
 }
 
 // storeWindowNestedAggs precomputes plain aggregates nested inside window
