@@ -48,6 +48,33 @@ func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs 
 	return nil
 }
 
+// deleteIndexCellsBatch removes the index entries keyed by rowid in targets
+// (each value is the full [key..., rowid] record) with ONE b-tree walk —
+// the batch form of deleteIndexCell for statements touching many rows. A
+// missing entry is tolerated (no error): the index may predate this engine's
+// index maintenance.
+func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, targets map[int64][]interface{}) error {
+	if len(targets) == 0 {
+		return nil
+	}
+	encoded := make([][]byte, 0, len(targets))
+	for _, indexValues := range targets {
+		// Mirror deleteIndexCell's storage normalization: the delete payload
+		// must byte-match the entry the insert side wrote.
+		indexStorageValues(indexValues)
+		payload, err := storage.EncodeRecord(indexValues)
+		if err != nil {
+			return err
+		}
+		encoded = append(encoded, payload)
+	}
+	idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
+	if _, err := idxTree.DeleteIndexEntries(encoded); err != nil {
+		return err
+	}
+	return nil
+}
+
 // deleteIndexCell removes one index entry (the record of indexValues),
 // the delete-side mirror of writeIndexCell. The root page cannot move on
 // delete (clearEmptyRootRightmost rewrites the root in place), so no root

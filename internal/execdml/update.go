@@ -278,30 +278,52 @@ func (e *DMLExecutor) rowMatchesWhere(where sql.Expr, row Row) (bool, error) {
 // references, or the rowid (update.c UXF); the same touch rule applies here
 // via indexTouchesChangedCols, with a rowid re-key touching every index.
 func (e *DMLExecutor) deleteUpdateIndexEntries(tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, writeRowID int64) error {
-	return e.deleteUpdateIndexEntriesFor(tableEntry, colDefs, c.oldValues, c.rowID, c.values, writeRowID)
+	return e.deleteUpdateIndexEntriesFor(tableEntry, colDefs, []updateChange{c})
 }
 
-// deleteUpdateIndexEntriesFor is deleteUpdateIndexEntries with explicit
-// old/new values (the trigger paths evaluate SET per row after the scan).
-func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colDefs []sql.ColumnDef, oldValues []interface{}, oldRowID int64, newValues []interface{}, writeRowID int64) error {
-	c := updateChange{rowID: oldRowID, oldValues: oldValues, values: newValues}
-	defs, colIndex := e.maintainedUpdateIndexes(tableEntry, colDefs, c, writeRowID)
-	if len(defs) == 0 {
+// deleteUpdateIndexEntriesFor removes the OLD row entries of every change
+// from the indexes the change touches, batching the per-index cell deletions
+// into ONE btree walk per index (a statement's delete cost is O(index), not
+// O(changes x index). The trigger paths evaluate SET per row after the scan,
+// so old/new values arrive per change.
+func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) error {
+	if len(changes) == 0 {
 		return nil
 	}
-	oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
-	for _, def := range defs {
-		if inIndex, werr := e.indexRowIncluded(def, oldRow); werr != nil {
-			return werr
-		} else if !inIndex {
+	// Union of touched indexes across changes, per index name (a rowid re-key
+	// touches every index; see maintainedUpdateIndexes).
+	defsByName := make(map[string]indexDef)
+	changeTargets := make(map[string]map[int64][]interface{}, len(changes)) // defName -> rowid -> key values
+	colIndex := buildColumnIndex(colDefs)
+	for _, c := range changes {
+		defs, _ := e.maintainedUpdateIndexes(tableEntry, colDefs, c, updateWriteRowID(c))
+		if len(defs) == 0 {
 			continue
 		}
-		oldValues := e.rowMapColumnValues(oldRow, colDefs)
-		indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, oldValues, oldRow)
-		if kerr != nil {
-			return kerr
+		oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
+		for _, def := range defs {
+			defsByName[def.Name] = def
+			if inIndex, werr := e.indexRowIncluded(def, oldRow); werr != nil {
+				return werr
+			} else if !inIndex {
+				continue
+			}
+			oldValues := e.rowMapColumnValues(oldRow, colDefs)
+			indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, oldValues, oldRow)
+			if kerr != nil {
+				return kerr
+			}
+			targets := changeTargets[def.Name]
+			if targets == nil {
+				targets = make(map[int64][]interface{})
+				changeTargets[def.Name] = targets
+			}
+			targets[c.rowID] = append(indexValues, c.rowID)
 		}
-		if err := e.deleteIndexCell(def, append(indexValues, c.rowID)); err != nil {
+	}
+	for name, targets := range changeTargets {
+		def := defsByName[name]
+		if err := e.deleteIndexCellsBatch(def, targets); err != nil {
 			return err
 		}
 	}
@@ -427,10 +449,8 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 		idxColDefs = e.ctx.ParseColumnDefs(te.Name, te.SQL)
 	}
 	if idxTableEntry != nil {
-		for _, c := range changes {
-			if err := e.deleteUpdateIndexEntries(idxTableEntry, idxColDefs, c, updateWriteRowID(c)); err != nil {
-				return &Result{Error: err}
-			}
+		if err := e.deleteUpdateIndexEntriesFor(idxTableEntry, idxColDefs, changes); err != nil {
+			return &Result{Error: err}
 		}
 	}
 
