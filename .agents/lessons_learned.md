@@ -7326,7 +7326,6 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   automerge=N, N transactions of BEGIN/5×INSERT(10KB doc)/COMMIT, dumping
   `group_concat(level||':'||count)` per tx and the %_stat id=1 hint; diff
   against the oracle CLI driven with the identical script at 1024.
-=======
 - **FLEET HAZARD — git stash is repo-global across worktrees (T26-misc)**: all
   fleet worktrees share refs/stash. A `git stash` during a bisect, plus `git
   stash pop`, can pop ANOTHER agent's entry (their WIP applies into your tree)
@@ -7400,3 +7399,62 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   Bash calls; several probes silently ran in the MAIN checkout instead of the
   worktree (and `cd` inside compound commands does not stick). Prefix every
   command with `go -C` / `git -C` / absolute paths, and verify with pwd.
+=======
+
+## FULL-SUITE-DRIFT.T27-btreefix (2026-09-19) — interior rebalance convergence + delete-all residue
+- **The T27-ftsflush "did not converge" was a CLASS of residue, not one bug** — five distinct
+  defects, all diagnosed with the oracle (sqlite3 CLI `quick_check` on per-tx FILE snapshots
+  of a faithful scratch replay; `:memory:` cannot be post-mortemed):
+  1. **DDL root init wrote `content=pageSize-4`** (execddl/ddl.go, both CREATE TABLE and
+     sqlite_sequence roots). zeroPage writes `usableSize`; the hardcoded -4 leaves a 4-byte
+     untracked tail → oracle "Fragmentation of 4 bytes reported as 0", and every insert on
+     such a root packs from the shrunken end forever. THE FIRST divergence in every wipe-churn
+     run (flow1 tx1).
+  2. **balanceNonroot's all-empty branch left a live divider pointing at a FREED page**:
+     it dropped dividers [c0..c1) but freed children c0..c1 — divider d_c1 (the ref to the
+     LAST gathered child) survived stale. C frees only surplus HIGH pages (freePage
+     apOld[nNew..nOld), btree.c:8960) and REPOINTS the surviving ref at the last survivor
+     (put4byte(pRight, apNew[nNew-1]->pgno), btree.c:8717). Also: the rmp-clear compared c1
+     against the POST-REMOVAL cell count, orphaning live subtrees outside the window.
+  3. **Empty children under dividers are ILLEGAL** — moveToChild (btree.c:77872) rejects any
+     descended page with nCell<1. Two wrong fixes died here: keeping empty siblings as
+     second references ("2nd reference to page N" reads fine for seeks until the oracle sees
+     the descended nCell=0), and splicing mid-tree husks ("Child page depth differs" — the
+     splice lifts a subtree a level). The legal shape: keep only children WITH cells; a
+     single-survivor non-root parent borrows a divider from the adjacent interior sibling
+     (C's grandparent-level redistribution, done locally); a single-survivor ROOT absorbs it
+     (balance_shallower, btree.c:8918-8943).
+  4. **absorbSingleChildRoot must not touch bytes 8-11 of a LEAF child** — that range is the
+     first cell-pointer slots on a leaf (the rightmost pointer only exists on interiors); the
+     unconditional zero-write clobbered cell 0's pointer ("Offset 0 out of range"), and the
+     absorbed cell's overflow chain then read as "Page N: never used". Decode/encode must also
+     use the child's OWN cell kind (index-leaf children mis-sized as table-leaf cells = garbled
+     schema rows), must pre-size BEFORE mutating the root (page 1's usable area is 924, a
+     lower-level leaf can hold more — C's hdrOffset<=nFree guard, btree.c:8918), and the
+     no-fit case must leave the tree UNTOUCHED (zeroing the root before the fit check, then
+     erroring out of DROP, is itself corruption).
+  5. **The divider "borrow" has a legal direction**: only the RIGHT sibling can donate its
+     FIRST divider to the parent's high side (with the grandparent's divider for the parent
+     re-keyed to the borrowed bound). The symmetric LEFT borrow (donor's LAST divider into the
+     parent's low side) breaks monotonic order — the left sibling's rmp child holds keys above
+     the borrowed key and walks BEFORE it ("Rowid N out of order", and the FTS merge scan then
+     silently bails, stalling the automerge drain 1:10 forever).
+  - **PLUS**: applyChildSplits' divider RE-KEY relocates the cell and abandoned the old bytes
+    inside the content area ("Fragmentation of 6 bytes reported as 0") — defragmentInterior
+    after relocations; and DeleteCellsWhere must RE-COLLECT the leaf list every pass: the root
+    absorption demotes the interior root INTO a leaf holding surviving rows, which the original
+    single collection never visited (DELETE FROM left 8 of 500 rows behind).
+- **Oracle protocol that cracked it**: faithful scratch replay on a FILE db, snapshot after
+  every tx, `sqlite3` CLI quick_check per snapshot, classify Fragmentation-of = soft and
+  everything else = hard, bisect to the first hard tx, then diff the two snapshots
+  structurally (dup refs / refs-to-freelist / husks / depth / ordering / bounds). SQLite built
+  from source with a SQLITE_CONFIG_LOG callback decodes SQLITE_CORRUPT to the exact btree.c
+  line (moveToChild's nCell<1 check was found this way). `/tmp/qcheck3.c` pattern is reusable.
+- **A/B discipline**: the revert-based "base passes / mine fails" A/B must use the SAME test
+  file revision — an off-by-one expectation in the harness made base "pass" by skipping the
+  check. Verify the failure mode on base first (it must fail identically), then diff binaries.
+- **Residue left (NOT btree)**: fts4merge4 grind at tx≥18 still logs "malformed inverted index
+  for FTS4" at the FTS module level (internal/fts) with a fully valid btree — duplicated
+  blockids are INSERTED by the FTS writer (its blockid allocator reuses ids after chomps;
+  blockIDHighWater/NextBlockID cache vs live tree), and legal btree splits of those duplicated
+  rows then create divider/rowid disorder downstream. Owner: FTS/storage-allocation, not btree.

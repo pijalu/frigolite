@@ -587,6 +587,7 @@ func (t *BTree) applyChildSplits(pg *pager.Page, page *storage.BTreePage, origCh
 	}
 
 	// Carry the upper bound through the chain: the ORIGINAL cell's key.
+	deadBytes := 0
 	for si, cs := range splits {
 		// Re-key the current cell: it now bounds curLeft by cs.medianKey.
 		curLeft := origChild
@@ -600,6 +601,8 @@ func (t *BTree) applyChildSplits(pg *pager.Page, page *storage.BTreePage, origCh
 		curChildOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+idx*2 : ptrBase+idx*2+2]))
 		curChild := binary.BigEndian.Uint32(pg.Data[curChildOff : curChildOff+4])
 		rekeyed := t.encodeInteriorCell(curChild, cs.medianKey)
+		_, oldKeyLen := util.GetVarint(pg.Data[curChildOff+4:])
+		deadBytes += 4 + oldKeyLen // the relocated divider's bytes are abandoned above
 		rkStart := int(page.CellContent) - len(rekeyed)
 		if rkStart < coff+ptroff+(int(page.CellCount)+1)*2+2 {
 			return errInteriorFull
@@ -633,6 +636,17 @@ func (t *BTree) applyChildSplits(pg *pager.Page, page *storage.BTreePage, origCh
 		binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(nCount))
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(ncStart))
 		idx++
+	}
+	if deadBytes > 0 {
+		// Every re-key RELOCATED a divider, abandoning its old bytes above
+		// the new content start. Those bytes are inside the content area but
+		// belong to no cell — untracked free space that sqlite3
+		// integrity_check reports as "Fragmentation of N bytes reported as
+		// M". Repack the surviving dividers contiguously (defragmentPage
+		// parity) so no untracked hole remains.
+		if err := t.defragmentInterior(pg, page); err != nil {
+			return err
+		}
 	}
 	return t.pager.WritePage(pg)
 }
@@ -1168,15 +1182,32 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 	// finds room in whichever half it sorts into. A midpoint split left
 	// interiors permanently half-full, doubling their count
 	// (sqllimits1-7.7.3: 11 interior pages vs the reference 7).
-	if len(entries) == 0 {
-		// Nothing left to move: the caller's balance loop must stop here
-		// rather than index past the end.
+	//
+	// The boundary entry entries[splitIdx-1] is consumed as the divider
+	// handed to the parent: its key becomes the separator and its left
+	// child becomes the left page's rightmost pointer. The right page
+	// keeps entries[splitIdx..] — AT LEAST ONE cell. The previous port
+	// kept the right page EMPTY (0 dividers + rightmost pointer): SQLite
+	// never produces a 0-cell interior page (balance_nonroot gives every
+	// new page a share of the cells) and cannot even read through one —
+	// the seek descends the rightmost chain past dead nodes and the fts4
+	// merge churn grew sixteen of these husks under one root
+	// (fts4merge4 wipe-churn tx16: "database disk image is malformed" on
+	// every t2_segments/t2_segdir scan, REPLACE seeks silently missing
+	// rows behind the husks). Three cells are the minimum for a legal
+	// split (1 left + 1 divider + 1 right); below that the caller's
+	// balance loop must stop rather than manufacture a husk.
+	if len(entries) < 3 {
+		// Too few dividers to split legally: the caller's balance loop
+		// must stop here rather than index past the end.
 		return 0, 0, fmt.Errorf("btree: interior page %d has no cells to split", pg.PageNum)
 	}
 	splitIdx := len(entries) - 1
 
-	// The key at splitIdx goes up to the parent (it's the separator between the two halves)
-	splitKey := entries[splitIdx].key
+	// The key at splitIdx-1 goes up to the parent (it's the separator
+	// between the two halves); its left child becomes the left page's
+	// rightmost pointer.
+	splitKey := entries[splitIdx-1].key
 
 	// Left page keeps entries[0..splitIdx) and its rightmost child becomes entries[splitIdx].leftChild
 	// Right page keeps entries[splitIdx+1..) and the original rightmostChild
@@ -1205,10 +1236,11 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 		pg.Data[i] = 0
 	}
 
-	// Rewrite left page: entries[0..splitIdx), rightmost = entries[splitIdx].leftChild
-	leftRightmost := entries[splitIdx].leftChild
+	// Rewrite left page: entries[0..splitIdx-1), rightmost = entries[splitIdx-1].leftChild
+	// (entries[splitIdx-1] itself is consumed as the parent divider).
+	leftRightmost := entries[splitIdx-1].leftChild
 	leftCellContentEnd := int(t.pageSize) // track content end in local var
-	for i := 0; i < splitIdx; i++ {
+	for i := 0; i < splitIdx-1; i++ {
 		cellData := t.encodeInteriorCell(entries[i].leftChild, entries[i].key)
 		cellPtrEnd := coff + ptroff + i*2 + 2
 		cellStart := leftCellContentEnd - len(cellData)
@@ -1219,18 +1251,19 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 		binary.BigEndian.PutUint16(pg.Data[coff+ptroff+i*2:], uint16(cellStart))
 		leftCellContentEnd = cellStart
 	}
-	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(splitIdx))
-	if splitIdx > 0 {
+	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(splitIdx-1))
+	if splitIdx-1 > 0 {
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(leftCellContentEnd))
 	} else {
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.pageSize))
 	}
 	binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], leftRightmost)
 
-	// Write right page: entries[splitIdx+1..), rightmost = original rightmostChild
+	// Write right page: entries[splitIdx..) — never empty (see the guard
+	// above) — with the original rightmost pointer.
 	rightCount := 0
 	rightCellContentEnd := int(t.pageSize)
-	for i := splitIdx + 1; i < len(entries); i++ {
+	for i := splitIdx; i < len(entries); i++ {
 		cellData := t.encodeInteriorCell(entries[i].leftChild, entries[i].key)
 		cellPtrEnd := newCoff + ptroff + rightCount*2 + 2
 		cellStart := rightCellContentEnd - len(cellData)
@@ -1243,21 +1276,14 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 		rightCount++
 	}
 	binary.BigEndian.PutUint16(newPg.Data[newCoff+3:newCoff+5], uint16(rightCount))
-	if rightCount > 0 {
-		binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(rightCellContentEnd))
-	} else {
-		// An empty interior page (balance_nonroot's tail split moves no
-		// cells when the overflow divider appends at the end) still needs a
-		// valid content-start: the page size, not 0 (0 encodes 65536).
-		binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(t.pageSize))
-	}
+	binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(rightCellContentEnd))
 	binary.BigEndian.PutUint32(newPg.Data[newCoff+8:newCoff+12], rightmostChild)
 
 	// Re-parent the children that moved to the right half (btree.c
 	// balance_nonroot: ptrmapPut(pBt, key, PTRMAP_BTREE, pNew->pgno),
 	// src/btree.c:8780 + 8950) — including the original rightmost pointer.
 	if t.ptrmapEnabled() {
-		for i := splitIdx + 1; i < len(entries); i++ {
+		for i := splitIdx; i < len(entries); i++ {
 			if err := t.pager.WritePtrmap(entries[i].leftChild, storage.PtrmapBtree, newPg.PageNum); err != nil {
 				return 0, 0, err
 			}
