@@ -454,54 +454,7 @@ func buildViewRowMaps(viewResult *Result, rightDefs []sql.ColumnDef, tableName s
 func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	tableName := joinTableName(join)
 	if tableEntry.RootPage == 0 {
-		// FTS3/4 and FTS5 tables have no materializable module instance
-		// (createdVTabModuleKind skips them — their documents live in the
-		// in-memory FTS engines), so materialize them through the FTS join
-		// helpers like the FROM-side scan does (fts3join 2.x: FROM ft2, ft3
-		// WHERE x MATCH y).
-		if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
-			rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-			return e.ftsJoinRowMaps(ftsTable, rightDefs, tableName), rightDefs, tableName, nil, nil
-		}
-		if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
-			rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-			rowids, allRows, err := fts5ScanRows(t5, rightDefs, nil)
-			if err != nil {
-				return nil, nil, "", nil, err
-			}
-			maps := buildMaterializedRowMaps(&sql.SelectStmt{From: sql.TableRef{Name: tableName}}, rightDefs, allRows, rowids)
-			return maps, rightDefs, tableName, nil, nil
-		}
-		// Created virtual tables declare their columns in the module schema,
-		// not in the CREATE VIRTUAL TABLE SQL text.  Use that schema here;
-		// parsing the CREATE statement yields no usable column definitions and
-		// consequently loses qualified references such as a.name.
-		var residual sql.Expr
-		opts := e.vtabScanOptions(s)
-		opts.Residual = &residual
-		defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(tableEntry.Name, opts)
-		if !ok {
-			return nil, nil, "", nil, fmt.Errorf("no such table: %s", tableEntry.Name)
-		}
-		if err != nil {
-			return nil, nil, "", nil, err
-		}
-		// Constraints the module consumed (xBestIndex omit=1 — unionvtab's
-		// rowid/IPK ranges) are NOT re-checked; the join must evaluate the
-		// residual clause left after they were omitted. Full-source scans
-		// would otherwise lose rows to a re-applied range filter.
-		if residual != nil {
-			s.Where = residual
-		}
-		rightMaps := buildScanRowMaps(rows, defs, tableName)
-		// Native rowids back <table>.rowid references in the residual WHERE
-		// (unionvtab.test 5.3: cc.rowid>c4.rowid), like the eponymous path.
-		for i := range rightMaps {
-			if i < len(rowids) {
-				rightMaps[i]["rowid"] = rowids[i]
-			}
-		}
-		return rightMaps, defs, tableName, nil, nil
+		return e.materializeVirtualTableJoin(s, join, tableEntry, tableName)
 	}
 	rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	rightMaps, err := e.scanRealTableJoinRows(join.Table.Name, tableEntry.RootPage, rightDefs, tableEntry.SQL)
@@ -509,6 +462,56 @@ func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClau
 		return nil, nil, "", nil, err
 	}
 	return rightMaps, rightDefs, tableName, nil, nil
+}
+
+// materializeVirtualTableJoin materializes a virtual-table join operand
+// (RootPage == 0). FTS3/4 and FTS5 tables have no materializable module
+// instance (createdVTabModuleKind skips them — their documents live in the
+// in-memory FTS engines), so they materialize through the FTS join helpers
+// like the FROM-side scan does (fts3join 2.x: FROM ft2, ft3 WHERE x MATCH y).
+// Created virtual tables declare their columns in the module schema, not in
+// the CREATE VIRTUAL TABLE SQL text; use that schema here — parsing the
+// CREATE statement yields no usable column definitions and consequently loses
+// qualified references such as a.name. Constraints the module consumed
+// (xBestIndex omit=1 — unionvtab's rowid/IPK ranges) are NOT re-checked; the
+// join must evaluate the residual clause left after they were omitted.
+// Full-source scans would otherwise lose rows to a re-applied range filter.
+// Native rowids back <table>.rowid references in the residual WHERE
+// (unionvtab.test 5.3: cc.rowid>c4.rowid), like the eponymous path.
+func (e *SelectEngine) materializeVirtualTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry, tableName string) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
+		rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+		return e.ftsJoinRowMaps(ftsTable, rightDefs, tableName), rightDefs, tableName, nil, nil
+	}
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+		rowids, allRows, err := fts5ScanRows(t5, rightDefs, nil)
+		if err != nil {
+			return nil, nil, "", nil, err
+		}
+		maps := buildMaterializedRowMaps(&sql.SelectStmt{From: sql.TableRef{Name: tableName}}, rightDefs, allRows, rowids)
+		return maps, rightDefs, tableName, nil, nil
+	}
+	var residual sql.Expr
+	opts := e.vtabScanOptions(s)
+	opts.Residual = &residual
+	defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(tableEntry.Name, opts)
+	if !ok {
+		return nil, nil, "", nil, fmt.Errorf("no such table: %s", tableEntry.Name)
+	}
+	if err != nil {
+		return nil, nil, "", nil, err
+	}
+	if residual != nil {
+		s.Where = residual
+	}
+	rightMaps := buildScanRowMaps(rows, defs, tableName)
+	for i := range rightMaps {
+		if i < len(rowids) {
+			rightMaps[i]["rowid"] = rowids[i]
+		}
+	}
+	return rightMaps, defs, tableName, nil, nil
 }
 
 // scanRealTableJoinRows scans all rows from a real table's b-tree into RowMaps

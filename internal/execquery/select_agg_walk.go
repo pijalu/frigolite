@@ -229,27 +229,17 @@ func (e *SelectEngine) minMaxSourceRow(mm *minMaxAggregate, rowMaps []RowMap) in
 	bestIdx := -1
 	var bestVal interface{}
 	for i, row := range rowMaps {
-		if mm.filter != nil {
-			// FILTER (WHERE ...) excludes rows from the aggregate entirely:
-			// a filtered-out row can never be the row that produced the
-			// extreme value (filter1-3.3).
-			fv, ferr := e.ctx.EvalExpr(mm.filter, row)
-			if ferr != nil || fv == nil || !execexpr.ToBool(fv) {
-				continue
-			}
-		}
-		val, err := e.ctx.EvalExpr(mm.arg, row)
-		if err != nil || val == nil {
+		// FILTER (WHERE ...) excludes rows from the aggregate entirely:
+		// a filtered-out row can never be the row that produced the
+		// extreme value (filter1-3.3).
+		if !e.minMaxRowPassesFilter(mm, row) {
 			continue
 		}
-		val = util.UnwrapColumnValue(val)
-		if bestIdx < 0 {
-			bestIdx = i
-			bestVal = val
+		val := e.minMaxRowValue(mm, row)
+		if val == nil {
 			continue
 		}
-		cmp := util.CompareValues(val, bestVal)
-		if (mm.name == "MIN" && cmp < 0) || (mm.name == "MAX" && cmp > 0) {
+		if bestIdx < 0 || minMaxBeats(mm.name, val, bestVal) {
 			bestIdx = i
 			bestVal = val
 		}
@@ -265,6 +255,31 @@ func (e *SelectEngine) minMaxSourceRow(mm *minMaxAggregate, rowMaps []RowMap) in
 		return len(rowMaps) - 1
 	}
 	return bestIdx
+}
+
+// minMaxRowPassesFilter evaluates the aggregate's FILTER clause.
+func (e *SelectEngine) minMaxRowPassesFilter(mm *minMaxAggregate, row RowMap) bool {
+	if mm.filter == nil {
+		return true
+	}
+	fv, ferr := e.ctx.EvalExpr(mm.filter, row)
+	return ferr == nil && fv != nil && execexpr.ToBool(fv)
+}
+
+// minMaxRowValue evaluates the aggregate argument for one row, unwrapped
+// (nil on error or NULL).
+func (e *SelectEngine) minMaxRowValue(mm *minMaxAggregate, row RowMap) interface{} {
+	val, err := e.ctx.EvalExpr(mm.arg, row)
+	if err != nil || val == nil {
+		return nil
+	}
+	return util.UnwrapColumnValue(val)
+}
+
+// minMaxBeats reports whether val replaces bestVal for a MIN/MAX aggregate.
+func minMaxBeats(name string, val, bestVal interface{}) bool {
+	cmp := util.CompareValues(val, bestVal)
+	return (name == "MIN" && cmp < 0) || (name == "MAX" && cmp > 0)
 }
 
 // reorderRowsForMinMax moves the row that produced the last min/max aggregate
@@ -437,29 +452,43 @@ func resolveGroupByOrdinals(s *sql.SelectStmt, colDefs []sql.ColumnDef) ([]sql.E
 	resolved := make([]sql.Expr, len(s.GroupBy))
 	for i, g := range s.GroupBy {
 		if num, ok := g.(*sql.NumericLit); ok && isDecimalIntegerLiteral(num.Value) {
-			ord, err := strconv.ParseInt(num.Value, 10, 64)
-			if err != nil {
-				ord = 0
+			expr, rerr := resolveGroupByOrdinalExpr(s, colDefs, num.Value, i)
+			if rerr != "" {
+				return nil, fmt.Errorf("%s", rerr)
 			}
-			width := selectResultWidth(s, colDefs)
-			if ord < 1 || ord > int64(width) {
-				return nil, fmt.Errorf("%d%s GROUP BY term out of range - should be between 1 and %d",
-					i+1, ordinalSuffix(i+1), width)
-			}
-			if ord <= int64(len(s.Columns)) {
-				col := s.Columns[ord-1]
-				if ref, isStar := col.Expr.(*sql.ColumnRef); isStar && ref.Name == "*" && ref.Table == "" && len(colDefs) > 0 {
-					// GROUP BY 1 on SELECT * groups by the first result column.
-					resolved[i] = &sql.ColumnRef{Name: colDefs[0].Name}
-				} else {
-					resolved[i] = col.Expr
-				}
+			if expr != nil {
+				resolved[i] = expr
 				continue
 			}
 		}
 		resolved[i] = g
 	}
 	return resolved, nil
+}
+
+// resolveGroupByOrdinalExpr maps one GROUP BY ordinal to its SELECT-list
+// expression (nil when the term is not an in-range ordinal). A non-empty
+// result carries the out-of-range error text ("%d%s GROUP BY term out of
+// range - should be between 1 and %d").
+func resolveGroupByOrdinalExpr(s *sql.SelectStmt, colDefs []sql.ColumnDef, numValue string, i int) (sql.Expr, string) {
+	ord, err := strconv.ParseInt(numValue, 10, 64)
+	if err != nil {
+		ord = 0
+	}
+	width := selectResultWidth(s, colDefs)
+	if ord < 1 || ord > int64(width) {
+		return nil, fmt.Sprintf("%d%s GROUP BY term out of range - should be between 1 and %d",
+			i+1, ordinalSuffix(i+1), width)
+	}
+	if ord > int64(len(s.Columns)) {
+		return nil, ""
+	}
+	col := s.Columns[ord-1]
+	if ref, isStar := col.Expr.(*sql.ColumnRef); isStar && ref.Name == "*" && ref.Table == "" && len(colDefs) > 0 {
+		// GROUP BY 1 on SELECT * groups by the first result column.
+		return &sql.ColumnRef{Name: colDefs[0].Name}, ""
+	}
+	return col.Expr, ""
 }
 
 // selectResultWidth computes the number of result columns for GROUP BY

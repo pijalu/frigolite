@@ -272,6 +272,15 @@ func (e *SelectEngine) validateExprSubqueriesCtxMode(expr sql.Expr, rowValueOK, 
 		return e.validateSubqBetween(v, dmlArity)
 	case *sql.InList:
 		return e.validateExprSubqueriesInList(v, dmlArity)
+	}
+	return e.validateExprSubqueriesMisc(expr, dmlArity)
+}
+
+// validateExprSubqueriesMisc validates the remaining node kinds (IS NULL /
+// IS NOT NULL / IS DISTINCT FROM / IS NOT DISTINCT FROM) that delegate
+// through a single operand or an operand pair.
+func (e *SelectEngine) validateExprSubqueriesMisc(expr sql.Expr, dmlArity bool) error {
+	switch v := expr.(type) {
 	case *sql.IsNull, *sql.IsNotNull:
 		return e.validateExprSubqueriesCtxMode(isNullExprOperand(v), false, dmlArity)
 	case *sql.IsDistinctFrom:
@@ -328,31 +337,12 @@ func (e *SelectEngine) validateSubqueryNode(v *sql.Subquery, rowValueOK bool) er
 		e.cteScopes = append(e.cteScopes, v.Select.CTEs)
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
-	// Resolve the subquery's FROM table at prepare time so a missing table
-	// surfaces here (SQLite resolves names during prepare; window1 67.1
-	// expects "no such table: v1" from a subquery nested in a compound
-	// ORDER BY). CTEs and views are valid FROM sources.
-	if v.Select.From.Name != "" {
-		if _, _, err := e.ctx.FindTable(v.Select.From.Name); err != nil {
-			if _, _, verr := e.ctx.FindView(v.Select.From.Name); verr != nil {
-				if _, ok := e.findCTE(v.Select, v.Select.From.Name); !ok {
-					// Eponymous vtab modules (generate_series, carray, ...)
-					// are valid implicit FROM sources without a schema entry.
-					if !e.eponymousModuleResolvable(v.Select.From.Name) {
-						return err
-					}
-				}
-			}
-		}
+	if err := e.resolveSubqueryFromTable(v.Select); err != nil {
+		return err
 	}
 	if !rowValueOK {
-		// sqlite3SelectWrongNumTermsError fires during subquery code
-		// generation, ahead of the scalar-column check (in-12.6).
-		if err := e.validateCompoundColumnCounts(v.Select); err != nil {
+		if err := e.validateScalarSubqueryWidth(v.Select); err != nil {
 			return err
-		}
-		if n := e.subqueryColumnCount(v.Select); n > 1 {
-			return fmt.Errorf("sub-select returns %d columns - expected 1", n)
 		}
 	}
 	if err := e.validateSelectExprs(v.Select); err != nil {
@@ -362,6 +352,41 @@ func (e *SelectEngine) validateSubqueryNode(v *sql.Subquery, rowValueOK bool) er
 	// FROM t2 — avg over the outer rows) is valid and handled by
 	// evalAggOverOuterRows. The IN-subquery misuse case is validated in
 	// validateInListSubqueryItem.
+	return nil
+}
+
+// resolveSubqueryFromTable resolves the subquery's FROM table at prepare time
+// so a missing table surfaces here (SQLite resolves names during prepare;
+// window1 67.1 expects "no such table: v1" from a subquery nested in a
+// compound ORDER BY). CTEs, views, and eponymous vtab modules
+// (generate_series, carray, ...) are valid FROM sources without a schema
+// entry.
+func (e *SelectEngine) resolveSubqueryFromTable(sel *sql.SelectStmt) error {
+	if sel.From.Name == "" {
+		return nil
+	}
+	if _, _, err := e.ctx.FindTable(sel.From.Name); err != nil {
+		if _, _, verr := e.ctx.FindView(sel.From.Name); verr != nil {
+			if _, ok := e.findCTE(sel, sel.From.Name); !ok {
+				if !e.eponymousModuleResolvable(sel.From.Name) {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// validateScalarSubqueryWidth enforces the scalar subquery's single-column
+// width. sqlite3SelectWrongNumTermsError fires during subquery code
+// generation, ahead of the scalar-column check (in-12.6).
+func (e *SelectEngine) validateScalarSubqueryWidth(sel *sql.SelectStmt) error {
+	if err := e.validateCompoundColumnCounts(sel); err != nil {
+		return err
+	}
+	if n := e.subqueryColumnCount(sel); n > 1 {
+		return fmt.Errorf("sub-select returns %d columns - expected 1", n)
+	}
 	return nil
 }
 
@@ -384,26 +409,36 @@ func (e *SelectEngine) validateSubqFuncCall(v *sql.FuncCall, dmlArity bool) erro
 	// walking its arguments; window1 75.1: SELECT count((SELECT count(a)))
 	// FROM t → "misuse of aggregate: count()").
 	if fn, ok := e.ctx.Functions().Find(v.Name); ok && fn.Type == function.TypeAggregate {
-		for _, arg := range v.Args {
-			if sub, ok := arg.(*sql.Subquery); ok && sub.Select != nil {
-				// The error names the INNER (promoted) aggregate, not the
-				// enclosing one — subquery-3.5.4: max((SELECT count(x) FROM
-				// t35b)) with x outer reports "misuse of aggregate: count()".
-				if name := e.subqueryOuterAggRef(sub.Select); name != "" {
-					return fmt.Errorf("misuse of aggregate: %s()", name)
-				}
-				// A promoted aggregate nested deeper (in a FROM subquery of
-				// the scalar subquery) is the same misuse — subquery-3.5.6:
-				// max((SELECT a FROM (SELECT count(x) AS a FROM t35b))).
-				if name := e.nestedSubqueryPromotedAgg(sub.Select); name != "" {
-					return fmt.Errorf("misuse of aggregate: %s()", name)
-				}
-			}
+		if err := e.validateAggSubqArgs(v.Args); err != nil {
+			return err
 		}
 	}
 	for _, arg := range v.Args {
 		if err := e.validateExprSubqueriesCtxMode(arg, false, dmlArity); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// validateAggSubqArgs rejects an aggregate argument that is a scalar subquery
+// containing a CORRELATED aggregate. The error names the INNER (promoted)
+// aggregate, not the enclosing one — subquery-3.5.4: max((SELECT count(x)
+// FROM t35b)) with x outer reports "misuse of aggregate: count()". A promoted
+// aggregate nested deeper (in a FROM subquery of the scalar subquery) is the
+// same misuse — subquery-3.5.6: max((SELECT a FROM (SELECT count(x) AS a
+// FROM t35b))).
+func (e *SelectEngine) validateAggSubqArgs(args []sql.Expr) error {
+	for _, arg := range args {
+		sub, ok := arg.(*sql.Subquery)
+		if !ok || sub.Select == nil {
+			continue
+		}
+		if name := e.subqueryOuterAggRef(sub.Select); name != "" {
+			return fmt.Errorf("misuse of aggregate: %s()", name)
+		}
+		if name := e.nestedSubqueryPromotedAgg(sub.Select); name != "" {
+			return fmt.Errorf("misuse of aggregate: %s()", name)
 		}
 	}
 	return nil

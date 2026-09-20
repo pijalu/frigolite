@@ -201,39 +201,7 @@ func tableRefAliasTarget(ref sql.TableRef, name string) string {
 func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
 	var names []string
 	for _, col := range columns {
-		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
-			if ref.Table != "" {
-				// Qualified star (t.*): only that table's columns. A star
-				// naming a table that is not a visible FROM/JOIN operand
-				// errors "no such table: tX" (build.c sqlite3TwoPartName;
-				// select1-6.44a t5.*, 6.44b t3.* under an alias) — flagged
-				// and consumed on the execSelect return paths like
-				// resultTooWide.
-				if !selectOperandVisible(sel, ref.Table) {
-					e.starNoSuchTable = ref.Table
-					continue
-				}
-				names = append(names, e.buildQualifiedStarNames(ref, colDefs, sel)...)
-				continue
-			}
-			names = append(names, expandStarColNames(colDefs)...)
-		} else if rv, ok := col.Expr.(*sql.RowValue); ok {
-			// Multi-expression RETURNING (RETURNING a, b, *): expand * inline
-			// and name each expression like a SELECT column list.
-			names = append(names, e.buildRowValueNames(rv, colDefs)...)
-		} else if col.As != "" {
-			names = append(names, col.As)
-		} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
-			names = append(names, e.resolveColumnRefName(ref, colDefs, sel))
-		} else {
-			// Unaliased expression: SQLite names the result column after the
-			// expression text (e.g. SELECT a+b names it "a+b"). Without this,
-			// CREATE TABLE ... AS SELECT of an expression produces a column
-			// with an empty name and SELECT * exposes zero columns. The name
-			// mirrors the raw SQL span, so symbol operators render without
-			// injected spaces (select1-6.5 "f1+F2").
-			names = append(names, exprResultName(col.Expr))
-		}
+		names = append(names, e.selectColumnName(col, colDefs, sel)...)
 	}
 	// select.c sqlite3SelectCallback: a result set wider than
 	// SQLITE_LIMIT_COLUMN errors "too many columns in result set"; the flag
@@ -242,6 +210,58 @@ func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sq
 		e.resultTooWide = true
 	}
 	return names
+}
+
+// selectColumnName names one SELECT column (star expansion, row-value
+// expansion, alias, bare column reference, or the expression's SQL span).
+func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
+	if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+		return e.starColumnNamesFor(ref, colDefs, sel)
+	}
+	if rv, ok := col.Expr.(*sql.RowValue); ok {
+		// Multi-expression RETURNING (RETURNING a, b, *): expand * inline
+		// and name each expression like a SELECT column list.
+		return e.buildRowValueNames(rv, colDefs)
+	}
+	if col.As != "" {
+		return []string{col.As}
+	}
+	if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+		return []string{e.resolveColumnRefName(ref, colDefs, sel)}
+	}
+	// Unaliased expression: SQLite names the result column after the
+	// expression text (e.g. SELECT a+b names it "a+b"). Without this,
+	// CREATE TABLE ... AS SELECT of an expression produces a column
+	// with an empty name and SELECT * exposes zero columns. The name
+	// mirrors the raw SQL span, so symbol operators render without
+	// injected spaces (select1-6.5 "f1+F2").
+	return []string{exprResultName(col.Expr)}
+}
+
+// starColumnNamesFor expands a "*" reference. A qualified star (t.*) covers
+// only that table's columns; a star naming a table that is not a visible
+// FROM/JOIN operand errors "no such table: tX" (build.c sqlite3TwoPartName;
+// select1-6.44a t5.*, 6.44b t3.* under an alias) — flagged and consumed on
+// the execSelect return paths like resultTooWide.
+func (e *SelectEngine) starColumnNamesFor(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
+	if ref.Table != "" {
+		if !selectOperandVisible(sel, ref.Table) {
+			e.starNoSuchTable = ref.Table
+			return nil
+		}
+		return e.buildQualifiedStarNames(ref, colDefs, sel)
+	}
+	return expandStarColNames(colDefs)
+}
+
+// operandVisible reports whether a table reference matches the lookup name.
+// An alias shadows the table name: FROM t3 AS x makes t3 unaddressable
+// (select1-6.44b "no such table: t3").
+func operandVisible(name, as, q string) bool {
+	if as != "" {
+		return strings.EqualFold(as, q)
+	}
+	return name != "" && strings.EqualFold(name, q)
 }
 
 // selectOperandVisible reports whether tableRef names a FROM/JOIN operand of
@@ -256,35 +276,21 @@ func selectOperandVisible(sel *sql.SelectStmt, tableRef string) bool {
 	if dot := strings.LastIndex(q, "."); dot >= 0 {
 		q = q[dot+1:]
 	}
-	visible := func(name, as string) bool {
-		if as != "" {
-			// An alias shadows the table name: FROM t3 AS x makes t3
-			// unaddressable (select1-6.44b "no such table: t3").
-			return strings.EqualFold(as, q)
-		}
-		return name != "" && strings.EqualFold(name, q)
-	}
-	if visible(sel.From.Name, sel.From.As) {
+	if operandVisible(sel.From.Name, sel.From.As, q) {
 		return true
 	}
 	// A parenthesized join operand ("(dual JOIN t1 ON true)") parses as a
 	// subquery-shaped TableRef WITHOUT an alias; its inner operands stay
 	// visible at the outer level (join7-.70 t1.*). An ALIASED derived table
 	// shadows its inner tables.
-	recurse := func(t sql.TableRef) bool {
-		if t.Subquery != nil && t.As == "" {
-			return selectOperandVisible(t.Subquery, tableRef)
-		}
-		return false
-	}
-	if recurse(sel.From) {
+	if sel.From.Subquery != nil && sel.From.As == "" && selectOperandVisible(sel.From.Subquery, tableRef) {
 		return true
 	}
 	for _, j := range sel.Joins {
-		if visible(j.Table.Name, j.Table.As) {
+		if operandVisible(j.Table.Name, j.Table.As, q) {
 			return true
 		}
-		if recurse(j.Table) {
+		if j.Table.Subquery != nil && j.Table.As == "" && selectOperandVisible(j.Table.Subquery, tableRef) {
 			return true
 		}
 	}
@@ -300,23 +306,9 @@ func selectOperandVisible(sel *sql.SelectStmt, tableRef string) bool {
 func exprResultName(e sql.Expr) string {
 	switch v := e.(type) {
 	case *sql.BinaryOp:
-		op := v.Operator
-		if isWordOperator(op) {
-			return exprResultName(v.Left) + " " + op + " " + exprResultName(v.Right)
-		}
-		if strings.TrimSpace(op) == "<>" {
-			op = "!="
-		}
-		return exprResultName(v.Left) + op + exprResultName(v.Right)
+		return binaryOpResultName(v)
 	case *sql.UnaryOp:
-		operand := exprResultName(v.Operand)
-		if _, isNum := v.Operand.(*sql.NumericLit); isNum && strings.HasPrefix(strings.TrimSpace(operand), "-") {
-			return v.Operator + "(" + operand + ")"
-		}
-		if _, isUnary := v.Operand.(*sql.UnaryOp); isUnary {
-			return v.Operator + "(" + operand + ")"
-		}
-		return v.Operator + operand
+		return unaryOpResultName(v)
 	case *sql.ParenExpr:
 		return "(" + exprResultName(v.Expr) + ")"
 	case *sql.IsNull:
@@ -326,6 +318,31 @@ func exprResultName(e sql.Expr) string {
 	default:
 		return sql.ExprString(e)
 	}
+}
+
+// binaryOpResultName renders a binary expression's result name.
+func binaryOpResultName(v *sql.BinaryOp) string {
+	op := v.Operator
+	if isWordOperator(op) {
+		return exprResultName(v.Left) + " " + op + " " + exprResultName(v.Right)
+	}
+	if strings.TrimSpace(op) == "<>" {
+		op = "!="
+	}
+	return exprResultName(v.Left) + op + exprResultName(v.Right)
+}
+
+// unaryOpResultName renders a unary expression's result name: a negated
+// numeric literal or nested unary keeps parenthesization.
+func unaryOpResultName(v *sql.UnaryOp) string {
+	operand := exprResultName(v.Operand)
+	if _, isNum := v.Operand.(*sql.NumericLit); isNum && strings.HasPrefix(strings.TrimSpace(operand), "-") {
+		return v.Operator + "(" + operand + ")"
+	}
+	if _, isUnary := v.Operand.(*sql.UnaryOp); isUnary {
+		return v.Operator + "(" + operand + ")"
+	}
+	return v.Operator + operand
 }
 
 // isWordOperator reports whether a binary operator is a keyword that renders
@@ -417,23 +434,26 @@ func validateOrderBy(orderBy []sql.OrderByTerm, numCols int) error {
 func orderByTermOrdinal(expr sql.Expr) (int64, bool) {
 	switch v := expr.(type) {
 	case *sql.NumericLit:
-		if isDecimalIntegerLiteral(v.Value) {
-			n, err := strconv.ParseInt(v.Value, 10, 64)
-			if err == nil {
-				return n, true
-			}
-		}
+		return decimalLiteralValue(v.Value)
 	case *sql.UnaryOp:
 		if v.Operator == "-" {
 			if nl, ok := v.Operand.(*sql.NumericLit); ok && isDecimalIntegerLiteral(nl.Value) {
-				n, err := strconv.ParseInt(nl.Value, 10, 64)
-				if err == nil {
+				if n, ok2 := decimalLiteralValue(nl.Value); ok2 {
 					return -n, true
 				}
 			}
 		}
 	}
 	return 0, false
+}
+
+// decimalLiteralValue parses a decimal integer literal text.
+func decimalLiteralValue(value string) (int64, bool) {
+	n, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return n, true
 }
 
 // validateCompoundOrderBy enforces SQLite's compound-SELECT ORDER BY rule:

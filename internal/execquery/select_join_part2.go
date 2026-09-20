@@ -93,16 +93,7 @@ func (e *SelectEngine) collectJoinTableCols(s *sql.SelectStmt, join sql.JoinClau
 	}
 	cteDef, ok := e.findCTE(s, join.Table.Name)
 	if !ok {
-		// Virtual-table (table-valued function) columns, e.g. generate_series.
-		if join.Table.Args != nil {
-			if defs, _, _, err := e.ctx.MaterializeVtabTableFunc(join.Table, VtabScanOptions{}); err == nil {
-				for _, d := range defs {
-					if d.Name != "" {
-						availableCols[d.Name] = true
-					}
-				}
-			}
-		}
+		e.addVTabFuncCols(join.Table, availableCols)
 		return
 	}
 	if len(cteDef.Columns) > 0 {
@@ -117,6 +108,23 @@ func (e *SelectEngine) collectJoinTableCols(s *sql.SelectStmt, join sql.JoinClau
 		return
 	}
 	addSelectColumnsToSet(availableCols, cteDef.Select.Columns)
+}
+
+// addVTabFuncCols records a table-valued function operand's column names
+// (e.g. generate_series).
+func (e *SelectEngine) addVTabFuncCols(ref sql.TableRef, availableCols map[string]bool) {
+	if ref.Args == nil {
+		return
+	}
+	defs, _, _, err := e.ctx.MaterializeVtabTableFunc(ref, VtabScanOptions{})
+	if err != nil {
+		return
+	}
+	for _, d := range defs {
+		if d.Name != "" {
+			availableCols[d.Name] = true
+		}
+	}
 }
 
 // Shared helpers

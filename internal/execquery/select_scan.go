@@ -69,6 +69,14 @@ func (e *SelectEngine) partialCoverIndexForDistinct(s *sql.SelectStmt) []string 
 	for i, n := range need {
 		needLower[i] = strings.ToLower(n)
 	}
+	return e.scanDistinctCoveringIndex(entries, tableName, needLower)
+}
+
+// scanDistinctCoveringIndex returns the leading index column prefix that
+// covers the DISTINCT-needed columns: the first index on the table whose
+// leading columns match the needed column list in order (implicit
+// autoindexes excluded).
+func (e *SelectEngine) scanDistinctCoveringIndex(entries []*schema.Entry, tableName string, needLower []string) []string {
 	for _, entry := range entries {
 		if entry.Type != "index" || !strings.EqualFold(entry.TblName, tableName) {
 			continue
@@ -77,22 +85,25 @@ func (e *SelectEngine) partialCoverIndexForDistinct(s *sql.SelectStmt) []string 
 			continue
 		}
 		cols := e.ctx.ParseIndexColumns(entry.SQL)
-		if len(cols) == 0 {
-			continue
-		}
-		prefix := make([]string, 0, len(cols))
-		for i, c := range cols {
-			name := strings.ToLower(strings.TrimSpace(c))
-			if i >= len(needLower) || name != needLower[i] {
-				break
-			}
-			prefix = append(prefix, strings.TrimSpace(c))
-		}
-		if len(prefix) > 0 {
+		if prefix := leadingColumnPrefix(cols, needLower); len(prefix) > 0 {
 			return prefix
 		}
 	}
 	return nil
+}
+
+// leadingColumnPrefix returns the index columns matching needLower in order
+// from the start (original-cased), or nil when none match.
+func leadingColumnPrefix(cols, needLower []string) []string {
+	prefix := make([]string, 0, len(cols))
+	for i, c := range cols {
+		name := strings.ToLower(strings.TrimSpace(c))
+		if i >= len(needLower) || name != needLower[i] {
+			break
+		}
+		prefix = append(prefix, strings.TrimSpace(c))
+	}
+	return prefix
 }
 
 // sortDistinctRows sorts DISTINCT rows by their result columns.

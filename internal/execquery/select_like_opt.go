@@ -279,31 +279,50 @@ func likePrefixRange(pattern, escape string, hasEscape bool, matchAll, matchOne,
 			// at the very end of the pattern.
 			return likePrefixUnescaped(pattern, cnt, esc), c == matchAll && cnt == len(pattern)-1, true
 		}
-		if esc != 0 && c == esc {
-			if cnt+1 >= len(pattern) {
-				return "", false, false // trailing escape char
-			}
-			cnt += 2 // escape + escaped literal byte
-			continue
+		next, truncated, malformed := advanceLikeLiteral(pattern, cnt, esc)
+		if truncated {
+			return "", false, false // trailing escape char
 		}
-		if c >= 0x80 {
-			next := likeUTF8WidthAt(pattern, cnt)
-			if next == 0 {
-				return likePrefixUnescaped(pattern, cnt, esc), false, true
-			}
-			cnt = next
-			continue
+		if malformed {
+			return likePrefixUnescaped(pattern, cnt, esc), false, true
 		}
-		cnt++
+		cnt = next
 	}
 	// No wildcard: the whole pattern is the prefix. The optimization also
 	// requires at least one literal character after escape removal
 	// (isLikeOrGlob's (cnt>1 || z[0]!=wc[3]) guard).
+	return likePrefixComplete(pattern, cnt, esc)
+}
+
+// likePrefixComplete finalizes a wildcard-free prefix: the optimization
+// requires at least one literal character after escape removal.
+func likePrefixComplete(pattern string, cnt int, esc byte) (string, bool, bool) {
 	unesc := likePrefixUnescaped(pattern, cnt, esc)
 	if len(unesc) == 0 || (len(pattern) == 1 && esc != 0 && pattern[0] == esc) {
 		return "", false, false
 	}
 	return unesc, false, true
+}
+
+// advanceLikeLiteral advances past the literal byte at cnt: an escape pair
+// moves two bytes, a well-formed UTF-8 sequence moves to the next rune
+// boundary. truncated reports a trailing escape char; malformed reports a
+// malformed sequence (isLikeOrGlob stops the prefix there).
+func advanceLikeLiteral(pattern string, cnt int, esc byte) (next int, truncated bool, malformed bool) {
+	if esc != 0 && pattern[cnt] == esc {
+		if cnt+1 >= len(pattern) {
+			return 0, true, false
+		}
+		return cnt + 2, false, false
+	}
+	if pattern[cnt] >= 0x80 {
+		next := likeUTF8WidthAt(pattern, cnt)
+		if next == 0 {
+			return 0, false, true
+		}
+		return next, false, false
+	}
+	return cnt + 1, false, false
 }
 
 // likePrefixUnescaped strips escape bytes from the pattern prefix
