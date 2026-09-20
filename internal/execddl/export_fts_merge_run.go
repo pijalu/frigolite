@@ -646,10 +646,7 @@ func (r *ftsMergeRun) seedHierarchy() bool {
 		// (fts3IncrmergeLoad returns FTS_CORRUPT_VTAB).
 		return false
 	}
-	if lastLeaf != r.contLeavesEnd {
-		return false
-	}
-	return true
+	return lastLeaf == r.contLeavesEnd
 }
 
 // restoreChildChain walks the restored root's last-child chain down the

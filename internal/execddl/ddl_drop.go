@@ -479,7 +479,6 @@ func (e *DDLExecutor) loadFTSSegmentsForIndex(tableName string, ftsTable *fts.FT
 	// re-inserts rows ordered by level,idx), and applying delete-marker
 	// tombstones in the wrong order resurrects/kills the wrong documents
 	// (fts4opt 2.x: integrity-check missing-term failures after prepare).
-	type segRowInfo = ftsSegdirLoadRow
 	rows, loadSeen := e.collectSegdirRows(cursor, ftsTable, nIndex, iIndex)
 	// Oldest first (within one language): higher level = older; within one
 	// level, lower idx = older. The grouping and per-language isolation live

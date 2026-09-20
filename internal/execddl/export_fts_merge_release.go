@@ -24,7 +24,7 @@ import (
 // fts3IncrmergeAppend/fts3IncrmergePush).
 func (r *ftsMergeRun) writeOutBlock(blk []byte) (int, error) {
 	next, cached := r.ftsTable.NextBlockID()
-	next, cached = r.nextOutputBlockID(next, cached)
+	next, _ = r.nextOutputBlockID(next, cached)
 	if r.firstBlock == 0 {
 		r.firstBlock = next
 	}
