@@ -114,8 +114,3 @@ func (r *recoveryState) freelistHead() uint32 {
 	return binary.BigEndian.Uint32(hdr[32:36])
 }
 
-// parsePageAt parses the btree page image at data with the page-1 header
-// offset applied.
-func parsePageAt(pgd *pager.Page, coff, pageSize int) (*storage.BTreePage, error) {
-	return storage.ParsePage(pgd.Data, pageSize, coff)
-}

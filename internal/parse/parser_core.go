@@ -550,26 +550,6 @@ func getJoinOp(v interface{}) joinOp {
 	return joinOp{}
 }
 
-// joinKind maps a JOIN_KW token value to a join type keyword.
-func joinKind(v interface{}) string {
-	s := getString(v)
-	switch strings.ToUpper(s) {
-	case "LEFT":
-		return "LEFT"
-	case "RIGHT":
-		return "RIGHT"
-	case "FULL":
-		return "FULL"
-	case "INNER":
-		return "INNER"
-	case "CROSS":
-		return "CROSS"
-	case "NATURAL":
-		return "NATURAL"
-	default:
-		return ""
-	}
-}
 
 // combineJoinKeywords merges the join-type keywords of a joinop into the
 // normalized join-type string the exec layer understands, porting select.c

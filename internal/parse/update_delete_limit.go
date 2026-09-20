@@ -209,16 +209,11 @@ func topLevelOrderBy(s string) int {
 // after offset from.
 func topLevelLimitAfter(s string, from int) bool {
 	rest := s[from:]
-	for {
-		idx := topLevelKeyword(rest, []string{"LIMIT"})
-		if idx < 0 {
-			return false
-		}
-		// A LIMIT inside a parenthesised sub-expression would have been
-		// skipped only if depth tracked it; topLevelKeyword already ignores
-		// depth>0 tokens, so this is top-level.
-		return true
-	}
+	idx := topLevelKeyword(rest, []string{"LIMIT"})
+	// A LIMIT inside a parenthesised sub-expression would have been
+	// skipped only if depth tracked it; topLevelKeyword already ignores
+	// depth>0 tokens, so this is top-level.
+	return idx >= 0
 }
 
 // leadingWord returns the first alphabetic word of s (for BY checks).

@@ -183,9 +183,7 @@ func RecoverSQL(pg *pager.Pager, opts Options) (string, error) {
 			} else {
 				parts = append(parts, renderValue(r.id))
 			}
-			for _, v := range r.values {
-				parts = append(parts, v)
-			}
+			parts = append(parts, r.values...)
 			fmt.Fprintf(&sb, "INSERT INTO %s VALUES(%s);\n",
 				lafName, strings.Join(parts, ", "))
 		}
