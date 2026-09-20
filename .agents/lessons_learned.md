@@ -7494,7 +7494,6 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **Pre-existing ≠ fixed**: fts4merge (4.1/4.2 datatype-mismatch/mismatch) was already
   adjudicated pre-existing at the T27 census — do not absorb it into a btree fix.
 
-<<<<<<< HEAD
 ## §5d Quality-Closure — pager package (2026-09-19, fleet/q5-pager)
 - **Splitting pager.go (2572 lines) by responsibility was purely line-range extraction**:
   Open/openPager → pageropen.go, PRAGMA surface → pagerconfig.go, allocation+cache reads →
@@ -7524,7 +7523,6 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **Worktree fixture gap**: gitignored `testdata/walconformance/*.db{,-journal,-wal}` are
   absent in fresh worktrees → TestJournalConformance fails with missing-fixture. Copy them
   from the main repo to get a green baseline before refactoring (they are read-only inputs).
-=======
 ## §5d.funcjson (2026-09-19) — quality-closure refactoring of internal/function (JSON1/JSONB) + sql
 
 - **Package-local tests are NOT enough for pure-refactor confidence**: the function
@@ -7560,4 +7558,3 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **gofmt drift exists outside the fenced areas** (internal/util/compare.go,
   internal/storage/ptrmap.go at base d142af13b) — leave other agents' files alone
   and report the drift instead of reformatting across cluster boundaries.
->>>>>>> fleet/q5-funcjson
