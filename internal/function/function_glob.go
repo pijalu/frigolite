@@ -62,8 +62,8 @@ func globMatchClass(s, pattern string, px, sx int) (bool, int, int) {
 	if ch == utf8.RuneError && size <= 1 {
 		ch = rune(s[sx])
 	}
-	seen, invert, pi := globClassScan(pattern, px+1, ch)
-	if seen == invert {
+	ok, pi := globClassScan(pattern, px+1, ch)
+	if !ok {
 		return false, px, sx
 	}
 	return true, pi, sx + size
@@ -71,9 +71,10 @@ func globMatchClass(s, pattern string, px, sx int) (bool, int, int) {
 
 // globClassScan walks the class body starting just past '[': an optional
 // '^' inversion, then items up to the closing ']' (an unterminated class
-// reports no match). It returns whether ch was seen, the inversion flag,
-// and the offset just past the class.
-func globClassScan(pattern string, pi int, ch rune) (seen, invert bool, end int) {
+// never matches). It returns whether ch matches the class and the offset
+// just past the class.
+func globClassScan(pattern string, pi int, ch rune) (match bool, end int) {
+	seen, invert := false, false
 	priorC := rune(0)
 	c2, pi := globClassNext(pattern, pi)
 	if c2 == '^' {
@@ -102,9 +103,9 @@ func globClassScan(pattern string, pi int, ch rune) (seen, invert bool, end int)
 		c2, pi = globClassNext(pattern, pi)
 	}
 	if c2 == 0 { // unterminated class never matches
-		return false, invert, pi
+		return false, pi
 	}
-	return seen, invert, pi
+	return seen != invert, pi
 }
 
 // globClassNext decodes the next class rune; (0, pi) marks the end of the
