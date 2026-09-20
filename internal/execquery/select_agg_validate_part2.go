@@ -51,14 +51,7 @@ func (e *SelectEngine) whereInSubqOuterAggRef(expr sql.Expr) string {
 		return ""
 	}
 	if il, ok := expr.(*sql.InList); ok {
-		for _, el := range il.List {
-			if sub, ok := el.(*sql.Subquery); ok && sub.Select != nil {
-				if name := e.subqueryOuterAggRef(sub.Select); name != "" {
-					return name
-				}
-			}
-		}
-		if name := e.whereInSubqOuterAggRef(il.Operand); name != "" {
+		if name := e.inListOuterAggRef(il); name != "" {
 			return name
 		}
 	}
@@ -68,6 +61,19 @@ func (e *SelectEngine) whereInSubqOuterAggRef(expr sql.Expr) string {
 		}
 	}
 	return ""
+}
+
+// inListOuterAggRef checks an IN-list's items (each may be a scalar subquery
+// with a correlated aggregate) and its operand.
+func (e *SelectEngine) inListOuterAggRef(il *sql.InList) string {
+	for _, el := range il.List {
+		if sub, ok := el.(*sql.Subquery); ok && sub.Select != nil {
+			if name := e.subqueryOuterAggRef(sub.Select); name != "" {
+				return name
+			}
+		}
+	}
+	return e.whereInSubqOuterAggRef(il.Operand)
 }
 
 // whereSubqueryOuterAggRef walks a predicate expression for a scalar subquery

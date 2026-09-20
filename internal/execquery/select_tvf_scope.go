@@ -80,26 +80,42 @@ func checkTVFArgTables(arg sql.Expr, items []tvfScopeItem, itemIdx int, outer, n
 		if !ok || cr.Table == "" {
 			return
 		}
-		t := strings.ToLower(cr.Table)
-		if dot := strings.LastIndex(t, "."); dot >= 0 {
-			t = t[dot+1:] // strip a schema qualifier (main.t2 -> t2)
-		}
-		for j, cand := range items {
-			if cand.name != t {
-				continue
-			}
-			if j > itemIdx && outer {
-				firstErr = fmt.Errorf("table-function argument references tables to its right")
-			}
-			return
-		}
-		// Outside this SELECT scope: a parenthesized JOIN group is a
-		// non-lateral subquery whose arguments never see past its own FROM
-		// clause (tabfunc01-1420); correlated subqueries keep outer visibility,
-		// so their unresolved references are left to evaluation time.
-		if nonLateral {
-			firstErr = fmt.Errorf("no such column: %s.%s", cr.Table, cr.Name)
+		t := stripSchemaQualifier(cr.Table)
+		if msg := tvfArgTableErr(t, cr, items, itemIdx, outer, nonLateral); msg != "" {
+			firstErr = fmt.Errorf("%s", msg)
 		}
 	})
 	return firstErr
+}
+
+// stripSchemaQualifier strips a schema qualifier from a table reference
+// (main.t2 -> t2).
+func stripSchemaQualifier(table string) string {
+	t := strings.ToLower(table)
+	if dot := strings.LastIndex(t, "."); dot >= 0 {
+		return t[dot+1:]
+	}
+	return t
+}
+
+// tvfArgTableErr validates one qualified column reference inside a
+// table-function argument: "" when allowed, the error text otherwise.
+// Outside this SELECT scope: a parenthesized JOIN group is a non-lateral
+// subquery whose arguments never see past its own FROM clause
+// (tabfunc01-1420); correlated subqueries keep outer visibility, so their
+// unresolved references are left to evaluation time.
+func tvfArgTableErr(t string, cr *sql.ColumnRef, items []tvfScopeItem, itemIdx int, outer, nonLateral bool) string {
+	for j, cand := range items {
+		if cand.name != t {
+			continue
+		}
+		if j > itemIdx && outer {
+			return "table-function argument references tables to its right"
+		}
+		return ""
+	}
+	if nonLateral {
+		return fmt.Sprintf("no such column: %s.%s", cr.Table, cr.Name)
+	}
+	return ""
 }

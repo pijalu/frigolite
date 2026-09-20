@@ -22,32 +22,7 @@ func wrStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int {
 	if idx < 0 || !strings.Contains(up[idx:], "WITHOUT") {
 		return nil
 	}
-	byName := make(map[string]int, len(colDefs))
-	for i, cd := range colDefs {
-		byName[strings.ToLower(cd.Name)] = i
-	}
-	var pkIdx []int
-	for _, name := range wrTableLevelPK(createSQL) {
-		if di, ok := byName[strings.ToLower(name)]; ok {
-			dup := false
-			for _, p := range pkIdx {
-				if p == di {
-					dup = true
-					break
-				}
-			}
-			if !dup {
-				pkIdx = append(pkIdx, di)
-			}
-		}
-	}
-	if len(pkIdx) == 0 {
-		for i, cd := range colDefs {
-			if cd.PrimaryKey {
-				pkIdx = append(pkIdx, i)
-			}
-		}
-	}
+	pkIdx := wrStoragePKIndexes(createSQL, colDefs)
 	inPK := make(map[int]bool, len(pkIdx))
 	for _, i := range pkIdx {
 		inPK[i] = true
@@ -60,6 +35,40 @@ func wrStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int {
 		}
 	}
 	return order
+}
+
+// wrStoragePKIndexes resolves a WITHOUT ROWID table's PK column indexes: the
+// table-level PRIMARY KEY(...) list when present, else the per-column
+// PRIMARY KEY flags, in declared order with duplicates removed.
+func wrStoragePKIndexes(createSQL string, colDefs []sql.ColumnDef) []int {
+	byName := make(map[string]int, len(colDefs))
+	for i, cd := range colDefs {
+		byName[strings.ToLower(cd.Name)] = i
+	}
+	var pkIdx []int
+	for _, name := range wrTableLevelPK(createSQL) {
+		if di, ok := byName[strings.ToLower(name)]; ok && !intIn(pkIdx, di) {
+			pkIdx = append(pkIdx, di)
+		}
+	}
+	if len(pkIdx) == 0 {
+		for i, cd := range colDefs {
+			if cd.PrimaryKey {
+				pkIdx = append(pkIdx, i)
+			}
+		}
+	}
+	return pkIdx
+}
+
+// intIn reports whether v is present in vals.
+func intIn(vals []int, v int) bool {
+	for _, x := range vals {
+		if x == v {
+			return true
+		}
+	}
+	return false
 }
 
 // wrTableLevelPK extracts the PRIMARY KEY(...) column list from CREATE TABLE
@@ -145,33 +154,4 @@ func wrRemapToDeclared(values []interface{}, order []int, colDefs []sql.ColumnDe
 	for s, di := range order {
 		values[di] = tmp[s]
 	}
-}
-
-// wrRemapRowMapsToDeclared rebuilds row maps whose values were captured in
-// storage order back into declared-order maps. Values are looked up by
-// column name so wrapped ColumnValue/collation wrappers survive intact.
-func wrRemapRowMapsToDeclared(maps []RowMap, order []int, colDefs []sql.ColumnDef) []RowMap {
-	out := make([]RowMap, len(maps))
-	for i, m := range maps {
-		nm := make(RowMap, len(m))
-		for k, v := range m {
-			nm[k] = v
-		}
-		if len(order) == len(colDefs) {
-			storageVals := make([]interface{}, len(colDefs))
-			for s, di := range order {
-				if di < len(colDefs) {
-					storageVals[s] = m[colDefs[di].Name]
-				}
-			}
-			wrRemapToDeclared(storageVals, order, colDefs)
-			for di, cd := range colDefs {
-				if di < len(storageVals) {
-					nm[cd.Name] = storageVals[di]
-				}
-			}
-		}
-		out[i] = nm
-	}
-	return out
 }

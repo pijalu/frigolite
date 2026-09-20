@@ -102,8 +102,6 @@ func (e *SelectEngine) validateOrderGroupByTerms(s *sql.SelectStmt) error {
 }
 
 func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
-	if len(s.Joins) > 0 {
-	}
 	e.selectDepth++
 	if e.selectDepth == 1 {
 		e.resultTooWide = false // per-statement state
@@ -125,48 +123,17 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	if err := e.validateTVFArgScope(s); err != nil {
 		return &Result{Error: err}
 	}
+	if res := e.enterCTEScopes(s); res != nil {
+		return res
+	}
 	if len(s.CTEs) > 0 {
-		if dup := duplicateCTEName(s.CTEs); dup != "" {
-			return &Result{Error: fmt.Errorf("duplicate WITH table name: %s", dup)}
-		}
-		depth := len(e.cteScopes)
-		for i := range s.CTEs {
-			s.CTEs[i].ScopeDepth = depth
-		}
-		if os.Getenv("DBG_CTE") != "" {
-			for _, c := range s.CTEs {
-				fmt.Fprintf(os.Stderr, "DBG push %s depth=%d\n", c.Name, depth)
-			}
-		}
-		e.cteScopes = append(e.cteScopes, s.CTEs)
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
-	if err := e.validateOrderGroupByTerms(s); err != nil {
+	if err := e.validateSelectPreDispatch(s); err != nil {
 		return &Result{Error: err}
 	}
-	if err := e.validate.ValidateExprs(s); err != nil {
-		return &Result{Error: err}
-	}
-	if err := e.validateCompoundColumnCounts(s); err != nil {
-		return &Result{Error: err}
-	}
-	// SQLite resolves compound member FROM tables right-to-left, so a
-	// missing table in the LAST member is reported before an earlier
-	// member's (with3 1.0: "SELECT 5 FROM t0 UNION SELECT 8 FROM m" errors
-	// "no such table: m", not t0).
-	if err := e.validateCompoundFromTables(s); err != nil {
-		return &Result{Error: err}
-	}
-	// INDEXED BY is only valid against a real table: a FROM term that
-	// resolves to a VIEW has no indexes, so any INDEXED BY name on it
-	// reports "no such index" (indexedby-6.4: SELECT * FROM v1 INDEXED BY
-	// i1 where v1 is a view).
-	if s.From.IndexedBy != "" && s.From.Name != "" && !s.From.EmptyName && s.From.Subquery == nil {
-		if _, _, terr := e.ctx.FindTable(s.From.Name); terr != nil {
-			if _, _, verr := e.ctx.FindView(s.From.Name); verr == nil {
-				return &Result{Error: fmt.Errorf("no such index: %s", s.From.IndexedBy)}
-			}
-		}
+	if res := e.indexedByOnViewError(s); res != nil {
+		return res
 	}
 	if aliasMap := selectAliasMap(s); len(aliasMap) > 0 {
 		e.aliasStack = append(e.aliasStack, aliasMap)
@@ -178,6 +145,72 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	if result, handled := e.execSelectFrom(s); handled {
 		return result
 	}
+	return e.execRealTableSelect(s)
+}
+
+// validateSelectPreDispatch runs the statement-level validations before FROM
+// dispatch: ORDER BY/GROUP BY term shape, expression validity, compound
+// column counts, and compound FROM table resolution. SQLite resolves compound
+// member FROM tables right-to-left, so a missing table in the LAST member is
+// reported before an earlier member's (with3 1.0: "SELECT 5 FROM t0 UNION
+// SELECT 8 FROM m" errors "no such table: m", not t0).
+func (e *SelectEngine) validateSelectPreDispatch(s *sql.SelectStmt) error {
+	if err := e.validateOrderGroupByTerms(s); err != nil {
+		return err
+	}
+	if err := e.validate.ValidateExprs(s); err != nil {
+		return err
+	}
+	if err := e.validateCompoundColumnCounts(s); err != nil {
+		return err
+	}
+	return e.validateCompoundFromTables(s)
+}
+
+// indexedByOnViewError rejects INDEXED BY against a FROM term that resolves
+// to a VIEW: a view has no indexes, so any INDEXED BY name on it reports
+// "no such index" (indexedby-6.4: SELECT * FROM v1 INDEXED BY i1 where v1 is
+// a view).
+func (e *SelectEngine) indexedByOnViewError(s *sql.SelectStmt) *Result {
+	if s.From.IndexedBy == "" || s.From.Name == "" || s.From.EmptyName || s.From.Subquery != nil {
+		return nil
+	}
+	if _, _, terr := e.ctx.FindTable(s.From.Name); terr != nil {
+		if _, _, verr := e.ctx.FindView(s.From.Name); verr == nil {
+			return &Result{Error: fmt.Errorf("no such index: %s", s.From.IndexedBy)}
+		}
+	}
+	return nil
+}
+
+// enterCTEScopes validates the WITH clause's names, assigns each CTE its
+// scope depth, and pushes the CTE list onto the scope stack (the caller pops
+// one level when CTEs were present).
+func (e *SelectEngine) enterCTEScopes(s *sql.SelectStmt) *Result {
+	if len(s.CTEs) == 0 {
+		return nil
+	}
+	if dup := duplicateCTEName(s.CTEs); dup != "" {
+		return &Result{Error: fmt.Errorf("duplicate WITH table name: %s", dup)}
+	}
+	depth := len(e.cteScopes)
+	for i := range s.CTEs {
+		s.CTEs[i].ScopeDepth = depth
+	}
+	if os.Getenv("DBG_CTE") != "" {
+		for _, c := range s.CTEs {
+			fmt.Fprintf(os.Stderr, "DBG push %s depth=%d\n", c.Name, depth)
+		}
+	}
+	e.cteScopes = append(e.cteScopes, s.CTEs)
+	return nil
+}
+
+// execRealTableSelect executes a SELECT over a real (RootPage != 0) table:
+// resolve + prevalidate + scan + post-scan pipeline. The scan runs with the
+// FROM term's alias as the current scan table so correlated references
+// resolve under it.
+func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	tableEntry, dbCtx, result := e.resolveFromTable(s)
 	if result != nil {
 		return result
@@ -383,35 +416,39 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 		rowMaps = rebuildRowMapsFromRows(result.Rows, result.Columns)
 	}
 	if len(orderBy) > 0 {
-		if err := validateOrderBy(orderBy, len(result.Columns)); err != nil {
-			return &Result{Error: err}
+		resolved, rerr := e.resolveFinalOrderBy(s, orderBy, len(result.Columns), colls)
+		if rerr != nil {
+			return &Result{Error: rerr}
 		}
-		if s.Union != nil {
-			if err := e.validateCompoundOrderBy(s, orderBy); err != nil {
-				return &Result{Error: err}
-			}
-			orderBy = e.resolveCompoundOrderByTerms(s, orderBy)
-			// A compound ORDER BY inherits the result column's collation
-			// (SQLite: the first member with a defined collation wins —
-			// with1 10.8.4.x). An ordinal or bare term without its own
-			// COLLATE must sort with the compound column's collation, so
-			// wrap it in COLLATE when the column defines one.
-			orderBy = e.applyCompoundOrderByCollations(orderBy, colls)
-		}
-		if serr := e.sortRowsWithMaps(result, orderBy, rowMaps); serr != nil {
+		if serr := e.sortRowsWithMaps(result, resolved, rowMaps); serr != nil {
 			return &Result{Error: serr}
 		}
 	}
-	lExpr, lErr := e.evalLimitExpr(limit)
-	if lErr != nil {
-		return &Result{Error: lErr}
-	}
-	oExpr, oErr := e.evalLimitExpr(offset)
-	if oErr != nil {
-		return &Result{Error: oErr}
+	lExpr, oExpr, lerr := e.evalLimitOffsetExprs(limit, offset)
+	if lerr != nil {
+		return &Result{Error: lerr}
 	}
 	result.Rows = applyLimitOffset(result.Rows, lExpr, oExpr)
 	return result
+}
+
+// resolveFinalOrderBy validates and resolves a result's ORDER BY terms.
+// A compound ORDER BY inherits the result column's collation (SQLite: the
+// first member with a defined collation wins — with1 10.8.4.x): an ordinal
+// or bare term without its own COLLATE must sort with the compound column's
+// collation, so it is wrapped in COLLATE when the column defines one.
+func (e *SelectEngine) resolveFinalOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm, width int, colls []string) ([]sql.OrderByTerm, error) {
+	if err := validateOrderBy(orderBy, width); err != nil {
+		return nil, err
+	}
+	if s.Union == nil {
+		return orderBy, nil
+	}
+	if err := e.validateCompoundOrderBy(s, orderBy); err != nil {
+		return nil, err
+	}
+	orderBy = e.resolveCompoundOrderByTerms(s, orderBy)
+	return e.applyCompoundOrderByCollations(orderBy, colls), nil
 }
 
 // execSelectViewWithOuter executes a view and applies the outer SELECT's
@@ -462,21 +499,9 @@ func (e *SelectEngine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *sch
 		viewQual = s.From.As
 	}
 	rowMaps := viewRowMapsFromResult(viewResult.Rows, viewColDefs, viewQual)
-
-	if len(s.Joins) > 0 {
-		if err := e.validateAmbiguousColumnRefs(s); err != nil {
-			return &Result{Error: err}
-		}
-		var err error
-		rowMaps, viewColDefs, err = e.execJoins(s, rowMaps, viewColDefs)
-		if err != nil {
-			return &Result{Error: err}
-		}
-	}
-	var err2 error
-	rowMaps, err2 = filterRowMapsByWhere(e, s.Where, rowMaps)
-	if err2 != nil {
-		return &Result{Error: err2}
+	rowMaps, viewColDefs, jerr := e.joinAndViewRowMaps(s, rowMaps, viewColDefs)
+	if jerr != nil {
+		return &Result{Error: jerr}
 	}
 	if aggResult := e.handleSelectAggregates(s, rowMaps, viewColDefs); aggResult != nil {
 		return aggResult
@@ -500,6 +525,23 @@ func (e *SelectEngine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *sch
 		result.rowMaps = rowMaps
 	}
 	return e.finalizeSelectResult(result, s, rowMaps)
+}
+
+// joinAndViewRowMaps applies the outer statement's JOINs (with the ambiguous
+// reference pre-check) and WHERE filter over the view's row maps.
+func (e *SelectEngine) joinAndViewRowMaps(s *sql.SelectStmt, rowMaps []RowMap, viewColDefs []sql.ColumnDef) ([]RowMap, []sql.ColumnDef, error) {
+	if len(s.Joins) > 0 {
+		if err := e.validateAmbiguousColumnRefs(s); err != nil {
+			return nil, nil, err
+		}
+		var err error
+		rowMaps, viewColDefs, err = e.execJoins(s, rowMaps, viewColDefs)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	rowMaps, ferr := filterRowMapsByWhere(e, s.Where, rowMaps)
+	return rowMaps, viewColDefs, ferr
 }
 
 // execSelectNoFrom handles SELECT without FROM clause.
@@ -609,45 +651,11 @@ func (e *SelectEngine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 
 	// Handle UNION / INTERSECT / EXCEPT for no-FROM selects.
 	if s.Union != nil {
-		// The head row may contain a window function (e.g.
-		// VALUES(count(*)OVER()) UNION ...); fill it before merging.
-		if e.selectHasWindowFuncs(s.Columns) {
-			headResult := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
-			win := e.execWindowPass(s, e.buildNoFromRowMaps(headResult.Rows, columns), nil)
-			if win != nil && len(win.Rows) > 0 {
-				outRow = win.Rows[0]
-			}
-		}
-		rows, _, _, _, mergeErr := e.mergeCompoundChain([][]interface{}{outRow}, s, e.selectOutputCollations(s), len(columns))
-		if mergeErr != nil {
-			return &Result{Error: mergeErr}
-		}
-		result := &Result{Columns: columns, Rows: rows}
-		if ferr := e.finalizeNoFromSelect(result, s); ferr != nil {
-			return &Result{Error: ferr}
-		}
-		return result
+		return e.execNoFromCompound(s, columns, outRow)
 	}
 
 	result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
-	// Window-function pass over the single implicit row.
-	if e.selectHasWindowFuncs(s.Columns) {
-		rowMaps := e.buildNoFromRowMaps(result.Rows, columns)
-		// A window function whose argument/OVER clause contains a plain
-		// aggregate (e.g. min(max((SELECT x FROM v1))) OVER ()) is an
-		// aggregate query: precompute the inner aggregate over the implicit
-		// row and let the window pass resolve it (matching evalAggregates).
-		if len(rowMaps) > 0 && e.hasAggregates(s.Columns) {
-			e.storeWindowNestedAggs(rowMaps[0], s.Columns, rowMaps)
-			e.windowGroupOutputs = columns
-			e.windowGroupCols = s.Columns
-			defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
-		}
-		result = e.execWindowPass(s, rowMaps, nil)
-		if result == nil {
-			result = &Result{Columns: columns, Rows: [][]interface{}{outRow}}
-		}
-	}
+	result = e.applyNoFromWindowPass(result, s, columns)
 	if len(s.OrderBy) > 0 {
 		rowMaps := e.buildNoFromRowMaps(result.Rows, columns)
 		if serr := e.sortRowsWithMaps(result, s.OrderBy, rowMaps); serr != nil {
@@ -655,15 +663,57 @@ func (e *SelectEngine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 		}
 	}
 	if s.Limit != nil || s.Offset != nil {
-		lExpr, lErr := e.evalLimitExpr(s.Limit)
-		if lErr != nil {
-			return &Result{Error: lErr}
-		}
-		oExpr, oErr := e.evalLimitExpr(s.Offset)
-		if oErr != nil {
-			return &Result{Error: oErr}
+		lExpr, oExpr, lerr := e.evalLimitOffsetExprs(s.Limit, s.Offset)
+		if lerr != nil {
+			return &Result{Error: lerr}
 		}
 		result.Rows = applyLimitOffset(result.Rows, lExpr, oExpr)
+	}
+	return result
+}
+
+// execNoFromCompound merges the no-FROM head row through the compound chain.
+// The head row may contain a window function (e.g. VALUES(count(*)OVER())
+// UNION ...); it is filled before merging.
+func (e *SelectEngine) execNoFromCompound(s *sql.SelectStmt, columns []string, outRow []interface{}) *Result {
+	if e.selectHasWindowFuncs(s.Columns) {
+		headResult := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+		win := e.execWindowPass(s, e.buildNoFromRowMaps(headResult.Rows, columns), nil)
+		if win != nil && len(win.Rows) > 0 {
+			outRow = win.Rows[0]
+		}
+	}
+	rows, _, _, _, mergeErr := e.mergeCompoundChain([][]interface{}{outRow}, s, e.selectOutputCollations(s), len(columns))
+	if mergeErr != nil {
+		return &Result{Error: mergeErr}
+	}
+	result := &Result{Columns: columns, Rows: rows}
+	if ferr := e.finalizeNoFromSelect(result, s); ferr != nil {
+		return &Result{Error: ferr}
+	}
+	return result
+}
+
+// applyNoFromWindowPass runs the window pass over the single implicit row.
+// A window function whose argument/OVER clause contains a plain aggregate
+// (e.g. min(max((SELECT x FROM v1))) OVER ()) is an aggregate query:
+// precompute the inner aggregate over the implicit row and let the window
+// pass resolve it (matching evalAggregates).
+func (e *SelectEngine) applyNoFromWindowPass(result *Result, s *sql.SelectStmt, columns []string) *Result {
+	if !e.selectHasWindowFuncs(s.Columns) {
+		return result
+	}
+	outRow := result.Rows[0]
+	rowMaps := e.buildNoFromRowMaps(result.Rows, columns)
+	if len(rowMaps) > 0 && e.hasAggregates(s.Columns) {
+		e.storeWindowNestedAggs(rowMaps[0], s.Columns, rowMaps)
+		e.windowGroupOutputs = columns
+		e.windowGroupCols = s.Columns
+		defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
+	}
+	result = e.execWindowPass(s, rowMaps, nil)
+	if result == nil {
+		result = &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 	}
 	return result
 }
@@ -673,41 +723,45 @@ func (e *SelectEngine) finalizeNoFromSelect(result *Result, s *sql.SelectStmt) e
 	// A trailing ORDER BY / LIMIT / OFFSET on a compound lives on its LAST
 	// member (SQLite attaches it there); hoist it here for no-FROM selects.
 	orderBy, limit, offset := hoistCompoundNoFromClauses(s)
-	if len(orderBy) > 0 {
-		// Compound queries restrict ORDER BY terms to result column names or
-		// ordinals (SQLite: "Nth ORDER BY term does not match any column in
-		// the result set"). The no-FROM path merges compounds too (e.g.
-		// VALUES(2) EXCEPT SELECT '' ORDER BY abc), so validate the same way
-		// finalizeSelectResult does.
-		if err := validateOrderBy(orderBy, len(result.Columns)); err != nil {
-			result.Error = err
-			return err
-		}
-		if s.Union != nil {
-			if err := e.validateCompoundOrderBy(s, orderBy); err != nil {
-				result.Error = err
-				return err
-			}
-		}
-		rowMaps := e.buildNoFromRowMaps(result.Rows, result.Columns)
-		if serr := e.sortRowsWithMaps(result, orderBy, rowMaps); serr != nil {
-			result.Error = serr
-			return serr
-		}
+	if err := e.sortNoFromCompound(result, s, orderBy); err != nil {
+		return err
 	}
 	// Apply LIMIT/OFFSET
 	if limit != nil || offset != nil {
-		lExpr, lErr := e.evalLimitExpr(limit)
-		if lErr != nil {
-			result.Error = lErr
-			return lErr
-		}
-		oExpr, oErr := e.evalLimitExpr(offset)
-		if oErr != nil {
-			result.Error = oErr
-			return oErr
+		lExpr, oExpr, lerr := e.evalLimitOffsetExprs(limit, offset)
+		if lerr != nil {
+			result.Error = lerr
+			return lerr
 		}
 		result.Rows = applyLimitOffset(result.Rows, lExpr, oExpr)
+	}
+	return nil
+}
+
+// sortNoFromCompound validates and applies a no-FROM (possibly compound)
+// result's ORDER BY. Compound queries restrict ORDER BY terms to result
+// column names or ordinals (SQLite: "Nth ORDER BY term does not match any
+// column in the result set"). The no-FROM path merges compounds too (e.g.
+// VALUES(2) EXCEPT SELECT ” ORDER BY abc), so validate the same way
+// finalizeSelectResult does.
+func (e *SelectEngine) sortNoFromCompound(result *Result, s *sql.SelectStmt, orderBy []sql.OrderByTerm) error {
+	if len(orderBy) == 0 {
+		return nil
+	}
+	if err := validateOrderBy(orderBy, len(result.Columns)); err != nil {
+		result.Error = err
+		return err
+	}
+	if s.Union != nil {
+		if err := e.validateCompoundOrderBy(s, orderBy); err != nil {
+			result.Error = err
+			return err
+		}
+	}
+	rowMaps := e.buildNoFromRowMaps(result.Rows, result.Columns)
+	if serr := e.sortRowsWithMaps(result, orderBy, rowMaps); serr != nil {
+		result.Error = serr
+		return serr
 	}
 	return nil
 }

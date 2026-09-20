@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -78,94 +79,6 @@ func hasTopLevelOR(expr sql.Expr) bool {
 	return false
 }
 
-// commonOrBranchConstraints and splitTopLevelOr remain available for future
-// per-branch skip-scan work in the OR-index optimization
-// (internal/execdml/or.go::bestIndexForOrBranch). The skip-scan path itself
-// bails on top-level OR for now (see trySkipScanPlan), so these helpers are
-// not exercised at runtime. Keep them around for the planned OR-with-skip-
-// scan follow-on.
-
-// commonOrBranchConstraints returns the columns that are constrained by EVERY
-// top-level OR branch (intersection of branch constraint sets), along with a
-// synthetic WHERE expression composed only of the universally-constrained
-// column predicates. SQLite's per-branch OR optimization gives each branch its
-// own skip-scan WhereLoop (or regular lookup); we approximate that with a
-// common-prefix WHERE that the skip-scan planner then handles identically.
-//
-// For the skip-scan EQP output, this returns a plan where the unconstrained
-// leading cols come from any branch variation (ANY), and the constrained cols
-// are the ones present in every branch (so they're always constrained when
-// skip-scan iterates).
-func commonOrBranchConstraints(where sql.Expr, tableName string) (map[string]bool, sql.Expr) {
-	branches := splitTopLevelOr(where)
-	if len(branches) < 2 {
-		return nil, where
-	}
-	common := constrainedColumnNames(branches[0], tableName)
-	if len(common) == 0 {
-		return nil, where
-	}
-	for _, br := range branches[1:] {
-		cols := constrainedColumnNames(br, tableName)
-		for c := range common {
-			if !cols[c] {
-				delete(common, c)
-			}
-		}
-	}
-	if len(common) == 0 {
-		return nil, where
-	}
-	var parts []sql.Expr
-	for _, br := range branches {
-		walkExpr(br, func(e sql.Expr) {
-			bin, ok := e.(*sql.BinaryOp)
-			if !ok {
-				return
-			}
-			if bin.Operator == "AND" || bin.Operator == "OR" {
-				return
-			}
-			col, ok := bin.Left.(*sql.ColumnRef)
-			if !ok {
-				return
-			}
-			if col.Table != "" && !strings.EqualFold(col.Table, tableName) {
-				return
-			}
-			if common[strings.ToLower(col.Name)] {
-				parts = append(parts, e)
-			}
-		})
-	}
-	var commonWhere sql.Expr
-	if len(parts) == 0 {
-		commonWhere = where
-	} else {
-		commonWhere = parts[0]
-		for _, p := range parts[1:] {
-			commonWhere = &sql.BinaryOp{Operator: "AND", Left: commonWhere, Right: p}
-		}
-	}
-	return common, commonWhere
-}
-
-// splitTopLevelOr splits an expression into its top-level OR branches.
-func splitTopLevelOr(expr sql.Expr) []sql.Expr {
-	if expr == nil {
-		return nil
-	}
-	switch e := expr.(type) {
-	case *sql.BinaryOp:
-		if strings.EqualFold(e.Operator, "OR") {
-			return append(splitTopLevelOr(e.Left), splitTopLevelOr(e.Right)...)
-		}
-	case *sql.ParenExpr:
-		return splitTopLevelOr(e.Expr)
-	}
-	return []sql.Expr{expr}
-}
-
 // trySkipScanPlan examines all indexes on tableName for skip-scan candidates:
 // an index where the first K columns are unconstrained by WHERE but later
 // columns are, with avg repeats at level K+1 (from stat1) >= 18. Returns the
@@ -217,6 +130,33 @@ func (e *SelectEngine) trySkipScanPlan(tableName string, where sql.Expr, bestEst
 		}
 	}
 
+	best := e.bestSkipScanIndex(entries, tableName, constrainedCols, colOps, nRow)
+	if best == nil {
+		return nil
+	}
+	return best
+}
+
+// bestSkipScanIndex enumerates the table's candidate indexes (schema indexes
+// plus the implicit PRIMARY KEY of a WITHOUT ROWID table) and returns the
+// skip-scan plan with the lowest estimated row count. The stat1 row for a
+// WITHOUT ROWID PK uses the table name (or sqlite_autoindex_<tbl>_1) as idx;
+// it is looked up via the schema rather than hard-coding "PRIMARY KEY".
+func (e *SelectEngine) bestSkipScanIndex(entries []*schema.Entry, tableName string, constrainedCols map[string]bool, colOps map[string]string, nRow int64) *skipScanPlan {
+	best := e.bestSchemaSkipScan(entries, tableName, constrainedCols, colOps, nRow)
+	if pkCols := e.withoutRowidPKCols(tableName); len(pkCols) >= 2 {
+		pkStatName := e.primaryKeyStatName(tableName)
+		plan := e.skipScanForColumnsWithStatName("PRIMARY KEY", pkCols, constrainedCols, colOps, nRow, pkStatName)
+		if plan != nil && (best == nil || plan.estRows < best.estRows) {
+			best = plan
+		}
+	}
+	return best
+}
+
+// bestSchemaSkipScan enumerates the schema's declared indexes on the table
+// and returns the skip-scan plan with the lowest estimated row count.
+func (e *SelectEngine) bestSchemaSkipScan(entries []*schema.Entry, tableName string, constrainedCols map[string]bool, colOps map[string]string, nRow int64) *skipScanPlan {
 	var best *skipScanPlan
 	for _, entry := range entries {
 		if entry.Type != "index" || entry.TblName != tableName {
@@ -239,22 +179,6 @@ func (e *SelectEngine) trySkipScanPlan(tableName string, where sql.Expr, bestEst
 			best = plan
 		}
 	}
-
-	// Also consider the implicit PRIMARY KEY index on WITHOUT ROWID tables.
-	// The stat1 row for a WITHOUT ROWID PK uses the table name (or
-	// sqlite_autoindex_<tbl>_1) as idx; we look it up via the schema rather
-	// than hard-coding "PRIMARY KEY".
-	if pkCols := e.withoutRowidPKCols(tableName); len(pkCols) >= 2 {
-		pkStatName := e.primaryKeyStatName(tableName)
-		plan := e.skipScanForColumnsWithStatName("PRIMARY KEY", pkCols, constrainedCols, colOps, nRow, pkStatName)
-		if plan != nil && (best == nil || plan.estRows < best.estRows) {
-			best = plan
-		}
-	}
-
-	if best == nil {
-		return nil
-	}
 	return best
 }
 
@@ -271,42 +195,61 @@ func (e *SelectEngine) skipScanForColumns(idxName string, cols []string, constra
 // skipScanForColumnsWithStatName is the internal worker; pass a different
 // statName (e.g. for a WITHOUT ROWID table's implicit PRIMARY KEY whose
 // stat1 idx column is the table name itself).
-func (e *SelectEngine) skipScanForColumnsWithStatName(idxName string, cols []string, constrainedCols map[string]bool, colOps map[string]string, nRow int64, statName string) *skipScanPlan {
-	// Two skip-scan modes:
-	//   1. K unconstrained leading cols + 1 constrained trailing col (basic).
-	//   2. K constrained leading cols + >=1 unconstrained col + 1 constrained
-	//      trailing col (2014-08-20 addition; needed for skipscan3.test 1.3:
-	//      `a=1 AND c=32` -> ANY(a) AND ANY(b) AND c=? where the leading col a IS
-	//      constrained and acts as a single-value iteration variable).
-	// We try mode 2 first (more permissive), then mode 1.
-	nSkip := 0
+// skipScanSkipCount determines the number of leading index columns the
+// skip-scan iterates over, or -1 when the shape does not apply. Two modes:
+//  1. K unconstrained leading cols + 1 constrained trailing col (basic).
+//  2. K constrained leading cols + >=1 unconstrained col + 1 constrained
+//     trailing col (2014-08-20 addition; needed for skipscan3.test 1.3:
+//     `a=1 AND c=32` -> ANY(a) AND ANY(b) AND c=? where the leading col a IS
+//     constrained and acts as a single-value iteration variable).
+//
+// Mode 2 is tried first (more permissive), then mode 1.
+func skipScanSkipCount(cols []string, constrainedCols map[string]bool) int {
 	if constrainedCols[strings.ToLower(cols[0])] {
-		// Mode 2: count constrained leading cols.
-		for nSkip < len(cols)-1 && constrainedCols[strings.ToLower(cols[nSkip])] {
-			nSkip++
+		return skipScanSkipCountConstrainedHead(cols, constrainedCols)
+	}
+	// Mode 1: standard skip-scan.
+	nSkip := 0
+	for nSkip < len(cols)-1 && !constrainedCols[strings.ToLower(cols[nSkip])] {
+		nSkip++
+	}
+	if nSkip == 0 {
+		return -1
+	}
+	// Need the NEXT column to be constrained for skip-scan to apply.
+	if !constrainedCols[strings.ToLower(cols[nSkip])] {
+		return -1
+	}
+	return nSkip
+}
+
+// skipScanSkipCountConstrainedHead is mode 2: count constrained leading cols,
+// then require >=1 unconstrained col between the leading constraint and the
+// next constrained col. The "next constrained col" can be at position
+// len(cols)-1 (the last col), which then becomes the skip-scan tail.
+func skipScanSkipCountConstrainedHead(cols []string, constrainedCols map[string]bool) int {
+	nSkip := 0
+	for nSkip < len(cols)-1 && constrainedCols[strings.ToLower(cols[nSkip])] {
+		nSkip++
+	}
+	if nSkip < len(cols)-1 {
+		start := nSkip
+		for nSkip = start; nSkip < len(cols) && !constrainedCols[strings.ToLower(cols[nSkip])]; nSkip++ {
 		}
-		// Need >=1 unconstrained col between leading constraint and the next
-		// constrained col. The "next constrained col" can be at position
-		// len(cols)-1 (the last col), which then becomes the skip-scan tail.
-		if nSkip < len(cols)-1 {
-			start := nSkip
-			for nSkip = start; nSkip < len(cols) && !constrainedCols[strings.ToLower(cols[nSkip])]; nSkip++ {
-			}
-			if nSkip == start || nSkip >= len(cols) {
-				return nil
-			}
-		}
-	} else {
-		// Mode 1: standard skip-scan.
-		for nSkip < len(cols)-1 && !constrainedCols[strings.ToLower(cols[nSkip])] {
-			nSkip++
-		}
-		if nSkip == 0 {
-			return nil
+		if nSkip == start || nSkip >= len(cols) {
+			return -1
 		}
 	}
 	// Need the NEXT column to be constrained for skip-scan to apply.
 	if !constrainedCols[strings.ToLower(cols[nSkip])] {
+		return -1
+	}
+	return nSkip
+}
+
+func (e *SelectEngine) skipScanForColumnsWithStatName(idxName string, cols []string, constrainedCols map[string]bool, colOps map[string]string, nRow int64, statName string) *skipScanPlan {
+	nSkip := skipScanSkipCount(cols, constrainedCols)
+	if nSkip < 0 {
 		return nil
 	}
 	// Read stat1: stat[i] = avg rows per distinct value of prefix length i+1.
@@ -391,55 +334,7 @@ func formatSkipScanConditions(cols []string, nSkip int, colOps map[string]string
 // UnaryOp children (e.g. `+a=1`) are not considered to constrain the column.
 func constrainedColumnNames(where sql.Expr, tableName string) map[string]bool {
 	out := map[string]bool{}
-	if where == nil {
-		return out
-	}
-	var walk func(sql.Expr)
-	walk = func(expr sql.Expr) {
-		switch e := expr.(type) {
-		case *sql.BinaryOp:
-			if e.Operator == "AND" || e.Operator == "OR" {
-				walk(e.Left)
-				walk(e.Right)
-				return
-			}
-			if col, ok := e.Left.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = true
-					return
-				}
-			}
-			if col, ok := e.Right.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = true
-					return
-				}
-			}
-			// Recurse into UnaryOp children (e.g. `+a=1` whose Left is UnaryOp(+, a)).
-			walk(e.Left)
-			walk(e.Right)
-		case *sql.Between:
-			if col, ok := e.Operand.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = true
-				}
-			}
-		case *sql.ParenExpr:
-			walk(e.Expr)
-		case *sql.InList:
-			if col, ok := e.Operand.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = true
-				}
-			}
-		case *sql.UnaryOp:
-			// Unary + / - on a column reference (e.g. `+a=1`) is a no-op
-			// numeric coercion that doesn't actually constrain the column for
-			// skip-scan purposes (SQLite's skipscan3.test 1.2: `+a=1 AND c=32`
-			// becomes `(ANY(a) AND ANY(b) AND c=?)`). Do not recurse.
-		}
-	}
-	walk(where)
+	walkConstrainedCols(where, tableName, false, func(col, _ string) { out[col] = true })
 	return out
 }
 
@@ -448,52 +343,70 @@ func constrainedColumnNames(where sql.Expr, tableName string) map[string]bool {
 // with the correct shape (e.g. `c>? AND c<?` for BETWEEN c 6 AND 7).
 func constrainedColOps(where sql.Expr, tableName string) map[string]string {
 	out := map[string]string{}
+	walkConstrainedCols(where, tableName, true, func(col, op string) { out[col] = op })
+	return out
+}
+
+// walkConstrainedCols visits every column-to-constant constraint in where,
+// invoking mark with the lower-cased column name and its operator ("=",
+// "BETWEEN", "IN"). recurseUnary selects whether UnaryOp subtrees descend:
+// Unary + / - on a column reference (e.g. `+a=1`) is a no-op numeric coercion
+// that does not constrain the column for skip-scan purposes (SQLite's
+// skipscan3.test 1.2: `+a=1 AND c=32` becomes `(ANY(a) AND ANY(b) AND c=?)`),
+// so the name collector skips those subtrees while the operator collector
+// descends.
+func walkConstrainedCols(where sql.Expr, tableName string, recurseUnary bool, mark func(col, op string)) {
 	if where == nil {
-		return out
+		return
 	}
-	var walk func(sql.Expr)
-	walk = func(expr sql.Expr) {
-		switch e := expr.(type) {
-		case *sql.BinaryOp:
-			if e.Operator == "AND" || e.Operator == "OR" {
-				walk(e.Left)
-				walk(e.Right)
-				return
-			}
-			if col, ok := e.Left.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = "="
-					return
-				}
-			}
-			if col, ok := e.Right.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = "="
-					return
-				}
-			}
-			walk(e.Left)
-			walk(e.Right)
-		case *sql.Between:
-			if col, ok := e.Operand.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = "BETWEEN"
-				}
-			}
-		case *sql.InList:
-			if col, ok := e.Operand.(*sql.ColumnRef); ok {
-				if col.Table == "" || strings.EqualFold(col.Table, tableName) {
-					out[strings.ToLower(col.Name)] = "IN"
-				}
-			}
-		case *sql.ParenExpr:
-			walk(e.Expr)
-		case *sql.UnaryOp:
-			walk(e.Operand)
+	switch e := where.(type) {
+	case *sql.BinaryOp:
+		if e.Operator == "AND" || e.Operator == "OR" {
+			walkConstrainedCols(e.Left, tableName, recurseUnary, mark)
+			walkConstrainedCols(e.Right, tableName, recurseUnary, mark)
+			return
+		}
+		if constraintOperandCol(e, tableName, "=", mark) {
+			return
+		}
+		walkConstrainedCols(e.Left, tableName, recurseUnary, mark)
+		walkConstrainedCols(e.Right, tableName, recurseUnary, mark)
+	case *sql.Between:
+		constrainedOperandCol(e.Operand, tableName, "BETWEEN", mark)
+	case *sql.InList:
+		constrainedOperandCol(e.Operand, tableName, "IN", mark)
+	case *sql.ParenExpr:
+		walkConstrainedCols(e.Expr, tableName, recurseUnary, mark)
+	case *sql.UnaryOp:
+		if recurseUnary {
+			walkConstrainedCols(e.Operand, tableName, recurseUnary, mark)
 		}
 	}
-	walk(where)
-	return out
+}
+
+// constraintOperandCol marks a comparison's constraint column when either
+// side (left preferred) is a table-local column reference. Reports whether
+// the constraint was consumed.
+func constraintOperandCol(bin *sql.BinaryOp, tableName, op string, mark func(col, opv string)) bool {
+	for _, side := range []sql.Expr{bin.Left, bin.Right} {
+		if col, ok := side.(*sql.ColumnRef); ok {
+			if col.Table == "" || strings.EqualFold(col.Table, tableName) {
+				mark(strings.ToLower(col.Name), op)
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// constrainedOperandCol marks a BETWEEN/IN operand column when it is a
+// table-local column reference.
+func constrainedOperandCol(expr sql.Expr, tableName, op string, mark func(col, opv string)) {
+	if col, ok := expr.(*sql.ColumnRef); ok {
+		if col.Table == "" || strings.EqualFold(col.Table, tableName) {
+			mark(strings.ToLower(col.Name), op)
+		}
+	}
 }
 
 // stat1Tokens returns the integer tokens of the sqlite_stat1 entry for the
@@ -591,12 +504,4 @@ func (e *SelectEngine) withoutRowidPKCols(tableName string) []string {
 		out[i] = c.Name
 	}
 	return out
-}
-
-// estimateSelectivityForTable is a coarse fallback for the skip-scan
-// per-row estimate. Uses the unconstrained-table default (0.5) so the
-// skip-scan estimate roughly matches a half-table scan and the tiebreak
-// against the regular index estimate uses cost rather than row count.
-func estimateSelectivityForTable(e *SelectEngine, nRow int64) float64 {
-	return 0.5
 }

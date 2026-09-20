@@ -155,26 +155,8 @@ func (e *SelectEngine) compareCollatedOrderBy(orderBy []sql.OrderByTerm, a, b Ro
 		}
 		// NULLS FIRST / NULLS LAST override the direction default (NULLs sort
 		// first for ASC, last for DESC when unspecified).
-		leftNull := execexpr.IsSQLNull(vi)
-		rightNull := execexpr.IsSQLNull(vj)
-		if leftNull != rightNull {
-			nullsFirst := ob.NullsFirst
-			if ob.NullsLast {
-				nullsFirst = false
-			}
-			if !ob.NullsFirst && !ob.NullsLast {
-				nullsFirst = !ob.Desc
-			}
-			if leftNull {
-				if nullsFirst {
-					return -1
-				}
-				return 1
-			}
-			if nullsFirst {
-				return 1
-			}
-			return -1
+		if cmp, isNullCmp := orderByNullPlacement(ob, execexpr.IsSQLNull(vi), execexpr.IsSQLNull(vj)); isNullCmp {
+			return cmp
 		}
 		// A value wrapped in a collated column carries its declared collation
 		// (e.g. a COLLATE NOCASE column); prefer it over the ORDER BY term's
@@ -196,6 +178,27 @@ func (e *SelectEngine) compareCollatedOrderBy(orderBy []sql.OrderByTerm, a, b Ro
 		}
 	}
 	return 0
+}
+
+// orderByNullPlacement compares a pair where at least one side is NULL.
+// ok=false when both sides share NULL-ness (nothing decided). NULLS FIRST /
+// NULLS LAST override the direction default (NULLs sort first for ASC, last
+// for DESC when unspecified).
+func orderByNullPlacement(ob sql.OrderByTerm, leftNull, rightNull bool) (int, bool) {
+	if leftNull == rightNull {
+		return 0, false
+	}
+	nullsFirst := ob.NullsFirst
+	if ob.NullsLast {
+		nullsFirst = false
+	}
+	if !ob.NullsFirst && !ob.NullsLast {
+		nullsFirst = !ob.Desc
+	}
+	if leftNull == nullsFirst {
+		return -1, true
+	}
+	return 1, true
 }
 
 // sortRowMapsByOrderBy sorts rows by the aggregate's ORDER BY terms (collation
@@ -503,28 +506,8 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 	// outer rows. filter1-6.1: COUNT(a) FILTER(WHERE x) with a outer and x
 	// inner counts the inner rows, not the outer rows.
 	haveFrom := s.From.Name != "" || s.From.Subquery != nil || len(s.From.Args) > 0
-	var stepping []RowMap
-	if len(allRowMaps) > 0 && len(outerRows) > 0 && haveFrom {
-		fallback := outerRows[0]
-		stepping = make([]RowMap, len(allRowMaps))
-		for i, inner := range allRowMaps {
-			m := make(RowMap, len(inner)+len(fallback))
-			for k, v := range fallback {
-				m[k] = v
-			}
-			for k, v := range inner {
-				m[k] = v // inner columns shadow the outer fallback
-			}
-			stepping[i] = m
-		}
-	}
-	// Inner column names for the per-aggregate ownership test.
-	innerColNames := map[string]bool{}
-	for _, r := range allRowMaps {
-		for k := range r {
-			innerColNames[k] = true
-		}
-	}
+	stepping := aggSteppingRows(allRowMaps, outerRows, haveFrom)
+	innerColNames := collectRowMapKeys(allRowMaps)
 	defer func() { e.aggRowMaps = nil }()
 	var outRow []interface{}
 	for _, col := range s.Columns {
@@ -535,24 +518,7 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 			outRow = append(outRow, nil)
 			continue
 		}
-		// resolve.c:1332 — the first context whose SrcList the aggregate
-		// expression references owns it. A pure-outer aggregate (no inner
-		// column in args/FILTER/ORDER BY, aggnested-1.1 string_agg(a1,'x'),
-		// filter1-6.3 COUNT(a)) belongs to the OUTER aggregate context and
-		// steps the outer rows; an aggregate touching an inner column
-		// (filter1-6.1/6.2) steps the inner rows.
-		if haveFrom && len(outerRows) > 0 {
-			if fn, ok := col.Expr.(*sql.FuncCall); ok &&
-				e.isAggregateFuncCallName(fn.Name) && e.aggregateHasOnlyOuterRefs(fn, innerColNames) {
-				e.aggRowMaps = outerRows
-			} else if stepping != nil {
-				e.aggRowMaps = stepping
-			} else {
-				e.aggRowMaps = outerRows
-			}
-		} else {
-			e.aggRowMaps = outerRows
-		}
+		e.aggRowMaps = e.chooseAggRowMaps(col.Expr, innerColNames, stepping, outerRows, haveFrom)
 		v, err := e.ctx.EvalExpr(col.Expr, innerRow)
 		if err != nil {
 			outRow = append(outRow, nil)
@@ -564,23 +530,87 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 	// row; the window's arguments resolve against the outer rows (the
 	// correlated aggregate inputs).
 	if e.selectHasWindowFuncs(s.Columns) {
-		m := RowMap{}
-		for k, v := range innerRow {
+		cols := e.buildColumnNames(s.Columns, nil, s)
+		outRow = e.runWindowOverCollapsedRow(s, innerRow, outRow, cols, outerRows, nil)
+	}
+	return outRow
+}
+
+// chooseAggRowMaps implements resolve.c:1332 — the first context whose
+// SrcList the aggregate expression references owns it. A pure-outer aggregate
+// (no inner column in args/FILTER/ORDER BY, aggnested-1.1 string_agg(a1,'x'),
+// filter1-6.3 COUNT(a)) belongs to the OUTER aggregate context and steps the
+// outer rows; an aggregate touching an inner column (filter1-6.1/6.2) steps
+// the inner rows.
+func (e *SelectEngine) chooseAggRowMaps(expr sql.Expr, innerColNames map[string]bool, stepping, outerRows []RowMap, haveFrom bool) []RowMap {
+	if !haveFrom || len(outerRows) == 0 {
+		return outerRows
+	}
+	if fn, ok := expr.(*sql.FuncCall); ok && e.isAggregateFuncCallName(fn.Name) && e.aggregateHasOnlyOuterRefs(fn, innerColNames) {
+		return outerRows
+	}
+	if stepping != nil {
+		return stepping
+	}
+	return outerRows
+}
+
+// aggSteppingRows builds the combined outer-fallback + inner stepping row maps
+// for aggregate evaluation: each inner row overlaid on the first outer row
+// (inner columns shadow the outer fallback). nil when the shape does not apply.
+func aggSteppingRows(allRowMaps, outerRows []RowMap, haveFrom bool) []RowMap {
+	if len(allRowMaps) == 0 || len(outerRows) == 0 || !haveFrom {
+		return nil
+	}
+	fallback := outerRows[0]
+	stepping := make([]RowMap, len(allRowMaps))
+	for i, inner := range allRowMaps {
+		m := make(RowMap, len(inner)+len(fallback))
+		for k, v := range fallback {
 			m[k] = v
 		}
-		cols := e.buildColumnNames(s.Columns, nil, s)
-		for j, col := range cols {
-			if j < len(outRow) {
-				m[col] = outRow[j]
-			}
+		for k, v := range inner {
+			m[k] = v // inner columns shadow the outer fallback
 		}
-		e.storeWindowNestedAggs(m, s.Columns, outerRows)
-		e.windowGroupOutputs = cols
-		e.windowGroupCols = s.Columns
-		defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
-		if winResult := e.execWindowPass(s, []RowMap{m}, nil); winResult != nil && len(winResult.Rows) > 0 {
-			outRow = winResult.Rows[0]
+		stepping[i] = m
+	}
+	return stepping
+}
+
+// collectRowMapKeys collects the union of the row maps' keys.
+func collectRowMapKeys(rows []RowMap) map[string]bool {
+	keys := map[string]bool{}
+	for _, r := range rows {
+		for k := range r {
+			keys[k] = true
 		}
+	}
+	return keys
+}
+
+// runWindowOverCollapsedRow runs the window pass over the single collapsed
+// aggregate row: the row gains the aggregate outputs under the output column
+// names, nested aggregates are precomputed over srcRows, and the window's
+// arguments resolve against those rows.
+func (e *SelectEngine) runWindowOverCollapsedRow(s *sql.SelectStmt, collapsed RowMap, outRow []interface{}, columns []string, srcRows []RowMap, colDefs []sql.ColumnDef) []interface{} {
+	m := make(RowMap, len(collapsed))
+	for k, v := range collapsed {
+		m[k] = v
+	}
+	for j, col := range columns {
+		if j < len(outRow) {
+			m[col] = outRow[j]
+		}
+	}
+	// Nested aggregates inside window columns (e.g. sum(a) in
+	// min(sum(a)) OVER ()) are computed as regular aggregates over the
+	// full input and stored for the window pass to resolve.
+	e.storeWindowNestedAggs(m, s.Columns, srcRows)
+	e.windowGroupOutputs = columns
+	e.windowGroupCols = s.Columns
+	defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
+	if winResult := e.execWindowPass(s, []RowMap{m}, colDefs); winResult != nil && len(winResult.Rows) > 0 {
+		return winResult.Rows[0]
 	}
 	return outRow
 }
@@ -617,26 +647,7 @@ func (e *SelectEngine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDe
 	// row (e.g. SELECT sum(a), max(b) OVER () FROM t: max(b) OVER () is the
 	// first source row's b, before any min/max reordering).
 	if e.selectHasWindowFuncs(s.Columns) {
-		m := make(RowMap)
-		for k, v := range firstSource {
-			m[k] = v
-		}
-		for j, col := range columns {
-			if j < len(outRow) {
-				m[col] = outRow[j]
-			}
-		}
-		// Nested aggregates inside window columns (e.g. sum(a) in
-		// min(sum(a)) OVER ()) are computed as regular aggregates over the
-		// full input and stored for the window pass to resolve.
-		e.storeWindowNestedAggs(m, s.Columns, rowMaps)
-		e.windowGroupOutputs = columns
-		e.windowGroupCols = s.Columns
-		defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
-		winResult := e.execWindowPass(s, []RowMap{m}, colDefs)
-		if winResult != nil && len(winResult.Rows) > 0 {
-			outRow = winResult.Rows[0]
-		}
+		outRow = e.runWindowOverCollapsedRow(s, firstSource, outRow, columns, rowMaps, colDefs)
 	}
 	// A HAVING clause without GROUP BY still filters the single aggregate
 	// row (SQLite resolves it as a one-group aggregate query — select3-3.1:
@@ -721,75 +732,93 @@ func (e *SelectEngine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap
 
 	for _, key := range keyOrder {
 		groupRows := groups[key]
-		groupVals := keyVals[key]
 		groupRows = e.reorderRowsForMinMax(s, groupRows)
-
-		e.aggRowMaps = groupRows
-		// Set outerRows to the group's rows so a correlated scalar subquery
-		// column (SELECT max(y) FROM-less) aggregates over the WHOLE group,
-		// not just the first row (window1 76.5: (SELECT max(y)+sum(0) OVER ())
-		// with GROUP BY x → per-group max over the group's joined rows).
-		prevOuterRows := e.outerRows
-		e.outerRows = groupRows
-		outRow, err := e.buildGroupByAggRow(s, colDefs, groupBy, groupVals, groupRows)
-		e.outerRows = prevOuterRows
-		e.aggRowMaps = nil
+		outRow, first, keep, err := e.evalGroupRow(s, colDefs, groupBy, keyVals[key], groupRows)
 		if err != nil {
 			return &Result{Error: err}
 		}
-		if s.Having != nil {
-			match, err := e.evalHaving(s.Having, groupRows)
-			if err != nil || !match {
-				continue
-			}
+		if !keep {
+			continue
 		}
 		outRows = append(outRows, outRow)
 		groupRowsList = append(groupRowsList, groupRows)
-		if len(groupRows) > 0 {
-			outMaps = append(outMaps, groupRows[0])
+		if first != nil {
+			outMaps = append(outMaps, first)
 		}
 	}
 
 	if len(outRows) == 0 {
 		return e.finalizeSelectResult(&Result{Columns: columns, Rows: [][]interface{}{}}, s, nil)
 	}
-	// Window functions in a GROUP BY query operate over the GROUP OUTPUT rows
-	// (e.g. SELECT count(*), max(a) OVER () FROM t GROUP BY c: the window
-	// max(a) OVER () is 2 for every group). The window pass needs rows that
-	// carry BOTH the output column values (for window-column substitution)
-	// and the source columns (for window arguments like max(a)). Combine the
-	// source group map with the output row values.
+	// Window functions in a GROUP BY query operate over the GROUP OUTPUT rows;
+	// see groupWindowPass.
 	if e.selectHasWindowFuncs(s.Columns) {
-		combined := make([]RowMap, len(outRows))
-		for i := range outRows {
-			m := make(RowMap)
-			if i < len(outMaps) {
-				for k, v := range outMaps[i] {
-					m[k] = v
-				}
-			}
-			for j, col := range columns {
-				if j < len(outRows[i]) {
-					m[col] = outRows[i][j]
-				}
-			}
-			// Nested aggregates inside window columns (e.g. sum(a) in
-			// min(sum(a)) OVER ()) are computed per group and stored for the
-			// window pass to resolve.
-			if i < len(groupRowsList) {
-				e.storeWindowNestedAggs(m, s.Columns, groupRowsList[i])
-			}
-			combined[i] = m
-		}
-		e.windowGroupOutputs = columns
-		e.windowGroupCols = s.Columns
-		defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
-		winResult := e.execWindowPass(s, combined, colDefs)
-		if winResult != nil {
-			outRows = winResult.Rows
-		}
+		outRows = e.groupWindowPass(s, outRows, outMaps, columns, groupRowsList, colDefs)
 	}
 	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, outMaps)
+}
+
+// evalGroupRow evaluates one group's aggregate output row, applying HAVING.
+// keep=false when the group is filtered out or its HAVING errors (SQLite
+// treats a HAVING evaluation failure as a skipped group here). first is the
+// group's representative row for outMaps.
+func (e *SelectEngine) evalGroupRow(s *sql.SelectStmt, colDefs []sql.ColumnDef, groupBy []sql.Expr, groupVals []interface{}, groupRows []RowMap) (outRow []interface{}, first RowMap, keep bool, err error) {
+	e.aggRowMaps = groupRows
+	// Set outerRows to the group's rows so a correlated scalar subquery
+	// column (SELECT max(y) FROM-less) aggregates over the WHOLE group,
+	// not just the first row (window1 76.5: (SELECT max(y)+sum(0) OVER ())
+	// with GROUP BY x → per-group max over the group's joined rows).
+	prevOuterRows := e.outerRows
+	e.outerRows = groupRows
+	outRow, err = e.buildGroupByAggRow(s, colDefs, groupBy, groupVals, groupRows)
+	e.outerRows = prevOuterRows
+	e.aggRowMaps = nil
+	if err != nil {
+		return nil, nil, false, err
+	}
+	if s.Having != nil {
+		match, herr := e.evalHaving(s.Having, groupRows)
+		if herr != nil || !match {
+			return nil, nil, false, nil
+		}
+	}
+	if len(groupRows) > 0 {
+		first = groupRows[0]
+	}
+	return outRow, first, true, nil
+}
+
+// groupWindowPass rewrites outRows for a GROUP BY query's window functions.
+// Window functions operate over the GROUP OUTPUT rows (e.g. SELECT count(*),
+// max(a) OVER () FROM t GROUP BY c: the window max(a) OVER () is 2 for every
+// group). The window pass needs rows that carry BOTH the output column values
+// (for window-column substitution) and the source columns (for window
+// arguments like max(a)): each combined row merges the group's source map
+// with its output row values.
+func (e *SelectEngine) groupWindowPass(s *sql.SelectStmt, outRows [][]interface{}, outMaps []RowMap, columns []string, groupRowsList [][]RowMap, colDefs []sql.ColumnDef) [][]interface{} {
+	if winResult := e.runGroupWindowPass(s, outRows, outMaps, columns, groupRowsList, colDefs); winResult != nil {
+		return winResult.Rows
+	}
+	return outRows
+}
+
+// buildGroupWindowRow merges a group's source map with its output row values
+// and precomputes the nested aggregates over the group's rows.
+func (e *SelectEngine) buildGroupWindowRow(s *sql.SelectStmt, src RowMap, outRow []interface{}, columns []string, groupRows []RowMap) RowMap {
+	m := make(RowMap)
+	for k, v := range src {
+		m[k] = v
+	}
+	for j, col := range columns {
+		if j < len(outRow) {
+			m[col] = outRow[j]
+		}
+	}
+	// Nested aggregates inside window columns (e.g. sum(a) in
+	// min(sum(a)) OVER ()) are computed per group and stored for the
+	// window pass to resolve.
+	e.storeWindowNestedAggs(m, s.Columns, groupRows)
+	return m
 }
 
 // evalAggFuncCall evaluates a single aggregate function call across rowMaps,
@@ -868,31 +897,9 @@ func (e *SelectEngine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, co
 	groups, keyVals, keyOrder := e.partitionByGroupKey(groupBy, rowMaps)
 	e.sortGroupKeys(keyOrder, keyVals)
 
-	var outRows [][]interface{}
-	var outMaps []RowMap
-	var groupRowsList [][]RowMap
-	for _, key := range keyOrder {
-		groupRows := groups[key]
-		groupVals := keyVals[key]
-		if s.Having != nil {
-			match, err := e.evalHaving(s.Having, groupRows)
-			if err != nil || !match {
-				continue
-			}
-		}
-		// A HAVING min/max aggregate determines the source row for bare
-		// output columns (SQLite: "SELECT x FROM t GROUP BY g HAVING max(y)"
-		// evaluates x on the row that produced the max).
-		groupRows = e.reorderRowsForMinMax(s, groupRows)
-		outRow, err := e.buildNoAggGroupRow(s, colDefs, groupBy, groupRows[0], groupVals)
-		if err != nil {
-			return &Result{Error: err}
-		}
-		outRows = append(outRows, outRow)
-		groupRowsList = append(groupRowsList, groupRows)
-		if len(groupRows) > 0 {
-			outMaps = append(outMaps, groupRows[0])
-		}
+	outRows, outMaps, groupRowsList, gerr := e.collectNoAggGroups(s, colDefs, groupBy, groups, keyVals, keyOrder)
+	if gerr != nil {
+		return &Result{Error: gerr}
 	}
 
 	columns := e.buildColumnNames(s.Columns, colDefs, s)
@@ -900,34 +907,78 @@ func (e *SelectEngine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, co
 	// max(b) OVER (ORDER BY b) FROM t GROUP BY b) runs the window pass over
 	// the group output rows, matching evalAggregatesGroupBy.
 	if e.selectHasWindowFuncs(s.Columns) {
-		combined := make([]RowMap, len(outRows))
-		for i := range outRows {
-			m := make(RowMap)
-			if i < len(outMaps) {
-				for k, v := range outMaps[i] {
-					m[k] = v
-				}
-			}
-			for j, col := range columns {
-				if j < len(outRows[i]) {
-					m[col] = outRows[i][j]
-				}
-			}
-			if i < len(groupRowsList) {
-				e.storeWindowNestedAggs(m, s.Columns, groupRowsList[i])
-			}
-			combined[i] = m
-		}
-		e.windowGroupOutputs = columns
-		e.windowGroupCols = s.Columns
-		defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
-		winResult := e.execWindowPass(s, combined, colDefs)
-		if winResult != nil {
+		if winResult := e.runGroupWindowPass(s, outRows, outMaps, columns, groupRowsList, colDefs); winResult != nil {
 			return e.finalizeSelectResult(winResult, s, winResult.rowMaps)
 		}
 	}
 	outMaps = buildResultRowMaps(outRows, columns)
 	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, outMaps)
+}
+
+// collectNoAggGroups builds the non-aggregate GROUP BY output rows: HAVING is
+// applied per group, and groups emit in key order.
+func (e *SelectEngine) collectNoAggGroups(s *sql.SelectStmt, colDefs []sql.ColumnDef, groupBy []sql.Expr, groups map[string][]RowMap, keyVals map[string][]interface{}, keyOrder []string) (outRows [][]interface{}, outMaps []RowMap, groupRowsList [][]RowMap, err error) {
+	for _, key := range keyOrder {
+		groupRows := groups[key]
+		if s.Having != nil {
+			match, herr := e.evalHaving(s.Having, groupRows)
+			if herr != nil || !match {
+				continue
+			}
+		}
+		outRow, first, keep, gerr := e.evalNoAggGroupRow(s, colDefs, groupBy, keyVals[key], groupRows)
+		if gerr != nil {
+			return nil, nil, nil, gerr
+		}
+		if !keep {
+			continue
+		}
+		outRows = append(outRows, outRow)
+		groupRowsList = append(groupRowsList, groupRows)
+		if first != nil {
+			outMaps = append(outMaps, first)
+		}
+	}
+	return outRows, outMaps, groupRowsList, nil
+}
+
+// runGroupWindowPass builds the combined group rows (source map + output
+// values + precomputed nested aggregates) and runs the window pass over them.
+// Returns nil when the pass produced no result (the caller keeps outRows).
+func (e *SelectEngine) runGroupWindowPass(s *sql.SelectStmt, outRows [][]interface{}, outMaps []RowMap, columns []string, groupRowsList [][]RowMap, colDefs []sql.ColumnDef) *Result {
+	combined := make([]RowMap, len(outRows))
+	for i := range outRows {
+		var src RowMap
+		if i < len(outMaps) {
+			src = outMaps[i]
+		}
+		var groupRows []RowMap
+		if i < len(groupRowsList) {
+			groupRows = groupRowsList[i]
+		}
+		combined[i] = e.buildGroupWindowRow(s, src, outRows[i], columns, groupRows)
+	}
+	e.windowGroupOutputs = columns
+	e.windowGroupCols = s.Columns
+	defer func() { e.windowGroupOutputs = nil; e.windowGroupCols = nil }()
+	return e.execWindowPass(s, combined, colDefs)
+}
+
+// evalNoAggGroupRow builds one GROUP BY group's output row without aggregates.
+// A HAVING min/max aggregate determines the source row for bare output columns
+// (SQLite: "SELECT x FROM t GROUP BY g HAVING max(y)" evaluates x on the row
+// that produced the max), hence the min/max reorder before row selection.
+func (e *SelectEngine) evalNoAggGroupRow(s *sql.SelectStmt, colDefs []sql.ColumnDef, groupBy []sql.Expr, groupVals []interface{}, groupRows []RowMap) (outRow []interface{}, first RowMap, keep bool, err error) {
+	// (see comment above)
+	groupRows = e.reorderRowsForMinMax(s, groupRows)
+	outRow, err = e.buildNoAggGroupRow(s, colDefs, groupBy, groupRows[0], groupVals)
+	if err != nil {
+		return nil, nil, false, err
+	}
+	if len(groupRows) > 0 {
+		first = groupRows[0]
+	}
+	return outRow, first, true, nil
 }
 
 // EvalAggFuncCall evaluates an aggregate function call over the given row

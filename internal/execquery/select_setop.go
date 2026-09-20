@@ -10,8 +10,8 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
-	"github.com/pijalu/frigolite/internal/value"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 func (e *SelectEngine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op sql.SetOp, unionAll bool, colls []string) [][]interface{} {
@@ -153,22 +153,31 @@ func (e *SelectEngine) validateCompoundFromTables(s *sql.SelectStmt) error {
 		members = append(members, cur)
 	}
 	for i := len(members) - 1; i >= 0; i-- {
-		m := members[i]
-		if m.From.Name == "" || m.From.Subquery != nil || len(m.From.Args) > 0 {
-			continue
+		if err := e.resolveCompoundMemberFrom(members[i]); err != nil {
+			return err
 		}
-		if _, ok := e.findCTE(m, m.From.Name); ok {
-			continue
-		}
-		if isPragmaTableFunc(m.From.Name) {
-			continue
-		}
-		if _, _, err := e.ctx.FindTable(m.From.Name); err != nil {
-			// The name may be a view (compound member FROM can reference a
-			// view — unionall2 1.0's vA view body "SELECT * FROM v1, ...").
-			if _, _, verr := e.ctx.FindView(m.From.Name); verr != nil {
-				return err
-			}
+	}
+	return nil
+}
+
+// resolveCompoundMemberFrom resolves one compound member's FROM table: CTEs,
+// pragma table functions, and views are valid sources; an unresolved name
+// surfaces its "no such table" error. The name may be a view (compound member
+// FROM can reference a view — unionall2 1.0's vA view body "SELECT * FROM
+// v1, ...").
+func (e *SelectEngine) resolveCompoundMemberFrom(m *sql.SelectStmt) error {
+	if m.From.Name == "" || m.From.Subquery != nil || len(m.From.Args) > 0 {
+		return nil
+	}
+	if _, ok := e.findCTE(m, m.From.Name); ok {
+		return nil
+	}
+	if isPragmaTableFunc(m.From.Name) {
+		return nil
+	}
+	if _, _, err := e.ctx.FindTable(m.From.Name); err != nil {
+		if _, _, verr := e.ctx.FindView(m.From.Name); verr != nil {
+			return err
 		}
 	}
 	return nil
@@ -560,45 +569,44 @@ func (e *SelectEngine) exceptRows(a, b [][]interface{}, colls []string) [][]inte
 func rowKey(row []interface{}, colls []string) string {
 	parts := make([]string, len(row))
 	for i, v := range row {
-		if v == nil {
-			parts[i] = "\x00"
-			continue
-		}
 		raw, coll := extractValue(v)
-		if raw == nil {
+		if v == nil || raw == nil {
 			parts[i] = "\x00"
 			continue
 		}
 		if coll == "" && colls != nil && i < len(colls) {
 			coll = colls[i]
 		}
-		switch x := raw.(type) {
-		case int64:
-			parts[i] = "n:" + strconv.FormatInt(x, 10)
-		case float64:
-			// Numeric keys unify INTEGER and REAL so 1 and 1.0 deduplicate
-			// (SQLite compares them as equal); an integral float formats
-			// without a decimal point to match the int64 key of the same
-			// value, while a fractional float keeps its distinct form.
-			if x == float64(int64(x)) {
-				parts[i] = "n:" + strconv.FormatInt(int64(x), 10)
-			} else {
-				parts[i] = "n:" + strconv.FormatFloat(x, 'g', -1, 64)
-			}
-		case string:
-			parts[i] = "s:" + normalizeForKey(x, coll)
-		case []byte:
-			parts[i] = "b:" + string(x)
-		case value.ZeroBlob:
-			// A lazy zero blob deduplicates against a materialized blob of
-			// the same content (distinct-4.1: x'0000000000' and
-			// zeroblob(5) are one DISTINCT row).
-			parts[i] = "b:" + string(x.Bytes())
-		default:
-			parts[i] = "o:" + fmt.Sprintf("%v", util.UnwrapColumnValue(raw))
-		}
+		parts[i] = rowValueKey(raw, coll)
 	}
 	return strings.Join(parts, "\x00")
+}
+
+// rowValueKey renders one dedup key component by value type. Numeric keys
+// unify INTEGER and REAL so 1 and 1.0 deduplicate (SQLite compares them as
+// equal); an integral float formats without a decimal point to match the
+// int64 key of the same value, while a fractional float keeps its distinct
+// form. A lazy zero blob deduplicates against a materialized blob of the same
+// content (distinct-4.1: x'0000000000' and zeroblob(5) are one DISTINCT row).
+func rowValueKey(raw interface{}, coll string) string {
+	switch x := raw.(type) {
+	case int64:
+		return "n:" + strconv.FormatInt(x, 10)
+	case float64:
+		// (see rowValueKey doc)
+		if x == float64(int64(x)) {
+			return "n:" + strconv.FormatInt(int64(x), 10)
+		}
+		return "n:" + strconv.FormatFloat(x, 'g', -1, 64)
+	case string:
+		return "s:" + normalizeForKey(x, coll)
+	case []byte:
+		return "b:" + string(x)
+	case value.ZeroBlob:
+		return "b:" + string(x.Bytes())
+	default:
+		return "o:" + fmt.Sprintf("%v", util.UnwrapColumnValue(raw))
+	}
 }
 
 // normalizeForKey applies a collation's normalization to a string for use as

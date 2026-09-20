@@ -58,12 +58,7 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 	}
 	// Window-function pass over the materialized row set.
 	if e.selectHasWindowFuncs(s.Columns) {
-		winResult := e.execWindowPass(s, allRowMaps, colDefs)
-		result := e.finalizeSelectResult(winResult, s, winResult.rowMaps)
-		if s.Distinct {
-			result.Rows, _ = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s), s)
-		}
-		return result
+		return e.execMaterializedWindowPass(s, allRowMaps, colDefs)
 	}
 	allRows, berr := buildOutputRowsFromMaps(e, s.Columns, colDefs, allRowMaps)
 	if berr != nil {
@@ -71,7 +66,14 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 	}
 
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: allRows}
+	return e.finalizeMaterializedRows(result, s, allRowMaps)
+}
 
+// finalizeMaterializedRows applies DISTINCT, ORDER BY, LIMIT/OFFSET and the
+// simple set-operation merge to a materialized (non-window) result. This is
+// the materialized-path tail; the general path's finalizeSelectResult handles
+// compound chains via mergeCompoundChain instead of mergeUnionRows.
+func (e *SelectEngine) finalizeMaterializedRows(result *Result, s *sql.SelectStmt, allRowMaps []RowMap) *Result {
 	// Apply DISTINCT
 	if s.Distinct {
 		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s), s)
@@ -88,13 +90,9 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 	}
 
 	// Apply LIMIT / OFFSET
-	lExpr, lErr := e.evalLimitExpr(s.Limit)
-	if lErr != nil {
-		return &Result{Error: lErr}
-	}
-	oExpr, oErr := e.evalLimitExpr(s.Offset)
-	if oErr != nil {
-		return &Result{Error: oErr}
+	lExpr, oExpr, lerr := e.evalLimitOffsetExprs(s.Limit, s.Offset)
+	if lerr != nil {
+		return &Result{Error: lerr}
 	}
 	result.Rows = applyLimitOffset(result.Rows, lExpr, oExpr)
 
@@ -106,6 +104,18 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 	return result
 }
 
+// execMaterializedWindowPass runs the window-function pass over a
+// materialized row set and finalizes it, applying DISTINCT to the window
+// output when requested.
+func (e *SelectEngine) execMaterializedWindowPass(s *sql.SelectStmt, allRowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
+	winResult := e.execWindowPass(s, allRowMaps, colDefs)
+	result := e.finalizeSelectResult(winResult, s, winResult.rowMaps)
+	if s.Distinct {
+		result.Rows, _ = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s), s)
+	}
+	return result
+}
+
 // execSelectCTE executes a query that references a CTE definition.
 func (e *SelectEngine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	// Detect circular CTE references (e.g. WITH a AS (SELECT * FROM b),
@@ -113,18 +123,13 @@ func (e *SelectEngine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result
 	// The flag is set only for the recursive path — a non-recursive body
 	// that references a same-named INNER CTE (with1 21.1) must not be
 	// blocked by the outer name.
-	if e.resolvingCTEs == nil {
-		e.resolvingCTEs = make(map[*sql.SelectStmt]bool)
+	// The flag is keyed by the body AST so a same-named inner WITH shadow is
+	// a distinct CTE — with1 21.1. Mutual recursion (tmp1 references tmp2
+	// which references tmp1, with1 3.1) re-enters the same body pointer and
+	// is caught as a circular reference.
+	if err := e.enterCTEResolving(cte); err != nil {
+		return &Result{Error: err}
 	}
-	// Set the resolving flag for every CTE execution (keyed by the body AST
-	// so a same-named inner WITH shadow is a distinct CTE — with1 21.1).
-	// Mutual recursion (tmp1 references tmp2 which references tmp1, with1
-	// 3.1) re-enters the same body pointer and is caught as a circular
-	// reference.
-	if e.resolvingCTEs[cte.Select] {
-		return &Result{Error: fmt.Errorf("circular reference: %s", cte.Name)}
-	}
-	e.resolvingCTEs[cte.Select] = true
 	defer delete(e.resolvingCTEs, cte.Select)
 
 	// Handle recursive CTE. A CTE is recursive when its body actually
@@ -184,8 +189,31 @@ func (e *SelectEngine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result
 	// FROM c AS c2" yields NULL because the row map only carries the bare
 	// column name.
 	alias := cteRefAlias(s, cte)
-	allRowMaps := make([]RowMap, len(cteResult.Rows))
-	for i, row := range cteResult.Rows {
+	allRowMaps := buildCTEAliasedRowMaps(cteResult.Rows, colDefs, alias)
+	return e.execCTEPostProcess(s, colDefs, allRowMaps)
+}
+
+// enterCTEResolving marks a CTE body as resolving, rejecting re-entry of the
+// same body AST with SQLite's "circular reference" error.
+func (e *SelectEngine) enterCTEResolving(cte *sql.CTEDef) error {
+	if e.resolvingCTEs == nil {
+		e.resolvingCTEs = make(map[*sql.SelectStmt]bool)
+	}
+	if e.resolvingCTEs[cte.Select] {
+		return fmt.Errorf("circular reference: %s", cte.Name)
+	}
+	e.resolvingCTEs[cte.Select] = true
+	return nil
+}
+
+// buildCTEAliasedRowMaps materializes CTE rows into row maps keyed by the
+// bare column name plus, when the outer statement aliases the CTE reference,
+// the alias-qualified form ("FROM c AS c2" exposes c2.x — mirroring the
+// subquery path's buildMaterializedRowMaps; without it "SELECT c2.x FROM c
+// AS c2" yields NULL because the row map only carries the bare name).
+func buildCTEAliasedRowMaps(rows [][]interface{}, colDefs []sql.ColumnDef, alias string) []RowMap {
+	allRowMaps := make([]RowMap, len(rows))
+	for i, row := range rows {
 		// CTE rows have no implicit rowid (SQLite: "no such column: rowid"
 		// on a CTE reference — with1 15.1).
 		allRowMaps[i] = buildRowMapFromValuesNoRowID(row, colDefs)
@@ -197,7 +225,7 @@ func (e *SelectEngine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result
 			}
 		}
 	}
-	return e.execCTEPostProcess(s, colDefs, allRowMaps)
+	return allRowMaps
 }
 
 // validateCTERowIDRefs validates the outer statement's column references
@@ -397,18 +425,8 @@ func (e *SelectEngine) cteAnchorColumnCount(sel *sql.SelectStmt) (int, error) {
 	// 13.1: "WITH RECURSIVE c(i) AS (SELECT * ...)" errors "no tables
 	// specified", not a column-count mismatch; a mixed list like
 	// "SELECT 5,*" does hit the width check first — 13.3).
-	if len(sel.Columns) > 0 && sel.From.Name == "" && sel.From.Subquery == nil {
-		allStars := true
-		for _, col := range sel.Columns {
-			ref, ok := col.Expr.(*sql.ColumnRef)
-			if !ok || ref.Name != "*" {
-				allStars = false
-				break
-			}
-		}
-		if allStars {
-			return 0, fmt.Errorf("no tables specified")
-		}
+	if selectListAllStarsNoFrom(sel) {
+		return 0, fmt.Errorf("no tables specified")
 	}
 	count := 0
 	for _, col := range sel.Columns {
@@ -423,6 +441,22 @@ func (e *SelectEngine) cteAnchorColumnCount(sel *sql.SelectStmt) (int, error) {
 		}
 	}
 	return count, nil
+}
+
+// selectListAllStarsNoFrom reports whether the select list is entirely star
+// references with no FROM table or subquery (the "no tables specified"
+// anchor-width shape — see cteAnchorColumnCount).
+func selectListAllStarsNoFrom(sel *sql.SelectStmt) bool {
+	if len(sel.Columns) == 0 || sel.From.Name != "" || sel.From.Subquery != nil {
+		return false
+	}
+	for _, col := range sel.Columns {
+		ref, ok := col.Expr.(*sql.ColumnRef)
+		if !ok || ref.Name != "*" {
+			return false
+		}
+	}
+	return true
 }
 
 // starExpansionCountNoExecute counts the columns a * reference expands to
@@ -654,78 +688,81 @@ func (e *SelectEngine) validateRecursiveTermRefs(recursiveTerms []*sql.SelectStm
 // any expression position (SQLite rejects window functions in recursive
 // terms).
 func (e *SelectEngine) termHasWindowFunc(term *sql.SelectStmt) bool {
-	check := func(expr sql.Expr) bool {
-		if expr == nil {
-			return false
+	for _, expr := range recTermExprs(term) {
+		if exprHasOverFunc(expr) {
+			return true
 		}
-		found := false
-		WalkExprFull(expr, func(en sql.Expr) {
-			if found {
-				return
-			}
-			fc, ok := en.(*sql.FuncCall)
-			if ok && fc.Over != nil {
-				found = true
-			}
-		})
-		return found
 	}
+	return false
+}
+
+// recTermExprs lists a recursive term's expression positions (result columns,
+// WHERE, GROUP BY, HAVING).
+func recTermExprs(term *sql.SelectStmt) []sql.Expr {
+	exprs := make([]sql.Expr, 0, len(term.Columns)+len(term.GroupBy)+3)
 	for _, col := range term.Columns {
-		if check(col.Expr) {
-			return true
+		exprs = append(exprs, col.Expr)
+	}
+	exprs = append(exprs, term.Where)
+	exprs = append(exprs, term.GroupBy...)
+	exprs = append(exprs, term.Having)
+	return exprs
+}
+
+// exprHasOverFunc reports whether expr contains a window-function call (a
+// FuncCall carrying an OVER clause).
+func exprHasOverFunc(expr sql.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	found := false
+	WalkExprFull(expr, func(en sql.Expr) {
+		if found {
+			return
 		}
-	}
-	if check(term.Where) {
-		return true
-	}
-	for _, g := range term.GroupBy {
-		if check(g) {
-			return true
+		fc, ok := en.(*sql.FuncCall)
+		if ok && fc.Over != nil {
+			found = true
 		}
-	}
-	return check(term.Having)
+	})
+	return found
 }
 
 // termHasAggregate reports whether a recursive term uses an aggregate function
 // in any expression position (SQLite rejects aggregates in recursive terms).
 func (e *SelectEngine) termHasAggregate(term *sql.SelectStmt) bool {
-	check := func(expr sql.Expr) bool {
-		if expr == nil {
-			return false
-		}
-		found := false
-		WalkExprFull(expr, func(en sql.Expr) {
-			if found {
-				return
-			}
-			fc, ok := en.(*sql.FuncCall)
-			if !ok {
-				return
-			}
-			if fn, ok := e.ctx.Functions().Find(fc.Name); ok && fn.Type == function.TypeAggregate {
-				// MIN/MAX with 2+ args are scalar.
-				if (strings.EqualFold(fc.Name, "MIN") || strings.EqualFold(fc.Name, "MAX")) && len(fc.Args) >= 2 {
-					return
-				}
-				found = true
-			}
-		})
-		return found
-	}
-	for _, col := range term.Columns {
-		if check(col.Expr) {
+	for _, expr := range recTermExprs(term) {
+		if e.exprHasAggregateCall(expr) {
 			return true
 		}
 	}
-	if check(term.Where) {
-		return true
+	return false
+}
+
+// exprHasAggregateCall reports whether expr contains an aggregate function
+// call (MIN/MAX with 2+ args are scalar).
+func (e *SelectEngine) exprHasAggregateCall(expr sql.Expr) bool {
+	if expr == nil {
+		return false
 	}
-	for _, g := range term.GroupBy {
-		if check(g) {
-			return true
+	found := false
+	WalkExprFull(expr, func(en sql.Expr) {
+		if found {
+			return
 		}
-	}
-	return check(term.Having)
+		fc, ok := en.(*sql.FuncCall)
+		if !ok {
+			return
+		}
+		if fn, ok := e.ctx.Functions().Find(fc.Name); ok && fn.Type == function.TypeAggregate {
+			// MIN/MAX with 2+ args are scalar.
+			if (strings.EqualFold(fc.Name, "MIN") || strings.EqualFold(fc.Name, "MAX")) && len(fc.Args) >= 2 {
+				return
+			}
+			found = true
+		}
+	})
+	return found
 }
 
 // walkRecursiveTermRefs walks a recursive term's expression positions checking

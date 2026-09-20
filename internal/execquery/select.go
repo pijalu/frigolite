@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -121,10 +123,7 @@ func BuildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, w
 // table-valued virtual-table function. Returns handled=true when the result
 // is complete.
 func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
-	// Handle SELECT without FROM (e.g., SELECT 1, SELECT CASE...)
-	// EmptyName marks the quoted empty table name ("FROM \"\""), which is a
-	// real FROM term naming the zero-length table (tkt-78e04e52ea).
-	if s.From.Name == "" && !s.From.EmptyName && s.From.Subquery == nil && len(s.From.As) == 0 {
+	if isNoFromTerm(s) {
 		return e.execSelectNoFrom(s), true
 	}
 
@@ -139,60 +138,126 @@ func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
 	// pragma table functions are genuine table-valued functions and proceed.
 	// An fts5 table is table-valued too: FROM t1('query') is the MATCH TVF
 	// form (fts5_main.c), so it is consumed before the not-a-function check.
-	if s.From.IsTabFunc && len(s.From.Args) > 0 {
+	if fromIsTabFuncWithArgs(s) {
 		if res, handled := e.execFTS5TableFunc(s.From, s); handled {
 			return res, true
 		}
 	}
-	// An FTS3/4 table in TVF form (FROM t1('query')): the argument binds as
-	// a MATCH constraint on the table's hidden column — C's xBestIndex sees
-	// it like any MATCH. Strip the TVF form and AND the constraint into the
-	// WHERE so the statement flows through the dedicated FTS scan
-	// (fts4content 12.1.3/12.2.3: self-referential content sources fail the
-	// read with "SQL logic error" in either form).
-	if s.From.IsTabFunc && len(s.From.Args) > 0 {
-		if entry, _, terr := e.ctx.FindTable(s.From.Name); terr == nil && entry != nil && entry.RootPage == 0 {
-			if _, isFTS := e.ctx.FTSTables()[entry.Name]; isFTS {
-				if lit, ok := s.From.Args[0].(*sql.StringLit); ok {
-					match := &sql.BinaryOp{Operator: "MATCH", Left: &sql.ColumnRef{Name: entry.Name}, Right: lit}
-					if s.Where == nil {
-						s.Where = match
-					} else {
-						s.Where = &sql.BinaryOp{Operator: "AND", Left: s.Where, Right: match}
-					}
-				}
-				s.From.IsTabFunc = false
-				s.From.Args = nil
-				return nil, false
-			}
-		}
+	if res, handled := e.execFTS4TabFuncForm(s); handled {
+		return res, true
 	}
-	// A FROM term that names a CREATED virtual table (CREATE VIRTUAL TABLE
-	// entry): the arguments bind to the leftmost HIDDEN columns as equality
-	// constraints (SQLite's vtab TVF form, e.g. FROM fts5tokenize-t('text')).
-	if s.From.IsTabFunc && len(s.From.Args) > 0 {
-		opts := e.vtabScanOptions(s)
-		residual := opts.Where
-		opts.Residual = &residual
-		defs, rows, rowids, err, handled := e.ctx.MaterializeCreatedVTabFunc(s.From, opts)
-		if handled {
-			if err != nil {
-				return &Result{Error: err}, true
-			}
-			return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids), true
-		}
+	if res, handled, consumed := e.execCreatedVTabFuncForm(s); handled {
+		return res, consumed
 	}
-	if s.From.IsTabFunc && !isPragmaTableFunc(s.From.Name) {
-		if _, isModule := e.ctx.VTables().Find(strings.ToLower(s.From.Name)); !isModule {
-			if e.relationExists(s, s.From.Name) {
-				return &Result{Error: fmt.Errorf("'%s' is not a function", s.From.Name)}, true
-			}
-			// Unknown name: fall through for the normal "no such table" path.
-		}
+	if res, handled := e.notATabFuncError(s); handled {
+		return res, true
 	}
 
 	// Handle CTE: check if the from table matches a CTE definition (either
 	// declared on this statement or in an enclosing WITH clause).
+	if res, handled := e.execCTEFromForm(s); handled {
+		return res, true
+	}
+
+	// Table-valued pragma functions: FROM pragma_table_info('t1')
+	if isPragmaTableFunc(s.From.Name) {
+		return e.ctx.ExecPragmaTableValued(s), true
+	}
+
+	if res, handled := e.execVTabTableFuncForm(s); handled {
+		return res, true
+	}
+	if res, handled := e.execEponymousVTabForm(s); handled {
+		return res, true
+	}
+	return e.execCreatedVTabForm(s)
+}
+
+// isNoFromTerm reports whether the FROM term is absent (SELECT without FROM).
+// EmptyName marks the quoted empty table name ("FROM \"\""), which is a real
+// FROM term naming the zero-length table (tkt-78e04e52ea).
+func isNoFromTerm(s *sql.SelectStmt) bool {
+	return s.From.Name == "" && !s.From.EmptyName && s.From.Subquery == nil && len(s.From.As) == 0
+}
+
+// fromIsTabFuncWithArgs reports whether the FROM term uses table-valued
+// function syntax with actual arguments.
+func fromIsTabFuncWithArgs(s *sql.SelectStmt) bool {
+	return s.From.IsTabFunc && len(s.From.Args) > 0
+}
+
+// execFTS4TabFuncForm handles an FTS3/4 table in TVF form (FROM t1('query')):
+// the argument binds as a MATCH constraint on the table's hidden column —
+// xBestIndex sees it like any MATCH. The TVF form is stripped and the
+// constraint ANDed into the WHERE so the statement flows through the dedicated
+// FTS scan (fts4content 12.1.3/12.2.3: self-referential content sources fail
+// the read with "SQL logic error" in either form). handled=false leaves the
+// statement untouched for the next FROM form.
+func (e *SelectEngine) execFTS4TabFuncForm(s *sql.SelectStmt) (*Result, bool) {
+	if !s.From.IsTabFunc || len(s.From.Args) == 0 {
+		return nil, false
+	}
+	entry, _, terr := e.ctx.FindTable(s.From.Name)
+	if terr != nil || entry == nil || entry.RootPage != 0 {
+		return nil, false
+	}
+	if _, isFTS := e.ctx.FTSTables()[entry.Name]; !isFTS {
+		return nil, false
+	}
+	if lit, ok := s.From.Args[0].(*sql.StringLit); ok {
+		match := &sql.BinaryOp{Operator: "MATCH", Left: &sql.ColumnRef{Name: entry.Name}, Right: lit}
+		if s.Where == nil {
+			s.Where = match
+		} else {
+			s.Where = &sql.BinaryOp{Operator: "AND", Left: s.Where, Right: match}
+		}
+	}
+	s.From.IsTabFunc = false
+	s.From.Args = nil
+	return nil, false
+}
+
+// execCreatedVTabFuncForm handles a FROM term naming a CREATED virtual table
+// (CREATE VIRTUAL TABLE entry): the arguments bind to the leftmost HIDDEN
+// columns as equality constraints (SQLite's vtab TVF form, e.g.
+// FROM fts5tokenize-t('text')). consumed reports whether the statement was
+// handled (true) or stripped in place (false).
+func (e *SelectEngine) execCreatedVTabFuncForm(s *sql.SelectStmt) (res *Result, handled, consumed bool) {
+	if !s.From.IsTabFunc || len(s.From.Args) == 0 {
+		return nil, false, false
+	}
+	opts := e.vtabScanOptions(s)
+	residual := opts.Where
+	opts.Residual = &residual
+	defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTabFunc(s.From, opts)
+	if !ok {
+		return nil, false, false
+	}
+	if err != nil {
+		return &Result{Error: err}, true, true
+	}
+	return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids), true, true
+}
+
+// notATabFuncError reports resolve.c's "'%s' is not a function" when a TVF-
+// form FROM term names a non-table-valued relation. An unknown name falls
+// through for the normal "no such table" path.
+func (e *SelectEngine) notATabFuncError(s *sql.SelectStmt) (*Result, bool) {
+	if !s.From.IsTabFunc || isPragmaTableFunc(s.From.Name) {
+		return nil, false
+	}
+	if _, isModule := e.ctx.VTables().Find(strings.ToLower(s.From.Name)); isModule {
+		return nil, false
+	}
+	if e.relationExists(s, s.From.Name) {
+		return &Result{Error: fmt.Errorf("'%s' is not a function", s.From.Name)}, true
+	}
+	return nil, false
+}
+
+// execCTEFromForm dispatches a FROM term that matches a CTE definition,
+// directly or through its alias.
+func (e *SelectEngine) execCTEFromForm(s *sql.SelectStmt) (*Result, bool) {
 	if cte, ok := e.findCTE(s, s.From.Name); ok {
 		return e.execSelectCTE(s, &cte), true
 	}
@@ -201,65 +266,77 @@ func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
 			return e.execSelectCTE(s, &cte), true
 		}
 	}
+	return nil, false
+}
 
-	// Table-valued pragma functions: FROM pragma_table_info('t1')
-	if isPragmaTableFunc(s.From.Name) {
-		return e.ctx.ExecPragmaTableValued(s), true
+// execVTabTableFuncForm handles the table-valued virtual-table function form
+// (FROM generate_series(1,256)), including the correlated FROM-TVF case
+// inside a subquery: the argument references an outer row's columns
+// (EXISTS(SELECT 1 FROM json_each(t1.json,...))), so the arguments evaluate
+// against that outer row (SQLite runs the vtab filter per outer row).
+func (e *SelectEngine) execVTabTableFuncForm(s *sql.SelectStmt) (*Result, bool) {
+	if len(s.From.Args) == 0 {
+		return nil, false
 	}
-
-	// Table-valued virtual-table function: FROM generate_series(1,256)
-	if len(s.From.Args) > 0 {
-		// Correlated FROM-TVF inside a subquery: the argument references an
-		// outer row's columns (EXISTS(SELECT 1 FROM json_each(t1.json,...))),
-		// so evaluate the arguments against that outer row (SQLite runs the
-		// vtab filter per outer row).
-		if e.outerRow != nil && pragmaArgsCorrelated(s.From) {
-			if colDefs, rows, err := e.ctx.MaterializeVtabTableFuncInRow(s.From, e.outerRow); err == nil {
-				return e.execSelectOverMaterialized(s, colDefs, rows), true
-			} else if !isNoSuchVtabErr(err) {
-				return &Result{Error: err}, true
-			}
-		}
-		opts := e.vtabScanOptions(s)
-		residual := opts.Where
-		opts.Residual = &residual
-		if colDefs, rows, rowids, err := e.ctx.MaterializeVtabTableFunc(s.From, opts); err == nil {
-			return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), colDefs, rows, rowids), true
+	if e.outerRow != nil && pragmaArgsCorrelated(s.From) {
+		if colDefs, rows, err := e.ctx.MaterializeVtabTableFuncInRow(s.From, e.outerRow); err == nil {
+			return e.execSelectOverMaterialized(s, colDefs, rows), true
 		} else if !isNoSuchVtabErr(err) {
 			return &Result{Error: err}, true
 		}
 	}
-	// Eponymous virtual table: FROM generate_series (no arguments) with
-	// hidden-column constraints in WHERE (series.c, tabfunc01-1.1).
 	opts := e.vtabScanOptions(s)
 	residual := opts.Where
 	opts.Residual = &residual
-	if defs, rows, rowids, err, handled := e.ctx.TryMaterializeEponymousVtab(s.From, opts); handled {
-		if err != nil {
-			return &Result{Error: err}, true
-		}
-		return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids), true
-	}
-	// Created virtual tables (CREATE VIRTUAL TABLE ... USING csv etc.):
-	// RootPage 0 schema entries whose stored SQL names a registered module.
-	opts = e.vtabScanOptions(s)
-	createdResidual := opts.Where
-	opts.Residual = &createdResidual
-	if len(s.Joins) == 0 {
-		if defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(s.From.Name, opts); ok {
-			if err != nil {
-				return &Result{Error: err}, true
-			}
-			// A WITHOUT ROWID declared schema rejects rowid references
-			// (csv01 3.2) — checked only after the claim succeeds so real
-			// WITHOUT ROWID tables keep their normal path.
-			if e.ctx.WithoutRowidVTab(s.From.Name) && selectReferencesRowID(s) {
-				return &Result{Error: fmt.Errorf("no such column: rowid")}, true
-			}
-			return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids), true
-		}
+	if colDefs, rows, rowids, err := e.ctx.MaterializeVtabTableFunc(s.From, opts); err == nil {
+		return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), colDefs, rows, rowids), true
+	} else if !isNoSuchVtabErr(err) {
+		return &Result{Error: err}, true
 	}
 	return nil, false
+}
+
+// execEponymousVTabForm handles an eponymous virtual table (FROM
+// generate_series with no arguments) with hidden-column constraints in WHERE
+// (series.c, tabfunc01-1.1).
+func (e *SelectEngine) execEponymousVTabForm(s *sql.SelectStmt) (*Result, bool) {
+	opts := e.vtabScanOptions(s)
+	residual := opts.Where
+	opts.Residual = &residual
+	defs, rows, rowids, err, handled := e.ctx.TryMaterializeEponymousVtab(s.From, opts)
+	if !handled {
+		return nil, false
+	}
+	if err != nil {
+		return &Result{Error: err}, true
+	}
+	return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids), true
+}
+
+// execCreatedVTabForm handles created virtual tables (CREATE VIRTUAL TABLE
+// ... USING csv etc.): RootPage 0 schema entries whose stored SQL names a
+// registered module.
+func (e *SelectEngine) execCreatedVTabForm(s *sql.SelectStmt) (*Result, bool) {
+	opts := e.vtabScanOptions(s)
+	createdResidual := opts.Where
+	opts.Residual = &createdResidual
+	if len(s.Joins) != 0 {
+		return nil, false
+	}
+	defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(s.From.Name, opts)
+	if !ok {
+		return nil, false
+	}
+	if err != nil {
+		return &Result{Error: err}, true
+	}
+	// A WITHOUT ROWID declared schema rejects rowid references
+	// (csv01 3.2) — checked only after the claim succeeds so real
+	// WITHOUT ROWID tables keep their normal path.
+	if e.ctx.WithoutRowidVTab(s.From.Name) && selectReferencesRowID(s) {
+		return &Result{Error: fmt.Errorf("no such column: rowid")}, true
+	}
+	return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids), true
 }
 
 // withVtabResidualWhere returns a shallow statement copy whose WHERE is the
@@ -554,60 +631,73 @@ func (e *SelectEngine) execSelectVtab(s *sql.SelectStmt, tableEntry *schema.Entr
 	// fts5 tables take the dedicated materialized scan: documents come from
 	// the fts5 engine and the generic pipeline applies WHERE/ORDER/LIMIT.
 	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
-		if len(s.Joins) == 0 {
-			return e.execFTS5Select(s, t5, colDefs)
-		}
-		// A join: materialize the fts5 documents (rowid-backed row maps) and
-		// run the generic join pipeline over them. No rank projection: a
-		// joined fts5 scan has no single rank function (C's
-		// "unable to use function MATCH in the requested context" class).
-		rowids, allRows, err := fts5ScanRows(t5, colDefs, nil)
-		if err != nil {
-			return &Result{Error: err}
-		}
-		allRowMaps := buildMaterializedRowMaps(s, colDefs, allRows, rowids)
-		return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+		return e.execFTS5VtabSelect(s, t5, colDefs)
 	}
 	// For FTS virtual tables, use full SELECT processing (WHERE, ORDER BY, LIMIT).
 	// A single-table FTS SELECT uses ExecFTSSelect (which sets the FTS match
 	// context for MATCH evaluation); an FTS table in a JOIN needs the generic
 	// join pipeline so the join/WHERE clauses are evaluated over combined rows.
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
-		// A %_content shadow btree that cannot be navigated fails any query
-		// that reads content columns, including a JOIN scan (fts3corrupt4
-		// 52.1: SELECT * FROM t1, t2 — SQLite's full scan steps the corrupt
-		// content table and reports "database disk image is malformed").
-		if len(s.Joins) > 0 && e.ftsReadsContentColumns(s, ftsTable) && e.contentBtreeCorrupt(tableEntry.Name) {
-			return &Result{Error: fmt.Errorf("database disk image is malformed")}
-		}
-		// SQLite's FTS3 xBestIndex binds at most one MATCH constraint per
-		// table; a second MATCH on the same table is an unusable constraint
-		// reported at prepare (e_fts3 7.3.1/7.3.2). The generic pipeline
-		// validates this for real tables; the dedicated FTS scan paths run
-		// it here.
-		if err := e.validateMultipleFTSMatch(s); err != nil {
-			return &Result{Error: err}
-		}
-		if len(s.Joins) == 0 {
-			return e.ctx.ExecFTSSelect(s, tableEntry, ftsTable, colDefs)
-		}
-		// Materialize the FTS rows (with the docid as rowid) and run the
-		// generic join/WHERE/aggregate pipeline over them. The row maps must
-		// carry the real docid so MATCH evaluation (which reads the row's
-		// rowid) resolves the FTS document being matched.
-		allRowMaps := e.ftsJoinRowMaps(ftsTable, colDefs, tableEntry.Name)
-		allRows := make([][]interface{}, len(allRowMaps))
-		for i, rowMap := range allRowMaps {
-			allRows[i] = rowMapToValues(rowMap, colDefs)
-		}
-		return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+		return e.execFTSVtabSelect(s, tableEntry, ftsTable, colDefs)
 	}
 	// Non-FTS virtual tables: materialize the rows (with an upper-bound
 	// hint for bounded tables like wholenumber) and run the full SELECT
 	// pipeline (WHERE, ORDER BY, LIMIT, aggregates) over them.
-	// A virtual table whose module declares column names (e.g.
-	// wholenumber's "value") provides the column definitions even when
-	// the CREATE VIRTUAL TABLE has no explicit column list.
+	return e.execGenericVtabSelect(s, tableEntry, colDefs)
+}
+
+// execFTS5VtabSelect runs the fts5 FROM path. A single-table scan uses the
+// dedicated fts5 pipeline; a join materializes the fts5 documents (rowid-
+// backed row maps) and runs the generic join pipeline over them. No rank
+// projection: a joined fts5 scan has no single rank function (C's
+// "unable to use function MATCH in the requested context" class).
+func (e *SelectEngine) execFTS5VtabSelect(s *sql.SelectStmt, t5 *fts5.Table, colDefs []sql.ColumnDef) *Result {
+	if len(s.Joins) == 0 {
+		return e.execFTS5Select(s, t5, colDefs)
+	}
+	rowids, allRows, err := fts5ScanRows(t5, colDefs, nil)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	allRowMaps := buildMaterializedRowMaps(s, colDefs, allRows, rowids)
+	return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+}
+
+// execFTSVtabSelect runs the FTS3/4 FROM path. A %_content shadow btree that
+// cannot be navigated fails any query that reads content columns, including a
+// JOIN scan (fts3corrupt4 52.1: SELECT * FROM t1, t2 — SQLite's full scan
+// steps the corrupt content table and reports "database disk image is
+// malformed"). SQLite's FTS3 xBestIndex binds at most one MATCH constraint per
+// table; a second MATCH on the same table is an unusable constraint reported
+// at prepare (e_fts3 7.3.1/7.3.2). The generic pipeline validates this for
+// real tables; the dedicated FTS scan paths run it here. A joined FTS scan
+// materializes the rows (with the docid as rowid) and runs the generic
+// join/WHERE/aggregate pipeline over them; the row maps must carry the real
+// docid so MATCH evaluation (which reads the row's rowid) resolves the FTS
+// document being matched.
+func (e *SelectEngine) execFTSVtabSelect(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef) *Result {
+	if len(s.Joins) > 0 && e.ftsReadsContentColumns(s, ftsTable) && e.contentBtreeCorrupt(tableEntry.Name) {
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
+	if err := e.validateMultipleFTSMatch(s); err != nil {
+		return &Result{Error: err}
+	}
+	if len(s.Joins) == 0 {
+		return e.ctx.ExecFTSSelect(s, tableEntry, ftsTable, colDefs)
+	}
+	allRowMaps := e.ftsJoinRowMaps(ftsTable, colDefs, tableEntry.Name)
+	allRows := make([][]interface{}, len(allRowMaps))
+	for i, rowMap := range allRowMaps {
+		allRows[i] = rowMapToValues(rowMap, colDefs)
+	}
+	return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+}
+
+// execGenericVtabSelect materializes a non-FTS virtual table's rows and runs
+// the generic pipeline over them. A virtual table whose module declares
+// column names (e.g. wholenumber's "value") provides the column definitions
+// even when the CREATE VIRTUAL TABLE has no explicit column list.
+func (e *SelectEngine) execGenericVtabSelect(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
 	if len(colDefs) == 0 {
 		colDefs = e.vtabModuleColDefs(tableEntry, colDefs)
 	}
@@ -695,6 +785,20 @@ func (e *SelectEngine) execSelectOuterAgg(s *sql.SelectStmt, allRowMaps []RowMap
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 
+// evalLimitOffsetExprs evaluates a statement's LIMIT and OFFSET expressions
+// (either may be nil) via evalLimitExpr.
+func (e *SelectEngine) evalLimitOffsetExprs(limit, offset sql.Expr) (sql.Expr, sql.Expr, error) {
+	lExpr, lErr := e.evalLimitExpr(limit)
+	if lErr != nil {
+		return nil, nil, lErr
+	}
+	oExpr, oErr := e.evalLimitExpr(offset)
+	if oErr != nil {
+		return nil, nil, oErr
+	}
+	return lExpr, oExpr, nil
+}
+
 // evalLimitExpr evaluates a LIMIT/OFFSET expression (which may be a scalar
 // subquery) to a numeric literal so applyLimitOffset can consume it. When
 // evaluation fails or the value is not numeric (e.g. a correlated expression),
@@ -723,17 +827,11 @@ func (e *SelectEngine) evalLimitExpr(expr sql.Expr) (sql.Expr, error) {
 	case int:
 		return &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}, nil
 	case float64:
-		if n == math.Trunc(n) {
-			return &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}, nil
-		}
-		return nil, fmt.Errorf("datatype mismatch")
+		return limitFloatToInt(n)
 	case string:
 		// SQLite casts the LIMIT expression to integer: LIMIT '4' == LIMIT 4,
 		// LIMIT '1.0' == LIMIT 1, LIMIT '1.2' / 'abc' → datatype mismatch.
-		if f, perr := strconv.ParseFloat(strings.TrimSpace(n), 64); perr == nil && f == math.Trunc(f) {
-			return &sql.NumericLit{Value: strconv.FormatInt(int64(f), 10)}, nil
-		}
-		return nil, fmt.Errorf("datatype mismatch")
+		return limitTextToInt(n)
 	case nil:
 		return nil, fmt.Errorf("datatype mismatch")
 	case []byte:
@@ -743,291 +841,20 @@ func (e *SelectEngine) evalLimitExpr(expr sql.Expr) (sql.Expr, error) {
 	return expr, nil
 }
 
-func (e *SelectEngine) validateRowValueInList(v *sql.InList) error {
-	if err := e.validateRowValueUse(v.Operand, false); err != nil {
-		return err
+// limitFloatToInt casts a LIMIT float value to an integer literal; a
+// non-integral value is a "datatype mismatch".
+func limitFloatToInt(n float64) (sql.Expr, error) {
+	if n == math.Trunc(n) {
+		return &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}, nil
 	}
-	for _, item := range v.List {
-		if err := e.validateRowValueUse(item, false); err != nil {
-			return err
-		}
-	}
-	// Row-value IN subquery arity: (a,b) IN (SELECT * FROM t) requires
-	// the subquery to return exactly len(operand) columns.
-	if isRowValueExpr(v.Operand) && len(v.List) == 1 && isSubqueryExpr(v.List[0]) {
-		arity := rowValueArity(v.Operand)
-		if err := e.validateSubqueryArity(v.List[0], arity); err != nil {
-			return err
-		}
-	}
-	return nil
+	return nil, fmt.Errorf("datatype mismatch")
 }
 
-// isRowValueExpr reports whether expr is a row value (or a parenthesized row
-// value).
-func isRowValueExpr(expr sql.Expr) bool {
-	switch v := expr.(type) {
-	case *sql.RowValue:
-		return true
-	case *sql.ParenExpr:
-		return isRowValueExpr(v.Expr)
+// limitTextToInt casts a LIMIT text value to an integer literal; non-numeric
+// or non-integral text is a "datatype mismatch".
+func limitTextToInt(n string) (sql.Expr, error) {
+	if f, perr := strconv.ParseFloat(strings.TrimSpace(n), 64); perr == nil && f == math.Trunc(f) {
+		return &sql.NumericLit{Value: strconv.FormatInt(int64(f), 10)}, nil
 	}
-	return false
-}
-
-// rowValueArity returns the number of elements in a row value expression, or
-// -1 if expr is not a row value.
-func rowValueArity(expr sql.Expr) int {
-	switch v := expr.(type) {
-	case *sql.RowValue:
-		return len(v.Values)
-	case *sql.ParenExpr:
-		return rowValueArity(v.Expr)
-	}
-	return -1
-}
-
-// isSubqueryExpr reports whether expr is a subquery (possibly parenthesized).
-func isSubqueryExpr(expr sql.Expr) bool {
-	switch v := expr.(type) {
-	case *sql.Subquery:
-		return true
-	case *sql.ParenExpr:
-		return isSubqueryExpr(v.Expr)
-	}
-	return false
-}
-
-// getCollationName extracts the collation name from a COLLATE expression's
-// right operand (a StringLit or ColumnRef).
-func getCollationName(expr sql.Expr) string {
-	switch v := expr.(type) {
-	case *sql.StringLit:
-		return v.Value
-	case *sql.ColumnRef:
-		return v.Name
-	}
-	return ""
-}
-
-// validateSubqueryArity checks that a subquery returns exactly wantCols
-// columns, raising "sub-select returns N columns - expected M" otherwise
-// (SQLite: `(a,b) IN (SELECT x, y, z ...)` with a 3-column subquery). A
-// `SELECT *` column is resolved to the table's column count via the schema.
-func (e *SelectEngine) validateSubqueryArity(expr sql.Expr, wantCols int) error {
-	sub := expr
-	for {
-		if p, ok := sub.(*sql.ParenExpr); ok {
-			sub = p.Expr
-			continue
-		}
-		break
-	}
-	sq, ok := sub.(*sql.Subquery)
-	if !ok {
-		return nil
-	}
-	n := e.subqueryColumnCount(sq.Select)
-	if n != wantCols {
-		return fmt.Errorf("sub-select returns %d columns - expected %d", n, wantCols)
-	}
-	return nil
-}
-
-// subqueryColumnCount returns the number of result columns a SELECT produces,
-// resolving a single `SELECT *` column to the FROM table's column count.
-func (e *SelectEngine) subqueryColumnCount(s *sql.SelectStmt) int {
-	if len(s.Columns) != 1 {
-		return len(s.Columns)
-	}
-	ref, ok := s.Columns[0].Expr.(*sql.ColumnRef)
-	if !ok || ref.Name != "*" {
-		return len(s.Columns)
-	}
-	// SELECT * FROM (subquery): star expands to the subquery's columns.
-	// A nil/empty From (no FROM clause) contributes no columns.
-	if s.From.Subquery != nil {
-		return e.subqueryColumnCount(s.From.Subquery)
-	}
-	if s.From.Name == "" {
-		return 0
-	}
-	entry, _, err := e.ctx.FindTable(s.From.Name)
-	if err != nil {
-		return len(s.Columns)
-	}
-	colDefs := e.ctx.ParseColumnDefs(entry.Name, entry.SQL)
-	count := 0
-	for _, cd := range colDefs {
-		if !cd.Dropped {
-			count++
-		}
-	}
-	return count
-}
-
-// validateSelectColumnRefs checks that every column reference in a SELECT
-// (select list, WHERE, GROUP BY, HAVING, ORDER BY) resolves to a column of
-// the scanned table. SQLite reports unknown columns at prepare time; without
-// this check an unknown column would silently evaluate to NULL.
-//
-// selectAliasMap builds the output-column alias map for a SELECT statement:
-// alias name → select-list expression (e.g. "SELECT a AS x" maps x → a). The
-// map is used at evaluation time so WHERE/GROUP BY/HAVING can reference an
-// alias when the name is not a table column (SQLite resolves the reference to
-// the alias's expression). Returns nil when the SELECT has no aliases.
-func selectAliasMap(s *sql.SelectStmt) map[string]sql.Expr {
-	if s == nil {
-		return nil
-	}
-	var m map[string]sql.Expr
-	for _, col := range s.Columns {
-		if col.As != "" {
-			if m == nil {
-				m = make(map[string]sql.Expr)
-			}
-			m[strings.ToLower(col.As)] = col.Expr
-		}
-	}
-	return m
-}
-
-// resolveAliasRef looks up an unqualified column reference in the enclosing
-// SELECTs' output-column alias maps (innermost first). It returns the alias
-// expression and true when found.
-func (e *SelectEngine) resolveAliasRef(name string) (sql.Expr, bool) {
-	for i := len(e.aliasStack) - 1; i >= 0; i-- {
-		if expr, ok := e.aliasStack[i][strings.ToLower(name)]; ok {
-			return expr, true
-		}
-	}
-	return nil, false
-}
-
-// aliasStackTop reports whether name is an output-column alias in the
-// innermost SELECT's alias map.
-func (e *SelectEngine) aliasStackTop(name string) (sql.Expr, bool) {
-	if len(e.aliasStack) == 0 {
-		return nil, false
-	}
-	expr, ok := e.aliasStack[len(e.aliasStack)-1][strings.ToLower(name)]
-	return expr, ok
-}
-
-// validateUnionSubqueryNoAggs checks that a subquery used in FROM does not
-// contain aggregates inside a UNION ALL. SQLite prohibits this pattern:
-// SELECT * FROM (SELECT 1 UNION ALL SELECT sum(x) FROM t) -- invalid
-func validateUnionSubqueryNoAggs(s *sql.SelectStmt) error {
-	if s.Union != nil {
-		// SQLite rejects an aggregate in a UNION member only when the member
-		// is not an aggregate query itself (no GROUP BY and no aggregate
-		// context). A grouped SELECT (SELECT a, sum(b) FROM t GROUP BY a)
-		// legitimately uses aggregates inside a UNION.
-		checkMember := func(m *sql.SelectStmt) error {
-			if len(m.GroupBy) == 0 && !hasAggregateInColumns(m.Columns) {
-				if nested := findAggregateInSelect(m); nested != "" {
-					return fmt.Errorf("misuse of aggregate: %s()", nested)
-				}
-			}
-			return nil
-		}
-		if err := checkMember(s); err != nil {
-			return err
-		}
-		if err := checkMember(s.Union); err != nil {
-			return err
-		}
-	}
-	// Recurse into nested FROM subqueries
-	if s.From.Subquery != nil {
-		return validateUnionSubqueryNoAggs(s.From.Subquery)
-	}
-	return nil
-}
-
-// hasAggregateInColumns reports whether any column expression is an aggregate
-// function call (used to recognize aggregate queries without GROUP BY).
-func hasAggregateInColumns(cols []sql.SelectColumn) bool {
-	for _, c := range cols {
-		if FindAggregateInExpr(c.Expr) != "" {
-			return true
-		}
-	}
-	return false
-}
-
-// findAggregateInSelect checks if a SELECT statement directly contains an aggregate function.
-func findAggregateInSelect(s *sql.SelectStmt) string {
-	for _, col := range s.Columns {
-		if nested := FindAggregateInExpr(col.Expr); nested != "" {
-			return nested
-		}
-	}
-	return ""
-}
-func applyLimitOffset(rows [][]interface{}, limit, offset sql.Expr) [][]interface{} {
-	if limit == nil {
-		return rows
-	}
-	l, ok := sql.EvalNumber(limit)
-	if !ok || l < 0 {
-		// Can't evaluate or negative limit → no upper bound
-		l = int64(len(rows))
-	}
-	o := int64(0)
-	if offset != nil {
-		o, _ = sql.EvalNumber(offset)
-	}
-	if o < 0 {
-		o = 0
-	}
-	if o > int64(len(rows)) {
-		return [][]interface{}{}
-	}
-	if l == 0 {
-		return [][]interface{}{}
-	}
-	end := o + l
-	if end > int64(len(rows)) {
-		end = int64(len(rows))
-	}
-	return rows[o:end]
-}
-
-// lookupRowMapValue fetches a column value from a RowMap, trying both the
-// qualified (alias.col / table.col) and unqualified forms.
-
-// SubqueryColumnCount returns the number of output columns of a subquery
-// SELECT. Exported for the expression evaluator's BETWEEN subquery arity.
-func (e *SelectEngine) SubqueryColumnCount(s *sql.SelectStmt) int {
-	return e.subqueryColumnCount(s)
-}
-
-// ResolveAliasRef looks up a SELECT output-column alias by name. Exported
-// for the expression evaluator's alias resolution.
-func (e *SelectEngine) ResolveAliasRef(name string) (sql.Expr, bool) {
-	return e.resolveAliasRef(name)
-}
-
-// selectReferencesRowID reports whether the statement's output columns or
-// WHERE clause contain an unqualified rowid/_rowid_/oid reference.
-func selectReferencesRowID(s *sql.SelectStmt) bool {
-	if s == nil {
-		return false
-	}
-	check := func(ex sql.Expr) bool {
-		found := false
-		WalkExprFull(ex, func(e2 sql.Expr) {
-			if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table == "" && isRowIDName(cr.Name) {
-				found = true
-			}
-		})
-		return found
-	}
-	for _, col := range s.Columns {
-		if check(col.Expr) {
-			return true
-		}
-	}
-	return check(s.Where)
+	return nil, fmt.Errorf("datatype mismatch")
 }

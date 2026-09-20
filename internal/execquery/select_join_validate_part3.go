@@ -270,22 +270,12 @@ func (c ambiguousRefChecker) checkColumnRef(ref *sql.ColumnRef) error {
 // A schema-qualified reference (main.t4.a) matches an operand written either
 // way (main.t4 or t4) — both spellings are candidates, mirroring SQLite's
 // db-qualified name resolution (selectD-2.4).
-func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
-	if c.hasDerived {
-		return nil
-	}
-	q := strings.ToLower(ref.Table)
-	if q == "new" || q == "old" {
-		return nil
-	}
-	qualifiers := []string{q}
-	if dot := strings.IndexByte(q, '.'); dot >= 0 {
-		qualifiers = append(qualifiers, q[dot+1:])
-	}
-	instances := 0
-	found := false
-	for col, refs := range c.colInTables {
-		if !strings.EqualFold(col, ref.Name) {
+// countQualifierInstances counts how many FROM operands (each counted once)
+// provide col under any of the given qualifiers, and whether any match
+// exists at all.
+func (c ambiguousRefChecker) countQualifierInstances(col string, qualifiers []string) (instances int, found bool) {
+	for tblCol, refs := range c.colInTables {
+		if !strings.EqualFold(tblCol, col) {
 			continue
 		}
 		for _, rn := range refs {
@@ -298,6 +288,22 @@ func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
 			}
 		}
 	}
+	return instances, found
+}
+
+func (c ambiguousRefChecker) checkQualifiedRef(ref *sql.ColumnRef) error {
+	if c.hasDerived {
+		return nil
+	}
+	q := strings.ToLower(ref.Table)
+	if q == "new" || q == "old" {
+		return nil
+	}
+	qualifiers := []string{q}
+	if dot := strings.IndexByte(q, '.'); dot >= 0 {
+		qualifiers = append(qualifiers, q[dot+1:])
+	}
+	instances, found := c.countQualifierInstances(ref.Name, qualifiers)
 	if instances > 1 {
 		// A qualifier naming a DUPLICATED alias is ambiguous
 		// (select1-6.8c: "FROM test1 as A, test1 as A").

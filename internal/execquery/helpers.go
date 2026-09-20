@@ -236,18 +236,8 @@ func vtabCorrelatedInput(where sql.Expr) (string, bool) {
 		}
 		return vtabCorrelatedInput(cmp.Right)
 	}
-	cmp, ok := where.(*sql.BinaryOp)
-	if !ok || cmp == nil || strings.ToUpper(cmp.Operator) != "=" {
-		return "", false
-	}
-	var cr *sql.ColumnRef
-	var rhs sql.Expr
-	if c, ok := cmp.Left.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Right
-	} else if c, ok := cmp.Right.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Left
-	}
-	if cr == nil || !strings.EqualFold(cr.Name, "input") {
+	cr, rhs, ok := inputEqualityOperands(where)
+	if !ok || !strings.EqualFold(cr.Name, "input") {
 		return "", false
 	}
 	col, ok := rhs.(*sql.ColumnRef)
@@ -294,18 +284,8 @@ func vtabInputConstraint(where sql.Expr) (string, bool) {
 		}
 		return vtabInputConstraint(cmp.Right)
 	}
-	cmp, ok := where.(*sql.BinaryOp)
-	if !ok || cmp == nil || strings.ToUpper(cmp.Operator) != "=" {
-		return "", false
-	}
-	var cr *sql.ColumnRef
-	var rhs sql.Expr
-	if c, ok := cmp.Left.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Right
-	} else if c, ok := cmp.Right.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Left
-	}
-	if cr == nil {
+	cr, rhs, ok := inputEqualityOperands(where)
+	if !ok {
 		return "", false
 	}
 	// The constraint must target the first column (input).
@@ -325,6 +305,23 @@ func vtabInputConstraint(where sql.Expr) (string, bool) {
 		return "", true
 	}
 	return "", false
+}
+
+// inputEqualityOperands splits a WHERE clause that is a plain equality with a
+// column reference on either side. ok=false when where is not such an
+// equality.
+func inputEqualityOperands(where sql.Expr) (cr *sql.ColumnRef, rhs sql.Expr, ok bool) {
+	cmp, isBin := where.(*sql.BinaryOp)
+	if !isBin || cmp == nil || strings.ToUpper(cmp.Operator) != "=" {
+		return nil, nil, false
+	}
+	if c, isCol := cmp.Left.(*sql.ColumnRef); isCol {
+		return c, cmp.Right, true
+	}
+	if c, isCol := cmp.Right.(*sql.ColumnRef); isCol {
+		return c, cmp.Left, true
+	}
+	return nil, nil, false
 }
 
 // boundFromColVal computes a vtab upper bound from a "value OP n" comparison.
@@ -382,17 +379,7 @@ func splitVTabArgs(argsStr string) []string {
 		c := argsStr[i]
 		switch {
 		case quote != 0:
-			cur.WriteByte(c)
-			if c == quote {
-				// Doubled quote is an escaped quote inside the string; only
-				// close when not doubled (SQLite quote rules).
-				if i+1 < len(argsStr) && argsStr[i+1] == quote {
-					cur.WriteByte(argsStr[i+1])
-					i++
-				} else {
-					quote = 0
-				}
-			}
+			i = scanQuotedArg(argsStr, i, &cur, &quote)
 		case c == '\'' || c == '"' || c == '`':
 			quote = c
 			cur.WriteByte(c)
@@ -406,25 +393,41 @@ func splitVTabArgs(argsStr string) []string {
 			depth--
 			if depth < 0 {
 				// Past the final close paren: stop.
-				if s := strings.TrimSpace(cur.String()); s != "" {
-					args = append(args, s)
-				}
-				return args
+				return appendArg(args, cur.String())
 			}
 			cur.WriteByte(c)
 		case c == ',' && depth == 0:
-			if s := strings.TrimSpace(cur.String()); s != "" {
-				args = append(args, s)
-			}
+			args = appendArg(args, cur.String())
 			cur.Reset()
 		default:
 			cur.WriteByte(c)
 		}
 	}
-	if s := strings.TrimSpace(cur.String()); s != "" {
+	return appendArg(args, cur.String())
+}
+
+// appendArg appends a trimmed, non-empty argument to the list.
+func appendArg(args []string, raw string) []string {
+	if s := strings.TrimSpace(raw); s != "" {
 		args = append(args, s)
 	}
 	return args
+}
+
+// scanQuotedArg consumes one character inside a quoted argument segment and
+// returns the next scan index. A doubled quote is an escaped quote inside
+// the string; only a lone quote closes it (SQLite quote rules).
+func scanQuotedArg(argsStr string, i int, cur *strings.Builder, quote *byte) int {
+	c := argsStr[i]
+	cur.WriteByte(c)
+	if c == *quote {
+		if i+1 < len(argsStr) && argsStr[i+1] == *quote {
+			cur.WriteByte(argsStr[i+1])
+			return i + 1
+		}
+		*quote = 0
+	}
+	return i
 }
 
 // buildColumnIndex builds a case-insensitive column-name→position index for

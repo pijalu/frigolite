@@ -93,22 +93,28 @@ func (e *SelectEngine) validateLimitExpr(expr sql.Expr) error {
 		}
 		return e.validateLimitExpr(v.Right)
 	case *sql.FuncCall:
-		fn, ok := e.ctx.Functions().Find(v.Name)
-		if !ok {
-			return fmt.Errorf("no such function: %s", v.Name)
-		}
-		n := len(v.Args)
-		if n < fn.MinArgs || (fn.MaxArgs > 0 && n > fn.MaxArgs) {
-			return fmt.Errorf("wrong number of arguments to function %s()", v.Name)
-		}
-		for _, a := range v.Args {
-			if err := e.validateLimitExpr(a); err != nil {
-				return err
-			}
-		}
-		return nil
+		return e.validateLimitFuncCall(v)
 	case *sql.CastExpr:
 		return e.validateLimitExpr(v.Operand)
+	}
+	return nil
+}
+
+// validateLimitFuncCall validates a function call inside a LIMIT/OFFSET
+// expression: known name, matching arity, and valid argument expressions.
+func (e *SelectEngine) validateLimitFuncCall(v *sql.FuncCall) error {
+	fn, ok := e.ctx.Functions().Find(v.Name)
+	if !ok {
+		return fmt.Errorf("no such function: %s", v.Name)
+	}
+	n := len(v.Args)
+	if n < fn.MinArgs || (fn.MaxArgs > 0 && n > fn.MaxArgs) {
+		return fmt.Errorf("wrong number of arguments to function %s()", v.Name)
+	}
+	for _, a := range v.Args {
+		if err := e.validateLimitExpr(a); err != nil {
+			return err
+		}
 	}
 	return nil
 }

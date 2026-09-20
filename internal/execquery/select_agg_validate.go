@@ -47,61 +47,72 @@ func (e *SelectEngine) exprAggWithColumnRef(expr sql.Expr) bool {
 	if expr == nil {
 		return false
 	}
+	if _, ok := expr.(*sql.FuncCall); ok {
+		return e.funcCallAggWithColumnRef(expr.(*sql.FuncCall))
+	}
+	for _, kid := range aggCorrelationChildren(expr) {
+		if e.exprAggWithColumnRef(kid) {
+			return true
+		}
+	}
+	return false
+}
+
+// aggCorrelationChildren returns an expression node's child expressions for
+// the correlated-aggregate walk.
+func aggCorrelationChildren(expr sql.Expr) []sql.Expr {
 	switch v := expr.(type) {
-	case *sql.FuncCall:
-		// A window function (OVER clause) is not a correlated aggregate: it
-		// does not collapse the query to one row. Its aggregate name (e.g.
-		// min(a) OVER ()) must not trigger the correlated-aggregate path.
-		if v.Over != nil {
-			return false
-		}
-		reg, found := e.ctx.Functions().Find(v.Name)
-		if found && reg.Type == function.TypeAggregate {
-			for _, arg := range v.Args {
-				if e.exprHasColumnRef(arg) {
-					return true
-				}
-			}
-		}
-		for _, arg := range v.Args {
-			if e.exprAggWithColumnRef(arg) {
-				return true
-			}
-		}
-		for _, ob := range v.OrderBy {
-			if e.exprAggWithColumnRef(ob.Expr) {
-				return true
-			}
-		}
-		return false
 	case *sql.BinaryOp:
-		return e.exprAggWithColumnRef(v.Left) || e.exprAggWithColumnRef(v.Right)
+		return []sql.Expr{v.Left, v.Right}
 	case *sql.UnaryOp:
-		return e.exprAggWithColumnRef(v.Operand)
+		return []sql.Expr{v.Operand}
 	case *sql.ParenExpr:
-		return e.exprAggWithColumnRef(v.Expr)
+		return []sql.Expr{v.Expr}
 	case *sql.CastExpr:
-		return e.exprAggWithColumnRef(v.Operand)
+		return []sql.Expr{v.Operand}
 	case *sql.CaseExpr:
-		if e.exprAggWithColumnRef(v.Operand) {
-			return true
-		}
+		kids := make([]sql.Expr, 0, 3+2*len(v.Whens))
+		kids = append(kids, v.Operand)
 		for _, w := range v.Whens {
-			if e.exprAggWithColumnRef(w.When) || e.exprAggWithColumnRef(w.Then) {
+			kids = append(kids, w.When, w.Then)
+		}
+		return append(kids, v.Else)
+	case *sql.Between:
+		return []sql.Expr{v.Operand, v.Low, v.High}
+	case *sql.InList:
+		kids := make([]sql.Expr, 0, len(v.List)+1)
+		kids = append(kids, v.Operand)
+		kids = append(kids, v.List...)
+		return kids
+	}
+	return nil
+}
+
+// funcCallAggWithColumnRef reports whether an aggregate call's arguments carry
+// a column reference, or a nested expression does. A window function (OVER
+// clause) is not a correlated aggregate: it does not collapse the query to one
+// row, so its aggregate name (e.g. min(a) OVER ()) must not trigger the
+// correlated-aggregate path.
+func (e *SelectEngine) funcCallAggWithColumnRef(v *sql.FuncCall) bool {
+	if v.Over != nil {
+		return false
+	}
+	reg, found := e.ctx.Functions().Find(v.Name)
+	if found && reg.Type == function.TypeAggregate {
+		for _, arg := range v.Args {
+			if e.exprHasColumnRef(arg) {
 				return true
 			}
 		}
-		return e.exprAggWithColumnRef(v.Else)
-	case *sql.Between:
-		return e.exprAggWithColumnRef(v.Operand) || e.exprAggWithColumnRef(v.Low) || e.exprAggWithColumnRef(v.High)
-	case *sql.InList:
-		if e.exprAggWithColumnRef(v.Operand) {
+	}
+	for _, arg := range v.Args {
+		if e.exprAggWithColumnRef(arg) {
 			return true
 		}
-		for _, item := range v.List {
-			if e.exprAggWithColumnRef(item) {
-				return true
-			}
+	}
+	for _, ob := range v.OrderBy {
+		if e.exprAggWithColumnRef(ob.Expr) {
+			return true
 		}
 	}
 	return false
@@ -163,41 +174,8 @@ func (e *SelectEngine) aggExprRefsOnlyOuter(expr sql.Expr, inner map[string]bool
 		return false
 	}
 	if fn, ok := expr.(*sql.FuncCall); ok {
-		// A window function (OVER clause) is not a correlated aggregate: it
-		// does not collapse the query, so it must not trigger the outer-row
-		// aggregate path.
-		if fn.Over != nil {
-			return false
-		}
-		reg, found := e.ctx.Functions().Find(fn.Name)
-		if found && reg.Type == function.TypeAggregate {
-			// A FILTER bound to the subquery's own rows keeps the aggregate
-			// inner-evaluated: the query is a per-row correlated-aggregate
-			// subquery, NOT an outer aggregate collapse (filter1-6.1:
-			// COUNT(a) FILTER(WHERE x) with x inner evaluates per outer row).
-			if fn.Filter != nil && exprHasColRefInMap(fn.Filter, inner) {
-				return false
-			}
-			refsOuter := false
-			refsInner := false
-			scanRefs := func(exprs []sql.Expr) {
-				for _, a := range exprs {
-					if e.exprRefsOuterCol(a, inner, innerTables) {
-						refsOuter = true
-					}
-					if exprHasColRefInMap(a, inner) {
-						refsInner = true
-					}
-				}
-			}
-			scanRefs(fn.Args)
-			scanRefs(orderByExprs(fn.OrderBy))
-			if fn.Filter != nil {
-				scanRefs([]sql.Expr{fn.Filter})
-			}
-			if refsOuter && !refsInner {
-				return true
-			}
+		if res, decided := e.aggFuncCallRefsOnlyOuter(fn, inner, innerTables); decided {
+			return res
 		}
 	}
 	for _, child := range aggValidateChildExprs(expr) {
@@ -206,6 +184,45 @@ func (e *SelectEngine) aggExprRefsOnlyOuter(expr sql.Expr, inner map[string]bool
 		}
 	}
 	return false
+}
+
+// aggFuncCallRefsOnlyOuter decides one aggregate call's outer/inner reference
+// ownership. decided=true carries the verdict; decided=false lets the walk
+// continue into the call's children. A window function (OVER clause) is not a
+// correlated aggregate: it does not collapse the query, so it must not
+// trigger the outer-row aggregate path. A FILTER bound to the subquery's own
+// rows keeps the aggregate inner-evaluated: the query is a per-row
+// correlated-aggregate subquery, NOT an outer aggregate collapse (filter1-6.1:
+// COUNT(a) FILTER(WHERE x) with x inner evaluates per outer row).
+func (e *SelectEngine) aggFuncCallRefsOnlyOuter(fn *sql.FuncCall, inner map[string]bool, innerTables map[string]bool) (verdict, decided bool) {
+	if fn.Over != nil {
+		return false, true
+	}
+	reg, found := e.ctx.Functions().Find(fn.Name)
+	if !found || reg.Type != function.TypeAggregate {
+		return false, false
+	}
+	if fn.Filter != nil && exprHasColRefInMap(fn.Filter, inner) {
+		return false, true
+	}
+	refsOuter := false
+	refsInner := false
+	scanRefs := func(exprs []sql.Expr) {
+		for _, a := range exprs {
+			if e.exprRefsOuterCol(a, inner, innerTables) {
+				refsOuter = true
+			}
+			if exprHasColRefInMap(a, inner) {
+				refsInner = true
+			}
+		}
+	}
+	scanRefs(fn.Args)
+	scanRefs(orderByExprs(fn.OrderBy))
+	if fn.Filter != nil {
+		scanRefs([]sql.Expr{fn.Filter})
+	}
+	return refsOuter && !refsInner, true
 }
 
 // selectFromlessAggHasColRef detects Case 1: a FROM-less SELECT whose aggregate
@@ -239,66 +256,73 @@ func (e *SelectEngine) selectFromAggRefsOuterOnly(s *sql.SelectStmt) bool {
 // colHasNonWindowAggregate reports whether expr contains a plain (non-window)
 // aggregate function call.
 func (e *SelectEngine) colHasNonWindowAggregate(expr sql.Expr) bool {
-	switch v := expr.(type) {
-	case *sql.FuncCall:
-		if v.Over != nil {
-			return false
-		}
-		reg, found := e.ctx.Functions().Find(v.Name)
-		if found && reg.Type == function.TypeAggregate {
+	if fc, ok := expr.(*sql.FuncCall); ok {
+		return e.funcCallHasNonWindowAggregate(fc)
+	}
+	for _, kid := range nonWindowAggChildren(expr) {
+		if e.colHasNonWindowAggregate(kid) {
 			return true
 		}
-		for _, arg := range v.Args {
-			if e.colHasNonWindowAggregate(arg) {
-				return true
-			}
-		}
-		for _, ob := range v.OrderBy {
-			if e.colHasNonWindowAggregate(ob.Expr) {
-				return true
-			}
-		}
-		return false
-	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
-		left, right := BinaryExprOperands(v)
-		return e.colHasNonWindowAggregate(left) || e.colHasNonWindowAggregate(right)
-	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
-		return e.colHasNonWindowAggregate(singleExprOperand(v))
-	case *sql.Between:
-		return e.colHasNonWindowAggregate(v.Operand) || e.colHasNonWindowAggregate(v.Low) || e.colHasNonWindowAggregate(v.High)
-	case *sql.InList:
-		if e.colHasNonWindowAggregate(v.Operand) {
-			return true
-		}
-		for _, item := range v.List {
-			if e.colHasNonWindowAggregate(item) {
-				return true
-			}
-		}
-		return false
-	case *sql.CaseExpr:
-		if e.colHasNonWindowAggregate(v.Operand) {
-			return true
-		}
-		for _, w := range v.Whens {
-			if e.colHasNonWindowAggregate(w.When) || e.colHasNonWindowAggregate(w.Then) {
-				return true
-			}
-		}
-		if v.Else != nil {
-			return e.colHasNonWindowAggregate(v.Else)
-		}
-		return false
-	case *sql.RowValue:
-		for _, item := range v.Values {
-			if e.colHasNonWindowAggregate(item) {
-				return true
-			}
-		}
-		return false
-	default:
+	}
+	return false
+}
+
+// funcCallHasNonWindowAggregate handles the FuncCall node of the non-window
+// aggregate walk: a window call is not a plain aggregate (returns false
+// without descending); a registered aggregate returns true; a scalar call
+// descends into args and aggregate ORDER BY terms.
+func (e *SelectEngine) funcCallHasNonWindowAggregate(fc *sql.FuncCall) bool {
+	if fc.Over != nil {
 		return false
 	}
+	if reg, found := e.ctx.Functions().Find(fc.Name); found && reg.Type == function.TypeAggregate {
+		return true
+	}
+	for _, arg := range fc.Args {
+		if e.colHasNonWindowAggregate(arg) {
+			return true
+		}
+	}
+	for _, ob := range fc.OrderBy {
+		if e.colHasNonWindowAggregate(ob.Expr) {
+			return true
+		}
+	}
+	return false
+}
+
+// nonWindowAggChildren returns an expression node's child expressions for the
+// non-window-aggregate walk.
+func nonWindowAggChildren(expr sql.Expr) []sql.Expr {
+	switch v := expr.(type) {
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
+		left, right := BinaryExprOperands(expr)
+		return []sql.Expr{left, right}
+	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull, *sql.IsTrue, *sql.IsFalse:
+		return []sql.Expr{singleExprOperand(expr)}
+	case *sql.Between:
+		return []sql.Expr{v.Operand, v.Low, v.High}
+	case *sql.InList:
+		kids := make([]sql.Expr, 0, len(v.List)+1)
+		kids = append(kids, v.Operand)
+		kids = append(kids, v.List...)
+		return kids
+	case *sql.CaseExpr:
+		kids := make([]sql.Expr, 0, 3+2*len(v.Whens))
+		if v.Operand != nil {
+			kids = append(kids, v.Operand)
+		}
+		for _, w := range v.Whens {
+			kids = append(kids, w.When, w.Then)
+		}
+		if v.Else != nil {
+			kids = append(kids, v.Else)
+		}
+		return kids
+	case *sql.RowValue:
+		return v.Values
+	}
+	return nil
 }
 
 // columnsHaveCorrelatedAggSubquery checks SELECT column subqueries for
@@ -627,40 +651,50 @@ func (e *SelectEngine) orderByWindowAliasRef(s *sql.SelectStmt) string {
 	if len(winAliases) == 0 {
 		return ""
 	}
+	for _, ob := range s.OrderBy {
+		if name := subqueryWindowAliasRef(ob.Expr, winAliases); name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
+// subqueryWindowAliasRef returns the first SELECT-list window-function alias
+// referenced bare inside a scalar subquery of expr, or "".
+func subqueryWindowAliasRef(expr sql.Expr, winAliases map[string]bool) string {
 	found := ""
-	checkSub := func(sub *sql.Subquery) {
-		if sub == nil || sub.Select == nil || found != "" {
+	WalkExprFull(expr, func(en sql.Expr) {
+		if found != "" {
+			return
+		}
+		sub, ok := en.(*sql.Subquery)
+		if !ok || sub.Select == nil {
 			return
 		}
 		for _, col := range sub.Select.Columns {
-			WalkExprFull(col.Expr, func(en sql.Expr) {
-				if found != "" {
-					return
-				}
-				if ref, ok := en.(*sql.ColumnRef); ok && ref.Table == "" {
-					if winAliases[strings.ToLower(ref.Name)] {
-						found = ref.Name
-					}
-				}
-			})
-			if found != "" {
+			if name := bareColWindowAlias(col.Expr, winAliases); name != "" {
+				found = name
 				return
 			}
 		}
-	}
-	for _, ob := range s.OrderBy {
-		WalkExprFull(ob.Expr, func(en sql.Expr) {
-			if found != "" {
-				return
-			}
-			if sub, ok := en.(*sql.Subquery); ok {
-				checkSub(sub)
-			}
-		})
+	})
+	return found
+}
+
+// bareColWindowAlias returns the first bare column reference in expr whose
+// name matches a window-function alias, or "".
+func bareColWindowAlias(expr sql.Expr, winAliases map[string]bool) string {
+	found := ""
+	WalkExprFull(expr, func(en sql.Expr) {
 		if found != "" {
-			return found
+			return
 		}
-	}
+		if ref, ok := en.(*sql.ColumnRef); ok && ref.Table == "" {
+			if winAliases[strings.ToLower(ref.Name)] {
+				found = ref.Name
+			}
+		}
+	})
 	return found
 }
 
@@ -668,6 +702,15 @@ func (e *SelectEngine) orderByWindowAliasRef(s *sql.SelectStmt) string {
 // subquery validity, ORDER BY length limits, row-value misuse, and UNION
 // subquery aggregates across a SELECT's clauses.
 func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
+	if err := e.validateSelectExprsClauses(s); err != nil {
+		return err
+	}
+	return e.validateSelectExprsOrdering(s)
+}
+
+// validateSelectExprsClauses validates the SELECT list and each auxiliary
+// clause (GROUP BY / HAVING / WHERE / LIMIT / OFFSET / ORDER BY terms).
+func (e *SelectEngine) validateSelectExprsClauses(s *sql.SelectStmt) error {
 	if err := e.validateMultipleFTSMatch(s); err != nil {
 		return err
 	}
@@ -683,25 +726,14 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	if err := e.validateWindowFunctions(s); err != nil {
 		return err
 	}
-	if err := e.validateGroupByExprs(s); err != nil {
-		return err
-	}
-	if err := e.validateClauseFunctions(s.GroupBy); err != nil {
-		return err
-	}
-	if err := e.validateClauseFunctions([]sql.Expr{s.Having}); err != nil {
+	if err := e.validateGroupByClauses(s); err != nil {
 		return err
 	}
 	// LIMIT/OFFSET expressions are name-resolved at prepare time like other
 	// clauses: a subquery naming a missing table fails the statement
 	// ("no such table: blah", misc5-3.2), it is not silently un-evaluable.
-	for _, limExpr := range []sql.Expr{s.Limit, s.Offset} {
-		if limExpr == nil {
-			continue
-		}
-		if err := e.validateExprSubqueries(limExpr); err != nil {
-			return err
-		}
+	if err := e.validateLimitOffsetSubqueries(s); err != nil {
+		return err
 	}
 	if err := e.validateHavingExprs(s); err != nil {
 		return err
@@ -712,19 +744,55 @@ func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
 	if err := e.validateWhereExprs(s); err != nil {
 		return err
 	}
+	return e.validateOrderByTerms(s)
+}
+
+// validateLimitOffsetSubqueries validates scalar subqueries inside the
+// LIMIT/OFFSET expressions.
+func (e *SelectEngine) validateLimitOffsetSubqueries(s *sql.SelectStmt) error {
+	for _, limExpr := range []sql.Expr{s.Limit, s.Offset} {
+		if limExpr == nil {
+			continue
+		}
+		if err := e.validateExprSubqueries(limExpr); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateGroupByClauses rejects aggregates in GROUP BY and HAVING.
+func (e *SelectEngine) validateGroupByClauses(s *sql.SelectStmt) error {
+	if err := e.validateGroupByExprs(s); err != nil {
+		return err
+	}
+	if err := e.validateClauseFunctions(s.GroupBy); err != nil {
+		return err
+	}
+	return e.validateClauseFunctions([]sql.Expr{s.Having})
+}
+
+// validateOrderByTerms validates each ORDER BY term: DISTINCT aggregate arity
+// and scalar-subquery resolution. SQLite resolves ORDER BY term
+// names/subqueries even when the term does not match a result column
+// (window1 67.1: a nested (SELECT 1 FROM v1) inside a window's ORDER BY must
+// raise "no such table: v1").
+func (e *SelectEngine) validateOrderByTerms(s *sql.SelectStmt) error {
 	for _, ob := range s.OrderBy {
 		if err := validateDistinctAggArgs(ob.Expr); err != nil {
 			return err
 		}
-		// Validate scalar subqueries inside ORDER BY terms (table
-		// resolution etc.) so their errors surface here — SQLite resolves
-		// ORDER BY term names/subqueries even when the term does not match
-		// a result column (window1 67.1: a nested (SELECT 1 FROM v1) inside
-		// a window's ORDER BY must raise "no such table: v1").
 		if err := e.validateExprSubqueries(ob.Expr); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+// validateSelectExprsOrdering runs the ORDER BY / result-shaping validations:
+// aliased window-function references, row values, compound subquery
+// aggregates, nested aggregates, and schema collation registration.
+func (e *SelectEngine) validateSelectExprsOrdering(s *sql.SelectStmt) error {
 	// A scalar subquery in ORDER BY that references a SELECT-list alias of a
 	// window function is a misuse (window1 43.x: ORDER BY (SELECT m) on
 	// SELECT count() OVER() AS m).
@@ -787,32 +855,32 @@ func (e *SelectEngine) validateFilterClause(expr sql.Expr) error {
 		if firstErr != nil {
 			return
 		}
-		fn, ok := en.(*sql.FuncCall)
-		if !ok || fn.Filter == nil {
-			return
-		}
-		reg, found := e.ctx.Functions().Find(fn.Name)
-		if !found || reg.Type != function.TypeAggregate {
-			// SQLite reports a different message for a FILTER on a window
-			// function (which is not an aggregate) vs a plain non-aggregate
-			// scalar function (src/window.c:691 vs src/resolve.c:1282).
-			if fn.Over != nil {
-				firstErr = fmt.Errorf("FILTER clause may only be used with aggregate window functions")
-			} else {
-				firstErr = fmt.Errorf("FILTER may not be used with non-aggregate %s()", fn.Name)
-			}
-			return
-		}
-		if nested := FindAggregateInExpr(fn.Filter); nested != "" {
-			firstErr = fmt.Errorf("misuse of aggregate function %s()", nested)
-			return
-		}
-		if nested := e.windowFuncInExpr(fn.Filter); nested != "" {
-			firstErr = fmt.Errorf("misuse of window function %s()", nested)
-			return
+		if fn, ok := en.(*sql.FuncCall); ok && fn.Filter != nil {
+			firstErr = e.filterClauseError(fn)
 		}
 	})
 	return firstErr
+}
+
+// filterClauseError validates one function call carrying a FILTER clause.
+// SQLite reports a different message for a FILTER on a window function (which
+// is not an aggregate) vs a plain non-aggregate scalar function
+// (src/window.c:691 vs src/resolve.c:1282).
+func (e *SelectEngine) filterClauseError(fn *sql.FuncCall) error {
+	reg, found := e.ctx.Functions().Find(fn.Name)
+	if !found || reg.Type != function.TypeAggregate {
+		if fn.Over != nil {
+			return fmt.Errorf("FILTER clause may only be used with aggregate window functions")
+		}
+		return fmt.Errorf("FILTER may not be used with non-aggregate %s()", fn.Name)
+	}
+	if nested := FindAggregateInExpr(fn.Filter); nested != "" {
+		return fmt.Errorf("misuse of aggregate function %s()", nested)
+	}
+	if nested := e.windowFuncInExpr(fn.Filter); nested != "" {
+		return fmt.Errorf("misuse of window function %s()", nested)
+	}
+	return nil
 }
 
 // validateGroupByExprs rejects aggregate functions inside GROUP BY
@@ -930,173 +998,3 @@ func expressionAggregateName(expr sql.Expr, fns *function.Registry) string {
 	})
 	return found
 }
-
-// whereReferencesBareName reports whether the WHERE tree contains a
-// table-unqualified ColumnRef with exactly the given name.
-func whereReferencesBareName(expr sql.Expr, name string) bool {
-	if expr == nil {
-		return false
-	}
-	found := false
-	WalkExprFull(expr, func(n sql.Expr) {
-		if ref, ok := n.(*sql.ColumnRef); ok && ref.Table == "" && strings.EqualFold(ref.Name, name) {
-			found = true
-		}
-	})
-	return found
-}
-
-// whereDirectAggregateScoped returns the name of the first inner-owned scalar
-// aggregate found directly in s's WHERE tree, or "" when every WHERE
-// aggregate is either absent, valid-by-arity, or a pure-outer aggregate of an
-// aggregate query (resolve.c:1960 + resolve.c:1332 — aggnested-3.11 allows
-// WHERE value2=max(value1) inside SELECT count(*) FROM t2 because count(*)
-// keeps NC_AllowAgg set and max(value1) references no t2 column, so it is
-// attributed to the enclosing aggregate context).
-func (e *SelectEngine) whereDirectAggregateScoped(s *sql.SelectStmt) string {
-	name := whereDirectAggregate(s.Where, e.ctx.Functions())
-	if name == "" {
-		return ""
-	}
-	// resolve.c:1960 — without result-set aggregates or GROUP BY, NC_AllowAgg
-	// is cleared and any WHERE aggregate is a misuse.
-	if !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 {
-		return name
-	}
-	// resolve.c:1332 ownership walk — an aggregate referencing no column of
-	// this SELECT's own FROM scope belongs to an outer context. count(*)
-	// (no column references) stays inner-owned and remains a misuse.
-	inner, innerTables := e.collectInnerColsAndTables(s)
-	var bad string
-	var stop bool
-	WalkExprFull(s.Where, func(en sql.Expr) {
-		if bad != "" || stop {
-			return
-		}
-		switch en.(type) {
-		case *sql.Subquery, *sql.ExistsExpr:
-			stop = true
-			return
-		}
-		fn, ok := en.(*sql.FuncCall)
-		if !ok || !e.isAggregateFuncCallName(fn.Name) {
-			return
-		}
-		refs := make([]sql.Expr, 0, len(fn.Args)+len(fn.OrderBy)+1)
-		refs = append(refs, fn.Args...)
-		for _, ob := range fn.OrderBy {
-			refs = append(refs, ob.Expr)
-		}
-		if fn.Filter != nil {
-			refs = append(refs, fn.Filter)
-		}
-		for _, r := range refs {
-			if exprHasColRefInMap(r, inner) {
-				bad = strings.ToLower(fn.Name)
-				return
-			}
-		}
-		// Qualified references to inner tables are inner-owned too.
-		for _, r := range refs {
-			if e.exprRefsInnerTable(r, innerTables) {
-				bad = strings.ToLower(fn.Name)
-				return
-			}
-		}
-	})
-	return bad
-}
-
-// exprRefsInnerTable reports whether expr contains a column reference
-// qualified by one of the given (inner) table names or aliases.
-func (e *SelectEngine) exprRefsInnerTable(expr sql.Expr, innerTables map[string]bool) bool {
-	if expr == nil {
-		return false
-	}
-	if ref, ok := expr.(*sql.ColumnRef); ok && ref.Table != "" {
-		t := strings.ToLower(ref.Table)
-		if dot := strings.IndexByte(t, '.'); dot >= 0 {
-			t = t[dot+1:]
-		}
-		return innerTables[t]
-	}
-	for _, child := range aggValidateChildExprs(expr) {
-		if e.exprRefsInnerTable(child, innerTables) {
-			return true
-		}
-	}
-	return false
-}
-
-// whereDirectAggregate returns the (lowercased) name of the first scalar
-// aggregate function found directly in the expression tree, ignoring any
-// nested inside Subquery / EXISTS nodes.
-func whereDirectAggregate(expr sql.Expr, fns *function.Registry) string {
-	if expr == nil {
-		return ""
-	}
-	found := ""
-	var stop bool
-	WalkExprFull(expr, func(n sql.Expr) {
-		if found != "" || stop {
-			return
-		}
-		switch n.(type) {
-		case *sql.Subquery, *sql.ExistsExpr:
-			stop = true
-			return
-		}
-		fn, ok := n.(*sql.FuncCall)
-		if !ok {
-			return
-		}
-		reg, found2 := fns.Find(fn.Name)
-		if !found2 || reg.Type != function.TypeAggregate {
-			return
-		}
-		// min/max are dual-natured (builtins.c: 2+ arguments select the
-		// scalar implementation): "WHERE max(a,b)!=1" is valid. And an
-		// invalid argument count is reported first, as an arity error, not
-		// a misuse (select1-3.9 count(f1,f2)).
-		name := strings.ToUpper(fn.Name)
-		if (name == "MAX" || name == "MIN") && len(fn.Args) > 1 {
-			return
-		}
-		if len(fn.Args) < reg.MinArgs || (reg.MaxArgs >= 0 && len(fn.Args) > reg.MaxArgs) {
-			return
-		}
-		found = strings.ToLower(fn.Name)
-	})
-	return found
-}
-
-// whereRowValueCorrelatedAggCollapse reports the row-value width N when the
-// WHERE clause contains a row-value comparison (=, <, >, <=, >=, <>) whose
-// subquery operand is a compound or aggregate subquery with a correlated
-// aggregate (SQLite raises "N columns assigned 1 values" at prepare). Returns
-// 0 when no such pattern is present.
-func (e *SelectEngine) whereRowValueCorrelatedAggCollapse(expr sql.Expr) int {
-	if expr == nil {
-		return 0
-	}
-	if bop, ok := expr.(*sql.BinaryOp); ok && isComparisonOp(bop.Operator) {
-		if n := e.rowValueSubqCorrelatedAggWidth(bop.Left, bop.Right); n > 0 {
-			return n
-		}
-		if n := e.rowValueSubqCorrelatedAggWidth(bop.Right, bop.Left); n > 0 {
-			return n
-		}
-	}
-	for _, child := range aggValidateChildExprs(expr) {
-		if n := e.whereRowValueCorrelatedAggCollapse(child); n > 0 {
-			return n
-		}
-	}
-	return 0
-}
-
-// rowValueSubqCorrelatedAggWidth returns the LHS row-value width when one side
-// of a comparison is a row value and the other side is a subquery containing a
-// correlated aggregate (in the FROM-less compound/aggregate case SQLite
-// collapses the subquery's vector to 1). Returns 0 when the pattern does not
-// apply.

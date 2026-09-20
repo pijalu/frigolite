@@ -291,19 +291,16 @@ func addTableColumnsForRef(e *SelectEngine, s *sql.SelectStmt, ref sql.TableRef,
 		}
 	}
 	if cte, ok := e.findCTE(s, tn); ok {
-		for _, c := range e.cteOutputColumnNames(cte) {
-			if c != "" {
-				cols[c] = true
-			}
-		}
+		addNonEmptyToSet(cols, e.cteOutputColumnNames(cte))
 	}
-	if ref.Args != nil {
-		if defs, _, _, err := e.ctx.MaterializeVtabTableFunc(ref, VtabScanOptions{}); err == nil {
-			for _, d := range defs {
-				if d.Name != "" {
-					cols[d.Name] = true
-				}
-			}
+	e.addVTabFuncCols(ref, cols)
+}
+
+// addNonEmptyToSet adds every non-empty name to the set.
+func addNonEmptyToSet(set map[string]bool, names []string) {
+	for _, n := range names {
+		if n != "" {
+			set[n] = true
 		}
 	}
 }
@@ -444,14 +441,6 @@ func (v *joinOnValidator) validateJoins() error {
 	return nil
 }
 
-// addLowerKeys merges the keys of src into dst, lower-cased, so lookups
-// against dst are case-insensitive like SQLite name resolution.
-func addLowerKeys(src, dst map[string]bool) {
-	for k := range src {
-		dst[strings.ToLower(k)] = true
-	}
-}
-
 // addLowerTableNames merges FROM-operand names into a table-name lookup set:
 // each name is keyed lower-cased, and a schema-qualified name (main.t4) is
 // additionally keyed by its bare table name, since SQLite matches column
@@ -574,40 +563,37 @@ func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn strin
 		addLowerTableNames(subNames, v.available)
 		collectSubqueryOnCols(join.Table.Subquery, v.availableCols)
 		v.engine.addSubqueryFromCols(join.Table.Subquery, v.availableCols)
-		// VALUES-derived tables expose column1..columnN columns (SQLite: a
-		// "( VALUES(...) )" JOIN's ON clause may reference column1 = x). When
-		// the subquery has no named output columns (a bare VALUES chain),
-		// synthesize columnN entries so availableCols contains them.
-		if join.Table.Subquery.ValuesChain {
-			if nc := valuesColumnCount(join.Table.Subquery); nc > 0 {
-				// Only synthesize if the subquery contributed no named columns
-				// (otherwise collectSubqueryOnCols already covered them).
-				hasNamed := false
-				for _, col := range join.Table.Subquery.Columns {
-					if col.As != "" {
-						hasNamed = true
-						break
-					}
-					if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "" {
-						hasNamed = true
-						break
-					}
-				}
-				if !hasNamed {
-					for i := 1; i <= nc; i++ {
-						v.availableCols[fmt.Sprintf("column%d", i)] = true
-					}
-				}
+		v.synthesizeValuesColumns(join.Table.Subquery)
+	}
+}
+
+// synthesizeValuesColumns adds column1..columnN entries for VALUES-derived
+// tables: a "( VALUES(...) )" JOIN's ON clause may reference column1 = x
+// (SQLite). When the subquery has no named output columns (a bare VALUES
+// chain), synthesize columnN so availableCols contains them; the
+// non-ValuesChain encoding exposes columnN as well.
+func (v *joinOnValidator) synthesizeValuesColumns(sub *sql.SelectStmt) {
+	if !sub.ValuesChain && !v.isValuesDerived(sub) {
+		return
+	}
+	nc := valuesColumnCount(sub)
+	if nc <= 0 {
+		return
+	}
+	if sub.ValuesChain {
+		// Only synthesize if the subquery contributed no named columns
+		// (otherwise collectSubqueryOnCols already covered them).
+		for _, col := range sub.Columns {
+			if col.As != "" {
+				return
 			}
-		} else if v.isValuesDerived(join.Table.Subquery) {
-			// `( VALUES ... )` without explicit column aliases still exposes
-			// column1..columnN — handle the non-ValuesChain encoding as well.
-			if nc := valuesColumnCount(join.Table.Subquery); nc > 0 {
-				for i := 1; i <= nc; i++ {
-					v.availableCols[fmt.Sprintf("column%d", i)] = true
-				}
+			if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "" {
+				return
 			}
 		}
+	}
+	for i := 1; i <= nc; i++ {
+		v.availableCols[fmt.Sprintf("column%d", i)] = true
 	}
 }
 

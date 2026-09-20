@@ -397,80 +397,91 @@ func (e *SelectEngine) iterateRecursiveCTE(anchorRows [][]interface{}, colDefs [
 			seen[rowKey(r, nil)] = true
 		}
 	}
-	maxIter := e.ctx.RecursiveCTELimit()
-	if maxIter <= 0 {
-		maxIter = 100000
-	}
-	offsetSkip := evalLimitCount(bodyOffset, 0)
-	limitLeft := evalLimitCount(bodyLimit, -1)
+	st := newRecIterState(rowLimit, bodyLimit, bodyOffset)
+	produce := e.recursiveTermProducer(recursiveTerms, colDefs, cte)
 	var allRows [][]interface{}
-	dequeued := int64(0)
-	// Fast path: a single recursive term shaped "FROM <base> JOIN <cte> ON
-	// base.col = cte.col" (or reversed) degenerates into one full base scan
-	// per dequeued row through the generic path — O(rows x scan) on large
-	// tables. Pre-hash the base table once and probe it per dequeued row
-	// instead (SQLite uses the base table's index for the same effect).
-	if len(recursiveTerms) == 1 {
-		if fp := e.newRecursiveJoinFastPath(recursiveTerms[0], colDefs, cte.Name); fp != nil {
-			for iter := 0; iter < maxIter && !queue.empty(); iter++ {
-				if err := e.ctx.CheckProgress(); err != nil {
-					return nil, err
-				}
-				row := queue.dequeue()
-				dequeued++
-				if offsetSkip > 0 {
-					offsetSkip--
-				} else {
-					allRows = append(allRows, row)
-					if limitLeft >= 0 {
-						limitLeft--
-						if limitLeft == 0 {
-							return allRows, nil
-						}
-					}
-				}
-				if rowLimit >= 0 && dequeued >= rowLimit {
-					return allRows, nil
-				}
-				produced, err := fp(row)
-				if err != nil {
-					return nil, err
-				}
-				queue.enqueueDeduped(produced, dedup, seen)
-			}
-			return allRows, nil
-		}
-	}
+	maxIter := e.recursiveCTEMaxIter()
 	for iter := 0; iter < maxIter && !queue.empty(); iter++ {
 		if err := e.ctx.CheckProgress(); err != nil {
 			return nil, err
 		}
 		row := queue.dequeue()
-		dequeued++
-		if offsetSkip > 0 {
-			offsetSkip--
-		} else {
-			allRows = append(allRows, row)
-			if limitLeft >= 0 {
-				limitLeft--
-				if limitLeft == 0 {
-					// The body LIMIT is reached: stop without expanding the last
-					// output row (SQLite jumps to break before the recursive
-					// step when the LIMIT counter hits zero).
-					return allRows, nil
-				}
-			}
-		}
-		if rowLimit >= 0 && dequeued >= rowLimit {
+		if st.absorbDequeued(row, &allRows) {
+			// A LIMIT counter hit zero: stop without expanding the last
+			// output row (SQLite jumps to break before the recursive step
+			// when the LIMIT counter hits zero).
 			return allRows, nil
 		}
-		produced, err := e.evalRecursiveTerms(recursiveTerms, row, colDefs, cte)
+		produced, err := produce(row)
 		if err != nil {
 			return nil, err
 		}
 		queue.enqueueDeduped(produced, dedup, seen)
 	}
 	return allRows, nil
+}
+
+// recIterState tracks the LIMIT/OFFSET and outer-budget accounting shared by
+// the recursive-CTE iteration loop.
+type recIterState struct {
+	offsetSkip int64
+	limitLeft  int64
+	rowLimit   int64
+	dequeued   int64
+}
+
+// newRecIterState seeds the accounting from the CTE's body LIMIT/OFFSET
+// expressions and the outer pushdown budget.
+func newRecIterState(rowLimit int64, bodyLimit, bodyOffset sql.Expr) recIterState {
+	return recIterState{
+		offsetSkip: evalLimitCount(bodyOffset, 0),
+		limitLeft:  evalLimitCount(bodyLimit, -1),
+		rowLimit:   rowLimit,
+	}
+}
+
+// absorbDequeued records one dequeued row: it applies OFFSET skipping, appends
+// kept rows to out, and reports whether iteration must stop because the body
+// LIMIT or the outer row budget was reached.
+func (st *recIterState) absorbDequeued(row []interface{}, out *[][]interface{}) bool {
+	st.dequeued++
+	if st.offsetSkip > 0 {
+		st.offsetSkip--
+	} else {
+		*out = append(*out, row)
+		if st.limitLeft >= 0 {
+			st.limitLeft--
+			if st.limitLeft == 0 {
+				return true
+			}
+		}
+	}
+	return st.rowLimit >= 0 && st.dequeued >= st.rowLimit
+}
+
+// recursiveCTEMaxIter returns the iteration safety cap for the recursive-CTE
+// loop (engine-configured, or a large default).
+func (e *SelectEngine) recursiveCTEMaxIter() int {
+	maxIter := e.ctx.RecursiveCTELimit()
+	if maxIter <= 0 {
+		maxIter = 100000
+	}
+	return maxIter
+}
+
+// recursiveTermProducer returns the per-row expansion step for one iteration
+// of the recursive loop: the pre-hashed join fast path when the single
+// recursive term fits its shape (see newRecursiveJoinFastPath), the generic
+// term evaluation otherwise.
+func (e *SelectEngine) recursiveTermProducer(recursiveTerms []*sql.SelectStmt, colDefs []sql.ColumnDef, cte *sql.CTEDef) func([]interface{}) ([][]interface{}, error) {
+	if len(recursiveTerms) == 1 {
+		if fp := e.newRecursiveJoinFastPath(recursiveTerms[0], colDefs, cte.Name); fp != nil {
+			return fp
+		}
+	}
+	return func(row []interface{}) ([][]interface{}, error) {
+		return e.evalRecursiveTerms(recursiveTerms, row, colDefs, cte)
+	}
 }
 
 // dedupRecursiveRows removes duplicate rows from a recursive CTE anchor (used
@@ -504,93 +515,173 @@ type recJoinFastPath func(row []interface{}) ([][]interface{}, error)
 // when the term does not fit the pattern; callers fall back to the generic
 // per-row execSelect path.
 func (e *SelectEngine) newRecursiveJoinFastPath(term *sql.SelectStmt, colDefs []sql.ColumnDef, cteName string) recJoinFastPath {
-	if term == nil || term.Where != nil || term.Limit != nil || term.Offset != nil ||
-		len(term.GroupBy) > 0 || len(term.Joins) != 1 {
+	base, cteRef, ok := recJoinOperands(term, cteName)
+	if !ok {
 		return nil
 	}
-	base := term.From
-	jc := term.Joins[0]
-	cteRef := jc.Table
-	if base.Subquery != nil || len(base.Args) > 0 || base.Name == "" {
-		if base.Name == cteName {
-			// Reversed roles: the CTE is the FROM operand.
-			base, cteRef = cteRef, base
-			if base.Subquery != nil || len(base.Args) > 0 || base.Name == "" {
-				return nil
-			}
-		} else {
-			return nil
-		}
-	} else if cteRef.Name != cteName && cteRef.As != cteName {
-		return nil
-	}
-	if cteRef.Subquery != nil {
-		return nil
-	}
-	eq, ok := jc.On.(*sql.BinaryOp)
+	eq, ok := term.Joins[0].On.(*sql.BinaryOp)
 	if !ok || eq.Operator != "=" {
 		return nil
 	}
+	baseAlias, cteAlias := lowerTableAlias(base), recJoinCTEAlias(cteRef, cteName)
+	baseCol, cteCol, ok := recJoinEqColumns(eq, baseAlias, cteAlias, cteName, colDefs)
+	if !ok {
+		return nil
+	}
+	hash, err := e.buildRecJoinHash(base, baseCol, baseAlias)
+	if err != nil {
+		return nil
+	}
+	exprs := make([]sql.Expr, 0, len(term.Columns))
+	for _, col := range term.Columns {
+		exprs = append(exprs, col.Expr)
+	}
+	return func(row []interface{}) ([][]interface{}, error) {
+		cteMap := recJoinCTEMap(row, colDefs, cteName, cteAlias)
+		probeKey, found := recJoinProbeKey(cteMap, cteCol)
+		if !found {
+			return nil, nil
+		}
+		matches := hash[probeKey]
+		outRows := make([][]interface{}, 0, len(matches))
+		for _, brm := range matches {
+			out, err := e.evalRecJoinMatch(brm, cteMap, exprs, baseAlias)
+			if err != nil {
+				return nil, err
+			}
+			outRows = append(outRows, out)
+		}
+		return outRows, nil
+	}
+}
+
+// recJoinOperands names the base table and the CTE operands of the single
+// join in a candidate recursive term. It rejects terms whose shape does not
+// fit the fast path (WHERE/LIMIT/GROUP BY present, not exactly one join,
+// subquery/parameter operands) and handles the reversed form where the CTE
+// is the FROM operand. ok is false when the term does not qualify.
+func recJoinOperands(term *sql.SelectStmt, cteName string) (base, cteRef sql.TableRef, ok bool) {
+	if !recJoinTermShapeOK(term) {
+		return base, cteRef, false
+	}
+	base = term.From
+	cteRef = term.Joins[0].Table
+	if base.Subquery != nil || len(base.Args) > 0 || base.Name == "" {
+		return recJoinOperandsReversed(term, cteName)
+	}
+	if cteRef.Name != cteName && cteRef.As != cteName {
+		return base, cteRef, false
+	}
+	if cteRef.Subquery != nil {
+		return base, cteRef, false
+	}
+	return base, cteRef, true
+}
+
+// recJoinTermShapeOK reports whether the term's overall shape fits the fast
+// path: no WHERE/LIMIT/OFFSET/GROUP BY and exactly one join.
+func recJoinTermShapeOK(term *sql.SelectStmt) bool {
+	return term != nil && term.Where == nil && term.Limit == nil && term.Offset == nil &&
+		len(term.GroupBy) == 0 && len(term.Joins) == 1
+}
+
+// recJoinOperandsReversed handles the reversed fast-path shape where the CTE
+// itself is the FROM operand and the base table is the join operand.
+func recJoinOperandsReversed(term *sql.SelectStmt, cteName string) (base, cteRef sql.TableRef, ok bool) {
+	base = term.From
+	cteRef = term.Joins[0].Table
+	if base.Name != cteName {
+		return base, cteRef, false
+	}
+	// Reversed roles: the CTE is the FROM operand.
+	base, cteRef = cteRef, base
+	if base.Subquery != nil || len(base.Args) > 0 || base.Name == "" {
+		return base, cteRef, false
+	}
+	return base, cteRef, true
+}
+
+// lowerTableAlias is a FROM operand's lower-cased alias, falling back to its
+// table name when unaliased.
+func lowerTableAlias(ref sql.TableRef) string {
+	a := strings.ToLower(ref.As)
+	if a == "" {
+		return strings.ToLower(ref.Name)
+	}
+	return a
+}
+
+// recJoinCTEAlias is the join operand's lower-cased alias, falling back to
+// the CTE's own name.
+func recJoinCTEAlias(ref sql.TableRef, cteName string) string {
+	a := strings.ToLower(ref.As)
+	if a == "" {
+		return cteName
+	}
+	return a
+}
+
+// recJoinEqColumns classifies the two sides of the ON equality as the base
+// column and the CTE column. ok is false when a side cannot be classified or
+// both sides name the same operand.
+func recJoinEqColumns(eq *sql.BinaryOp, baseAlias, cteAlias, cteName string, colDefs []sql.ColumnDef) (baseCol, cteCol string, ok bool) {
 	lhs, lok := eq.Left.(*sql.ColumnRef)
 	rhs, rok := eq.Right.(*sql.ColumnRef)
 	if !lok || !rok {
-		return nil
+		return "", "", false
 	}
-	baseAlias := strings.ToLower(base.As)
-	if baseAlias == "" {
-		baseAlias = strings.ToLower(base.Name)
-	}
-	cteAlias := strings.ToLower(cteRef.As)
-	if cteAlias == "" {
-		cteAlias = cteName
-	}
-	// Classify which side names the base table and which the CTE.
-	var baseCol, cteCol string
-	classify := func(cr *sql.ColumnRef) (side string, col string) {
-		tbl := ""
-		name := cr.Name
-		if cr.Table != "" {
-			tbl = strings.ToLower(cr.Table)
-			if dot := strings.LastIndex(tbl, "."); dot >= 0 {
-				tbl = tbl[dot+1:]
-			}
-		}
-		if tbl == "" {
-			// Unqualified: decide by membership in the CTE's columns.
-			for _, cd := range colDefs {
-				if strings.EqualFold(cd.Name, name) {
-					return "cte", name
-				}
-			}
-			return "base", name
-		}
-		if tbl == cteAlias || tbl == strings.ToLower(cteName) {
-			return "cte", name
-		}
-		if tbl == baseAlias {
-			return "base", name
-		}
-		return "", ""
-	}
-	s1, c1 := classify(lhs)
-	s2, c2 := classify(rhs)
+	s1, c1 := classifyRecJoinSide(lhs, baseAlias, cteAlias, cteName, colDefs)
+	s2, c2 := classifyRecJoinSide(rhs, baseAlias, cteAlias, cteName, colDefs)
 	if s1 == "" || s2 == "" || s1 == s2 {
-		return nil
+		return "", "", false
 	}
 	if s1 == "base" {
-		baseCol, cteCol = c1, c2
-	} else {
-		baseCol, cteCol = c2, c1
+		return c1, c2, true
 	}
+	return c2, c1, true
+}
 
-	// Materialize the base table once and build the probe hash.
+// classifyRecJoinSide decides whether a column reference in the ON equality
+// names the base table ("base") or the CTE ("cte"), returning the column
+// name. Qualified references match by alias; unqualified ones by membership
+// in the CTE's columns.
+func classifyRecJoinSide(cr *sql.ColumnRef, baseAlias, cteAlias, cteName string, colDefs []sql.ColumnDef) (string, string) {
+	tbl := ""
+	name := cr.Name
+	if cr.Table != "" {
+		tbl = strings.ToLower(cr.Table)
+		if dot := strings.LastIndex(tbl, "."); dot >= 0 {
+			tbl = tbl[dot+1:]
+		}
+	}
+	if tbl == "" {
+		// Unqualified: decide by membership in the CTE's columns.
+		for _, cd := range colDefs {
+			if strings.EqualFold(cd.Name, name) {
+				return "cte", name
+			}
+		}
+		return "base", name
+	}
+	if tbl == cteAlias || tbl == strings.ToLower(cteName) {
+		return "cte", name
+	}
+	if tbl == baseAlias {
+		return "base", name
+	}
+	return "", ""
+}
+
+// buildRecJoinHash materializes the base table once and hashes its rows by
+// the join column so each dequeued CTE row can probe the matches in O(1).
+func (e *SelectEngine) buildRecJoinHash(base sql.TableRef, baseCol, baseAlias string) (map[interface{}][]RowMap, error) {
 	baseSel := &sql.SelectStmt{
 		Columns: []sql.SelectColumn{{Expr: &sql.ColumnRef{Name: "*"}}},
 		From:    sql.TableRef{Name: base.Name},
 	}
 	res := e.execSelect(baseSel)
 	if res.Error != nil {
-		return nil
+		return nil, res.Error
 	}
 	baseMaps := res.rowMaps
 	if len(baseMaps) == 0 && len(res.Rows) > 0 {
@@ -609,58 +700,61 @@ func (e *SelectEngine) newRecursiveJoinFastPath(term *sql.SelectStmt, colDefs []
 		key := joinIndexKey(cv)
 		hash[key] = append(hash[key], rm)
 	}
-	// The expression list to evaluate per produced combination.
-	exprs := make([]sql.Expr, 0, len(term.Columns))
-	for _, col := range term.Columns {
-		exprs = append(exprs, col.Expr)
+	return hash, nil
+}
+
+// recJoinCTEMap builds the row map for one dequeued CTE row: each value is
+// addressable by bare column name, "cte.col" and "alias.col".
+func recJoinCTEMap(row []interface{}, colDefs []sql.ColumnDef, cteName, cteAlias string) RowMap {
+	cteMap := make(RowMap, len(colDefs)*2)
+	for i, cd := range colDefs {
+		var v interface{}
+		if i < len(row) {
+			v = row[i]
+		}
+		wrapped := &util.ColumnValue{Value: v}
+		cteMap[strings.ToLower(cd.Name)] = wrapped
+		cteMap[strings.ToLower(cteName)+"."+strings.ToLower(cd.Name)] = wrapped
+		if cteAlias != strings.ToLower(cteName) {
+			cteMap[cteAlias+"."+strings.ToLower(cd.Name)] = wrapped
+		}
 	}
-	return func(row []interface{}) ([][]interface{}, error) {
-		cteMap := make(RowMap, len(colDefs)*2)
-		for i, cd := range colDefs {
-			var v interface{}
-			if i < len(row) {
-				v = row[i]
-			}
-			wrapped := &util.ColumnValue{Value: v}
-			cteMap[strings.ToLower(cd.Name)] = wrapped
-			cteMap[strings.ToLower(cteName)+"."+strings.ToLower(cd.Name)] = wrapped
-			if cteAlias != strings.ToLower(cteName) {
-				cteMap[cteAlias+"."+strings.ToLower(cd.Name)] = wrapped
-			}
-		}
-		var probeKey interface{}
-		if cv, found := lookupRowMapCol(cteMap, cteCol, ""); found {
-			probeKey = joinIndexKey(cv)
-		} else if cv, found := cteMap[strings.ToLower(cteCol)]; found {
-			probeKey = joinIndexKey(cv)
-		} else {
-			return nil, nil
-		}
-		matches := hash[probeKey]
-		outRows := make([][]interface{}, 0, len(matches))
-		for _, brm := range matches {
-			combined := make(RowMap, len(brm)+len(cteMap))
-			for k, v := range brm {
-				combined[k] = v
-				if baseAlias != "" && !strings.Contains(k, ".") {
-					combined[baseAlias+"."+k] = v
-				}
-			}
-			for k, v := range cteMap {
-				combined[k] = v
-			}
-			out := make([]interface{}, len(exprs))
-			for i, ex := range exprs {
-				v, err := e.ctx.EvalExpr(ex, combined)
-				if err != nil {
-					return nil, err
-				}
-				out[i] = util.UnwrapColumnValue(v)
-			}
-			outRows = append(outRows, out)
-		}
-		return outRows, nil
+	return cteMap
+}
+
+// recJoinProbeKey computes the hash probe key from the CTE row's join column.
+func recJoinProbeKey(cteMap RowMap, cteCol string) (interface{}, bool) {
+	if cv, found := lookupRowMapCol(cteMap, cteCol, ""); found {
+		return joinIndexKey(cv), true
 	}
+	if cv, found := cteMap[strings.ToLower(cteCol)]; found {
+		return joinIndexKey(cv), true
+	}
+	return nil, false
+}
+
+// evalRecJoinMatch evaluates the term's expression list against one combined
+// base+CTE row.
+func (e *SelectEngine) evalRecJoinMatch(brm, cteMap RowMap, exprs []sql.Expr, baseAlias string) ([]interface{}, error) {
+	combined := make(RowMap, len(brm)+len(cteMap))
+	for k, v := range brm {
+		combined[k] = v
+		if baseAlias != "" && !strings.Contains(k, ".") {
+			combined[baseAlias+"."+k] = v
+		}
+	}
+	for k, v := range cteMap {
+		combined[k] = v
+	}
+	out := make([]interface{}, len(exprs))
+	for i, ex := range exprs {
+		v, err := e.ctx.EvalExpr(ex, combined)
+		if err != nil {
+			return nil, err
+		}
+		out[i] = util.UnwrapColumnValue(v)
+	}
+	return out, nil
 }
 
 // lookupRowMapCol fetches a column value trying the bare name and the
