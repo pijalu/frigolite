@@ -136,43 +136,18 @@ func matchHere(pat, s string) bool {
 	for len(pat) > 0 {
 		switch pat[0] {
 		case '*':
-			// collapse consecutive stars
-			for len(pat) > 0 && pat[0] == '*' {
-				pat = pat[1:]
-			}
-			if pat == "" {
-				return true
-			}
-			for i := 0; i <= len(s); i++ {
-				if matchHere(pat, s[i:]) {
-					return true
-				}
-			}
-			return false
+			return matchStar(pat, s)
 		case '?':
 			if s == "" {
 				return false
 			}
 			pat, s = pat[1:], s[1:]
 		case '[':
-			if s == "" {
+			var ok bool
+			pat, s, ok = matchBracket(pat, s)
+			if !ok {
 				return false
 			}
-			end := strings.IndexByte(pat, ']')
-			if end < 0 {
-				return false
-			}
-			set := pat[1:end]
-			negated := strings.HasPrefix(set, "^")
-			set = strings.TrimPrefix(set, "^")
-			matched := matchCharSet(set, s[0])
-			if negated {
-				matched = !matched
-			}
-			if !matched {
-				return false
-			}
-			pat, s = pat[end+1:], s[1:]
 		default:
 			if s == "" || pat[0] != s[0] {
 				return false
@@ -181,6 +156,47 @@ func matchHere(pat, s string) bool {
 		}
 	}
 	return s == ""
+}
+
+// matchStar handles the '*' element: collapse consecutive stars, an empty
+// tail matches anything, otherwise try every split point of the subject.
+func matchStar(pat, s string) bool {
+	// collapse consecutive stars
+	for len(pat) > 0 && pat[0] == '*' {
+		pat = pat[1:]
+	}
+	if pat == "" {
+		return true
+	}
+	for i := 0; i <= len(s); i++ {
+		if matchHere(pat, s[i:]) {
+			return true
+		}
+	}
+	return false
+}
+
+// matchBracket handles one [...] element: ok=false when the subject is
+// exhausted, the class is unterminated, or the class does not match.
+func matchBracket(pat, s string) (restPat, restS string, ok bool) {
+	if s == "" {
+		return "", "", false
+	}
+	end := strings.IndexByte(pat, ']')
+	if end < 0 {
+		return "", "", false
+	}
+	set := pat[1:end]
+	negated := strings.HasPrefix(set, "^")
+	set = strings.TrimPrefix(set, "^")
+	matched := matchCharSet(set, s[0])
+	if negated {
+		matched = !matched
+	}
+	if !matched {
+		return "", "", false
+	}
+	return pat[end+1:], s[1:], true
 }
 
 // matchCharSet reports whether c belongs to one TCL [...] character class
@@ -230,6 +246,14 @@ func (v *tclvarVTab) BestIndex(input []byte) ([]byte, error) { return nil, nil }
 // Open snapshots the registry rows sorted by "name(key)" so scans are
 // deterministic.
 func (v *tclvarVTab) Open() (Cursor, error) {
+	keys, vals := tclvarSnapshot()
+	keys = v.applyMatchFilter(keys)
+	return &tclvarCursor{keys: keys, vals: vals}, nil
+}
+
+// tclvarSnapshot copies the registry keys and values under the lock, keys
+// sorted by "name(key)" so scans are deterministic.
+func tclvarSnapshot() ([]string, map[string]string) {
 	tclvarRegistry.Lock()
 	keys := make([]string, 0, len(tclvarRegistry.rows))
 	for k := range tclvarRegistry.rows {
@@ -241,31 +265,34 @@ func (v *tclvarVTab) Open() (Cursor, error) {
 	}
 	tclvarRegistry.Unlock()
 	sort.Strings(keys)
-	// MATCH constraint absorption: keep only rows whose matched field
-	// satisfies the TCL string-match pattern.
-	if v.matchCol != "" && v.matchPat != "" {
-		kept := make([]string, 0, len(keys))
-		for _, k := range keys {
-			base, key := tclvarFullname(k)
-			cand := base
-			switch v.matchCol {
-			case "fullname":
-				cand = k
-			case "f":
-				cand = k
-			case "name":
-				cand = base
-			}
-			if key == "" || v.matchCol == "fullname" {
-				if tclStrMatch(v.matchPat, cand) {
-					kept = append(kept, k)
-				}
+	return keys, vals
+}
+
+// applyMatchFilter applies the absorbed MATCH constraint: keep only rows
+// whose matched field satisfies the TCL string-match pattern.
+func (v *tclvarVTab) applyMatchFilter(keys []string) []string {
+	if v.matchCol == "" || v.matchPat == "" {
+		return keys
+	}
+	kept := make([]string, 0, len(keys))
+	for _, k := range keys {
+		base, key := tclvarFullname(k)
+		cand := base
+		switch v.matchCol {
+		case "fullname":
+			cand = k
+		case "f":
+			cand = k
+		case "name":
+			cand = base
+		}
+		if key == "" || v.matchCol == "fullname" {
+			if tclStrMatch(v.matchPat, cand) {
+				kept = append(kept, k)
 			}
 		}
-		keys = kept
 	}
-	c := &tclvarCursor{keys: keys, vals: vals}
-	return c, nil
+	return kept
 }
 
 // tclvarCursor walks the registered variable rows.

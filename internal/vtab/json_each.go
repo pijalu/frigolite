@@ -233,45 +233,7 @@ func (w *jeWalk) skipLabel() int {
 // next advances the cursor (sqlite jsonEachNext).
 func (w *jeWalk) next() {
 	if w.recursive {
-		levelChange := false
-		i := w.skipLabel()
-		x := w.doc.ElemType(i)
-		n, sz := w.doc.HeaderSize(i)
-		if n == 0 {
-			// The element does not fit in the blob (corrupt tail): jump to
-			// the scan end so the walk terminates instead of stalling.
-			w.i = w.iEnd
-		} else if x == jbObject || x == jbArray {
-			levelChange = true
-			nPath := len(w.path)
-			if w.eType != 0 && len(w.parents) > 0 {
-				w.appendPathName()
-			}
-			w.parents = append(w.parents, jeParent{
-				iHead:  w.i,
-				iValue: i,
-				iEnd:   i + n + sz,
-				iKey:   -1,
-				nPath:  nPath,
-			})
-			w.i = i + n
-		} else {
-			w.i = i + n + sz
-		}
-		for len(w.parents) > 0 && w.i >= w.parents[len(w.parents)-1].iEnd {
-			p := w.parents[len(w.parents)-1]
-			w.parents = w.parents[:len(w.parents)-1]
-			w.path = w.path[:p.nPath]
-			levelChange = true
-		}
-		if levelChange {
-			if len(w.parents) > 0 {
-				top := w.parents[len(w.parents)-1]
-				w.eType = w.doc.ElemType(top.iValue)
-			} else {
-				w.eType = 0
-			}
-		}
+		w.nextRecursive()
 	} else {
 		i := w.skipLabel()
 		n, sz := w.doc.HeaderSize(i)
@@ -286,6 +248,53 @@ func (w *jeWalk) next() {
 		w.parents[len(w.parents)-1].iKey++
 	}
 	w.rowid++
+}
+
+// nextRecursive advances one element of a recursive walk: containers push a
+// parent frame (recursing in), exhausted frames pop (recursing out), and the
+// container type follows the top of the parent stack.
+func (w *jeWalk) nextRecursive() {
+	levelChange := false
+	i := w.skipLabel()
+	x := w.doc.ElemType(i)
+	n, sz := w.doc.HeaderSize(i)
+	switch {
+	case n == 0:
+		// The element does not fit in the blob (corrupt tail): jump to
+		// the scan end so the walk terminates instead of stalling.
+		w.i = w.iEnd
+	case x == jbObject || x == jbArray:
+		levelChange = true
+		nPath := len(w.path)
+		if w.eType != 0 && len(w.parents) > 0 {
+			w.appendPathName()
+		}
+		w.parents = append(w.parents, jeParent{
+			iHead:  w.i,
+			iValue: i,
+			iEnd:   i + n + sz,
+			iKey:   -1,
+			nPath:  nPath,
+		})
+		w.i = i + n
+	default:
+		w.i = i + n + sz
+	}
+	for len(w.parents) > 0 && w.i >= w.parents[len(w.parents)-1].iEnd {
+		p := w.parents[len(w.parents)-1]
+		w.parents = w.parents[:len(w.parents)-1]
+		w.path = w.path[:p.nPath]
+		levelChange = true
+	}
+	if !levelChange {
+		return
+	}
+	if len(w.parents) > 0 {
+		top := w.parents[len(w.parents)-1]
+		w.eType = w.doc.ElemType(top.iValue)
+	} else {
+		w.eType = 0
+	}
 }
 
 // appendPathName extends path with the current element's accessor

@@ -103,17 +103,19 @@ func (v *fsdirVTab) HiddenColumns() map[int]bool { return map[int]bool{5: true, 
 // BestIndex accepts the default full-scan plan.
 func (v *fsdirVTab) BestIndex(input []byte) ([]byte, error) { return nil, nil }
 
+// fsdirRow is one walked filesystem entry (fileio.c fsdirNext's output).
+type fsdirRow struct {
+	name  string
+	mode  uint32
+	mtime int64
+	level int
+}
+
 // Open walks the tree rooted at the bound path, sorted for determinism.
 // fileio.c fsdirFilter: when the hidden dir (base) column is bound, the scan
 // root becomes base+"/"+path and names are reported relative to base
 // (zipfile.test 12.5: fsdir('.', 'subdir') → ".", "./x1.txt", ...).
 func (v *fsdirVTab) Open() (Cursor, error) {
-	type rowT struct {
-		name  string
-		mode  uint32
-		mtime int64
-		level int
-	}
 	root := v.root
 	if v.base != "" {
 		root = v.base + "/" + root
@@ -122,106 +124,98 @@ func (v *fsdirVTab) Open() (Cursor, error) {
 	// 3.x): one flat, non-recursive listing — the bound directory itself
 	// followed by its immediate children, names reported as written.
 	if v.flat {
-		info, serr := os.Stat(root)
-		if serr != nil || !info.IsDir() {
-			return &sliceCursor{}, nil
-		}
-		cursorRows := [][]interface{}{{
-			root, uint32(info.Mode().Perm()) | 0040000, info.ModTime().Unix(),
-			nil, int64(1), root, "",
-		}}
-		names := make([]string, 0)
-		byName := map[string]os.DirEntry{}
-		if entries, rerr := os.ReadDir(root); rerr == nil {
-			for _, e := range entries {
-				names = append(names, e.Name())
-				byName[e.Name()] = e
-			}
-		}
-		sort.Strings(names)
-		for _, n := range names {
-			fi, ierr := byName[n].Info()
-			if ierr != nil {
-				continue
-			}
-			md := uint32(fi.Mode().Perm())
-			if fi.IsDir() {
-				md |= 0040000
-			} else {
-				md |= 0100000
-			}
-			cursorRows = append(cursorRows, []interface{}{
-				n, int64(md), fi.ModTime().Unix(), nil, int64(2), root, "",
-			})
-		}
-		return &sliceCursor{rows: cursorRows}, nil
+		return v.openFlat(root)
 	}
-	info, err := os.Stat(root)
-	if err != nil {
-		return &sliceCursor{}, nil // SQLite yields no rows for unreadable roots
+	return v.openRecursive(root)
+}
+
+// openFlat serves the zero-argument flat listing (fsdirFilter's nRow==1
+// mode): the root row then its immediate children in name order.
+func (v *fsdirVTab) openFlat(root string) (Cursor, error) {
+	info, serr := os.Stat(root)
+	if serr != nil || !info.IsDir() {
+		return &sliceCursor{}, nil
 	}
-	var rows []rowT
-	level := 1
-	// fileio.c emits the base directory itself as the first row
-	// (zipfile.test filters it with WHERE name!='test_unzip').
-	if fi, err := os.Stat(root); err == nil && fi.IsDir() {
-		rows = append(rows, rowT{root, uint32(fi.Mode().Perm()) | 0040000, fi.ModTime().Unix(), level})
-	}
-	stack := []struct {
-		path  string
-		level int
-	}{{root, level}}
-	for len(stack) > 0 {
-		cur := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
-		entries, rerr := os.ReadDir(cur.path)
-		if rerr != nil {
+	cursorRows := [][]interface{}{{
+		root, uint32(info.Mode().Perm()) | 0040000, info.ModTime().Unix(),
+		nil, int64(1), root, "",
+	}}
+	for _, e := range sortedDirEntries(root) {
+		fi, ierr := e.Info()
+		if ierr != nil {
 			continue
 		}
-		names := make([]string, 0, len(entries))
-		byName := map[string]fs.DirEntry{}
-		for _, e := range entries {
-			names = append(names, e.Name())
-			byName[e.Name()] = e
-		}
-		sort.Strings(names)
-		for _, n := range names {
-			e := byName[n]
-			// Raw concatenation like fileio.c's mprintf("%s/%s") — no
-			// path cleaning, so "./x1.txt" style names survive the
-			// base-prefix trim (zipfile.test 12.5).
-			full := cur.path + "/" + n
-			fi, serr := e.Info()
-			if serr != nil {
-				continue
-			}
-			mt := fi.ModTime().Unix()
-			md := uint32(fi.Mode().Perm())
-			if fi.IsDir() {
-				md |= 0040000
-				rows = append(rows, rowT{full, md, mt, cur.level + 1})
-				stack = append(stack, struct {
-					path  string
-					level int
-				}{full, cur.level + 1})
-			} else {
-				rows = append(rows, rowT{full, md | 0100000, mt, cur.level + 1})
-			}
-		}
+		cursorRows = append(cursorRows, []interface{}{
+			e.Name(), int64(fsdirFileMode(fi)), fi.ModTime().Unix(), nil, int64(2), root, "",
+		})
 	}
-	_ = info
+	return &sliceCursor{rows: cursorRows}, nil
+}
+
+// sortedDirEntries lists a directory's entries in ascending name order
+// (fsdirNext sorts the directory before emitting).
+func sortedDirEntries(root string) []os.DirEntry {
+	entries, rerr := os.ReadDir(root)
+	if rerr != nil {
+		return nil
+	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
+	return entries
+}
+
+// fsdirFileMode renders an entry's permission bits plus its kind bit
+// (0040000 directory, 0100000 regular).
+func fsdirFileMode(fi os.FileInfo) uint32 {
+	md := uint32(fi.Mode().Perm())
+	if fi.IsDir() {
+		return md | 0040000
+	}
+	return md | 0100000
+}
+
+// openRecursive walks the tree depth-first (fsdirNext's stack walk): the
+// base directory itself is the first row (zipfile.test filters it with
+// WHERE name!='test_unzip').
+func (v *fsdirVTab) openRecursive(root string) (Cursor, error) {
+	if _, err := os.Stat(root); err != nil {
+		return &sliceCursor{}, nil // SQLite yields no rows for unreadable roots
+	}
+	var rows []fsdirRow
+	level := 1
+	if fi, err := os.Stat(root); err == nil && fi.IsDir() {
+		rows = append(rows, fsdirRow{root, uint32(fi.Mode().Perm()) | 0040000, fi.ModTime().Unix(), level})
+	}
+	rows = fsdirWalk(root, level, rows)
 	cursorRows := make([][]interface{}, 0, len(rows))
-	srcPath := root
 	for _, r := range rows {
 		name := r.name
 		if v.base != "" && strings.HasPrefix(name, v.base+"/") {
 			name = strings.TrimPrefix(name, v.base+"/")
 		}
 		cursorRows = append(cursorRows, []interface{}{
-			name, int64(r.mode), r.mtime, nil, int64(r.level), srcPath, v.base,
+			name, int64(r.mode), r.mtime, nil, int64(r.level), root, v.base,
 		})
 	}
 	return &sliceCursor{rows: cursorRows}, nil
+}
+
+// fsdirWalk visits one directory's children in name order, recursing into
+// subdirectories (fsdirNext's stack loop). Raw concatenation like fileio.c's
+// mprintf("%s/%s") — no path cleaning, so "./x1.txt" style names survive the
+// base-prefix trim (zipfile.test 12.5).
+func fsdirWalk(path string, level int, rows []fsdirRow) []fsdirRow {
+	for _, e := range sortedDirEntries(path) {
+		fi, serr := e.Info()
+		if serr != nil {
+			continue
+		}
+		full := path + "/" + e.Name()
+		rows = append(rows, fsdirRow{full, fsdirFileMode(fi), fi.ModTime().Unix(), level + 1})
+		if fi.IsDir() {
+			rows = fsdirWalk(full, level+1, rows)
+		}
+	}
+	return rows
 }
 
 // sliceCursor iterates pre-built rows (first row already positioned).

@@ -45,30 +45,43 @@ func newAmatchDP(rules []AmatchCostRule, target string) *amatchDP {
 		if r.Lang != 0 {
 			continue
 		}
-		switch {
-		case r.From == "" && r.To == "?":
-			dp.wildIns, dp.hasWildI = r.Cost, true
-		case r.From == "?" && r.To == "":
-			dp.wildDel, dp.hasWildD = r.Cost, true
-		case r.From == "?" && r.To == "?":
-			dp.wildSub, dp.hasWildS = r.Cost, true
-		case r.From == "":
-			dp.insert[[]rune(r.To)[0]] = r.Cost
-		case r.To == "":
-			dp.deleteM[[]rune(r.From)[0]] = r.Cost
-		default:
-			fr := []rune(r.From)
-			to := []rune(r.To)
-			if len(fr) == 1 && len(to) == 1 {
-				dp.subst[string([]rune{fr[0], to[0]})] = r.Cost
-			} else if len(fr) == 1 && to[0] == '?' {
-				dp.subst[string([]rune{fr[0], '?'})] = r.Cost
-			} else if fr[0] == '?' && len(to) == 1 {
-				dp.subst["?"+string(to[0])] = r.Cost
-			}
-		}
+		dp.applyCostRule(r)
 	}
 	return dp
+}
+
+// applyCostRule folds one langid-0 cost rule into the DP tables
+// (amatchCreate's rule pass): wildcard rules set the default costs, others
+// fill the per-rune insert/delete/substitution maps.
+func (d *amatchDP) applyCostRule(r AmatchCostRule) {
+	switch {
+	case r.From == "" && r.To == "?":
+		d.wildIns, d.hasWildI = r.Cost, true
+	case r.From == "?" && r.To == "":
+		d.wildDel, d.hasWildD = r.Cost, true
+	case r.From == "?" && r.To == "?":
+		d.wildSub, d.hasWildS = r.Cost, true
+	case r.From == "":
+		d.insert[[]rune(r.To)[0]] = r.Cost
+	case r.To == "":
+		d.deleteM[[]rune(r.From)[0]] = r.Cost
+	default:
+		d.applySubstRule(r)
+	}
+}
+
+// applySubstRule records one substitution rule: single-rune pairs and the
+// '?'-wildcard forms.
+func (d *amatchDP) applySubstRule(r AmatchCostRule) {
+	fr := []rune(r.From)
+	to := []rune(r.To)
+	if len(fr) == 1 && len(to) == 1 {
+		d.subst[string([]rune{fr[0], to[0]})] = r.Cost
+	} else if len(fr) == 1 && to[0] == '?' {
+		d.subst[string([]rune{fr[0], '?'})] = r.Cost
+	} else if fr[0] == '?' && len(to) == 1 {
+		d.subst["?"+string(to[0])] = r.Cost
+	}
 }
 
 // insertCost returns the cost of inserting rune r.

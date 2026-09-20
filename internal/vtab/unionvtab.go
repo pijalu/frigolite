@@ -130,24 +130,35 @@ func (m *UnionVtabModule) Create(args []string) (VirtualTable, error) {
 	if len(defs) == 0 {
 		return nil, fmt.Errorf("no source tables configured")
 	}
-	// Range checks while stepping the (Min-sorted) rows: a source with
-	// Max<Min, or overlapping its predecessor, is a configuration error.
-	for i := range defs {
-		if defs[i].Max < defs[i].Min || (i > 0 && defs[i].Min <= defs[i-1].Max) {
-			return nil, fmt.Errorf("rowid range mismatch error")
-		}
+	if err := unionValidateRanges(defs); err != nil {
+		return nil, err
 	}
 	if m.swarm {
-		// Swarm sources carry the FILE name in column 0 (C: pSrc->zFile);
-		// zDb stays NULL, so all later schema lookups and error displays use
-		// the bare table name against the opened file's main database.
-		for i := range defs {
-			defs[i].File = defs[i].Schema
-			defs[i].Schema = ""
-		}
-		return m.createSwarm(defs, cfg)
+		return m.createSwarm(unionSwarmFileDefs(defs), cfg)
 	}
 	return m.createUnion(defs, cfg)
+}
+
+// unionValidateRanges applies the Min-sorted range checks: a source with
+// Max<Min, or overlapping its predecessor, is a configuration error.
+func unionValidateRanges(defs []UnionSourceDef) error {
+	for i := range defs {
+		if defs[i].Max < defs[i].Min || (i > 0 && defs[i].Min <= defs[i-1].Max) {
+			return fmt.Errorf("rowid range mismatch error")
+		}
+	}
+	return nil
+}
+
+// unionSwarmFileDefs carries the FILE name in column 0 (C: pSrc->zFile);
+// zDb stays NULL, so all later schema lookups and error displays use the
+// bare table name against the opened file's main database.
+func unionSwarmFileDefs(defs []UnionSourceDef) []UnionSourceDef {
+	for i := range defs {
+		defs[i].File = defs[i].Schema
+		defs[i].Schema = ""
+	}
+	return defs
 }
 
 // createUnion validates every source table exists with an identical schema
@@ -258,16 +269,7 @@ func (v *unionVTab) Open() (Cursor, error) {
 			rowids = append(rowids, ids...)
 			continue
 		}
-		for i, id := range ids {
-			if v.lo != nil && id < *v.lo {
-				continue
-			}
-			if v.hi != nil && id > *v.hi {
-				continue
-			}
-			all = append(all, rows[i])
-			rowids = append(rowids, id)
-		}
+		all, rowids = appendUnionRows(all, rowids, rows, ids, v.lo, v.hi)
 	}
 	return &unionRowidCursor{sliceCursor: &sliceCursor{rows: all}, rowids: rowids}, nil
 }
@@ -382,31 +384,38 @@ func allSourceIndices(n int) []int {
 // intersects the consumed rowid range, in Min-sorted scan order (sources are
 // Min-sorted at configure time via ORDER BY 3).
 func (v *unionVTab) selectSources(lo *int64, loIncl bool, hi *int64, hiIncl bool) []int {
-	selected := allSourceIndices(len(v.sources))
-	if lo != nil || hi != nil {
-		out := make([]int, 0, len(v.sources))
-		for i, s := range v.sources {
-			if lo != nil {
-				if loIncl && s.Max < *lo {
-					continue
-				}
-				if !loIncl && s.Max <= *lo {
-					continue
-				}
-			}
-			if hi != nil {
-				if hiIncl && s.Min > *hi {
-					continue
-				}
-				if !hiIncl && s.Min >= *hi {
-					continue
-				}
-			}
+	if lo == nil && hi == nil {
+		return allSourceIndices(len(v.sources))
+	}
+	out := make([]int, 0, len(v.sources))
+	for i, s := range v.sources {
+		if unionSourceIntersects(s, lo, loIncl, hi, hiIncl) {
 			out = append(out, i)
 		}
-		selected = out
 	}
-	return selected
+	return out
+}
+
+// unionSourceIntersects reports whether a source's [Min,Max] interval meets
+// the consumed rowid range bounds (unionBestIndex's interval pruning).
+func unionSourceIntersects(s UnionSourceDef, lo *int64, loIncl bool, hi *int64, hiIncl bool) bool {
+	if lo != nil {
+		if loIncl && s.Max < *lo {
+			return false
+		}
+		if !loIncl && s.Max <= *lo {
+			return false
+		}
+	}
+	if hi != nil {
+		if hiIncl && s.Min > *hi {
+			return false
+		}
+		if !hiIncl && s.Min >= *hi {
+			return false
+		}
+	}
+	return true
 }
 
 // swarmEnsureOpen opens source i's file when it is not already open
@@ -489,37 +498,65 @@ func (v *unionVTab) openSwarm() (Cursor, error) {
 	var rowids []int64
 	for _, i := range v.selected {
 		s := v.sources[i]
-		if v.lo != nil && s.Max < *v.lo {
+		if !unionSourceInRange(s, v.lo, v.hi) {
 			continue
 		}
-		if v.hi != nil && s.Min > *v.hi {
-			continue
-		}
-		if err := v.swarmEnsureOpen(i); err != nil {
-			return nil, err
-		}
-		// Scan in progress: hold a reference so the LRU cannot evict this
-		// source from under its own read (unionIncrRefcount).
-		v.swarmIncrRef(i)
-		rows, ids, err := v.module.src.UnionReadRows(s, v.cfg)
+		rows, ids, err := v.swarmReadSource(i)
 		if err != nil {
-			v.swarmDecrRef(i)
 			return nil, err
 		}
 		for j, id := range ids {
-			if v.lo != nil && id < *v.lo {
-				continue
-			}
-			if v.hi != nil && id > *v.hi {
+			if !unionRowidInRange(id, v.lo, v.hi) {
 				continue
 			}
 			all = append(all, rows[j])
 			rowids = append(rowids, id)
 		}
-		// Source exhausted: drop the reference; it returns to the idle
-		// (closable) pool and the maxopen LRU closes overflow
-		// (unionFinalizeCsrStmt → unionCloseSources(nMaxOpen)).
-		v.swarmDecrRef(i)
 	}
 	return &unionRowidCursor{sliceCursor: &sliceCursor{rows: all}, rowids: rowids}, nil
+}
+
+// unionSourceInRange reports whether a source's [Min,Max] meets the scan
+// bounds (sources outside are never opened).
+func unionSourceInRange(s UnionSourceDef, lo, hi *int64) bool {
+	return !(lo != nil && s.Max < *lo) && !(hi != nil && s.Min > *hi)
+}
+
+// unionRowidInRange reports whether one rowid meets the scan bounds.
+func unionRowidInRange(id int64, lo, hi *int64) bool {
+	return !(lo != nil && id < *lo) && !(hi != nil && id > *hi)
+}
+
+// swarmReadSource opens source i, holds a scan reference so the LRU cannot
+// evict the source from under its own read (unionIncrRefcount), reads it,
+// then drops the reference — the source returns to the idle (closable) pool
+// and the maxopen LRU closes overflow
+// (unionFinalizeCsrStmt → unionCloseSources(nMaxOpen)).
+func (v *unionVTab) swarmReadSource(i int) ([][]interface{}, []int64, error) {
+	if err := v.swarmEnsureOpen(i); err != nil {
+		return nil, nil, err
+	}
+	// Scan in progress: hold a reference so the LRU cannot evict this
+	// source from under its own read (unionIncrRefcount).
+	v.swarmIncrRef(i)
+	rows, ids, err := v.module.src.UnionReadRows(v.sources[i], v.cfg)
+	if err != nil {
+		v.swarmDecrRef(i)
+		return nil, nil, err
+	}
+	// Source exhausted: drop the reference.
+	v.swarmDecrRef(i)
+	return rows, ids, nil
+}
+
+// appendUnionRows appends the source rows inside the constraint interval.
+func appendUnionRows(all [][]interface{}, rowids []int64, rows [][]interface{}, ids []int64, lo, hi *int64) ([][]interface{}, []int64) {
+	for i, id := range ids {
+		if !unionRowidInRange(id, lo, hi) {
+			continue
+		}
+		all = append(all, rows[i])
+		rowids = append(rowids, id)
+	}
+	return all, rowids
 }

@@ -92,10 +92,7 @@ func (v *intarrayVTab) PrimaryKeyColumns() map[int]bool { return map[int]bool{0:
 func (v *intarrayVTab) BestIndex(input []byte) ([]byte, error) { return nil, nil }
 
 type intarrayVTab struct {
-	name   string
-	array  []int64
-	idx    int
-	opened bool
+	name string
 }
 
 // Open snapshots the currently bound array so later binds don't disturb an

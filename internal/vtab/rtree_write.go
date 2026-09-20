@@ -135,33 +135,9 @@ func (v *rtreeVTab[T]) ChooseLeaf(cell *RtreeCell[T], iHeight int) (*rtreeNode[T
 	}
 	for ii := 0; ii < (v.iDepth - iHeight); ii++ {
 		nCell := pNode.nCell()
-		iBest := int64(0)
-		bFound := false
-		var fMinArea, fMinGrowth float64
-		for iCell := 0; iCell < nCell; iCell++ {
-			c := v.nodeGetCell(pNode, iCell)
-			if v.cellContains(&c, cell) {
-				area := v.cellArea(&c)
-				if !bFound || area < fMinArea {
-					iBest = c.iRowid
-					fMinArea = area
-					bFound = true
-				}
-			}
-		}
+		iBest, _, bFound := v.chooseContained(pNode, nCell, cell)
 		if !bFound {
-			for iCell := 0; iCell < nCell; iCell++ {
-				c := v.nodeGetCell(pNode, iCell)
-				area := v.cellArea(&c)
-				tmp := c
-				v.cellUnion(&tmp, cell)
-				growth := v.cellArea(&tmp) - area
-				if iCell == 0 || growth < fMinGrowth || (growth == fMinGrowth && area < fMinArea) {
-					fMinGrowth = growth
-					fMinArea = area
-					iBest = c.iRowid
-				}
-			}
+			iBest = v.chooseMinimalGrowth(pNode, nCell, cell)
 		}
 		child, err := v.nodeAcquire(iBest)
 		if err != nil {
@@ -172,6 +148,43 @@ func (v *rtreeVTab[T]) ChooseLeaf(cell *RtreeCell[T], iHeight int) (*rtreeNode[T
 		pNode = child
 	}
 	return pNode, nil
+}
+
+// chooseContained picks the minimal-area cell whose MBR already contains
+// cell (ChooseLeaf's containment pass).
+func (v *rtreeVTab[T]) chooseContained(pNode *rtreeNode[T], nCell int, cell *RtreeCell[T]) (iBest int64, minArea float64, found bool) {
+	for iCell := 0; iCell < nCell; iCell++ {
+		c := v.nodeGetCell(pNode, iCell)
+		if v.cellContains(&c, cell) {
+			area := v.cellArea(&c)
+			if !found || area < minArea {
+				iBest = c.iRowid
+				minArea = area
+				found = true
+			}
+		}
+	}
+	return iBest, minArea, found
+}
+
+// chooseMinimalGrowth picks the cell with the least area growth, ties broken
+// by least area (ChooseLeaf's growth pass).
+func (v *rtreeVTab[T]) chooseMinimalGrowth(pNode *rtreeNode[T], nCell int, cell *RtreeCell[T]) int64 {
+	iBest := int64(0)
+	var fMinGrowth, fMinArea float64
+	for iCell := 0; iCell < nCell; iCell++ {
+		c := v.nodeGetCell(pNode, iCell)
+		area := v.cellArea(&c)
+		tmp := c
+		v.cellUnion(&tmp, cell)
+		growth := v.cellArea(&tmp) - area
+		if iCell == 0 || growth < fMinGrowth || (growth == fMinGrowth && area < fMinArea) {
+			fMinGrowth = growth
+			fMinArea = area
+			iBest = c.iRowid
+		}
+	}
+	return iBest
 }
 
 // nodeParentIndex returns the index of the cell in parent whose rowid is iNode.
@@ -254,9 +267,29 @@ func (v *rtreeVTab[T]) SplitNode(node *rtreeNode[T], cell *RtreeCell[T], iHeight
 	aCell[nCell] = *cell
 	nCell++
 
-	var pLeft, pRight *rtreeNode[T]
-	var leftbbox, rightbbox RtreeCell[T]
+	pLeft, pRight := v.splitSiblings(node)
+	leftbbox, rightbbox, err := v.splitDistribute(aCell, nCell, pLeft, pRight)
+	if err != nil {
+		return err
+	}
+	parent, err := v.splitParentAcquire(node)
+	if err != nil {
+		return err
+	}
+	defer v.nodeRelease(parent)
+	if err := v.splitUpdateParent(node, parent, pLeft, &leftbbox, iHeight); err != nil {
+		return err
+	}
+	if err := v.rtreeInsertCell(parent, &rightbbox, iHeight+1); err != nil {
+		return err
+	}
+	return v.splitRemapCells(node, pLeft, pRight, cell, iHeight)
+}
 
+// splitSiblings creates the split's two nodes: a root split repurposes the
+// root as the parent of two fresh children (the depth grows); otherwise node
+// stays as the left sibling and one new node joins it.
+func (v *rtreeVTab[T]) splitSiblings(node *rtreeNode[T]) (pLeft, pRight *rtreeNode[T]) {
 	if node.iNode == 1 {
 		// Root split: root becomes the parent of two fresh children.
 		pRight = v.nodeNew()
@@ -264,64 +297,68 @@ func (v *rtreeVTab[T]) SplitNode(node *rtreeNode[T], cell *RtreeCell[T], iHeight
 		v.iDepth++
 		node.setDepth(v.iDepth)
 		node.dirty = true
-	} else {
-		pLeft = node
-		pRight = v.nodeNew()
+		return pLeft, pRight
 	}
+	return node, v.nodeNew()
+}
 
+// splitDistribute runs the R* split assignment and persists both siblings:
+// fresh nodes are written back; the bounding boxes' rowids become the
+// sibling node numbers.
+func (v *rtreeVTab[T]) splitDistribute(aCell []RtreeCell[T], nCell int, pLeft, pRight *rtreeNode[T]) (leftbbox, rightbbox RtreeCell[T], err error) {
 	leftbbox.aCoord = make([]T, v.nDim2)
 	rightbbox.aCoord = make([]T, v.nDim2)
 	if err := v.splitNodeStartree(aCell, nCell, pLeft, pRight, &leftbbox, &rightbbox); err != nil {
-		return err
+		return leftbbox, rightbbox, err
 	}
-
 	if err := v.nodeWrite(pRight); err != nil {
-		return err
+		return leftbbox, rightbbox, err
 	}
 	if pLeft.iNode == 0 {
 		if err := v.nodeWrite(pLeft); err != nil {
-			return err
+			return leftbbox, rightbbox, err
 		}
 	}
-
 	rightbbox.iRowid = pRight.iNode
 	leftbbox.iRowid = pLeft.iNode
+	return leftbbox, rightbbox, nil
+}
 
+// splitParentAcquire resolves the split siblings' parent: the root itself
+// after a root split, else node's own parent.
+func (v *rtreeVTab[T]) splitParentAcquire(node *rtreeNode[T]) (*rtreeNode[T], error) {
 	parNodeNo := int64(1)
 	if node.iNode != 1 {
 		par, ok, err := v.getParent(node.iNode)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !ok {
-			return fmt.Errorf("rtree: split node has no parent")
+			return nil, fmt.Errorf("rtree: split node has no parent")
 		}
 		parNodeNo = par
 	}
-	parent, err := v.nodeAcquire(parNodeNo)
+	return v.nodeAcquire(parNodeNo)
+}
+
+// splitUpdateParent links the left sibling into the parent: a root split
+// inserts its cell as a new child; otherwise the parent's reference cell is
+// overwritten and the ancestry adjusted.
+func (v *rtreeVTab[T]) splitUpdateParent(node, parent, pLeft *rtreeNode[T], leftbbox *RtreeCell[T], iHeight int) error {
+	if node.iNode == 1 {
+		return v.rtreeInsertCell(parent, leftbbox, iHeight+1)
+	}
+	iCell, err := v.nodeParentIndex(parent, node.iNode)
 	if err != nil {
 		return err
 	}
-	defer v.nodeRelease(parent)
+	v.nodeOverwriteCell(parent, leftbbox, iCell)
+	return v.AdjustTree(parent, leftbbox)
+}
 
-	if node.iNode == 1 {
-		if err := v.rtreeInsertCell(parent, &leftbbox, iHeight+1); err != nil {
-			return err
-		}
-	} else {
-		iCell, err := v.nodeParentIndex(parent, node.iNode)
-		if err != nil {
-			return err
-		}
-		v.nodeOverwriteCell(parent, &leftbbox, iCell)
-		if err := v.AdjustTree(parent, &leftbbox); err != nil {
-			return err
-		}
-	}
-	if err := v.rtreeInsertCell(parent, &rightbbox, iHeight+1); err != nil {
-		return err
-	}
-
+// splitRemapCells refreshes the rowid/parent mappings for both siblings'
+// cells, recording which side received the incoming cell.
+func (v *rtreeVTab[T]) splitRemapCells(node, pLeft, pRight *rtreeNode[T], cell *RtreeCell[T], iHeight int) error {
 	newCellIsRight := false
 	for i := 0; i < pRight.nCell(); i++ {
 		iRowid := v.nodeGetRowid(pRight, i)
@@ -340,9 +377,7 @@ func (v *rtreeVTab[T]) SplitNode(node *rtreeNode[T], cell *RtreeCell[T], iHeight
 			}
 		}
 	} else if !newCellIsRight {
-		if err := v.updateMapping(cell.iRowid, pLeft, iHeight); err != nil {
-			return err
-		}
+		return v.updateMapping(cell.iRowid, pLeft, iHeight)
 	}
 	return nil
 }
@@ -350,55 +385,8 @@ func (v *rtreeVTab[T]) SplitNode(node *rtreeNode[T], cell *RtreeCell[T], iHeight
 // splitNodeStartree performs the R*-tree axis/margin/overlap evaluation and
 // assigns the cells to pLeft/pRight, filling their bounding boxes.
 func (v *rtreeVTab[T]) splitNodeStartree(aCell []RtreeCell[T], nCell int, pLeft, pRight *rtreeNode[T], pBboxLeft, pBboxRight *RtreeCell[T]) error {
-	aSorted := make([][]int, v.nDim)
-	aSpare := make([]int, nCell)
-	for ii := 0; ii < v.nDim; ii++ {
-		aSorted[ii] = make([]int, nCell)
-		for k := 0; k < nCell; k++ {
-			aSorted[ii][k] = k
-		}
-		v.sortByDimension(aSorted[ii], nCell, ii, aCell, aSpare)
-	}
-
-	iBestDim := 0
-	iBestSplit := 0
-	fBestMargin := 0.0
-	minCells := v.minCells()
-
-	for ii := 0; ii < v.nDim; ii++ {
-		margin := 0.0
-		fBestOverlap := 0.0
-		fBestArea := 0.0
-		iBestLeft := 0
-		for nLeft := minCells; nLeft <= nCell-minCells; nLeft++ {
-			var left, right RtreeCell[T]
-			left.aCoord = make([]T, v.nDim2)
-			right.aCoord = make([]T, v.nDim2)
-			v.copyCell(&left, &aCell[aSorted[ii][0]])
-			v.copyCell(&right, &aCell[aSorted[ii][nCell-1]])
-			for k := 1; k < nCell-1; k++ {
-				if k < nLeft {
-					v.cellUnion(&left, &aCell[aSorted[ii][k]])
-				} else {
-					v.cellUnion(&right, &aCell[aSorted[ii][k]])
-				}
-			}
-			margin += v.cellMargin(&left)
-			margin += v.cellMargin(&right)
-			overlap := v.cellOverlap(&left, []RtreeCell[T]{right}, 1)
-			area := v.cellArea(&left) + v.cellArea(&right)
-			if nLeft == minCells || overlap < fBestOverlap || (overlap == fBestOverlap && area < fBestArea) {
-				iBestLeft = nLeft
-				fBestOverlap = overlap
-				fBestArea = area
-			}
-		}
-		if ii == 0 || margin < fBestMargin {
-			iBestDim = ii
-			fBestMargin = margin
-			iBestSplit = iBestLeft
-		}
-	}
+	aSorted := v.sortAllDimensions(aCell, nCell)
+	iBestDim, iBestSplit := v.bestStarSplit(aSorted, aCell, nCell)
 
 	v.copyCell(pBboxLeft, &aCell[aSorted[iBestDim][0]])
 	v.copyCell(pBboxRight, &aCell[aSorted[iBestDim][iBestSplit]])
@@ -414,6 +402,68 @@ func (v *rtreeVTab[T]) splitNodeStartree(aCell []RtreeCell[T], nCell int, pLeft,
 		v.cellUnion(bbox, &c)
 	}
 	return nil
+}
+
+// sortAllDimensions pre-sorts the cell indexes along every dimension
+// (rtree.c SortByDimension).
+func (v *rtreeVTab[T]) sortAllDimensions(aCell []RtreeCell[T], nCell int) [][]int {
+	aSorted := make([][]int, v.nDim)
+	aSpare := make([]int, nCell)
+	for ii := 0; ii < v.nDim; ii++ {
+		aSorted[ii] = make([]int, nCell)
+		for k := 0; k < nCell; k++ {
+			aSorted[ii][k] = k
+		}
+		v.sortByDimension(aSorted[ii], nCell, ii, aCell, aSpare)
+	}
+	return aSorted
+}
+
+// bestStarSplit picks the axis with the least total margin and that axis's
+// best split point (rtree.c's R*-tree axis selection).
+func (v *rtreeVTab[T]) bestStarSplit(aSorted [][]int, aCell []RtreeCell[T], nCell int) (iBestDim, iBestSplit int) {
+	fBestMargin := 0.0
+	for ii := 0; ii < v.nDim; ii++ {
+		margin, iBestLeft := v.dimensionBestSplit(aSorted[ii], aCell, nCell)
+		if ii == 0 || margin < fBestMargin {
+			iBestDim = ii
+			fBestMargin = margin
+			iBestSplit = iBestLeft
+		}
+	}
+	return iBestDim, iBestSplit
+}
+
+// dimensionBestSplit evaluates one dimension's split points (least overlap,
+// ties by least area) and returns the accumulated margin plus the winner.
+func (v *rtreeVTab[T]) dimensionBestSplit(aSorted []int, aCell []RtreeCell[T], nCell int) (margin float64, iBestLeft int) {
+	fBestOverlap := 0.0
+	fBestArea := 0.0
+	minCells := v.minCells()
+	for nLeft := minCells; nLeft <= nCell-minCells; nLeft++ {
+		var left, right RtreeCell[T]
+		left.aCoord = make([]T, v.nDim2)
+		right.aCoord = make([]T, v.nDim2)
+		v.copyCell(&left, &aCell[aSorted[0]])
+		v.copyCell(&right, &aCell[aSorted[nCell-1]])
+		for k := 1; k < nCell-1; k++ {
+			if k < nLeft {
+				v.cellUnion(&left, &aCell[aSorted[k]])
+			} else {
+				v.cellUnion(&right, &aCell[aSorted[k]])
+			}
+		}
+		margin += v.cellMargin(&left)
+		margin += v.cellMargin(&right)
+		overlap := v.cellOverlap(&left, []RtreeCell[T]{right}, 1)
+		area := v.cellArea(&left) + v.cellArea(&right)
+		if nLeft == minCells || overlap < fBestOverlap || (overlap == fBestOverlap && area < fBestArea) {
+			iBestLeft = nLeft
+			fBestOverlap = overlap
+			fBestArea = area
+		}
+	}
+	return margin, iBestLeft
 }
 
 // copyCell copies c into dst (without sharing the slice).
@@ -460,10 +510,7 @@ func (v *rtreeVTab[T]) rtreeInsertCell(node *rtreeNode[T], cell *RtreeCell[T], i
 // digits accumulated up to the first non-digit, saturation at the int64
 // bounds, no digits → 0 ('123' → 123, '12x' → 12, '1e3' → 1, 'six' → 0).
 func rtreeAtoi64(s string) int64 {
-	i := 0
-	for i < len(s) && (s[i] == ' ' || s[i] == '\t' || s[i] == '\n' || s[i] == '\r' || s[i] == '\v' || s[i] == '\f') {
-		i++
-	}
+	i := rtreeSkipSpace(s, 0)
 	neg := false
 	if i < len(s) && (s[i] == '-' || s[i] == '+') {
 		neg = s[i] == '-'
@@ -477,6 +524,12 @@ func rtreeAtoi64(s string) int64 {
 		u = u*10 + uint64(s[i]-'0')
 		i++
 	}
+	return rtreeAtoi64Signed(u, neg)
+}
+
+// rtreeAtoi64Signed applies the magnitude/saturation/sign folding
+// (sqlite3Atoi64's tail): magnitudes past int64 saturate at the bounds.
+func rtreeAtoi64Signed(u uint64, neg bool) int64 {
 	const largest = uint64(1)<<63 - 1
 	switch {
 	case u > largest:
