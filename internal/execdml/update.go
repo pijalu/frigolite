@@ -889,25 +889,32 @@ func updateRowConflicts(e *DMLExecutor, rowValues, newValues []interface{}, colD
 // rowid-alias substitution (a stored NULL becomes the rowid before comparison).
 func uniqueColsMatch(a, b []interface{}, colDefs []sql.ColumnDef, rowIDa, rowIDb int64, uniqueCols []int) bool {
 	for _, idx := range uniqueCols {
-		if idx < len(a) && idx < len(b) && idx < len(colDefs) {
-			av, bv := a[idx], b[idx]
-			if isIPKRowidAliasCol(colDefs[idx]) {
-				if av == nil {
-					av = rowIDa
-				}
-				if bv == nil {
-					bv = rowIDb
-				}
-			}
-			if av == nil || bv == nil {
-				continue
-			}
-			if util.CompareValues(av, bv) == 0 {
-				return true
-			}
+		if uniqueColValuesMatch(a, b, colDefs, rowIDa, rowIDb, idx) {
+			return true
 		}
 	}
 	return false
+}
+
+// uniqueColValuesMatch reports whether two value sets agree on one indexed
+// column (rowid-alias substitution applied; NULL never matches).
+func uniqueColValuesMatch(a, b []interface{}, colDefs []sql.ColumnDef, rowIDa, rowIDb int64, idx int) bool {
+	if idx >= len(a) || idx >= len(b) || idx >= len(colDefs) {
+		return false
+	}
+	av, bv := a[idx], b[idx]
+	if isIPKRowidAliasCol(colDefs[idx]) {
+		if av == nil {
+			av = rowIDa
+		}
+		if bv == nil {
+			bv = rowIDb
+		}
+	}
+	if av == nil || bv == nil {
+		return false
+	}
+	return util.CompareValues(av, bv) == 0
 }
 
 // indexDefsMatch reports whether two value sets agree on the indexed columns
@@ -955,35 +962,39 @@ func (e *DMLExecutor) valuesConflict(a, b []interface{}, rowIDa, rowIDb int64, c
 // uniqueConflictError builds a SQLite-style UNIQUE constraint error for the
 // first conflicting column.
 func (e *DMLExecutor) uniqueConflictError(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, a, b []interface{}, aRowID, bRowID int64, uniqueCols []int, idxColsList []uniqueIndexDef) error {
-	for _, idx := range uniqueCols {
-		if idx < len(a) && idx < len(b) && idx < len(colDefs) {
-			// Rowid-alias convention: the INTEGER PRIMARY KEY column reads
-			// back NULL from the stored record — substitute the owning
-			// row's rowid (uniqueColsMatch parity), else the PK-conflict
-			// message degrades to the column-less form ("t5" not "t5.a",
-			// conflict-12.3).
-			av, bv := a[idx], b[idx]
-			if isIPKRowidAliasCol(colDefs[idx]) {
-				if av == nil {
-					av = aRowID
-				}
-				if bv == nil {
-					bv = bRowID
-				}
-			}
-			if av != nil && bv != nil && util.CompareValues(av, bv) == 0 {
-				return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableName, colDefs[idx].Name)
-			}
-		}
+	if idx := firstConflictColIdx(colDefs, a, b, aRowID, bRowID, uniqueCols); idx >= 0 {
+		return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableName, colDefs[idx].Name)
 	}
 	for _, def := range idxColsList {
 		if e.valuesConflict(a, b, aRowID, bRowID, colDefs, colIndex, nil, []uniqueIndexDef{def}) {
-			parts := make([]string, len(def.Cols))
-			for i, cn := range def.Cols {
-				parts[i] = tableName + "." + cn
-			}
-			return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(parts, ", "))
+			return uniqueIndexColsConflictError(tableName, def)
 		}
 	}
 	return fmt.Errorf("UNIQUE constraint failed: %s", tableName)
+}
+
+// firstConflictColIdx returns the index (into colDefs) of the first
+// UNIQUE/PRIMARY KEY column on which the two value sets agree, -1 when none.
+func firstConflictColIdx(colDefs []sql.ColumnDef, a, b []interface{}, aRowID, bRowID int64, uniqueCols []int) int {
+	for _, idx := range uniqueCols {
+		// Rowid-alias convention: the INTEGER PRIMARY KEY column reads
+		// back NULL from the stored record — substitute the owning
+		// row's rowid (uniqueColsMatch parity), else the PK-conflict
+		// message degrades to the column-less form ("t5" not "t5.a",
+		// conflict-12.3).
+		if uniqueColValuesMatch(a, b, colDefs, aRowID, bRowID, idx) {
+			return idx
+		}
+	}
+	return -1
+}
+
+// uniqueIndexColsConflictError builds the error naming every column of the
+// violated UNIQUE index ("UNIQUE constraint failed: t.a, t.b").
+func uniqueIndexColsConflictError(tableName string, def uniqueIndexDef) error {
+	parts := make([]string, len(def.Cols))
+	for i, cn := range def.Cols {
+		parts[i] = tableName + "." + cn
+	}
+	return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(parts, ", "))
 }
