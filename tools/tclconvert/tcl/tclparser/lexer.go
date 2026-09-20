@@ -135,52 +135,68 @@ func (l *tclLexer) readQuoteWord() (int, interface{}) {
 	l.pos++
 	bracketDepth := 0
 	for l.pos < len(l.src) {
-		ch := l.src[l.pos]
-		if ch == '\\' && l.pos+1 < len(l.src) {
-			l.pos += 2
-			continue
-		}
-		if ch == '[' {
-			bracketDepth++
-			l.pos++
-			continue
-		}
-		if ch == ']' {
-			if bracketDepth > 0 {
-				bracketDepth--
-			}
-			l.pos++
-			continue
-		}
-		if ch == '"' {
-			if bracketDepth > 0 {
-				// Inside a [cmd ...] substitution; the inner "..." is
-				// a separate quoted word of the sub-command. Treat it
-				// as a regular character so the outer string remains
-				// open.
-				l.pos++
-				innerDepth := 1
-				for l.pos < len(l.src) && innerDepth > 0 {
-					if l.src[l.pos] == '\\' && l.pos+1 < len(l.src) {
-						l.pos += 2
-						continue
-					}
-					if l.src[l.pos] == '"' {
-						innerDepth--
-					}
-					l.pos++
-				}
-				continue
-			}
+		var stop bool
+		bracketDepth, stop = l.quoteWordAdvance(bracketDepth)
+		if stop {
 			break
 		}
-		l.pos++
 	}
 	word := l.src[start:l.pos]
 	if l.pos < len(l.src) {
 		l.pos++ // skip closing "
 	}
 	return tokQUOTE_WORD, RawWord{Text: word, Quoted: true}
+}
+
+// quoteWordAdvance consumes the character at the lexer's current position
+// inside a quoted word and returns the updated bracket depth plus whether
+// the word terminates here (a closing quote at bracket depth 0).
+func (l *tclLexer) quoteWordAdvance(bracketDepth int) (int, bool) {
+	ch := l.src[l.pos]
+	if ch == '\\' && l.pos+1 < len(l.src) {
+		l.pos += 2
+		return bracketDepth, false
+	}
+	if ch == '[' {
+		bracketDepth++
+		l.pos++
+		return bracketDepth, false
+	}
+	if ch == ']' {
+		if bracketDepth > 0 {
+			bracketDepth--
+		}
+		l.pos++
+		return bracketDepth, false
+	}
+	if ch == '"' {
+		if bracketDepth > 0 {
+			l.skipInnerQuotedWord()
+			return bracketDepth, false
+		}
+		return bracketDepth, true
+	}
+	l.pos++
+	return bracketDepth, false
+}
+
+// skipInnerQuotedWord consumes an inner "..." quoted word found inside a
+// [cmd ...] substitution within an outer quoted word. The inner word is a
+// separate quoted word of the sub-command; it is treated as regular
+// characters so the outer string remains open.
+func (l *tclLexer) skipInnerQuotedWord() {
+	l.pos++
+	innerDepth := 1
+	for l.pos < len(l.src) && innerDepth > 0 {
+		if l.src[l.pos] == '\\' && l.pos+1 < len(l.src) {
+			l.pos += 2
+			continue
+		}
+		if l.src[l.pos] == '"' {
+			innerDepth--
+		}
+		l.pos++
+	}
 }
 
 // readBareWord reads a bare (unquoted, unbraced) word.

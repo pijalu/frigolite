@@ -161,50 +161,11 @@ func readQuoteWord(src string, pos int) (string, int) {
 	bracketDepth := 0
 	quoteDepth := 0
 	for pos < len(src) {
-		ch := src[pos]
-		if ch == '\\' && pos+1 < len(src) {
-			pos += 2
-			continue
-		}
-		if ch == '[' {
-			bracketDepth++
-			pos++
-			continue
-		}
-		if ch == ']' {
-			if bracketDepth > 0 {
-				bracketDepth--
-			}
-			pos++
-			continue
-		}
-		if ch == '"' {
-			if bracketDepth > 0 {
-				// Inside a [cmd ...] substitution; the inner "..." is
-				// a separate quoted word of the sub-command. Treat it
-				// as a regular character so the outer string remains
-				// open.
-				// (Skipping over the inner quoted word keeps the
-				//  readQuoteWord's job — collecting raw text — simple
-				//  enough; the bracketed text itself is not
-				//  re-tokenized here.)
-				pos++
-				innerDepth := 1
-				for pos < len(src) && innerDepth > 0 {
-					if src[pos] == '\\' && pos+1 < len(src) {
-						pos += 2
-						continue
-					}
-					if src[pos] == '"' {
-						innerDepth--
-					}
-					pos++
-				}
-				continue
-			}
+		var stop bool
+		pos, bracketDepth, stop = quoteWordAdvance(src, pos, bracketDepth)
+		if stop {
 			break
 		}
-		pos++
 	}
 	word := src[start:pos]
 	if pos < len(src) {
@@ -212,6 +173,56 @@ func readQuoteWord(src string, pos int) (string, int) {
 	}
 	_ = quoteDepth
 	return word, pos
+}
+
+// quoteWordAdvance classifies the character at src[pos] inside a quoted word,
+// returning the position after it, the updated bracket depth, and whether the
+// word terminates here (a closing quote at bracket depth 0).
+func quoteWordAdvance(src string, pos, bracketDepth int) (int, int, bool) {
+	ch := src[pos]
+	if ch == '\\' && pos+1 < len(src) {
+		return pos + 2, bracketDepth, false
+	}
+	if ch == '[' {
+		return pos + 1, bracketDepth + 1, false
+	}
+	if ch == ']' {
+		if bracketDepth > 0 {
+			bracketDepth--
+		}
+		return pos + 1, bracketDepth, false
+	}
+	if ch == '"' {
+		if bracketDepth > 0 {
+			// (Skipping over the inner quoted word keeps the
+			//  readQuoteWord's job — collecting raw text — simple
+			//  enough; the bracketed text itself is not
+			//  re-tokenized here.)
+			return skipInnerQuotedWord(src, pos), bracketDepth, false
+		}
+		return pos, bracketDepth, true
+	}
+	return pos + 1, bracketDepth, false
+}
+
+// skipInnerQuotedWord consumes an inner "..." quoted word found inside a
+// [cmd ...] substitution within an outer quoted word, returning the position
+// after it. The inner word is a separate quoted word of the sub-command; it
+// is treated as regular characters so the outer string remains open.
+func skipInnerQuotedWord(src string, pos int) int {
+	pos++
+	innerDepth := 1
+	for pos < len(src) && innerDepth > 0 {
+		if src[pos] == '\\' && pos+1 < len(src) {
+			pos += 2
+			continue
+		}
+		if src[pos] == '"' {
+			innerDepth--
+		}
+		pos++
+	}
+	return pos
 }
 
 // readPlainWord reads an unquoted, unbraced word, tracking [ ] depth so
