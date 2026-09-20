@@ -15,7 +15,6 @@ import (
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
-	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
 
@@ -99,59 +98,7 @@ func (e *DDLExecutor) ftsContentTableRowMaps(ftsTable *fts.FTS3Table, colDefs []
 	if ctEntry.RootPage == 0 {
 		return e.ftsContentVTabRowMaps(ftsTable, colDefs, docIDs, ctEntry)
 	}
-	ctDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
-	tree := e.ctx.TableBTreeForName(ctEntry.Name, ctEntry.RootPage, true)
-	cursor, cerr := tree.OpenCursor()
-	if cerr != nil {
-		return nil
-	}
-	want := map[int64]bool{}
-	for _, id := range docIDs {
-		want[id] = true
-	}
-	var out []RowMap
-	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil {
-			break
-		}
-		rowID := cell.RowID
-		if docIDs != nil && !want[rowID] {
-			if ok, nerr := cursor.Next(); nerr != nil || !ok {
-				break
-			}
-			continue
-		}
-		// Map the content table's columns to the FTS columns by NAME (fts3.c
-		// fts3ReadExprList reads the content table's column matching each FTS
-		// column name). With content=t1, b the FTS column b maps to the
-		// content table's b column even when other content columns precede it.
-		rowMap := make(RowMap)
-		rowMap["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
-		rowMap["docid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
-		rowMap["oid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
-		for ci, cd := range ctDefs {
-			if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-				continue
-			}
-			for fi, fcd := range colDefs {
-				if strings.EqualFold(fcd.Name, cd.Name) && ci < len(rec.Values) {
-					rowMap[fcd.Name] = rec.Values[ci]
-					_ = fi
-					break
-				}
-			}
-		}
-		out = append(out, rowMap)
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
-			break
-		}
-	}
-	return out
+	return e.scanFTSContentBTreeRows(colDefs, docIDs, ctEntry)
 }
 
 // ftsContentTableRowMapsForDocIDs builds RowMaps for a content=<table> FTS
@@ -171,50 +118,11 @@ func (e *DDLExecutor) ftsContentTableRowMapsForDocIDs(ftsTable *fts.FTS3Table, c
 		return e.ftsContentVTabRowMaps(ftsTable, colDefs, docIDs, ctEntry)
 	}
 	ctDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
-	tree := e.ctx.TableBTreeForName(ctEntry.Name, ctEntry.RootPage, true)
-	cursor, cerr := tree.OpenCursor()
-	if cerr != nil {
-		return nil
-	}
 	// Map content column positions (excluding docid/rowid) to FTS colDefs by
 	// name.
-	contentToFTS := map[string]int{} // content col name → colDefs index
-	for fi, fcd := range colDefs {
-		for _, cd := range ctDefs {
-			if strings.EqualFold(cd.Name, fcd.Name) {
-				contentToFTS[fcd.Name] = fi
-			}
-		}
-	}
-	rows := map[int64]RowMap{}
-	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil {
-			break
-		}
-		rowMap := make(RowMap)
-		rowMap["rowid"] = &util.ColumnValue{Value: cell.RowID, Affinity: 'I'}
-		rowMap["docid"] = &util.ColumnValue{Value: cell.RowID, Affinity: 'I'}
-		rowMap["oid"] = &util.ColumnValue{Value: cell.RowID, Affinity: 'I'}
-		vi := 0
-		for _, cd := range ctDefs {
-			if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-				continue
-			}
-			if fi, ok := contentToFTS[cd.Name]; ok && vi < len(rec.Values) {
-				rowMap[colDefs[fi].Name] = rec.Values[vi]
-			}
-			vi++
-		}
-		rows[cell.RowID] = rowMap
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
-			break
-		}
-	}
+	contentToFTS := ftsContentNameIndex(colDefs, ctDefs)
+	tree := e.ctx.TableBTreeForName(ctEntry.Name, ctEntry.RootPage, true)
+	rows := e.scanFTSContentRowsByID(colDefs, ctDefs, contentToFTS, tree)
 	out := make([]RowMap, 0, len(docIDs))
 	for _, id := range docIDs {
 		if rm, ok := rows[id]; ok {
@@ -224,18 +132,7 @@ func (e *DDLExecutor) ftsContentTableRowMapsForDocIDs(ftsTable *fts.FTS3Table, c
 			// Deleted content row: still matches, values are empty. The
 			// row-key aliases (rowid/docid/oid) are set above and must not be
 			// overwritten (colDefs includes the hidden docid vtab column).
-			rm := make(RowMap)
-			rm["rowid"] = &util.ColumnValue{Value: id, Affinity: 'I'}
-			rm["docid"] = &util.ColumnValue{Value: id, Affinity: 'I'}
-			rm["oid"] = &util.ColumnValue{Value: id, Affinity: 'I'}
-			for _, fcd := range colDefs {
-				if fcd.Name == "rowid" || fcd.Name == "docid" || fcd.Name == "oid" || fcd.Name == "_rowid_" {
-					continue
-				}
-				rm[fcd.Name] = nil
-			}
-			ftsRowMapSetLangID(ftsTable, rm, id)
-			out = append(out, rm)
+			out = append(out, ftsKeyOnlyRowMap(ftsTable, colDefs, id))
 		}
 	}
 	return out
@@ -254,17 +151,8 @@ func (e *DDLExecutor) ftsContentVTabRowMaps(ftsTable *fts.FTS3Table, colDefs []s
 	vtDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
 	// Collect the content-column names (excluding rowid/docid) in vtab row
 	// order.
-	var valName []string
-	for _, cd := range vtDefs {
-		if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-			continue
-		}
-		valName = append(valName, cd.Name)
-	}
-	want := map[int64]bool{}
-	for _, id := range docIDs {
-		want[id] = true
-	}
+	valName := ftsContentValueNames(vtDefs)
+	want := ftsDocIDSet(docIDs)
 	var out []RowMap
 	for i, row := range rows {
 		// The vtab rowid is the 1-based row index in the materialization (the
@@ -274,9 +162,7 @@ func (e *DDLExecutor) ftsContentVTabRowMaps(ftsTable *fts.FTS3Table, colDefs []s
 			continue
 		}
 		rowMap := make(RowMap)
-		rowMap["rowid"] = &util.ColumnValue{Value: docID, Affinity: 'I'}
-		rowMap["docid"] = &util.ColumnValue{Value: docID, Affinity: 'I'}
-		rowMap["oid"] = &util.ColumnValue{Value: docID, Affinity: 'I'}
+		ftsKeyAliases(rowMap, docID)
 		for vi, name := range valName {
 			if vi < len(row) {
 				rowMap[name] = row[vi]
@@ -297,18 +183,7 @@ func (e *DDLExecutor) ftsContentVTabRowMaps(ftsTable *fts.FTS3Table, colDefs []s
 func (e *DDLExecutor) ftsIndexRowMapsForDocIDs(ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef, docIDs []int64) []RowMap {
 	out := make([]RowMap, 0, len(docIDs))
 	for _, id := range docIDs {
-		rm := make(RowMap)
-		rm["rowid"] = &util.ColumnValue{Value: id, Affinity: 'I'}
-		rm["docid"] = &util.ColumnValue{Value: id, Affinity: 'I'}
-		rm["oid"] = &util.ColumnValue{Value: id, Affinity: 'I'}
-		for _, fcd := range colDefs {
-			if fcd.Name == "rowid" || fcd.Name == "docid" || fcd.Name == "oid" || fcd.Name == "_rowid_" {
-				continue
-			}
-			rm[fcd.Name] = nil
-		}
-		ftsRowMapSetLangID(ftsTable, rm, id)
-		out = append(out, rm)
+		out = append(out, ftsKeyOnlyRowMap(ftsTable, colDefs, id))
 	}
 	return out
 }
@@ -343,43 +218,14 @@ func (e *DDLExecutor) selectReadsFTSContentColumn(s *sql.SelectStmt, ftsTable *f
 		// count(*) does not read any content column: its "*" is the row
 		// counter, not a column expansion (fts3corrupt6 2.1: SELECT count(*)
 		// over an index-only table succeeds without %_content rows).
-		if fc, ok := col.Expr.(*sql.FuncCall); ok && strings.EqualFold(fc.Name, "count") {
-			starOnly := len(fc.Args) == 1
-			if starOnly {
-				if ref, ok := fc.Args[0].(*sql.ColumnRef); !ok || ref.Name != "*" {
-					starOnly = false
-				}
-			}
-			if starOnly {
-				continue
-			}
+		if ftsCountStarOnly(col.Expr) {
+			continue
 		}
 		execquery.WalkExprFull(col.Expr, func(n sql.Expr) {
 			if readsContent {
 				return
 			}
-			// snippet()/offsets() read the document's content columns
-			// (fts3_snippet.c reads the content row for the column text).
-			if fc, ok := n.(*sql.FuncCall); ok {
-				upper := strings.ToUpper(fc.Name)
-				if upper == "SNIPPET" || upper == "OFFSETS" {
-					readsContent = true
-					return
-				}
-			}
-			ref, ok := n.(*sql.ColumnRef)
-			if !ok {
-				return
-			}
-			// A bare "*" expands to every user column. When the FTS table has
-			// no derived columns (a content=<table> whose content table was
-			// missing at connection time) SELECT * still needs the content
-			// table to resolve its column list (fts4content 6.2.4).
-			if ref.Name == "*" {
-				readsContent = true
-				return
-			}
-			if userCols[strings.ToLower(ref.Name)] {
+			if ftsNodeReadsContent(n, userCols) {
 				readsContent = true
 			}
 		})
@@ -434,17 +280,5 @@ func (e *DDLExecutor) contentBtreeCorrupt(tableName string) bool {
 	}
 	// Walk the cells too: a corrupt child page surfaces on cursor.Next
 	// (fts3corrupt4 52.1's damage is below the root).
-	for {
-		if _, rerr := cursor.ReadCell(); rerr != nil && !strings.Contains(rerr.Error(), "cursor at end") {
-			return strings.Contains(rerr.Error(), "malformed")
-		}
-		ok, nerr := cursor.Next()
-		if nerr != nil {
-			return strings.Contains(nerr.Error(), "malformed")
-		}
-		if !ok {
-			break
-		}
-	}
-	return false
+	return contentBtreeCellsMalformed(cursor)
 }
