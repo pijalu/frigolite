@@ -629,7 +629,7 @@ func appendText5Escape(sb []byte, payload []byte, k int) ([]byte, int, error) {
 		sb = append(sb, "\\u000b"...)
 	case 'x':
 		var err error
-		if used, err = appendText5Hex2(sb, payload, k); err != nil {
+		if sb, used, err = appendText5Hex2(sb, payload, k); err != nil {
 			return sb, 0, err
 		}
 	case '0':
@@ -651,15 +651,16 @@ func appendText5Escape(sb []byte, payload []byte, k int) ([]byte, int, error) {
 	return sb, used, nil
 }
 
-// appendText5Hex2 renders a \xHH escape as \u00HH; it reports the bytes
-// consumed (4) or a parse error when the two hex digits are missing.
-func appendText5Hex2(sb []byte, payload []byte, k int) (int, error) {
+// appendText5Hex2 renders a \xHH escape as \u00HH; it reports the updated
+// buffer and the bytes consumed (4), or a parse error when the two hex
+// digits are missing.
+func appendText5Hex2(sb []byte, payload []byte, k int) ([]byte, int, error) {
 	if k+3 >= len(payload) {
-		return 0, jsonParseErr()
+		return sb, 0, jsonParseErr()
 	}
 	sb = append(sb, "\\u00"...)
 	sb = append(sb, payload[k+2], payload[k+3])
-	return 4, nil
+	return sb, 4, nil
 }
 
 // text5CRLF reports whether a \<CR> escape is followed by <LF>, making one
