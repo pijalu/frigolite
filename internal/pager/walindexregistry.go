@@ -346,25 +346,35 @@ func (w *WALIndex) FindFrame(pgno, mxFrame, minFrame uint32) uint32 {
 	iMinHash := walFramePageOf(minFrame)
 	for iHash := walFramePageOf(mxFrame); iHash >= iMinHash; iHash-- {
 		loc := newWalHashLoc(w.pageLocked(iHash), iHash)
-		iKey := walIndexHash(pgno)
-		for nCollide := WalHashtableNSlot; ; {
-			iH := loc.slot(iKey)
-			if iH == 0 {
-				break
-			}
-			iFrame := uint32(iH) + loc.iZero
-			if iFrame <= mxFrame && iFrame >= minFrame && loc.pgno(int(iH)-1) == pgno {
-				iRead = iFrame
-			}
-			nCollide--
-			if nCollide < 0 {
-				return 0 // collision chain longer than the table: corrupt
-			}
-			iKey = walIndexNextHash(iKey)
-		}
-		if iRead != 0 {
+		if iRead = findFrameInHashtableLocked(loc, pgno, mxFrame, minFrame); iRead != 0 {
 			break
 		}
+	}
+	return iRead
+}
+
+// findFrameInHashtableLocked scans one hash table's collision chain for a
+// frame of pgno (at or below mxFrame, at or above minFrame — the minFrame
+// rule): the LAST matching frame in the chain wins (C keeps probing the
+// chain after a hit). A collision chain longer than the table is corruption
+// (0). Caller holds w.mu.
+func findFrameInHashtableLocked(loc walHashLoc, pgno, mxFrame, minFrame uint32) uint32 {
+	iRead := uint32(0)
+	iKey := walIndexHash(pgno)
+	for nCollide := WalHashtableNSlot; ; {
+		iH := loc.slot(iKey)
+		if iH == 0 {
+			break
+		}
+		iFrame := uint32(iH) + loc.iZero
+		if iFrame <= mxFrame && iFrame >= minFrame && loc.pgno(int(iH)-1) == pgno {
+			iRead = iFrame
+		}
+		nCollide--
+		if nCollide < 0 {
+			return 0 // collision chain longer than the table: corrupt
+		}
+		iKey = walIndexNextHash(iKey)
 	}
 	return iRead
 }

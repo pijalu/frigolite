@@ -63,60 +63,70 @@ func (p *Pager) CheckExternalFile() bool {
 		return false
 	}
 	p.mu.Lock()
-	changed := vers != p.knownFileVers || size != p.knownFileSize
-	if changed {
-		p.knownFileVers = vers
-		p.knownFileSize = size
-		p.fileSize = size
-		// Re-read page 1's header from disk now (SQLite's shared-lock
-		// re-reads page 1 before lockBtree): callers validate the header
-		// immediately after, and the cached copy would otherwise be the
-		// stale pre-change image (filefmt-3.2's sql36231 DROP TABLE +
-		// header-word restore shrinks the file under the first connection).
-		// Clear the page cache too (pager.c pager_reset on external change).
-		p.pages = make(map[uint32]*Page)
-		p.header = nil
-		if p.file != nil {
-			buf := make([]byte, HeaderSize)
-			if _, err := p.file.ReadAt(buf, 0); err == nil {
-				p.header = buf
-				// btree.c lockBtree re-reads the page size from the freshly
-				// loaded page 1 (header bytes 16..17; the value 1 means
-				// 65536): a connection that watched another connection's
-				// VACUUM adopt a new page size must resize before its next
-				// page read, or it re-interprets the image at the old page
-				// size and reads "malformed".
-				if len(buf) >= 18 {
-					psz := int(binary.BigEndian.Uint16(buf[16:18]))
-					switch {
-					case psz == 1:
-						p.pageSize = 65536
-					case psz >= 512 && psz <= 32768 && psz&(psz-1) == 0:
-						p.pageSize = uint32(psz)
-					}
-				}
-				// Byte 20 (reserved space per page) is re-read with the same
-				// lockBtree reload: another connection's VACUUM may have
-				// materialized a new reserve, and the usable size drives
-				// every cell parse (reservebytes 1.3.4 integrity_check on a
-				// second connection).
-				if len(buf) >= 21 {
-					p.reserved = uint32(buf[20])
-				}
-			}
-			if info, err := p.file.Stat(); err == nil {
-				p.fileSize = info.Size()
-				if p.pageSize > 0 {
-					p.numPages = uint32(info.Size() / int64(p.pageSize))
-					if p.numPages == 0 && info.Size() > 0 {
-						p.numPages = 1
-					}
+	defer p.mu.Unlock()
+	if vers == p.knownFileVers && size == p.knownFileSize {
+		return false
+	}
+	p.applyExternalChangeLocked(vers, size)
+	return true
+}
+
+// applyExternalChangeLocked adopts an externally-modified database file: the
+// new stamp becomes the baseline and the in-memory state is rebuilt from
+// disk. Caller holds p.mu.
+func (p *Pager) applyExternalChangeLocked(vers [fileVersLen]byte, size int64) {
+	p.knownFileVers = vers
+	p.knownFileSize = size
+	p.fileSize = size
+	// Re-read page 1's header from disk now (SQLite's shared-lock
+	// re-reads page 1 before lockBtree): callers validate the header
+	// immediately after, and the cached copy would otherwise be the
+	// stale pre-change image (filefmt-3.2's sql36231 DROP TABLE +
+	// header-word restore shrinks the file under the first connection).
+	// Clear the page cache too (pager.c pager_reset on external change).
+	p.pages = make(map[uint32]*Page)
+	p.header = nil
+	if p.file != nil {
+		buf := make([]byte, HeaderSize)
+		if _, err := p.file.ReadAt(buf, 0); err == nil {
+			p.header = buf
+			p.adoptHeaderPageSizeLocked(buf)
+		}
+		if info, err := p.file.Stat(); err == nil {
+			p.fileSize = info.Size()
+			if p.pageSize > 0 {
+				p.numPages = uint32(info.Size() / int64(p.pageSize))
+				if p.numPages == 0 && info.Size() > 0 {
+					p.numPages = 1
 				}
 			}
 		}
 	}
-	p.mu.Unlock()
-	return changed
+}
+
+// adoptHeaderPageSizeLocked re-reads the page size and reserved-space count
+// from a freshly loaded page-1 header. btree.c lockBtree re-reads the page
+// size from the freshly loaded page 1 (header bytes 16..17; the value 1
+// means 65536): a connection that watched another connection's VACUUM adopt
+// a new page size must resize before its next page read, or it
+// re-interprets the image at the old page size and reads "malformed".
+// Byte 20 (reserved space per page) is re-read with the same lockBtree
+// reload: another connection's VACUUM may have materialized a new reserve,
+// and the usable size drives every cell parse (reservebytes 1.3.4
+// integrity_check on a second connection). Caller holds p.mu.
+func (p *Pager) adoptHeaderPageSizeLocked(buf []byte) {
+	if len(buf) >= 18 {
+		psz := int(binary.BigEndian.Uint16(buf[16:18]))
+		switch {
+		case psz == 1:
+			p.pageSize = 65536
+		case psz >= 512 && psz <= 32768 && psz&(psz-1) == 0:
+			p.pageSize = uint32(psz)
+		}
+	}
+	if len(buf) >= 21 {
+		p.reserved = uint32(buf[20])
+	}
 }
 
 // HeaderBeyondFile reports the lockBtree corruption check (btree.c): the
@@ -390,7 +400,7 @@ func (p *Pager) AllocateRootPage() (*Page, error) {
 func (p *Pager) ZeroFreelistChain() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.header == nil || len(p.header) < 40 {
+	if len(p.header) < 40 {
 		return
 	}
 	binary.BigEndian.PutUint32(p.header[32:36], 0)

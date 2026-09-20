@@ -767,26 +767,56 @@ func (w *walWriter) backfillLocked(nFrom, nTo, mxFrame uint32) error {
 	if nTo <= nFrom {
 		return nil
 	}
-	info, err := w.file.Stat()
+	frames, ok, err := w.readCheckpointFrames()
 	if err != nil {
 		return err
 	}
-	if info.Size() < WalHdrSize {
+	if !ok {
 		return nil
+	}
+	nPage, err := p.backfillFrameRangeLocked(frames, nFrom, nTo, mxFrame, w.hdr.NPage)
+	if err != nil {
+		return err
+	}
+	if nPage > p.numPages {
+		p.numPages = nPage
+	}
+	return w.finishBackfillLocked(nTo, mxFrame)
+}
+
+// readCheckpointFrames reads and decodes the -wal frames for a checkpoint.
+// ok=false when the WAL holds nothing trustworthy to backfill (smaller than
+// its header, unreadable, or a header/frame decode failure). A Stat or read
+// I/O error is returned. Caller holds p.mu and the wal-index writer section.
+func (w *walWriter) readCheckpointFrames() ([]WalFrame, bool, error) {
+	info, err := w.file.Stat()
+	if err != nil {
+		return nil, false, err
+	}
+	if info.Size() < WalHdrSize {
+		return nil, false, nil
 	}
 	buf := make([]byte, info.Size())
 	if _, err := w.file.ReadAt(buf, 0); err != nil {
-		return err
+		return nil, false, err
 	}
 	h, derr := DecodeWalHeader(buf)
 	if derr != nil || !h.HeaderCksumOK {
-		return nil
+		return nil, false, nil
 	}
 	frames, derr := DecodeWalFrames(buf, h)
 	if derr != nil {
-		return nil
+		return nil, false, nil
 	}
-	nPage := w.hdr.NPage
+	return frames, true, nil
+}
+
+// backfillFrameRangeLocked copies the frames in (nFrom, nTo] into the main
+// database file (walCheckpoint's iterator loop), extending the file page by
+// page and updating the pager's page cache. nPage starts at the recorded
+// commit size and tracks the highest page seen. Caller holds p.mu and the
+// wal-index writer section.
+func (p *Pager) backfillFrameRangeLocked(frames []WalFrame, nFrom, nTo, mxFrame, nPage uint32) (uint32, error) {
 	for _, fr := range frames {
 		if fr.Number > int(nTo) || fr.Number <= int(nFrom) {
 			continue
@@ -802,21 +832,41 @@ func (w *walWriter) backfillLocked(nFrom, nTo, mxFrame uint32) error {
 			// governs, but never write past the pages we have.
 			nPage = pgno
 		}
-		off := int64(pgno-1) * int64(p.pageSize)
-		fileEnd := int64(pgno) * int64(p.pageSize)
-		if p.fileSize < fileEnd {
-			if err := p.file.Truncate(fileEnd); err != nil {
-				return err
-			}
-			p.fileSize = fileEnd
-		}
-		if _, err := p.file.WriteAt(pg.Data, off); err != nil {
-			return fmt.Errorf("pager: checkpoint write page %d: %w", pgno, err)
+		if err := p.writeBackfillPageLocked(pg); err != nil {
+			return nPage, err
 		}
 	}
-	if nPage > p.numPages {
-		p.numPages = nPage
+	return nPage, nil
+}
+
+// writeBackfillPageLocked writes one backfilled frame's page image to the
+// main database file, extending the file first when the page lands past the
+// current end. Caller holds p.mu and the wal-index writer section.
+func (p *Pager) writeBackfillPageLocked(pg *Page) error {
+	pgno := pg.PageNum
+	off := int64(pgno-1) * int64(p.pageSize)
+	fileEnd := int64(pgno) * int64(p.pageSize)
+	if p.fileSize < fileEnd {
+		if err := p.file.Truncate(fileEnd); err != nil {
+			return err
+		}
+		p.fileSize = fileEnd
 	}
+	if _, err := p.file.WriteAt(pg.Data, off); err != nil {
+		return fmt.Errorf("pager: checkpoint write page %d: %w", pgno, err)
+	}
+	return nil
+}
+
+// finishBackfillLocked completes the backfill: the recovered database header
+// is taken from the cached page 1, and when the whole log was covered
+// (nTo == mxFrame) the main file is truncated to the committed page count
+// (wal.c: szDb truncate under mxSafeFrame == mxFrame). The dirty set is
+// cleared — every page is now clean in the main file — and the
+// external-change stamp re-baselined. Caller holds p.mu and the wal-index
+// writer section.
+func (w *walWriter) finishBackfillLocked(nTo, mxFrame uint32) error {
+	p := w.p
 	// Recover the database header from page 1 if present.
 	if pg, ok := p.pages[1]; ok {
 		if p.header == nil {
@@ -824,8 +874,6 @@ func (w *walWriter) backfillLocked(nFrom, nTo, mxFrame uint32) error {
 		}
 		copy(p.header, pg.Data[:HeaderSize])
 	}
-	// When the whole log was covered, truncate the main file to the committed
-	// page count (wal.c: szDb truncate under mxSafeFrame == mxFrame).
 	if nTo == mxFrame {
 		szDb := int64(w.hdr.NPage) * int64(p.pageSize)
 		if szDb > 0 && p.fileSize != szDb {

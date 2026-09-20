@@ -7493,3 +7493,33 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   balanceCoversSingleSurvivor's free loop vs balanceAllEmptyWindow's re-free).
 - **Pre-existing ≠ fixed**: fts4merge (4.1/4.2 datatype-mismatch/mismatch) was already
   adjudicated pre-existing at the T27 census — do not absorb it into a btree fix.
+
+## §5d Quality-Closure — pager package (2026-09-19, fleet/q5-pager)
+- **Splitting pager.go (2572 lines) by responsibility was purely line-range extraction**:
+  Open/openPager → pageropen.go, PRAGMA surface → pagerconfig.go, allocation+cache reads →
+  pagerpage.go, WAL write-txn/checkpoint entry → pagerwal.go, truncate/flush/commit →
+  pagercommit.go, Snapshot/Restore → pagersnapshot.go. Verified zero function drift with
+  `git show HEAD:... | grep '^func ' | sort` diff before/after — do this check on every
+  mechanical split, it catches silently dropped functions.
+- **openPager's SA4006 was a real fd leak**: the pre-branch `os.OpenFile(O_RDWR|O_CREATE)`
+  result was always overwritten (read-only branch reopened, else branch reopened identically)
+  — the first fd leaked on every Open. staticcheck flagged it only as "value never used";
+  the leak was the hidden cost.
+- **Duplicate journal-sidecar teardown sequences were the gocognit driver in journal.go**:
+  SetJournalMode (x2), finalize-DELETE, and rollback each hand-rolled close+xClose+xDelete+
+  remove with DIFFERENT hook orderings (xDelete before vs after os.Remove; separate vs fused
+  hook calls). journal2 asserts the exact sequence, so helpers must preserve per-site order —
+  extract only where sequences are byte-identical (the two SetJournalMode sites).
+- **allocLeafMatchLocked must report (matched, pgno), not pgno alone**: a corrupt chain leaf
+  entry 0 under BTALLOC_LE matches (`0 <= nearby`), mutates the chain (count decrement +
+  trunk rewrite) and returns 0, which the caller reports as SQLITE_FULL. Collapsing
+  "matched 0" into "no match" would skip the chain mutation — a silent behavior change in
+  the corrupt-image path.
+- **Flaky `go test` FAIL on the first run after a fresh build (macOS)**: 5× observed
+  `FAIL` via `| tail -1` immediately after gofmt+build+test compound commands; ~150
+  subsequent runs green (incl. -race ×5, concurrent-build load ×10), full output never
+  captured. Consistent with Gatekeeper/XProtect scanning of freshly linked test binaries.
+  Countermeasure: rerun before diagnosing; treat only reproduced failures as real.
+- **Worktree fixture gap**: gitignored `testdata/walconformance/*.db{,-journal,-wal}` are
+  absent in fresh worktrees → TestJournalConformance fails with missing-fixture. Copy them
+  from the main repo to get a green baseline before refactoring (they are read-only inputs).

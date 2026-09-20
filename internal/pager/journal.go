@@ -86,39 +86,6 @@ func (p *Pager) journalFileOpHookFn() func(op, path string) {
 	return defaultJournalFileOpHook
 }
 
-// journalRecord is one entry in the rollback journal: a page number, the
-// page data (before-image), and the running checksum over both. The
-// checksum is the same running-sum algorithm SQLite uses for the WAL
-// frames (bigendian uint32 sums; the journal uses a different initial
-// seed but the same mixer).
-type journalRecord struct {
-	pageNum uint32
-	data    []byte
-	c1      uint32
-	c2      uint32
-}
-
-// rollbackJournal owns the on-disk test.db-journal file for one
-// transaction. It records the BEFORE image of every dirty page flushed
-// to the main database file and either (a) discards the file at COMMIT
-// (DELETE), (b) truncates it to a per-DB size cap (PERSIST), or
-// (c) zeroes it (TRUNCATE).
-type rollbackJournal struct {
-	file       *os.File
-	path       string
-	pageSize   uint32
-	sectorSize uint32
-	cksumInit1 uint32
-	cksumInit2 uint32
-	dbOrigSize uint32 // initial db size in pages at journal-header time
-	records    []journalRecord
-	// c1/c2 are the running checksum state of the most recently appended
-	// record. The header sets the seed; each record advances c1/c2 over
-	// its (pageNum, data) bytes (sqlite3PagerWalFrames / pager.c mix).
-	c1 uint32
-	c2 uint32
-}
-
 // recoverHotJournal replays a hot rollback journal into the page cache at
 // Open time (pager.c pagerPlayback / hasHotJournal). A journal is HOT when
 // it holds page records for an uncommitted transaction: magic valid (or
@@ -144,46 +111,70 @@ func recoverHotJournal(p *Pager, dbPath string) error {
 		return nil
 	}
 	jpath := journalPath(dbPath)
-	data, err := os.ReadFile(jpath)
-	if err != nil {
-		return nil // journal vanished between Stat and read: nothing to do
-	}
-	if len(data) < 28 {
-		_ = os.Remove(jpath)
-		return nil
-	}
-	hdr, herr := DecodeJournalHeader(data[:28])
-	if herr != nil {
-		_ = os.Remove(jpath)
-		return nil
-	}
-	if hdr.PageSize != p.pageSize {
-		// Journal from a different page-size generation: stale, discard.
-		_ = os.Remove(jpath)
-		return nil
-	}
-	pages, perr := DecodeJournalPages(data, hdr)
-	if perr != nil || len(pages) == 0 {
-		_ = os.Remove(jpath)
-		return nil
-	}
-	// Staleness: the journal's dbOrigSize must match the main file's current
-	// page count; otherwise the journal belongs to a prior database
-	// generation (journal1.test 1.2). Header integers are BIG-endian
-	// (pager.c writeJournalHdr), matching our own writer since the C-format
-	// journal port.
-	jordb := hdr.DBPageCount
-	p.mu.RLock()
-	curPages := p.numPages
-	p.mu.RUnlock()
-	if jordb != curPages {
-		_ = os.Remove(jpath)
+	pages, hot := readHotJournal(p, jpath)
+	if !hot {
 		return nil
 	}
 	// HOT: replay before-images into the page cache (newest first so the
 	// oldest before-image wins), then unlink the journal.
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	replayHotJournalPages(p, pages)
+	p.dirty = make(map[uint32]bool)
+	p.refreshKnownFileStamp()
+	_ = os.Remove(jpath)
+	return nil
+}
+
+// readHotJournal reads and validates a candidate hot journal at jpath,
+// returning its page records and whether it is HOT (holds page records for
+// an uncommitted transaction matching this database). A journal that is
+// short, unparsable, from a different page-size generation, empty of
+// records, or from a prior database generation (dbOrigSize mismatch —
+// journal1.test 1.2) is STALE and discarded (unlinked) without playback.
+// Header integers are BIG-endian (pager.c writeJournalHdr), matching our
+// own writer since the C-format journal port.
+func readHotJournal(p *Pager, jpath string) ([]JournalPage, bool) {
+	data, err := os.ReadFile(jpath)
+	if err != nil {
+		return nil, false // journal vanished between Stat and read: nothing to do
+	}
+	if len(data) < 28 {
+		_ = os.Remove(jpath)
+		return nil, false
+	}
+	hdr, herr := DecodeJournalHeader(data[:28])
+	if herr != nil {
+		_ = os.Remove(jpath)
+		return nil, false
+	}
+	if hdr.PageSize != p.pageSize {
+		// Journal from a different page-size generation: stale, discard.
+		_ = os.Remove(jpath)
+		return nil, false
+	}
+	pages, perr := DecodeJournalPages(data, hdr)
+	if perr != nil || len(pages) == 0 {
+		_ = os.Remove(jpath)
+		return nil, false
+	}
+	// Staleness: the journal's dbOrigSize must match the main file's current
+	// page count; otherwise the journal belongs to a prior database
+	// generation (journal1.test 1.2).
+	p.mu.RLock()
+	curPages := p.numPages
+	p.mu.RUnlock()
+	if hdr.DBPageCount != curPages {
+		_ = os.Remove(jpath)
+		return nil, false
+	}
+	return pages, true
+}
+
+// replayHotJournalPages restores the journal's before-images into the page
+// cache, newest record first so the oldest before-image wins. Page 1's
+// leading bytes also refresh the cached database header. Caller holds p.mu.
+func replayHotJournalPages(p *Pager, pages []JournalPage) {
 	for i := len(pages) - 1; i >= 0; i-- {
 		pg := pages[i]
 		if uint32(len(pg.Data)) != p.pageSize {
@@ -203,10 +194,6 @@ func recoverHotJournal(p *Pager, dbPath string) error {
 			copy(p.header, pg.Data[:HeaderSize])
 		}
 	}
-	p.dirty = make(map[uint32]bool)
-	p.refreshKnownFileStamp()
-	_ = os.Remove(jpath)
-	return nil
 }
 
 // path construction). Returns "" for in-memory pagers.
@@ -244,6 +231,50 @@ func journalChecksumUpdate(c1, c2 uint32, buf []byte) (uint32, uint32) {
 	return c1, c2
 }
 
+// journalWriteSkipped reports why opening the rollback journal can be
+// skipped entirely: memory pagers have no journal file, one is already open,
+// and an empty database's Init-time schema write must not materialize a
+// sidecar. A no-dirty flush also skips (no 512-byte header write for a
+// no-op post-COMMIT idempotent flush in PERSIST mode).
+//
+// Lazy journal creation: a database opened empty (file size == 0) is
+// left untouched on disk by the Init-time schema page write (the
+// engine's Open() path calls MarkClean to drop the dirty flag without
+// flushing). Opening a journal file here would create a sidecar that
+// the engine then immediately closes — and the journal2 test
+// (journal2.test 2.1) expects no journal events from the empty-DB
+// open + PRAGMA journal_mode=persist sequence. We only need a
+// journal once the user makes a real (non-Init) write.
+func (p *Pager) journalWriteSkipped() bool {
+	if p.file == nil {
+		return true // in-memory pager: no journal file
+	}
+	if p.journalFile != nil {
+		return true // already open
+	}
+	if p.openedEmpty && len(p.dirty) == 1 {
+		if _, only := p.dirty[1]; only {
+			return true
+		}
+	}
+	return len(p.dirty) == 0
+}
+
+// journalFileMode resolves the effective rollback-journal file mode (the
+// empty journalMode is the SQLite default "delete"). WAL/MEMORY/OFF use
+// other paths and create no journal file — reported as "".
+func (p *Pager) journalFileMode() string {
+	mode := p.journalMode
+	if mode == "" {
+		mode = "delete"
+	}
+	switch mode {
+	case "memory", "off", "wal":
+		return ""
+	}
+	return mode
+}
+
 // openRollbackJournalLocked creates (or truncates-and-reopens) the
 // "test.db-journal" sidecar with the same Unix mode bits as the main
 // database file (journal3.test 1.2.x.4). The journal header is written
@@ -252,39 +283,13 @@ func journalChecksumUpdate(c1, c2 uint32, buf []byte) (uint32, uint32) {
 //
 // The caller must hold p.mu.
 func (p *Pager) openRollbackJournalLocked() error {
-	if p.file == nil {
-		return nil // in-memory pager: no journal file
-	}
-	if p.journalFile != nil {
-		return nil // already open
-	}
-	// Lazy journal creation: a database opened empty (file size == 0) is
-	// left untouched on disk by the Init-time schema page write (the
-	// engine's Open() path calls MarkClean to drop the dirty flag without
-	// flushing). Opening a journal file here would create a sidecar that
-	// the engine then immediately closes — and the journal2 test
-	// (journal2.test 2.1) expects no journal events from the empty-DB
-	// open + PRAGMA journal_mode=persist sequence. We only need a
-	// journal once the user makes a real (non-Init) write.
-	if p.openedEmpty && len(p.dirty) == 1 {
-		if _, only := p.dirty[1]; only {
-			return nil
-		}
-	}
-	if len(p.dirty) == 0 {
-		// Nothing to flush — the journal file (if any) is left untouched.
-		// This avoids a 512-byte header write for a no-op post-COMMIT
-		// idempotent flush in PERSIST mode.
+	if p.journalWriteSkipped() {
 		return nil
 	}
 	// Mode gating: only the rollback-journal modes (DELETE/PERSIST/
 	// TRUNCATE) actually create a file. WAL/MEMORY/OFF use other paths.
-	mode := p.journalMode
+	mode := p.journalFileMode()
 	if mode == "" {
-		mode = "delete"
-	}
-	switch mode {
-	case "memory", "off", "wal":
 		return nil
 	}
 	// Verify the database still has the same name as when it was opened
@@ -299,12 +304,26 @@ func (p *Pager) openRollbackJournalLocked() error {
 	if jpath == "" {
 		return nil
 	}
-	// PERSIST mode reuses an existing file (the pager truncates to
-	// journal_size_limit on commit; the file stays on disk). For
-	// DELETE/TRUNCATE we unlink any leftover so a fresh header is
-	// written. (pager.c sqlite3PagerOpenJournal — if the file already
-	// exists for a PERSIST-mode journal, it is kept and overwritten
-	// in place; for the others, the old file is unlinked first.)
+	if err := p.openJournalFileLocked(jpath, mode); err != nil {
+		return err
+	}
+	// Fire xOpen via the testvfs-equivalent hook (journal2 test suite).
+	// The hook is the narrow VFS-layer observability path for the
+	// journal sidecar; nil in production.
+	if h := p.journalFileOpHookFn(); h != nil {
+		h("xOpen", jpath)
+	}
+	return p.initJournalEpochLocked()
+}
+
+// openJournalFileLocked opens (or truncates-and-reopens) the journal sidecar
+// file per journal mode. PERSIST reuses an existing file (the pager
+// truncates to journal_size_limit on commit; the file stays on disk); for
+// DELETE/TRUNCATE any leftover is unlinked first so a fresh header is
+// written (pager.c sqlite3PagerOpenJournal — a PERSIST-mode journal file
+// that already exists is kept and overwritten in place; for the others, the
+// old file is unlinked first). Caller holds p.mu.
+func (p *Pager) openJournalFileLocked(jpath, mode string) error {
 	if mode == "persist" {
 		// Open WITHOUT O_TRUNC so the previous transaction's records
 		// (if any) are visible on disk; the new header is written at
@@ -323,21 +342,24 @@ func (p *Pager) openRollbackJournalLocked() error {
 			_, _ = f.Seek(int64(p.journalSectorSize), 0)
 		}
 		p.journalFile = f
-	} else {
-		// DELETE/TRUNCATE: unlink any leftover journal.
-		_ = os.Remove(jpath)
-		f, err := os.OpenFile(jpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
-		if err != nil {
-			return fmt.Errorf("pager: open journal: %w", err)
-		}
-		p.journalFile = f
+		return nil
 	}
-	// Fire xOpen via the testvfs-equivalent hook (journal2 test suite).
-	// The hook is the narrow VFS-layer observability path for the
-	// journal sidecar; nil in production.
-	if h := p.journalFileOpHookFn(); h != nil {
-		h("xOpen", jpath)
+	// DELETE/TRUNCATE: unlink any leftover journal.
+	_ = os.Remove(jpath)
+	f, err := os.OpenFile(jpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return fmt.Errorf("pager: open journal: %w", err)
 	}
+	p.journalFile = f
+	return nil
+}
+
+// initJournalEpochLocked starts a fresh journal epoch on the just-opened
+// sidecar: mirror the main file's mode bits, seed the checksum chain, record
+// dbOrigSize, write the journal header and position the append cursor after
+// it. Caller holds p.mu.
+func (p *Pager) initJournalEpochLocked() error {
+	jpath := p.journalFile.Name()
 	// Mirror the main database file's mode bits (journal3.test 1.2.x.4
 	// asserts the journal has the same -perm as the main db). Falls
 	// back to 0o644 if the Stat fails (e.g. a brand-new file with no
@@ -456,13 +478,6 @@ func (p *Pager) appendRollbackRecordLocked(pageNum uint32, data []byte) error {
 	return nil
 }
 
-// finalizeRollbackJournalLocked applies the post-flush action dictated
-// by the journal mode. Single-DB case (multiDB=false) — see
-// finalizeRollbackJournalLockedMulti for the multi-DB variant.
-func (p *Pager) finalizeRollbackJournalLocked() error {
-	return p.finalizeRollbackJournalLockedMulti(false)
-}
-
 // finalizeRollbackJournalLockedMulti applies the post-flush action dictated
 // by the journal mode. Called from flushAllCtx after all dirty pages
 // have been written to the main database file. The multiDB flag is true
@@ -495,86 +510,101 @@ func (p *Pager) finalizeRollbackJournalLockedMulti(multiDB bool) error {
 	jpath := p.journalFile.Name()
 	switch mode {
 	case "delete":
-		// DELETE: close (some platforms refuse unlink of an open file)
-		// then unlink. Fire xClose + xDelete via the testvfs hook.
-		_ = p.journalFile.Close()
-		p.journalFile = nil
-		if h := p.journalFileOpHookFn(); h != nil {
-			h("xClose", jpath)
-		}
-		err := os.Remove(jpath)
-		if h := p.journalFileOpHookFn(); h != nil {
-			h("xDelete", jpath)
-		}
-		if err != nil && !os.IsNotExist(err) {
-			// The journal may already be gone (playback at Open, a prior
-			// commit, or a transaction that never spilled); SQLite's
-			// xDelete treats a missing file as deleted (os_unix.c).
-			return err
-		}
-		return nil
+		return p.finalizeJournalDeleteLocked(jpath)
 	case "truncate":
-		// TRUNCATE: keep the file open across COMMITs (the next
-		// transaction reuses the open FD; pager.c sqlite3PagerClose
-		// is the only path that releases it). Truncate to 0 bytes
-		// (pager.c:5313 "running in journal_mode=truncate mode"). No
-		// xClose / xDelete — the file is reused.
-		if err := os.Truncate(jpath, 0); err != nil {
-			return err
-		}
-		// Seek back to the end of the header so the next transaction
-		// that appends records starts at the right offset.
-		if _, err := p.journalFile.Seek(int64(p.journalSectorSize), 0); err != nil {
-			return fmt.Errorf("pager: seek journal after truncate: %w", err)
-		}
-		return nil
+		return p.finalizeJournalTruncateLocked(jpath)
 	case "persist":
-		// PERSIST keeps the journal file open across COMMITs. Apply
-		// journal_size_limit (or 0 in the super-journal / multi-DB
-		// case). The header is overwritten on the next transaction's
-		// openRollbackJournalLocked.
-		//
-		// For simplicity we honour journal_size_limit in PERSIST mode
-		// at COMMIT, but force a 0-truncate when multiDB=true (the
-		// super-journal path) regardless of journal_size_limit:
-		//   - multiDB=true: truncate to 0 (matches jrnlmode-2.2/2.4).
-		//   - multiDB=false, journal_size_limit < 0: unlimited
-		//     (file left intact).
-		//   - multiDB=false, journal_size_limit == 0: truncate to 0.
-		//   - multiDB=false, journal_size_limit > 0: truncate to the
-		//     limit if the file is larger; otherwise leave it
-		//     (matches jrnlmode-5.13/5.15).
-		var err error
-		if multiDB {
-			err = os.Truncate(jpath, 0)
-		} else {
-			limit := p.journalSizeLimit
-			if limit < 0 {
-				err = nil
-			} else if limit == 0 {
-				err = os.Truncate(jpath, 0)
-			} else {
-				st, _ := os.Stat(jpath)
-				var sz int64
-				if st != nil {
-					sz = st.Size()
-				}
-				if sz > limit {
-					err = os.Truncate(jpath, limit)
-				} else {
-					err = nil
-				}
-			}
-		}
-		if err != nil {
-			return err
-		}
-		// Seek back to the end of the header so the next transaction
-		// that appends records starts at the right offset.
-		if _, err := p.journalFile.Seek(int64(p.journalSectorSize), 0); err != nil {
-			return fmt.Errorf("pager: seek journal after persist: %w", err)
-		}
+		return p.finalizeJournalPersistLocked(jpath, multiDB)
+	}
+	return nil
+}
+
+// finalizeJournalDeleteLocked applies DELETE-mode finalization: close (some
+// platforms refuse unlink of an open file) then unlink. Fires xClose +
+// xDelete via the testvfs hook. Caller holds p.mu.
+func (p *Pager) finalizeJournalDeleteLocked(jpath string) error {
+	_ = p.journalFile.Close()
+	p.journalFile = nil
+	if h := p.journalFileOpHookFn(); h != nil {
+		h("xClose", jpath)
+	}
+	err := os.Remove(jpath)
+	if h := p.journalFileOpHookFn(); h != nil {
+		h("xDelete", jpath)
+	}
+	if err != nil && !os.IsNotExist(err) {
+		// The journal may already be gone (playback at Open, a prior
+		// commit, or a transaction that never spilled); SQLite's
+		// xDelete treats a missing file as deleted (os_unix.c).
+		return err
+	}
+	return nil
+}
+
+// finalizeJournalTruncateLocked applies TRUNCATE-mode finalization: keep the
+// file open across COMMITs (the next transaction reuses the open FD;
+// pager.c sqlite3PagerClose is the only path that releases it) and truncate
+// it to 0 bytes (pager.c:5313 "running in journal_mode=truncate mode"). No
+// xClose / xDelete — the file is reused. Caller holds p.mu.
+func (p *Pager) finalizeJournalTruncateLocked(jpath string) error {
+	if err := os.Truncate(jpath, 0); err != nil {
+		return err
+	}
+	// Seek back to the end of the header so the next transaction
+	// that appends records starts at the right offset.
+	if _, err := p.journalFile.Seek(int64(p.journalSectorSize), 0); err != nil {
+		return fmt.Errorf("pager: seek journal after truncate: %w", err)
+	}
+	return nil
+}
+
+// finalizeJournalPersistLocked applies PERSIST-mode finalization: keep the
+// journal file open across COMMITs and apply journal_size_limit (or 0 in
+// the super-journal / multi-DB case). The header is overwritten on the next
+// transaction's openRollbackJournalLocked.
+//
+// We honour journal_size_limit in PERSIST mode at COMMIT, but force a
+// 0-truncate when multiDB=true (the super-journal path) regardless of
+// journal_size_limit:
+//   - multiDB=true: truncate to 0 (matches jrnlmode-2.2/2.4).
+//   - multiDB=false, journal_size_limit < 0: unlimited (file left intact).
+//   - multiDB=false, journal_size_limit == 0: truncate to 0.
+//   - multiDB=false, journal_size_limit > 0: truncate to the limit if the
+//     file is larger; otherwise leave it (matches jrnlmode-5.13/5.15).
+//
+// Caller holds p.mu.
+func (p *Pager) finalizeJournalPersistLocked(jpath string, multiDB bool) error {
+	if err := persistTruncateLimit(p.journalSizeLimit, jpath, multiDB); err != nil {
+		return err
+	}
+	// Seek back to the end of the header so the next transaction
+	// that appends records starts at the right offset.
+	if _, err := p.journalFile.Seek(int64(p.journalSectorSize), 0); err != nil {
+		return fmt.Errorf("pager: seek journal after persist: %w", err)
+	}
+	return nil
+}
+
+// persistTruncateLimit truncates the PERSIST journal per journal_size_limit
+// (see finalizeJournalPersistLocked's size-limit table). multiDB forces the
+// 0-truncate of the super-journal path.
+func persistTruncateLimit(limit int64, jpath string, multiDB bool) error {
+	if multiDB {
+		return os.Truncate(jpath, 0)
+	}
+	if limit < 0 {
 		return nil
+	}
+	if limit == 0 {
+		return os.Truncate(jpath, 0)
+	}
+	st, _ := os.Stat(jpath)
+	var sz int64
+	if st != nil {
+		sz = st.Size()
+	}
+	if sz > limit {
+		return os.Truncate(jpath, limit)
 	}
 	return nil
 }
@@ -597,20 +627,10 @@ func (p *Pager) rollbackFromJournalLocked() error {
 	jpath := p.journalFile.Name()
 	data, err := os.ReadFile(jpath)
 	if err != nil {
-		_ = p.journalFile.Close()
-		p.journalFile = nil
-		_ = os.Remove(jpath)
-		if h := p.journalFileOpHookFn(); h != nil {
-			h("xClose", jpath)
-			h("xDelete", jpath)
-		}
+		p.discardJournalFileLocked(jpath)
 		return fmt.Errorf("pager: rollback read journal: %w", err)
 	}
-	_ = p.journalFile.Close()
-	p.journalFile = nil
-	if h := p.journalFileOpHookFn(); h != nil {
-		h("xClose", jpath)
-	}
+	p.closeJournalFileLocked(jpath)
 	hdr, herr := DecodeJournalHeader(data[:28])
 	if herr != nil {
 		return fmt.Errorf("pager: rollback journal header: %w", herr)
@@ -619,66 +639,8 @@ func (p *Pager) rollbackFromJournalLocked() error {
 	if perr != nil {
 		return fmt.Errorf("pager: rollback journal records: %w", perr)
 	}
-	// Collect all records first (we restore in reverse).
-	type rec struct {
-		pageNum uint32
-		data    []byte
-	}
-	recs := make([]rec, 0, len(jpages))
-	for _, jp := range jpages {
-		recs = append(recs, rec{pageNum: jp.PageNumber, data: jp.Data})
-	}
-	// C nTrunc semantics (pager.c pager_rollback): when the transaction
-	// shrank the file (in-transaction incremental-vacuum steps truncate
-	// through the journal-protected path), restore the file length to the
-	// size recorded at journal start (header[16:20], dbOrigSize) BEFORE
-	// replaying records, writing the journalled before-images of tail
-	// pages back to disk — the file.Truncate in truncatePages removed
-	// them mid-transaction and cache-only replay would leave zeros on
-	// disk. The in-memory page count is repaired and cache pages beyond
-	// the restored size dropped.
-	if p.file != nil && p.journalDBOrigSize > 0 && p.numPages < p.journalDBOrigSize {
-		newSize := int64(p.journalDBOrigSize) * int64(p.pageSize)
-		if err := p.file.Truncate(newSize); err == nil {
-			p.fileSize = newSize
-			for i := len(recs) - 1; i >= 0; i-- {
-				if r := recs[i]; r.pageNum > p.numPages && r.pageNum <= p.journalDBOrigSize {
-					if _, err := p.file.WriteAt(r.data, int64(r.pageNum-1)*int64(p.pageSize)); err != nil {
-						break
-					}
-				}
-			}
-			for pgno := range p.pages {
-				if pgno > p.journalDBOrigSize {
-					delete(p.pages, pgno)
-					delete(p.dirty, pgno)
-				}
-			}
-			p.numPages = p.journalDBOrigSize
-			if p.header != nil && len(p.header) >= 32 {
-				binary.BigEndian.PutUint32(p.header[28:32], p.journalDBOrigSize)
-			}
-		}
-	}
-	// Restore in reverse order (so later records' before-images win).
-	for i := len(recs) - 1; i >= 0; i-- {
-		r := recs[i]
-		// Replace the in-memory page with the before-image; if the
-		// page isn't in the cache (it was flushed and evicted) we
-		// have no way to restore it without the cache. For the
-		// Pager's own dirty-set tracking, the page is no longer
-		// dirty.
-		pg, ok := p.pages[r.pageNum]
-		if !ok {
-			pg = &Page{PageNum: r.pageNum}
-			p.pages[r.pageNum] = pg
-		}
-		pg.Data = r.data
-		// Restore the page as clean (the in-flight dirty change is
-		// undone; on next flush the restored page is the
-		// before-image that should be on disk).
-		delete(p.dirty, r.pageNum)
-	}
+	p.restoreJournalTruncationLocked(jpages)
+	p.restoreBeforeImagesLocked(jpages)
 	// Drop the entire dirty set: every dirty page is being rolled back.
 	// (If a dirty page was never flushed during this transaction, the
 	// dirty cache state is still in memory and the rollback drops it.)
@@ -690,4 +652,84 @@ func (p *Pager) rollbackFromJournalLocked() error {
 		h("xDelete", jpath)
 	}
 	return os.Remove(jpath)
+}
+
+// discardJournalFileLocked closes and unlinks a journal sidecar whose
+// records could not be read back (a rollback read failure): the file is
+// gone either way, so xClose and xDelete both fire. Caller holds p.mu.
+func (p *Pager) discardJournalFileLocked(jpath string) {
+	_ = p.journalFile.Close()
+	p.journalFile = nil
+	_ = os.Remove(jpath)
+	if h := p.journalFileOpHookFn(); h != nil {
+		h("xClose", jpath)
+		h("xDelete", jpath)
+	}
+}
+
+// closeJournalFileLocked closes the journal sidecar after its records have
+// been read into memory (the replay owns them now); xClose fires, and the
+// unlink happens after the replay completes. Caller holds p.mu.
+func (p *Pager) closeJournalFileLocked(jpath string) {
+	_ = p.journalFile.Close()
+	p.journalFile = nil
+	if h := p.journalFileOpHookFn(); h != nil {
+		h("xClose", jpath)
+	}
+}
+
+// restoreJournalTruncationLocked applies C nTrunc semantics (pager.c
+// pager_rollback): when the transaction shrank the file (in-transaction
+// incremental-vacuum steps truncate through the journal-protected path),
+// restore the file length to the size recorded at journal start
+// (header[16:20], dbOrigSize) BEFORE replaying records, writing the
+// journalled before-images of tail pages back to disk — the file.Truncate
+// in truncatePages removed them mid-transaction and cache-only replay would
+// leave zeros on disk. The in-memory page count is repaired and cache pages
+// beyond the restored size dropped. Caller holds p.mu.
+func (p *Pager) restoreJournalTruncationLocked(jpages []JournalPage) {
+	if p.file == nil || p.journalDBOrigSize == 0 || p.numPages >= p.journalDBOrigSize {
+		return
+	}
+	newSize := int64(p.journalDBOrigSize) * int64(p.pageSize)
+	if err := p.file.Truncate(newSize); err != nil {
+		return
+	}
+	p.fileSize = newSize
+	for i := len(jpages) - 1; i >= 0; i-- {
+		jp := jpages[i]
+		if jp.PageNumber > p.numPages && jp.PageNumber <= p.journalDBOrigSize {
+			if _, err := p.file.WriteAt(jp.Data, int64(jp.PageNumber-1)*int64(p.pageSize)); err != nil {
+				break
+			}
+		}
+	}
+	for pgno := range p.pages {
+		if pgno > p.journalDBOrigSize {
+			delete(p.pages, pgno)
+			delete(p.dirty, pgno)
+		}
+	}
+	p.numPages = p.journalDBOrigSize
+	if len(p.header) >= 32 {
+		binary.BigEndian.PutUint32(p.header[28:32], p.journalDBOrigSize)
+	}
+}
+
+// restoreBeforeImagesLocked replays the journal's page records in reverse
+// order (so later records' before-images win), replacing each in-memory
+// page's content with its before-image. The page is restored as clean: the
+// in-flight dirty change is undone, and on the next flush the restored page
+// is the before-image that should be on disk. Caller holds p.mu.
+func (p *Pager) restoreBeforeImagesLocked(jpages []JournalPage) {
+	for i := len(jpages) - 1; i >= 0; i-- {
+		jp := jpages[i]
+		pg, ok := p.pages[jp.PageNumber]
+		if !ok {
+			pg = &Page{PageNum: jp.PageNumber}
+			p.pages[jp.PageNumber] = pg
+		}
+		pg.Data = jp.Data
+		delete(p.dirty, jp.PageNumber)
+	}
 }
