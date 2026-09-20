@@ -7493,3 +7493,31 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   balanceCoversSingleSurvivor's free loop vs balanceAllEmptyWindow's re-free).
 - **Pre-existing ≠ fixed**: fts4merge (4.1/4.2 datatype-mismatch/mismatch) was already
   adjudicated pre-existing at the T27 census — do not absorb it into a btree fix.
+
+## §5d FLEET QUALITY CLOSURE (2026-09-20) — root-package split + tcl2go templates
+- **Fresh fleet worktrees lack ALL generated/env fixtures — triage failures by gitignore first.**
+  Two traps hit in one run: (1) `go run ./tools/tcl2go/` prints "Generated 0 test files"
+  because the TCL corpus it regenerates from is not committed; (2) TestBackupConformance
+  fails "no oracle dest fixtures" because `testdata/backupconformance/*-backup.db` matches
+  the global `*.db` gitignore. Both are environment gaps, not engine regressions — check
+  `git check-ignore` and corpus presence BEFORE suspecting a diff.
+- **Template-split byte-identity without the corpus**: resolve the const chain with a
+  go/ast renderer (walk Ident/BinaryExpr/BasicLit, strconv.Unquote each literal) over
+  helpers_template*.go + main.go, then `cmp` the rendered bytes against the parent
+  commit's files extracted via `git show`. 194,395 bytes matched exactly — equivalent
+  evidence to a full regen diff; the coordinator should still run the corpus regen at
+  merge (`go run ./tools/tcl2go/` + empty `git status testgen/`).
+- **gocognit 51 → gate-clearing extractions**: decompose by phase, not by condition count.
+  Backup.Step split into stepSetDestPgsz (itself FullImageReplace-arm + page-size-adopt-arm),
+  stepRestartIfSourceChanged, stepAdvance; copyLocked into drop/create/copyStat passes;
+  copyTable into vtab/create-or-clear/select/columns/rows helpers. Each helper keeps the
+  error-shaping contract (rc/lastErr set where the original set them) so the caller's
+  control flow is unchanged.
+- **Extraction semantics traps**: (1) a reset-flag computed OUTSIDE a nil-guard must keep
+  its value when the guard skips (vacuumResetDest returns true-not-false when the pager is
+  absent — the copy-back flag semantics depend on it); (2) BSD sed `sed -i '' 'N,Md'` eats
+  the range as a filename — use `-e`; verify moved-region seams by viewing boundary lines
+  and diffing top-level declarations before/after.
+- **Dead duplicate guard in Blob.Write**: the second `if offset < 0` sat AFTER the
+  `n < 0 || offset < 0` early return — provably unreachable; removing it is a zero-behavior
+  change and worth stating in the commit message.
