@@ -20,25 +20,16 @@ func (ev *Evaluator) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 		// SQLITE_LIMIT_LENGTH fails with "string or blob too big".
 		// sqllimits1-5.17.1/5.19 build 100001-char literals with
 		// LENGTH=100000 and expect TOOBIG.
-		if int64(len(v.Value)) > int64(ev.ctx.LengthLimit()) {
-			return nil, fmt.Errorf("string or blob too big")
-		}
-		return v.Value, nil
+		return ev.evalBoundedLiteral(v.Value, len(v.Value))
 	case *sql.BlobLit:
-		if int64(len(v.Value)) > int64(ev.ctx.LengthLimit()) {
-			return nil, fmt.Errorf("string or blob too big")
-		}
-		return v.Value, nil
+		return ev.evalBoundedLiteral(v.Value, len(v.Value))
 	case *sql.NullLit:
 		return nil, nil
 	case *sql.ParameterExpr:
 		// $name / $::name resolve against the TCL variable table
 		// (tclsqlite.c binds TCL variables as parameters); other parameter
 		// forms and unknown variables evaluate to NULL.
-		if val, ok := ev.ctx.TCLParam(v.Name); ok {
-			return val, nil
-		}
-		return nil, nil
+		return ev.evalTCLParam(v.Name)
 	case *sql.ParenExpr:
 		return ev.evalExpr(v.Expr, row)
 	case *sql.ColumnRef:
@@ -55,6 +46,26 @@ func (ev *Evaluator) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 	default:
 		return ev.evalComplexExpr(expr, row)
 	}
+}
+
+// evalBoundedLiteral returns a text or blob literal after checking its size
+// against SQLITE_LIMIT_LENGTH ("string or blob too big"; vdbe.c
+// OP_String8/OP_Blob).
+func (ev *Evaluator) evalBoundedLiteral(value interface{}, size int) (interface{}, error) {
+	if int64(size) > int64(ev.ctx.LengthLimit()) {
+		return nil, fmt.Errorf("string or blob too big")
+	}
+	return value, nil
+}
+
+// evalTCLParam resolves a TCL-bound parameter ($name / $::name, tclsqlite.c
+// binds TCL variables as parameters); other parameter forms and unknown
+// variables evaluate to NULL.
+func (ev *Evaluator) evalTCLParam(name string) (interface{}, error) {
+	if val, ok := ev.ctx.TCLParam(name); ok {
+		return val, nil
+	}
+	return nil, nil
 }
 
 // evalRowValueExpr evaluates each element of a row value into a slice.

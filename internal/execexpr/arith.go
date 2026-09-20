@@ -92,7 +92,7 @@ func numericPrefixIsReal(t string) bool {
 	return i < len(t) && (t[i] == '.' || t[i] == 'e' || t[i] == 'E')
 }
 
-// toIntNumeric parses a string's numeric prefix as an int64 when it is a
+// ToIntNumeric parses a string's numeric prefix as an int64 when it is a
 // pure integer (optionally signed) that fits int64; returns ok=false for
 // non-strings, fractional prefixes, or values outside int64 range.
 func ToIntNumeric(v interface{}) (int64, bool) {
@@ -113,8 +113,7 @@ func ToIntNumeric(v interface{}) (int64, bool) {
 	if digitsEnd == 0 {
 		return 0, false
 	}
-	// A '.' or exponent after the digits makes it a REAL, not an int.
-	if digitsEnd < len(t) && (t[digitsEnd] == '.' || t[digitsEnd] == 'e' || t[digitsEnd] == 'E') {
+	if !intSuffixIsInteger(t, digitsEnd) {
 		return 0, false
 	}
 	n, err := strconv.ParseInt(t[:digitsEnd], 10, 64)
@@ -122,6 +121,20 @@ func ToIntNumeric(v interface{}) (int64, bool) {
 		return 0, false
 	}
 	return n, true
+}
+
+// intSuffixIsInteger reports whether the text after a digit run at
+// t[digitsEnd] keeps the prefix an integer: a '.' or exponent makes it a
+// REAL, not an int.
+func intSuffixIsInteger(t string, digitsEnd int) bool {
+	if digitsEnd >= len(t) {
+		return true
+	}
+	switch t[digitsEnd] {
+	case '.', 'e', 'E':
+		return false
+	}
+	return true
 }
 
 // scanDigitsWithSign returns the index just past an optional sign and digit
