@@ -189,34 +189,8 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 	if selectResult.Error != nil {
 		return selectResult
 	}
-	// Real SQLite validates the schema's table btrees only when an INSERT ...
-	// SELECT's write GROWS the database file (its allocation path reads the
-	// pointer-map/auto-vacuum state on growth). A write that fits in the
-	// existing free space performs no allocation and succeeds even when a
-	// table's btree is corrupt (fts3corrupt4 24.4: a 2-row insert fits, the
-	// oracle succeeds). A write that exceeds the free space grows the file
-	// and fails (24.1: a 19-row insert exceeds t1_content's free space, the
-	// oracle fails). A SELECT that produces no rows performs no write and is
-	// never validated (25.3).
-	if len(selectResult.Rows) > 0 {
-		est := int64(0)
-		for _, row := range selectResult.Rows {
-			for _, v := range row {
-				switch tv := v.(type) {
-				case []byte:
-					est += int64(len(tv)) + 32
-				case string:
-					est += int64(len(tv)) + 32
-				default:
-					est += 24
-				}
-			}
-		}
-		if est > e.ctx.EstimateFreeSpace() {
-			if err := e.ctx.ValidateAllTableRoots(); err != nil {
-				return &Result{Error: err}
-			}
-		}
+	if res := e.insertSelectGrowthGuard(selectResult); res != nil {
+		return res
 	}
 
 	// Statement atomicity: REPLACE deletes rows and may fire triggers, and any
@@ -235,46 +209,13 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 	// Snapshot the FTS in-memory indexes so a failed INSERT ... SELECT can
 	// undo FTS writes the pager restore does not cover (the FTS store is
 	// in-memory; fts3conf 4.1.1 rolls back a rowid-conflict INSERT SELECT).
-	var ftsSnaps []ftsSnapshotPair
-	for name, t := range e.ctx.FTSTables() {
-		if t != nil {
-			ftsSnaps = append(ftsSnaps, ftsSnapshotPair{name: name, table: t, state: t.Snapshot(), pending: t.PendingSnapshot()})
-		}
-	}
+	ftsSnaps := e.ftsSnapshots()
 	defer e.rollbackInsertSelectOnError(snap, s.OrFail, &keepPriorRowsOnError, &ret, ftsSnaps)
-
-	// Determine the effective number of columns we expect.
-	// If specific columns are given in the INSERT, the SELECT
-	// must produce that many values. With no column list, SQLite accepts the
-	// SELECT when its column count matches EITHER the full table column count
-	// (positional mapping; generated columns absorb the SELECT values and are
-	// recomputed — gencol: INSERT INTO t1 SELECT * FROM t0 where both tables
-	// have generated columns) OR the non-generated column count (mapping to
-	// the non-generated columns in order — strict1-8.1: a 2-column SELECT
-	// into (debit, credit, amount GENERATED)).
-	expectedCount := insertSelectExpectedCount(s.Columns, colDefs)
-	numSelectCols := len(selectResult.Columns)
-	// With an explicit INSERT column list the SELECT must match that count.
-	// Only a no-column-list INSERT may fall back to the non-generated column
-	// count (generated columns absorb extra SELECT values).
-	if numSelectCols != expectedCount && (len(s.Columns) > 0 || numSelectCols != nonGeneratedColumnCount(colDefs)) {
-		if len(s.Columns) > 0 {
-			// With an explicit column list SQLite reports just the counts.
-			return &Result{Error: fmt.Errorf("%d values for %d columns", numSelectCols, expectedCount)}
-		}
-		return &Result{Error: fmt.Errorf("table %s has %d columns but %d values were supplied",
-			tableEntry.Name, expectedCount, numSelectCols)}
+	if res := e.insertSelectArityCheck(tableEntry, colDefs, s, selectResult); res != nil {
+		return res
 	}
-
-	// Route fts5 virtual table inserts through the fts5 engine: each SELECT
-	// row becomes an fts5 document.
-	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
-		return e.insertSelectIntoFTS5(t5, tableEntry, colDefs, s, selectResult)
-	}
-	// Route FTS virtual table inserts directly to the FTS table (same as
-	// insertRow): the SELECT result rows become FTS documents.
-	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
-		return e.insertSelectIntoFTS(ftsTable, tableEntry, colDefs, s, selectResult)
+	if res, handled := e.insertSelectFTSRoutes(tableEntry, colDefs, s, selectResult); handled {
+		return res
 	}
 
 	// Build a column mapping for the INSERT column list.
@@ -282,28 +223,28 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 	// Handle duplicate column names by only using the first occurrence.
 	colMapping := buildInsertColumnMapping(s.Columns, colDefs)
 
-	var changes int64
-	var inserted int64
-	var returningRows [][]interface{}
+	changes, inserted, returningRows, res := e.insertSelectRows(tableEntry, colDefs, s, selectResult, colMapping, &keepPriorRowsOnError)
+	if res != nil {
+		return res
+	}
+	return e.insertSelectResult(s, colDefs, returningRows, changes, inserted)
+}
+
+// insertSelectRows runs the per-SELECT-row write loop: one progress check
+// and one insertSelectOneRow per row (SQLITE_TEST interrupt countdown: one
+// op per written row — src/vdbe.c per-opcode decrement of
+// sqlite3_interrupt_count; interrupt-3.x aborts INSERT INTO t2 SELECT * FROM
+// t1 mid-statement this way, which forces the transaction rollback via
+// execRollbackOnError's special-error handling). keepPriorRowsOnError is set
+// on a per-constraint ON CONFLICT FAIL; the deferred rollback honors it.
+func (e *DMLExecutor) insertSelectRows(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, selectResult *Result, colMapping []int, keepPriorRowsOnError *bool) (changes, inserted int64, returningRows [][]interface{}, res *Result) {
 	for _, row := range selectResult.Rows {
-		// SQLITE_TEST interrupt countdown: one op per written row
-		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count);
-		// interrupt-3.x aborts INSERT INTO t2 SELECT * FROM t1 mid-statement
-		// this way, which forces the transaction rollback via
-		// execRollbackOnError's special-error handling.
 		if err := e.ctx.CheckProgress(); err != nil {
-			return &Result{Error: err}
+			return 0, 0, nil, &Result{Error: err}
 		}
-		skip, rv, res, ins := e.insertSelectOneRow(tableEntry, colDefs, s, row, colMapping)
-		if res != nil {
-			if e.uniqueFailConflict(res.Error, tableEntry, colDefs) {
-				keepPriorRowsOnError = true
-				res.SetKeepPriorRowsOnError()
-			}
-			if e.uniqueRollbackConflict(res.Error, tableEntry, colDefs) {
-				res.SetRollbackTxOnError()
-			}
-			return res
+		skip, rv, r, ins := e.insertSelectOneRow(tableEntry, colDefs, s, row, colMapping)
+		if r != nil {
+			return 0, 0, nil, e.insertSelectConflictResult(r, tableEntry, colDefs, keepPriorRowsOnError)
 		}
 		if skip {
 			continue
@@ -316,7 +257,108 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 			inserted++
 		}
 	}
-	return e.insertSelectResult(s, colDefs, returningRows, changes, inserted)
+	return changes, inserted, returningRows, nil
+}
+
+// insertSelectGrowthGuard validates the schema's table btrees only when the
+// INSERT ... SELECT's write GROWS the database file (its allocation path
+// reads the pointer-map/auto-vacuum state on growth). A write that fits in
+// the existing free space performs no allocation and succeeds even when a
+// table's btree is corrupt (fts3corrupt4 24.4: a 2-row insert fits, the
+// oracle succeeds). A write that exceeds the free space grows the file and
+// fails (24.1: a 19-row insert exceeds t1_content's free space, the oracle
+// fails). A SELECT that produces no rows performs no write and is never
+// validated (25.3).
+func (e *DMLExecutor) insertSelectGrowthGuard(selectResult *Result) *Result {
+	if len(selectResult.Rows) == 0 {
+		return nil
+	}
+	est := int64(0)
+	for _, row := range selectResult.Rows {
+		for _, v := range row {
+			switch tv := v.(type) {
+			case []byte:
+				est += int64(len(tv)) + 32
+			case string:
+				est += int64(len(tv)) + 32
+			default:
+				est += 24
+			}
+		}
+	}
+	if est > e.ctx.EstimateFreeSpace() {
+		if err := e.ctx.ValidateAllTableRoots(); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return nil
+}
+
+// ftsSnapshots snapshots every live FTS in-memory index.
+func (e *DMLExecutor) ftsSnapshots() []ftsSnapshotPair {
+	var ftsSnaps []ftsSnapshotPair
+	for name, t := range e.ctx.FTSTables() {
+		if t != nil {
+			ftsSnaps = append(ftsSnaps, ftsSnapshotPair{name: name, table: t, state: t.Snapshot(), pending: t.PendingSnapshot()})
+		}
+	}
+	return ftsSnaps
+}
+
+// insertSelectArityCheck checks the SELECT's column count against the INSERT:
+// with an explicit column list the counts must match exactly; without one,
+// SQLite accepts the SELECT when its column count matches EITHER the full
+// table column count (positional mapping; generated columns absorb the
+// SELECT values and are recomputed — gencol: INSERT INTO t1 SELECT * FROM t0
+// where both tables have generated columns) OR the non-generated column
+// count (mapping to the non-generated columns in order — strict1-8.1: a
+// 2-column SELECT into (debit, credit, amount GENERATED)).
+func (e *DMLExecutor) insertSelectArityCheck(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, selectResult *Result) *Result {
+	expectedCount := insertSelectExpectedCount(s.Columns, colDefs)
+	numSelectCols := len(selectResult.Columns)
+	if numSelectCols == expectedCount {
+		return nil
+	}
+	if len(s.Columns) == 0 && numSelectCols == nonGeneratedColumnCount(colDefs) {
+		return nil
+	}
+	if len(s.Columns) > 0 {
+		// With an explicit column list SQLite reports just the counts.
+		return &Result{Error: fmt.Errorf("%d values for %d columns", numSelectCols, expectedCount)}
+	}
+	return &Result{Error: fmt.Errorf("table %s has %d columns but %d values were supplied",
+		tableEntry.Name, expectedCount, numSelectCols)}
+}
+
+// insertSelectFTSRoutes dispatches FTS and fts5 targets: the SELECT result
+// rows become FTS documents. handled=false continues to the ordinary row
+// inserts.
+func (e *DMLExecutor) insertSelectFTSRoutes(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, selectResult *Result) (*Result, bool) {
+	// Route fts5 virtual table inserts through the fts5 engine: each SELECT
+	// row becomes an fts5 document.
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
+		return e.insertSelectIntoFTS5(t5, tableEntry, colDefs, s, selectResult), true
+	}
+	// Route FTS virtual table inserts directly to the FTS table (same as
+	// insertRow): the SELECT result rows become FTS documents.
+	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
+		return e.insertSelectIntoFTS(ftsTable, tableEntry, colDefs, s, selectResult), true
+	}
+	return nil, false
+}
+
+// insertSelectConflictResult applies the per-constraint conflict flags to a
+// failed row's result: per-constraint ON CONFLICT FAIL keeps the rows
+// written before the conflict, ROLLBACK marks a transaction rollback.
+func (e *DMLExecutor) insertSelectConflictResult(res *Result, tableEntry *schema.Entry, colDefs []sql.ColumnDef, keepPriorRowsOnError *bool) *Result {
+	if e.uniqueFailConflict(res.Error, tableEntry, colDefs) {
+		*keepPriorRowsOnError = true
+		res.SetKeepPriorRowsOnError()
+	}
+	if e.uniqueRollbackConflict(res.Error, tableEntry, colDefs) {
+		res.SetRollbackTxOnError()
+	}
+	return res
 }
 
 // insertSelectResult builds the INSERT ... SELECT statement result, handling
@@ -370,25 +412,7 @@ func (e *DMLExecutor) rollbackInsertSelectOnError(snap *pager.PagerState, orFail
 // rows because the violated constraint (column-level or table-level) carries
 // ON CONFLICT FAIL. Handles UNIQUE/PRIMARY KEY and NOT NULL violations.
 func (e *DMLExecutor) uniqueFailConflict(err error, tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
-	if err == nil {
-		return false
-	}
-	isUnique := strings.Contains(err.Error(), "UNIQUE constraint failed")
-	isNotNull := strings.Contains(err.Error(), "NOT NULL constraint failed")
-	if !isUnique && !isNotNull {
-		return false
-	}
-	for _, cd := range colDefs {
-		if cd.OnConflict == "FAIL" && (isUnique || (isNotNull && strings.HasSuffix(err.Error(), "."+cd.Name))) {
-			return true
-		}
-	}
-	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == "FAIL" && isUnique {
-			return true
-		}
-	}
-	return false
+	return e.uniqueConflictActionMatches(err, tableEntry, colDefs, "FAIL")
 }
 
 // uniqueRollbackConflict reports whether a constraint error must roll back
@@ -396,21 +420,44 @@ func (e *DMLExecutor) uniqueFailConflict(err error, tableEntry *schema.Entry, co
 // table-level) carries ON CONFLICT ROLLBACK. Handles UNIQUE/PRIMARY KEY and
 // NOT NULL violations.
 func (e *DMLExecutor) uniqueRollbackConflict(err error, tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
+	return e.uniqueConflictActionMatches(err, tableEntry, colDefs, "ROLLBACK")
+}
+
+// uniqueConflictActionMatches reports whether the violated constraint
+// (column-level or table-level) carries the given ON CONFLICT action.
+func (e *DMLExecutor) uniqueConflictActionMatches(err error, tableEntry *schema.Entry, colDefs []sql.ColumnDef, action string) bool {
 	if err == nil {
 		return false
 	}
-	isUnique := strings.Contains(err.Error(), "UNIQUE constraint failed")
-	isNotNull := strings.Contains(err.Error(), "NOT NULL constraint failed")
+	msg := err.Error()
+	isUnique := strings.Contains(msg, "UNIQUE constraint failed")
+	isNotNull := strings.Contains(msg, "NOT NULL constraint failed")
 	if !isUnique && !isNotNull {
 		return false
 	}
+	if e.columnHasConflictAction(colDefs, action, msg, isUnique, isNotNull) {
+		return true
+	}
+	return e.tableConstraintHasConflictAction(tableEntry, action, isUnique)
+}
+
+// columnHasConflictAction reports whether a column with the given ON
+// CONFLICT action is violated: a UNIQUE conflict matches any column with the
+// action, a NOT NULL conflict only the column the error names.
+func (e *DMLExecutor) columnHasConflictAction(colDefs []sql.ColumnDef, action, msg string, isUnique, isNotNull bool) bool {
 	for _, cd := range colDefs {
-		if cd.OnConflict == "ROLLBACK" && (isUnique || (isNotNull && strings.HasSuffix(err.Error(), "."+cd.Name))) {
+		if cd.OnConflict == action && (isUnique || (isNotNull && strings.HasSuffix(msg, "."+cd.Name))) {
 			return true
 		}
 	}
+	return false
+}
+
+// tableConstraintHasConflictAction reports whether a UNIQUE/PK table-level
+// constraint carries the given ON CONFLICT action.
+func (e *DMLExecutor) tableConstraintHasConflictAction(tableEntry *schema.Entry, action string, isUnique bool) bool {
 	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == "ROLLBACK" && isUnique {
+		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == action && isUnique {
 			return true
 		}
 	}
@@ -441,14 +488,10 @@ func nonGeneratedColumnCount(colDefs []sql.ColumnDef) int {
 // insertSelectIntoFTS inserts SELECT result rows directly into an FTS table.
 func (e *DMLExecutor) insertSelectIntoFTS(ftsTable *fts.FTS3Table, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, selectResult *Result) *Result {
 	// Writing to an FTS table whose shadow btrees are structurally corrupt
-	// fails (fts3corrupt4 24.1: t1_segments page 4 free-space corruption).
-	if res := e.ctx.ValidateFTSShadowRoots(tableEntry.Name); res != nil {
-		return res
-	}
-	// A write that allocates pages on a DB with a corrupt freelist fails
-	// (fts3corrupt4 29.1: an INSERT into t1 on an auto-vacuum DB whose
-	// freelist/ptr-map trunk page is corrupt).
-	if err := e.ctx.ValidateFreelistForGrowth(); err != nil {
+	// fails (fts3corrupt4 24.1: t1_segments page 4 free-space corruption); a
+	// write that allocates pages on a DB with a corrupt freelist also fails
+	// (fts3corrupt4 29.1).
+	if err := e.ftsWriteShadowGuards(tableEntry); err != nil {
 		return &Result{Error: err}
 	}
 	// Build the column mapping so the SELECT's rowid column (an explicit
@@ -457,108 +500,34 @@ func (e *DMLExecutor) insertSelectIntoFTS(ftsTable *fts.FTS3Table, tableEntry *s
 	// SELECT * FROM source conflicts when the source rowid already exists).
 	colMapping := buildInsertColumnMapping(s.Columns, colDefs)
 	isReplace := strings.EqualFold(s.OrConflict, "REPLACE")
-	// An INSERT ... SELECT into the FTS table-name column (INSERT INTO
-	// t1(t1) SELECT x FROM t2) runs each SELECT value as a special command
-	// (fts3corrupt4 24.7: x='optimize','rebuild',... — the rebuild fails on
-	// a corrupt DB). Process them here before inserting as documents.
-	if len(s.Columns) > 0 && strings.EqualFold(s.Columns[0], tableEntry.Name) {
-		// Each SELECT value in the table-name column is a special command
-		// (fts3corrupt4 24.7: x='optimize','rebuild',... — the rebuild fails
-		// on a corrupt DB). Process them here before inserting as documents.
-		for _, row := range selectResult.Rows {
-			if len(row) == 0 {
-				continue
-			}
-			cmdStr, ok := row[0].(string)
-			if !ok {
-				continue
-			}
-			special, res := e.handleFTSCommand(tableEntry.Name, cmdStr)
-			if special {
-				if res != nil && res.Error != nil {
-					return res
-				}
-			}
-		}
-		// All rows were special commands (no documents to insert).
-		return &Result{Changes: 0, LastInsertRowID: 0}
+	if res := e.insertSelectFTSSpecialCommands(tableEntry, s, selectResult); res != nil {
+		return res
 	}
 	var changes int64
 	e.lastFTSDocRowID = 0
 	for _, row := range selectResult.Rows {
 		values, explicitRowID, hasExplicitRowID := e.buildInsertSelectValues(row, s.Columns, colMapping, colDefs)
-		// Re-map the values onto the FTS table's real columns: the values
-		// array from buildInsertSelectValues is indexed by ParseColumnDefs
-		// (which includes the hidden docid/table-name vtab columns), while
-		// Insert/InsertWithID expect one value per ftsTable.ColumnNames()
-		// (insertFTSRow applies the same trimming for VALUES inserts).
-		colNames := ftsTable.ColumnNames()
-		ftsValues := make([]interface{}, len(colNames))
-		for i := range colNames {
-			if i < len(values) {
-				ftsValues[i] = values[i]
-			} else {
-				ftsValues[i] = ""
-			}
-		}
-		// The FTS rowid: an explicit (rowid/docid) INSERT column wins;
-		// otherwise the FTS module auto-assigns (Insert assigns 1..N).
-		langID := int64(0)
-		if langCol := ftsTable.LangIDColName(); langCol != "" {
-			if lv := ftsLangIDFromValues(ftsTable, values, langCol); lv != nil {
-				langID = sqlValueToInt64(lv)
-			}
-			if langID < 0 {
-				return &Result{Error: fmt.Errorf("constraint failed")}
-			}
+		ftsValues, langID := ftsSelectRowValues(ftsTable, values)
+		if langID < 0 {
+			return &Result{Error: fmt.Errorf("constraint failed")}
 		}
 		if !hasExplicitRowID {
-			var nextRowID int64
-			if langCol := ftsTable.LangIDColName(); langCol != "" {
-				nextRowID = ftsTable.InsertLangID(ftsValues, langID)
-			} else {
-				nextRowID = ftsTable.Insert(ftsValues)
+			nextRowID, res := e.ftsInsertSelectAutoRow(ftsTable, tableEntry, ftsValues, langID)
+			if res != nil {
+				return res
 			}
-			e.ctx.SetLastRowID(nextRowID)
 			changes++
-			ftsTable.RecordPending(nextRowID)
-			if res := e.writeFTSContentRow(tableEntry.Name, nextRowID, ftsValues, ftsTable.CompressFn(), ftsTable, langID); res != nil {
-				return res
-			}
-			if res := e.writeFTSDocsizeRow(tableEntry.Name, nextRowID, ftsTable); res != nil {
-				return res
-			}
 			e.lastFTSDocRowID = nextRowID
 			continue
 		}
-		// Explicit rowid: enforce the docid UNIQUE constraint like
-		// insertFTSRow (fts3.c fts3UpdateMethod).
-		if ftsTable.HasDoc(explicitRowID) && !isReplace {
-			if strings.EqualFold(s.OrConflict, "IGNORE") {
-				continue
-			}
-			return &Result{Error: fmt.Errorf("UNIQUE constraint failed: %s.rowid", tableEntry.Name)}
+		applied, res := e.ftsInsertSelectExplicitRow(ftsTable, tableEntry, s, isReplace, explicitRowID, ftsValues, langID)
+		if res != nil {
+			return res
 		}
-		if ftsTable.HasDoc(explicitRowID) {
-			ftsTable.Delete(explicitRowID)
+		if !applied {
+			continue
 		}
-		if langCol := ftsTable.LangIDColName(); langCol != "" {
-			ftsTable.InsertWithIDLangID(explicitRowID, ftsValues, langID)
-		} else {
-			ftsTable.InsertWithID(explicitRowID, ftsValues)
-		}
-		e.ctx.SetLastRowID(explicitRowID)
 		changes++
-		// SQLite's xUpdate records every inserted docid as pending, also
-		// for an OR REPLACE that deleted a flushed row (delete-marker
-		// segments are handled by DeletedFlush).
-		ftsTable.RecordPending(explicitRowID)
-		if res := e.writeFTSContentRow(tableEntry.Name, explicitRowID, ftsValues, ftsTable.CompressFn(), ftsTable, langID); res != nil {
-			return res
-		}
-		if res := e.writeFTSDocsizeRow(tableEntry.Name, explicitRowID, ftsTable); res != nil {
-			return res
-		}
 		e.lastFTSDocRowID = explicitRowID
 	}
 	if changes > 0 {
@@ -567,6 +536,126 @@ func (e *DMLExecutor) insertSelectIntoFTS(ftsTable *fts.FTS3Table, tableEntry *s
 		e.ctx.WriteFTSStat(tableEntry.Name)
 	}
 	return &Result{Changes: changes, LastInsertRowID: e.lastInsertedFTSRowID()}
+}
+
+// ftsWriteShadowGuards validates the FTS shadow btrees and the DB freelist
+// before an FTS write that may allocate pages.
+func (e *DMLExecutor) ftsWriteShadowGuards(tableEntry *schema.Entry) error {
+	if res := e.ctx.ValidateFTSShadowRoots(tableEntry.Name); res != nil {
+		return res.Error
+	}
+	// A write that allocates pages on a DB with a corrupt freelist fails
+	// (fts3corrupt4 29.1: an INSERT into t1 on an auto-vacuum DB whose
+	// freelist/ptr-map trunk page is corrupt).
+	return e.ctx.ValidateFreelistForGrowth()
+}
+
+// insertSelectFTSSpecialCommands runs an INSERT ... SELECT into the FTS
+// table-name column (INSERT INTO t1(t1) SELECT x FROM t2): each SELECT value
+// is a special command (fts3corrupt4 24.7: x='optimize','rebuild',... — the
+// rebuild fails on a corrupt DB), processed here before inserting as
+// documents. A non-nil result ends the statement (the table-name column was
+// targeted, so there are no documents to insert, or a command failed).
+func (e *DMLExecutor) insertSelectFTSSpecialCommands(tableEntry *schema.Entry, s *sql.InsertStmt, selectResult *Result) *Result {
+	if !(len(s.Columns) > 0 && strings.EqualFold(s.Columns[0], tableEntry.Name)) {
+		return nil
+	}
+	for _, row := range selectResult.Rows {
+		if len(row) == 0 {
+			continue
+		}
+		cmdStr, ok := row[0].(string)
+		if !ok {
+			continue
+		}
+		special, res := e.handleFTSCommand(tableEntry.Name, cmdStr)
+		if special {
+			if res != nil && res.Error != nil {
+				return res
+			}
+		}
+	}
+	// All rows were special commands (no documents to insert).
+	return &Result{Changes: 0, LastInsertRowID: 0}
+}
+
+// ftsSelectRowValues re-maps the values array onto the FTS table's real
+// columns and resolves the row's language id. The values array from
+// buildInsertSelectValues is indexed by ParseColumnDefs (which includes the
+// hidden docid/table-name vtab columns), while Insert/InsertWithID expect
+// one value per ftsTable.ColumnNames() (insertFTSRow applies the same
+// trimming for VALUES inserts).
+func ftsSelectRowValues(ftsTable *fts.FTS3Table, values []interface{}) ([]interface{}, int64) {
+	colNames := ftsTable.ColumnNames()
+	ftsValues := make([]interface{}, len(colNames))
+	for i := range colNames {
+		if i < len(values) {
+			ftsValues[i] = values[i]
+		} else {
+			ftsValues[i] = ""
+		}
+	}
+	langID := int64(0)
+	if langCol := ftsTable.LangIDColName(); langCol != "" {
+		if lv := ftsLangIDFromValues(ftsTable, values, langCol); lv != nil {
+			langID = sqlValueToInt64(lv)
+		}
+	}
+	return ftsValues, langID
+}
+
+// ftsInsertSelectAutoRow inserts one auto-rowid document and its shadow rows
+// (the FTS module auto-assigns 1..N; the content/docsize shadow rows are
+// written to match).
+func (e *DMLExecutor) ftsInsertSelectAutoRow(ftsTable *fts.FTS3Table, tableEntry *schema.Entry, ftsValues []interface{}, langID int64) (int64, *Result) {
+	var nextRowID int64
+	if langCol := ftsTable.LangIDColName(); langCol != "" {
+		nextRowID = ftsTable.InsertLangID(ftsValues, langID)
+	} else {
+		nextRowID = ftsTable.Insert(ftsValues)
+	}
+	e.ctx.SetLastRowID(nextRowID)
+	ftsTable.RecordPending(nextRowID)
+	if res := e.writeFTSContentRow(tableEntry.Name, nextRowID, ftsValues, ftsTable.CompressFn(), ftsTable, langID); res != nil {
+		return 0, res
+	}
+	if res := e.writeFTSDocsizeRow(tableEntry.Name, nextRowID, ftsTable); res != nil {
+		return 0, res
+	}
+	return nextRowID, nil
+}
+
+// ftsInsertSelectExplicitRow inserts one explicit-rowid document: the docid
+// UNIQUE constraint is enforced like insertFTSRow (fts3.c fts3UpdateMethod),
+// an OR IGNORE conflict skips the row, OR REPLACE deletes the old document
+// first. applied=false means the row was skipped.
+func (e *DMLExecutor) ftsInsertSelectExplicitRow(ftsTable *fts.FTS3Table, tableEntry *schema.Entry, s *sql.InsertStmt, isReplace bool, explicitRowID int64, ftsValues []interface{}, langID int64) (bool, *Result) {
+	if ftsTable.HasDoc(explicitRowID) && !isReplace {
+		if strings.EqualFold(s.OrConflict, "IGNORE") {
+			return false, nil
+		}
+		return false, &Result{Error: fmt.Errorf("UNIQUE constraint failed: %s.rowid", tableEntry.Name)}
+	}
+	if ftsTable.HasDoc(explicitRowID) {
+		ftsTable.Delete(explicitRowID)
+	}
+	if langCol := ftsTable.LangIDColName(); langCol != "" {
+		ftsTable.InsertWithIDLangID(explicitRowID, ftsValues, langID)
+	} else {
+		ftsTable.InsertWithID(explicitRowID, ftsValues)
+	}
+	e.ctx.SetLastRowID(explicitRowID)
+	// SQLite's xUpdate records every inserted docid as pending, also
+	// for an OR REPLACE that deleted a flushed row (delete-marker
+	// segments are handled by DeletedFlush).
+	ftsTable.RecordPending(explicitRowID)
+	if res := e.writeFTSContentRow(tableEntry.Name, explicitRowID, ftsValues, ftsTable.CompressFn(), ftsTable, langID); res != nil {
+		return false, res
+	}
+	if res := e.writeFTSDocsizeRow(tableEntry.Name, explicitRowID, ftsTable); res != nil {
+		return false, res
+	}
+	return true, nil
 }
 
 // lastInsertedFTSRowID re-asserts the connection's last_insert_rowid after
