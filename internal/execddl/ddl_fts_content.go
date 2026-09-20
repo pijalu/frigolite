@@ -35,6 +35,37 @@ func ftsCursorStop(cursor *btree.Cursor) bool {
 	return nerr != nil || !ok
 }
 
+// shadowTableCursor opens a cursor over an FTS table's shadow btree
+// (<name><suffix>); ok is false when the shadow table is absent or its b-tree
+// cannot be opened.
+func (e *DDLExecutor) shadowTableCursor(tableName, suffix string) (*btree.Cursor, bool) {
+	segEntry, _, err := e.ctx.FindTable(tableName + suffix)
+	if err != nil || segEntry == nil {
+		return nil, false
+	}
+	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
+	cursor, cerr := tree.OpenCursor()
+	if cerr != nil {
+		return nil, false
+	}
+	return cursor, true
+}
+
+// nextShadowRecord reads and decodes the cursor's current shadow-table
+// record; ok is false when iteration must stop (a read or decode error, the
+// end of the b-tree, or fewer than minValues columns).
+func nextShadowRecord(cursor *btree.Cursor, minValues int) (*storage.Cell, *storage.Record, bool) {
+	cell, rerr := cursor.ReadCell()
+	if rerr != nil || cell == nil {
+		return nil, nil, false
+	}
+	rec, derr := storage.DecodeRecord(cell.Payload)
+	if derr != nil || rec == nil || len(rec.Values) < minValues {
+		return nil, nil, false
+	}
+	return cell, rec, true
+}
+
 // nextFTSContentCell reads the cursor's current cell and decodes its record
 // payload; ok is false when iteration must stop (a read or decode error, or
 // the end of the b-tree).

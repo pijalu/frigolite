@@ -885,29 +885,19 @@ func (e *DDLExecutor) clearFTSStatRow(tableName string, id int) {
 // readFTSStatRow reads one %_stat row's value blob (nil when the row or table
 // is absent). Used for the incr-merge hint (id=1).
 func (e *DDLExecutor) readFTSStatRow(tableName string, id int) []byte {
-	stat := tableName + "_stat"
-	segEntry, _, err := e.ctx.FindTable(stat)
-	if err != nil || segEntry == nil {
-		return nil
-	}
-	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
-	cursor, cerr := tree.OpenCursor()
-	if cerr != nil {
+	cursor, ok := e.shadowTableCursor(tableName, "_stat")
+	if !ok {
 		return nil
 	}
 	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil || len(rec.Values) < 2 {
+		cell, rec, ok := nextShadowRecord(cursor, 2)
+		if !ok {
 			break
 		}
 		if v, ok := statRowValue(rec, cell.RowID, int64(id)); ok {
 			return v
 		}
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
+		if !advanceSequenceCursor(cursor) {
 			break
 		}
 	}
