@@ -56,22 +56,31 @@ func (e *DDLExecutor) runCreateTableValidations(ctx *DatabaseContext, s *sql.Cre
 // keyword scan is the reliable signal). The empty result mirrors SQLite's
 // OE_Default: an absent clause is NOT an explicit ABORT (build.c:4358 treats
 // OE_Default like "unspecified" when reconciling duplicate constraints).
+// conflictKeywordBoundary reports whether byte c is an ON CONFLICT keyword
+// boundary: the start/end of text or any non-letter byte.
+func conflictKeywordBoundary(c byte) bool {
+	return c == 0 || !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+}
+
+// conflictKeywordAt reports whether the resolution keyword a occurs in upper
+// at idx as a whole word (non-letter bytes on both sides).
+func conflictKeywordAt(upper string, a string, idx int) bool {
+	before := byte(0)
+	if idx > 0 {
+		before = upper[idx-1]
+	}
+	after := byte(0)
+	if idx+len(a) < len(upper) {
+		after = upper[idx+len(a)]
+	}
+	return conflictKeywordBoundary(before) && conflictKeywordBoundary(after)
+}
+
 func normalizeConflictAction(text string) string {
 	upper := strings.ToUpper(text)
 	for _, a := range []string{"FAIL", "IGNORE", "REPLACE", "ROLLBACK", "ABORT"} {
-		if idx := strings.Index(upper, a); idx >= 0 {
-			before := byte(0)
-			if idx > 0 {
-				before = upper[idx-1]
-			}
-			after := byte(0)
-			if idx+len(a) < len(upper) {
-				after = upper[idx+len(a)]
-			}
-			boundary := func(c byte) bool { return c == 0 || !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) }
-			if boundary(before) && boundary(after) {
-				return a
-			}
+		if idx := strings.Index(upper, a); idx >= 0 && conflictKeywordAt(upper, a, idx) {
+			return a
 		}
 	}
 	return ""
@@ -85,27 +94,36 @@ func normalizeConflictAction(text string) string {
 // sqlite3CreateIndex; index.test 7.6: a PRIMARY KEY ON CONFLICT FAIL plus
 // UNIQUE(a) ON CONFLICT IGNORE on the same column). Equal actions dedup into
 // a single index and stay legal.
-func (e *DDLExecutor) validateConflictActions(s *sql.CreateTableStmt) *Result {
-	type uc struct {
-		key    string
-		action string
-		name   string
+// conflictGroup is one UNIQUE-equivalent constraint's column-set key and ON
+// CONFLICT action.
+type conflictGroup struct {
+	key    string
+	action string
+	name   string
+}
+
+// addConflictGroup appends one constraint group keyed by its lowercased,
+// sorted column list.
+func addConflictGroup(groups []conflictGroup, cols []string, action, name string) []conflictGroup {
+	sorted := append([]string(nil), cols...)
+	for i := range sorted {
+		sorted[i] = strings.ToLower(strings.TrimSpace(sorted[i]))
 	}
-	var groups []uc
-	add := func(cols []string, action, name string) {
-		sorted := append([]string(nil), cols...)
-		for i := range sorted {
-			sorted[i] = strings.ToLower(strings.TrimSpace(sorted[i]))
-		}
-		sort.Strings(sorted)
-		groups = append(groups, uc{key: strings.Join(sorted, "\u0001"), action: strings.ToUpper(action), name: name})
-	}
+	sort.Strings(sorted)
+	return append(groups, conflictGroup{key: strings.Join(sorted, "\u0001"), action: strings.ToUpper(action), name: name})
+}
+
+// collectConflictGroups gathers the UNIQUE-equivalent constraints of a CREATE
+// TABLE in declaration order: column-level PRIMARY KEY / UNIQUE per column,
+// then table-level PRIMARY KEY / UNIQUE constraints.
+func collectConflictGroups(s *sql.CreateTableStmt) []conflictGroup {
+	var groups []conflictGroup
 	for i := range s.Columns {
 		cd := &s.Columns[i]
 		if !cd.PrimaryKey && !cd.Unique {
 			continue
 		}
-		add([]string{cd.Name}, normalizeConflictAction(cd.OnConflict), cd.Name)
+		groups = addConflictGroup(groups, []string{cd.Name}, normalizeConflictAction(cd.OnConflict), cd.Name)
 	}
 	for _, tc := range s.Constraints {
 		if tc.Type != sql.ConstraintPrimaryKey && tc.Type != sql.ConstraintUnique {
@@ -115,20 +133,25 @@ func (e *DDLExecutor) validateConflictActions(s *sql.CreateTableStmt) *Result {
 		for _, ic := range tc.Columns {
 			cols = append(cols, ic.Name)
 		}
-		add(cols, normalizeConflictAction(tc.OnConflict), tc.Name)
+		groups = addConflictGroup(groups, cols, normalizeConflictAction(tc.OnConflict), tc.Name)
 	}
+	return groups
+}
+
+// conflictingConflictAction reports whether two same-key constraints carry
+// explicit, different ON CONFLICT clauses (build.c:4358). When either side is
+// OE_Default ("") the duplicate is legal — the explicit action is simply
+// adopted for the shared index (conflict-15.10: UNIQUE(x,x) plus UNIQUE(x,x)
+// ON CONFLICT REPLACE).
+func conflictingConflictAction(a, b conflictGroup) bool {
+	return a.action != b.action && a.action != "" && b.action != ""
+}
+
+func (e *DDLExecutor) validateConflictActions(s *sql.CreateTableStmt) *Result {
+	groups := collectConflictGroups(s)
 	for i := range groups {
 		for j := i + 1; j < len(groups); j++ {
-			if groups[i].key != groups[j].key {
-				continue
-			}
-			ai, aj := groups[i].action, groups[j].action
-			if ai != aj && ai != "" && aj != "" {
-				// Both constraints carry explicit, different ON CONFLICT
-				// clauses (build.c:4358). When either side is OE_Default the
-				// duplicate is legal — the explicit action is simply adopted
-				// for the shared index (conflict-15.10: UNIQUE(x,x) plus
-				// UNIQUE(x,x) ON CONFLICT REPLACE).
+			if groups[i].key == groups[j].key && conflictingConflictAction(groups[i], groups[j]) {
 				return &Result{Error: fmt.Errorf("conflicting ON CONFLICT clauses specified")}
 			}
 		}
@@ -471,18 +494,7 @@ func (e *DDLExecutor) validateTableKeyConstraints(s *sql.CreateTableStmt) *Resul
 	// into col.PrimaryKey (no duplicate error), so count both forms. A
 	// PKPromoted column IS the table-level declaration (promoted post-parse
 	// for the rowid-alias rule) — count it once via its constraint.
-	pkCount := 0
-	for _, col := range s.Columns {
-		if col.PrimaryKey && !col.PKPromoted {
-			pkCount++
-		}
-	}
-	for _, tc := range s.Constraints {
-		if tc.Type == sql.ConstraintPrimaryKey {
-			pkCount++
-		}
-	}
-	if pkCount > 1 {
+	if countPrimaryKeyDeclarations(s) > 1 {
 		return &Result{Error: fmt.Errorf("table \"%s\" has more than one primary key", s.Name)}
 	}
 
@@ -502,6 +514,24 @@ func (e *DDLExecutor) validateTableKeyConstraints(s *sql.CreateTableStmt) *Resul
 		}
 	}
 	return nil
+}
+
+// countPrimaryKeyDeclarations counts the table's PRIMARY KEY declarations:
+// each non-promoted column-level PrimaryKey flag is one, each table-level
+// ConstraintPrimaryKey constraint is another.
+func countPrimaryKeyDeclarations(s *sql.CreateTableStmt) int {
+	pkCount := 0
+	for _, col := range s.Columns {
+		if col.PrimaryKey && !col.PKPromoted {
+			pkCount++
+		}
+	}
+	for _, tc := range s.Constraints {
+		if tc.Type == sql.ConstraintPrimaryKey {
+			pkCount++
+		}
+	}
+	return pkCount
 }
 
 // hasRealRowIDColumn reports whether the table declares a column literally
@@ -615,42 +645,61 @@ func (e *DDLExecutor) validateDDLQuote(s *sql.CreateTableStmt) *Result {
 // without myfunc → "no such function: myfunc"). Column-level and
 // table-level CHECK alike.
 func (e *DDLExecutor) validateCheckFuncs(s *sql.CreateTableStmt) *Result {
-	missing := ""
-	checkExpr := func(expr sql.Expr) {
-		if missing != "" || expr == nil {
-			return
-		}
-		execquery.WalkExprFull(expr, func(n sql.Expr) {
-			if missing != "" {
-				return
-			}
-			if fc, ok := n.(*sql.FuncCall); ok {
-				if !e.ctx.FunctionExists(fc.Name) {
-					missing = fc.Name
-				}
-			}
-		})
-	}
-	for _, col := range s.Columns {
-		checkExpr(col.Check)
-		if missing != "" {
-			break
-		}
-	}
+	missing := e.checkColumnFuncsMissing(s)
 	if missing == "" {
-		for _, tc := range s.Constraints {
-			if tc.Type == sql.ConstraintCheck && tc.Expr != nil {
-				checkExpr(tc.Expr)
-			}
-			if missing != "" {
-				break
-			}
-		}
+		missing = e.checkConstraintFuncsMissing(s)
 	}
 	if missing != "" {
 		return &Result{Error: fmt.Errorf("no such function: %s", missing)}
 	}
 	return nil
+}
+
+// checkColumnFuncsMissing returns the first function name missing from the
+// connection across the columns' CHECK constraints, or "" when all resolve.
+func (e *DDLExecutor) checkColumnFuncsMissing(s *sql.CreateTableStmt) string {
+	for _, col := range s.Columns {
+		if missing := e.firstMissingCheckFunc(col.Check); missing != "" {
+			return missing
+		}
+	}
+	return ""
+}
+
+// checkConstraintFuncsMissing returns the first function name missing from
+// the connection across the table-level CHECK constraints, or "" when all
+// resolve.
+func (e *DDLExecutor) checkConstraintFuncsMissing(s *sql.CreateTableStmt) string {
+	for _, tc := range s.Constraints {
+		if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+			continue
+		}
+		if missing := e.firstMissingCheckFunc(tc.Expr); missing != "" {
+			return missing
+		}
+	}
+	return ""
+}
+
+// firstMissingCheckFunc walks one CHECK expression and returns the first
+// function call unknown to the current connection ("" when all resolve or the
+// expression is nil).
+func (e *DDLExecutor) firstMissingCheckFunc(expr sql.Expr) string {
+	if expr == nil {
+		return ""
+	}
+	var missing string
+	execquery.WalkExprFull(expr, func(n sql.Expr) {
+		if missing != "" {
+			return
+		}
+		if fc, ok := n.(*sql.FuncCall); ok {
+			if !e.ctx.FunctionExists(fc.Name) {
+				missing = fc.Name
+			}
+		}
+	})
+	return missing
 }
 
 // validateCheckSubqueries rejects subqueries in CHECK constraints at CREATE
