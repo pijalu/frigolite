@@ -21,10 +21,6 @@ import (
 // requested context" (fts3.c fts3BestIndexMethod, whereexpr.c
 // isAuxiliaryVtabOperator). The check walks the WHERE and every JOIN ON clause.
 func (e *SelectEngine) validateMultipleFTSMatch(s *sql.SelectStmt) error {
-	type matchInfo struct {
-		table    string
-		crossTbl bool
-	}
 	// An unqualified MATCH column (a MATCH 'x') must resolve against THIS
 	// query's FROM tables in FROM order: the connection-wide FTS table map
 	// may hold other tables whose columns share the name (e_fts3 7.3.x:

@@ -182,27 +182,32 @@ func selectRowidLiteral(expr sql.Expr) (rowid int64, matches bool, planned bool)
 	case *sql.NullLit:
 		return 0, false, true // rowid = NULL matches nothing
 	case *sql.UnaryOp:
-		if v.Operator != "-" && v.Operator != "+" {
-			return 0, false, false
-		}
-		inner := unwrapParenExpr(v.Operand)
-		num, ok := inner.(*sql.NumericLit)
-		if !ok {
-			return 0, false, false
-		}
-		i, err := strconv.ParseInt(v.Operator+num.Value, 10, 64)
-		if err == nil {
-			return i, true, true
-		}
-		f, ferr := strconv.ParseFloat(v.Operator+num.Value, 64)
-		if ferr != nil {
-			return 0, false, true
-		}
-		return integralRowid(f)
+		return signedRowidLiteral(v)
 	case *sql.BlobLit:
 		return 0, false, true // blob > integer: never equal
 	}
 	return 0, false, false
+}
+
+// signedRowidLiteral interprets a +/- signed numeric literal as a rowid
+// comparison target.
+func signedRowidLiteral(v *sql.UnaryOp) (int64, bool, bool) {
+	if v.Operator != "-" && v.Operator != "+" {
+		return 0, false, false
+	}
+	inner := unwrapParenExpr(v.Operand)
+	num, ok := inner.(*sql.NumericLit)
+	if !ok {
+		return 0, false, false
+	}
+	if i, err := strconv.ParseInt(v.Operator+num.Value, 10, 64); err == nil {
+		return i, true, true
+	}
+	f, ferr := strconv.ParseFloat(v.Operator+num.Value, 64)
+	if ferr != nil {
+		return 0, false, true
+	}
+	return integralRowid(f)
 }
 
 // rowidFromNumericText applies the rowid column's numeric affinity to text:

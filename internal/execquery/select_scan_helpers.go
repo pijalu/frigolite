@@ -35,16 +35,7 @@ func SelectNeedsRowMaps(e *SelectEngine, s *sql.SelectStmt, tableName string) bo
 	// group rows by map, and schema tables need filtering by name.
 	// A simple WHERE clause without the above works fine with the StructRow's
 	// index-based lookup and doesn't need per-row map allocation.
-	if len(s.Joins) > 0 {
-		return true
-	}
-	if len(s.OrderBy) > 0 {
-		return true
-	}
-	if s.Distinct {
-		return true
-	}
-	if s.Union != nil {
+	if len(s.Joins) > 0 || len(s.OrderBy) > 0 || s.Distinct || s.Union != nil {
 		return true
 	}
 	if IsSchemaTable(tableName) {
@@ -62,10 +53,7 @@ func SelectNeedsRowMaps(e *SelectEngine, s *sql.SelectStmt, tableName string) bo
 	// WHERE clauses with subqueries (EXISTS, scalar subqueries) need row maps
 	// because the subquery evaluation passes the row as outerRow for correlated
 	// references, and StructRow's lazy decode may not have all columns available.
-	if s.Where != nil && exprHasSubquery(s.Where) {
-		return true
-	}
-	return false
+	return s.Where != nil && exprHasSubquery(s.Where)
 }
 
 // parseRecordSerialTypes parses a b-tree record payload header, returning the

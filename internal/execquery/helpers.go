@@ -236,18 +236,8 @@ func vtabCorrelatedInput(where sql.Expr) (string, bool) {
 		}
 		return vtabCorrelatedInput(cmp.Right)
 	}
-	cmp, ok := where.(*sql.BinaryOp)
-	if !ok || cmp == nil || strings.ToUpper(cmp.Operator) != "=" {
-		return "", false
-	}
-	var cr *sql.ColumnRef
-	var rhs sql.Expr
-	if c, ok := cmp.Left.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Right
-	} else if c, ok := cmp.Right.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Left
-	}
-	if cr == nil || !strings.EqualFold(cr.Name, "input") {
+	cr, rhs, ok := inputEqualityOperands(where)
+	if !ok || !strings.EqualFold(cr.Name, "input") {
 		return "", false
 	}
 	col, ok := rhs.(*sql.ColumnRef)
@@ -294,18 +284,8 @@ func vtabInputConstraint(where sql.Expr) (string, bool) {
 		}
 		return vtabInputConstraint(cmp.Right)
 	}
-	cmp, ok := where.(*sql.BinaryOp)
-	if !ok || cmp == nil || strings.ToUpper(cmp.Operator) != "=" {
-		return "", false
-	}
-	var cr *sql.ColumnRef
-	var rhs sql.Expr
-	if c, ok := cmp.Left.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Right
-	} else if c, ok := cmp.Right.(*sql.ColumnRef); ok {
-		cr, rhs = c, cmp.Left
-	}
-	if cr == nil {
+	cr, rhs, ok := inputEqualityOperands(where)
+	if !ok {
 		return "", false
 	}
 	// The constraint must target the first column (input).
@@ -325,6 +305,23 @@ func vtabInputConstraint(where sql.Expr) (string, bool) {
 		return "", true
 	}
 	return "", false
+}
+
+// inputEqualityOperands splits a WHERE clause that is a plain equality with a
+// column reference on either side. ok=false when where is not such an
+// equality.
+func inputEqualityOperands(where sql.Expr) (cr *sql.ColumnRef, rhs sql.Expr, ok bool) {
+	cmp, isBin := where.(*sql.BinaryOp)
+	if !isBin || cmp == nil || strings.ToUpper(cmp.Operator) != "=" {
+		return nil, nil, false
+	}
+	if c, isCol := cmp.Left.(*sql.ColumnRef); isCol {
+		return c, cmp.Right, true
+	}
+	if c, isCol := cmp.Right.(*sql.ColumnRef); isCol {
+		return c, cmp.Left, true
+	}
+	return nil, nil, false
 }
 
 // boundFromColVal computes a vtab upper bound from a "value OP n" comparison.

@@ -291,19 +291,16 @@ func addTableColumnsForRef(e *SelectEngine, s *sql.SelectStmt, ref sql.TableRef,
 		}
 	}
 	if cte, ok := e.findCTE(s, tn); ok {
-		for _, c := range e.cteOutputColumnNames(cte) {
-			if c != "" {
-				cols[c] = true
-			}
-		}
+		addNonEmptyToSet(cols, e.cteOutputColumnNames(cte))
 	}
-	if ref.Args != nil {
-		if defs, _, _, err := e.ctx.MaterializeVtabTableFunc(ref, VtabScanOptions{}); err == nil {
-			for _, d := range defs {
-				if d.Name != "" {
-					cols[d.Name] = true
-				}
-			}
+	e.addVTabFuncCols(ref, cols)
+}
+
+// addNonEmptyToSet adds every non-empty name to the set.
+func addNonEmptyToSet(set map[string]bool, names []string) {
+	for _, n := range names {
+		if n != "" {
+			set[n] = true
 		}
 	}
 }

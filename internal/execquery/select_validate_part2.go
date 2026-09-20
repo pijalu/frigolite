@@ -64,17 +64,7 @@ func (e *SelectEngine) applyCompoundOrderByCollations(orderBy []sql.OrderByTerm,
 		if orderByTermCollation(ob.Expr) != "" {
 			continue // explicit COLLATE already applied
 		}
-		pos := 0
-		if nl, ok := stripCollate(ob.Expr).(*sql.NumericLit); ok {
-			if n, err := strconv.Atoi(nl.Value); err == nil && n >= 1 {
-				pos = n
-			}
-		} else if ref, ok := stripCollate(ob.Expr).(*sql.ColumnRef); ok && ref.Table == "" {
-			if p := resultColumnIndex(colls, ref.Name); p >= 0 {
-				pos = p + 1
-			}
-		}
-		if pos >= 1 && pos <= len(colls) && colls[pos-1] != "" {
+		if pos := compoundTermCollationPos(ob.Expr, colls); pos >= 1 && pos <= len(colls) && colls[pos-1] != "" {
 			ob.Expr = &sql.BinaryOp{
 				Operator: "COLLATE",
 				Left:     ob.Expr,
@@ -83,6 +73,23 @@ func (e *SelectEngine) applyCompoundOrderByCollations(orderBy []sql.OrderByTerm,
 		}
 	}
 	return out
+}
+
+// compoundTermCollationPos resolves the 1-based result-column position a
+// compound ORDER BY term sorts by: an explicit ordinal, or a bare column
+// name matched against the result columns.
+func compoundTermCollationPos(expr sql.Expr, colls []string) int {
+	pos := 0
+	if nl, ok := stripCollate(expr).(*sql.NumericLit); ok {
+		if n, err := strconv.Atoi(nl.Value); err == nil && n >= 1 {
+			pos = n
+		}
+	} else if ref, ok := stripCollate(expr).(*sql.ColumnRef); ok && ref.Table == "" {
+		if p := resultColumnIndex(colls, ref.Name); p >= 0 {
+			pos = p + 1
+		}
+	}
+	return pos
 }
 
 // resolveCompoundOrderByTerms rewrites compound ORDER BY terms so a column
