@@ -59,6 +59,12 @@ func Test_tkt_fa7bf5ec(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES ('a');\n    INSERT INTO t1 VALUES ('A');\n    INSERT INTO t1 VALUES ('A');\n    SELECT count(CASE WHEN x='a' THEN 1 END),\n           count(CASE WHEN x='A' THEN 1 END)\n      FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES ('a');\n    INSERT INTO t1 VALUES ('A');\n    INSERT INTO t1 VALUES ('A');\n    SELECT count(CASE WHEN x='a' THEN 1 END),\n           count(CASE WHEN x='A' THEN 1 END)\n      FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

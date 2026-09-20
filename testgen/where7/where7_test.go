@@ -67,6 +67,12 @@ func Test_where7(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t1 VALUES(2,3,4,5);\n    INSERT INTO t1 VALUES(3,4,6,8);\n    INSERT INTO t1 VALUES(4,5,10,15);\n    INSERT INTO t1 VALUES(5,10,100,1000);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t1 VALUES(2,3,4,5);\n    INSERT INTO t1 VALUES(3,4,6,8);\n    INSERT INTO t1 VALUES(4,5,10,15);\n    INSERT INTO t1 VALUES(5,10,100,1000);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 2 3 4 5 3 4 6 8 4 5 10 15 5 10 100 1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if "" != "no_optimization" {
@@ -150,9 +156,8 @@ func Test_where7(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		sql += " ORDER BY a"
@@ -170,9 +175,8 @@ func Test_where7(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		sql += " ORDER BY a"
@@ -190,9 +194,8 @@ func Test_where7(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		sql += ") AND d>=0 AND d<9999 ORDER BY a"
@@ -210,9 +213,8 @@ func Test_where7(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		sql += ") AND d>=0 AND d<9999 ORDER BY a"
@@ -230,9 +232,8 @@ func Test_where7(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		sql += " ORDER BY a"
@@ -250,9 +251,8 @@ func Test_where7(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		sql += " ORDER BY a"

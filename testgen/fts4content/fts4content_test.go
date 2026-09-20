@@ -69,12 +69,16 @@ func Test_fts4content(t *testing.T) {
 	_ = rowid // pre-declared from TCL source
 	var fd string
 	_ = fd // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
 	var path string
 	_ = path // pre-declared from TCL source
 	var text string
 	_ = text // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "fts4content")
@@ -1106,5 +1110,34 @@ func Test_fts4content(t *testing.T) {
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
 										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), " \n  SELECT count(*) FROM t1;\n")
 									}
+								}
+								db.Close()
+								os.Remove("test.db")
+								os.Remove("test.db-journal")
+								os.Remove("test.db-wal")
+								db, err = frigolite.Open("test.db")
+								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
+								{ // "13.0"
+									r = db.Query("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
+									}
+								}
+								{ // "13.1"
+									_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
+									}
+								}
+								// proc definition (not transpiled)
+								// register_tcl_module db xyz (unsupported command, not transpiled)
+								{ // "fts4content-13.2.0" — skipped: TCL vtab module fixture N-A: register_tcl_module is not transpiled; module tcl does not exist in the Go test (no-side-effects)
+								}
+								{ // "fts4content-13.2.1" — skipped: TCL vtab module fixture N-A: register_tcl_module is not transpiled; module tcl does not exist in the Go test (no-side-effects)
+								}
+								{ // "fts4content-13.2.2" — skipped: TCL vtab module fixture N-A: register_tcl_module is not transpiled; module tcl does not exist in the Go test (no-side-effects)
+								}
+								{ // "fts4content-13.2.2" — skipped: TCL vtab module fixture N-A: register_tcl_module is not transpiled; module tcl does not exist in the Go test (no-side-effects)
 								}
 }

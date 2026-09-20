@@ -59,12 +59,24 @@ func Test_delete3(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(x integer primary key);\n    BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    INSERT INTO t1 SELECT x+64 FROM t1;\n    INSERT INTO t1 SELECT x+128 FROM t1;\n    INSERT INTO t1 SELECT x+256 FROM t1;\n    INSERT INTO t1 SELECT x+512 FROM t1;\n    INSERT INTO t1 SELECT x+1024 FROM t1;\n    INSERT INTO t1 SELECT x+2048 FROM t1;\n    INSERT INTO t1 SELECT x+4096 FROM t1;\n    INSERT INTO t1 SELECT x+8192 FROM t1;\n    INSERT INTO t1 SELECT x+16384 FROM t1;\n    INSERT INTO t1 SELECT x+32768 FROM t1;\n    INSERT INTO t1 SELECT x+65536 FROM t1;\n    INSERT INTO t1 SELECT x+131072 FROM t1;\n    INSERT INTO t1 SELECT x+262144 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\t\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x integer primary key);\n    BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    INSERT INTO t1 SELECT x+64 FROM t1;\n    INSERT INTO t1 SELECT x+128 FROM t1;\n    INSERT INTO t1 SELECT x+256 FROM t1;\n    INSERT INTO t1 SELECT x+512 FROM t1;\n    INSERT INTO t1 SELECT x+1024 FROM t1;\n    INSERT INTO t1 SELECT x+2048 FROM t1;\n    INSERT INTO t1 SELECT x+4096 FROM t1;\n    INSERT INTO t1 SELECT x+8192 FROM t1;\n    INSERT INTO t1 SELECT x+16384 FROM t1;\n    INSERT INTO t1 SELECT x+32768 FROM t1;\n    INSERT INTO t1 SELECT x+65536 FROM t1;\n    INSERT INTO t1 SELECT x+131072 FROM t1;\n    INSERT INTO t1 SELECT x+262144 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\t\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "524288"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "delete3-1.2"
 		r = db.Query("\n    DELETE FROM t1 WHERE x%2==0;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE x%2==0;\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "262144"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

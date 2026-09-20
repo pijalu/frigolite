@@ -70,396 +70,792 @@ func Test_cast(t *testing.T) {
 		r = db.Query("SELECT x'616263'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x'616263'")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.2"
 		r = db.Query("SELECT typeof(x'616263')")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(x'616263')")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.3"
 		r = db.Query("SELECT CAST(x'616263' AS text)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS text)")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.4"
 		r = db.Query("SELECT typeof(CAST(x'616263' AS text))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS text))")
+			return
+		}
+		got := flatten(r)
+		want := "text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.5"
 		r = db.Query("SELECT CAST(x'616263' AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.6"
 		r = db.Query("SELECT typeof(CAST(x'616263' AS numeric))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS numeric))")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.7"
 		r = db.Query("SELECT CAST(x'616263' AS blob)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS blob)")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.8"
 		r = db.Query("SELECT typeof(CAST(x'616263' AS blob))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS blob))")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.9"
 		r = db.Query("SELECT CAST(x'616263' AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.10"
 		r = db.Query("SELECT typeof(CAST(x'616263' AS integer))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS integer))")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.11"
 		r = db.Query("SELECT null")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT null")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.12"
 		r = db.Query("SELECT typeof(NULL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(NULL)")
+			return
+		}
+		got := flatten(r)
+		want := "null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.13"
 		r = db.Query("SELECT CAST(NULL AS text)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(NULL AS text)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.14"
 		r = db.Query("SELECT typeof(CAST(NULL AS text))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(NULL AS text))")
+			return
+		}
+		got := flatten(r)
+		want := "null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.15"
 		r = db.Query("SELECT CAST(NULL AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(NULL AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.16"
 		r = db.Query("SELECT typeof(CAST(NULL AS numeric))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(NULL AS numeric))")
+			return
+		}
+		got := flatten(r)
+		want := "null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.17"
 		r = db.Query("SELECT CAST(NULL AS blob)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(NULL AS blob)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.18"
 		r = db.Query("SELECT typeof(CAST(NULL AS blob))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(NULL AS blob))")
+			return
+		}
+		got := flatten(r)
+		want := "null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.19"
 		r = db.Query("SELECT CAST(NULL AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(NULL AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.20"
 		r = db.Query("SELECT typeof(CAST(NULL AS integer))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(NULL AS integer))")
+			return
+		}
+		got := flatten(r)
+		want := "null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.21"
 		r = db.Query("SELECT 123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 123")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.22"
 		r = db.Query("SELECT typeof(123)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(123)")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.23"
 		r = db.Query("SELECT CAST(123 AS text)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123 AS text)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.24"
 		r = db.Query("SELECT typeof(CAST(123 AS text))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123 AS text))")
+			return
+		}
+		got := flatten(r)
+		want := "text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.25"
 		r = db.Query("SELECT CAST(123 AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123 AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.26"
 		r = db.Query("SELECT typeof(CAST(123 AS numeric))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123 AS numeric))")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.27"
 		r = db.Query("SELECT CAST(123 AS blob)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123 AS blob)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.28"
 		r = db.Query("SELECT typeof(CAST(123 AS blob))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123 AS blob))")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.29"
 		r = db.Query("SELECT CAST(123 AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123 AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.30"
 		r = db.Query("SELECT typeof(CAST(123 AS integer))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123 AS integer))")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.31"
 		r = db.Query("SELECT 123.456")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 123.456")
+			return
+		}
+		got := flatten(r)
+		want := "123.456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.32"
 		r = db.Query("SELECT typeof(123.456)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(123.456)")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.33"
 		r = db.Query("SELECT CAST(123.456 AS text)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123.456 AS text)")
+			return
+		}
+		got := flatten(r)
+		want := "123.456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.34"
 		r = db.Query("SELECT typeof(CAST(123.456 AS text))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123.456 AS text))")
+			return
+		}
+		got := flatten(r)
+		want := "text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.35"
 		r = db.Query("SELECT CAST(123.456 AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123.456 AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "123.456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.36"
 		r = db.Query("SELECT typeof(CAST(123.456 AS numeric))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123.456 AS numeric))")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.37"
 		r = db.Query("SELECT CAST(123.456 AS blob)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123.456 AS blob)")
+			return
+		}
+		got := flatten(r)
+		want := "123.456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.38"
 		r = db.Query("SELECT typeof(CAST(123.456 AS blob))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123.456 AS blob))")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.39"
 		r = db.Query("SELECT CAST(123.456 AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(123.456 AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.38"
 		r = db.Query("SELECT typeof(CAST(123.456 AS integer))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(123.456 AS integer))")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.41"
 		r = db.Query("SELECT '123abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '123abc'")
+			return
+		}
+		got := flatten(r)
+		want := "123abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.42"
 		r = db.Query("SELECT typeof('123abc')")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof('123abc')")
+			return
+		}
+		got := flatten(r)
+		want := "text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.43"
 		r = db.Query("SELECT CAST('123abc' AS text)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('123abc' AS text)")
+			return
+		}
+		got := flatten(r)
+		want := "123abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.44"
 		r = db.Query("SELECT typeof(CAST('123abc' AS text))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST('123abc' AS text))")
+			return
+		}
+		got := flatten(r)
+		want := "text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.45"
 		r = db.Query("SELECT CAST('123abc' AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('123abc' AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.46"
 		r = db.Query("SELECT typeof(CAST('123abc' AS numeric))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST('123abc' AS numeric))")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.47"
 		r = db.Query("SELECT CAST('123abc' AS blob)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('123abc' AS blob)")
+			return
+		}
+		got := flatten(r)
+		want := "123abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.48"
 		r = db.Query("SELECT typeof(CAST('123abc' AS blob))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST('123abc' AS blob))")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.49"
 		r = db.Query("SELECT CAST('123abc' AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('123abc' AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.50"
 		r = db.Query("SELECT typeof(CAST('123abc' AS integer))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST('123abc' AS integer))")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.51"
 		r = db.Query("SELECT CAST('123.5abc' AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('123.5abc' AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "123.5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.53"
 		r = db.Query("SELECT CAST('123.5abc' AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('123.5abc' AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.60"
 		r = db.Query("SELECT CAST(null AS REAL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(null AS REAL)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.61"
 		r = db.Query("SELECT typeof(CAST(null AS REAL))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(null AS REAL))")
+			return
+		}
+		got := flatten(r)
+		want := "null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.62"
 		r = db.Query("SELECT CAST(1 AS REAL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(1 AS REAL)")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.63"
 		r = db.Query("SELECT typeof(CAST(1 AS REAL))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(1 AS REAL))")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.64"
 		r = db.Query("SELECT CAST('1' AS REAL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('1' AS REAL)")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.65"
 		r = db.Query("SELECT typeof(CAST('1' AS REAL))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST('1' AS REAL))")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.66"
 		r = db.Query("SELECT CAST('abc' AS REAL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('abc' AS REAL)")
+			return
+		}
+		got := flatten(r)
+		want := "0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.67"
 		r = db.Query("SELECT typeof(CAST('abc' AS REAL))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST('abc' AS REAL))")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.68"
 		r = db.Query("SELECT CAST(x'31' AS REAL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'31' AS REAL)")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-1.69"
 		r = db.Query("SELECT typeof(CAST(x'31' AS REAL))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'31' AS REAL))")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-2.1"
 		r = db.Query("SELECT CAST('   123' AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('   123' AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-2.2"
 		r = db.Query("SELECT CAST('   -123.456' AS real)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('   -123.456' AS real)")
+			return
+		}
+		got := flatten(r)
+		want := "-123.456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.1"
 		r = db.Query("SELECT CAST(9223372036854774800 AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(9223372036854774800 AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.2"
 		r = db.Query("SELECT CAST(9223372036854774800 AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(9223372036854774800 AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_realnum_test cast-3.3 {\n  execsql {SELECT CAST(9223372036854774800 AS re...} 9.22337203685477e+18 (expr test, not transpiled)
@@ -467,18 +863,36 @@ func Test_cast(t *testing.T) {
 		r = db.Query("SELECT CAST(CAST(9223372036854774800 AS real) AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(CAST(9223372036854774800 AS real) AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "9223372036854774784"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.5"
 		r = db.Query("SELECT CAST(-9223372036854774800 AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(-9223372036854774800 AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "-9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.6"
 		r = db.Query("SELECT CAST(-9223372036854774800 AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(-9223372036854774800 AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "-9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_realnum_test cast-3.7 {\n  execsql {SELECT CAST(-9223372036854774800 AS r...} -9.22337203685477e+18 (expr test, not transpiled)
@@ -486,18 +900,36 @@ func Test_cast(t *testing.T) {
 		r = db.Query("SELECT CAST(CAST(-9223372036854774800 AS real) AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(CAST(-9223372036854774800 AS real) AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "-9223372036854774784"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.11"
 		r = db.Query("SELECT CAST('9223372036854774800' AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('9223372036854774800' AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.12"
 		r = db.Query("SELECT CAST('9223372036854774800' AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('9223372036854774800' AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_realnum_test cast-3.13 {\n  execsql {SELECT CAST('9223372036854774800' AS ...} 9.22337203685477e+18 (expr test, not transpiled)
@@ -505,18 +937,36 @@ func Test_cast(t *testing.T) {
 		r = db.Query("SELECT CAST(CAST('9223372036854774800' AS real) AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(CAST('9223372036854774800' AS real) AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "9223372036854774784"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.15"
 		r = db.Query("SELECT CAST('-9223372036854774800' AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('-9223372036854774800' AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "-9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cast-3.16"
 		r = db.Query("SELECT CAST('-9223372036854774800' AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('-9223372036854774800' AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "-9223372036854774800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_realnum_test cast-3.17 {\n  execsql {SELECT CAST('-9223372036854774800' AS...} -9.22337203685477e+18 (expr test, not transpiled)
@@ -524,6 +974,12 @@ func Test_cast(t *testing.T) {
 		r = db.Query("SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)")
+			return
+		}
+		got := flatten(r)
+		want := "-9223372036854774784"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclExecSQL(db, "PRAGMA encoding") == "UTF-8" {
@@ -531,12 +987,24 @@ func Test_cast(t *testing.T) {
 			r = db.Query("SELECT CAST(x'39323233333732303336383534373734383030' AS integer)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'39323233333732303336383534373734383030' AS integer)")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854774800"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "cast-3.22"
 			r = db.Query("SELECT CAST(x'39323233333732303336383534373734383030' AS numeric)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'39323233333732303336383534373734383030' AS numeric)")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854774800"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// do_realnum_test cast-3.23 {\n    execsql {SELECT CAST(x'393232333337323033363...} 9.22337203685477e+18 (expr test, not transpiled)
@@ -544,6 +1012,12 @@ func Test_cast(t *testing.T) {
 			r = db.Query("\n      SELECT CAST(CAST(x'39323233333732303336383534373734383030' AS real)\n                  AS integer)\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT CAST(CAST(x'39323233333732303336383534373734383030' AS real)\n                  AS integer)\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854774784"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -551,6 +1025,12 @@ func Test_cast(t *testing.T) {
 		r = db.Query("SELECT CAST(NULL AS numeric)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(NULL AS numeric)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "cast-3.32.1" (prepare-step internals; SQL side effects only)

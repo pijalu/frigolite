@@ -96,9 +96,8 @@ func Test_thread003(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" \n    CREATE INDEX i1 ON t1(a, b); \n    COMMIT;\n  ")
@@ -132,9 +131,8 @@ func Test_thread003(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" \n    CREATE INDEX i1 ON t1(a, b); \n    COMMIT;\n  ")

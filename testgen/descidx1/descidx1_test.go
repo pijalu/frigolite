@@ -95,36 +95,72 @@ func Test_descidx1(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 5 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-2.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE b>3 AND b<7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE b>3 AND b<7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-2.3"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>=3 AND a<7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>=3 AND a<7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 5 4 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-2.4"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>3 AND a<=7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>3 AND a<=7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 6 5 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-2.5"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>=3 AND a<=7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>=3 AND a<=7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 6 5 4 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-2.6"
 		r = db.Query("\n    SELECT a FROM t1 WHERE b>=3 AND b<=7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE b>=3 AND b<=7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -186,54 +222,109 @@ func Test_descidx1(t *testing.T) {
 		r = db.Query("\n      CREATE TABLE t2(a INT, b TEXT, c BLOB, d REAL);\n      CREATE INDEX i3 ON t2(a ASC, b DESC, c ASC);\n      CREATE INDEX i4 ON t2(b DESC, a ASC, d DESC);\n      INSERT INTO t2 VALUES(1,'one',x'31',1.0);\n      INSERT INTO t2 VALUES(2,'two',x'3232',2.0);\n      INSERT INTO t2 VALUES(3,'three',x'333333',3.0);\n      INSERT INTO t2 VALUES(4,'four',x'34343434',4.0);\n      INSERT INTO t2 VALUES(5,'five',x'3535353535',5.0);\n      INSERT INTO t2 VALUES(6,'six',x'363636363636',6.0);\n      INSERT INTO t2 VALUES(2,'two',x'323232',2.1);\n      INSERT INTO t2 VALUES(2,'zwei',x'3232',2.2);\n      INSERT INTO t2 VALUES(2,NULL,NULL,2.3);\n      SELECT count(*) FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t2(a INT, b TEXT, c BLOB, d REAL);\n      CREATE INDEX i3 ON t2(a ASC, b DESC, c ASC);\n      CREATE INDEX i4 ON t2(b DESC, a ASC, d DESC);\n      INSERT INTO t2 VALUES(1,'one',x'31',1.0);\n      INSERT INTO t2 VALUES(2,'two',x'3232',2.0);\n      INSERT INTO t2 VALUES(3,'three',x'333333',3.0);\n      INSERT INTO t2 VALUES(4,'four',x'34343434',4.0);\n      INSERT INTO t2 VALUES(5,'five',x'3535353535',5.0);\n      INSERT INTO t2 VALUES(6,'six',x'363636363636',6.0);\n      INSERT INTO t2 VALUES(2,'two',x'323232',2.1);\n      INSERT INTO t2 VALUES(2,'zwei',x'3232',2.2);\n      INSERT INTO t2 VALUES(2,NULL,NULL,2.3);\n      SELECT count(*) FROM t2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-4.2"
 		r = db.Query("\n      SELECT d FROM t2 ORDER BY a;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 ORDER BY a;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1.0 2.2 2.0 2.1 2.3 3.0 4.0 5.0 6.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-4.3"
 		r = db.Query("\n      SELECT d FROM t2 WHERE a>=2 ORDER BY a;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a>=2 ORDER BY a;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2.2 2.0 2.1 2.3 3.0 4.0 5.0 6.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-4.4"
 		r = db.Query("\n      SELECT d FROM t2 WHERE a>2 ORDER BY a;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a>2 ORDER BY a;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3.0 4.0 5.0 6.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-4.5"
 		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b>'two';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b>'two';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2.2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-4.6"
 		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b>='two';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b>='two';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2.2 2.0 2.1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-4.7"
 		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b<'two';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b<'two';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-4.8"
 		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b<='two';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b<='two';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2.0 2.1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-5.1"
 		r = db.Query("\n    CREATE TABLE t3(a,b,c,d);\n    CREATE INDEX t3i1 ON t3(a DESC, b ASC, c DESC, d ASC);\n    INSERT INTO t3 VALUES(0,0,0,0);\n    INSERT INTO t3 VALUES(0,0,0,1);\n    INSERT INTO t3 VALUES(0,0,1,0);\n    INSERT INTO t3 VALUES(0,0,1,1);\n    INSERT INTO t3 VALUES(0,1,0,0);\n    INSERT INTO t3 VALUES(0,1,0,1);\n    INSERT INTO t3 VALUES(0,1,1,0);\n    INSERT INTO t3 VALUES(0,1,1,1);\n    INSERT INTO t3 VALUES(1,0,0,0);\n    INSERT INTO t3 VALUES(1,0,0,1);\n    INSERT INTO t3 VALUES(1,0,1,0);\n    INSERT INTO t3 VALUES(1,0,1,1);\n    INSERT INTO t3 VALUES(1,1,0,0);\n    INSERT INTO t3 VALUES(1,1,0,1);\n    INSERT INTO t3 VALUES(1,1,1,0);\n    INSERT INTO t3 VALUES(1,1,1,1);\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a,b,c,d);\n    CREATE INDEX t3i1 ON t3(a DESC, b ASC, c DESC, d ASC);\n    INSERT INTO t3 VALUES(0,0,0,0);\n    INSERT INTO t3 VALUES(0,0,0,1);\n    INSERT INTO t3 VALUES(0,0,1,0);\n    INSERT INTO t3 VALUES(0,0,1,1);\n    INSERT INTO t3 VALUES(0,1,0,0);\n    INSERT INTO t3 VALUES(0,1,0,1);\n    INSERT INTO t3 VALUES(0,1,1,0);\n    INSERT INTO t3 VALUES(0,1,1,1);\n    INSERT INTO t3 VALUES(1,0,0,0);\n    INSERT INTO t3 VALUES(1,0,0,1);\n    INSERT INTO t3 VALUES(1,0,1,0);\n    INSERT INTO t3 VALUES(1,0,1,1);\n    INSERT INTO t3 VALUES(1,1,0,0);\n    INSERT INTO t3 VALUES(1,1,0,1);\n    INSERT INTO t3 VALUES(1,1,1,0);\n    INSERT INTO t3 VALUES(1,1,1,1);\n    SELECT count(*) FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx1-5.2"
@@ -263,6 +354,7 @@ func Test_descidx1(t *testing.T) {
 	{ // do_test "descidx1-6.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -288,6 +380,7 @@ func Test_descidx1(t *testing.T) {
 	{ // do_test "descidx1-6.4"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

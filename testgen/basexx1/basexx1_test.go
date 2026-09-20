@@ -90,8 +90,7 @@ func Test_basexx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -272,6 +271,13 @@ func Test_basexx1(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE bs(b blob, num);\n  INSERT INTO bs SELECT randomblob(4000 + n%3), n \n   FROM ( \n     WITH RECURSIVE seq(n) AS (\n      VALUES(1) UNION ALL SELECT n+1\n      FROM seq WHERE n<100\n     ) SELECT n FROM seq);\n  SELECT num FROM bs WHERE base64(base64(b))!=b;\n  SELECT num FROM bs WHERE base85(base85(b))!=b;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE bs(b blob, num);\n  INSERT INTO bs SELECT randomblob(4000 + n%3), n \n   FROM ( \n     WITH RECURSIVE seq(n) AS (\n      VALUES(1) UNION ALL SELECT n+1\n      FROM seq WHERE n<100\n     ) SELECT n FROM seq);\n  SELECT num FROM bs WHERE base64(base64(b))!=b;\n  SELECT num FROM bs WHERE base85(base85(b))!=b;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "118"

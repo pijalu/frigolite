@@ -74,7 +74,7 @@ func Test_quota(t *testing.T) {
 	_ = quota_request_ok // pre-declared from TCL source
 	var file string
 	_ = file // pre-declared from TCL source
-	var allq string
+	var allq *tclListBuilder
 	_ = allq // pre-declared from TCL source
 	var q string
 	_ = q // pre-declared from TCL source
@@ -147,7 +147,7 @@ func Test_quota(t *testing.T) {
 		}
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-2.1.2")
 		}
@@ -273,7 +273,7 @@ func Test_quota(t *testing.T) {
 		}
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-3.1.3")
 		}
@@ -433,70 +433,72 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-4.1.1"
 		_r = tclQuotaSet("*test.db", 0, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
 	{ // do_test "quota-4.1.2"
 		_r = tclQuotaSet("*test.db", 4096, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
 	{ // do_test "quota-4.1.3"
 		_r = tclQuotaSet("*test2.db", 0, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
 	{ // do_test "quota-4.1.4"
 		_r = tclQuotaSet("*test2.db", 100000, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
 	{ // do_test "quota-4.1.5"
 		_r = tclQuotaSet("*test.db", 0, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
 	{ // do_test "quota-4.1.6"
 		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
+		os.Remove("test2.db-wal")
 		db, err = frigolite.Open("test2.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t2(x); INSERT INTO t2 VALUES('tab-t2');")
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -520,33 +522,33 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-4.1.10"
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
 	{ // do_test "quota-4.1.11"
 		if db2 != nil { db2.Close() }
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
 	{ // do_test "quota-4.1.12"
 		db.Close()
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -556,11 +558,11 @@ func Test_quota(t *testing.T) {
 		_r = tclQuotaSet("C", 1000, nil)
 		_r = tclQuotaSet("D", 1000, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -568,11 +570,11 @@ func Test_quota(t *testing.T) {
 		_r = tclQuotaSet("C", 0, nil)
 		_r = tclQuotaSet("B", 0, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -580,11 +582,11 @@ func Test_quota(t *testing.T) {
 		_r = tclQuotaSet("A", 0, nil)
 		_r = tclQuotaSet("D", 0, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -596,11 +598,11 @@ func Test_quota(t *testing.T) {
 		_r = tclQuotaSet("B", 0, nil)
 		_r = tclQuotaSet("C", 0, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -612,11 +614,11 @@ func Test_quota(t *testing.T) {
 		_r = tclQuotaSet("B", 0, nil)
 		_r = tclQuotaSet("A", 0, nil)
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -634,11 +636,11 @@ func Test_quota(t *testing.T) {
 		})
 		db.Close()
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -664,16 +666,17 @@ func Test_quota(t *testing.T) {
 			*limit = 0
 		})
 		os.Remove("./quota-test-A1.db")
+		os.Remove("./quota-test-A2.db")
 		db, err = frigolite.Open("./quota-test-A1.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 		if _r != quotagroup {
@@ -690,11 +693,11 @@ func Test_quota(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 		if _r != quotagroup {
@@ -793,11 +796,11 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-4.9.2"
 		vtab.TclVarSet("allq", "", "")
-		allq = ""
+		allq = &tclListBuilder{}
 		_ = allq // suppress unused warning
 		for _, q := range tclSplitList("sqlite3_quota_dump") {
 		_ = q // suppress unused warning
-			allq = tclListAppend(allq, tclLIndex(q, "0"))
+			allq.Append(tclLIndex(q, "0"))
 		}
 		return
 	}
@@ -872,4 +875,5 @@ func Test_quota(t *testing.T) {
 		db.Close()
 	}
 	os.Remove("test.db")
+
 }

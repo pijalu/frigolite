@@ -80,9 +80,8 @@ func Test_in(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
@@ -94,96 +93,194 @@ func Test_in(t *testing.T) {
 		r = db.Query("SELECT a FROM t1 WHERE b BETWEEN 10 AND 50 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b BETWEEN 10 AND 50 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-1.2"
 		r = db.Query("SELECT a FROM t1 WHERE b NOT BETWEEN 10 AND 50 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b NOT BETWEEN 10 AND 50 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-1.3"
 		r = db.Query("SELECT a FROM t1 WHERE b BETWEEN a AND a*5 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-1.4"
 		r = db.Query("SELECT a FROM t1 WHERE b NOT BETWEEN a AND a*5 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b NOT BETWEEN a AND a*5 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-1.6"
 		r = db.Query("SELECT a FROM t1 WHERE b BETWEEN a AND a*5 OR b=512 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 OR b=512 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-1.7"
 		r = db.Query("SELECT a+ 100*(a BETWEEN 1 and 3) FROM t1 ORDER BY b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a+ 100*(a BETWEEN 1 and 3) FROM t1 ORDER BY b")
+			return
+		}
+		got := flatten(r)
+		want := "101 102 103 4 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.1"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (8,12,16,24,32) ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.2"
 		r = db.Query("SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.3"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (8,12,16,24,32) OR b=512 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) OR b=512 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.4"
 		r = db.Query("SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) OR b=512 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) OR b=512 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.5"
 		r = db.Query("SELECT a+100*(b IN (8,16,24)) FROM t1 ORDER BY b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a+100*(b IN (8,16,24)) FROM t1 ORDER BY b")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 103 104 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.6"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (b+8,64)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b IN (b+8,64)")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.7"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (max(5,10,b),20)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b IN (max(5,10,b),20)")
+			return
+		}
+		got := flatten(r)
+		want := "4 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.8"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (8*2,64/2) ORDER BY b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b IN (8*2,64/2) ORDER BY b")
+			return
+		}
+		got := flatten(r)
+		want := "4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.9"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (max(5,10),20)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b IN (max(5,10),20)")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.10"
 		r = db.Query("SELECT a FROM t1 WHERE min(0,b IN (a,30))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE min(0,b IN (a,30))")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-2.11"
@@ -212,18 +309,36 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5)\n    ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5)\n    ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-3.2"
 		r = db.Query("\n    SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5) OR b==512\n    ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5) OR b==512\n    ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-3.3"
 		r = db.Query("\n    SELECT a + 100*(b IN (SELECT b FROM t1 WHERE a<5)) FROM t1 ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a + 100*(b IN (SELECT b FROM t1 WHERE a<5)) FROM t1 ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "101 102 103 104 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-4.1"
@@ -260,102 +375,207 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES('hello', 'world');\n    SELECT * FROM t1\n    WHERE a IN (\n       'Do','an','IN','with','a','constant','RHS','but','where','the',\n       'has','many','elements','We','need','to','test','that',\n       'collisions','hash','table','are','resolved','properly',\n       'This','in-set','contains','thirty','one','entries','hello');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('hello', 'world');\n    SELECT * FROM t1\n    WHERE a IN (\n       'Do','an','IN','with','a','constant','RHS','but','where','the',\n       'has','many','elements','We','need','to','test','that',\n       'collisions','hash','table','are','resolved','properly',\n       'This','in-set','contains','thirty','one','entries','hello');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.1"
 		r = db.Query("\n    CREATE TABLE ta(a INTEGER PRIMARY KEY, b);\n    INSERT INTO ta VALUES(1,1);\n    INSERT INTO ta VALUES(2,2);\n    INSERT INTO ta VALUES(3,3);\n    INSERT INTO ta VALUES(4,4);\n    INSERT INTO ta VALUES(6,6);\n    INSERT INTO ta VALUES(8,8);\n    INSERT INTO ta VALUES(10,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM ta WHERE a<10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE ta(a INTEGER PRIMARY KEY, b);\n    INSERT INTO ta VALUES(1,1);\n    INSERT INTO ta VALUES(2,2);\n    INSERT INTO ta VALUES(3,3);\n    INSERT INTO ta VALUES(4,4);\n    INSERT INTO ta VALUES(6,6);\n    INSERT INTO ta VALUES(8,8);\n    INSERT INTO ta VALUES(10,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM ta WHERE a<10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 4 4 6 6 8 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.2"
 		r = db.Query("\n    CREATE TABLE tb(a INTEGER PRIMARY KEY, b);\n    INSERT INTO tb VALUES(1,1);\n    INSERT INTO tb VALUES(2,2);\n    INSERT INTO tb VALUES(3,3);\n    INSERT INTO tb VALUES(5,5);\n    INSERT INTO tb VALUES(7,7);\n    INSERT INTO tb VALUES(9,9);\n    INSERT INTO tb VALUES(11,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM tb WHERE a<10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tb(a INTEGER PRIMARY KEY, b);\n    INSERT INTO tb VALUES(1,1);\n    INSERT INTO tb VALUES(2,2);\n    INSERT INTO tb VALUES(3,3);\n    INSERT INTO tb VALUES(5,5);\n    INSERT INTO tb VALUES(7,7);\n    INSERT INTO tb VALUES(9,9);\n    INSERT INTO tb VALUES(11,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM tb WHERE a<10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 5 5 7 7 9 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.3"
 		r = db.Query("\n    SELECT a FROM ta WHERE b IN (SELECT a FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE b IN (SELECT a FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.4"
 		r = db.Query("\n    SELECT a FROM ta WHERE b NOT IN (SELECT a FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE b NOT IN (SELECT a FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 6 8 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.5"
 		r = db.Query("\n    SELECT a FROM ta WHERE b IN (SELECT b FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE b IN (SELECT b FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.6"
 		r = db.Query("\n    SELECT a FROM ta WHERE b NOT IN (SELECT b FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE b NOT IN (SELECT b FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 6 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.7"
 		r = db.Query("\n    SELECT a FROM ta WHERE a IN (SELECT a FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE a IN (SELECT a FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.8"
 		r = db.Query("\n    SELECT a FROM ta WHERE a NOT IN (SELECT a FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE a NOT IN (SELECT a FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 6 8 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.9"
 		r = db.Query("\n    SELECT a FROM ta WHERE a IN (SELECT b FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE a IN (SELECT b FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-6.10"
 		r = db.Query("\n    SELECT a FROM ta WHERE a NOT IN (SELECT b FROM tb);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE a NOT IN (SELECT b FROM tb);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 6 8 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.1"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a IN ();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a IN ();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a IN (5);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a IN (5);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a NOT IN () ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a NOT IN () ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 6 7 8 hello"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a IN (5) AND b IN ();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a IN (5) AND b IN ();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a IN (5) AND b NOT IN ();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a IN (5) AND b NOT IN ();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.6.1"
 		r = db.Query("\n    SELECT a FROM ta WHERE a IN ();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE a IN ();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.6.2"
@@ -364,12 +584,25 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM ta WHERE a NOT IN ();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM ta WHERE a NOT IN ();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 6 8 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.8.1"
 		r = db.Query("\n    SELECT * FROM ta LEFT JOIN tb ON (ta.b=tb.b) WHERE ta.a IN ();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM ta LEFT JOIN tb ON (ta.b=tb.b) WHERE ta.a IN ();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-7.8.2"
@@ -378,6 +611,12 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN ('hello','there')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN ('hello','there')\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-8.4"
@@ -391,18 +630,36 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t4 AS SELECT a FROM tb;\n    SELECT * FROM t4;    \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4 AS SELECT a FROM tb;\n    SELECT * FROM t4;    \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5 7 9 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-9.2"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-9.3"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a NOT IN t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a NOT IN t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "64 256 world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-9.4"
@@ -415,6 +672,12 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(\n      a INTEGER,\n      CHECK( a IN (111,222,333) )\n    );\n    INSERT INTO t5 VALUES(111);\n    SELECT * FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(\n      a INTEGER,\n      CHECK( a IN (111,222,333) )\n    );\n    INSERT INTO t5 VALUES(111);\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-10.2"
@@ -427,36 +690,75 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t6(a,b NUMERIC);\n    INSERT INTO t6 VALUES(1,2);\n    INSERT INTO t6 VALUES(2,3);\n    SELECT * FROM t6 WHERE b IN (2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(a,b NUMERIC);\n    INSERT INTO t6 VALUES(1,2);\n    INSERT INTO t6 VALUES(2,3);\n    SELECT * FROM t6 WHERE b IN (2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-11.2"
 		r = db.Query("\n    SELECT * FROM t6 WHERE b IN ('2');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 WHERE b IN ('2');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-11.3"
 		r = db.Query("\n    SELECT * FROM t6 WHERE +b IN ('2');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 WHERE +b IN ('2');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-11.4"
 		r = db.Query("\n    SELECT * FROM t6 WHERE a IN ('2');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 WHERE a IN ('2');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-11.5"
 		r = db.Query("\n    SELECT * FROM t6 WHERE a IN (2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 WHERE a IN (2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-11.6"
 		r = db.Query("\n    SELECT * FROM t6 WHERE +a IN ('2');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 WHERE +a IN ('2');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-12.1"
@@ -566,54 +868,108 @@ func Test_in(t *testing.T) {
 		r = db.Query(" SELECT 2 IN (SELECT a FROM t7) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT 2 IN (SELECT a FROM t7) ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.4"
 		r = db.Query(" SELECT 6 IN (SELECT a FROM t7) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT 6 IN (SELECT a FROM t7) ")
+			return
+		}
+		got := flatten(r)
+		want := "null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.5"
 		r = db.Query(" SELECT 2 IN (SELECT b FROM t7) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT 2 IN (SELECT b FROM t7) ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.6"
 		r = db.Query(" SELECT 6 IN (SELECT b FROM t7) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT 6 IN (SELECT b FROM t7) ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.7"
 		r = db.Query(" SELECT 2 IN (SELECT c FROM t7) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT 2 IN (SELECT c FROM t7) ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.8"
 		r = db.Query(" SELECT 6 IN (SELECT c FROM t7) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT 6 IN (SELECT c FROM t7) ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.9"
 		r = db.Query("\n    SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 null 0 1 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.10"
 		r = db.Query(" \n    SELECT b IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT b IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 null null null 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.11"
 		r = db.Query("\n    SELECT b NOT IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b NOT IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 null null null 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.12"
@@ -630,18 +986,38 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n    SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 null 0 1 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.14"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    CREATE TABLE a(id INTEGER);\n    INSERT INTO a VALUES(1);\n    INSERT INTO a VALUES(2);\n    INSERT INTO a VALUES(3);\n    CREATE TABLE b(id INTEGER);\n    INSERT INTO b VALUES(NULL);\n    INSERT INTO b VALUES(3);\n    INSERT INTO b VALUES(4);\n    INSERT INTO b VALUES(5);\n    COMMIT;\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    CREATE TABLE a(id INTEGER);\n    INSERT INTO a VALUES(1);\n    INSERT INTO a VALUES(2);\n    INSERT INTO a VALUES(3);\n    CREATE TABLE b(id INTEGER);\n    INSERT INTO b VALUES(NULL);\n    INSERT INTO b VALUES(3);\n    INSERT INTO b VALUES(4);\n    INSERT INTO b VALUES(5);\n    COMMIT;\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.14"
 		r = db.Query("\n    CREATE INDEX i5 ON b(id);\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i5 ON b(id);\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in-13.15"
@@ -735,6 +1111,13 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n  SELECT b FROM t4 WHERE a NOT IN (3,null,8);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b FROM t4 WHERE a NOT IN (3,null,8);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "in-15.6"
@@ -778,6 +1161,13 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM x1 \n  WHERE a IN (SELECT a FROM x1 WHERE (a%7)==0) \n  ORDER BY a DESC, b;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x1 \n  WHERE a IN (SELECT a FROM x1 WHERE (a%7)==0) \n  ORDER BY a DESC, b;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "in-17.1"
@@ -832,6 +1222,13 @@ func Test_in(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INT UNIQUE);\n  INSERT INTO t0(c0) VALUES (1);\n  SELECT * FROM t0 WHERE '1' IN (t0.c0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INT UNIQUE);\n  INSERT INTO t0(c0) VALUES (1);\n  SELECT * FROM t0 WHERE '1' IN (t0.c0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "in-19.10"

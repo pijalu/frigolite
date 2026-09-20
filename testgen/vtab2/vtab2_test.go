@@ -62,7 +62,7 @@ func Test_vtab2(t *testing.T) {
 	_ = A_2 // pre-declared from TCL source
 	var A_3 string
 	_ = A_3 // pre-declared from TCL source
-	var result string
+	var result *tclListBuilder
 	_ = result // pre-declared from TCL source
 	var _var string
 	_ = _var // pre-declared from TCL source
@@ -74,21 +74,33 @@ func Test_vtab2(t *testing.T) {
 	testprefix = "vtab2"
 	_ = testprefix // suppress unused warning
 	// register_schema_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
-	{ // "vtab2-1.1" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-1.1" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE schema USING schema;\n    SELECT * FROM schema;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-1.2" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-1.2" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT length(tablename) FROM schema GROUP by tablename;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-1.3" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-1.3" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT tablename FROM schema GROUP by length(tablename);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-1.4" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-1.4" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT length(tablename) FROM schema GROUP by length(tablename);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	// register_tclvar_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
-	{ // "vtab2-2.1" — skipped: tclvar test module (C test-only vtab) not implemented
+	{ // "vtab2-2.1" — skipped: tclvar test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE vars USING tclvar;\n    SELECT name, arrayname, value FROM vars WHERE name='abc';\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-2.2" — skipped: tclvar test module (C test-only vtab) not implemented
+	{ // "vtab2-2.2" — skipped: tclvar test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT name, arrayname, value FROM vars WHERE name='A';\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	vtab.TclVarSet("result", "", "")
-	result = ""
+	result = &tclListBuilder{}
 	_ = result // suppress unused warning
 	for _, _var := range tclSplitList(tclSort("info vars tcl_*")) {
 	_ = _var // suppress unused warning
@@ -96,26 +108,44 @@ func Test_vtab2(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			result = tclListAppend(result, _var, _var)
+			result.Append(_var, _var)
 		}
 	}
-	{ // "vtab2-2.3" — skipped: tclvar test module (C test-only vtab) not implemented
+	{ // "vtab2-2.3" — skipped: tclvar test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT name, value FROM vars\n      WHERE name MATCH 'tcl_*' AND arrayname = '' \n      ORDER BY name;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-3.1" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-3.1" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT * FROM schema WHERE dflt_value IS NULL LIMIT 1\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-3.2" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-3.2" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT *, b.rowid\n      FROM schema a LEFT JOIN schema b ON a.dflt_value=b.dflt_value\n     WHERE a.rowid=1\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-3.3" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-3.3" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    SELECT *, b.rowid\n      FROM schema a LEFT JOIN schema b ON a.dflt_value IS b.dflt_value\n                                      AND a.dflt_value IS NOT NULL\n     WHERE a.rowid=1\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-4.1" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-4.1" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE fkey(\n      to_tbl,\n      to_col\n    );\n    INSERT INTO \"fkey\" VALUES('t1',NULL);\n    COMMIT;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-4.2" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-4.2" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec(" CREATE VIRTUAL TABLE v_col USING schema ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-4.3" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-4.3" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec(" SELECT name FROM v_col WHERE tablename = 't1' AND pk ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-4.4" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-4.4" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec("\n    UPDATE fkey \n    SET to_col = (SELECT name FROM v_col WHERE tablename = 't1' AND pk);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab2-4.5" — skipped: schema test module (C test-only vtab) not implemented
+	{ // "vtab2-4.5" — skipped: schema test module (C test-only vtab) not implemented (SQL side effects only)
+		_res = db.Exec(" SELECT * FROM fkey ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -131,9 +161,10 @@ func Test_vtab2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.2"
-		// sqlite3_exec_hex db { CREATE VIRTUAL TABLE %C8 USING fts3 } (unsupported command, not transpiled)
+		_ = tclExecHex(db, "CREATE VIRTUAL TABLE %C8 USING fts3")
 	}
 	{ // do_test "5.3"
-		// sqlite3_exec_hex db { CREATE VIRTUAL TABLE %C9 USING s } (unsupported command, not transpiled)
+		_ = tclExecHex(db, "CREATE VIRTUAL TABLE %C9 USING s")
 	}
+
 }

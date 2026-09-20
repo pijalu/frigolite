@@ -72,36 +72,78 @@ func Test_fts3expr5(t *testing.T) {
 		r = db.Query("\n  CREATE VIRTUAL TABLE t0 USING fts3(x);\n  SELECT rowid FROM t0 WHERE x MATCH '';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts3(x);\n  SELECT rowid FROM t0 WHERE x MATCH '';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.1"
 		r = db.Query("\n  SELECT rowid FROM t0 WHERE x MATCH '\"\"';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t0 WHERE x MATCH '\"\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.2"
 		r = db.Query("\n  SELECT rowid FROM t0 WHERE x MATCH '\"\" \"\"';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t0 WHERE x MATCH '\"\" \"\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.3"
 		r = db.Query("\n  SELECT rowid FROM t0 WHERE x MATCH '\"\" OR \"\"';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t0 WHERE x MATCH '\"\" OR \"\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.4"
 		r = db.Query("\n  SELECT rowid FROM t0 WHERE x MATCH '\"\" NOT \"\"';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t0 WHERE x MATCH '\"\" NOT \"\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.5"
 		r = db.Query("\n  SELECT rowid FROM t0 WHERE x MATCH '\"\"\"\"';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t0 WHERE x MATCH '\"\"\"\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("sqlite_fts3_enable_parentheses", "", "1")

@@ -298,9 +298,8 @@ func Test_delete(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -334,9 +333,8 @@ func Test_delete(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -386,9 +384,8 @@ func Test_delete(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -412,9 +409,8 @@ func Test_delete(t *testing.T) {
 			// incr i 4
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 4)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 4)
 			}
 		}
 		r = db.Query("SELECT count(*) FROM table1")
@@ -453,9 +449,8 @@ func Test_delete(t *testing.T) {
 			// incr i 3
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 3)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 3)
 			}
 		}
 		r = db.Query("SELECT f1 FROM table1 ORDER BY f1")
@@ -475,9 +470,8 @@ func Test_delete(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("SELECT f1 FROM table1 ORDER BY f1")
@@ -513,9 +507,8 @@ func Test_delete(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("DELETE FROM table2")
@@ -533,9 +526,8 @@ func Test_delete(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -830,6 +822,7 @@ func Test_delete(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	{ // do_test "delete-9.1"
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)

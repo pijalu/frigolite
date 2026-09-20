@@ -109,6 +109,8 @@ func Test_incrvacuum3(t *testing.T) {
 				db.Close()
 			}
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }

@@ -312,6 +312,13 @@ func Test_fts4noti(t *testing.T) {
 				r = db.Query(" SELECT x FROM t2 WHERE t2 MATCH '2' ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t2 WHERE t2 MATCH '2' ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "3.4"
@@ -510,12 +517,26 @@ func Test_fts4noti(t *testing.T) {
 				r = db.Query("\n  SELECT * FROM t1 WHERE t1 MATCH '6021';\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE t1 MATCH '6021';\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "6.1.5"
 				r = db.Query("\n  SELECT * FROM t1 WHERE t1 MATCH '60*';\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE t1 MATCH '60*';\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "6.2.1"
@@ -528,12 +549,26 @@ func Test_fts4noti(t *testing.T) {
 				r = db.Query("\n  SELECT * FROM t1 WHERE t1 MATCH 'restaurant';\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE t1 MATCH 'restaurant';\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "6.2.3"
 				r = db.Query("\n  SELECT * FROM t1 WHERE t1 MATCH 're*';\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE t1 MATCH 're*';\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "6.2.4"

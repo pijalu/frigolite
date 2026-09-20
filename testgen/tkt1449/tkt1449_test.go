@@ -65,6 +65,13 @@ func Test_tkt1449(t *testing.T) {
 		r = db.Query("\n    select NEWENTITIES from ITEMS where ((ISSUEID = 'x') and (OBJECTID = 'y'))\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select NEWENTITIES from ITEMS where ((ISSUEID = 'x') and (OBJECTID = 'y'))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

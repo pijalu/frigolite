@@ -78,6 +78,13 @@ func Test_fkey6(t *testing.T) {
 		r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t3v ON t3(v);\n  INSERT INTO t1 VALUES(1),(2),(3),(4),(5);\n  INSERT INTO t2 VALUES(1,1),(2,2);\n  INSERT INTO t3 VALUES(3,3),(4,4);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t3v ON t3(v);\n  INSERT INTO t1 VALUES(1),(2),(3),(4),(5);\n  INSERT INTO t2 VALUES(1,1),(2,2);\n  INSERT INTO t3 VALUES(3,3),(4,4);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey6-1.2"
@@ -114,6 +121,13 @@ func Test_fkey6(t *testing.T) {
 		r = db.Query("\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "fkey6-1.9" (prepare-step internals; SQL side effects only)

@@ -141,6 +141,7 @@ func Test_e_fts3(t *testing.T) {
 		_ = _idx0
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
@@ -1450,6 +1451,7 @@ func Test_e_fts3(t *testing.T) {
 					_ = DO_MALLOC_TEST // suppress unused warning
 						db.Close()
 						os.Remove("test.db")
+						os.Remove("test.db-journal")
 						db, err = frigolite.Open("test.db")
 						tclConnRegister("db", db)
 						if err != nil { t.Fatal(err) }

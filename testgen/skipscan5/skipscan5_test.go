@@ -130,9 +130,8 @@ func Test_skipscan5(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("ANALYZE")
@@ -178,7 +177,13 @@ func Test_skipscan5(t *testing.T) {
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
-				// eval $coll (dynamic, not transpiled)
+				if coll == " add_test_collate db 0 0 1 " {
+					// add_test_collate db 0 0 1 (unsupported command, not transpiled)
+				} else if coll == " add_test_collate db 1 0 0 " {
+					// add_test_collate db 1 0 0 (unsupported command, not transpiled)
+				} else if coll == " add_test_collate db 0 1 0 " {
+					// add_test_collate db 0 1 0 (unsupported command, not transpiled)
+				}
 				{ // "2." + tn + ".1"
 					r = db.Query(" PRAGMA encoding = '" + dbenc + "' ")
 					if r.Error != nil {
@@ -220,9 +225,8 @@ func Test_skipscan5(t *testing.T) {
 						// incr i 1
 						{
 							_n, _err := strconv.Atoi(i)
-							if _err == nil {
-								i = strconv.Itoa(_n + 1)
-							}
+							if _err != nil { _n = 0 }
+							i = strconv.Itoa(_n + 1)
 						}
 					}
 					_res = db.Exec("ANALYZE")
@@ -231,15 +235,15 @@ func Test_skipscan5(t *testing.T) {
 					}
 				}
 				// foreach {tn2 q res} "1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}"
-				_items2 := tclSplitList("1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}")
-				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-					tn2 := _items2[_idx2+0]
+				_items0 := tclSplitList("1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}")
+				for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+					tn2 := _items0[_idx0+0]
 					_ = tn2 // suppress unused warning
-					q := _items2[_idx2+1]
+					q := _items0[_idx0+1]
 					_ = q // suppress unused warning
-					res := _items2[_idx2+2]
+					res := _items0[_idx0+2]
 					_ = res // suppress unused warning
-					_ = _idx2
+					_ = _idx0
 						vtab.TclVarSet("sql", "", "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q)
 						sql = "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q
 						_ = sql // suppress unused warning
@@ -280,9 +284,8 @@ func Test_skipscan5(t *testing.T) {
 						// incr c 1
 						{
 							_n, _err := strconv.Atoi(c)
-							if _err == nil {
-								c = strconv.Itoa(_n + 1)
-							}
+							if _err != nil { _n = 0 }
+							c = strconv.Itoa(_n + 1)
 						}
 					}
 					_res = db.Exec("ANALYZE")
@@ -291,15 +294,15 @@ func Test_skipscan5(t *testing.T) {
 					}
 				}
 				// foreach {tn q res} "1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}"
-				_items3 := tclSplitList("1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					tn := _items3[_idx3+0]
+				_items1 := tclSplitList("1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}")
+				for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+					tn := _items1[_idx1+0]
 					_ = tn // suppress unused warning
-					q := _items3[_idx3+1]
+					q := _items1[_idx1+1]
 					_ = q // suppress unused warning
-					res := _items3[_idx3+2]
+					res := _items1[_idx1+2]
 					_ = res // suppress unused warning
-					_ = _idx3
+					_ = _idx1
 						vtab.TclVarSet("sql", "", "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q)
 						sql = "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q
 						_ = sql // suppress unused warning

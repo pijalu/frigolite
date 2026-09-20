@@ -238,8 +238,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.abc<0 BEGIN\n    SELECT x, abc, z FROM t4;\n    DELETE FROM t4 WHERE abc=32;\n    UPDATE t4 SET x=abc+1, abc=0 WHERE abc=32;\n    INSERT INTO t4(x, abc, z) SELECT 4, 5, 6 WHERE 0;\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.abc<0 BEGIN\n    SELECT x, abc, z FROM t4;\n    DELETE FROM t4 WHERE abc=32;\n    UPDATE t4 SET x=abc+1, abc=0 WHERE abc=32;\n    INSERT INTO t4(x, abc, z) SELECT 4, 5, 6 WHERE 0;\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -332,6 +331,13 @@ func Test_altercol(t *testing.T) {
 			r = db.Query("\n  SELECT \"where\" FROM blob;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT \"where\" FROM blob;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
@@ -737,6 +743,13 @@ func Test_altercol(t *testing.T) {
 					r = db.Query("\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX x1i ON x1(j)' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX x1i ON x1(j)' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "13.1.5"
@@ -749,6 +762,13 @@ func Test_altercol(t *testing.T) {
 					r = db.Query("\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = '' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = '' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "13.1.7"
@@ -1077,8 +1097,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := tclListFlattenCollapse("CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN\n    SELECT d NOT NULL FROM t1;\n  END")
-						got = tclListFlattenCollapse(got)
+						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN\n    SELECT d NOT NULL FROM t1;\n  END"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1165,6 +1184,13 @@ func Test_altercol(t *testing.T) {
 						r = db.Query("\n  SELECT name, sql FROM sqlite_master\n    EXCEPT SELECT name, sql FROM schema_copy;\n")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, sql FROM sqlite_master\n    EXCEPT SELECT name, sql FROM schema_copy;\n")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "23.3"
@@ -1195,6 +1221,13 @@ func Test_altercol(t *testing.T) {
 						r = db.Query("\n  SELECT name, sql FROM sqlite_master\n    EXCEPT SELECT name, sql FROM schema_copy;\n")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, sql FROM sqlite_master\n    EXCEPT SELECT name, sql FROM schema_copy;\n")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "23.13"

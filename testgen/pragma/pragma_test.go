@@ -174,12 +174,24 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := DFLT_CACHE_SZ+" "+DFLT_CACHE_SZ+" "+"2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.2"
 		r = db.Query("\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size=1234;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size=1234;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1234"+" "+DFLT_CACHE_SZ+" "+"0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.3"
@@ -196,18 +208,36 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := DFLT_CACHE_SZ+" "+DFLT_CACHE_SZ+" "+"0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.5"
 		r = db.Query("\n    PRAGMA cache_size=-4321;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=-4321;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-4321"+" "+DFLT_CACHE_SZ+" "+"0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.6"
 		r = db.Query("\n    PRAGMA synchronous=ON;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=ON;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-4321"+" "+DFLT_CACHE_SZ+" "+"1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.7"
@@ -224,6 +254,12 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA default_cache_size=-123;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA default_cache_size=-123;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 123 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.9.1"
@@ -243,24 +279,48 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n      VACUUM;\n      PRAGMA cache_size;\n      PRAGMA default_cache_size;\n      PRAGMA synchronous;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      VACUUM;\n      PRAGMA cache_size;\n      PRAGMA default_cache_size;\n      PRAGMA synchronous;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "123 123 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.10"
 		r = db.Query("\n    PRAGMA synchronous=NORMAL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=NORMAL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 123 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.11.1"
 		r = db.Query("\n    PRAGMA synchronous=EXTRA;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=EXTRA;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 123 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.11.2"
 		r = db.Query("\n    PRAGMA synchronous=FULL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=FULL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 123 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.12"
@@ -280,36 +340,72 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA synchronous=0;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=0;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.14"
 		r = db.Query("\n    PRAGMA synchronous=2;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=2;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.14.1"
 		r = db.Query("\n    PRAGMA synchronous=4;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=4;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.14.2"
 		r = db.Query("\n    PRAGMA synchronous=3;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=3;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.14.3"
 		r = db.Query("\n    PRAGMA synchronous=8;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=8;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.14.4"
 		r = db.Query("\n    PRAGMA synchronous=10;\n    PRAGMA synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=10;\n    PRAGMA synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.15.1"
@@ -364,12 +460,26 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA parser_trace=ON;\n    PRAGMA parser_trace=OFF;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA parser_trace=ON;\n    PRAGMA parser_trace=OFF;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-1.18"
 		r = db.Query("\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-2.1"
@@ -384,23 +494,42 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n      pragma aux.synchronous;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.synchronous;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-2.3"
 		r = db.Query("\n      pragma aux.synchronous = OFF;\n      pragma aux.synchronous;\n      pragma synchronous;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.synchronous = OFF;\n      pragma aux.synchronous;\n      pragma synchronous;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-2.4"
 		r = db.Query("\n      pragma aux.synchronous = ON;\n      pragma synchronous;\n      pragma aux.synchronous;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.synchronous = ON;\n      pragma synchronous;\n      pragma aux.synchronous;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-3.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -431,18 +560,36 @@ func Test_pragma(t *testing.T) {
 			r = db.Query("PRAGMA integrity_check=1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check=1")
+				return
+			}
+			got := flatten(r)
+			want := "wrong # of entries in index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.4"
 			r = db.Query("\n        ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2 wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.5"
 			r = db.Query("\n        PRAGMA integrity_check=4\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=4\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2 wrong # of entries in index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "pragma-3.5.2"
@@ -473,6 +620,12 @@ func Test_pragma(t *testing.T) {
 			r = db.Query("\n        PRAGMA integrity_check=0\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=0\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2 wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.8"
@@ -481,14 +634,17 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH t2")
 			}
 			os.Remove("testerr.db")
+			os.Remove("testerr.db-journal")
 			_ = os.WriteFile("testerr.db", nil, 0644)
 			out = "testerr.db"
 			_ = out // suppress unused warning
 			in = "test.db"
 			_ = in // suppress unused warning
 			tclChannelAppendAt("testerr.db", "read $in", fileChannelSeek["out"])
+			fileChannelSeek["out"] += int64(len("read $in"))
 			fileChannelSeek["in"] = int64(tclAtoi("0"))
 			tclChannelAppendAt("testerr.db", "read $in", fileChannelSeek["out"])
+			fileChannelSeek["out"] += int64(len("read $in"))
 			// close $in
 			// close $out
 			tclHexioWrite("testerr.db", int64(28), "00000000")
@@ -505,18 +661,36 @@ func Test_pragma(t *testing.T) {
 			r = db.Query("PRAGMA quick_check")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA quick_check")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.8.2"
 			r = db.Query("PRAGMA QUICK_CHECK")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA QUICK_CHECK")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.9a"
 			r = db.Query("\n        ATTACH 'testerr.db' AS t2;\n        PRAGMA integrity_check\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ATTACH 'testerr.db' AS t2;\n        PRAGMA integrity_check\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "pragma-3.9b"
@@ -547,54 +721,108 @@ func Test_pragma(t *testing.T) {
 			r = db.Query("\n        PRAGMA integrity_check=1\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=1\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.11"
 			r = db.Query("\n        PRAGMA integrity_check=5\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=5\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2 row 1 missing from index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.12"
 			r = db.Query("\n        PRAGMA integrity_check=4\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=4\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.13"
 			r = db.Query("\n        PRAGMA integrity_check=3\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=3\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.14"
 			r = db.Query("\n        PRAGMA integrity_check(2)\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check(2)\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.15"
 			r = db.Query("\n        ATTACH 'testerr.db' AS t3;\n        PRAGMA integrity_check\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ATTACH 'testerr.db' AS t3;\n        PRAGMA integrity_check\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2 *** in database t3 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.16"
 			r = db.Query("\n        PRAGMA integrity_check(10)\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check(10)\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2 *** in database t3 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.17"
 			r = db.Query("\n        PRAGMA integrity_check=8\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=8\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2 *** in database t3 ***\nPage 4: never used\nPage 5: never used"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-3.18"
 			r = db.Query("\n        PRAGMA integrity_check=4\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=4\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used wrong # of entries in index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -729,42 +957,84 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := DFLT_CACHE_SZ+" "+DFLT_CACHE_SZ
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-4.2"
 		r = db.Query("\n    pragma aux.cache_size = 50;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma aux.cache_size = 50;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "50"+" "+DFLT_CACHE_SZ
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-4.3"
 		r = db.Query("\n    pragma aux.default_cache_size = 456;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma aux.default_cache_size = 456;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "456 456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-4.4"
 		r = db.Query("\n    pragma cache_size;\n    pragma default_cache_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma cache_size;\n    pragma default_cache_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := DFLT_CACHE_SZ+" "+DFLT_CACHE_SZ
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-4.5"
 		r = db.Query("\n    DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := DFLT_CACHE_SZ+" "+DFLT_CACHE_SZ
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-4.6"
 		r = db.Query("\n    DETACH aux;\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH aux;\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "456 456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-5.0"
 		r = db.Query("\n    pragma synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-5.1"
@@ -777,6 +1047,12 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    pragma synchronous;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma synchronous;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("COMMIT;")
@@ -813,12 +1089,25 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 a TYPE_X 0 {} 0 1 b TYPE_Y 0 {} 0 2 c TYPE_Z 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.2.1"
 		r = db.Query("\n    pragma table_info;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma table_info;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	tcl_nullvalue = "<<NULL>>"
@@ -826,6 +1115,12 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 a TEXT 0 CURRENT_TIMESTAMP 0 1 b {} 0 5+3 2 2 c TEXT 0 <<NULL>> 3 3 d INTEGER 0 NULL 0 4 e TEXT 0 '' 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	tcl_nullvalue = ""
@@ -833,30 +1128,63 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 a {} 0 {} 0 1 b INTEGER 0 {} 1 2 c {} 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.3.1"
 		r = db.Query("\n      CREATE TABLE t3(a int references t2(b), b UNIQUE);\n      pragma foreign_key_list(t3);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t3(a int references t2(b), b UNIQUE);\n      pragma foreign_key_list(t3);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 t2 a b NO ACTION NO ACTION NONE"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.3.2"
 		r = db.Query("\n      pragma foreign_key_list;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma foreign_key_list;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.3.3"
 		r = db.Query("\n      pragma foreign_key_list(t3_bogus);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma foreign_key_list(t3_bogus);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.3.4"
 		r = db.Query("\n      pragma foreign_key_list(t5);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma foreign_key_list(t5);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.4"
@@ -933,6 +1261,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    pragma index_info(t3i1_bogus);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma index_info(t3i1_bogus);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.6.1"
@@ -945,18 +1280,36 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n      PRAGMA table_info(trial);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA table_info(trial);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 col_temp {} 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.6.3"
 		r = db.Query("\n      PRAGMA temp.table_info(trial);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.table_info(trial);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 col_temp {} 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.6.4"
 		r = db.Query("\n      PRAGMA main.table_info(trial);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.table_info(trial);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 col_main {} 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-6.7"
@@ -985,6 +1338,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t68(a,b,c,PRIMARY KEY(a,b,a,c));\n    PRAGMA table_info(t68);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t68(a,b,c,PRIMARY KEY(a,b,a,c));\n    PRAGMA table_info(t68);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(tclConcat("0 a {} 0 {} 1", "1 b {} 0 {} 2", "2 c {} 0 {} 4"))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-7.1.1"
@@ -1013,6 +1373,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    pragma index_list(t3_bogus);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma index_list(t3_bogus);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-7.3"
@@ -1029,6 +1396,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA schema_version = 105;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 105;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.1.2"
@@ -1067,12 +1441,24 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES(1, 2, 3);\n    SELECT * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES(1, 2, 3);\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.1.6"
 		r = db.Query("\n    PRAGMA schema_version;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "107"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.1.7"
@@ -1091,6 +1477,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA schema_version = 108;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 108;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "pragma-8.1.9" (prepare-step internals; SQL side effects only)
@@ -1111,26 +1504,54 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b, c);\n      PRAGMA aux.schema_version = 205;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b, c);\n      PRAGMA aux.schema_version = 205;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.1.12"
 		r = db.Query("\n      PRAGMA aux.schema_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.schema_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "205"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.1.13"
 		r = db.Query("\n    PRAGMA schema_version;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "pragma-8.1.14" — skipped: second-connection ATTACH not representable with db2 aliasing
+	{ // "pragma-8.1.14" — skipped: second-connection ATTACH not representable with db2 aliasing (SQL side effects only)
+		_res = db2.Exec("\n      ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;\n    ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "pragma-8.1.15"
 		r = db.Query("\n      PRAGMA aux.schema_version = 206;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.schema_version = 206;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "pragma-8.1.16" (prepare-step internals; SQL side effects only)
@@ -1158,6 +1579,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA user_version = 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version = 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.3.1"
@@ -1180,18 +1608,36 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA schema_version;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.4.2"
 		r = db.Query("\n      VACUUM;\n      PRAGMA user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      VACUUM;\n      PRAGMA user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.4.3"
 		r = db.Query("\n      PRAGMA schema_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA schema_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "109"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("ATTACH 'test2.db' AS aux")
@@ -1199,66 +1645,135 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n      PRAGMA aux.user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.6"
 		r = db.Query("\n      PRAGMA aux.user_version = 3;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version = 3;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.7"
 		r = db.Query("\n      PRAGMA aux.user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.8"
 		r = db.Query("\n      PRAGMA main.user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.9"
 		r = db.Query("\n      BEGIN;\n      PRAGMA aux.user_version = 10;\n      PRAGMA user_version = 11;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      PRAGMA aux.user_version = 10;\n      PRAGMA user_version = 11;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.10"
 		r = db.Query("\n      PRAGMA aux.user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.11"
 		r = db.Query("\n      PRAGMA main.user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.12"
 		r = db.Query("\n      ROLLBACK;\n      PRAGMA aux.user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      PRAGMA aux.user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.13"
 		r = db.Query("\n      PRAGMA main.user_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.user_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.14"
 		r = db.Query("\n    PRAGMA user_version = -450;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version = -450;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.2.15"
 		r = db.Query("\n    PRAGMA user_version;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-450"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -1266,12 +1781,24 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA application_id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA application_id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-8.3.2"
 		r = db.Query("PRAGMA Application_ID(12345); PRAGMA application_id;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA Application_ID(12345); PRAGMA application_id;")
+			return
+		}
+		got := flatten(r)
+		want := "12345"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.1"
@@ -1335,6 +1862,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA temp_store_directory;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store_directory;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.5"
@@ -1349,6 +1883,12 @@ func Test_pragma(t *testing.T) {
 		r = db.Query(" \n      PRAGMA temp_store_directory;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA temp_store_directory;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclGetPwd()
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.7"
@@ -1361,6 +1901,13 @@ func Test_pragma(t *testing.T) {
 		r = db.Query(" \n      PRAGMA temp_store_directory='';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA temp_store_directory='';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclBool("!" + tclBool01(vtab.TclVarExists("TEMP_STORE", "")) + " || " + TEMP_STORE + "<=1") {
@@ -1368,6 +1915,12 @@ func Test_pragma(t *testing.T) {
 			r = db.Query(" \n          PRAGMA temp_store_directory;\n          PRAGMA temp_store=FILE;\n          CREATE TEMP TABLE temp_store_directory_test(a integer);\n          INSERT INTO temp_store_directory_test values (2);\n          SELECT * FROM temp_store_directory_test;\n        ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n          PRAGMA temp_store_directory;\n          PRAGMA temp_store=FILE;\n          CREATE TEMP TABLE temp_store_directory_test(a integer);\n          INSERT INTO temp_store_directory_test values (2);\n          SELECT * FROM temp_store_directory_test;\n        ")
+				return
+			}
+			got := flatten(r)
+			want := "2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pragma-9.10"
@@ -1381,24 +1934,48 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    PRAGMA temp_store = 0;\n    PRAGMA temp_store;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 0;\n    PRAGMA temp_store;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.12"
 		r = db.Query("\n    PRAGMA temp_store = 1;\n    PRAGMA temp_store;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 1;\n    PRAGMA temp_store;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.13"
 		r = db.Query("\n    PRAGMA temp_store = 2;\n    PRAGMA temp_store;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 2;\n    PRAGMA temp_store;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.14"
 		r = db.Query("\n    PRAGMA temp_store = 3;\n    PRAGMA temp_store;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 3;\n    PRAGMA temp_store;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.15"
@@ -1411,12 +1988,24 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "valuable data"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.17"
 		r = db.Query("\n    INSERT INTO temp_table VALUES('valuable data II');\n    SELECT * FROM temp_table;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO temp_table VALUES('valuable data II');\n    SELECT * FROM temp_table;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "valuable data valuable data II"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-9.18"
@@ -1555,24 +2144,48 @@ func Test_pragma(t *testing.T) {
 		r = db.Query(" \n      CREATE TABLE abc(a, b, c);\n      PRAGMA page_count;\n      PRAGMA main.page_count;\n      PRAGMA temp.page_count;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      CREATE TABLE abc(a, b, c);\n      PRAGMA page_count;\n      PRAGMA main.page_count;\n      PRAGMA temp.page_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-14.2uc"
 		r = db.Query("pragma PAGE_COUNT")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma PAGE_COUNT")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-14.3"
 		r = db.Query(" \n      BEGIN;\n      CREATE TABLE def(a, b, c);\n      PRAGMA page_count;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      BEGIN;\n      CREATE TABLE def(a, b, c);\n      PRAGMA page_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-14.3uc"
 		r = db.Query("pragma PAGE_COUNT")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma PAGE_COUNT")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "pragma-14.4" (prepare-step internals; SQL side effects only)
@@ -1585,6 +2198,12 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n      ROLLBACK;\n      PRAGMA page_count;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      PRAGMA page_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-14.6"
@@ -1606,6 +2225,12 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("pragma AUX.PAGE_COUNT")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma AUX.PAGE_COUNT")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -1616,6 +2241,12 @@ func Test_pragma(t *testing.T) {
 		r = db.Query("\n      PRAGMA cache_size=59;\n      PRAGMA cache_size;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size=59;\n      PRAGMA cache_size;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "59"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma-15.2"
@@ -1652,7 +2283,9 @@ func Test_pragma(t *testing.T) {
 		val := _items18[_idx18+1]
 		_ = val // suppress unused warning
 		_ = _idx18
-			{ // "pragma-17.1." + autovac_setting — skipped: auto_vacuum do_test value comparison not transpiled
+			{ // "pragma-17.1." + autovac_setting — skipped: auto_vacuum do_test value comparison not transpiled (SQL side effects only)
+				_res = db.Exec("\n      PRAGMA auto_vacuum=" + autovac_setting + ";\n      PRAGMA auto_vacuum;\n    ")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 		}
 		// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
@@ -1663,7 +2296,9 @@ func Test_pragma(t *testing.T) {
 			val := _items19[_idx19+1]
 			_ = val // suppress unused warning
 			_ = _idx19
-				{ // "pragma-18.1." + temp_setting — skipped: temp_store do_test value comparison not transpiled
+				{ // "pragma-18.1." + temp_setting — skipped: temp_store do_test value comparison not transpiled (SQL side effects only)
+					_res = db.Exec("\n      PRAGMA temp_store=" + temp_setting + ";\n      PRAGMA temp_store=" + temp_setting + ";\n      PRAGMA temp_store;\n    ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
 			}
 			db.Close()
@@ -1791,9 +2426,8 @@ func Test_pragma(t *testing.T) {
 						// incr i 1
 						{
 							_n, _err := strconv.Atoi(i)
-							if _err == nil {
-								i = strconv.Itoa(_n + 1)
-							}
+							if _err != nil { _n = 0 }
+							i = strconv.Itoa(_n + 1)
 						}
 					}
 					db.Close()
@@ -1812,23 +2446,39 @@ func Test_pragma(t *testing.T) {
 				vtab.TclVarSet("auxerr", "", "/{\\*\\*\\* in database aux \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/")
 				auxerr = "/{\\*\\*\\* in database aux \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
 				_ = auxerr // suppress unused warning
-				{ // "pragma-22.2" — skipped: hexio page-corruption integrity check not supported
+				{ // "pragma-22.2" — skipped: hexio page-corruption integrity check not supported (SQL side effects only)
+					_res = db.Exec(" PRAGMA integrity_check ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
-				{ // "pragma-22.3.1" — skipped: hexio page-corruption integrity check not supported
+				{ // "pragma-22.3.1" — skipped: hexio page-corruption integrity check not supported (SQL side effects only)
+					_res = db.Exec(" \n      ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
-				{ // "pragma-22.3.2" — skipped: hexio page-corruption integrity check not supported
+				{ // "pragma-22.3.2" — skipped: hexio page-corruption integrity check not supported (SQL side effects only)
+					_res = db.Exec(" PRAGMA main.integrity_check; ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
-				{ // "pragma-22.3.3" — skipped: hexio page-corruption integrity check not supported
+				{ // "pragma-22.3.3" — skipped: hexio page-corruption integrity check not supported (SQL side effects only)
+					_res = db.Exec(" PRAGMA aux.integrity_check; ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
-				{ // "pragma-22.4.1" — skipped: hexio page-corruption integrity check not supported
+				{ // "pragma-22.4.1" — skipped: hexio page-corruption integrity check not supported (SQL side effects only)
+					_res = db.Exec(" \n      ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
-				{ // "pragma-22.4.2" — skipped: hexio page-corruption integrity check not supported
+				{ // "pragma-22.4.2" — skipped: hexio page-corruption integrity check not supported (SQL side effects only)
+					_res = db.Exec(" PRAGMA main.integrity_check; ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
-				{ // "pragma-22.4.3" — skipped: hexio page-corruption integrity check not supported
+				{ // "pragma-22.4.3" — skipped: hexio page-corruption integrity check not supported (SQL side effects only)
+					_res = db.Exec(" PRAGMA aux.integrity_check; ")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-wal")
+			os.Remove("test.db-journal")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }

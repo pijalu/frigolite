@@ -112,9 +112,8 @@ func Test_hook(t *testing.T) {
 			// incr commit_cnt 1
 			{
 				_n, _err := strconv.Atoi(commit_cnt)
-				if _err == nil {
-					commit_cnt = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				commit_cnt = strconv.Itoa(_n + 1)
 			}
 			return 0
 		})
@@ -149,7 +148,9 @@ func Test_hook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-3.4")
 		}
 	}
-	{ // "hook-3.5" — skipped: commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A
+	{ // "hook-3.5" — skipped: commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A (SQL side effects only)
+		_res = db.Exec("\n    INSERT INTO t2 VALUES(5,6);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "hook-3.6"
 		vtab.TclVarSet("commit_cnt", "", "")
@@ -165,6 +166,12 @@ func Test_hook(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2 3 3 4 4 5 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "hook-3.9"
@@ -178,13 +185,14 @@ func Test_hook(t *testing.T) {
 		}
 		_ = commit_cnt // TCL namespace variable (query)
 		got := tclListFlatten(commit_cnt)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-3.9")
 		}
 	}
 	{ // do_test "hook-3.10"
 		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
 		db2, err = frigolite.Open("test2.db")
 		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
@@ -216,7 +224,7 @@ func Test_hook(t *testing.T) {
 		}
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.1a")
 		}
@@ -252,7 +260,7 @@ func Test_hook(t *testing.T) {
 		}
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.2w")
 		}
@@ -267,7 +275,7 @@ func Test_hook(t *testing.T) {
 		}
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.3")
 		}
@@ -282,7 +290,7 @@ func Test_hook(t *testing.T) {
 		}
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.4")
 		}
@@ -449,6 +457,12 @@ func Test_hook(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "hook-6.1"
@@ -909,7 +923,9 @@ func Test_hook(t *testing.T) {
 	vtab.TclVarSet("res", "", "")
 	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
-	{ // "hook-11.2" — skipped: preupdate on sqlite_stat1 N-A
+	{ // "hook-11.2" — skipped: preupdate on sqlite_stat1 N-A (SQL side effects only)
+		_res = db.Exec("ANALYZE")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "11.3"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);\n  ")
@@ -920,7 +936,9 @@ func Test_hook(t *testing.T) {
 	vtab.TclVarSet("res", "", "")
 	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
-	{ // "hook-11.4" — skipped: preupdate on sqlite_stat1 N-A
+	{ // "hook-11.4" — skipped: preupdate on sqlite_stat1 N-A (SQL side effects only)
+		_res = db.Exec("ANALYZE")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -960,14 +978,20 @@ func Test_hook(t *testing.T) {
 		}
 		_ = res // TCL namespace variable (query)
 		got := tclListFlatten(res)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "12.2")
 		}
 	}
-	{ // "hook-12.3" — skipped: preupdate on WITHOUT ROWID t3 N-A
+	{ // "hook-12.3" — skipped: preupdate on WITHOUT ROWID t3 N-A (SQL side effects only)
+		_res = db.Exec(" INSERT INTO t3 SELECT a, b FROM t2 ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "hook-12.4" — skipped: preupdate on WITHOUT ROWID t3 N-A
+	{ // "hook-12.4" — skipped: preupdate on WITHOUT ROWID t3 N-A (SQL side effects only)
+		_res = db.Exec(" DELETE FROM t3 ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec(" INSERT INTO t3 SELECT * FROM t2 ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "12.5"
 		_res = db.Exec("\n  CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);\n")
@@ -985,7 +1009,7 @@ func Test_hook(t *testing.T) {
 		}
 		_ = res // TCL namespace variable (query)
 		got := tclListFlatten(res)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "12.6")
 		}

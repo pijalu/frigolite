@@ -81,60 +81,122 @@ func Test_tkt_f973c7ac31(t *testing.T) {
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 DESC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 DESC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".2"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 DESC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 DESC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 5 5 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".3"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 DESC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 DESC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 5 5 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".4"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 DESC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 DESC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 5 5 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".5"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 DESC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 DESC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 5 5 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".6"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 ASC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 ASC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".7"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 ASC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 ASC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 4 5 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".8"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 ASC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 ASC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 4 5 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".9"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 ASC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 ASC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 4 5 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "tkt-f973c7ac3-1." + tn + ".10"
 				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 ASC \n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 ASC \n    ")
+					return
+				}
+				got := flatten(r)
+				want := "5 4 5 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}

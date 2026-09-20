@@ -90,6 +90,13 @@ func Test_trustschema1(t *testing.T) {
 		r = db.Query("\n  PRAGMA trusted_schema=OFF;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA trusted_schema=OFF;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.130"
@@ -433,6 +440,13 @@ func Test_trustschema1(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1;\n  SELECT * FROM t2;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n  SELECT * FROM t2;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.120"
@@ -457,6 +471,13 @@ func Test_trustschema1(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1;\n  SELECT * FROM t2;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n  SELECT * FROM t2;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "trustschema1-4.1" — skipped: json_extract() JSON1 extension not implemented (G6 gap) (SQL side effects only)

@@ -135,6 +135,12 @@ func Test_wherelimit(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "25"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-1.1"
@@ -189,24 +195,48 @@ func Test_wherelimit(t *testing.T) {
 		r = db.Query("DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 | 1 2 | 1 3 | 1 4 | 2 1 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-1.3c"
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-1.4"
 		r = db.Query("DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "2 4 | 3 1 | 3 2 | 3 3 | 3 4 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-1.4cnt"
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-1.5"
@@ -330,6 +360,12 @@ func Test_wherelimit(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "36"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-2.1"
@@ -493,6 +529,12 @@ func Test_wherelimit(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "36"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-3.1"
@@ -518,12 +560,24 @@ func Test_wherelimit(t *testing.T) {
 		r = db.Query("UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 | 1 1 | 1 1 | 1 1 | 1 1 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-3.2cnt"
 		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "wherelimit-3.3"

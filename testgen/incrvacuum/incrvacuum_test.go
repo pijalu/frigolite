@@ -116,9 +116,13 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(sqlite_options_default_autovacuum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(sqlite_options_default_autovacuum), "incrvacuum-1.1")
+		got := flatten(r)
+		want := tclListFlatten(sqlite_options_default_autovacuum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-1.2.0"
@@ -129,6 +133,12 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    pragma auto_vacuum = 'full';\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 'full';\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-1.2.1"
@@ -139,42 +149,85 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-1.4"
 		r = db.Query("\n    pragma auto_vacuum = 'invalid';\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 'invalid';\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-1.5"
 		r = db.Query("\n    pragma auto_vacuum = 1;\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 1;\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-1.6"
 		r = db.Query("\n    pragma auto_vacuum = '2';\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = '2';\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-1.7"
 		r = db.Query("\n    pragma auto_vacuum = 5;\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 5;\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-2.1"
 		r = db.Query("\n    pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-2.2"
 		r = db.Query("\n    pragma auto_vacuum = 'none';\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 'none';\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-2.2.1"
@@ -191,18 +244,36 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-2.4"
 		r = db.Query("\n    pragma auto_vacuum = 'full';\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 'full';\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-3.1"
 		r = db.Query("\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-3.2"
@@ -264,9 +335,8 @@ func Test_incrvacuum(t *testing.T) {
 			// incr nStep 1
 			{
 				_n, _err := strconv.Atoi(nStep)
-				if _err == nil {
-					nStep = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				nStep = strconv.Itoa(_n + 1)
 			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -320,6 +390,12 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM tbl2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tbl2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a nice string"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-5.2.5"
@@ -342,6 +418,9 @@ func Test_incrvacuum(t *testing.T) {
 	str2 = tclStringRepeat("1234567890", "105") // TCL namespace variable
 	_ = str2 // suppress unused warning
 	os.Remove("test1.db")
+	os.Remove("test1.db-journal")
+	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
 	db1, err = frigolite.Open("test1.db")
 	tclConnRegister("db1", db1)
 	if err != nil { t.Fatal(err) }
@@ -374,20 +453,31 @@ func Test_incrvacuum(t *testing.T) {
 			r = db1.Query(" PRAGMA integrity_check; ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check; ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "incrvacuum-5.3." + tn + ".integrity2"
 			r = db2.Query(" PRAGMA integrity_check; ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check; ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tn = strconv.Itoa(_n + 1)
 		}
 	}
 	if db1 != nil { db1.Close() }
@@ -409,9 +499,8 @@ func Test_incrvacuum(t *testing.T) {
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
-					if _err == nil {
-						ii = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("\n      INSERT INTO tbl2 SELECT * FROM tbl1;\n      COMMIT;\n      DROP TABLE tbl1;\n    ")
@@ -449,9 +538,8 @@ func Test_incrvacuum(t *testing.T) {
 		// incr jj 1
 		{
 			_n, _err := strconv.Atoi(jj)
-			if _err == nil {
-				jj = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			jj = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("iWrite", "", "1")
@@ -471,9 +559,8 @@ func Test_incrvacuum(t *testing.T) {
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
-					if _err == nil {
-						ii = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("\n      INSERT INTO tbl2 SELECT * FROM tbl1;\n      COMMIT;\n      DROP TABLE tbl1;\n    ")
@@ -500,9 +587,8 @@ func Test_incrvacuum(t *testing.T) {
 				// incr nRow 1
 				{
 					_n, _err := strconv.Atoi(nRow)
-					if _err == nil {
-						nRow = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nRow = strconv.Itoa(_n + 1)
 				}
 				if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; iWrite_n, _iWrite_e := strconv.Atoi(iWrite); if _iWrite_e != nil { return false }; return nRow_n == iWrite_n }() {
 					_res = db.Exec("\n          CREATE TABLE tbl1(a, b);\n          INSERT INTO tbl1 VALUES('hello', 'world');\n        ")
@@ -522,6 +608,12 @@ func Test_incrvacuum(t *testing.T) {
 			r = db.Query("\n      SELECT * FROM tbl1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM tbl1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "hello world"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; iWrite_n, _iWrite_e := strconv.Atoi(iWrite); if _iWrite_e != nil { return false }; return nRow_n == iWrite_n }() {
@@ -530,9 +622,8 @@ func Test_incrvacuum(t *testing.T) {
 		// incr iWrite 1
 		{
 			_n, _err := strconv.Atoi(iWrite)
-			if _err == nil {
-				iWrite = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			iWrite = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "incrvacuum-8.1"
@@ -548,6 +639,7 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-9.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -560,12 +652,26 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-9.3"
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "incrvacuum-10.1" (prepare-step internals; SQL side effects only)
@@ -630,6 +736,7 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -637,21 +744,38 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n      PRAGMA auto_vacuum;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum;\n    ")
+			return
 		}
-		if flatten(r) != tclListFlatten(AUTOVACUUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(AUTOVACUUM), "incrvacuum-11.1-av-dflt-on")
+		got := flatten(r)
+		want := tclListFlatten(AUTOVACUUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-11.2"
 		r = db.Query("\n    PRAGMA auto_vacuum = incremental;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = incremental;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-11.3"
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-11.4"
@@ -672,6 +796,12 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum = 'full';\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 'full';\n    PRAGMA auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum-11.7"
@@ -686,6 +816,7 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -741,6 +872,7 @@ func Test_incrvacuum(t *testing.T) {
 	if db2 != nil { db2.Close() }
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -780,6 +912,12 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if "" == "" {
@@ -788,6 +926,7 @@ func Test_incrvacuum(t *testing.T) {
 			out = "invalid.db"
 			_ = out // suppress unused warning
 			tclChannelAppendAt("invalid.db", "This is not an SQLite database file"+"\n", fileChannelSeek["out"])
+			fileChannelSeek["out"] += int64(len("This is not an SQLite database file"+"\n"))
 			// close $out
 			db3, err = frigolite.Open("invalid.db")
 			tclConnRegister("db3", db3)
@@ -828,6 +967,13 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

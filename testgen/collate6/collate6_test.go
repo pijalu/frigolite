@@ -81,12 +81,24 @@ func Test_collate6(t *testing.T) {
 		r = db.Query("\n    INSERT INTO collate6tab VALUES('a', 'b');\n    SELECT * FROM collate6log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO collate6tab VALUES('a', 'b');\n    SELECT * FROM collate6log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate6-1.3"
 		r = db.Query("\n    INSERT INTO collate6tab VALUES('A', 'B');\n    SELECT * FROM collate6log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO collate6tab VALUES('A', 'B');\n    SELECT * FROM collate6log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b A B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate6-1.4"
@@ -105,12 +117,24 @@ func Test_collate6(t *testing.T) {
 		r = db.Query("\n    INSERT INTO collate6tab VALUES('a', 'b');\n    SELECT * FROM collate6log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO collate6tab VALUES('a', 'b');\n    SELECT * FROM collate6log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate6-1.7"
 		r = db.Query("\n    INSERT INTO collate6tab VALUES('A', 'B');\n    SELECT * FROM collate6log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO collate6tab VALUES('A', 'B');\n    SELECT * FROM collate6log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate6-1.8"
@@ -135,24 +159,52 @@ func Test_collate6(t *testing.T) {
 		r = db.Query("\n    INSERT INTO abc VALUES('One', 'Two', 'Three');\n    INSERT INTO abc VALUES('one', 'two', 'three');\n    SELECT * FROM def;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc VALUES('One', 'Two', 'Three');\n    INSERT INTO abc VALUES('one', 'two', 'three');\n    SELECT * FROM def;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate6-2.3"
 		r = db.Query("\n    UPDATE abc SET a = 'four' WHERE a = 'one';\n    CREATE TRIGGER abc_t2 AFTER UPDATE ON abc BEGIN\n      INSERT INTO def SELECT * FROM abc WHERE a < new.a COLLATE nocase;\n    END;\n    SELECT * FROM def;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE abc SET a = 'four' WHERE a = 'one';\n    CREATE TRIGGER abc_t2 AFTER UPDATE ON abc BEGIN\n      INSERT INTO def SELECT * FROM abc WHERE a < new.a COLLATE nocase;\n    END;\n    SELECT * FROM def;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate6-3.1"
 		r = db.Query("\n    SELECT 1 FROM sqlite_master WHERE name COLLATE nocase = 'hello';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 1 FROM sqlite_master WHERE name COLLATE nocase = 'hello';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate6-3.2"
 		r = db.Query("\n    SELECT 1 FROM sqlite_master WHERE 'hello' = name COLLATE nocase;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 1 FROM sqlite_master WHERE 'hello' = name COLLATE nocase;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

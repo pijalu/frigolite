@@ -55,7 +55,7 @@ func Test_literal2(t *testing.T) {
 	_ = testdir // pre-declared from TCL source
 	var testprefix string
 	_ = testprefix // pre-declared from TCL source
-	var myres string
+	var myres *tclListBuilder
 	_ = myres // pre-declared from TCL source
 	var res2 string
 	_ = res2 // pre-declared from TCL source
@@ -91,7 +91,7 @@ func Test_literal2(t *testing.T) {
 	}
 	{ // do_test "2.1"
 		vtab.TclVarSet("myres", "", "")
-		myres = ""
+		myres = &tclListBuilder{}
 		_ = myres // suppress unused warning
 		_rows0 := db.Query("SELECT 1.0e1_2")
 		if _rows0.Error != nil {
@@ -102,7 +102,7 @@ func Test_literal2(t *testing.T) {
 		for _, _cell1 := range _row0 {
 		_r := fmt.Sprint(_cell1)
 		_ = _r // suppress unused warning
-				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres.Append(tclFormat("%.4f", _r))
 			}
 		}
 		vtab.TclVarSet("res2", "", "1000000000000.0000")
@@ -198,4 +198,5 @@ func Test_literal2(t *testing.T) {
 			if r.Error != nil { _catchErr = r.Error }
 		}
 	}
+
 }

@@ -93,6 +93,7 @@ func Test_jrnlmode3(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -136,12 +137,12 @@ func Test_jrnlmode3(t *testing.T) {
 			// incr cnt 1
 			{
 				_n, _err := strconv.Atoi(cnt)
-				if _err == nil {
-					cnt = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				cnt = strconv.Itoa(_n + 1)
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
@@ -186,6 +187,12 @@ func Test_jrnlmode3(t *testing.T) {
 				r = db.Query("\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
+					return
+				}
+				got := flatten(r)
+				want := "{}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".5"

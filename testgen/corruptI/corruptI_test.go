@@ -86,6 +86,13 @@ func Test_corruptI(t *testing.T) {
 		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -160,6 +167,13 @@ func Test_corruptI(t *testing.T) {
 			r = db.Query("\n     PRAGMA auto_vacuum=0;\n     PRAGMA page_size = 512;\n     CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n     WITH s(a, b) AS (\n       SELECT 2, 'abcdefghij'\n       UNION ALL\n       SELECT a+2, b FROM s WHERe a < 40\n     )\n     INSERT INTO t1 SELECT * FROM s;\n   ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     PRAGMA auto_vacuum=0;\n     PRAGMA page_size = 512;\n     CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n     WITH s(a, b) AS (\n       SELECT 2, 'abcdefghij'\n       UNION ALL\n       SELECT a+2, b FROM s WHERe a < 40\n     )\n     INSERT INTO t1 SELECT * FROM s;\n   ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "3.2"
@@ -242,9 +256,8 @@ func Test_corruptI(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_dbone2 := tclExecSQL(db, "{PRAGMA page_count}")
@@ -290,6 +303,13 @@ func Test_corruptI(t *testing.T) {
 		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "6.1"
@@ -348,6 +368,13 @@ func Test_corruptI(t *testing.T) {
 		r = db.Query("\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "8.1"

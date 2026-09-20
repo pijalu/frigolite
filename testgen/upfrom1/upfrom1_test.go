@@ -252,6 +252,13 @@ func Test_upfrom1(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  UPDATE t1 SET b=sum(a) FROM t0;\n  SELECT * FROM t0, t1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  UPDATE t1 SET b=sum(a) FROM t0;\n  SELECT * FROM t0, t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

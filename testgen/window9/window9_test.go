@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "strings"
 "testing"
 )
@@ -279,6 +280,12 @@ func Test_window9(t *testing.T) {
 				r = db.Query("EXPLAIN QUERY PLAN " + sql)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+					return
+				}
+				got := flatten(r)
+				wantPattern := "ORDER"
+				if matched, _ := regexp.MatchString(wantPattern, got); matched {
+					t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
 				}
 			}
 		}

@@ -213,6 +213,13 @@ func Test_regexp1(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE regexp('SHALL x*y*z*all',y) ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE regexp('SHALL x*y*z*all',y) ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-1.5.4"
@@ -255,6 +262,13 @@ func Test_regexp1(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE y REGEXP 'r{3}' ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y REGEXP 'r{3}' ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-1.9"
@@ -297,6 +311,13 @@ func Test_regexp1(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE y REGEXP '[^Aa]dam' ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y REGEXP '[^Aa]dam' ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-1.13"
@@ -327,12 +348,26 @@ func Test_regexp1(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE y REGEXP '^alive' ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y REGEXP '^alive' ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-1.16"
 		r = db.Query("\n  SELECT x FROM t1 WHERE y REGEXP 'alive$' ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y REGEXP 'alive$' ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-1.17"
@@ -411,6 +446,13 @@ func Test_regexp1(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE y REGEXP 'ma\\W' ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y REGEXP 'ma\\W' ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-1.24"
@@ -429,6 +471,13 @@ func Test_regexp1(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE y REGEXP '\\Sma\\w' ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y REGEXP '\\Sma\\w' ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-1.26"
@@ -1127,6 +1176,13 @@ func Test_regexp1(t *testing.T) {
 		r = db.Query("\n  SELECT rowid FROM t2 WHERE a REGEXP '[1-5]';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t2 WHERE a REGEXP '[1-5]';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "regexp1-8.2"

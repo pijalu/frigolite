@@ -81,12 +81,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    INSERT INTO t1 VALUES(3,4,5);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    INSERT INTO t1 VALUES(3,4,5);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 3 4 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.2"
 		r = db.Query("\n    INSERT INTO t2 VALUES(1,2,3);\n    INSERT INTO t2 VALUES(2,3,4);\n    INSERT INTO t2 VALUES(3,4,5);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1,2,3);\n    INSERT INTO t2 VALUES(2,3,4);\n    INSERT INTO t2 VALUES(3,4,5);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 3 4 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.3"
@@ -117,6 +129,12 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT b FROM t1 NATURAL JOIN t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 NATURAL JOIN t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.4.1"
@@ -147,6 +165,12 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT b FROM t1 JOIN t2 USING(b);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 JOIN t2 USING(b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.5"
@@ -171,30 +195,60 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 NATURAL CROSS JOIN t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 NATURAL CROSS JOIN t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.9"
 		r = db.Query("\n    SELECT * FROM t1 CROSS JOIN t2 USING(b,c);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 CROSS JOIN t2 USING(b,c);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.10"
 		r = db.Query("\n    SELECT * FROM t1 NATURAL INNER JOIN t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 NATURAL INNER JOIN t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.11"
 		r = db.Query("\n    SELECT * FROM t1 INNER JOIN t2 USING(b,c);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 INNER JOIN t2 USING(b,c);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.12"
 		r = db.Query("\n    SELECT * FROM t1 natural inner join t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 natural inner join t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.13"
@@ -213,12 +267,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t3 VALUES(2,3,4);\n    INSERT INTO t3 VALUES(3,4,5);\n    INSERT INTO t3 VALUES(4,5,6);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(2,3,4);\n    INSERT INTO t3 VALUES(3,4,5);\n    INSERT INTO t3 VALUES(4,5,6);\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 3 4 5 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.16"
 		r = db.Query("\n    SELECT * FROM t1 natural join t2 natural join t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 natural join t2 natural join t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.17"
@@ -231,12 +297,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t4 VALUES(2,3,4);\n    INSERT INTO t4 VALUES(3,4,5);\n    INSERT INTO t4 VALUES(4,5,6);\n    SELECT * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t4 VALUES(2,3,4);\n    INSERT INTO t4 VALUES(3,4,5);\n    INSERT INTO t4 VALUES(4,5,6);\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 3 4 5 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.19.1"
 		r = db.Query("\n    SELECT * FROM t1 natural join t2 natural join t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 natural join t2 natural join t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-1.19.2"
@@ -249,42 +327,84 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 natural join t2 natural join t3 WHERE t1.a=1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 natural join t2 natural join t3 WHERE t1.a=1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-2.1"
 		r = db.Query("\n    SELECT * FROM t1 NATURAL LEFT JOIN t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 NATURAL LEFT JOIN t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 2 3 4 5 3 4 5 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-2.2"
 		r = db.Query("\n    SELECT * FROM t2 NATURAL LEFT OUTER JOIN t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 NATURAL LEFT OUTER JOIN t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} 2 3 4 1 3 4 5 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-2.4"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} {} {} 2 3 4 {} {} {} 3 4 5 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-2.4.1"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a IS t2.d\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a IS t2.d\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} {} {} 2 3 4 {} {} {} 3 4 5 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-2.5"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d WHERE t1.a>1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d WHERE t1.a>1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 {} {} {} 3 4 5 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-2.6"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d WHERE t2.b IS NULL OR t2.b>1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d WHERE t2.b IS NULL OR t2.b>1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} {} {} 2 3 4 {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-3.1"
@@ -349,48 +469,104 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t6, t5 WHERE t6.a<t5.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6, t5 WHERE t6.a<t5.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-4.3"
 		r = db.Query("\n    SELECT * FROM t6, t5 WHERE t6.a>t5.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6, t5 WHERE t6.a>t5.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-4.4"
 		r = db.Query("\n    UPDATE t6 SET a='xyz';\n    SELECT * FROM t6 NATURAL JOIN t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t6 SET a='xyz';\n    SELECT * FROM t6 NATURAL JOIN t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-4.6"
 		r = db.Query("\n    SELECT * FROM t6, t5 WHERE t6.a<t5.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6, t5 WHERE t6.a<t5.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-4.7"
 		r = db.Query("\n    SELECT * FROM t6, t5 WHERE t6.a>t5.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6, t5 WHERE t6.a>t5.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-4.8"
 		r = db.Query("\n    UPDATE t6 SET a=1;\n    SELECT * FROM t6 NATURAL JOIN t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t6 SET a=1;\n    SELECT * FROM t6 NATURAL JOIN t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-4.9"
 		r = db.Query("\n    SELECT * FROM t6, t5 WHERE t6.a<t5.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6, t5 WHERE t6.a<t5.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-4.10"
 		r = db.Query("\n    SELECT * FROM t6, t5 WHERE t6.a>t5.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6, t5 WHERE t6.a>t5.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-7.1"
@@ -404,18 +580,36 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    INSERT INTO t11 VALUES(2,111);\n    INSERT INTO t11 VALUES(3,333);    \n    CREATE VIEW v10_11 AS SELECT x, q FROM t10, t11 WHERE t10.y=t11.p;\n    COMMIT;\n    SELECT * FROM t9 LEFT JOIN v10_11 ON( a=x );\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    INSERT INTO t11 VALUES(2,111);\n    INSERT INTO t11 VALUES(3,333);    \n    CREATE VIEW v10_11 AS SELECT x, q FROM t10, t11 WHERE t10.y=t11.p;\n    COMMIT;\n    SELECT * FROM t9 LEFT JOIN v10_11 ON( a=x );\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 1 111 2 22 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-8.2"
 		r = db.Query("\n      SELECT * FROM t9 LEFT JOIN (SELECT x, q FROM t10, t11 WHERE t10.y=t11.p)\n           ON( a=x);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t9 LEFT JOIN (SELECT x, q FROM t10, t11 WHERE t10.y=t11.p)\n           ON( a=x);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 1 111 2 22 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-8.3"
 		r = db.Query("\n    SELECT * FROM v10_11 LEFT JOIN t9 ON( a=x );\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v10_11 LEFT JOIN t9 ON( a=x );\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 111 1 11 3 333 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-9.1"
@@ -428,18 +622,39 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-9.2"
 		r = db.Query("\n      CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-10.1"
 		r = db.Query("\n    CREATE INDEX i22 ON real_t22(q);\n    SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n       (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i22 ON real_t22(q);\n    SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n       (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.1.0"
@@ -452,12 +667,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.1.2"
 		r = db.Query("\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("echo_module_cost", "", "1.0")
@@ -467,12 +694,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.1.4"
 		r = db.Query("\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.2.0"
@@ -485,12 +724,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.2.2"
 		r = db.Query("\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("echo_module_cost", "", "1.0")
@@ -500,12 +751,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.2.4"
 		r = db.Query("\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -517,12 +780,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.3.2"
 		r = db.Query("\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("echo_module_cost", "", "1.0")
@@ -532,12 +807,24 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab6-11.3.4"
 		r = db.Query("\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("echo_module_ignore_usable", "", "1")

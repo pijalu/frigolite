@@ -123,12 +123,26 @@ func Test_dbpage(t *testing.T) {
 		r = db.Query("\n  SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=5;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=5;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "150"
 		r = db.Query("\n  SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "160"
@@ -229,6 +243,13 @@ func Test_dbpage(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM sqlite_temp_schema, sqlite_dbpage;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sqlite_temp_schema, sqlite_dbpage;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -358,7 +379,11 @@ func Test_dbpage(t *testing.T) {
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	max = "db2 one {PRAGMA page_count}"
 	_ = max // suppress unused warning
-	{ // "dbpage-710" — skipped: cross-connection page copy loop needs shared pager N-A (P7 concurrency)
+	{ // "dbpage-710" — skipped: cross-connection page copy loop needs shared pager N-A (P7 concurrency) (SQL side effects only)
+		_res = db.Exec("\n    BEGIN;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("\n      SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
@@ -393,12 +418,26 @@ func Test_dbpage(t *testing.T) {
 		r = db.Query("\n  SELECT pgno FROM sqlite_dbpage WHERE pgno=555\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT pgno FROM sqlite_dbpage WHERE pgno=555\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "820"
 		r = db.Query("\n  SELECT pgno FROM sqlite_dbpage WHERE pgno=4294967297\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT pgno FROM sqlite_dbpage WHERE pgno=4294967297\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -105,7 +105,7 @@ func Test_capi2(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi2-1.1")
 		}
@@ -341,7 +341,7 @@ func Test_capi2(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi2-3.9")
 		}
@@ -388,7 +388,7 @@ func Test_capi2(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi2-3.15")
 		}
@@ -453,7 +453,7 @@ func Test_capi2(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM1 // prepared statement handle
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi2-4.1")
 		}
@@ -465,7 +465,7 @@ func Test_capi2(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM2 // prepared statement handle
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi2-4.2")
 		}
@@ -477,7 +477,7 @@ func Test_capi2(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM3 // prepared statement handle
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi2-4.3")
 		}
@@ -491,6 +491,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("SELECT * FROM t2 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-4.6"
@@ -505,6 +511,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("SELECT * FROM t2 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-4.9"
@@ -519,6 +531,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("SELECT * FROM t2 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2 3 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-4.12"
@@ -638,6 +656,12 @@ func Test_capi2(t *testing.T) {
 		r = db2.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 3 4 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-6.8"
@@ -649,6 +673,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 3 4 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-6.10"
@@ -676,6 +706,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-6.16"
@@ -698,6 +734,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-6.20"
@@ -719,6 +761,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(2,3,4);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2,3,4);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 3 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-6.26"
@@ -812,6 +860,12 @@ func Test_capi2(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "capi2-7.12"

@@ -65,6 +65,13 @@ func Test_collateB(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, x1 INT COLLATE NOCASE);\n  CREATE TABLE t3(x2 INT);\n  SELECT * FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, x1 INT COLLATE NOCASE);\n  CREATE TABLE t3(x2 INT);\n  SELECT * FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "collateB-1.2"

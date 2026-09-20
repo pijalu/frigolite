@@ -128,12 +128,12 @@ func Test_thread005(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	os.Remove("test.db")
+	os.Remove("test2.db")
 	{ // do_test "thread005-2.1"
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)

@@ -120,9 +120,8 @@ func Test_thread002(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -145,9 +144,8 @@ func Test_thread002(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("i", "", "0")
@@ -167,9 +165,8 @@ func Test_thread002(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("ii", "", "0")
@@ -197,9 +194,8 @@ func Test_thread002(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)

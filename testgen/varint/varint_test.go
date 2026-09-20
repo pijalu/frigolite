@@ -79,9 +79,8 @@ func Test_varint(t *testing.T) {
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)
-					if _err == nil {
-						cnt = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					cnt = strconv.Itoa(_n + 1)
 				}
 				{ // do_test "varint-1." + cnt
 					// btree_varint_test $start $mult 5000 $incr (unsupported command, not transpiled)

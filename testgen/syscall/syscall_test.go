@@ -64,7 +64,7 @@ func Test_syscall(t *testing.T) {
 	_ = testprefix // pre-declared from TCL source
 	var s string
 	_ = s // pre-declared from TCL source
-	var syscall_list string
+	var syscall_list *tclListBuilder
 	_ = syscall_list // pre-declared from TCL source
 	var jrnl string
 	_ = jrnl // pre-declared from TCL source
@@ -161,7 +161,7 @@ func Test_syscall(t *testing.T) {
 	for _, s := range tclSplitList("open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl") {
 	_ = s // suppress unused warning
 		if tclBool("test_syscall exists $s") {
-			syscall_list = tclListAppend(syscall_list, s)
+			syscall_list.Append(s)
 		}
 	}
 	{ // do_test "3.1"
@@ -239,9 +239,8 @@ func Test_syscall(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -252,6 +251,7 @@ func Test_syscall(t *testing.T) {
 		db.Close()
 	}
 	os.Remove("test.db")
+	os.Remove("test.db2")
 	// do_multiclient_test tn {\n  code1 {\n    sqlite3 dbX1 test.db\n    sqlite3...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
@@ -295,6 +295,7 @@ func Test_syscall(t *testing.T) {
 		db.Close()
 	}
 	os.Remove("test.db")
+	os.Remove("test.db2")
 	// proc definition (not transpiled)
 	// foreach {nByte res} "1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}"
 	_items5 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
@@ -340,6 +341,7 @@ func Test_syscall(t *testing.T) {
 			db.Close()
 		}
 		os.Remove("test.db")
+		os.Remove("test.db2")
 		{ // do_test "8.1"
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
@@ -371,6 +373,7 @@ func Test_syscall(t *testing.T) {
 			{ // do_test "8.3"
 				db.Close()
 				os.Remove("test.db")
+				os.Remove("test.db2")
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
@@ -399,4 +402,5 @@ func Test_syscall(t *testing.T) {
 					}
 				}
 				// test_syscall reset (unsupported command, not transpiled)
+
 }

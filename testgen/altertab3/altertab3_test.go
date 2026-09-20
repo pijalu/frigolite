@@ -91,8 +91,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY aaa);\n  END")
-		got = tclListFlattenCollapse(got)
+		want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY aaa);\n  END"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -123,8 +122,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b, a name FROM \"t1x\" \n      INTERSECT \n    SELECT a,b,c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\n  END")
-		got = tclListFlattenCollapse(got)
+		want := "CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b, a name FROM \"t1x\" \n      INTERSECT \n    SELECT a,b,c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\n  END"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -383,8 +381,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5")
-		got = tclListFlattenCollapse(got)
+		want := "CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -421,8 +418,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" \n    WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END")
-		got = tclListFlattenCollapse(got)
+		want := "CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" \n    WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -742,8 +738,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT xx AS abc FROM \"t2\");\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT xx AS abc FROM \"t2\");\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -884,8 +879,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

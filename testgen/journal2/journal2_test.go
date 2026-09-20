@@ -131,7 +131,7 @@ func Test_journal2(t *testing.T) {
 		}
 		_ = oplog // TCL namespace variable (query)
 		got := tclListFlatten(oplog)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-1.3")
 		}
@@ -140,6 +140,12 @@ func Test_journal2(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "journal2-1.5"
@@ -163,6 +169,12 @@ func Test_journal2(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "journal2-1.8"
@@ -179,6 +191,12 @@ func Test_journal2(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "journal2-1.10"
@@ -229,6 +247,12 @@ func Test_journal2(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM t2;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t2;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "64 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "journal2-1.16" (prepare-step internals; SQL side effects only)
@@ -268,7 +292,7 @@ func Test_journal2(t *testing.T) {
 			}
 			_ = oplog // TCL namespace variable (query)
 			got := tclListFlatten(oplog)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-2.1")
 			}

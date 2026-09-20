@@ -147,16 +147,14 @@ func Test_whereJ(t *testing.T) {
 			// incr c 1
 			{
 				_n, _err := strconv.Atoi(c)
-				if _err == nil {
-					c = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				c = strconv.Itoa(_n + 1)
 			}
 			// incr x 1
 			{
 				_n, _err := strconv.Atoi(x)
-				if _err == nil {
-					x = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				x = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "+1, 5, " + sqlLiteral(c) + ") ")
@@ -166,16 +164,14 @@ func Test_whereJ(t *testing.T) {
 		// incr c 1
 		{
 			_n, _err := strconv.Atoi(c)
-			if _err == nil {
-				c = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			c = strconv.Itoa(_n + 1)
 		}
 		// incr i 2
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 2)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 2)
 		}
 	}
 	{ // "3.2"
@@ -240,21 +236,21 @@ func Test_whereJ(t *testing.T) {
 		_dbeval0 := tclExecSQL(db, "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a,b,c,d,e,f,g,h);\n    CREATE INDEX t1abc ON t1(a,b,c);\n    CREATE INDEX t1abe ON t1(a,b,e);\n    CREATE INDEX t1abf ON t1(a,b,f);\n    ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1(tbl,idx,stat)\n      VALUES('t1','t1abc','2000000 8000 1600 800'),\n            ('t1','t1abe','2000000 8000 1600 150'),\n            ('t1','t1abf','2000000 8000 1600 150');\n    ANALYZE sqlite_master;\n  \n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1\n     WHERE (a=1 OR a=2)\n       AND (b=3 OR b=4)\n       AND (d>=5 AND d<=5)\n       AND ((e>=7 AND e<=7) OR (f>=8 AND f<=8))\n       AND g>0;")
 		res = _dbeval0
 		_ = res // suppress unused warning
-		got := tclListFlatten(res)
+		got := res
 		wantPattern := "ANY"
 		if matched, _ := regexp.MatchString(wantPattern, got); matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]\n  body: do_test %s", got, wantPattern, "5.1")
 		}
 	}
 	{ // do_test "5.2"
-		got := tclListFlatten(res)
+		got := res
 		wantPattern := "USING INDEX t1abe"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "5.2")
 		}
 	}
 	{ // do_test "5.3"
-		got := tclListFlatten(res)
+		got := res
 		wantPattern := "USING INDEX t1abf"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "5.3")

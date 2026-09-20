@@ -80,7 +80,7 @@ func Test_fts3snippet(t *testing.T) {
 	_ = off // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
-	var testresults string
+	var testresults *tclListBuilder
 	_ = testresults // pre-declared from TCL source
 	var i string
 	_ = i // pre-declared from TCL source
@@ -250,7 +250,7 @@ func Test_fts3snippet(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);\n    ")
 				}
-				testresults = ""
+				testresults = &tclListBuilder{}
 				_ = testresults // suppress unused warning
 				vtab.TclVarSet("i", "", "1")
 				i = "1"
@@ -262,13 +262,12 @@ func Test_fts3snippet(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO ft VALUES('one' || " + sqlLiteral(commas) + " || 'two')")
 					}
-					testresults = tclListAppend(testresults, "{one}" + commas + "{two}")
+					testresults.Append("{one}" + commas + "{two}")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("COMMIT")
@@ -454,8 +453,7 @@ func Test_fts3snippet(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -505,4 +503,5 @@ func Test_fts3snippet(t *testing.T) {
 		vtab.TclVarSet("sqlite_fts3_enable_parentheses", "", "0")
 		sqlite_fts3_enable_parentheses = "0"
 		_ = sqlite_fts3_enable_parentheses // suppress unused warning
+
 }

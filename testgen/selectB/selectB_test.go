@@ -108,9 +108,8 @@ func Test_selectB(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "selectB-3.0"
@@ -128,158 +127,309 @@ func Test_selectB(t *testing.T) {
 			r = db.Query("\n      SELECT DISTINCT * FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      ORDER BY 1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT * FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      ORDER BY 1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 12 15 18 24"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".2"
 			r = db.Query("\n      SELECT c, count(*) FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      GROUP BY c ORDER BY 1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c, count(*) FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      GROUP BY c ORDER BY 1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 2 12 1 15 1 18 1 24 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".3"
 			r = db.Query("\n      SELECT c, count(*) FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      GROUP BY c HAVING count(*)>1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c, count(*) FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      GROUP BY c HAVING count(*)>1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".4"
 			r = db.Query("\n      SELECT t4.c, t3.a FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) AS t4, t1 AS t3\n      WHERE t3.a=14\n      ORDER BY 1\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t4.c, t3.a FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) AS t4, t1 AS t3\n      WHERE t3.a=14\n      ORDER BY 1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 14 6 14 12 14 15 14 18 14 24 14"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".5"
 			r = db.Query("\n      SELECT d FROM t2 \n      EXCEPT \n      SELECT a FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 \n      EXCEPT \n      SELECT a FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".6"
 			r = db.Query("\n      SELECT * FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)\n      EXCEPT \n      SELECT * FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)\n      EXCEPT \n      SELECT * FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".7"
 			r = db.Query("\n      SELECT c FROM t1\n      EXCEPT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM t1\n      EXCEPT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "12"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".8"
 			r = db.Query("\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      EXCEPT \n      SELECT c FROM t1\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      EXCEPT \n      SELECT c FROM t1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "9 15 24 27"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".9"
 			r = db.Query("\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      EXCEPT \n      SELECT c FROM t1\n      ORDER BY c DESC\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      EXCEPT \n      SELECT c FROM t1\n      ORDER BY c DESC\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "27 24 15 9"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".10"
 			r = db.Query("\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      UNION \n      SELECT c FROM t1\n      ORDER BY c DESC\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      UNION \n      SELECT c FROM t1\n      ORDER BY c DESC\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "27 24 18 15 12 9 6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".11"
 			r = db.Query("\n      SELECT c FROM t1\n      UNION \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY c\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM t1\n      UNION \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY c\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 9 12 15 18 24 27"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".12"
 			r = db.Query("\n      SELECT c FROM t1 UNION SELECT e FROM t2 UNION ALL SELECT f FROM t2\n      ORDER BY c\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM t1 UNION SELECT e FROM t2 UNION ALL SELECT f FROM t2\n      ORDER BY c\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 9 12 15 18 18 24 27"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".13"
 			r = db.Query("\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      UNION \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      UNION \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 9 15 18 24 27"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".14"
 			r = db.Query("\n      SELECT c FROM t1\n      INTERSECT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM t1\n      INTERSECT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 18"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".15"
 			r = db.Query("\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      INTERSECT \n      SELECT c FROM t1\n      ORDER BY 1\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      INTERSECT \n      SELECT c FROM t1\n      ORDER BY 1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 18"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".16"
 			r = db.Query("\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      INTERSECT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      INTERSECT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 9 15 18 24 27"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".17"
 			r = db.Query("\n      SELECT * FROM (\n        SELECT a FROM t1 UNION ALL SELECT d FROM t2 LIMIT 4\n      ) LIMIT 2\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT a FROM t1 UNION ALL SELECT d FROM t2 LIMIT 4\n      ) LIMIT 2\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "2 8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".18"
 			r = db.Query("\n      SELECT * FROM (\n        SELECT a FROM t1 UNION ALL SELECT d FROM t2 LIMIT 4 OFFSET 2\n      ) LIMIT 2\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT a FROM t1 UNION ALL SELECT d FROM t2 LIMIT 4 OFFSET 2\n      ) LIMIT 2\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "14 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".19"
 			r = db.Query("\n      SELECT * FROM (\n        SELECT DISTINCT (a/10) FROM t1 UNION ALL SELECT DISTINCT(d%2) FROM t2\n      )\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT DISTINCT (a/10) FROM t1 UNION ALL SELECT DISTINCT(d%2) FROM t2\n      )\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "0 1 1 0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".20"
 			r = db.Query("\n      SELECT DISTINCT * FROM (\n        SELECT DISTINCT (a/10) FROM t1 UNION ALL SELECT DISTINCT(d%2) FROM t2\n      )\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT * FROM (\n        SELECT DISTINCT (a/10) FROM t1 UNION ALL SELECT DISTINCT(d%2) FROM t2\n      )\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "0 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".21"
 			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 UNION ALL SELECT * FROM t2) ORDER BY a+b\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 UNION ALL SELECT * FROM t2) ORDER BY a+b\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "2 4 6 3 6 9 8 10 12 12 15 18 14 16 18 21 24 27"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".22"
 			r = db.Query("\n      SELECT * FROM (SELECT 345 UNION ALL SELECT d FROM t2) ORDER BY 1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT 345 UNION ALL SELECT d FROM t2) ORDER BY 1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "3 12 21 345"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".23"
 			r = db.Query("\n      SELECT x, y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) ORDER BY 1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x, y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) ORDER BY 1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "2 4 8 10 14 16 80.1 180.1 200 400 800 1000 1400 1600"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".24"
 			r = db.Query("\n      SELECT x, y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 LEFT JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) ORDER BY 1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x, y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 LEFT JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) ORDER BY 1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "2 4 8 10 14 16 20.1 {} 80.1 180.1 140.1 {} 200 400 800 1000 1400 1600"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectB-" + ii + ".25"
 			r = db.Query("\n      SELECT x+y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 LEFT JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) WHERE y+x NOT NULL ORDER BY 1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x+y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 LEFT JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) WHERE y+x NOT NULL ORDER BY 1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "6 18 30 260.2 600 1800 3000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 }

@@ -107,12 +107,24 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query(" PRAGMA auto_vacuum ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-1.1"
 		r = db.Query("\n    CREATE TABLE two(a int PRIMARY KEY, b text);\n    INSERT INTO two VALUES(1,'I');\n    INSERT INTO two VALUES(5,'V');\n    INSERT INTO two VALUES(10,'X');\n    SELECT b FROM two ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE two(a int PRIMARY KEY, b text);\n    INSERT INTO two VALUES(1,'I');\n    INSERT INTO two VALUES(5,'V');\n    INSERT INTO two VALUES(10,'X');\n    SELECT b FROM two ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "I V X"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-1.9"
@@ -129,6 +141,12 @@ func Test_avtrans(t *testing.T) {
 		r = altdb.Query("SELECT b FROM two ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM two ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "I V X"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -270,6 +288,12 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 1 5 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -280,6 +304,12 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-3.2"
@@ -588,6 +618,13 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.2"
@@ -614,6 +651,13 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("SELECT a,b FROM one ORDER BY b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a,b FROM one ORDER BY b")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.5"
@@ -662,78 +706,158 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.9"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a int, b int, c int);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a int, b int, c int);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.10"
 		r = db.Query("\n    CREATE INDEX i1 ON t1(a);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1 ON t1(a);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i1 t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.11"
 		r = db.Query("\n    COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i1 t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.12"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    CREATE TABLE t2(a int, b int, c int);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n    DROP TABLE t1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    CREATE TABLE t2(a int, b int, c int);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n    DROP TABLE t1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i2a i2b t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.13"
 		r = db.Query("\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i1 t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.14"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.15"
 		r = db.Query("\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i1 t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.16"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE TABLE t2(x int, y int, z int);\n    CREATE INDEX i2x ON t2(x);\n    CREATE INDEX i2y ON t2(y);\n    INSERT INTO t2 VALUES(1,2,3);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE TABLE t2(x int, y int, z int);\n    CREATE INDEX i2x ON t2(x);\n    CREATE INDEX i2y ON t2(y);\n    INSERT INTO t2 VALUES(1,2,3);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i2x i2y t1 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.17"
 		r = db.Query("\n    COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i2x i2y t1 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.18"
 		r = db.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.19"
 		r = db.Query("\n    SELECT x FROM t2 WHERE y=2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 WHERE y=2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.20"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.21"
@@ -762,12 +886,24 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i2x i2y t1 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-5.23"
 		r = db.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -860,114 +996,228 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a integer primary key,b,c);\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a integer primary key,b,c);\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.21"
 		r = db.Query("\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.22"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.23"
 		r = db.Query("\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.24"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.25"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.26"
 		r = db.Query("\n    SELECT * FROM t1 WHERE c<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE c<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.27"
 		r = db.Query("\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.28"
 		r = db.Query("\n    SELECT * FROM t1 WHERE c<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE c<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.30"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a int unique,b,c);\n    COMMIT;\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a int unique,b,c);\n    COMMIT;\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.31"
 		r = db.Query("\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.32"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.33"
 		r = db.Query("\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.34"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.35"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.36"
 		r = db.Query("\n    SELECT * FROM t1 WHERE c<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE c<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.37"
 		r = db.Query("\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE c<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE c<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.38"
 		r = db.Query("\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 -5 -6 1 -2 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-6.39"
 		r = db.Query("\n    SELECT * FROM t1 WHERE c<1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE c<1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -2 -3 4 -5 -6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -994,9 +1244,8 @@ func Test_avtrans(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -1018,126 +1267,182 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("SELECT md5sum(x,y,z) FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(x,y,z) FROM t2")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.2")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.2.1"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum2) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum2), "avtrans-7.2.1")
+		got := flatten(r)
+		want := tclListFlatten(checksum2)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.3"
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.3")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.4"
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.4")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.5"
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.5")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.6"
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.6")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.7"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.7")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.8"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum2) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum2), "avtrans-7.8")
+		got := flatten(r)
+		want := tclListFlatten(checksum2)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.9"
 		r = db.Query("\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.9")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.10"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum2) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum2), "avtrans-7.10")
+		got := flatten(r)
+		want := tclListFlatten(checksum2)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.11"
 		r = db.Query("\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.11")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.12"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum2) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum2), "avtrans-7.12")
+		got := flatten(r)
+		want := tclListFlatten(checksum2)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.13"
 		r = db.Query("\n      BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum), "avtrans-7.13")
+		got := flatten(r)
+		want := tclListFlatten(checksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "avtrans-7.14"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum2) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum2), "avtrans-7.14")
+		got := flatten(r)
+		want := tclListFlatten(checksum2)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1146,6 +1451,7 @@ func Test_avtrans(t *testing.T) {
 	fd = "test.tcl"
 	_ = fd // suppress unused warning
 	tclChannelAppendAt("test.tcl", "\n  sqlite3 db test.db\n  db eval {\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n", fileChannelSeek["fd"])
+	fileChannelSeek["fd"] += int64(len("\n  sqlite3 db test.db\n  db eval {\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n"))
 	// close $fd
 	{ // do_test "avtrans-8.1"
 		{
@@ -1166,9 +1472,13 @@ func Test_avtrans(t *testing.T) {
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+			return
 		}
-		if flatten(r) != tclListFlatten(checksum2) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(checksum2), "avtrans-8.2")
+		got := flatten(r)
+		want := tclListFlatten(checksum2)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1266,9 +1576,8 @@ func Test_avtrans(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

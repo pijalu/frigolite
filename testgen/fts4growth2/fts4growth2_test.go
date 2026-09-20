@@ -106,9 +106,8 @@ func Test_fts4growth2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query(" \n    SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;\n  ")
@@ -128,9 +127,8 @@ func Test_fts4growth2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query(" \n    SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;\n  ")
@@ -165,9 +163,8 @@ func Test_fts4growth2(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			r = db.Query(" SELECT max(level) FROM x1_segdir ")
@@ -178,9 +175,8 @@ func Test_fts4growth2(t *testing.T) {
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tn = strconv.Itoa(_n + 1)
 		}
 	}
 }

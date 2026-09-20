@@ -71,12 +71,24 @@ func Test_tkt_54844eea3f(t *testing.T) {
 		r = db.Query("\n    SELECT 'test-2', t3.c, (\n          SELECT count(*) \n          FROM t1 JOIN (SELECT DISTINCT t3.c AS p FROM t2) AS x ON t1.a=x.p\n    )\n    FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 'test-2', t3.c, (\n          SELECT count(*) \n          FROM t1 JOIN (SELECT DISTINCT t3.c AS p FROM t2) AS x ON t1.a=x.p\n    )\n    FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "test-2 1 1 test-2 2 0 test-2 3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.2"
 		r = db.Query("\n    CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES('a', 1, 'one');\n    INSERT INTO t4 VALUES('a', 2, 'two');\n    INSERT INTO t4 VALUES('b', 1, 'three');\n    INSERT INTO t4 VALUES('b', 2, 'four');\n    SELECT ( \n      SELECT c FROM (\n        SELECT * FROM t4 WHERE a=out.a ORDER BY b LIMIT 10 OFFSET 1\n      ) WHERE b=out.b\n    ) FROM t4 AS out;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES('a', 1, 'one');\n    INSERT INTO t4 VALUES('a', 2, 'two');\n    INSERT INTO t4 VALUES('b', 1, 'three');\n    INSERT INTO t4 VALUES('b', 2, 'four');\n    SELECT ( \n      SELECT c FROM (\n        SELECT * FROM t4 WHERE a=out.a ORDER BY b LIMIT 10 OFFSET 1\n      ) WHERE b=out.b\n    ) FROM t4 AS out;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} two {} four"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

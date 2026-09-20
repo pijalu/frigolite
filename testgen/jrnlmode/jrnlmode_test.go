@@ -107,18 +107,36 @@ func Test_jrnlmode(t *testing.T) {
 		r = db.Query("\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "delete"+" "+"delete"+" "+"temp_journal_mode delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.1"
 		r = db.Query("\n    PRAGMA journal_mode = persist;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = persist;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "persist"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.2"
 		r = db.Query("\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "persist"+" "+"persist"+" "+"temp_journal_mode persist"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.4a"
@@ -139,36 +157,72 @@ func Test_jrnlmode(t *testing.T) {
 		r = db.Query("\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "off"+" "+"off"+" "+"temp_journal_mode off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.6"
 		r = db.Query("\n    PRAGMA journal_mode = delete;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.7"
 		r = db.Query("\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA Temp.journal_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA Temp.journal_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "delete"+" "+"delete"+" "+"temp_journal_mode delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.7.1"
 		r = db.Query("\n    PRAGMA journal_mode = truncate;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = truncate;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "truncate"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.7.2"
 		r = db.Query("\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "truncate"+" "+"truncate"+" "+"temp_journal_mode truncate"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.8"
 		r = db.Query("\n    PRAGMA journal_mode = off;\n    PRAGMA journal_mode = invalid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n    PRAGMA journal_mode = invalid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "off off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.9"
@@ -195,6 +249,12 @@ func Test_jrnlmode(t *testing.T) {
 		r = db.Query("\n      PRAGMA journal_mode;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-1.12"
@@ -277,6 +337,12 @@ func Test_jrnlmode(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM abc;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM abc;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-2.4" (file size test.db-journal)
@@ -289,6 +355,12 @@ func Test_jrnlmode(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM def;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM def;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -332,6 +404,12 @@ func Test_jrnlmode(t *testing.T) {
 		r = db.Query(" PRAGMA journal_mode = off ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = off ")
+			return
+		}
+		got := flatten(r)
+		want := "off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode-4.3"
@@ -351,6 +429,8 @@ func Test_jrnlmode(t *testing.T) {
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test2.db")
+		os.Remove("test3.db")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -368,48 +448,96 @@ func Test_jrnlmode(t *testing.T) {
 			r = db.Query(" PRAGMA journal_size_limit ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_size_limit ")
+				return
+			}
+			got := flatten(r)
+			want := "-1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.3"
 			r = db.Query(" \n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "persist -1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.4.1"
 			r = db.Query(" PRAGMA aux.journal_size_limit = 999999999999 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA aux.journal_size_limit = 999999999999 ")
+				return
+			}
+			got := flatten(r)
+			want := "999999999999"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.4.2"
 			r = db.Query(" PRAGMA aux.journal_size_limit = 10240 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA aux.journal_size_limit = 10240 ")
+				return
+			}
+			got := flatten(r)
+			want := "10240"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.5"
 			r = db.Query(" PRAGMA main.journal_size_limit = 20480 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_size_limit = 20480 ")
+				return
+			}
+			got := flatten(r)
+			want := "20480"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.6"
 			r = db.Query(" PRAGMA journal_size_limit ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_size_limit ")
+				return
+			}
+			got := flatten(r)
+			want := "20480"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.7"
 			r = db.Query(" PRAGMA aux.journal_size_limit ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA aux.journal_size_limit ")
+				return
+			}
+			got := flatten(r)
+			want := "10240"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.8"
 			r = db.Query("\n      ATTACH 'test3.db' AS aux2;\n      PRAGMA aux2.journal_mode=persist;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test3.db' AS aux2;\n      PRAGMA aux2.journal_mode=persist;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "persist"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.9"
@@ -508,6 +636,12 @@ func Test_jrnlmode(t *testing.T) {
 			r = db.Query("\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "jrnlmode-5.21"
@@ -530,6 +664,12 @@ func Test_jrnlmode(t *testing.T) {
 				r = db.Query("\n        PRAGMA journal_mode = truncate;\n        CREATE TABLE t4(a, b);\n        BEGIN;\n          INSERT INTO t4 VALUES(1, 2);\n          PRAGMA journal_mode = memory;\n      ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA journal_mode = truncate;\n        CREATE TABLE t4(a, b);\n        BEGIN;\n          INSERT INTO t4 VALUES(1, 2);\n          PRAGMA journal_mode = memory;\n      ")
+					return
+				}
+				got := flatten(r)
+				want := "truncate truncate"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "jrnlmode-6.2"
@@ -539,6 +679,12 @@ func Test_jrnlmode(t *testing.T) {
 				r = db.Query("\n        COMMIT;\n        SELECT * FROM t4;\n      ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        COMMIT;\n        SELECT * FROM t4;\n      ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "jrnlmode-6.4"
@@ -555,6 +701,12 @@ func Test_jrnlmode(t *testing.T) {
 				r = db.Query("\n        COMMIT;\n        SELECT * FROM t4;\n      ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        COMMIT;\n        SELECT * FROM t4;\n      ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "jrnlmode-6.8"

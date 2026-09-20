@@ -341,6 +341,13 @@ func Test_dbstatus2(t *testing.T) {
 			r = db.Query("\n    PRAGMA temp_store = file;\n    PRAGMA cache_size = -1024;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = file;\n    PRAGMA cache_size = -1024;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "4.1"

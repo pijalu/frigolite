@@ -100,12 +100,25 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-2.1.1"
 		r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT 4, 8;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT 4, 8;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// xferopt_test insert4-2.1.2 0 (unsupported command, not transpiled)
@@ -120,6 +133,12 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// xferopt_test insert4-2.3.2 0 (unsupported command, not transpiled)
@@ -134,6 +153,12 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 1 1 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// xferopt_test insert4-2.4.2 0 (unsupported command, not transpiled)
@@ -214,7 +239,9 @@ func Test_insert4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert4-6.2")
 		}
 	}
-	{ // "insert4-6.3" — skipped: INSERT transfer optimization counter not implemented N-A
+	{ // "insert4-6.3" — skipped: INSERT transfer optimization counter not implemented N-A (SQL side effects only)
+		_res = db.Exec("\n    DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "insert4-6.4"
 		vtab.TclVarSet("sqlite3_xferopt_count", "", "0")
@@ -235,6 +262,12 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t6a(x CHECK( x<>'abc' ));\n    INSERT INTO t6a VALUES('ABC');\n    SELECT * FROM t6a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6a(x CHECK( x<>'abc' ));\n    INSERT INTO t6a VALUES('ABC');\n    SELECT * FROM t6a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-6.6"
@@ -279,6 +312,13 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("SELECT * FROM t7b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t7b")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-7.5"
@@ -321,24 +361,48 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.2"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.3"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.4"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.5"
@@ -353,6 +417,12 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-99 100 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.7"
@@ -367,6 +437,12 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.9"
@@ -387,36 +463,72 @@ func Test_insert4(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.21"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.22"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.23"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.24"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert4-8.25"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "insert4-9.1"
@@ -431,9 +543,15 @@ func Test_insert4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t8(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n  CREATE TEMP TABLE x(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n")
 		}
 	}
-	{ // "insert4-10.2" — skipped: INSERT transfer optimization counter not implemented N-A
+	{ // "insert4-10.2" — skipped: INSERT transfer optimization counter not implemented N-A (SQL side effects only)
+		_res = db.Exec(" INSERT INTO x SELECT * FROM t8 ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "insert4-10.3" — skipped: INSERT transfer optimization counter not implemented N-A
+	{ // "insert4-10.3" — skipped: INSERT transfer optimization counter not implemented N-A (SQL side effects only)
+		_res = db.Exec(" PRAGMA integrity_check ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec(" INSERT INTO x     SELECT * FROM t8 ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "10.4"
 		r = db.Query(" PRAGMA integrity_check ")

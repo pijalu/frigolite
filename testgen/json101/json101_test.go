@@ -95,7 +95,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "[1,\"{\\\"abc\\\":2.5,\\\"def\\\":null,\\\"ghi\\\":hello}\",99]"
+		want := "{[1,\"{\\\"abc\\\":2.5,\\\"def\\\":null,\\\"ghi\\\":hello}\",99]}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -107,8 +107,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]")
-		got = tclListFlattenCollapse(got)
+		want := "{[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -120,8 +119,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]")
-		got = tclListFlattenCollapse(got)
+		want := "{[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -181,7 +179,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":1,\"b\":2.5,\"c\":null,\"d\":\"String Test\"}"
+		want := "{{\"a\":1,\"b\":2.5,\"c\":null,\"d\":\"String Test\"}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -193,7 +191,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":1,\"b\":2.5,\"c\":null,\"d\":\"String Test\"}"
+		want := "{{\"a\":1,\"b\":2.5,\"c\":null,\"d\":\"String Test\"}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -217,7 +215,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":[\"xyx\",77,4.5],\"x\":2.5}"
+		want := "{{\"a\":[\"xyx\",77,4.5],\"x\":2.5}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -229,7 +227,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":[\"xyx\",77,4.5],\"x\":2.5}"
+		want := "{{\"a\":[\"xyx\",77,4.5],\"x\":2.5}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -241,7 +239,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":[\"xyx\",77,4.5],\"x\":2.5}"
+		want := "{{\"a\":[\"xyx\",77,4.5],\"x\":2.5}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -253,7 +251,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":[\"xyx\",77,4.5],\"x\":2.5}"
+		want := "{{\"a\":[\"xyx\",77,4.5],\"x\":2.5}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -277,7 +275,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":\"xxxxxxxxxx\",\"b\":[1,2,3]}"
+		want := "{{\"a\":\"xxxxxxxxxx\",\"b\":[1,2,3]}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -289,7 +287,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":\"[3,4,5]\",\"b\":2}"
+		want := "{{\"a\":\"[3,4,5]\",\"b\":2}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -301,7 +299,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":\"[3,4,5]\",\"b\":2}"
+		want := "{{\"a\":\"[3,4,5]\",\"b\":2}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -313,7 +311,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":[3,4,5],\"b\":2}"
+		want := "{{\"a\":[3,4,5],\"b\":2}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -325,7 +323,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":[3,4,5],\"b\":2}"
+		want := "{{\"a\":[3,4,5],\"b\":2}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -406,18 +404,39 @@ func Test_json101(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE j1(x);\n  INSERT INTO j1(x)\n   VALUES('true'),('false'),('null'),('123'),('-234'),('34.5e+6'),\n         ('\"\"'),('\"\\\"\"'),('\"\\\\\"'),('\"abcdefghijlmnopqrstuvwxyz\"'),\n         ('[]'),('{}'),('[true,false,null,123,-234,34.5e+6,{},[]]'),\n         ('{\"a\":true,\"b\":{\"c\":false}}');\n  SELECT * FROM j1 WHERE NOT json_valid(x);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE j1(x);\n  INSERT INTO j1(x)\n   VALUES('true'),('false'),('null'),('123'),('-234'),('34.5e+6'),\n         ('\"\"'),('\"\\\"\"'),('\"\\\\\"'),('\"abcdefghijlmnopqrstuvwxyz\"'),\n         ('[]'),('{}'),('[true,false,null,123,-234,34.5e+6,{},[]]'),\n         ('{\"a\":true,\"b\":{\"c\":false}}');\n  SELECT * FROM j1 WHERE NOT json_valid(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-4.2"
 		r = db.Query("\n  SELECT * FROM j1 WHERE NOT json_valid(char(0x20,0x09,0x0a,0x0d)||x);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM j1 WHERE NOT json_valid(char(0x20,0x09,0x0a,0x0d)||x);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-4.3"
 		r = db.Query("\n  SELECT * FROM j1 WHERE NOT json_valid(x||char(0x20,0x09,0x0a,0x0d));\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM j1 WHERE NOT json_valid(x||char(0x20,0x09,0x0a,0x0d));\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-4.4"
@@ -436,24 +455,52 @@ func Test_json101(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM j1 WHERE json_remove(x)<>x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM j1 WHERE json_remove(x)<>x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-4.6"
 		r = db.Query("\n  SELECT x FROM j1 WHERE json_replace(x)<>x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM j1 WHERE json_replace(x)<>x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-4.7"
 		r = db.Query("\n  SELECT x FROM j1 WHERE json_set(x)<>x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM j1 WHERE json_set(x)<>x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-4.8"
 		r = db.Query("\n  SELECT x FROM j1 WHERE json_insert(x)<>x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM j1 WHERE json_insert(x)<>x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-4.9"
@@ -463,7 +510,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":1,\"b\":\"\\u0000\\u0000\"}"
+		want := "{{\"a\":1,\"b\":\"\\u0000\\u0000\"}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -532,42 +579,91 @@ func Test_json101(t *testing.T) {
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-5.3b"
 		r = db.Query("\n  SELECT j2b.rowid, jx.rowid, fullkey, path, key\n    FROM j2b, json_tree(j2b.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2b.rowid, jx.rowid, fullkey, path, key\n    FROM j2b, json_tree(j2b.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-5.4"
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-5.5"
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE jx.json<>j2.json;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE jx.json<>j2.json;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-5.6"
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE jx.json<>j2.json;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE jx.json<>j2.json;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-5.7"
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE jx.value<>jx.atom AND type NOT IN ('array','object');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE jx.value<>jx.atom AND type NOT IN ('array','object');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-5.8"
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE jx.value<>jx.atom AND type NOT IN ('array','object');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE jx.value<>jx.atom AND type NOT IN ('array','object');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-5.10"
@@ -577,7 +673,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":[1,2,3]}"
+		want := "{{\"a\":[1,2,3]}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -589,7 +685,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"a\":\"[1,2,3]\"}"
+		want := "{{\"a\":\"[1,2,3]\"}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -757,8 +853,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]")
-			got = tclListFlattenCollapse(got)
+			want := "[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -770,8 +865,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]")
-			got = tclListFlattenCollapse(got)
+			want := "[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2127,7 +2221,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}"
+			want := "{{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2139,7 +2233,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}"
+			want := "{{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2175,7 +2269,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 {\"items\":[3,5]} 3 {\"value\":3} NL 1 {\"items\":[3,5]} 5 {\"value\":5} NL"
+			want := "1 {{\"items\":[3,5]}} 3 {{\"value\":3}} NL 1 {{\"items\":[3,5]}} 5 {{\"value\":5}} NL"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2187,7 +2281,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "3 {\"value\":3} 1 {\"items\":[3,5]} NL 5 {\"value\":5} 1 {\"items\":[3,5]} NL"
+			want := "3 {{\"value\":3}} 1 {{\"items\":[3,5]}} NL 5 {{\"value\":5}} 1 {{\"items\":[3,5]}} NL"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2376,6 +2470,13 @@ func Test_json101(t *testing.T) {
 			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(d);\n  SELECT * FROM t1 LEFT JOIN t2 ON (SELECT b FROM json_each ORDER BY 1);\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(d);\n  SELECT * FROM t1 LEFT JOIN t2 ON (SELECT b FROM json_each ORDER BY 1);\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "json101-18.1"
@@ -2448,6 +2549,13 @@ func Test_json101(t *testing.T) {
 			r = db.Query("\n  COMMIT;\n  SELECT * FROM t1;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  COMMIT;\n  SELECT * FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "json101-20.1"
@@ -2457,7 +2565,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"a\":9.0e+999,\"b\":-9.0e+999}"
+			want := "{{\"a\":9.0e+999,\"b\":-9.0e+999}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2707,7 +2815,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"a\":5,\"b\":7}"
+			want := "{{\"a\":5,\"b\":7}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2731,7 +2839,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"a\":5,\"b\":7}"
+			want := "{{\"a\":5,\"b\":7}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2815,7 +2923,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"a\":1,\"b\":2.0,\"c\":null,\"e\":\"four\"}"
+			want := "{{\"a\":1,\"b\":2.0,\"c\":null,\"e\":\"four\"}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2827,7 +2935,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"a\":2,\"b\":4,\"c\":6}"
+			want := "{{\"a\":2,\"b\":4,\"c\":6}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2839,7 +2947,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{\"a\":2,\"b\":4,\"c\":6}"
+			want := "{{\"a\":2,\"b\":4,\"c\":6}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

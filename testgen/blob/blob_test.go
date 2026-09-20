@@ -240,7 +240,7 @@ func Test_blob(t *testing.T) {
 			blobs2 = tclListAppend(blobs2, tclBinToHex(b))
 		}
 		got := tclListFlatten(blobs2)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "blob-2.4")
 		}

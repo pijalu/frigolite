@@ -136,9 +136,8 @@ func Test_quota2(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{
@@ -256,7 +255,7 @@ func Test_quota2(t *testing.T) {
 	{ // do_test "quota2-2.2"
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota2-2.2")
 		}

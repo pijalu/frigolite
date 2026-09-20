@@ -123,7 +123,7 @@ func Test_notify1(t *testing.T) {
 	}
 	{ // do_test "notify1-1.4"
 		got := tclListFlatten(zScript)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "notify1-1.4")
 		}
@@ -165,7 +165,7 @@ func Test_notify1(t *testing.T) {
 	}
 	{ // do_test "notify1-1.14"
 		got := tclListFlatten(zScript)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "notify1-1.14")
 		}
@@ -234,6 +234,8 @@ func Test_notify1(t *testing.T) {
 		db.Close()
 		if db2 != nil { db2.Close() }
 		os.Remove("test.db")
+		os.Remove("test2.db")
+		os.Remove("test3.db")
 		for _, con := range tclSplitList("db db2 db3") {
 		_ = con // suppress unused warning
 			// sqlite3 $con test.db (dynamic connection name)
@@ -309,7 +311,7 @@ func Test_notify1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 		got := tclListFlatten(lUnlock)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "notify1-2.3.8")
 		}
@@ -407,14 +409,13 @@ func Test_notify1(t *testing.T) {
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
-					if _err == nil {
-						ii = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 			{ // do_test "notify1-" + tn + ".3"
 				got := tclListFlatten(lUnlock)
-				want := tclListFlatten("")
+				want := tclListFlatten("{}")
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "notify1-" + tn + ".3")
 				}
@@ -438,9 +439,8 @@ func Test_notify1(t *testing.T) {
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)
-						if _err == nil {
-							ii = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						ii = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -450,6 +450,7 @@ func Test_notify1(t *testing.T) {
 		db.Close()
 		{ // do_test "notify1-6.1.1"
 			os.Remove("test.db")
+			os.Remove("test2.db")
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning
 				// sqlite3 $conn test.db (dynamic connection name)
@@ -663,12 +664,24 @@ func Test_notify1(t *testing.T) {
 			r = db2.Query("\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4 5 6 7 8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "notify1-9.2"
 			r = db3.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4 5 6 7 8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "notify1-9.3"
@@ -703,12 +716,24 @@ func Test_notify1(t *testing.T) {
 			r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4 5 6 7 8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "notify1-9.8"
 			r = db3.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4 5 6 7 8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "notify1-9.9"

@@ -59,12 +59,24 @@ func Test_tkt1536(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT\n    );\n    INSERT INTO t1 VALUES(1,'01');\n    SELECT typeof(a), typeof(b) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT\n    );\n    INSERT INTO t1 VALUES(1,'01');\n    SELECT typeof(a), typeof(b) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "integer text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1536-1.2"
 		r = db.Query("\n    INSERT INTO t1(b) SELECT b FROM t1;\n    SELECT b FROM t1 WHERE rowid=2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(b) SELECT b FROM t1;\n    SELECT b FROM t1 WHERE rowid=2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "01"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -231,8 +231,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(a,b);\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(a,b);\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -244,8 +243,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(aaa,b);\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(aaa,b);\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -257,8 +255,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,ddd)=(aaa,b);\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,ddd)=(aaa,b);\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -282,8 +279,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -295,8 +291,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.aaaa NOT NULL BEGIN\n    SELECT aaaa, sum(aaaa) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY aaaa ORDER BY aaaa \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY aaaa\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.aaaa NOT NULL BEGIN\n    SELECT aaaa, sum(aaaa) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY aaaa ORDER BY aaaa \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY aaaa\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -311,6 +306,13 @@ func Test_altertab2(t *testing.T) {
 			r = db.Query("\n  CREATE TABLE t3(a,b,c,d);\n  CREATE TRIGGER r3 AFTER INSERT ON t3 WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM t3 EXCEPT SELECT a,b,c FROM t3 ORDER BY a;\n    SELECT rowid, * FROM t3;\n  END;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(a,b,c,d);\n  CREATE TRIGGER r3 AFTER INSERT ON t3 WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM t3 EXCEPT SELECT a,b,c FROM t3 ORDER BY a;\n    SELECT rowid, * FROM t3;\n  END;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "6.1"
@@ -320,8 +322,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a;\n    SELECT rowid, * FROM \"t3x\";\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a;\n    SELECT rowid, * FROM \"t3x\";\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -333,8 +334,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN\n    SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd;\n    SELECT rowid, * FROM \"t3x\";\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN\n    SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd;\n    SELECT rowid, * FROM \"t3x\";\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -383,8 +383,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c;\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c;\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -396,8 +395,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlattenCollapse("CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc;\n  END")
-			got = tclListFlattenCollapse(got)
+			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc;\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

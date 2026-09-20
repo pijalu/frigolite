@@ -111,354 +111,709 @@ func Test_sort(t *testing.T) {
 		r = db.Query("SELECT n FROM t1 ORDER BY n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.1.1"
 		r = db.Query("SELECT n FROM t1 ORDER BY n ASC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY n ASC")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.1.1"
 		r = db.Query("SELECT ALL n FROM t1 ORDER BY n ASC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ALL n FROM t1 ORDER BY n ASC")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.2"
 		r = db.Query("SELECT n FROM t1 ORDER BY n DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY n DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 7 6 5 4 3 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.3a"
 		r = db.Query("SELECT v FROM t1 ORDER BY v")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT v FROM t1 ORDER BY v")
+			return
+		}
+		got := flatten(r)
+		want := "eight five four one seven six three two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.3b"
 		r = db.Query("SELECT n FROM t1 ORDER BY v")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY v")
+			return
+		}
+		got := flatten(r)
+		want := "8 5 4 1 7 6 3 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.4"
 		r = db.Query("SELECT n FROM t1 ORDER BY v DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY v DESC")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 6 7 1 4 5 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.5"
 		r = db.Query("SELECT flt FROM t1 ORDER BY flt")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT flt FROM t1 ORDER BY flt")
+			return
+		}
+		got := flatten(r)
+		want := "-11.0 -1.6 -0.0013442 0.123 2.15 3.141592653 123.0 4221.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.6"
 		r = db.Query("SELECT flt FROM t1 ORDER BY flt DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT flt FROM t1 ORDER BY flt DESC")
+			return
+		}
+		got := flatten(r)
+		want := "4221.0 123.0 3.141592653 2.15 0.123 -0.0013442 -1.6 -11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.7"
 		r = db.Query("SELECT roman FROM t1 ORDER BY roman")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT roman FROM t1 ORDER BY roman")
+			return
+		}
+		got := flatten(r)
+		want := "I II III IV V VI VII VIII"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.8"
 		r = db.Query("SELECT n FROM t1 ORDER BY log, flt")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log, flt")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5 4 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.8.1"
 		r = db.Query("SELECT n FROM t1 ORDER BY log asc, flt")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log asc, flt")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5 4 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.8.2"
 		r = db.Query("SELECT n FROM t1 ORDER BY log, flt ASC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log, flt ASC")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5 4 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.8.3"
 		r = db.Query("SELECT n FROM t1 ORDER BY log ASC, flt asc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log ASC, flt asc")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5 4 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.9"
 		r = db.Query("SELECT n FROM t1 ORDER BY log, flt DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log, flt DESC")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 2 7 6 4 5 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.9.1"
 		r = db.Query("SELECT n FROM t1 ORDER BY log ASC, flt DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log ASC, flt DESC")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 2 7 6 4 5 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.10"
 		r = db.Query("SELECT n FROM t1 ORDER BY log DESC, flt")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log DESC, flt")
+			return
+		}
+		got := flatten(r)
+		want := "8 5 4 6 7 2 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-1.11"
 		r = db.Query("SELECT n FROM t1 ORDER BY log DESC, flt DESC")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT n FROM t1 ORDER BY log DESC, flt DESC")
+			return
+		}
+		got := flatten(r)
+		want := "8 7 6 4 5 3 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-2.1.1"
 		r = db.Query("\n    UPDATE t1 SET v='x' || -flt;\n    UPDATE t1 SET v='x-2b' where v=='x-0.123';\n    SELECT v FROM t1 ORDER BY v;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET v='x' || -flt;\n    UPDATE t1 SET v='x-2b' where v=='x-0.123';\n    SELECT v FROM t1 ORDER BY v;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "x-123.0 x-2.15 x-2b x-3.141592653 x-4221.0 x0.0013442 x1.6 x11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-2.1.2"
 		r = db.Query("\n    SELECT v FROM t1 ORDER BY substr(v,2,999);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT v FROM t1 ORDER BY substr(v,2,999);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "x-123.0 x-2.15 x-2b x-3.141592653 x-4221.0 x0.0013442 x1.6 x11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-2.1.3"
 		r = db.Query("\n    SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "x-4221.0 x-123.0 x-3.141592653 x-2.15 x-2b x0.0013442 x1.6 x11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-2.1.4"
 		r = db.Query("\n    SELECT v FROM t1 ORDER BY substr(v,2,999) DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT v FROM t1 ORDER BY substr(v,2,999) DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "x11.0 x1.6 x0.0013442 x-4221.0 x-3.141592653 x-2b x-2.15 x-123.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-2.1.5"
 		r = db.Query("\n    SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0 DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0 DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "x11.0 x1.6 x0.0013442 x-2b x-2.15 x-3.141592653 x-123.0 x-4221.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-3.1"
 		r = db.Query("\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES('AGLIENTU',1);\n    INSERT INTO t2 VALUES('AGLIE`',2);\n    INSERT INTO t2 VALUES('AGNA',3);\n    SELECT a, b FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES('AGLIENTU',1);\n    INSERT INTO t2 VALUES('AGLIE`',2);\n    INSERT INTO t2 VALUES('AGNA',3);\n    SELECT a, b FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "AGLIENTU 1 AGLIE` 2 AGNA 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-3.2"
 		r = db.Query("\n    SELECT a, b FROM t2 ORDER BY a DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t2 ORDER BY a DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "AGNA 3 AGLIE` 2 AGLIENTU 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-3.3"
 		r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES('aglientu',1);\n    INSERT INTO t2 VALUES('aglie`',2);\n    INSERT INTO t2 VALUES('agna',3);\n    SELECT a, b FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES('aglientu',1);\n    INSERT INTO t2 VALUES('aglie`',2);\n    INSERT INTO t2 VALUES('agna',3);\n    SELECT a, b FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aglie` 2 aglientu 1 agna 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-3.4"
 		r = db.Query("\n    SELECT a, b FROM t2 ORDER BY a DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t2 ORDER BY a DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "agna 3 aglientu 1 aglie` 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(9,'x2.7',3,'IX',4.0e5);\n    INSERT INTO t1 VALUES(10,'x5.0e10',3,'X',-4.0e5);\n    INSERT INTO t1 VALUES(11,'x-4.0e9',3,'XI',4.1e4);\n    INSERT INTO t1 VALUES(12,'x01234567890123456789',3,'XII',-4.2e3);\n    SELECT n FROM t1 ORDER BY n;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(9,'x2.7',3,'IX',4.0e5);\n    INSERT INTO t1 VALUES(10,'x5.0e10',3,'X',-4.0e5);\n    INSERT INTO t1 VALUES(11,'x-4.0e9',3,'XI',4.1e4);\n    INSERT INTO t1 VALUES(12,'x01234567890123456789',3,'XII',-4.2e3);\n    SELECT n FROM t1 ORDER BY n;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.2"
 		r = db.Query("\n    SELECT n||'' FROM t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT n||'' FROM t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 10 11 12 2 3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.3"
 		r = db.Query("\n    SELECT n+0 FROM t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT n+0 FROM t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.4"
 		r = db.Query("\n    SELECT n||'' FROM t1 ORDER BY 1 DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT n||'' FROM t1 ORDER BY 1 DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 8 7 6 5 4 3 2 12 11 10 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.5"
 		r = db.Query("\n    SELECT n+0 FROM t1 ORDER BY 1 DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT n+0 FROM t1 ORDER BY 1 DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 11 10 9 8 7 6 5 4 3 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.6"
 		r = db.Query("\n    SELECT v FROM t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT v FROM t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "x-123.0 x-2.15 x-2b x-3.141592653 x-4.0e9 x-4221.0 x0.0013442 x01234567890123456789 x1.6 x11.0 x2.7 x5.0e10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.7"
 		r = db.Query("\n    SELECT v FROM t1 ORDER BY 1 DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT v FROM t1 ORDER BY 1 DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "x5.0e10 x2.7 x11.0 x1.6 x01234567890123456789 x0.0013442 x-4221.0 x-4.0e9 x-3.141592653 x-2b x-2.15 x-123.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-4.8"
 		r = db.Query("\n    SELECT substr(v,2,99) FROM t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT substr(v,2,99) FROM t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-123.0 -2.15 -2b -3.141592653 -4.0e9 -4221.0 0.0013442 01234567890123456789 1.6 11.0 2.7 5.0e10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-5.1"
 		r = db.Query("\n    create table t3(a,b);\n    insert into t3 values(5,NULL);\n    insert into t3 values(6,NULL);\n    insert into t3 values(3,NULL);\n    insert into t3 values(4,'cd');\n    insert into t3 values(1,'ab');\n    insert into t3 values(2,NULL);\n    select a from t3 order by b, a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t3(a,b);\n    insert into t3 values(5,NULL);\n    insert into t3 values(6,NULL);\n    insert into t3 values(3,NULL);\n    insert into t3 values(4,'cd');\n    insert into t3 values(1,'ab');\n    insert into t3 values(2,NULL);\n    select a from t3 order by b, a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 5 6 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-5.2"
 		r = db.Query("\n    select a from t3 order by b, a desc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select a from t3 order by b, a desc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 5 3 2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-5.3"
 		r = db.Query("\n    select a from t3 order by b desc, a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select a from t3 order by b desc, a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 2 3 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-5.4"
 		r = db.Query("\n    select a from t3 order by b desc, a desc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select a from t3 order by b desc, a desc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 6 5 3 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-6.1"
 		r = db.Query("\n    create index i3 on t3(b,a);\n    select a from t3 order by b, a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create index i3 on t3(b,a);\n    select a from t3 order by b, a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 5 6 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-6.2"
 		r = db.Query("\n    select a from t3 order by b, a desc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select a from t3 order by b, a desc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 5 3 2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-6.3"
 		r = db.Query("\n    select a from t3 order by b desc, a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select a from t3 order by b desc, a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 2 3 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-6.4"
 		r = db.Query("\n    select a from t3 order by b desc, a desc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select a from t3 order by b desc, a desc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 6 5 3 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.1"
 		r = db.Query("\n    CREATE TABLE t4(\n      a INTEGER,\n      b VARCHAR(30)\n    );\n    INSERT INTO t4 VALUES(1,1);\n    INSERT INTO t4 VALUES(2,2);\n    INSERT INTO t4 VALUES(11,11);\n    INSERT INTO t4 VALUES(12,12);\n    SELECT a FROM t4 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(\n      a INTEGER,\n      b VARCHAR(30)\n    );\n    INSERT INTO t4 VALUES(1,1);\n    INSERT INTO t4 VALUES(2,2);\n    INSERT INTO t4 VALUES(11,11);\n    INSERT INTO t4 VALUES(12,12);\n    SELECT a FROM t4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.2"
 		r = db.Query("\n    SELECT b FROM t4 ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t4 ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 12 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.3"
 		r = db.Query("\n    CREATE VIEW v4 AS SELECT * FROM t4;\n    SELECT a FROM v4 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v4 AS SELECT * FROM t4;\n    SELECT a FROM v4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.4"
 		r = db.Query("\n    SELECT b FROM v4 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM v4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 12 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.5"
 		r = db.Query("\n    SELECT a FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.6"
 		r = db.Query("\n    SELECT b FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12 1 11 12 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.7"
 		r = db.Query("\n    SELECT a FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12 1 11 12 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-7.8"
 		r = db.Query("\n    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 12 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-8.1"
 		r = db.Query("\n    CREATE TABLE t5(a real, b text);\n    INSERT INTO t5 VALUES(100,'A1');\n    INSERT INTO t5 VALUES(100.0,'A2');\n    SELECT * FROM t5 ORDER BY a, b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a real, b text);\n    INSERT INTO t5 VALUES(100,'A1');\n    INSERT INTO t5 VALUES(100.0,'A2');\n    SELECT * FROM t5 ORDER BY a, b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "100.0 A1 100.0 A2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-9.1"
 		r = db.Query("\n    CREATE TABLE t6(x, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,'1');\n    INSERT INTO t6 VALUES(3,x'31');\n    INSERT INTO t6 VALUES(4,NULL);\n    SELECT x FROM t6 ORDER BY y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,'1');\n    INSERT INTO t6 VALUES(3,x'31');\n    INSERT INTO t6 VALUES(4,NULL);\n    SELECT x FROM t6 ORDER BY y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-9.2"
 		r = db.Query("\n    SELECT x FROM t6 ORDER BY y DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 ORDER BY y DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-9.3"
 		r = db.Query("\n    SELECT x FROM t6 WHERE y<1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y<1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-9.4"
 		r = db.Query("\n    SELECT x FROM t6 WHERE y<'1'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y<'1'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-9.5"
 		r = db.Query("\n    SELECT x FROM t6 WHERE y<x'31'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y<x'31'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-9.6"
 		r = db.Query("\n    SELECT x FROM t6 WHERE y>1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y>1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-9.7"
 		r = db.Query("\n    SELECT x FROM t6 WHERE y>'1'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y>'1'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-10.1"
@@ -471,24 +826,48 @@ func Test_sort(t *testing.T) {
 		r = db.Query("\n    SELECT c FROM t7 WHERE c<=3 ORDER BY c DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t7 WHERE c<=3 ORDER BY c DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-10.3"
 		r = db.Query("\n    SELECT c FROM t7 WHERE c<3 ORDER BY c DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t7 WHERE c<3 ORDER BY c DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-11.1"
 		r = db.Query("\n    create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sort-12.1"
 		r = db.Query("\n    create table a (id integer primary key);\n    create table b (id integer primary key, aId integer, text);\n    insert into a values (1);\n    insert into b values (2, 1, 'xxx');\n    insert into b values (1, 1, 'zzz');\n    insert into b values (3, 1, 'yyy');\n    select a.id, b.id, b.text from a join b on (a.id = b.aId)\n      order by a.id, b.text;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table a (id integer primary key);\n    create table b (id integer primary key, aId integer, text);\n    insert into a values (1);\n    insert into b values (2, 1, 'xxx');\n    insert into b values (1, 1, 'zzz');\n    insert into b values (3, 1, 'yyy');\n    select a.id, b.id, b.text from a join b on (a.id = b.aId)\n      order by a.id, b.text;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 xxx 1 3 yyy 1 1 zzz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "sort-13.0"
@@ -509,9 +888,8 @@ func Test_sort(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -672,6 +1050,13 @@ func Test_sort(t *testing.T) {
 			r = db.Query("\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()

@@ -6,6 +6,7 @@ package fts3comp1
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
@@ -269,8 +270,16 @@ func Test_fts3comp1(t *testing.T) {
 		myfunc_invoked = "0" // TCL namespace variable
 		_ = myfunc_invoked // suppress unused warning
 		// proc myfunc increments counter var myfunc_invoked___return_data (registered via db func)
-		var myfunc_invoked___return_dataCounter int64
-		db.RegisterFunction("myfunc", func(args []interface{}) (interface{}, error) { myfunc_invoked___return_dataCounter++; return myfunc_invoked___return_dataCounter, nil }, 0, -1)
+		// db func myfunc myfunc (TCL proc accumulating ::myfunc_invoked)
+		db.RegisterFunction("myfunc", func(args []interface{}) (interface{}, error) {
+			cur := int64(0)
+			if n, err := strconv.ParseInt(strings.TrimSpace(myfunc_invoked), 10, 64); err == nil { cur = n }
+			cur++
+			myfunc_invoked = strconv.FormatInt(cur, 10)
+			vtab.TclVarSet("myfunc_invoked", "", myfunc_invoked)
+			if len(args) > 0 { return function.ValueText(args[0]), nil }
+			return nil, nil
+		}, 0, -1)
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
 			if _res.Error != nil {

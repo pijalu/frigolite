@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "strings"
 "testing"
 )
@@ -131,12 +132,10 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		// EQP assertion skipped: the EXISTS→semi-join flattening (where.c
-		// 11.c transform, planner-owned) is the P8.MISC queued gap — the
-		// engine plans the correlated scalar subquery (results correct:
-		// 1.5's count(*) passes) but its EQP retains a SUBQUERY node, as
-		// does the IN-subquery form. NA_EVIDENCE FULL-SUITE-DRIFT.T26-misc.
-		_ = got
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
+		}
 	}
 	{ // "1.3.2"
 		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE b=x)\n")
@@ -145,12 +144,10 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		// EQP assertion skipped: the EXISTS→semi-join flattening (where.c
-		// 11.c transform, planner-owned) is the P8.MISC queued gap — the
-		// engine plans the correlated scalar subquery (results correct:
-		// 1.5's count(*) passes) but its EQP retains a SUBQUERY node, as
-		// does the IN-subquery form. NA_EVIDENCE FULL-SUITE-DRIFT.T26-misc.
-		_ = got
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
+		}
 	}
 	{ // "1.4.1"
 		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE x=1 AND EXISTS (SELECT 1 FROM x1 WHERE a=x)\n")
@@ -159,12 +156,10 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		// EQP assertion skipped: the EXISTS→semi-join flattening (where.c
-		// 11.c transform, planner-owned) is the P8.MISC queued gap — the
-		// engine plans the correlated scalar subquery (results correct:
-		// 1.5's count(*) passes) but its EQP retains a SUBQUERY node, as
-		// does the IN-subquery form. NA_EVIDENCE FULL-SUITE-DRIFT.T26-misc.
-		_ = got
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
+		}
 	}
 	{ // "1.4.2"
 		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x) AND y=2\n")
@@ -173,12 +168,10 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		// EQP assertion skipped: the EXISTS→semi-join flattening (where.c
-		// 11.c transform, planner-owned) is the P8.MISC queued gap — the
-		// engine plans the correlated scalar subquery (results correct:
-		// 1.5's count(*) passes) but its EQP retains a SUBQUERY node, as
-		// does the IN-subquery form. NA_EVIDENCE FULL-SUITE-DRIFT.T26-misc.
-		_ = got
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
+		}
 	}
 	{ // "1.5"
 		r = db.Query("\n  SELECT count(*) FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x)\n")
@@ -283,12 +276,10 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		// EQP assertion skipped: the EXISTS→semi-join flattening (where.c
-		// 11.c transform, planner-owned) is the P8.MISC queued gap — the
-		// engine plans the correlated scalar subquery (results correct:
-		// 1.5's count(*) passes) but its EQP retains a SUBQUERY node, as
-		// does the IN-subquery form. NA_EVIDENCE FULL-SUITE-DRIFT.T26-misc.
-		_ = got
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
+		}
 	}
 	// proc definition (not transpiled)
 	{ // "3.0"
@@ -429,6 +420,13 @@ func Test_existsexpr(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t0 (c0 INT);  INSERT INTO t0(c0) VALUES (1);\n  CREATE TABLE t1(c0 INT);   INSERT INTO t1(c0) VALUES (2);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t0 LIMIT 0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0 (c0 INT);  INSERT INTO t0(c0) VALUES (1);\n  CREATE TABLE t1(c0 INT);   INSERT INTO t1(c0) VALUES (2);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t0 LIMIT 0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -630,6 +628,13 @@ func Test_existsexpr(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount > t2.data)\n  LIMIT 2 OFFSET 3\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount > t2.data)\n  LIMIT 2 OFFSET 3\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

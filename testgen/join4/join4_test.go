@@ -71,6 +71,12 @@ func Test_join4(t *testing.T) {
 		r = db.Query("\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join4-1.3"
@@ -87,30 +93,60 @@ func Test_join4(t *testing.T) {
 		r = db.Query("\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join4-1.5"
 		r = db.Query("\n    select * from t1 left outer join t2 on t1.a=t2.x where t2.z>='ok'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left outer join t2 on t1.a=t2.x where t2.z>='ok'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 two 2 niban ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join4-1.4"
 		r = db.Query("\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z>='ok'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z>='ok'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join4-1.6"
 		r = db.Query("\n      select * from t1 left outer join t2 on t1.a=t2.x where t2.z IN ('ok')\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select * from t1 left outer join t2 on t1.a=t2.x where t2.z IN ('ok')\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 two 2 niban ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join4-1.7"
 		r = db.Query("\n      select * from t1 left outer join t2 on t1.a=t2.x and t2.z IN ('ok')\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select * from t1 left outer join t2 on t1.a=t2.x and t2.z IN ('ok')\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

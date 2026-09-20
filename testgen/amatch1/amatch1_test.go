@@ -136,12 +136,26 @@ func Test_amatch1(t *testing.T) {
 		r = db.Query("\n    SELECT word, distance FROM t2\n     WHERE word MATCH 'joxxph' AND distance<300;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t2\n     WHERE word MATCH 'joxxph' AND distance<300;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "amatch1-2.22"
 		r = db.Query("\n    SELECT word, distance FROM t3\n     WHERE word MATCH 'joxxph' AND distance<300;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3\n     WHERE word MATCH 'joxxph' AND distance<300;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

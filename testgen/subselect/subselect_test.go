@@ -95,36 +95,73 @@ func Test_subselect(t *testing.T) {
 		r = db.Query("SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=2)")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-1.3b"
 		r = db.Query("SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=4)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=4)")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-1.3c"
 		r = db.Query("SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=6)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=6)")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-1.3d"
 		r = db.Query("SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=8)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=8)")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-1.3e"
 		r = db.Query("\n      SELECT b FROM t1\n       WHERE a = (SELECT a FROM t1 UNION SELECT b FROM t1 ORDER BY 1);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM t1\n       WHERE a = (SELECT a FROM t1 UNION SELECT b FROM t1 ORDER BY 1);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-1.4"
 		r = db.Query("SELECT b from t1 where a = coalesce((SELECT a FROM t1 WHERE b=5),1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b from t1 where a = coalesce((SELECT a FROM t1 WHERE b=5),1)")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-1.5"
@@ -151,96 +188,192 @@ func Test_subselect(t *testing.T) {
 		r = db.Query("\n    SELECT (SELECT a FROM t1 ORDER BY a), (SELECT a FROM t1 ORDER BY a DESC)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT a FROM t1 ORDER BY a), (SELECT a FROM t1 ORDER BY a DESC)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-2.2"
 		r = db.Query("\n    SELECT 1 IN (SELECT a FROM t1 ORDER BY a);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 1 IN (SELECT a FROM t1 ORDER BY a);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-2.3"
 		r = db.Query("\n    SELECT 2 IN (SELECT a FROM t1 ORDER BY a DESC);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 2 IN (SELECT a FROM t1 ORDER BY a DESC);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.1"
 		r = db.Query("\n    CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1 UNION ALL SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1 UNION ALL SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.2"
 		r = db.Query("\n    SELECT sum(x) FROM (SELECT x FROM t3 ORDER BY x LIMIT 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(x) FROM (SELECT x FROM t3 ORDER BY x LIMIT 2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.3"
 		r = db.Query("\n    SELECT sum(x) FROM (SELECT x FROM t3 ORDER BY x DESC LIMIT 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(x) FROM (SELECT x FROM t3 ORDER BY x DESC LIMIT 2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.4"
 		r = db.Query("\n    SELECT (SELECT x FROM t3 ORDER BY x);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT x FROM t3 ORDER BY x);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.5"
 		r = db.Query("\n    SELECT (SELECT x FROM t3 ORDER BY x DESC);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT x FROM t3 ORDER BY x DESC);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.6"
 		r = db.Query("\n    SELECT (SELECT x FROM t3 ORDER BY x LIMIT 1);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT x FROM t3 ORDER BY x LIMIT 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.7"
 		r = db.Query("\n    SELECT (SELECT x FROM t3 ORDER BY x DESC LIMIT 1);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT x FROM t3 ORDER BY x DESC LIMIT 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.8"
 		r = db.Query("\n    SELECT (SELECT x FROM t3 ORDER BY x LIMIT 1 OFFSET 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT x FROM t3 ORDER BY x LIMIT 1 OFFSET 2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.9"
 		r = db.Query("\n    SELECT (SELECT x FROM t3 ORDER BY x DESC LIMIT 1 OFFSET 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT x FROM t3 ORDER BY x DESC LIMIT 1 OFFSET 2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-3.10"
 		r = db.Query("\n    SELECT x FROM t3 WHERE x IN\n       (SELECT x FROM t3 ORDER BY x DESC LIMIT 1 OFFSET 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t3 WHERE x IN\n       (SELECT x FROM t3 ORDER BY x DESC LIMIT 1 OFFSET 2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-4.1"
 		r = db.Query("\n    CREATE TABLE t4(a TEXT, b TEXT);\n    INSERT INTO t4 VALUES('a','1');\n    INSERT INTO t4 VALUES('b','2');\n    INSERT INTO t4 VALUES('c','3');\n    SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a TEXT, b TEXT);\n    INSERT INTO t4 VALUES('a','1');\n    INSERT INTO t4 VALUES('b','2');\n    INSERT INTO t4 VALUES('c','3');\n    SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-4.2"
 		r = db.Query("\n    SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b LIMIT 1);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b LIMIT 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subselect-4.3"
 		r = db.Query("\n    SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b DESC LIMIT 1);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b DESC LIMIT 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

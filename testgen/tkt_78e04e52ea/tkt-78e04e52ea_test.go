@@ -60,6 +60,12 @@ func Test_tkt_78e04e52ea(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE \"\"(\"\" UNIQUE, x CHAR(100));\n    CREATE TABLE t2(x);\n    INSERT INTO \"\"(\"\") VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT * FROM \"\", t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE \"\"(\"\" UNIQUE, x CHAR(100));\n    CREATE TABLE t2(x);\n    INSERT INTO \"\"(\"\") VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT * FROM \"\", t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-78e04-1.1"
@@ -72,6 +78,12 @@ func Test_tkt_78e04e52ea(t *testing.T) {
 		r = db.Query("\n    PRAGMA table_info(\"\");\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA table_info(\"\");\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 {} {} 0 {} 0 1 x CHAR(100) 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-78e04-1.3"
@@ -88,18 +100,36 @@ func Test_tkt_78e04e52ea(t *testing.T) {
 		r = db.Query("\n    DROP TABLE \"\";\n    SELECT name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE \"\";\n    SELECT name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-78e04-2.1"
 		r = db.Query("\n    CREATE INDEX \"\" ON t2(x);\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX \"\" ON t2(x);\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t2 USING COVERING INDEX  (x=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "tkt-78e04-2.2"
 		r = db.Query("\n    DROP INDEX \"\";\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX \"\";\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=2;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SCAN t2*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 }

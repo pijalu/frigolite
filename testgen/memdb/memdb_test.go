@@ -171,9 +171,8 @@ func Test_memdb(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -182,30 +181,61 @@ func Test_memdb(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t4(a,b,c,d);\n    BEGIN;\n    INSERT INTO t4 VALUES(1,2,3,4);\n    SELECT * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a,b,c,d);\n    BEGIN;\n    INSERT INTO t4 VALUES(1,2,3,4);\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "memdb-3.2"
 		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3 t4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "memdb-3.3"
 		r = db.Query("\n    DROP TABLE t4;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t4;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "memdb-3.4"
 		r = db.Query("\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3 t4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "memdb-4.0"
 		r = db.Query("\n    CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// foreach {i conf cmd t0 t1 t2} "1 {}       INSERT                  1 {}  1\n  2 {}       {INSERT OR IGNORE}      0 3   1\n  3 {}       {INSERT OR REPLACE}     0 4   1\n  4 {}       REPLACE                 0 4   1\n  5 {}       {INSERT OR FAIL}        1 {}  1\n  6 {}       {INSERT OR ABORT}       1 {}  1\n  7 {}       {INSERT OR ROLLBACK}    1 {}  {}"
@@ -270,6 +300,12 @@ func Test_memdb(t *testing.T) {
 			r = db.Query("\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 1 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// foreach {i conf1 conf2 cmd t0 t1 t2} "1 {}       {}       UPDATE                  1 {6 7 8 9}  1\n  2 REPLACE  {}       UPDATE                  0 {7 6 9}    1\n  3 IGNORE   {}       UPDATE                  0 {6 7 3 9}  1\n  4 FAIL     {}       UPDATE                  1 {6 7 3 4}  1\n  5 ABORT    {}       UPDATE                  1 {1 2 3 4}  1\n  6 ROLLBACK {}       UPDATE                  1 {1 2 3 4}  0\n  7 REPLACE  {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n  8 IGNORE   {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n  9 FAIL     {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 10 ABORT    {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 11 ROLLBACK {}       {UPDATE OR IGNORE}      0 {6 7 3 9}   1\n 12 {}       {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 13 {}       {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 14 {}       {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1\n 15 {}       {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1\n 16 {}       {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0"
@@ -342,96 +378,195 @@ func Test_memdb(t *testing.T) {
 				r = db.Query("\n    SELECT * FROM t2;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 1 2 3 2 3 4 1 4 5 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.2"
 				r = db.Query("\n    BEGIN;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "t1 t3 t4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.3"
 				r = db.Query("\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "t1 t2 t3 t4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.4"
 				r = db.Query("\n    SELECT * FROM t2;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 1 2 3 2 3 4 1 4 5 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.5"
 				r = db.Query("\n    SELECT a FROM t2 UNION SELECT b FROM t2 ORDER BY 1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 UNION SELECT b FROM t2 ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.6"
 				r = db.Query("\n    CREATE INDEX i2 ON t2(c);\n    SELECT a FROM t2 ORDER BY c;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i2 ON t2(c);\n    SELECT a FROM t2 ORDER BY c;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 3 2 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.6"
 				r = db.Query("\n    SELECT a FROM t2 ORDER BY c DESC;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 ORDER BY c DESC;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "4 2 3 1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.7"
 				r = db.Query("\n    BEGIN;\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 VALUES(1,2);\n    SELECT * FROM t5;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 VALUES(1,2);\n    SELECT * FROM t5;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.8"
 				r = db.Query("\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "t1 t2 t3 t4 t5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.9"
 				r = db.Query("\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "t1 t2 t3 t4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.10"
 				r = db.Query("\n    CREATE TABLE t5(x PRIMARY KEY, y UNIQUE);\n    SELECT * FROM t5;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(x PRIMARY KEY, y UNIQUE);\n    SELECT * FROM t5;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.11"
 				r = db.Query("\n    SELECT * FROM t5 ORDER BY y DESC;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t5 ORDER BY y DESC;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.12"
 				r = db.Query("\n      INSERT INTO t5 VALUES(1,2);\n      INSERT INTO t5 VALUES(3,4);\n      REPLACE INTO t5 VALUES(1,4);\n      SELECT rowid,* FROM t5;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t5 VALUES(1,2);\n      INSERT INTO t5 VALUES(3,4);\n      REPLACE INTO t5 VALUES(1,4);\n      SELECT rowid,* FROM t5;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := "3 1 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.13"
 				r = db.Query("\n      DELETE FROM t5 WHERE x>5;\n      SELECT * FROM t5;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t5 WHERE x>5;\n      SELECT * FROM t5;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := "1 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.14"
 				r = db.Query("\n      DELETE FROM t5 WHERE y<3;\n      SELECT * FROM t5;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t5 WHERE y<3;\n      SELECT * FROM t5;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := "1 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-6.15"
 				r = db.Query("\n    DELETE FROM t5 WHERE x>0;\n    SELECT * FROM t5;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t5 WHERE x>0;\n    SELECT * FROM t5;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-7.1"
@@ -458,9 +593,8 @@ func Test_memdb(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			{ // do_test "memdb-8.1"
@@ -477,6 +611,12 @@ func Test_memdb(t *testing.T) {
 				r = db.Query("\n    DELETE FROM t1;\n    SELECT count(*) FROM t1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT count(*) FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "memdb-9.1"

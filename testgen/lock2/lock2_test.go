@@ -85,6 +85,12 @@ func Test_lock2(t *testing.T) {
 		r = db.Query("pragma lock_status")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma lock_status")
+			return
+		}
+		got := flatten(r)
+		want := "main unlocked temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
@@ -184,6 +190,13 @@ func Test_lock2(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("table abc abc " + tclExprWith("$AUTOVACUUM?3:2", map[string]string{"AUTOVACUUM": AUTOVACUUM}) + " {CREATE TABLE abc(a, b, c)}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// catch (non-braced)

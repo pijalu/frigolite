@@ -80,30 +80,60 @@ func Test_subquery2(t *testing.T) {
 		r = db.Query("\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subquery2-1.11"
 		r = db.Query("\n    SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subquery2-1.12"
 		r = db.Query("\n    SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subquery2-1.21"
 		r = db.Query("\n    SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "subquery2-1.22"
 		r = db.Query("\n    SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.1"
@@ -232,8 +262,7 @@ func Test_subquery2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -245,8 +274,7 @@ func Test_subquery2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -258,8 +286,7 @@ func Test_subquery2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -271,8 +298,7 @@ func Test_subquery2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -284,8 +310,7 @@ func Test_subquery2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -310,8 +335,7 @@ func Test_subquery2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -329,8 +353,7 @@ func Test_subquery2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

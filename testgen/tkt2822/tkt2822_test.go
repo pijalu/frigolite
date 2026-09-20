@@ -68,60 +68,120 @@ func Test_tkt2822(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM t1 UNION ALL SELECT a, b, c FROM t2 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM t1 UNION ALL SELECT a, b, c FROM t2 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 9 2 6 18 3 9 27 4 12 36 5 15 45 6 18 54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-1.2"
 		r = db.Query("\n    SELECT a, CAST (b AS TEXT), c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, CAST (b AS TEXT), c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 6 18 4 12 36 6 18 54 5 15 45 1 3 9 3 9 27"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-2.1"
 		r = db.Query("\n    SELECT a, b, c FROM t1 UNION ALL SELECT a, b, c FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM t1 UNION ALL SELECT a, b, c FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 9 2 6 18 3 9 27 4 12 36 5 15 45 6 18 54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-2.2"
 		r = db.Query("\n    SELECT a, CAST (b AS TEXT) AS x, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, CAST (b AS TEXT) AS x, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 6 18 4 12 36 6 18 54 5 15 45 1 3 9 3 9 27"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-2.3"
 		r = db.Query("\n    SELECT t1.a, b, c FROM t1 UNION ALL SELECT t2.a, b, c FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a, b, c FROM t1 UNION ALL SELECT t2.a, b, c FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 9 2 6 18 3 9 27 4 12 36 5 15 45 6 18 54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-3.1"
 		r = db.Query("\n    SELECT a, CAST (b AS TEXT) AS x, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY CAST (b AS TEXT);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, CAST (b AS TEXT) AS x, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY CAST (b AS TEXT);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 6 18 4 12 36 6 18 54 5 15 45 1 3 9 3 9 27"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-3.2"
 		r = db.Query("\n    SELECT t1.a, b, c FROM t1 UNION ALL SELECT t2.a, b, c FROM t2 ORDER BY t1.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a, b, c FROM t1 UNION ALL SELECT t2.a, b, c FROM t2 ORDER BY t1.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 9 2 6 18 3 9 27 4 12 36 5 15 45 6 18 54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-3.3"
 		r = db.Query("\n    SELECT a, b, c FROM t1 UNION ALL SELECT a AS x, b, c FROM t2 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM t1 UNION ALL SELECT a AS x, b, c FROM t2 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 9 2 6 18 3 9 27 4 12 36 5 15 45 6 18 54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-3.4"
 		r = db.Query("\n    SELECT a AS b, CAST (b AS TEXT) AS a, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS b, CAST (b AS TEXT) AS a, c FROM t1 \n      UNION ALL \n    SELECT a, b, c FROM t2 \n      ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 6 18 4 12 36 6 18 54 5 15 45 1 3 9 3 9 27"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-3.5"
 		r = db.Query("\n    SELECT a, b, c FROM t2 \n      UNION ALL \n    SELECT a AS b, CAST (b AS TEXT) AS a, c FROM t1 \n      ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM t2 \n      UNION ALL \n    SELECT a AS b, CAST (b AS TEXT) AS a, c FROM t1 \n      ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 9 2 6 18 3 9 27 4 12 36 5 15 45 6 18 54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-4.1"
@@ -140,66 +200,132 @@ func Test_tkt2822(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,8);\n    INSERT INTO t3 VALUES(9,2);\n\n    SELECT a AS b FROM t3 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,8);\n    INSERT INTO t3 VALUES(9,2);\n\n    SELECT a AS b FROM t3 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-5.2"
 		r = db.Query("\n    SELECT a AS b FROM t3 ORDER BY B;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS b FROM t3 ORDER BY B;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-5.3"
 		r = db.Query("\n    SELECT a AS 'b' FROM t3 ORDER BY \"B\";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS 'b' FROM t3 ORDER BY \"B\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-5.4"
 		r = db.Query("\n    SELECT a AS \"b\" FROM t3 ORDER BY [B];\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS \"b\" FROM t3 ORDER BY [B];\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-5.5"
 		r = db.Query("\n    SELECT a AS b FROM t3 ORDER BY +b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS b FROM t3 ORDER BY +b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-6.1"
 		r = db.Query("\n    CREATE TABLE t6a(p,q);\n    INSERT INTO t6a VALUES(1,8);\n    INSERT INTO t6a VALUES(9,2);\n    CREATE TABLE t6b(x,y);\n    INSERT INTO t6b VALUES(1,7);\n    INSERT INTO t6b VALUES(7,2);\n\n    SELECT p, q FROM t6a UNION ALL SELECT x, y FROM t6b ORDER BY 1, 2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6a(p,q);\n    INSERT INTO t6a VALUES(1,8);\n    INSERT INTO t6a VALUES(9,2);\n    CREATE TABLE t6b(x,y);\n    INSERT INTO t6b VALUES(1,7);\n    INSERT INTO t6b VALUES(7,2);\n\n    SELECT p, q FROM t6a UNION ALL SELECT x, y FROM t6b ORDER BY 1, 2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 7 1 8 7 2 9 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-6.2"
 		r = db.Query("\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY PX, YX\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY PX, YX\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 7 1 8 7 2 9 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-6.3"
 		r = db.Query("\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY XX, QX\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY XX, QX\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 7 1 8 7 2 9 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-6.4"
 		r = db.Query("\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY QX, XX\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY QX, XX\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 2 9 2 1 7 1 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-6.5"
 		r = db.Query("\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY t6b.x, QX\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY t6b.x, QX\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 7 1 8 7 2 9 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-6.6"
 		r = db.Query("\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY t6a.q, XX\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT p PX, q QX FROM t6a UNION ALL SELECT x XX, y YX FROM t6b\n    ORDER BY t6a.q, XX\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 2 9 2 1 7 1 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2822-7.1"

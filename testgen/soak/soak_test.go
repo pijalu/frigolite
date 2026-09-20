@@ -135,9 +135,8 @@ func Test_soak(t *testing.T) {
 			// incr iRun 1
 			{
 				_n, _err := strconv.Atoi(iRun)
-				if _err == nil {
-					iRun = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				iRun = strconv.Itoa(_n + 1)
 			}
 		}
 		// really_finish_test (unsupported command, not transpiled)

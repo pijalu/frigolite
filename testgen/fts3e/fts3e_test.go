@@ -62,18 +62,36 @@ func Test_fts3e(t *testing.T) {
 		r = db.Query("\n    SELECT docid FROM t1 ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3e-1.2"
 		r = db.Query("\n    SELECT docid FROM t1 WHERE c LIKE '%test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 WHERE c LIKE '%test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3e-1.3"
 		r = db.Query("\n    SELECT docid FROM t1 WHERE c LIKE 'That%' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 WHERE c LIKE 'That%' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER UNIQUE);\n  INSERT INTO t2 VALUES (null, 10);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n  INSERT INTO t2 VALUES (null, 5);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'That was a test');\n  INSERT INTO t2 VALUES (null, 20);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n")
@@ -81,18 +99,36 @@ func Test_fts3e(t *testing.T) {
 		r = db.Query("\n    SELECT docid FROM t1 WHERE docid in (1, 2, 10);\n    SELECT rowid FROM t1 WHERE rowid in (1, 2, 10);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 WHERE docid in (1, 2, 10);\n    SELECT rowid FROM t1 WHERE rowid in (1, 2, 10);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3e-2.2"
 		r = db.Query("\n    SELECT docid, weight FROM t1, t2 WHERE t2.id = t1.docid ORDER BY weight;\n    SELECT t1.rowid, weight FROM t1, t2 WHERE t2.id = t1.rowid ORDER BY weight;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, weight FROM t1, t2 WHERE t2.id = t1.docid ORDER BY weight;\n    SELECT t1.rowid, weight FROM t1, t2 WHERE t2.id = t1.rowid ORDER BY weight;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 5 1 10 3 20 2 5 1 10 3 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3e-2.3"
 		r = db.Query("\n    SELECT docid, weight FROM t1, t2\n           WHERE t2.weight>5 AND t2.id = t1.docid ORDER BY weight;\n    SELECT t1.rowid, weight FROM t1, t2\n           WHERE t2.weight>5 AND t2.id = t1.rowid ORDER BY weight;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, weight FROM t1, t2\n           WHERE t2.weight>5 AND t2.id = t1.docid ORDER BY weight;\n    SELECT t1.rowid, weight FROM t1, t2\n           WHERE t2.weight>5 AND t2.id = t1.rowid ORDER BY weight;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 10 3 20 1 10 3 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER UNIQUE);\n  INSERT INTO t2 VALUES (null, 10);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n  INSERT INTO t2 VALUES (null, 5);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'That was a test');\n  INSERT INTO t2 VALUES (null, 20);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n")
@@ -100,12 +136,24 @@ func Test_fts3e(t *testing.T) {
 		r = db.Query("\n    SELECT docid FROM t1 WHERE t1 MATCH 'this' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 WHERE t1 MATCH 'this' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3e-3.2"
 		r = db.Query("\n    SELECT docid, weight FROM t1, t2\n     WHERE t1 MATCH 'this' AND t1.docid = t2.id ORDER BY weight;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, weight FROM t1, t2\n     WHERE t1 MATCH 'this' AND t1.docid = t2.id ORDER BY weight;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 10 3 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

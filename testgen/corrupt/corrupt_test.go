@@ -138,6 +138,7 @@ func Test_corrupt(t *testing.T) {
 		_ = fd // suppress unused warning
 		fileChannelSeek["fd"] = int64(tclAtoi(i))
 		tclChannelAppendAt("test.db", junk, fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len(junk))
 		// close $fd
 		{ // do_test "corrupt-2." + tn + ".1"
 			db, err = frigolite.Open("test.db")
@@ -149,7 +150,7 @@ func Test_corrupt(t *testing.T) {
 			x = ""
 			_ = x // suppress unused warning
 			got := tclListFlatten(x)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".1")
 			}
@@ -161,7 +162,7 @@ func Test_corrupt(t *testing.T) {
 			x = ""
 			_ = x // suppress unused warning
 			got := tclListFlatten(x)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".2")
 			}
@@ -173,7 +174,7 @@ func Test_corrupt(t *testing.T) {
 			x = ""
 			_ = x // suppress unused warning
 			got := tclListFlatten(x)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".3")
 			}
@@ -185,7 +186,7 @@ func Test_corrupt(t *testing.T) {
 			x = ""
 			_ = x // suppress unused warning
 			got := tclListFlatten(x)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".4")
 			}
@@ -197,7 +198,7 @@ func Test_corrupt(t *testing.T) {
 			x = ""
 			_ = x // suppress unused warning
 			got := tclListFlatten(x)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".5")
 			}
@@ -209,7 +210,7 @@ func Test_corrupt(t *testing.T) {
 			x = ""
 			_ = x // suppress unused warning
 			got := tclListFlatten(x)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".6")
 			}
@@ -221,7 +222,7 @@ func Test_corrupt(t *testing.T) {
 			x = ""
 			_ = x // suppress unused warning
 			got := tclListFlatten(x)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".7")
 			}
@@ -231,9 +232,8 @@ func Test_corrupt(t *testing.T) {
 		// incr i 256
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 256)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 256)
 		}
 	}
 	{ // do_test "corrupt-3.1"
@@ -291,6 +291,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-4.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -311,9 +312,8 @@ func Test_corrupt(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" CREATE INDEX i1 ON t1(b) ")
@@ -340,6 +340,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-5.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -374,6 +375,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-6.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -392,9 +394,8 @@ func Test_corrupt(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid=1 ")
@@ -416,6 +417,7 @@ func Test_corrupt(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -435,9 +437,8 @@ func Test_corrupt(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -446,6 +447,7 @@ func Test_corrupt(t *testing.T) {
 	_ = fd // suppress unused warning
 	fileChannelSeek["fd"] = int64(tclAtoi("1032"))
 	tclChannelAppendAt("test.db", "\x03\x14", fileChannelSeek["fd"])
+	fileChannelSeek["fd"] += int64(len("\x03\x14"))
 	// close $fd
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
@@ -464,6 +466,7 @@ func Test_corrupt(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	{ // do_test "corrupt-8.1"
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
@@ -479,6 +482,7 @@ func Test_corrupt(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
 	{ // do_test "corrupt-8.2"
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)

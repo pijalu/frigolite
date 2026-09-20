@@ -649,96 +649,192 @@ func Test_tkt2927(t *testing.T) {
 		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.2"
 		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.3"
 		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.4"
 		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.5"
 		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.6"
 		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.7"
 		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.8"
 		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.9"
 		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.10"
 		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.11"
 		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.12"
 		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.13"
 		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.14"
 		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.15"
 		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.16"
 		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.1"

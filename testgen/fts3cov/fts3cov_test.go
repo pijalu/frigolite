@@ -62,7 +62,7 @@ func Test_fts3cov(t *testing.T) {
 	_ = root // pre-declared from TCL source
 	var cols string
 	_ = cols // pre-declared from TCL source
-	var vals string
+	var vals *tclListBuilder
 	_ = vals // pre-declared from TCL source
 	var i string
 	_ = i // pre-declared from TCL source
@@ -84,6 +84,12 @@ func Test_fts3cov(t *testing.T) {
 		r = db.Query(" \n    CREATE VIRTUAL TABLE t1 USING fts3(x);\n    INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('Is the night chilly and dark?');\n      INSERT INTO t1 VALUES('The night is chilly, but not dark.');\n      INSERT INTO t1 VALUES('The thin gray cloud is spread on high,');\n      INSERT INTO t1 VALUES('It covers but not hides the sky.');\n    COMMIT;\n    SELECT count(*)>0 FROM t1_segments;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE VIRTUAL TABLE t1 USING fts3(x);\n    INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('Is the night chilly and dark?');\n      INSERT INTO t1 VALUES('The night is chilly, but not dark.');\n      INSERT INTO t1 VALUES('The thin gray cloud is spread on high,');\n      INSERT INTO t1 VALUES('It covers but not hides the sky.');\n    COMMIT;\n    SELECT count(*)>0 FROM t1_segments;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("DO_MALLOC_TEST", "", "1")
@@ -127,20 +133,19 @@ func Test_fts3cov(t *testing.T) {
 	{ // do_test "fts3cov-3.1"
 		cols = ""
 		_ = cols // suppress unused warning
-		vals = ""
+		vals = &tclListBuilder{}
 		_ = vals // suppress unused warning
 		vtab.TclVarSet("i", "", "0")
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 120 }() {
 			cols = tclListAppend(cols, "col" + i)
-			vals = tclListAppend(vals, "'word'")
+			vals.Append("'word'")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(" + strings.Join(tclSplitList(cols), ",") + ")")
@@ -204,9 +209,8 @@ func Test_fts3cov(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query(" SELECT count(*) FROM t5_segdir ")
@@ -231,9 +235,8 @@ func Test_fts3cov(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query(" SELECT count(*) FROM t5_segdir ")
@@ -246,12 +249,24 @@ func Test_fts3cov(t *testing.T) {
 		r = db.Query("\n    CREATE VIRTUAL TABLE t7 USING fts3(a, b, c);\n    INSERT INTO t7 VALUES('A', 'B', 'C');\n    UPDATE t7 SET docid = 5;\n    SELECT docid, * FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t7 USING fts3(a, b, c);\n    INSERT INTO t7 VALUES('A', 'B', 'C');\n    UPDATE t7 SET docid = 5;\n    SELECT docid, * FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 A B C"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3cov-7.2"
 		r = db.Query("\n    INSERT INTO t7 VALUES('D', 'E', 'F');\n    UPDATE t7 SET docid = 1 WHERE docid = 6;\n    SELECT docid, * FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 VALUES('D', 'E', 'F');\n    UPDATE t7 SET docid = 1 WHERE docid = 6;\n    SELECT docid, * FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 D E F 5 A B C"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_malloc_test fts3cov-8 -sqlprep {\n  BEGIN;\n    CREATE VIRTUAL TABLE t8 USING fts3...} -sqlb... (unsupported command, not transpiled)
@@ -309,6 +324,13 @@ func Test_fts3cov(t *testing.T) {
 		r = db.Query("\n  SELECT rowid FROM t14 WHERE t14 MATCH '\"one four\"'\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t14 WHERE t14 MATCH '\"one four\"'\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "14.3"
@@ -327,6 +349,13 @@ func Test_fts3cov(t *testing.T) {
 		r = db.Query("\n  SELECT rowid FROM t14 WHERE t14 MATCH '\"e b\"'\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t14 WHERE t14 MATCH '\"e b\"'\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "14.6"
@@ -384,4 +413,5 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n  SELECT * FROM t17 WHERE t17 MATCH 'one'\n")
 		}
 	}
+
 }

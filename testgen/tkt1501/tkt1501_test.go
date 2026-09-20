@@ -59,6 +59,12 @@ func Test_tkt1501(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT a, b, 'abc' FROM t1\n      UNION\n      SELECT b, a, 'xyz' FROM t1\n      ORDER BY 2, 3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT a, b, 'abc' FROM t1\n      UNION\n      SELECT b, a, 'xyz' FROM t1\n      ORDER BY 2, 3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 xyz 1 2 abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

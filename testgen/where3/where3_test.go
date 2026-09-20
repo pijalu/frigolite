@@ -89,6 +89,12 @@ func Test_where3(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(p, q);\n    CREATE TABLE t3(x, y);\n    \n    INSERT INTO t1 VALUES(111,'one');\n    INSERT INTO t1 VALUES(222,'two');\n    INSERT INTO t1 VALUES(333,'three');\n    \n    INSERT INTO t2 VALUES(1,111);\n    INSERT INTO t2 VALUES(2,222);\n    INSERT INTO t2 VALUES(4,444);\n    CREATE INDEX t2i1 ON t2(p);\n    \n    INSERT INTO t3 VALUES(999,'nine');\n    CREATE INDEX t3i1 ON t3(x);\n    \n    SELECT * FROM t1, t2 LEFT JOIN t3 ON q=x WHERE p=2 AND a=q;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(p, q);\n    CREATE TABLE t3(x, y);\n    \n    INSERT INTO t1 VALUES(111,'one');\n    INSERT INTO t1 VALUES(222,'two');\n    INSERT INTO t1 VALUES(333,'three');\n    \n    INSERT INTO t2 VALUES(1,111);\n    INSERT INTO t2 VALUES(2,222);\n    INSERT INTO t2 VALUES(4,444);\n    CREATE INDEX t2i1 ON t2(p);\n    \n    INSERT INTO t3 VALUES(999,'nine');\n    CREATE INDEX t3i1 ON t3(x);\n    \n    SELECT * FROM t1, t2 LEFT JOIN t3 ON q=x WHERE p=2 AND a=q;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "222 two 2 222 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where3-1.1.1"
@@ -98,6 +104,12 @@ func Test_where3(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE parent1(parent1key, child1key, Child2key, child3key);\n    CREATE TABLE child1 ( child1key NVARCHAR, value NVARCHAR );\n    CREATE UNIQUE INDEX PKIDXChild1 ON child1 ( child1key );\n    CREATE TABLE child2 ( child2key NVARCHAR, value NVARCHAR );\n\n    INSERT INTO parent1(parent1key,child1key,child2key)\n       VALUES ( 1, 'C1.1', 'C2.1' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.1', 'Value for C1.1' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.1', 'Value for C2.1' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 2, 'C1.2', 'C2.2' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.2', 'Value for C2.2' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 3, 'C1.3', 'C2.3' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.3', 'Value for C1.3' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.3', 'Value for C2.3' );\n\n    SELECT parent1.parent1key, child1.value, child2.value\n    FROM parent1\n    LEFT OUTER JOIN child1 ON child1.child1key = parent1.child1key\n    INNER JOIN child2 ON child2.child2key = parent1.child2key;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE parent1(parent1key, child1key, Child2key, child3key);\n    CREATE TABLE child1 ( child1key NVARCHAR, value NVARCHAR );\n    CREATE UNIQUE INDEX PKIDXChild1 ON child1 ( child1key );\n    CREATE TABLE child2 ( child2key NVARCHAR, value NVARCHAR );\n\n    INSERT INTO parent1(parent1key,child1key,child2key)\n       VALUES ( 1, 'C1.1', 'C2.1' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.1', 'Value for C1.1' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.1', 'Value for C2.1' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 2, 'C1.2', 'C2.2' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.2', 'Value for C2.2' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 3, 'C1.3', 'C2.3' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.3', 'Value for C1.3' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.3', 'Value for C2.3' );\n\n    SELECT parent1.parent1key, child1.value, child2.value\n    FROM parent1\n    LEFT OUTER JOIN child1 ON child1.child1key = parent1.child1key\n    INNER JOIN child2 ON child2.child2key = parent1.child2key;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 Value for C1.1 Value for C2.1 2 {} Value for C2.2 3 Value for C1.3 Value for C2.3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where3-1.2.1"
@@ -109,40 +121,40 @@ func Test_where3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tA(apk integer primary key, ax);\n    CREATE TABLE tB(bpk integer primary key, bx);\n    CREATE TABLE tC(cpk integer primary key, cx);\n    CREATE TABLE tD(dpk integer primary key, dx);\n  ")
 		}
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE cpk=bx AND bpk=ax")
 	}
 	{ // do_test "where3-2.1.1"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=dpk\n     WHERE cpk=bx AND bpk=ax")
 	}
 	{ // do_test "where3-2.1.2"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=dpk\n     WHERE bx=cpk AND bpk=ax")
 	}
 	{ // do_test "where3-2.1.3"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=dpk\n     WHERE bx=cpk AND ax=bpk")
 	}
 	{ // do_test "where3-2.1.4"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE bx=cpk AND ax=bpk")
 	}
 	{ // do_test "where3-2.1.5"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE cpk=bx AND ax=bpk")
 	}
 	{ // do_test "where3-2.2"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE cpk=bx AND apk=bx")
 	}
 	{ // do_test "where3-2.3"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE cpk=bx AND apk=bx")
 	}
 	{ // do_test "where3-2.4"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE apk=cx AND bpk=ax")
 	}
 	{ // do_test "where3-2.5"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE cpk=ax AND bpk=cx")
 	}
 	{ // do_test "where3-2.6"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE bpk=cx AND apk=bx")
 	}
 	{ // do_test "where3-2.7"
-		// queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=cx\n     WHERE cpk=bx AND apk=cx")
 	}
 	{ // "where3-3.0"
 		_res = db.Exec("\n  CREATE TABLE t301(a INTEGER PRIMARY KEY,b,c);\n  CREATE INDEX t301c ON t301(c);\n  INSERT INTO t301 VALUES(1,2,3);\n  INSERT INTO t301 VALUES(2,2,3);\n  CREATE TABLE t302(x, y);\n  INSERT INTO t302 VALUES(4,5);\n  ANALYZE;\n")
@@ -166,6 +178,13 @@ func Test_where3(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t301 WHERE c=3 AND a IS NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t301 WHERE c=3 AND a IS NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "where3-3.3"
@@ -262,9 +281,8 @@ func Test_where3(t *testing.T) {
 		// incr cnt 1
 		{
 			_n, _err := strconv.Atoi(cnt)
-			if _err == nil {
-				cnt = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			cnt = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "where3-6." + cnt + ".1"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w NATURAL JOIN t6x NATURAL JOIN t6y")
@@ -360,6 +378,13 @@ func Test_where3(t *testing.T) {
 			r = db.Query("\n    SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1 WHERE y2 IS NULL;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1 WHERE y2 IS NULL;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "where3-7." + disabled_opt + ".3"

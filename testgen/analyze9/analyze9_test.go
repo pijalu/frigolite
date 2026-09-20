@@ -213,7 +213,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "22.0 NULL x'656667' 2 {some text} 14 NULL 1"
+		want := "22.0 NULL x'656667' 2 {{some text} 14 NULL 1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -247,9 +247,8 @@ func Test_analyze9(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -405,9 +404,8 @@ func Test_analyze9(t *testing.T) {
 			// incr i tclExprWith("(($i<1000)?1:10)", map[string]string{"i": i})
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("\n    COMMIT;\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;\n  ")
@@ -577,9 +575,8 @@ func Test_analyze9(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("i", "", "0")
@@ -593,9 +590,8 @@ func Test_analyze9(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("i", "", "102")
@@ -609,9 +605,8 @@ func Test_analyze9(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -680,9 +675,8 @@ func Test_analyze9(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("ANALYZE")
@@ -731,9 +725,8 @@ func Test_analyze9(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("ANALYZE")
@@ -808,9 +801,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("ANALYZE")
@@ -910,9 +902,8 @@ func Test_analyze9(t *testing.T) {
 						// incr i 1
 						{
 							_n, _err := strconv.Atoi(i)
-							if _err == nil {
-								i = strconv.Itoa(_n + 1)
-							}
+							if _err != nil { _n = 0 }
+							i = strconv.Itoa(_n + 1)
 						}
 					}
 					_res = db.Exec("ANALYZE")
@@ -1000,9 +991,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("ANALYZE")
@@ -1070,9 +1060,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n    ANALYZE;\n  ")
@@ -1133,9 +1122,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -1156,9 +1144,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -1211,9 +1198,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -1241,9 +1227,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -1479,9 +1464,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("ANALYZE main.t1")
@@ -1548,9 +1532,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("ANALYZE")
@@ -1617,9 +1600,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -1651,9 +1633,8 @@ func Test_analyze9(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			db.Close()
@@ -1681,9 +1662,8 @@ func Test_analyze9(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("ANALYZE")
@@ -1714,6 +1694,13 @@ func Test_analyze9(t *testing.T) {
 				r = db.Query("\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "22.1"
@@ -1805,9 +1792,8 @@ func Test_analyze9(t *testing.T) {
 							// incr i 1
 							{
 								_n, _err := strconv.Atoi(i)
-								if _err == nil {
-									i = strconv.Itoa(_n + 1)
-								}
+								if _err != nil { _n = 0 }
+								i = strconv.Itoa(_n + 1)
 							}
 						}
 						vtab.TclVarSet("i", "", "0")
@@ -1821,9 +1807,8 @@ func Test_analyze9(t *testing.T) {
 							// incr i 1
 							{
 								_n, _err := strconv.Atoi(i)
-								if _err == nil {
-									i = strconv.Itoa(_n + 1)
-								}
+								if _err != nil { _n = 0 }
+								i = strconv.Itoa(_n + 1)
 							}
 						}
 						_res = db.Exec("\n      UPDATE t1 SET z = rowid / 20;\n      ANALYZE;\n    ")

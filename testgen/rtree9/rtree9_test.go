@@ -89,6 +89,13 @@ func Test_rtree9(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM rt WHERE id MATCH cube(3, 3, 3, 2, 2, 2);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM rt WHERE id MATCH cube(3, 3, 3, 2, 2, 2);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtree9-1.4"
@@ -114,9 +121,8 @@ func Test_rtree9(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	// do_rtree_integrity_test rtree9-2.0 rt (unsupported command, not transpiled)
@@ -167,9 +173,8 @@ func Test_rtree9(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	// do_rtree_integrity_test rtree9-3.1 rt32 (unsupported command, not transpiled)
@@ -216,9 +221,8 @@ func Test_rtree9(t *testing.T) {
 		// incr x 2
 		{
 			_n, _err := strconv.Atoi(x)
-			if _err == nil {
-				x = strconv.Itoa(_n + 2)
-			}
+			if _err != nil { _n = 0 }
+			x = strconv.Itoa(_n + 2)
 		}
 	}
 	{ // "rtree9-4.3"

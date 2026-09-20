@@ -157,6 +157,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n          CREATE TRIGGER temp_trig UPDATE ON temp_table BEGIN\n              SELECT * from sqlite_master;\n          END;\n          SELECT count(*) FROM sqlite_master WHERE name = 'temp_trig';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          CREATE TRIGGER temp_trig UPDATE ON temp_table BEGIN\n              SELECT * from sqlite_master;\n          END;\n          SELECT count(*) FROM sqlite_master WHERE name = 'temp_trig';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-1.9"
@@ -169,12 +175,24 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 b 4 d"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-1.11"
 		r = db.Query("\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 x-a 2 b 4 d"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-1.12"
@@ -275,12 +293,25 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n      DROP TABLE t2;\n      CREATE TABLE t2(x,y);\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t2;\n      CREATE TABLE t2(x,y);\n      SELECT * FROM t2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-3.8"
 		r = db.Query("\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-3.9"
@@ -297,6 +328,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n      CREATE TEMP TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(7,8);\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(7,8);\n      SELECT * FROM t2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-4.2"
@@ -317,6 +354,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n      DROP TABLE t1;\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t1;\n      SELECT * FROM t2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-4.4"
@@ -341,12 +384,24 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("SELECT type, name FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT type, name FROM sqlite_master")
+			return
+		}
+		got := flatten(r)
+		want := tclConcat(view_v1, "table t2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-6.2"
 		r = db.Query("\n    CREATE TRIGGER t2 BEFORE DELETE ON t2 BEGIN\n      SELECT RAISE(ABORT,'deletes are not permitted');\n    END;\n    SELECT type, name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER t2 BEFORE DELETE ON t2 BEGIN\n      SELECT RAISE(ABORT,'deletes are not permitted');\n    END;\n    SELECT type, name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclConcat(view_v1, "table t2 trigger t2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-6.3"
@@ -360,6 +415,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-6.5"
@@ -376,12 +437,24 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n    DROP TRIGGER t2;\n    SELECT type, name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TRIGGER t2;\n    SELECT type, name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclConcat(view_v1, "table t2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-6.7"
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-6.8"
@@ -400,48 +473,99 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n    CREATE TRIGGER 'trigger' AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER 'trigger' AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "trigger"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-8.2"
 		r = db.Query("\n    DROP TRIGGER 'trigger';\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TRIGGER 'trigger';\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-8.3"
 		r = db.Query("\n    CREATE TRIGGER \"trigger\" AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER \"trigger\" AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "trigger"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-8.4"
 		r = db.Query("\n    DROP TRIGGER \"trigger\";\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TRIGGER \"trigger\";\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-8.5"
 		r = db.Query("\n    CREATE TRIGGER [trigger] AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER [trigger] AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "trigger"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-8.6"
 		r = db.Query("\n    DROP TRIGGER [trigger];\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TRIGGER [trigger];\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-9.1"
 		r = db.Query("\n        CREATE TABLE t3(a,b);\n        CREATE TABLE t4(x UNIQUE, b);\n        CREATE TRIGGER r34 AFTER INSERT ON t3 BEGIN\n          REPLACE INTO t4 VALUES(new.a,new.b);\n        END;\n        INSERT INTO t3 VALUES(1,2);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        CREATE TABLE t3(a,b);\n        CREATE TABLE t4(x UNIQUE, b);\n        CREATE TRIGGER r34 AFTER INSERT ON t3 BEGIN\n          REPLACE INTO t4 VALUES(new.a,new.b);\n        END;\n        INSERT INTO t3 VALUES(1,2);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 99 99 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-9.2"
 		r = db.Query("\n        INSERT INTO t3 VALUES(1,3);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO t3 VALUES(1,3);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1 3 99 99 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n    DROP TABLE t3;\n    DROP TABLE t4;\n  ")
@@ -478,6 +602,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main 1 2 3 temp 4 5 6 aux 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-10.5"
@@ -490,6 +620,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main 1 2 3 temp 4 5 6 aux 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-10.7"
@@ -502,6 +638,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main 11 12 13 temp 14 15 16 aux 17 18 19"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-10.9"
@@ -520,6 +662,12 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main 21 22 23 temp 24 25 26 aux 27 28 29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger1-11.1"

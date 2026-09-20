@@ -88,9 +88,8 @@ func Test_intarray(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT b FROM t1 WHERE a IN (12,34,56,78) ORDER BY a\n  ")
@@ -128,7 +127,7 @@ func Test_intarray(t *testing.T) {
 		rc = _r
 		_ = rc // suppress unused warning
 		rc = tclListAppend(rc, ia1)
-		got := tclListFlatten(rc)
+		got := rc
 		wantPattern := "0 [0-9A-Z]+"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "intarray-1.1b")
@@ -138,6 +137,12 @@ func Test_intarray(t *testing.T) {
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intarray-1.3"
@@ -172,9 +177,8 @@ func Test_intarray(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		if err := tclEvalRuntime(cmd); err != nil { t.Errorf("eval %s: %v", cmd, err) }

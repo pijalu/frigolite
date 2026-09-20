@@ -67,18 +67,36 @@ func Test_tkt2391(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2391.3"
 		r = db.Query("\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2391.4"
 		r = db.Query("\n    CREATE INDEX f_i ON folders(foldername);\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX f_i ON folders(foldername);\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -86,9 +86,8 @@ func Test_tkt3363(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -96,12 +95,24 @@ func Test_tkt3363(t *testing.T) {
 		r = db.Query(" \n    SELECT count(*) FROM t1 WHERE +y2>4000425.0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1 WHERE +y2>4000425.0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3363.1.4"
 		r = db.Query(" \n    SELECT count(*) FROM t1 WHERE y2>4000425.0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1 WHERE y2>4000425.0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

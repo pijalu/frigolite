@@ -84,9 +84,8 @@ func Test_count(t *testing.T) {
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)
-			if _err == nil {
-				iTest = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			iTest = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "count-1." + iTest + ".1"
 			_res = db.Exec("\n      DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(a, b);\n    ")
@@ -106,24 +105,48 @@ func Test_count(t *testing.T) {
 			r = db.Query("\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "count-1." + iTest + ".3"
 			r = db.Query("\n      INSERT INTO t1 SELECT * FROM t1;          --   4\n      INSERT INTO t1 SELECT * FROM t1;          --   8\n      INSERT INTO t1 SELECT * FROM t1;          --  16\n      INSERT INTO t1 SELECT * FROM t1;          --  32\n      INSERT INTO t1 SELECT * FROM t1;          --  64\n      INSERT INTO t1 SELECT * FROM t1;          -- 128\n      INSERT INTO t1 SELECT * FROM t1;          -- 256\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT * FROM t1;          --   4\n      INSERT INTO t1 SELECT * FROM t1;          --   8\n      INSERT INTO t1 SELECT * FROM t1;          --  16\n      INSERT INTO t1 SELECT * FROM t1;          --  32\n      INSERT INTO t1 SELECT * FROM t1;          --  64\n      INSERT INTO t1 SELECT * FROM t1;          -- 128\n      INSERT INTO t1 SELECT * FROM t1;          -- 256\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "256"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "count-1." + iTest + ".4"
 			r = db.Query("\n      INSERT INTO t1 SELECT * FROM t1;          --  512\n      INSERT INTO t1 SELECT * FROM t1;          -- 1024\n      INSERT INTO t1 SELECT * FROM t1;          -- 2048\n      INSERT INTO t1 SELECT * FROM t1;          -- 4096\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT * FROM t1;          --  512\n      INSERT INTO t1 SELECT * FROM t1;          -- 1024\n      INSERT INTO t1 SELECT * FROM t1;          -- 2048\n      INSERT INTO t1 SELECT * FROM t1;          -- 4096\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "4096"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "count-1." + iTest + ".5"
 			r = db.Query("\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;          --  8192\n      INSERT INTO t1 SELECT * FROM t1;          -- 16384\n      INSERT INTO t1 SELECT * FROM t1;          -- 32768\n      INSERT INTO t1 SELECT * FROM t1;          -- 65536\n      COMMIT;\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;          --  8192\n      INSERT INTO t1 SELECT * FROM t1;          -- 16384\n      INSERT INTO t1 SELECT * FROM t1;          -- 32768\n      INSERT INTO t1 SELECT * FROM t1;          -- 65536\n      COMMIT;\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "65536"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -166,6 +189,13 @@ func Test_count(t *testing.T) {
 		r = db.Query("\n  SELECT count(*) FROM t2 HAVING count(*)>1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t2 HAVING count(*)>1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "count-2.9b"
@@ -208,30 +238,61 @@ func Test_count(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3(a, b);\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a, b);\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "count-3.2"
 		r = db.Query("\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "count-4.1"
 		r = db.Query("\n    CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('a', 'b');\n    CREATE INDEX t4i1 ON t4(b, a);\n    SELECT count(*) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('a', 'b');\n    CREATE INDEX t4i1 ON t4(b, a);\n    SELECT count(*) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "count-4.2"
 		r = db.Query("\n    CREATE INDEX t4i2 ON t4(b);\n    SELECT count(*) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t4i2 ON t4(b);\n    SELECT count(*) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "count-4.3"
 		r = db.Query("\n    DROP INDEX t4i1;\n    CREATE INDEX t4i1 ON t4(b, a);\n    SELECT count(*) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t4i1;\n    CREATE INDEX t4i1 ON t4(b, a);\n    SELECT count(*) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "count-5.1"

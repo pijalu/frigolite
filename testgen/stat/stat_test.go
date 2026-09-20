@@ -117,6 +117,13 @@ func Test_stat(t *testing.T) {
 		r = db.Query("\n  PRAGMA auto_vacuum = OFF;\n  CREATE VIRTUAL TABLE temp.stat USING dbstat;\n  SELECT * FROM stat;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = OFF;\n  CREATE VIRTUAL TABLE temp.stat USING dbstat;\n  SELECT * FROM stat;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclBool("wal_is_capable") {
@@ -143,18 +150,36 @@ func Test_stat(t *testing.T) {
 		r = db.Query("\n    SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 't1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 't1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 / 2 leaf 2 10 998 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "stat-1.2"
 		r = db.Query("\n    SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 'i1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 'i1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "i1 / 3 leaf 2 10 1000 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "stat-1.3"
 		r = db.Query("\n    SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 'sqlite_schema';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 'sqlite_schema';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "sqlite_schema / 1 leaf 2 77 831 40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "stat-1.4"
@@ -410,12 +435,26 @@ func Test_stat(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM st4 WHERE name = NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM st4 WHERE name = NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.5"
 		r = db.Query("\n  SELECT * FROM st4 WHERE schema = NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM st4 WHERE schema = NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

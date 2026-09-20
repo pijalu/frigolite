@@ -85,1200 +85,2400 @@ func Test_selectA(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b,c COLLATE NOCASE);\n    INSERT INTO t1 VALUES(1,'a','a');\n    INSERT INTO t1 VALUES(9.9, 'b', 'B');\n    INSERT INTO t1 VALUES(NULL, 'C', 'c');\n    INSERT INTO t1 VALUES('hello', 'd', 'D');\n    INSERT INTO t1 VALUES(x'616263', 'e', 'e');\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c COLLATE NOCASE);\n    INSERT INTO t1 VALUES(1,'a','a');\n    INSERT INTO t1 VALUES(9.9, 'b', 'B');\n    INSERT INTO t1 VALUES(NULL, 'C', 'c');\n    INSERT INTO t1 VALUES('hello', 'd', 'D');\n    INSERT INTO t1 VALUES(x'616263', 'e', 'e');\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-1.1"
 		r = db.Query("\n    CREATE TABLE t2(x,y,z COLLATE NOCASE);\n    INSERT INTO t2 VALUES(NULL,'U','u');\n    INSERT INTO t2 VALUES('mad', 'Z', 'z');\n    INSERT INTO t2 VALUES(x'68617265', 'm', 'M');\n    INSERT INTO t2 VALUES(5.2e6, 'X', 'x');\n    INSERT INTO t2 VALUES(-23, 'Y', 'y');\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x,y,z COLLATE NOCASE);\n    INSERT INTO t2 VALUES(NULL,'U','u');\n    INSERT INTO t2 VALUES('mad', 'Z', 'z');\n    INSERT INTO t2 VALUES(x'68617265', 'm', 'M');\n    INSERT INTO t2 VALUES(5.2e6, 'X', 'x');\n    INSERT INTO t2 VALUES(-23, 'Y', 'y');\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} U u mad Z z hare m M 5200000.0 X x -23 Y y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-1.2"
 		r = db.Query("\n    CREATE TABLE t3(a,b,c COLLATE NOCASE);\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a,b,c COLLATE NOCASE);\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "30"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.1"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.1.1"
 		r = db.Query("\n    SELECT t1.a, t1.b, t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a, t1.b, t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.1.2"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY t1.a, t1.b, t1.c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY t1.a, t1.b, t1.c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.2"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.3"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.4"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.5"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.6"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.7"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.8"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.9"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.10"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.11"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.12"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.13"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.14"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.15"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.16"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.17"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.18"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.19"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.20"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.21"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.22"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.23"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.24"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.25"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.26"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.27"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.28"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.29"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.30"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.31"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.32"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.33"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.34"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.35"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.36"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.37"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.38"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.39"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.40"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.41"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.42"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.43"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.44"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.45"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.46"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.47"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9.9 b B 1 a a {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.48"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.49"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.50"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.51"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9.9 b B 1 a a {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.52"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9.9 b B 1 a a {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.53"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.54"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.55"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.56"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.57"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.58"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.59"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.60"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.61"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.62"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.63"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.64"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.65"
 		r = db.Query("\n    SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.66"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.67"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.68"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.69"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.70"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.71"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.72"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.73"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.74"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.75"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.76"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.77"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.78"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.79"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.80"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.81"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.82"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.83"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.84"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.85"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.86"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.87"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.88"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.89"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.90"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.91"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.92"
 		r = db.Query("\n    SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.93"
 		r = db.Query("\n    SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.94"
 		r = db.Query("\n    SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.95"
 		r = db.Query("\n    SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-2.96"
 		r = db.Query("\n    SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "m"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.0"
 		r = db.Query("\n    CREATE UNIQUE INDEX t1a ON t1(a);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    CREATE UNIQUE INDEX t2x ON t2(x);\n    CREATE UNIQUE INDEX t2y ON t2(y);\n    CREATE UNIQUE INDEX t2z ON t2(z);\n    SELECT name FROM sqlite_master WHERE type='index'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE UNIQUE INDEX t1a ON t1(a);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    CREATE UNIQUE INDEX t2x ON t2(x);\n    CREATE UNIQUE INDEX t2y ON t2(y);\n    CREATE UNIQUE INDEX t2z ON t2(z);\n    SELECT name FROM sqlite_master WHERE type='index'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a t1b t1c t2x t2y t2z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.1"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.1.1"
 		r = db.Query("\n    SELECT t1.a,b,t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,t1.b,t1.c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a,b,t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,t1.b,t1.c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.2"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.3"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.4"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.5"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.6"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.7"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.8"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.9"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.10"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.11"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.12"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.13"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.14"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.15"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.16"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.17"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.18"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.19"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.20"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.21"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.22"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.23"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.24"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.25"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.26"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.27"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.28"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.29"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.30"
 		r = db.Query("\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.31"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.32"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.33"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.34"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.35"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.36"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.37"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.38"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.39"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.40"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.41"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.42"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.43"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.44"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.45"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.46"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.47"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9.9 b B 1 a a {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.48"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.49"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.50"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.51"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9.9 b B 1 a a {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.52"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9.9 b B 1 a a {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.53"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.54"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.55"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.56"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.57"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.58"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c 1 a a 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.59"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.60"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.61"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello d D abc e e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.62"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.63"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.64"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.65"
 		r = db.Query("\n    SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.66"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.67"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.68"
 		r = db.Query("\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc e e hello d D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.69"
 		r = db.Query("\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.70"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.71"
 		r = db.Query("\n    SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.72"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.73"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.74"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.75"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.76"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.77"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.78"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.79"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.80"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.81"
 		r = db.Query("\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.82"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.83"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.84"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.85"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.86"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.87"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.88"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.89"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.90"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.91"
 		r = db.Query("\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.92"
 		r = db.Query("\n    SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.93"
 		r = db.Query("\n    SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.94"
 		r = db.Query("\n    SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.95"
 		r = db.Query("\n    SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.96"
 		r = db.Query("\n    SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "m"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectA-3.97"
 		r = db.Query("\n    SELECT upper((SELECT x FROM (\n      SELECT x,y,z FROM t2\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      ORDER BY y COLLATE NOCASE DESC,x,z)))\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT upper((SELECT x FROM (\n      SELECT x,y,z FROM t2\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      ORDER BY y COLLATE NOCASE DESC,x,z)))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "MAD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "selectA-3.98"
@@ -1407,6 +2607,13 @@ func Test_selectA(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE a(b);\n  CREATE VIEW c(d) AS SELECT b FROM a ORDER BY b;\n  SELECT sum(d) OVER( PARTITION BY(SELECT 0 FROM c JOIN a WHERE b =(SELECT b INTERSECT SELECT d FROM c) AND b = 123)) FROM c;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE a(b);\n  CREATE VIEW c(d) AS SELECT b FROM a ORDER BY b;\n  SELECT sum(d) OVER( PARTITION BY(SELECT 0 FROM c JOIN a WHERE b =(SELECT b INTERSECT SELECT d FROM c) AND b = 123)) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -1426,6 +2633,13 @@ func Test_selectA(t *testing.T) {
 		r = db.Query("\n      SELECT 'ABCD' FROM t1 \n      WHERE (a=? OR b=?) \n      AND (0 OR (SELECT 'xyz' INTERSECT SELECT a ORDER BY 1))\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 'ABCD' FROM t1 \n      WHERE (a=? OR b=?) \n      AND (0 OR (SELECT 'xyz' INTERSECT SELECT a ORDER BY 1))\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

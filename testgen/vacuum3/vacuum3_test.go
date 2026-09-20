@@ -77,12 +77,25 @@ func Test_vacuum3(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum3-1.2"
 		r = db.Query(" PRAGMA page_size ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+			return
+		}
+		got := flatten(r)
+		want := "1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum3-1.3" (file size test.db)
@@ -127,6 +140,12 @@ func Test_vacuum3(t *testing.T) {
 				r = db.Query(" SELECT * FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			_res = db.Exec("PRAGMA integrity_check")
@@ -134,9 +153,8 @@ func Test_vacuum3(t *testing.T) {
 			// incr I 1
 			{
 				_n, _err := strconv.Atoi(I)
-				if _err == nil {
-					I = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				I = strconv.Itoa(_n + 1)
 			}
 		}
 		{ // do_test "vacuum3-2.1"
@@ -161,6 +179,12 @@ func Test_vacuum3(t *testing.T) {
 			r = db.Query(" PRAGMA page_size ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+				return
+			}
+			got := flatten(r)
+			want := "1024"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "vacuum3-2.3"
@@ -205,6 +229,12 @@ func Test_vacuum3(t *testing.T) {
 					r = db.Query(" SELECT * FROM t1 ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+						return
+					}
+					got := flatten(r)
+					want := "1"+" "+"2"+" "+"3"+" "+blob
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				_res = db.Exec("PRAGMA integrity_check")
@@ -212,9 +242,8 @@ func Test_vacuum3(t *testing.T) {
 				// incr I 1
 				{
 					_n, _err := strconv.Atoi(I)
-					if _err == nil {
-						I = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					I = strconv.Itoa(_n + 1)
 				}
 			}
 			// proc definition (not transpiled)
@@ -222,12 +251,25 @@ func Test_vacuum3(t *testing.T) {
 				r = db.Query("\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "vacuum3-3.2"
 				r = db.Query(" PRAGMA page_size ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+					return
+				}
+				got := flatten(r)
+				want := "1024"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			_dbeval3 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
@@ -268,9 +310,8 @@ func Test_vacuum3(t *testing.T) {
 					// incr I 1
 					{
 						_n, _err := strconv.Atoi(I)
-						if _err == nil {
-							I = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						I = strconv.Itoa(_n + 1)
 					}
 				}
 				{ // do_test "vacuum3-4.1"
@@ -311,6 +352,12 @@ func Test_vacuum3(t *testing.T) {
 					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+						return
+					}
+					got := flatten(r)
+					want := "1 2 3 4 5 6"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "vacuum3-4.5"

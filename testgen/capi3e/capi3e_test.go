@@ -88,9 +88,8 @@ func Test_capi3e(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "capi3e-1.1." + i
 			// set db2 [sqlite3_open ...] (skipped, DB connection)
@@ -122,9 +121,8 @@ func Test_capi3e(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "capi3e-3.2." + i
 			_res = db2.Exec("ATTACH DATABASE '" + name + "' AS db" + i + ";")

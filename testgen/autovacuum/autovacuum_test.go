@@ -128,6 +128,13 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("tn", "", "0")
@@ -138,9 +145,8 @@ func Test_autovacuum(t *testing.T) {
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tn = strconv.Itoa(_n + 1)
 		}
 		vtab.TclVarSet("tbl_data", "", "")
 		tbl_data = "" // TCL namespace variable
@@ -157,6 +163,12 @@ func Test_autovacuum(t *testing.T) {
 			r = db.Query("\n        pragma integrity_check\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        pragma integrity_check\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		for _, delete := range tclSplitList(delete_order) {
@@ -171,6 +183,12 @@ func Test_autovacuum(t *testing.T) {
 				r = db.Query("\n          pragma integrity_check\n        ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          pragma integrity_check\n        ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			for _, d := range tclSplitList(delete) {
@@ -185,9 +203,13 @@ func Test_autovacuum(t *testing.T) {
 				r = db.Query("\n        select a from av1 order by rowid\n      ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        select a from av1 order by rowid\n      ")
+					return
 				}
-				if flatten(r) != tclListFlatten(tbl_data) {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(tbl_data), "autovacuum-1." + tn + ".(" + delete + ").3")
+				got := flatten(r)
+				want := tclListFlatten(tbl_data)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
@@ -208,6 +230,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.2.2"
@@ -224,6 +252,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.2.4"
@@ -233,6 +267,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.2.6"
@@ -242,6 +282,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.2.8"
@@ -251,9 +297,13 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    select * from av1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from av1\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(av1_data) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(av1_data), "autovacuum-2.2.9")
+		got := flatten(r)
+		want := tclListFlatten(av1_data)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.3.1"
@@ -276,6 +326,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.3.3"
@@ -285,18 +341,26 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM av3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av3;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(av3_data) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(av3_data), "autovacuum-2.3.4")
+		got := flatten(r)
+		want := tclListFlatten(av3_data)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.3.5"
 		r = db.Query("\n    SELECT x FROM av4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av4;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(av4_data) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(av4_data), "autovacuum-2.3.5")
+		got := flatten(r)
+		want := tclListFlatten(av4_data)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.4.1"
@@ -318,9 +382,8 @@ func Test_autovacuum(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
@@ -329,6 +392,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.4.4"
@@ -363,9 +432,8 @@ func Test_autovacuum(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; pending_byte_page_n, _pending_byte_page_e := strconv.Atoi(pending_byte_page); if _pending_byte_page_e != nil { return false }; return i_n >= pending_byte_page_n }() {
@@ -383,9 +451,8 @@ func Test_autovacuum(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
@@ -421,9 +488,8 @@ func Test_autovacuum(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -442,90 +508,180 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    SELECT name, rootpage FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av1"+" "+"3"+" "+"sqlite_autoindex_av1_1"+" "+"4"+" "+"av2"+" "+"5"+" "+"sqlite_autoindex_av2_1"+" "+"6"+" "+"av2_i1"+" "+"7"+" "+"av2_i2"+" "+"8"+" "+"av3"+" "+"9"+" "+"sqlite_autoindex_av3_1"+" "+"10"+" "+"av3_i1"+" "+"11"+" "+"av4"+" "+"12"+" "+"av4_i1"+" "+"13"+" "+"av4_i2"+" "+"14"+" "+"av4_i3"+" "+"15"+" "+"av4_i4"+" "+"16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.2.1"
 		r = db.Query("\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av1 a av1 b av1 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.2.2"
 		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av2 a av2 b av2 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.2.3"
 		r = db.Query("\n    SELECT * FROM av3 WHERE a = 'av3 a' AND b = 'av3 b';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av3 WHERE a = 'av3 a' AND b = 'av3 b';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av3 a av3 b av3 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.2.4"
 		r = db.Query("\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av4 a av4 b av4 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.3"
 		r = db.Query("\n    DROP TABLE av3;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av3;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av1"+" "+"3"+" "+"sqlite_autoindex_av1_1"+" "+"4"+" "+"av2"+" "+"5"+" "+"sqlite_autoindex_av2_1"+" "+"6"+" "+"av2_i1"+" "+"7"+" "+"av2_i2"+" "+"8"+" "+"av4"+" "+"12"+" "+"av4_i1"+" "+"13"+" "+"av4_i2"+" "+"9"+" "+"av4_i3"+" "+"10"+" "+"av4_i4"+" "+"11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.3.1"
 		r = db.Query("\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av1 a av1 b av1 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.3.2"
 		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av2 a av2 b av2 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.3.3"
 		r = db.Query("\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av4 a av4 b av4 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.4"
 		r = db.Query("\n    DROP TABLE av1;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av1;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av2"+" "+"5"+" "+"sqlite_autoindex_av2_1"+" "+"6"+" "+"av2_i1"+" "+"7"+" "+"av2_i2"+" "+"8"+" "+"av4"+" "+"3"+" "+"av4_i1"+" "+"4"+" "+"av4_i2"+" "+"9"+" "+"av4_i3"+" "+"10"+" "+"av4_i4"+" "+"11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.4.2"
 		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av2 a av2 b av2 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.4.4"
 		r = db.Query("\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av4 a av4 b av4 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.5"
 		r = db.Query("\n    DROP TABLE av4;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av4;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av2"+" "+"5"+" "+"sqlite_autoindex_av2_1"+" "+"6"+" "+"av2_i1"+" "+"3"+" "+"av2_i2"+" "+"4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-2.5.5.2"
 		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "av2 a av2 b av2 c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-3.1"
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-3.2"
@@ -542,6 +698,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-3.4"
@@ -562,15 +724,26 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(AUTOVACUUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(AUTOVACUUM), "autovacuum-3.5")
+		got := flatten(r)
+		want := tclListFlatten(AUTOVACUUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-3.6"
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(tclExprWith("$AUTOVACUUM ? 1 : 0", map[string]string{"AUTOVACUUM": AUTOVACUUM}))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-3.7"
@@ -583,6 +756,7 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-4.0"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -607,9 +781,8 @@ func Test_autovacuum(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("INSERT INTO av1 VALUES(99, '" + tclStringRepeat("X", "200") + "');")
@@ -631,6 +804,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    SELECT sum(a) FROM av1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a) FROM av1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5049"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-4.4"
@@ -718,6 +897,12 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    DROP TABLE t4;\n    DROP TABLE t5;\n    PRAGMA page_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    DROP TABLE t4;\n    DROP TABLE t5;\n    PRAGMA page_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autovacuum-9.2" (file size test.db)
@@ -739,9 +924,8 @@ func Test_autovacuum(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		_r = strconv.Itoa(tclFileSize("test.db"))

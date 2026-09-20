@@ -167,18 +167,36 @@ func Test_ctime(t *testing.T) {
 			r = db.Query("\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "ctime-1.7.1"
 			r = db.Query("\n    SELECT sqlite_compileoption_used('SQLITE_OMIT_COMPILEOPTION_DIAGS');\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('SQLITE_OMIT_COMPILEOPTION_DIAGS');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "ctime-1.7.2"
 			r = db.Query("\n    SELECT sqlite_compileoption_used('OMIT_COMPILEOPTION_DIAGS');\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('OMIT_COMPILEOPTION_DIAGS');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "ctime-2.1.1"
@@ -294,9 +312,8 @@ func Test_ctime(t *testing.T) {
 			// incr tc 1
 			{
 				_n, _err := strconv.Atoi(tc)
-				if _err == nil {
-					tc = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				tc = strconv.Itoa(_n + 1)
 			}
 		}
 		{ // do_test "ctime-2.5." + tc
@@ -305,7 +322,7 @@ func Test_ctime(t *testing.T) {
 			_res = db.Exec("\n    SELECT sqlite_compileoption_get(" + N + ");\n  ")
 			ans = tclCatchsqlString(_res)
 			got := tclListFlatten(ans)
-			want := tclListFlatten("0 {}")
+			want := tclListFlatten("0 {{}}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "ctime-2.5." + tc)
 			}
@@ -313,9 +330,8 @@ func Test_ctime(t *testing.T) {
 		// incr tc 1
 		{
 			_n, _err := strconv.Atoi(tc)
-			if _err == nil {
-				tc = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tc = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "ctime-2.5." + tc
 			vtab.TclVarSet("N", "", "-1")
@@ -324,7 +340,7 @@ func Test_ctime(t *testing.T) {
 			_res = db.Exec("\n    SELECT sqlite_compileoption_get(" + N + ");\n  ")
 			ans = tclCatchsqlString(_res)
 			got := tclListFlatten(ans)
-			want := tclListFlatten("0 {}")
+			want := tclListFlatten("0 {{}}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "ctime-2.5." + tc)
 			}

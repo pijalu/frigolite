@@ -136,12 +136,26 @@ func Test_fts3query(t *testing.T) {
 		r = db.Query("\n    SELECT docid FROM zoink WHERE zoink MATCH '(apple oranges) AND apple'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM zoink WHERE zoink MATCH '(apple oranges) AND apple'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3query-2.3"
 		r = db.Query("\n    SELECT docid FROM zoink WHERE zoink MATCH 'apple AND (oranges apple)'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM zoink WHERE zoink MATCH 'apple AND (oranges apple)'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("sqlite_fts3_enable_parentheses", "", "0")
@@ -157,6 +171,13 @@ func Test_fts3query(t *testing.T) {
 		r = db.Query(" SELECT docid FROM foobar WHERE description MATCH '\"high sp d\"' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM foobar WHERE description MATCH '\"high sp d\"' ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) {
@@ -167,6 +188,12 @@ func Test_fts3query(t *testing.T) {
 		r = db.Query(" SELECT mit(matchinfo(foobar)) FROM foobar WHERE foobar MATCH 'the' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT mit(matchinfo(foobar)) FROM foobar WHERE foobar MATCH 'the' ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3query-4.1"
@@ -324,9 +351,8 @@ func Test_fts3query(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}

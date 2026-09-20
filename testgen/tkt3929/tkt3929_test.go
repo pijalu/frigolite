@@ -65,12 +65,25 @@ func Test_tkt3929(t *testing.T) {
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE TRIGGER t1_t1 AFTER INSERT ON t1 BEGIN\n      UPDATE t1 SET b = 'value: ' || a WHERE t1.rowid = new.rowid;\n    END;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE TRIGGER t1_t1 AFTER INSERT ON t1 BEGIN\n      UPDATE t1 SET b = 'value: ' || a WHERE t1.rowid = new.rowid;\n    END;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3929-1.1"
 		r = db.Query("\n    INSERT INTO t1(a) VALUES(1);\n    INSERT INTO t1(a) VALUES(2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(a) VALUES(1);\n    INSERT INTO t1(a) VALUES(2);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 value: 1 2 value: 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3930-1.2"
@@ -85,9 +98,8 @@ func Test_tkt3929(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}

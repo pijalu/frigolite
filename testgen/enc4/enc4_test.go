@@ -159,17 +159,15 @@ func Test_enc4(t *testing.T) {
 					// incr x 1
 					{
 						_n, _err := strconv.Atoi(x)
-						if _err == nil {
-							x = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						x = strconv.Itoa(_n + 1)
 					}
 				}
 				// incr k 1
 				{
 					_n, _err := strconv.Atoi(k)
-					if _err == nil {
-						k = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					k = strconv.Itoa(_n + 1)
 				}
 			}
 			{ // "enc4-" + i + "." + j + ".5" (prepare-step internals; SQL side effects only)
@@ -179,18 +177,16 @@ func Test_enc4(t *testing.T) {
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 1)
 			}
 		}
 		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	os.Remove("test.db")

@@ -7,6 +7,7 @@ package intpkey
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "strings"
 "testing"
 )
@@ -72,12 +73,25 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master\n    WHERE type='index' AND tbl_name='t1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master\n    WHERE type='index' AND tbl_name='t1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "sqlite_autoindex_t1_1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.2"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    SELECT name FROM sqlite_master\n      WHERE type='index' AND tbl_name='t1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    SELECT name FROM sqlite_master\n      WHERE type='index' AND tbl_name='t1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.3"
@@ -90,12 +104,24 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.5"
 		r = db.Query("\n    SELECT rowid, * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.6"
@@ -124,6 +150,12 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n    SELECT rowid, * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.8"
@@ -154,30 +186,60 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n    SELECT rowid, * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 hello world 6 6 second entry"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.10"
 		r = db.Query("\n    INSERT INTO t1(b,c) VALUES('one','two');\n    SELECT b FROM t1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(b,c) VALUES('one','two');\n    SELECT b FROM t1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello one second"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.11"
 		r = db.Query("\n    UPDATE t1 SET a=4 WHERE b='one';\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=4 WHERE b='one';\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 one two 5 hello world 6 second entry"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.12.1"
 		r = db.Query("\n    SELECT * FROM t1 WHERE a==4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE a==4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 one two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-1.12.2"
 		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1 WHERE a==4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1 WHERE a==4;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "intpkey-1.13.1"
@@ -272,96 +334,192 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "-3 y z 4 one two 5 hello world 6 second entry"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.1"
 		r = db.Query("\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b=='y'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b=='y'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-3 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.1.1"
 		r = db.Query("\n    SELECT * FROM t1 WHERE b=='y' AND rowid<0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE b=='y' AND rowid<0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-3 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.1.2"
 		r = db.Query("\n    SELECT * FROM t1 WHERE b=='y' AND rowid<0 AND rowid>=-20\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE b=='y' AND rowid<0 AND rowid>=-20\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-3 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.1.3"
 		r = db.Query("\n    SELECT * FROM t1 WHERE b>='y'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE b>='y'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-3 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.1.4"
 		r = db.Query("\n    SELECT * FROM t1 WHERE b>='y' AND rowid<10\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE b>='y' AND rowid<10\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-3 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.2"
 		r = db.Query("\n    UPDATE t1 SET a=8 WHERE b=='y';\n    SELECT * FROM t1 WHERE b=='y';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=8 WHERE b=='y';\n    SELECT * FROM t1 WHERE b=='y';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.3"
 		r = db.Query("\n    SELECT rowid, * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 4 one two 5 5 hello world 6 6 second entry 8 8 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.4"
 		r = db.Query("\n    SELECT rowid, * FROM t1 WHERE b<'second'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1 WHERE b<'second'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 hello world 4 4 one two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.4.1"
 		r = db.Query("\n    SELECT rowid, * FROM t1 WHERE 'second'>b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1 WHERE 'second'>b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 hello world 4 4 one two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.4.2"
 		r = db.Query("\n    SELECT rowid, * FROM t1 WHERE 8>rowid AND 'second'>b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1 WHERE 8>rowid AND 'second'>b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 4 one two 5 5 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.4.3"
 		r = db.Query("\n    SELECT rowid, * FROM t1 WHERE 8>rowid AND 'second'>b AND 0<rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1 WHERE 8>rowid AND 'second'>b AND 0<rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 4 one two 5 5 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.5"
 		r = db.Query("\n    SELECT rowid, * FROM t1 WHERE b>'a'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1 WHERE b>'a'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 hello world 4 4 one two 6 6 second entry 8 8 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.6"
 		r = db.Query("\n    DELETE FROM t1 WHERE rowid=4;\n    SELECT * FROM t1 WHERE b>'a';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE rowid=4;\n    SELECT * FROM t1 WHERE b>'a';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 hello world 6 second entry 8 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.7"
 		r = db.Query("\n    UPDATE t1 SET a=-4 WHERE rowid=8;\n    SELECT * FROM t1 WHERE b>'a';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=-4 WHERE rowid=8;\n    SELECT * FROM t1 WHERE b>'a';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 hello world 6 second entry -4 y z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-2.7"
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-4 y z 5 hello world 6 second entry"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -449,90 +607,182 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n    SELECT rowid, a FROM t1 ORDER BY rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, a FROM t1 ORDER BY rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-4 -4 0 0 5 5 6 6 11 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-6.1"
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES(20,'b-20','c-20');\n    INSERT INTO t1 VALUES(21,'b-21','c-21');\n    INSERT INTO t1 VALUES(22,'b-22','c-22');\n    COMMIT;\n    SELECT * FROM t1 WHERE a>=20;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(20,'b-20','c-20');\n    INSERT INTO t1 VALUES(21,'b-21','c-21');\n    INSERT INTO t1 VALUES(22,'b-22','c-22');\n    COMMIT;\n    SELECT * FROM t1 WHERE a>=20;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20 b-20 c-20 21 b-21 c-21 22 b-22 c-22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-6.2"
 		r = db.Query("\n    SELECT * FROM t1 WHERE b=='hello'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE b=='hello'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 hello world 11 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-6.3"
 		r = db.Query("\n    DELETE FROM t1 WHERE b='b-21';\n    SELECT * FROM t1 WHERE b=='b-21';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE b='b-21';\n    SELECT * FROM t1 WHERE b=='b-21';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-6.4"
 		r = db.Query("\n    SELECT * FROM t1 WHERE a>=20\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE a>=20\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20 b-20 c-20 22 b-22 c-22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-7.1"
 		r = db.Query("\n    INSERT INTO t1(c,b,a) VALUES('row','new',30);\n    SELECT * FROM t1 WHERE rowid>=30;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(c,b,a) VALUES('row','new',30);\n    SELECT * FROM t1 WHERE rowid>=30;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "30 new row"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-7.2"
 		r = db.Query("\n    SELECT * FROM t1 WHERE rowid>20;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE rowid>20;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "22 b-22 c-22 30 new row"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-8.1"
 		r = db.Query("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT rowid FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT rowid FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-4 0 5 6 11 20 22 30"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-8.2"
 		r = db.Query("\n    SELECT x FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-4 0 5 6 11 20 22 30"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-9.1"
 		r = db.Query("\n    UPDATE t1 SET c='www' WHERE c='world';\n    SELECT rowid, a, c FROM t1 WHERE c=='www';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET c='www' WHERE c='world';\n    SELECT rowid, a, c FROM t1 WHERE c=='www';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 www 11 11 www"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-10.1"
 		r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z);\n    INSERT INTO t2 VALUES(NULL, 1, 2);\n    SELECT * from t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z);\n    INSERT INTO t2 VALUES(NULL, 1, 2);\n    SELECT * from t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-10.2"
 		r = db.Query("\n    INSERT INTO t2 VALUES(NULL, 2, 3);\n    SELECT * from t2 WHERE x=2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(NULL, 2, 3);\n    SELECT * from t2 WHERE x=2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-10.3"
 		r = db.Query("\n    INSERT INTO t2 SELECT NULL, z, y FROM t2;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 SELECT NULL, z, y FROM t2;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 2 3 3 2 1 4 3 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-11.1"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a=2.0+3.0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=2.0+3.0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-11.2"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a=2.0+3.5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=2.0+3.5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -541,12 +791,25 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-13.2"
 		r = db.Query("\n    INSERT INTO t1 VALUES('1.0',2,3);\n    SELECT * FROM t1 WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('1.0',2,3);\n    SELECT * FROM t1 WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-13.3"
@@ -577,72 +840,147 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t3 WHERE a>2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a>2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-14.3"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a>'2';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a>'2';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-14.4"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a<'2';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a<'2';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-14.5"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a<c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a<c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-14.6"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE a=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 2 3 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-15.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(2147483647, 'big-1', 123);\n    SELECT * FROM t1 WHERE a>2147483648;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2147483647, 'big-1', 123);\n    SELECT * FROM t1 WHERE a>2147483648;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-15.2"
 		r = db.Query("\n    INSERT INTO t1 VALUES(NULL, 'big-2', 234);\n    SELECT b FROM t1 WHERE a>=2147483648;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(NULL, 'big-2', 234);\n    SELECT b FROM t1 WHERE a>=2147483648;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "big-2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-15.3"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>2147483648;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>2147483648;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-15.4"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>=2147483647;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>=2147483647;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "big-1 big-2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-15.5"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a<2147483648;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a<2147483648;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "y zero 2 hello second hello b-20 b-22 new 3 big-1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-15.6"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a<12345678901;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a<12345678901;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "y zero 2 hello second hello b-20 b-22 new 3 big-1 big-2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intpkey-15.7"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>12345678901;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>12345678901;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "intpkey-16.0"
@@ -758,6 +1096,13 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE rowid = -9223372036854777856.0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE rowid = -9223372036854777856.0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "intpkey-18.5"
@@ -780,6 +1125,13 @@ func Test_intpkey(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE rowid = +9223372036854777856.0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE rowid = +9223372036854777856.0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

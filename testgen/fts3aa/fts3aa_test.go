@@ -71,204 +71,411 @@ func Test_fts3aa(t *testing.T) {
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.2"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one two'")
+			return
+		}
+		got := flatten(r)
+		want := "3 7 11 15 19 23 27 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.3"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'two one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'two one'")
+			return
+		}
+		got := flatten(r)
+		want := "3 7 11 15 19 23 27 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.4"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one two three'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one two three'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.5"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one three two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one three two'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.6"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'two three one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'two three one'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.7"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'two one three'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'two one three'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.8"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'three one two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'three one two'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.9"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'three two one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'three two one'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.10"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one two THREE'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one two THREE'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-1.11"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '  ONE    Two   three  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '  ONE    Two   three  '")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one\"'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.2"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one two\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one two\"'")
+			return
+		}
+		got := flatten(r)
+		want := "3 7 11 15 19 23 27 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.3"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"two one\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"two one\"'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.4"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one two three\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one two three\"'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.5"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one three two\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one three two\"'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.6"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one two three four\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one two three four\"'")
+			return
+		}
+		got := flatten(r)
+		want := "15 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.7"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one three two four\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one three two four\"'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.8"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one three five\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one three five\"'")
+			return
+		}
+		got := flatten(r)
+		want := "21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.9"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one three\" five'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one three\" five'")
+			return
+		}
+		got := flatten(r)
+		want := "21 29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.10"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'five \"one three\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'five \"one three\"'")
+			return
+		}
+		got := flatten(r)
+		want := "21 29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.11"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'five \"one three\" four'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'five \"one three\" four'")
+			return
+		}
+		got := flatten(r)
+		want := "29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.12"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'five four \"one three\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'five four \"one three\"'")
+			return
+		}
+		got := flatten(r)
+		want := "29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-2.13"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one three\" four five'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one three\" four five'")
+			return
+		}
+		got := flatten(r)
+		want := "29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-3.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-3.2"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one -two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one -two'")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 9 13 17 21 25 29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-3.3"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '-two one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '-two one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 9 13 17 21 25 29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-4.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one OR two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one OR two'")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5 6 7 9 10 11 13 14 15 17 18 19 21 22 23 25 26 27 29 30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-4.2"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH '\"one two\" OR three'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH '\"one two\" OR three'")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7 11 12 13 14 15 19 20 21 22 23 27 28 29 30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-4.3"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'three OR \"one two\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'three OR \"one two\"'")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7 11 12 13 14 15 19 20 21 22 23 27 28 29 30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-4.4"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one two OR three'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one two OR three'")
+			return
+		}
+		got := flatten(r)
+		want := "3 5 7 11 13 15 19 21 23 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-4.5"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'three OR two one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'three OR two one'")
+			return
+		}
+		got := flatten(r)
+		want := "3 5 7 11 13 15 19 21 23 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-4.6"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one two OR three OR four'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one two OR three OR four'")
+			return
+		}
+		got := flatten(r)
+		want := "3 5 7 9 11 13 15 19 21 23 25 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-4.7"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'two OR three OR four one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'two OR three OR four one'")
+			return
+		}
+		got := flatten(r)
+		want := "3 5 7 9 11 13 15 19 21 23 25 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-5.1"
@@ -289,6 +496,13 @@ func Test_fts3aa(t *testing.T) {
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH NULL")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH NULL")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-6.0"
@@ -301,6 +515,12 @@ func Test_fts3aa(t *testing.T) {
 		r = db.Query("SELECT content FROM t1 WHERE rowid = 0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 0")
+			return
+		}
+		got := flatten(r)
+		want := "four five"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-6.2"
@@ -313,18 +533,37 @@ func Test_fts3aa(t *testing.T) {
 		r = db.Query("SELECT content FROM t1 WHERE rowid = -1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = -1")
+			return
+		}
+		got := flatten(r)
+		want := "three four"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3aa-6.4"
 		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'four'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH 'four'")
+			return
+		}
+		got := flatten(r)
+		want := "-1 0 8 9 10 11 12 13 14 15 24 25 26 27 28 29 30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "fts3aa-7.1"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t2 USING fts3(xyz=abc);\n  SELECT xyz FROM t2;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3(xyz=abc);\n  SELECT xyz FROM t2;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "fts3aa-7.2"
@@ -343,6 +582,13 @@ func Test_fts3aa(t *testing.T) {
 		r = db.Query("\n  CREATE VIRTUAL TABLE t3 USING fts3(tokenize=simple, tokenize=simple);\n  SELECT tokenize FROM t3;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts3(tokenize=simple, tokenize=simple);\n  SELECT tokenize FROM t3;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "fts3aa-7.5"
@@ -373,6 +619,13 @@ func Test_fts3aa(t *testing.T) {
 		r = db.Query("\n  SELECT docid FROM t0 WHERE t0 MATCH '\"abc abc\"';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM t0 WHERE t0 MATCH '\"abc abc\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.3"
@@ -397,6 +650,13 @@ func Test_fts3aa(t *testing.T) {
 		r = db.Query("\n  SELECT docid FROM t0 WHERE t0 MATCH '\"abc abc\"';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM t0 WHERE t0 MATCH '\"abc abc\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.1"

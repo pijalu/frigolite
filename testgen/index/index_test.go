@@ -88,6 +88,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'")
+			return
+		}
+		got := flatten(r)
+		want := "index1 CREATE INDEX index1 ON test1(f1) test1 index"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-1.1c"
@@ -205,9 +211,8 @@ func Test_index(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "index-3.1"
@@ -229,9 +234,8 @@ func Test_index(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name")
@@ -278,9 +282,8 @@ func Test_index(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("CREATE INDEX index9 ON test1(cnt)")
@@ -300,18 +303,36 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT cnt FROM test1 WHERE power=4")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT cnt FROM test1 WHERE power=4")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-4.3"
 		r = db.Query("SELECT cnt FROM test1 WHERE power=1024")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT cnt FROM test1 WHERE power=1024")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-4.4"
 		r = db.Query("SELECT power FROM test1 WHERE cnt=6")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT power FROM test1 WHERE cnt=6")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-4.5"
@@ -328,6 +349,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT cnt FROM test1 WHERE power=1024")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT cnt FROM test1 WHERE power=1024")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-4.7"
@@ -344,6 +371,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT cnt FROM test1 WHERE power=1024")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT cnt FROM test1 WHERE power=1024")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-4.9"
@@ -360,6 +393,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT cnt FROM test1 WHERE power=1024")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT cnt FROM test1 WHERE power=1024")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-4.11"
@@ -376,6 +415,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT cnt FROM test1 WHERE power=1024")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT cnt FROM test1 WHERE power=1024")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-4.13"
@@ -416,6 +461,13 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-6.1"
@@ -462,6 +514,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
+			return
+		}
+		got := flatten(r)
+		want := "index1 test1 test2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-6.1c"
@@ -496,6 +554,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
+			return
+		}
+		got := flatten(r)
+		want := "index1 test1 test2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-6.3"
@@ -516,6 +580,13 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE test1(a,b);\n    CREATE INDEX index1 ON test1(a);\n    CREATE INDEX index2 ON test1(b);\n    CREATE INDEX index3 ON test1(a,b);\n    DROP TABLE test1;\n    SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE test1(a,b);\n    CREATE INDEX index1 ON test1(a);\n    CREATE INDEX index2 ON test1(b);\n    CREATE INDEX index3 ON test1(a,b);\n    DROP TABLE test1;\n    SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -536,9 +607,8 @@ func Test_index(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("SELECT count(*) FROM test1")
@@ -550,12 +620,24 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT f1 FROM test1 WHERE f2=65536")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT f1 FROM test1 WHERE f2=65536")
+			return
+		}
+		got := flatten(r)
+		want := "16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-7.3"
 		r = db.Query("\n    SELECT name FROM sqlite_master \n    WHERE type='index' AND tbl_name='test1'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master \n    WHERE type='index' AND tbl_name='test1'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "sqlite_autoindex_test1_1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-7.4"
@@ -622,30 +704,61 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a int, b int);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(2,4);\n    INSERT INTO t1 VALUES(3,8);\n    INSERT INTO t1 VALUES(1,12);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a int, b int);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(2,4);\n    INSERT INTO t1 VALUES(3,8);\n    INSERT INTO t1 VALUES(1,12);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-10.1"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a=2 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=2 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-10.2"
 		r = db.Query("\n    DELETE FROM t1 WHERE b=12;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE b=12;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-10.3"
 		r = db.Query("\n    DELETE FROM t1 WHERE b=2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE b=2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-10.4"
 		r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES (1,1);\n    INSERT INTO t1 VALUES (1,2);\n    INSERT INTO t1 VALUES (1,3);\n    INSERT INTO t1 VALUES (1,4);\n    INSERT INTO t1 VALUES (1,5);\n    INSERT INTO t1 VALUES (1,6);\n    INSERT INTO t1 VALUES (1,7);\n    INSERT INTO t1 VALUES (1,8);\n    INSERT INTO t1 VALUES (1,9);\n    INSERT INTO t1 VALUES (2,0);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES (1,1);\n    INSERT INTO t1 VALUES (1,2);\n    INSERT INTO t1 VALUES (1,3);\n    INSERT INTO t1 VALUES (1,4);\n    INSERT INTO t1 VALUES (1,5);\n    INSERT INTO t1 VALUES (1,6);\n    INSERT INTO t1 VALUES (1,7);\n    INSERT INTO t1 VALUES (1,8);\n    INSERT INTO t1 VALUES (1,9);\n    INSERT INTO t1 VALUES (2,0);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-10.5"
@@ -662,18 +775,37 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n    DELETE FROM t1 WHERE b>2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE b>2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-10.7"
 		r = db.Query("\n    DELETE FROM t1 WHERE b=1;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE b=1;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-10.8"
 		r = db.Query("\n    SELECT b FROM t1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -694,9 +826,8 @@ func Test_index(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("sqlite_search_count", "", "0")
@@ -714,42 +845,84 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t4(a NUM,b);\n    INSERT INTO t4 VALUES('0.0',1);\n    INSERT INTO t4 VALUES('0.00',2);\n    INSERT INTO t4 VALUES('abc',3);\n    INSERT INTO t4 VALUES('-1.0',4);\n    INSERT INTO t4 VALUES('+1.0',5);\n    INSERT INTO t4 VALUES('0',6);\n    INSERT INTO t4 VALUES('00000',7);\n    SELECT a FROM t4 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a NUM,b);\n    INSERT INTO t4 VALUES('0.0',1);\n    INSERT INTO t4 VALUES('0.00',2);\n    INSERT INTO t4 VALUES('abc',3);\n    INSERT INTO t4 VALUES('-1.0',4);\n    INSERT INTO t4 VALUES('+1.0',5);\n    INSERT INTO t4 VALUES('0',6);\n    INSERT INTO t4 VALUES('00000',7);\n    SELECT a FROM t4 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 abc -1 1 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-12.2"
 		r = db.Query("\n    SELECT a FROM t4 WHERE a==0 ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 WHERE a==0 ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-12.3"
 		r = db.Query("\n    SELECT a FROM t4 WHERE a<0.5 ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 WHERE a<0.5 ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 -1 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-12.4"
 		r = db.Query("\n    SELECT a FROM t4 WHERE a>-0.5 ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 WHERE a>-0.5 ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 abc 1 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-12.5"
 		r = db.Query("\n    CREATE INDEX t4i1 ON t4(a);\n    SELECT a FROM t4 WHERE a==0 ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t4i1 ON t4(a);\n    SELECT a FROM t4 WHERE a==0 ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-12.6"
 		r = db.Query("\n    SELECT a FROM t4 WHERE a<0.5 ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 WHERE a<0.5 ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 -1 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-12.7"
 		r = db.Query("\n    SELECT a FROM t4 WHERE a>-0.5 ORDER BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 WHERE a>-0.5 ORDER BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 abc 1 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -758,6 +931,12 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n   CREATE TABLE t5(\n      a int UNIQUE,\n      b float PRIMARY KEY,\n      c varchar(10),\n      UNIQUE(a,c)\n   );\n   INSERT INTO t5 VALUES(1,2,3);\n   SELECT * FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   CREATE TABLE t5(\n      a int UNIQUE,\n      b float PRIMARY KEY,\n      c varchar(10),\n      UNIQUE(a,c)\n   );\n   INSERT INTO t5 VALUES(1,2,3);\n   SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2.0 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-13.2"
@@ -779,15 +958,20 @@ func Test_index(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "index-13.4"
 		r = db.Query("\n    INSERT INTO t5 VALUES('a','b','c');\n    SELECT * FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t5 VALUES('a','b','c');\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2.0 3 a b c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -796,66 +980,132 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t6(a,b,c);\n    CREATE INDEX t6i1 ON t6(a,b);\n    INSERT INTO t6 VALUES('','',1);\n    INSERT INTO t6 VALUES('',NULL,2);\n    INSERT INTO t6 VALUES(NULL,'',3);\n    INSERT INTO t6 VALUES('abc',123,4);\n    INSERT INTO t6 VALUES(123,'abc',5);\n    SELECT c FROM t6 ORDER BY a,b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(a,b,c);\n    CREATE INDEX t6i1 ON t6(a,b);\n    INSERT INTO t6 VALUES('','',1);\n    INSERT INTO t6 VALUES('',NULL,2);\n    INSERT INTO t6 VALUES(NULL,'',3);\n    INSERT INTO t6 VALUES('abc',123,4);\n    INSERT INTO t6 VALUES(123,'abc',5);\n    SELECT c FROM t6 ORDER BY a,b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 5 2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.2"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a='';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a='';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.3"
 		r = db.Query("\n    SELECT c FROM t6 WHERE b='';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE b='';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.4"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a>'';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a>'';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.5"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a>='';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a>='';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.6"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a>123;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a>123;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.7"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a>=123;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a>=123;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.8"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a<'abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a<'abc';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.9"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a<='abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a<='abc';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.10"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a<='';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a<='';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-14.11"
 		r = db.Query("\n    SELECT c FROM t6 WHERE a<'';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t6 WHERE a<'';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -864,18 +1114,37 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n    DELETE FROM t1;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-15.2"
 		r = db.Query("\n    INSERT INTO t1 VALUES('1.234e5',1);\n    INSERT INTO t1 VALUES('12.33e04',2);\n    INSERT INTO t1 VALUES('12.35E4',3);\n    INSERT INTO t1 VALUES('12.34e',4);\n    INSERT INTO t1 VALUES('12.32e+4',5);\n    INSERT INTO t1 VALUES('12.36E+04',6);\n    INSERT INTO t1 VALUES('12.36E+',7);\n    INSERT INTO t1 VALUES('+123.10000E+0003',8);\n    INSERT INTO t1 VALUES('+',9);\n    INSERT INTO t1 VALUES('+12347.E+02',10);\n    INSERT INTO t1 VALUES('+12347E+02',11);\n    INSERT INTO t1 VALUES('+.125E+04',12);\n    INSERT INTO t1 VALUES('-.125E+04',13);\n    INSERT INTO t1 VALUES('.125E+0',14);\n    INSERT INTO t1 VALUES('.125',15);\n    SELECT b FROM t1 ORDER BY a, b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('1.234e5',1);\n    INSERT INTO t1 VALUES('12.33e04',2);\n    INSERT INTO t1 VALUES('12.35E4',3);\n    INSERT INTO t1 VALUES('12.34e',4);\n    INSERT INTO t1 VALUES('12.32e+4',5);\n    INSERT INTO t1 VALUES('12.36E+04',6);\n    INSERT INTO t1 VALUES('12.36E+',7);\n    INSERT INTO t1 VALUES('+123.10000E+0003',8);\n    INSERT INTO t1 VALUES('+',9);\n    INSERT INTO t1 VALUES('+12347.E+02',10);\n    INSERT INTO t1 VALUES('+12347E+02',11);\n    INSERT INTO t1 VALUES('+.125E+04',12);\n    INSERT INTO t1 VALUES('-.125E+04',13);\n    INSERT INTO t1 VALUES('.125E+0',14);\n    INSERT INTO t1 VALUES('.125',15);\n    SELECT b FROM t1 ORDER BY a, b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "13 14 15 12 8 5 2 1 3 6 10 11 9 4 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-15.3"
 		r = db.Query("\n    SELECT b FROM t1 WHERE typeof(a) IN ('integer','real') ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE typeof(a) IN ('integer','real') ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5 6 8 10 11 12 13 14 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -884,36 +1153,72 @@ func Test_index(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-16.2"
 		r = db.Query("\n    DROP TABLE t7;\n    CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t7;\n    CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-16.3"
 		r = db.Query("\n    DROP TABLE t7;\n    CREATE TABLE t7(c PRIMARY KEY, UNIQUE(c) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t7;\n    CREATE TABLE t7(c PRIMARY KEY, UNIQUE(c) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-16.4"
 		r = db.Query("\n    DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c, d), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c, d), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-16.5"
 		r = db.Query("\n    DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-17.1"
 		r = db.Query("\n    DROP TABLE t7;\n    CREATE TABLE t7(c, d UNIQUE, UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT name FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t7;\n    CREATE TABLE t7(c, d UNIQUE, UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT name FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "sqlite_autoindex_t7_1 sqlite_autoindex_t7_2 sqlite_autoindex_t7_3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index-17.2"

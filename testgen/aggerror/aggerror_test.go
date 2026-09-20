@@ -96,6 +96,12 @@ func Test_aggerror(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(40);\n    SELECT x_count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(40);\n    SELECT x_count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggerror-1.3"
@@ -108,6 +114,12 @@ func Test_aggerror(t *testing.T) {
 		r = db.Query("\n    SELECT x_count(*) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x_count(*) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggerror-1.6"

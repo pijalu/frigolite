@@ -79,7 +79,7 @@ func Test_rtreeG(t *testing.T) {
 	{ // do_test "rtreeG-1.1log"
 		_ = log // TCL namespace variable (query)
 		got := tclListFlatten(log)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rtreeG-1.1log")
 		}
@@ -100,7 +100,7 @@ func Test_rtreeG(t *testing.T) {
 	{ // do_test "rtreeG-1.2log"
 		_ = log // TCL namespace variable (query)
 		got := tclListFlatten(log)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rtreeG-1.2log")
 		}
@@ -124,7 +124,7 @@ func Test_rtreeG(t *testing.T) {
 	{ // do_test "rtreeG-1.3log"
 		_ = log // TCL namespace variable (query)
 		got := tclListFlatten(log)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rtreeG-1.3log")
 		}
@@ -138,7 +138,7 @@ func Test_rtreeG(t *testing.T) {
 	{ // do_test "rtreeG-1.4log"
 		_ = log // TCL namespace variable (query)
 		got := tclListFlatten(log)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rtreeG-1.4log")
 		}

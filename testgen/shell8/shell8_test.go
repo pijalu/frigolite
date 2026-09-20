@@ -130,7 +130,83 @@ func Test_shell8(t *testing.T) {
 		tcl := _items0[_idx0+1]
 		_ = tcl // suppress unused warning
 		_ = _idx0
-			// eval $tcl (dynamic, not transpiled)
+			if tcl == "\n    set c1 \".ar c ar1\"\n    set x1 \".ar x\"\n\n    set c2 \".ar cC ar1 .\"\n    set x2 \".ar Cx ar3\"\n\n    set c3 \".ar cCf ar1 test_xyz.db .\"\n    set x3 \".ar Cfx ar3 test_xyz.db\"\n  " {
+				vtab.TclVarSet("c1", "", ".ar c ar1")
+				c1 = ".ar c ar1"
+				_ = c1 // suppress unused warning
+				vtab.TclVarSet("x1", "", ".ar x")
+				x1 = ".ar x"
+				_ = x1 // suppress unused warning
+				vtab.TclVarSet("c2", "", ".ar cC ar1 .")
+				c2 = ".ar cC ar1 ."
+				_ = c2 // suppress unused warning
+				vtab.TclVarSet("x2", "", ".ar Cx ar3")
+				x2 = ".ar Cx ar3"
+				_ = x2 // suppress unused warning
+				vtab.TclVarSet("c3", "", ".ar cCf ar1 test_xyz.db .")
+				c3 = ".ar cCf ar1 test_xyz.db ."
+				_ = c3 // suppress unused warning
+				vtab.TclVarSet("x3", "", ".ar Cfx ar3 test_xyz.db")
+				x3 = ".ar Cfx ar3 test_xyz.db"
+				_ = x3 // suppress unused warning
+			} else if tcl == "\n    set c1 \".ar -c ar1\"\n    set x1 \".ar -x\"\n\n    set c2 \".ar -cC ar1 .\"\n    set x2 \".ar -xC ar3\"\n\n    set c3 \".ar -cCar1 -ftest_xyz.db .\"\n    set x3 \".ar -x -C ar3 -f test_xyz.db\"\n  " {
+				vtab.TclVarSet("c1", "", ".ar -c ar1")
+				c1 = ".ar -c ar1"
+				_ = c1 // suppress unused warning
+				vtab.TclVarSet("x1", "", ".ar -x")
+				x1 = ".ar -x"
+				_ = x1 // suppress unused warning
+				vtab.TclVarSet("c2", "", ".ar -cC ar1 .")
+				c2 = ".ar -cC ar1 ."
+				_ = c2 // suppress unused warning
+				vtab.TclVarSet("x2", "", ".ar -xC ar3")
+				x2 = ".ar -xC ar3"
+				_ = x2 // suppress unused warning
+				vtab.TclVarSet("c3", "", ".ar -cCar1 -ftest_xyz.db .")
+				c3 = ".ar -cCar1 -ftest_xyz.db ."
+				_ = c3 // suppress unused warning
+				vtab.TclVarSet("x3", "", ".ar -x -C ar3 -f test_xyz.db")
+				x3 = ".ar -x -C ar3 -f test_xyz.db"
+				_ = x3 // suppress unused warning
+			} else if tcl == "\n    set c1 \".ar --create ar1\"\n    set x1 \".ar --extract\"\n\n    set c2 \".ar --directory ar1 --create .\"\n    set x2 \".ar --extract --dir ar3\"\n\n    set c3 \".ar --creat --dir ar1 --file test_xyz.db .\"\n    set x3 \".ar --e  --dir ar3 --f test_xyz.db\"\n  " {
+				vtab.TclVarSet("c1", "", ".ar --create ar1")
+				c1 = ".ar --create ar1"
+				_ = c1 // suppress unused warning
+				vtab.TclVarSet("x1", "", ".ar --extract")
+				x1 = ".ar --extract"
+				_ = x1 // suppress unused warning
+				vtab.TclVarSet("c2", "", ".ar --directory ar1 --create .")
+				c2 = ".ar --directory ar1 --create ."
+				_ = c2 // suppress unused warning
+				vtab.TclVarSet("x2", "", ".ar --extract --dir ar3")
+				x2 = ".ar --extract --dir ar3"
+				_ = x2 // suppress unused warning
+				vtab.TclVarSet("c3", "", ".ar --creat --dir ar1 --file test_xyz.db .")
+				c3 = ".ar --creat --dir ar1 --file test_xyz.db ."
+				_ = c3 // suppress unused warning
+				vtab.TclVarSet("x3", "", ".ar --e  --dir ar3 --f test_xyz.db")
+				x3 = ".ar --e  --dir ar3 --f test_xyz.db"
+				_ = x3 // suppress unused warning
+			} else if tcl == "\n    set c1 \".ar --cr ar1\"\n    set x1 \".ar --e\"\n\n    set c2 \".ar -C ar1 -c .\"\n    set x2 \".ar -x -C ar3\"\n\n    set c3 \".ar -c --directory ar1 --file test_xyz.db .\"\n    set x3 \".ar -x --directory ar3 --file test_xyz.db\"\n  " {
+				vtab.TclVarSet("c1", "", ".ar --cr ar1")
+				c1 = ".ar --cr ar1"
+				_ = c1 // suppress unused warning
+				vtab.TclVarSet("x1", "", ".ar --e")
+				x1 = ".ar --e"
+				_ = x1 // suppress unused warning
+				vtab.TclVarSet("c2", "", ".ar -C ar1 -c .")
+				c2 = ".ar -C ar1 -c ."
+				_ = c2 // suppress unused warning
+				vtab.TclVarSet("x2", "", ".ar -x -C ar3")
+				x2 = ".ar -x -C ar3"
+				_ = x2 // suppress unused warning
+				vtab.TclVarSet("c3", "", ".ar -c --directory ar1 --file test_xyz.db .")
+				c3 = ".ar -c --directory ar1 --file test_xyz.db ."
+				_ = c3 // suppress unused warning
+				vtab.TclVarSet("x3", "", ".ar -x --directory ar3 --file test_xyz.db")
+				x3 = ".ar -x --directory ar3 --file test_xyz.db"
+				_ = x3 // suppress unused warning
+			}
 			// populate_dir ar1 {\n    file1 "abcd" \n    file2 "efgh"\n    dir1/fi...} (unsupported command, not transpiled)
 			expected = "dir_to_list ar1"
 			_ = expected // suppress unused warning

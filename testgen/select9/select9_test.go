@@ -175,9 +175,8 @@ func Test_select9(t *testing.T) {
 		// incr iOuterLoop 1
 		{
 			_n, _err := strconv.Atoi(iOuterLoop)
-			if _err == nil {
-				iOuterLoop = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			iOuterLoop = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "select9-2.0"

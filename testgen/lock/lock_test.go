@@ -89,7 +89,7 @@ func Test_lock(t *testing.T) {
 		dummy = ""
 		_ = dummy // suppress unused warning
 		got := tclListFlatten(dummy)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-1.0")
 		}
@@ -98,12 +98,26 @@ func Test_lock(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-1.2"
 		r = db2.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-1.3"
@@ -152,6 +166,12 @@ func Test_lock(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-1.10"
@@ -311,6 +331,12 @@ func Test_lock(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "9 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-1.21"
@@ -781,6 +807,12 @@ func Test_lock(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-5.2"
@@ -792,6 +824,13 @@ func Test_lock(t *testing.T) {
 		r = db.Query("\n      CREATE TEMP TABLE t3(x);\n      SELECT * FROM t3;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t3(x);\n      SELECT * FROM t3;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-5.4"
@@ -804,6 +843,12 @@ func Test_lock(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM t3;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-5.6"
@@ -816,6 +861,12 @@ func Test_lock(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "9 1 9 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-5.8"
@@ -828,6 +879,12 @@ func Test_lock(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM t3;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "lock-6.1" (prepare-step internals; SQL side effects only)
@@ -868,12 +925,24 @@ func Test_lock(t *testing.T) {
 		r = db2.Query(" SELECT a FROM t4 ORDER BY a ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t4 ORDER BY a ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-6.4"
 		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "lock-6.5" (prepare-step internals; SQL side effects only)
@@ -895,6 +964,12 @@ func Test_lock(t *testing.T) {
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
+			return
+		}
+		got := flatten(r)
+		want := "main"+" "+"shared"+" "+"temp"+" "+temp_status
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock-7.3"

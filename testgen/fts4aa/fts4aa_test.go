@@ -122,12 +122,24 @@ func Test_fts4aa(t *testing.T) {
 		r = db.Query("\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-1.2"
 		r = db.Query("\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) {
@@ -186,12 +198,24 @@ func Test_fts4aa(t *testing.T) {
 		r = db.Query("\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-1.8"
 		r = db.Query("\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-1.9"
@@ -218,9 +242,8 @@ func Test_fts4aa(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "fts4aa-2." + ii
 			r = db.Query("SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
@@ -253,9 +276,8 @@ func Test_fts4aa(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "fts4aa-3." + ii
 			r = db.Query("SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
@@ -287,9 +309,8 @@ func Test_fts4aa(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 		{ // do_test "fts4aa-4." + ii
 			r = db.Query("SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")

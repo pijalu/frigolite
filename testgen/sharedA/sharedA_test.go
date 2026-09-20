@@ -129,6 +129,7 @@ func Test_sharedA(t *testing.T) {
 	// testvfs tvfs (unsupported command, not transpiled)
 	{ // do_test "2.1"
 		os.Remove("test.db")
+		os.Remove("test.db2")
 		db1, err = frigolite.Open("test.db")
 		tclConnRegister("db1", db1)
 		if err != nil { t.Fatal(err) }

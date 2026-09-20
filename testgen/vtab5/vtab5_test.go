@@ -69,6 +69,12 @@ func Test_vtab5(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab5.1.3"
@@ -114,18 +120,36 @@ func Test_vtab5(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE strings(str COLLATE NOCASE);\n    INSERT INTO strings VALUES('abc1');\n    INSERT INTO strings VALUES('Abc3');\n    INSERT INTO strings VALUES('ABc2');\n    INSERT INTO strings VALUES('aBc4');\n    SELECT str FROM strings ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE strings(str COLLATE NOCASE);\n    INSERT INTO strings VALUES('abc1');\n    INSERT INTO strings VALUES('Abc3');\n    INSERT INTO strings VALUES('ABc2');\n    INSERT INTO strings VALUES('aBc4');\n    SELECT str FROM strings ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc1 ABc2 Abc3 aBc4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab5.2.2"
 		r = db.Query("\n    CREATE VIRTUAL TABLE echo_strings USING echo(strings);\n    SELECT str FROM echo_strings ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE echo_strings USING echo(strings);\n    SELECT str FROM echo_strings ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc1 ABc2 Abc3 aBc4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab5.2.3"
 		r = db.Query("\n    SELECT str||'' FROM echo_strings ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT str||'' FROM echo_strings ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABc2 Abc3 aBc4 abc1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab5.3.1"

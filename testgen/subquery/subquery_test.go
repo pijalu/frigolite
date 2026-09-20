@@ -555,8 +555,7 @@ func Test_subquery(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

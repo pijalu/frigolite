@@ -306,9 +306,8 @@ func Test_unionvtab(t *testing.T) {
 				// incr iMin 1
 				{
 					_n, _err := strconv.Atoi(iMin)
-					if _err == nil {
-						iMin = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					iMin = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("sql", "", "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\")")
@@ -1177,6 +1176,13 @@ func Test_unionvtab(t *testing.T) {
 					r = db.Query("\n  SELECT * FROM sl WHERE rowid<-9223372036854775808\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<-9223372036854775808\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "4.4.1"
@@ -1219,6 +1225,13 @@ func Test_unionvtab(t *testing.T) {
 					r = db.Query("\n  SELECT * FROM sl WHERE rowid>9223372036854775807\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>9223372036854775807\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "5.0"

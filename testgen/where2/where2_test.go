@@ -122,9 +122,8 @@ func Test_where2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    CREATE UNIQUE INDEX i1w ON t1(w);\n    CREATE INDEX i1xy ON t1(x,y);\n    CREATE INDEX i1zyx ON t1(z,y,x);\n    COMMIT;\n  ")
@@ -136,19 +135,19 @@ func Test_where2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "where2-1.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=73...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396")
 	}
 	{ // do_test "where2-1.3"
-		// queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=73...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396 AND rowid=85")
 	}
 	{ // do_test "where2-2.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE w=85 ORDER BY random(...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w=85 ORDER BY random();")
 	}
 	{ // do_test "where2-2.2"
-		// queryplan {\n    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER BY random();")
 	}
 	{ // do_test "where2-2.3"
-		// queryplan {\n    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y=7396 ORDER BY random();")
 	}
 	{ // do_test "where2-2.4"
 		_res = db.Exec("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);\n  ")
@@ -183,55 +182,55 @@ func Test_where2(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "where2-3.1"
-		// queryplan {\n    SELECT * FROM t1 ORDER BY rowid LIMIT 2\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 ORDER BY rowid LIMIT 2")
 	}
 	{ // do_test "where2-3.2"
-		// queryplan {\n    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2")
 	}
 	{ // do_test "where2-4.1"
-		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006) ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z IN (10207,10006) AND y IN (10000,10201)\n                       AND x>0 AND x<10\n      ORDER BY w")
 	}
 	{ // do_test "where2-4.2"
-		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006) ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z IN (10207,10006) AND y=10000\n                       AND x>0 AND x<10\n      ORDER BY w")
 	}
 	{ // do_test "where2-4.3"
-		// queryplan {\n      SELECT * FROM t1 WHERE z=10006 AND y IN (1...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z=10006 AND y IN (10000,10201)\n                       AND x>0 AND x<10\n      ORDER BY w")
 	}
 	{ // do_test "where2-4.4"
-		// queryplan {\n        SELECT * FROM t1 WHERE z IN (SELECT 1020...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (10000,10201)\n                         AND x>0 AND x<10\n        ORDER BY w")
 	}
 	{ // do_test "where2-4.5"
-		// queryplan {\n        SELECT * FROM t1 WHERE z IN (SELECT 1020...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (SELECT 10000 UNION SELECT 10201)\n                         AND x>0 AND x<10\n        ORDER BY w")
 	}
 	{ // do_test "where2-4.6a"
-		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x")
 	}
 	{ // do_test "where2-4.6b"
-		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x DESC")
 	}
 	{ // do_test "where2-4.6c"
-		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y")
 	}
 	{ // do_test "where2-4.6d"
-		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y DESC")
 	}
 	{ // do_test "where2-4.6x"
-		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006,1...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w")
 	}
 	{ // do_test "where2-4.6y"
-		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006,1...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w DESC")
 	}
 	{ // do_test "where2-4.7"
-		// queryplan {\n        SELECT * FROM t1 WHERE z IN (\n         ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE z IN (\n           SELECT 10207 UNION ALL SELECT 10006\n           UNION ALL SELECT 10006 UNION ALL SELECT 10207)\n        ORDER BY w")
 	}
 	{ // do_test "where2-5.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE w=99 ORDER BY w\n  } (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w=99 ORDER BY w")
 	}
 	{ // do_test "where2-5.2a"
-		// queryplan {\n      SELECT * FROM t1 WHERE w IN (99) ORDER BY ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w IN (99) ORDER BY w")
 	}
 	{ // do_test "where2-5.2b"
-		// queryplan {\n      SELECT * FROM t1 WHERE w IN (99) ORDER BY ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w IN (99) ORDER BY w DESC")
 	}
 	vtab.TclVarSet("idx", "", "")
 	idx = "" // TCL namespace variable
@@ -240,22 +239,22 @@ func Test_where2(t *testing.T) {
 	idx = "i1w" // TCL namespace variable
 	_ = idx // suppress unused warning
 	{ // do_test "where2-6.1.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY +w")
 	}
 	{ // do_test "where2-6.1.2"
-		// queryplan {\n    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER B...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY +w")
 	}
 	{ // do_test "where2-6.2"
-		// queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ORDER BY +w")
 	}
 	{ // do_test "where2-6.3"
-		// queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ORDER BY +w")
 	}
 	{ // do_test "where2-6.4"
-		// queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 O...} (test infra, not transpiled)
+		_ = db.Query("SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR 6=w ORDER BY +w")
 	}
 	{ // do_test "where2-6.5"
-		// queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 ...} (test infra, not transpiled)
+		_ = db.Query("SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 OR 6=w ORDER BY +w")
 	}
 	vtab.TclVarSet("idx", "", "")
 	idx = "" // TCL namespace variable
@@ -264,10 +263,10 @@ func Test_where2(t *testing.T) {
 	idx = "i1zyx" // TCL namespace variable
 	_ = idx // suppress unused warning
 	{ // do_test "where2-6.5"
-		// queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1...} (test infra, not transpiled)
+		_ = db.Query("SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (a.y=b.z OR b.z=10)\n     ORDER BY +b.w")
 	}
 	{ // do_test "where2-6.6"
-		// queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1...} (test infra, not transpiled)
+		_ = db.Query("SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (b.z=10 OR a.y=b.z OR b.z=10)\n     ORDER BY +b.w")
 	}
 	if "" != "no_optimization" {
 		{ // do_test "where2-6.7"
@@ -275,40 +274,40 @@ func Test_where2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);\n  ")
 			}
-			// queryplan {\n    -- Because a is type TEXT and b is type INTE...} (test infra, not transpiled)
+			_ = db.Query("-- Because a is type TEXT and b is type INTEGER, both a and b\n    -- will attempt to convert to NUMERIC before the comparison.\n    -- They will thus compare equal.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b;")
 		}
 		{ // do_test "where2-6.9"
-			// queryplan {\n    -- The + operator removes affinity from the ...} (test infra, not transpiled)
+			_ = db.Query("-- The + operator removes affinity from the rhs.  No conversions\n    -- occur and the comparison is false.  The result is an empty set.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b;")
 		}
 		{ // do_test "where2-6.9.2"
-			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a")
 		}
 		{ // do_test "where2-6.10"
-			// queryplan {\n    -- Use + on both sides of the comparison to ...} (test infra, not transpiled)
+			_ = db.Query("-- Use + on both sides of the comparison to disable indices\n    -- completely.  Make sure we get the same result.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +a=+b;")
 		}
 		{ // do_test "where2-6.11"
-			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b OR a='hello';")
 		}
 		{ // do_test "where2-6.11.2"
-			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE b=a OR a='hello';")
 		}
 		{ // do_test "where2-6.11.3"
-			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE 'hello'=a OR b=a;")
 		}
 		{ // do_test "where2-6.11.4"
-			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR b=a;")
 		}
 		{ // do_test "where2-6.12"
-			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR a='hello';")
 		}
 		{ // do_test "where2-6.12.2"
-			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR +b=a;")
 		}
 		{ // do_test "where2-6.12.3"
-			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a OR a='hello';")
 		}
 		{ // do_test "where2-6.13"
-			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
+			_ = db.Query("SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR +a='hello';")
 		}
 		{ // "where2-6.14.1"
 			r = db.Query("\n  CREATE TABLE t614a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t614a VALUES('AAA','BBB');\n  CREATE TABLE t614b(x,y,c TEXT);\n  INSERT INTO t614b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t614b_c ON t614b(c);\n  SELECT c FROM t614a, t614b WHERE a=c OR b=c;\n")
@@ -326,6 +325,13 @@ func Test_where2(t *testing.T) {
 			r = db.Query("\n  SELECT c FROM t614a, t614b WHERE c=a OR c=b;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT c FROM t614a, t614b WHERE c=a OR c=b;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "where2-6.14.3"
@@ -368,6 +374,13 @@ func Test_where2(t *testing.T) {
 			r = db.Query("\n  SELECT c FROM t615a, t615b WHERE a=c OR b=c;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT c FROM t615a, t615b WHERE a=c OR b=c;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "where2-6.15.3"
@@ -452,25 +465,39 @@ func Test_where2(t *testing.T) {
 			r = db.Query("\n  SELECT EXISTS(\n    SELECT 1\n      FROM (SELECT 1 FROM t617 WHERE a='two' OR b='i')\n     WHERE a='ex' OR b='iv'\n  ) FROM t617;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT EXISTS(\n    SELECT 1\n      FROM (SELECT 1 FROM t617 WHERE a='two' OR b='i')\n     WHERE a='ex' OR b='iv'\n  ) FROM t617;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "where2-6.17.3"
 			r = db.Query("\n  SELECT * FROM t617 JOIN t617 USING(a,a,b) WHERE (b=0) OR a=10;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t617 JOIN t617 USING(a,a,b) WHERE (b=0) OR a=10;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "where2-6.20"
-			// queryplan {\n    SELECT x.a, y.a FROM t2249a x CROSS JOIN t22...} (test infra, not transpiled)
+			_ = db.Query("SELECT x.a, y.a FROM t2249a x CROSS JOIN t2249a y WHERE x.a=y.a")
 		}
 		{ // do_test "where2-6.21"
-			// queryplan {\n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2...} (test infra, not transpiled)
+			_ = db.Query("SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE x.a=y.a OR y.a='hello'")
 		}
 		{ // do_test "where2-6.22"
-			// queryplan {\n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2...} (test infra, not transpiled)
+			_ = db.Query("SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a=x.a OR y.a='hello'")
 		}
 		{ // do_test "where2-6.23"
-			// queryplan {\n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2...} (test infra, not transpiled)
+			_ = db.Query("SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a='hello' OR x.a=y.a")
 		}
 		{ // do_test "where2-7.1"
 			_ = db.Exec("\n    create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;\n  ") // cksort
@@ -489,12 +516,26 @@ func Test_where2(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.2"
 		r = db.Query("\n      SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("CREATE TABLE tx AS SELECT * FROM t1")
@@ -505,108 +546,230 @@ func Test_where2(t *testing.T) {
 		r = db.Query("\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.4"
 		r = db.Query("\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.5"
 		r = db.Query("\n      CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "12 13 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.6"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "12 13 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.7"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "10 11 12 13 14 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.8"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "10 11 12 13 14 15 16 17 18 19 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.9"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.10"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.11"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.12"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.13"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.14"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.15"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.16"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.17"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.18"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.19"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-8.20"
 		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-9.1"
@@ -625,9 +788,8 @@ func Test_where2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("\n      CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;\n    ")
@@ -642,24 +804,48 @@ func Test_where2(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-11.2"
 		r = db.Query("\n    CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-11.3"
 		r = db.Query("\n    SELECT d FROM t11 WHERE c IN (1,2,3,4,5);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t11 WHERE c IN (1,2,3,4,5);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where2-11.4"
 		r = db.Query("\n    SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 8 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if "" != "no_optimization" {
@@ -684,6 +870,13 @@ func Test_where2(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t14a(x INTEGER PRIMARY KEY);\n  INSERT INTO t14a(x) VALUES(1),(2),(3),(4);\n  CREATE TABLE t14b(y INTEGER PRIMARY KEY);\n  INSERT INTO t14b(y) VALUES(1);\n  SELECT x FROM t14a WHERE x NOT IN (SELECT x FROM t14b);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t14a(x INTEGER PRIMARY KEY);\n  INSERT INTO t14a(x) VALUES(1),(2),(3),(4);\n  CREATE TABLE t14b(y INTEGER PRIMARY KEY);\n  INSERT INTO t14b(y) VALUES(1);\n  SELECT x FROM t14a WHERE x NOT IN (SELECT x FROM t14b);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "where2-15.1"

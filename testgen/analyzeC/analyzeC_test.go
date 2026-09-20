@@ -246,6 +246,13 @@ func Test_analyzeC(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS t44;\n  CREATE TABLE t44(a PRIMARY KEY);\n  INSERT INTO sqlite_stat1 VALUES('t44',null,'sz=0');\n  ANALYZE sqlite_master;\n  SELECT 0 FROM t44 WHERE a IN(1,2,3);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t44;\n  CREATE TABLE t44(a PRIMARY KEY);\n  INSERT INTO sqlite_stat1 VALUES('t44',null,'sz=0');\n  ANALYZE sqlite_master;\n  SELECT 0 FROM t44 WHERE a IN(1,2,3);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.0"

@@ -71,24 +71,48 @@ func Test_tkt3992(t *testing.T) {
 		r = db.Query("\n    UPDATE parameters1 SET mountcnt = mountcnt + 1;\n    SELECT * FROM parameters1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parameters1 SET mountcnt = mountcnt + 1;\n    SELECT * FROM parameters1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3992-1.3"
 		r = db.Query("\n    UPDATE parameters2 SET mountcnt = mountcnt + 1;\n    SELECT * FROM parameters2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parameters2 SET mountcnt = mountcnt + 1;\n    SELECT * FROM parameters2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3992-2.1"
 		r = db.Query("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      ALTER TABLE t1 ADD COLUMN c DEFAULT 3;\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      ALTER TABLE t1 ADD COLUMN c DEFAULT 3;\n      SELECT * FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3992-2.2"
 		r = db.Query("\n      UPDATE t1 SET a = 'one';\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET a = 'one';\n      SELECT * FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "one 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// db function tcl eval (TCL eval-command UDF: tcl('set VAR', value) sets VAR)

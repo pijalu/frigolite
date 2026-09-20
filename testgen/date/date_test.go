@@ -149,9 +149,8 @@ func Test_date(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	// datetest 2.3 {date('2003-10-22','weekday 0')} 2003-10-26 (unsupported command, not transpiled)
@@ -518,6 +517,7 @@ func Test_date(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	function.SetLocaltimeFault(false)
 	function.SetLocaltimeHook(nil)
 	// datetest 7.1 {datetime(null)} NULL (unsupported command, not transpiled)
 	// datetest 7.2 {datetime('now',null)} NULL (unsupported command, not transpiled)
@@ -585,6 +585,12 @@ func Test_date(t *testing.T) {
 		r = db.Query("\n    SELECT strftime('%Y-%m-%d %H:%M:%f', julianday('2006-09-24T10:50:26.047'))\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT strftime('%Y-%m-%d %H:%M:%f', julianday('2006-09-24T10:50:26.047'))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2006-09-24 10:50:26.047"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// datetest 13.2 {strftime('%Y-%m-%d %H:%M:%S', '2007-01-01 12:34:59...} {2007-01-01 12:34:5... (unsupported command, not transpiled)
@@ -646,9 +652,8 @@ func Test_date(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}

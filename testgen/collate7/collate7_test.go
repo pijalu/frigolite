@@ -127,6 +127,7 @@ func Test_collate7(t *testing.T) {
 	}
 	{ // do_test "collate7-2.1"
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

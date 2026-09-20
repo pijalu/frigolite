@@ -59,6 +59,12 @@ func Test_trigger5(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE Item(\n       a integer PRIMARY KEY NOT NULL ,\n       b double NULL ,\n       c int NOT NULL DEFAULT 0\n    );\n    CREATE TABLE Undo(UndoAction TEXT);\n    INSERT INTO Item VALUES (1,38205.60865,340);\n    CREATE TRIGGER trigItem_UNDO_AD AFTER DELETE ON Item FOR EACH ROW\n    BEGIN\n      INSERT INTO Undo SELECT 'INSERT INTO Item (a,b,c) VALUES ('\n       || coalesce(old.a,'NULL') || ',' || quote(old.b) || ',' || old.c || ');';\n    END;\n    DELETE FROM Item WHERE a = 1;\n    SELECT * FROM Undo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE Item(\n       a integer PRIMARY KEY NOT NULL ,\n       b double NULL ,\n       c int NOT NULL DEFAULT 0\n    );\n    CREATE TABLE Undo(UndoAction TEXT);\n    INSERT INTO Item VALUES (1,38205.60865,340);\n    CREATE TRIGGER trigItem_UNDO_AD AFTER DELETE ON Item FOR EACH ROW\n    BEGIN\n      INSERT INTO Undo SELECT 'INSERT INTO Item (a,b,c) VALUES ('\n       || coalesce(old.a,'NULL') || ',' || quote(old.b) || ',' || old.c || ');';\n    END;\n    DELETE FROM Item WHERE a = 1;\n    SELECT * FROM Undo;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "INSERT INTO Item (a,b,c) VALUES (1,38205.60865,340);"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

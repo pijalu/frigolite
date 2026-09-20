@@ -127,6 +127,12 @@ func Test_windowC(t *testing.T) {
 							r = db.Query("\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
+								return
+							}
+							got := flatten(r)
+							want := "{}"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 					}

@@ -69,6 +69,13 @@ func Test_subjournal(t *testing.T) {
 		r = db.Query("\n  PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.1"

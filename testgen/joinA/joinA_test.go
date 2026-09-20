@@ -85,6 +85,13 @@ func Test_joinA(t *testing.T) {
 				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           INNER JOIN t2 USING(c,d)\n           INNER JOIN t3 USING(a,b,f)\n           INNER JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           INNER JOIN t2 USING(c,d)\n           INNER JOIN t3 USING(a,b,f)\n           INNER JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "joinA-" + id + ".110"

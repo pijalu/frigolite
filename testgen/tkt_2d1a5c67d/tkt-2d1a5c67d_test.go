@@ -208,6 +208,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		{ // do_test "tkt-2d1a5c67d.1." + ii
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
@@ -217,13 +218,13 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -240,9 +241,8 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	db.Close()
@@ -289,9 +289,8 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -314,6 +313,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		}
 	}
 	os.Remove("test.db2-wal")
+	os.Remove("test.db2")
 	{ // do_test "3.6"
 		tclFileCopy("test.db-wal", "test.db2-wal")
 		tclFileCopy("test.db", "test.db2")

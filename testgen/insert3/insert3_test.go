@@ -69,54 +69,108 @@ func Test_insert3(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    CREATE TABLE log(x UNIQUE, y);\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      UPDATE log SET y=y+1 WHERE x=new.a;\n      INSERT OR IGNORE INTO log VALUES(new.a, 1);\n    END;\n    INSERT INTO t1 VALUES('hello','world');\n    INSERT INTO t1 VALUES(5,10);\n    SELECT * FROM log ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE TABLE log(x UNIQUE, y);\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      UPDATE log SET y=y+1 WHERE x=new.a;\n      INSERT OR IGNORE INTO log VALUES(new.a, 1);\n    END;\n    INSERT INTO t1 VALUES('hello','world');\n    INSERT INTO t1 VALUES(5,10);\n    SELECT * FROM log ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 1 hello 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-1.1"
 		r = db.Query("\n    INSERT INTO t1 SELECT a, b+10 FROM t1;\n    SELECT * FROM log ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 SELECT a, b+10 FROM t1;\n    SELECT * FROM log ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 hello 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-1.2"
 		r = db.Query("\n    CREATE TABLE log2(x PRIMARY KEY,y);\n    CREATE TRIGGER r2 BEFORE INSERT ON t1 BEGIN\n      UPDATE log2 SET y=y+1 WHERE x=new.b;\n      INSERT OR IGNORE INTO log2 VALUES(new.b,1);\n    END;\n    INSERT INTO t1 VALUES(453,'hi');\n    SELECT * FROM log ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE log2(x PRIMARY KEY,y);\n    CREATE TRIGGER r2 BEFORE INSERT ON t1 BEGIN\n      UPDATE log2 SET y=y+1 WHERE x=new.b;\n      INSERT OR IGNORE INTO log2 VALUES(new.b,1);\n    END;\n    INSERT INTO t1 VALUES(453,'hi');\n    SELECT * FROM log ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 453 1 hello 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-1.3"
 		r = db.Query("\n    SELECT * FROM log2 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log2 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hi 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-1.4.1"
 		r = db.Query("\n      INSERT INTO t1 SELECT * FROM t1;\n      SELECT 'a:', x, y FROM log UNION ALL \n          SELECT 'b:', x, y FROM log2 ORDER BY x;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT * FROM t1;\n      SELECT 'a:', x, y FROM log UNION ALL \n          SELECT 'b:', x, y FROM log2 ORDER BY x;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "a: 5 4 b: 10 2 b: 20 1 a: 453 2 a: hello 4 b: hi 2 b: world 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-1.4.2"
 		r = db.Query("\n      SELECT 'a:', x, y FROM log UNION ALL \n          SELECT 'b:', x, y FROM log2 ORDER BY x, y;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 'a:', x, y FROM log UNION ALL \n          SELECT 'b:', x, y FROM log2 ORDER BY x, y;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "a: 5 4 b: 10 2 b: 20 1 a: 453 2 a: hello 4 b: hi 2 b: world 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-1.5"
 		r = db.Query("\n      INSERT INTO t1(a) VALUES('xyz');\n      SELECT * FROM log ORDER BY x;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1(a) VALUES('xyz');\n      SELECT * FROM log ORDER BY x;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "5 4 453 2 hello 4 xyz 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-2.1"
 		r = db.Query("\n    CREATE TABLE t2(\n      a INTEGER PRIMARY KEY,\n      b DEFAULT 'b',\n      c DEFAULT 'c'\n    );\n    CREATE TABLE t2dup(a,b,c);\n    CREATE TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n      INSERT INTO t2dup(a,b,c) VALUES(new.a,new.b,new.c);\n    END;\n    INSERT INTO t2(a) VALUES(123);\n    INSERT INTO t2(b) VALUES(234);\n    INSERT INTO t2(c) VALUES(345);\n    SELECT * FROM t2dup;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(\n      a INTEGER PRIMARY KEY,\n      b DEFAULT 'b',\n      c DEFAULT 'c'\n    );\n    CREATE TABLE t2dup(a,b,c);\n    CREATE TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n      INSERT INTO t2dup(a,b,c) VALUES(new.a,new.b,new.c);\n    END;\n    INSERT INTO t2(a) VALUES(123);\n    INSERT INTO t2(b) VALUES(234);\n    INSERT INTO t2(c) VALUES(345);\n    SELECT * FROM t2dup;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 b c -1 234 c -1 b 345"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-2.2"
 		r = db.Query("\n    DELETE FROM t2dup;\n    INSERT INTO t2(a) SELECT 1 FROM t1 LIMIT 1;\n    INSERT INTO t2(b) SELECT 987 FROM t1 LIMIT 1;\n    INSERT INTO t2(c) SELECT 876 FROM t1 LIMIT 1;\n    SELECT * FROM t2dup;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2dup;\n    INSERT INTO t2(a) SELECT 1 FROM t1 LIMIT 1;\n    INSERT INTO t2(b) SELECT 987 FROM t1 LIMIT 1;\n    INSERT INTO t2(c) SELECT 876 FROM t1 LIMIT 1;\n    SELECT * FROM t2dup;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 b c -1 987 c -1 b 876"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-3.1"
@@ -147,18 +201,36 @@ func Test_insert3(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(\n      a INTEGER PRIMARY KEY,\n      b DEFAULT 'xyz'\n    );\n    INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(\n      a INTEGER PRIMARY KEY,\n      b DEFAULT 'xyz'\n    );\n    INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 xyz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-3.6"
 		r = db.Query("\n    INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 xyz 2 xyz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert3-3.7"
 		r = db.Query("\n      CREATE TABLE t6(x,y DEFAULT 4.3, z DEFAULT x'6869');\n      INSERT INTO t6 DEFAULT VALUES;\n      SELECT * FROM t6;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(x,y DEFAULT 4.3, z DEFAULT x'6869');\n      INSERT INTO t6 DEFAULT VALUES;\n      SELECT * FROM t6;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 4.3 hi"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_rows0 := db.Query("SELECT name FROM sqlite_master WHERE type = 'table'")
@@ -196,9 +268,8 @@ func Test_insert3(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" COMMIT ")
@@ -210,6 +281,13 @@ func Test_insert3(t *testing.T) {
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n      DELETE FROM t1 WHERE rowid%2;\n      INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n      DELETE FROM t1 WHERE rowid%2;\n      INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n    COMMIT;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

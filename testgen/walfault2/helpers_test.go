@@ -850,6 +850,38 @@ func tclListAppend(list string, items ...string) string {
 	return tclList(existing)
 }
 
+// tclListBuilder amortizes TCL lappend-in-loop accumulation: each Append is
+// O(item) (strings.Builder growth) instead of tclListAppend's copy of the
+// whole accumulated list, so building an N-element list is O(N) total
+// instead of O(N^2) bytes. Append applies the same element encoding as
+// tclListAppend's fast path (space-separated; braced when the item needs
+// bracing), so String() matches the list text tclListAppend would have
+// produced for append-only accumulation starting from an empty list.
+type tclListBuilder struct {
+	sb strings.Builder
+	n  int
+}
+
+// Append appends items to the list (TCL lappend semantics).
+func (b *tclListBuilder) Append(items ...string) {
+	for _, it := range items {
+		if b.n > 0 {
+			b.sb.WriteByte(' ')
+		}
+		if tclNeedsBracing(it) {
+			b.sb.WriteByte('{')
+			b.sb.WriteString(it)
+			b.sb.WriteByte('}')
+		} else {
+			b.sb.WriteString(it)
+		}
+		b.n++
+	}
+}
+
+// String returns the accumulated TCL-format list text.
+func (b *tclListBuilder) String() string { return b.sb.String() }
+
 // tclList joins items into a TCL-format list string.
 func tclList(items []string) string {
 	parts := make([]string, len(items))
@@ -1805,6 +1837,12 @@ func tclBool01(b bool) string {
 		return "1"
 	}
 	return "0"
+}
+
+// tclAutocommit mirrors sqlite3_get_autocommit(db): true when the connection
+// is in autocommit mode (no transaction is open).
+func tclAutocommit(db *frigolite.DB) bool {
+	return !db.InTransaction()
 }
 
 // tclDbStatus renders a sqlite3_db_status result as the TCL list
@@ -4499,11 +4537,11 @@ func tclSqlTail(sql string) string {
 // whitespace runs (including newlines) to single spaces, then trims. Used for
 // set-var comparisons where the value may be SQL text / prepare TAIL content
 // whose leading/trailing whitespace differs between the C-API tail pointer
-// and the TCL braced expected value.
+// and the TCL braced expected value. An empty value follows tclListFlatten's
+// "{}" convention (TCL renders an empty list/element as {}), so the empty
+// TAIL of a single-statement prepare (capi3-1.1) compares equal to the {}
+// expected value — "" and "{}" must not normalize to different strings.
 func tclListFlattenCollapse(s string) string {
-	if strings.TrimSpace(s) == "" {
-		return ""
-	}
 	return strings.Join(strings.Fields(tclListFlatten(s)), " ")
 }
 var tclClosedConns = map[*frigolite.DB]bool{}

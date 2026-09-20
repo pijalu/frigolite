@@ -243,6 +243,12 @@ func Test_zeroblob(t *testing.T) {
 		r = db.Query("\n    SELECT length(d) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(d) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1000000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-1.3"
@@ -264,6 +270,12 @@ func Test_zeroblob(t *testing.T) {
 		r = db.Query("\n    SELECT length(c), length(d) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(c), length(d) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1000000 10000 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-1.5"
@@ -287,6 +299,12 @@ func Test_zeroblob(t *testing.T) {
 		r = db.Query("\n    SELECT length(c), length(d) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(c), length(d) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1000000 10000 1 10000 10000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-1.7"
@@ -310,84 +328,168 @@ func Test_zeroblob(t *testing.T) {
 		r = db.Query("\n    SELECT length(b), length(d) FROM t1 WHERE a=5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(b), length(d) FROM t1 WHERE a=5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10000 10000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-2.1"
 		r = db.Query("\n    SELECT a FROM t1 WHERE b=zeroblob(10000)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE b=zeroblob(10000)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-2.2"
 		r = db.Query("\n    CREATE INDEX i1_1 ON t1(b);\n    SELECT a FROM t1 WHERE b=zeroblob(10000);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1_1 ON t1(b);\n    SELECT a FROM t1 WHERE b=zeroblob(10000);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-3.1"
 		r = db.Query("\n      SELECT count(DISTINCT a) FROM (\n        SELECT x'00000000000000000000' AS a\n        UNION ALL\n        SELECT zeroblob(10) AS a\n      )\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(DISTINCT a) FROM (\n        SELECT x'00000000000000000000' AS a\n        UNION ALL\n        SELECT zeroblob(10) AS a\n      )\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-4.1"
 		r = db.Query("\n      SELECT hex(zeroblob(2) || x'61')\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT hex(zeroblob(2) || x'61')\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "000061"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-5.1"
 		r = db.Query("\n    SELECT CAST (zeroblob(100) AS REAL);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST (zeroblob(100) AS REAL);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-5.2"
 		r = db.Query("\n    SELECT CAST (zeroblob(100) AS INTEGER);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST (zeroblob(100) AS INTEGER);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-5.3"
 		r = db.Query("\n    SELECT CAST (zeroblob(100) AS TEXT);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST (zeroblob(100) AS TEXT);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-5.4"
 		r = db.Query("\n    SELECT CAST(zeroblob(100) AS BLOB);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST(zeroblob(100) AS BLOB);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclExecSQL(db, "SELECT zeroblob(100)")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-6.1.1"
 		r = db.Query("select zeroblob(-1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select zeroblob(-1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-6.1.2"
 		r = db.Query("select zeroblob(-10)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select zeroblob(-10)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-6.1.3"
 		r = db.Query("select zeroblob(-100)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select zeroblob(-100)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-6.2"
 		r = db.Query("select length(zeroblob(-1))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select length(zeroblob(-1))")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-6.3"
 		r = db.Query("select zeroblob(-1)|1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select zeroblob(-1)|1")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-6.4"
@@ -406,12 +508,24 @@ func Test_zeroblob(t *testing.T) {
 		r = db.Query("select hex(zeroblob(-1))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select hex(zeroblob(-1))")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-6.7"
 		r = db.Query("select typeof(zeroblob(-1))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select typeof(zeroblob(-1))")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// sqlite3_memory_highwater 1 (unsupported command, not transpiled)

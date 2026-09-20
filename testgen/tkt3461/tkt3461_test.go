@@ -67,18 +67,36 @@ func Test_tkt3461(t *testing.T) {
 		r = db.Query(" SELECT a, b+1 AS b_plus_one FROM t1 WHERE a=1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b+1 AS b_plus_one FROM t1 WHERE a=1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3461-1.3"
 		r = db.Query(" SELECT a, b+1 AS b_plus_one FROM t1 WHERE a=1 OR b_plus_one ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b+1 AS b_plus_one FROM t1 WHERE a=1 OR b_plus_one ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3461-2.1"
 		r = db.Query(" \n    SELECT a, b+1 AS b_plus_one \n    FROM t1 \n    WHERE CASE WHEN a=1 THEN 1 ELSE b_plus_one END \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT a, b+1 AS b_plus_one \n    FROM t1 \n    WHERE CASE WHEN a=1 THEN 1 ELSE b_plus_one END \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3461-3.1"

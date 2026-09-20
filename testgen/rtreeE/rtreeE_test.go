@@ -80,6 +80,13 @@ func Test_rtreeE(t *testing.T) {
 		r = db.Query("\n  PRAGMA page_size=512;\n  CREATE VIRTUAL TABLE rt1 USING rtree(id,x0,x1,y0,y1);\n  \n  /* A tight pattern of small boxes near 0,0 */\n  WITH RECURSIVE\n    x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x<4),\n    y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y<4)\n  INSERT INTO rt1 SELECT x+5*y, x, x+2, y, y+2 FROM x, y;\n\n  /* A looser pattern of small boxes near 100, 0 */\n  WITH RECURSIVE\n    x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x<4),\n    y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y<4)\n  INSERT INTO rt1 SELECT 100+x+5*y, x*3+100, x*3+102, y*3, y*3+2 FROM x, y;\n\n  /* A looser pattern of larger boxes near 0, 200 */\n  WITH RECURSIVE\n    x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x<4),\n    y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y<4)\n  INSERT INTO rt1 SELECT 200+x+5*y, x*7, x*7+15, y*7+200, y*7+215 FROM x, y;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=512;\n  CREATE VIRTUAL TABLE rt1 USING rtree(id,x0,x1,y0,y1);\n  \n  /* A tight pattern of small boxes near 0,0 */\n  WITH RECURSIVE\n    x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x<4),\n    y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y<4)\n  INSERT INTO rt1 SELECT x+5*y, x, x+2, y, y+2 FROM x, y;\n\n  /* A looser pattern of small boxes near 100, 0 */\n  WITH RECURSIVE\n    x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x<4),\n    y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y<4)\n  INSERT INTO rt1 SELECT 100+x+5*y, x*3+100, x*3+102, y*3, y*3+2 FROM x, y;\n\n  /* A looser pattern of larger boxes near 0, 200 */\n  WITH RECURSIVE\n    x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x<4),\n    y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y<4)\n  INSERT INTO rt1 SELECT 200+x+5*y, x*7, x*7+15, y*7+200, y*7+215 FROM x, y;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_rtree_integrity_test rtreeE-1.0.1 rt1 (unsupported command, not transpiled)
@@ -204,9 +211,8 @@ func Test_rtreeE(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    INSERT INTO rt2 SELECT * FROM t2;\n    COMMIT;\n  ")
@@ -247,9 +253,8 @@ func Test_rtreeE(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_dbeval1 := tclExecSQL(db, "SELECT id FROM t2 WHERE x1>=0 AND x0<=5000 AND y1>=0 AND y0<=5000 ORDER BY id")

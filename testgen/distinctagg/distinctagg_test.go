@@ -90,24 +90,48 @@ func Test_distinctagg(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,3,4);\n    INSERT INTO t1 VALUES(1,3,5);\n    SELECT count(distinct a),\n           count(distinct b),\n           count(distinct c),\n           count(all a) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,3,4);\n    INSERT INTO t1 VALUES(1,3,5);\n    SELECT count(distinct a),\n           count(distinct b),\n           count(distinct c),\n           count(all a) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "distinctagg-1.2"
 		r = db.Query("\n    SELECT b, count(distinct c) FROM t1 GROUP BY b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, count(distinct c) FROM t1 GROUP BY b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 3 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "distinctagg-1.3"
 		r = db.Query("\n    INSERT INTO t1 SELECT a+1, b+3, c+5 FROM t1;\n    INSERT INTO t1 SELECT a+2, b+6, c+10 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+12, c+20 FROM t1;\n    SELECT count(*), count(distinct a), count(distinct b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 SELECT a+1, b+3, c+5 FROM t1;\n    INSERT INTO t1 SELECT a+2, b+6, c+10 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+12, c+20 FROM t1;\n    SELECT count(*), count(distinct a), count(distinct b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "24 8 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "distinctagg-1.4"
 		r = db.Query("\n    SELECT a, count(distinct c) FROM t1 GROUP BY a ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, count(distinct c) FROM t1 GROUP BY a ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 2 3 3 3 4 3 5 3 6 3 7 3 8 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "distinctagg-2.1"

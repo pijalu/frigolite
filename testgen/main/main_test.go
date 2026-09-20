@@ -242,6 +242,7 @@ func Test_main(t *testing.T) {
 			fd = "test.db"
 			_ = fd // suppress unused warning
 			tclChannelAppendAt("test.db", "hi!"+"\n", fileChannelSeek["fd"])
+			fileChannelSeek["fd"] += int64(len("hi!"+"\n"))
 			// close $fd
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning

@@ -684,6 +684,13 @@ func Test_without_rowid1(t *testing.T) {
 				r = db.Query("\n    CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1(a) VALUES(10);\n    ALTER TABLE t1 ADD COLUMN b INT;\n    SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1(a) VALUES(10);\n    ALTER TABLE t1 ADD COLUMN b INT;\n    SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "14.2"

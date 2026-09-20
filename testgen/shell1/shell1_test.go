@@ -121,6 +121,7 @@ func Test_shell1(t *testing.T) {
 	out = "FOO"
 	_ = out // suppress unused warning
 	tclChannelAppendAt("FOO", ""+"\n", fileChannelSeek["out"])
+	fileChannelSeek["out"] += int64(len(""+"\n"))
 	// close $out
 	{ // "shell1-1.3.1" (CLI shell subprocess harness, not transpiled)
 		// catchcmd -init FOO test.db 
@@ -710,8 +711,8 @@ func Test_shell1(t *testing.T) {
 		}
 	}
 	if false {
-		vtab.TclVarSet("test", "", "u6D4Bu8BD5")
-		test = "u6D4Bu8BD5"
+		vtab.TclVarSet("test", "", "测试")
+		test = "测试"
 		_ = test // suppress unused warning
 		{ // "shell1-6.0" (CLI shell subprocess harness, not transpiled)
 			// set fileName $test
@@ -737,6 +738,8 @@ func Test_shell1(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

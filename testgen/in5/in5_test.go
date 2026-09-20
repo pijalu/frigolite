@@ -65,30 +65,60 @@ func Test_in5(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1x(x INTEGER PRIMARY KEY);\n    INSERT INTO t1x VALUES(1),(3),(5),(7),(9);\n    CREATE TABLE t1y(y INTEGER UNIQUE);\n    INSERT INTO t1y VALUES(2),(4),(6),(8);\n    CREATE TABLE t1z(z TEXT UNIQUE);\n    INSERT INTO t1z VALUES('a'),('c'),('e'),('g');\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT, d TEXT);\n    INSERT INTO t2 VALUES(1,2,'a','12a'),(1,2,'b','12b'),\n                         (2,3,'g','23g'),(3,5,'c','35c'),\n                         (4,6,'h','46h'),(5,6,'e','56e');\n    CREATE TABLE t3x AS SELECT x FROM t1x;\n    CREATE TABLE t3y AS SELECT y FROM t1y;\n    CREATE TABLE t3z AS SELECT z FROM t1z;\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1x(x INTEGER PRIMARY KEY);\n    INSERT INTO t1x VALUES(1),(3),(5),(7),(9);\n    CREATE TABLE t1y(y INTEGER UNIQUE);\n    INSERT INTO t1y VALUES(2),(4),(6),(8);\n    CREATE TABLE t1z(z TEXT UNIQUE);\n    INSERT INTO t1z VALUES('a'),('c'),('e'),('g');\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT, d TEXT);\n    INSERT INTO t2 VALUES(1,2,'a','12a'),(1,2,'b','12b'),\n                         (2,3,'g','23g'),(3,5,'c','35c'),\n                         (4,6,'h','46h'),(5,6,'e','56e');\n    CREATE TABLE t3x AS SELECT x FROM t1x;\n    CREATE TABLE t3y AS SELECT y FROM t1y;\n    CREATE TABLE t3z AS SELECT z FROM t1z;\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12a 56e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-1.2"
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "23g"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-1.3"
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t3x AND b IN t3y AND c IN t3z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 WHERE a IN t3x AND b IN t3y AND c IN t3z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12a 56e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-2.1"
 		r = db.Query("\n    CREATE INDEX t2abc ON t2(a,b,c);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t2abc ON t2(a,b,c);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12a 56e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-2.2"
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "23g"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-2.3"
@@ -98,6 +128,12 @@ func Test_in5(t *testing.T) {
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t3x AND b IN t3y AND c IN t3z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 WHERE a IN t3x AND b IN t3y AND c IN t3z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12a 56e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-2.5.1"
@@ -113,12 +149,24 @@ func Test_in5(t *testing.T) {
 		r = db.Query("\n    DROP INDEX t2abc;\n    CREATE INDEX t2ab ON t2(a,b);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2abc;\n    CREATE INDEX t2ab ON t2(a,b);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12a 56e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-3.2"
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "23g"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-3.3"
@@ -128,12 +176,24 @@ func Test_in5(t *testing.T) {
 		r = db.Query("\n    DROP INDEX t2ab;\n    CREATE INDEX t2abcd ON t2(a,b,c,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2ab;\n    CREATE INDEX t2abcd ON t2(a,b,c,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12a 56e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-4.2"
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "23g"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-4.3"
@@ -143,12 +203,24 @@ func Test_in5(t *testing.T) {
 		r = db.Query("\n    DROP INDEX t2abcd;\n    CREATE INDEX t2cbad ON t2(c,b,a,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2abcd;\n    CREATE INDEX t2cbad ON t2(c,b,a,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12a 56e"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-5.2"
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "23g"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "in5-5.3"

@@ -67,30 +67,60 @@ func Test_tkt3493(t *testing.T) {
 		r = db.Query("\n    SELECT \n      CASE \n         WHEN B.val = 1 THEN 'XYZ' \n         ELSE A.val \n      END AS Col1\n    FROM B  \n    LEFT OUTER JOIN A_B ON B.id = A_B.B_id  \n    LEFT OUTER JOIN A ON A.id = A_B.A_id\n    ORDER BY Col1 ASC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT \n      CASE \n         WHEN B.val = 1 THEN 'XYZ' \n         ELSE A.val \n      END AS Col1\n    FROM B  \n    LEFT OUTER JOIN A_B ON B.id = A_B.B_id  \n    LEFT OUTER JOIN A ON A.id = A_B.A_id\n    ORDER BY Col1 ASC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "456 XYZ"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-1.3"
 		r = db.Query("\n    SELECT DISTINCT\n      CASE \n         WHEN B.val = 1 THEN 'XYZ' \n         ELSE A.val \n      END AS Col1\n    FROM B  \n    LEFT OUTER JOIN A_B ON B.id = A_B.B_id  \n    LEFT OUTER JOIN A ON A.id = A_B.A_id\n    ORDER BY Col1 ASC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT\n      CASE \n         WHEN B.val = 1 THEN 'XYZ' \n         ELSE A.val \n      END AS Col1\n    FROM B  \n    LEFT OUTER JOIN A_B ON B.id = A_B.B_id  \n    LEFT OUTER JOIN A ON A.id = A_B.A_id\n    ORDER BY Col1 ASC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "456 XYZ"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-1.4"
 		r = db.Query("\n    SELECT b.val, CASE WHEN b.val = 1 THEN 'xyz' ELSE b.val END AS col1 FROM b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b.val, CASE WHEN b.val = 1 THEN 'xyz' ELSE b.val END AS col1 FROM b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 xyz 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-1.5"
 		r = db.Query("\n    SELECT DISTINCT \n      b.val, \n      CASE WHEN b.val = 1 THEN 'xyz' ELSE b.val END AS col1 \n    FROM b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT \n      b.val, \n      CASE WHEN b.val = 1 THEN 'xyz' ELSE b.val END AS col1 \n    FROM b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 xyz 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-1.6"
 		r = db.Query("\n    SELECT DISTINCT \n      b.val, \n      CASE WHEN b.val = '1' THEN 'xyz' ELSE b.val END AS col1 \n    FROM b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT \n      b.val, \n      CASE WHEN b.val = '1' THEN 'xyz' ELSE b.val END AS col1 \n    FROM b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 xyz 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.1"
@@ -103,72 +133,144 @@ func Test_tkt3493(t *testing.T) {
 		r = db.Query(" SELECT a=123 FROM t1 GROUP BY a ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a=123 FROM t1 GROUP BY a ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.2.2"
 		r = db.Query(" SELECT a=123 FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a=123 FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.2.3"
 		r = db.Query(" SELECT a='123' FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a='123' FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.2.4"
 		r = db.Query(" SELECT count(*), a=123 FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*), a=123 FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.2.5"
 		r = db.Query(" SELECT count(*), +a=123 FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*), +a=123 FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.3.3"
 		r = db.Query(" SELECT b='456' FROM t1 GROUP BY a ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b='456' FROM t1 GROUP BY a ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.3.1"
 		r = db.Query(" SELECT b='456' FROM t1 GROUP BY b ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b='456' FROM t1 GROUP BY b ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.3.2"
 		r = db.Query(" SELECT b='456' FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b='456' FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.4.1"
 		r = db.Query(" SELECT typeof(a), a FROM t1 GROUP BY a HAVING a=123 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(a), a FROM t1 GROUP BY a HAVING a=123 ")
+			return
+		}
+		got := flatten(r)
+		want := "text 123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.4.2"
 		r = db.Query(" SELECT typeof(a), a FROM t1 GROUP BY b HAVING a=123 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(a), a FROM t1 GROUP BY b HAVING a=123 ")
+			return
+		}
+		got := flatten(r)
+		want := "text 123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.5.1"
 		r = db.Query(" SELECT typeof(b), b FROM t1 GROUP BY a HAVING b='456' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(b), b FROM t1 GROUP BY a HAVING b='456' ")
+			return
+		}
+		got := flatten(r)
+		want := "integer 456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-2.5.2"
 		r = db.Query(" SELECT typeof(b), b FROM t1 GROUP BY b HAVING b='456' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(b), b FROM t1 GROUP BY b HAVING b='456' ")
+			return
+		}
+		got := flatten(r)
+		want := "integer 456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-3.1"
@@ -181,36 +283,72 @@ func Test_tkt3493(t *testing.T) {
 		r = db.Query(" SELECT a='abc' FROM t2 GROUP BY a ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a='abc' FROM t2 GROUP BY a ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-3.2.2"
 		r = db.Query(" SELECT a='abc' FROM t2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a='abc' FROM t2 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-3.3.1"
 		r = db.Query(" SELECT a>b FROM t2 GROUP BY a, b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a>b FROM t2 GROUP BY a, b")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-3.3.2"
 		r = db.Query(" SELECT a>b COLLATE BINARY FROM t2 GROUP BY a, b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a>b COLLATE BINARY FROM t2 GROUP BY a, b")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-3.3.3"
 		r = db.Query(" SELECT b>a FROM t2 GROUP BY a, b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b>a FROM t2 GROUP BY a, b")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3493-3.3.4"
 		r = db.Query(" SELECT b>a COLLATE NOCASE FROM t2 GROUP BY a, b")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b>a COLLATE NOCASE FROM t2 GROUP BY a, b")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

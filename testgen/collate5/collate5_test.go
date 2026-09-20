@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"regexp"
 "strconv"
 "strings"
 "testing"
@@ -105,24 +106,48 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT a FROM collate5t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a FROM collate5t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-1.2"
 		r = db.Query("\n    SELECT DISTINCT b FROM collate5t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT b FROM collate5t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "apple Apple banana {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-1.3"
 		r = db.Query("\n    SELECT DISTINCT a, b FROM collate5t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a, b FROM collate5t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a apple A Apple b banana n {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-1.11"
 		r = db.Query("\n    CREATE TABLE tkt3376(a COLLATE nocase PRIMARY KEY);\n    INSERT INTO tkt3376 VALUES('abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz');\n    INSERT INTO tkt3376 VALUES('ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789');\n    SELECT DISTINCT a FROM tkt3376;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tkt3376(a COLLATE nocase PRIMARY KEY);\n    INSERT INTO tkt3376 VALUES('abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz');\n    INSERT INTO tkt3376 VALUES('ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789');\n    SELECT DISTINCT a FROM tkt3376;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-1.12"
@@ -151,6 +176,12 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM collate5t2 UNION select a FROM collate5t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t2 UNION select a FROM collate5t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A B N a b n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-2.1.3"
@@ -160,6 +191,12 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a, b FROM collate5t2 UNION select a, b FROM collate5t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t2 UNION select a, b FROM collate5t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A Apple B banana N {} a apple b banana n {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-2.2.1"
@@ -169,6 +206,12 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM collate5t2 EXCEPT select a FROM collate5t1 WHERE a != 'a';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t2 EXCEPT select a FROM collate5t1 WHERE a != 'a';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-2.2.3"
@@ -178,6 +221,12 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a, b FROM collate5t2 EXCEPT select a, b FROM collate5t1 \n      where a != 'a';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t2 EXCEPT select a, b FROM collate5t1 \n      where a != 'a';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A apple a apple"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-2.3.1"
@@ -187,6 +236,12 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM collate5t2 INTERSECT select a FROM collate5t1 WHERE a != 'a';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t2 INTERSECT select a FROM collate5t1 WHERE a != 'a';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "B b"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-2.3.3"
@@ -196,6 +251,12 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a, b FROM collate5t2 INTERSECT select a, b FROM collate5t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t2 INTERSECT select a, b FROM collate5t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A apple B Banana a apple b banana"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("lens", "", "0"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"5"+" "+"6"+" "+"7"+" "+"8"+" "+"9"+" "+"240"+" "+"241"+" "+"242"+" "+"243"+" "+"244"+" "+"245"+" "+"246"+" "+"247"+" "+"248"+" "+"249"+" "+"250"+" "+"251"+" "+"252"+" "+"253"+" "+"254"+" "+"255"+" "+"256"+" "+"257"+" "+"258"+" "+"259"+" "+"260"+" "+"261"+" "+"262"+" "+"263"+" "+"264"+" "+"265"+" "+"266"+" "+"267"+" "+"268"+" "+"269"+" "+"270"+" "+"271"+" "+"272"+" "+"273"+" "+"65520"+" "+"65521"+" "+"65522"+" "+"65523"+" "+"65524"+" "+"65525"+" "+"65526"+" "+"65527"+" "+"65528"+" "+"65529"+" "+"65530"+" "+"65531"+" "+"65532"+" "+"65533"+" "+"65534"+" "+"65535"+" "+"65536"+" "+"65537"+" "+"65538"+" "+"65539"+" "+"65540"+" "+"65541"+" "+"65542"+" "+"65543"+" "+"65544"+" "+"65545"+" "+"65546"+" "+"65547"+" "+"65548"+" "+"65549"+" "+"65550"+" "+"65551")
@@ -225,18 +286,36 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM collate5t1 UNION ALL SELECT a FROM collate5t2 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t1 UNION ALL SELECT a FROM collate5t2 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "[aA] [aA] [aA] [aA] [bB] [bB] [bB] [bB] [nN] [nN]"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "collate5-3.1"
 		r = db.Query("\n    SELECT a FROM collate5t2 UNION ALL SELECT a FROM collate5t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t2 UNION ALL SELECT a FROM collate5t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A A B B N a a b b n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-3.2"
 		r = db.Query("\n    SELECT a FROM collate5t1 UNION ALL SELECT a FROM collate5t2 \n      ORDER BY 1 COLLATE TEXT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t1 UNION ALL SELECT a FROM collate5t2 \n      ORDER BY 1 COLLATE TEXT;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A A B B N a a b b n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-3.3"
@@ -249,12 +328,24 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM collate5t_cn INTERSECT SELECT a FROM collate5t_ct ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t_cn INTERSECT SELECT a FROM collate5t_ct ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-3.5"
 		r = db.Query("\n    SELECT a FROM collate5t_ct INTERSECT SELECT a FROM collate5t_cn ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t_ct INTERSECT SELECT a FROM collate5t_cn ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 101 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate5-3.20"
@@ -276,6 +367,12 @@ func Test_collate5(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, count(*) FROM collate5t1 GROUP BY a, b ORDER BY a, b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, count(*) FROM collate5t1 GROUP BY a, b ORDER BY a, b;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "[aA] 1(.0)? 2 [bB] 2 1 [bB] 3 1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "collate5-4.3"

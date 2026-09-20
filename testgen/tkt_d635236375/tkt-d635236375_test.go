@@ -65,12 +65,24 @@ func Test_tkt_d635236375(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(id1 INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(9999);\n    CREATE TABLE t2(id2 INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(12345);\n    INSERT INTO t2 VALUES(54321);\n    SELECT DISTINCT id1 AS x, id1 AS y FROM t1, t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(id1 INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(9999);\n    CREATE TABLE t2(id2 INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(12345);\n    INSERT INTO t2 VALUES(54321);\n    SELECT DISTINCT id1 AS x, id1 AS y FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9999 9999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1"
 		r = db.Query("\n    SELECT count(*) FROM t1, t2 GROUP BY id1, id1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1, t2 GROUP BY id1, id1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -230,24 +230,52 @@ func Test_decimal(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(seq INTEGER PRIMARY KEY, val TEXT);\n  INSERT INTO t1 VALUES\n    (1, '-9999e99'),\n    (2, '-9998.000e+99'),\n    (3, '-9999.0'),\n    (4, '-1'),\n    (5, '-9999e-20'),\n    (6, '0'),\n    (7, '1e-30'),\n    (8, '1e-29'),\n    (9, '1'),\n    (10,'1.00000000000000001'),\n    (11,'+1.00001'),\n    (12,'99e+99');\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq<b.seq\n     AND decimal_cmp(a.val,b.val)>=0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(seq INTEGER PRIMARY KEY, val TEXT);\n  INSERT INTO t1 VALUES\n    (1, '-9999e99'),\n    (2, '-9998.000e+99'),\n    (3, '-9999.0'),\n    (4, '-1'),\n    (5, '-9999e-20'),\n    (6, '0'),\n    (7, '1e-30'),\n    (8, '1e-29'),\n    (9, '1'),\n    (10,'1.00000000000000001'),\n    (11,'+1.00001'),\n    (12,'99e+99');\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq<b.seq\n     AND decimal_cmp(a.val,b.val)>=0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2001"
 		r = db.Query("\n  WITH vx(a,b) AS (VALUES\n    ('-0','+0'),\n    ('-000.000','0'),\n    ('1.2','1.2000')\n  )\n  SELECT *, '|' FROM vx \n   WHERE decimal_cmp(a,b)!=0\n      OR decimal_cmp(b,a)!=0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH vx(a,b) AS (VALUES\n    ('-0','+0'),\n    ('-000.000','0'),\n    ('1.2','1.2000')\n  )\n  SELECT *, '|' FROM vx \n   WHERE decimal_cmp(a,b)!=0\n      OR decimal_cmp(b,a)!=0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2010"
 		r = db.Query("\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq<>b.seq\n     AND decimal_cmp(a.val,b.val)==0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq<>b.seq\n     AND decimal_cmp(a.val,b.val)==0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2020"
 		r = db.Query("\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq>b.seq\n     AND decimal_cmp(a.val,b.val)<=0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq>b.seq\n     AND decimal_cmp(a.val,b.val)<=0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2030"

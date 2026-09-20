@@ -150,18 +150,39 @@ func Test_rtreeH(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 WHERE rowid='+5.0e+0x';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE rowid='+5.0e+0x';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeH-105"
 		r = db.Query("\n  SELECT * FROM t1 WHERE rowid=x'35';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE rowid=x'35';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeH-106"
 		r = db.Query("\n  SELECT * FROM t1 WHERE rowid=null;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE rowid=null;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_rtree_integrity_test rtreeH-110 t1 (unsupported command, not transpiled)
@@ -248,6 +269,13 @@ func Test_rtreeH(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t0 WHERE NOT EXISTS (\n      SELECT 1 FROM t1 WHERE t1.c3 OR t0.c0 ISNULL\n  );\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE NOT EXISTS (\n      SELECT 1 FROM t1 WHERE t1.c3 OR t0.c0 ISNULL\n  );\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

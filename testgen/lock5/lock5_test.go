@@ -127,6 +127,12 @@ func Test_lock5(t *testing.T) {
 		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock5-dotfile.6"
@@ -142,6 +148,12 @@ func Test_lock5(t *testing.T) {
 		r = db2.Query("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock5-dotfile.9"
@@ -163,7 +175,7 @@ func Test_lock5(t *testing.T) {
 		// file exists "test.db.lock"
 	}
 	os.Remove("test.db")
-	if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
+	if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(func() string { _ = func() string { db, err = frigolite.Open("test.db"); if err != nil { t.Fatal(err) }; return "" }(); return "0" }()); if r_e != nil { return false }; return l_n == r_n }() {
 		{ // do_test "lock5-flock.1"
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
@@ -303,18 +315,36 @@ func Test_lock5(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock5-none.3"
 		r = db2.Query(" SELECT * FROM t1; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1; ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock5-none.4"
 		r = db2.Query(" \n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock5-none.5"

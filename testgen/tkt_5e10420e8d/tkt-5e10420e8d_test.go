@@ -59,6 +59,13 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tkt-5e10420e8d.2"
@@ -71,12 +78,26 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 		r = db.Query("\n  PRAGMA incremental_vacuum(248)\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA incremental_vacuum(248)\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tkt-5e10420e8d.4"
 		r = db.Query("\n  PRAGMA incremental_vacuum(1)\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA incremental_vacuum(1)\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

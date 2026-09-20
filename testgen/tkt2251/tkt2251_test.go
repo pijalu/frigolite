@@ -61,48 +61,96 @@ func Test_tkt2251(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    ALTER TABLE t1 ADD COLUMN b REAL DEFAULT 4.0;\n    SELECT avg(b), typeof(avg(b)) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    ALTER TABLE t1 ADD COLUMN b REAL DEFAULT 4.0;\n    SELECT avg(b), typeof(avg(b)) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2251-1.2"
 		r = db.Query("\n    SELECT sum(b), typeof(sum(b)) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(b), typeof(sum(b)) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2251-1.3"
 		r = db.Query("\n    SELECT a, sum(b), typeof(sum(b)) FROM t1 GROUP BY a ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, sum(b), typeof(sum(b)) FROM t1 GROUP BY a ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 8.0 real 2 8.0 real 3 4.0 real 9 12.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2251-2.1"
 		r = db.Query("\n    SELECT b, typeof(b) FROM t1 WHERE a=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, typeof(b) FROM t1 WHERE a=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2251-2.2"
 		r = db.Query("\n    CREATE INDEX t1i1 ON t1(a,b);\n    SELECT b, typeof(b) FROM t1 WHERE a=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i1 ON t1(a,b);\n    SELECT b, typeof(b) FROM t1 WHERE a=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2251-2.3"
 		r = db.Query("\n    REINDEX;\n    SELECT b, typeof(b) FROM t1 WHERE a=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REINDEX;\n    SELECT b, typeof(b) FROM t1 WHERE a=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2251-3.1"
 		r = db.Query("\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT y, typeof(y) FROM t2 WHERE x=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT y, typeof(y) FROM t2 WHERE x=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2251-3.2"
 		r = db.Query("\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT b, typeof(b) FROM t3 WHERE a=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT b, typeof(b) FROM t3 WHERE a=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -128,18 +128,36 @@ func Test_reindex(t *testing.T) {
 		r = db.Query("\n    SELECT b FROM t2 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t2 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "BCDE bcd ABCD abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "reindex-2.3"
 		r = db.Query("\n    SELECT c FROM t2 ORDER BY c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM t2 ORDER BY c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc ABCD bcd BCDE"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "reindex-2.4"
 		r = db.Query("\n    SELECT d FROM t2 ORDER BY d;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t2 ORDER BY d;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABCD BCDE abc bcd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "reindex-2.5"
@@ -157,18 +175,36 @@ func Test_reindex(t *testing.T) {
 		r = db.Query("\n    REINDEX c2;\n    SELECT a FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REINDEX c2;\n    SELECT a FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "bcd abc BCDE ABCD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "reindex-2.7"
 		r = db.Query("\n    REINDEX t1;\n    SELECT a FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REINDEX t1;\n    SELECT a FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "bcd abc BCDE ABCD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "reindex-2.8"
 		r = db.Query("\n    REINDEX c1;\n    SELECT a FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REINDEX c1;\n    SELECT a FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ABCD BCDE abc bcd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

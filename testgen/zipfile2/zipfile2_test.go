@@ -220,9 +220,8 @@ func Test_zipfile2(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	L = tclFindAll("5554", archive)
@@ -252,9 +251,8 @@ func Test_zipfile2(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("i", "", "0")
@@ -282,9 +280,8 @@ func Test_zipfile2(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("archive2", "", "\n  504B0304140000080800D4A52BEC08F54C6E050000001700000005000900612E\n  747874555405000140420F004B4CC40A00504B01021E03140000080800D4A52B\n  EC08F54C6E0500000017000000050009000000000000000000A4810000000061\n  2E747874555405000140420F00504B050600000000010001003C000000310000\n  000000\n")
@@ -428,6 +425,7 @@ func Test_zipfile2(t *testing.T) {
 			fd = "test.zip"
 			_ = fd // suppress unused warning
 			tclChannelAppendAt("test.zip", tclDbOne(db, "SELECT X'504b0506000000000100010030000000160000000000504b01021400140000000000000000000000000000000000000000000100010000000000000000000000000000006100'"), fileChannelSeek["fd"])
+			fileChannelSeek["fd"] += int64(len(tclDbOne(db, "SELECT X'504b0506000000000100010030000000160000000000504b01021400140000000000000000000000000000000000000000000100010000000000000000000000000000006100'")))
 			// close $fd
 			{ // "8.0"
 				_res = db.Exec("\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")

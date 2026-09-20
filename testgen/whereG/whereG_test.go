@@ -246,9 +246,8 @@ func Test_whereG(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" INSERT INTO t1 SELECT 'def', b, c FROM t1; ")
@@ -390,6 +389,13 @@ func Test_whereG(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t0 WHERE (t0.rowid) <= '0';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE (t0.rowid) <= '0';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.5"
@@ -444,12 +450,26 @@ func Test_whereG(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t0 WHERE unlikely(t0.rowid <= '0');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE unlikely(t0.rowid <= '0');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.10"
 		r = db.Query("\n  SELECT * FROM t0 WHERE likelihood(t0.rowid <= '0', 0.5);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE likelihood(t0.rowid <= '0', 0.5);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

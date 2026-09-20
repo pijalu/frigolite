@@ -65,6 +65,13 @@ func Test_tkt_c48d99d690(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('one'  , 1);\n    INSERT INTO t1 VALUES('two'  , 5);\n    INSERT INTO t1 VALUES('two'  , 2);\n    INSERT INTO t1 VALUES('three', 3);\n    PRAGMA count_changes = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('one'  , 1);\n    INSERT INTO t1 VALUES('two'  , 5);\n    INSERT INTO t1 VALUES('two'  , 2);\n    INSERT INTO t1 VALUES('three', 3);\n    PRAGMA count_changes = 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1"

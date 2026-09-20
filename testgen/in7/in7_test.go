@@ -110,9 +110,15 @@ func Test_in7(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			{ // "in7-1.1." + tn — skipped: VDBE bytecode walk (EXPLAIN OpenRead/Next + csr_to_root arrays) N-A (SQL side effects only)
+				_res = db.Exec("BEGIN")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec(idx)
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				_res = db.Exec("SELECT rootpage, tbl_name FROM sqlite_schema")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				_res = db.Exec("explain " + sql)
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec("ROLLBACK")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 		}

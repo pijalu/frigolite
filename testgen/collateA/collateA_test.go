@@ -61,276 +61,570 @@ func Test_collateA(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.2"
 		r = db.Query("SELECT a FROM t1 WHERE b='abcde     '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b='abcde     '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.3"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcde     '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcde     '")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.4"
 		r = db.Query("SELECT a FROM t1 WHERE b='xyzzy'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b='xyzzy'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.5"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy'")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.6"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.7"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy  '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.8"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy   '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.9"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy    '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy    '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.10"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy                                  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy                                  '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.11"
 		r = db.Query("SELECT 'abc123'='abc123                         ' COLLATE RTRIM;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc123'='abc123                         ' COLLATE RTRIM;")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.12"
 		r = db.Query("SELECT 'abc123                         '='abc123' COLLATE RTRIM;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc123                         '='abc123' COLLATE RTRIM;")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.13"
 		r = db.Query("SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.14"
 		r = db.Query("SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.15"
 		r = db.Query("SELECT '  '='      ' COLLATE RTRIM, '  '='        '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '  '='      ' COLLATE RTRIM, '  '='        '")
+			return
+		}
+		got := flatten(r)
+		want := "1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.16"
 		r = db.Query("SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.17"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzz'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzz'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.18"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzyy   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzyy   '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.19"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzz   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzz   '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.20"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcd   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcd   '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.21"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcd'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcd'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.22"
 		r = db.Query("SELECT a FROM t1 WHERE c='abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abc'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.23"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcdef    '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcdef    '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.24"
 		r = db.Query("SELECT a FROM t1 WHERE c=''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c=''")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.25"
 		r = db.Query("SELECT a FROM t1 WHERE c=' '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c=' '")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-1.26"
 		r = db.Query("SELECT a FROM t1 WHERE c='                    '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='                    '")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.1"
 		r = db.Query("\n    CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.2"
 		r = db.Query("SELECT a FROM t1 WHERE b='abcde     '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b='abcde     '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.3"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcde     '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcde     '")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.4"
 		r = db.Query("SELECT a FROM t1 WHERE b='xyzzy'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b='xyzzy'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.5"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy'")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.6"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.7"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy  '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.8"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy   '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.9"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy    '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy    '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.10"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy                                  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy                                  '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.17"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzz'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzz'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.18"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzyy   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzyy   '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.19"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzz   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzz   '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.20"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcd   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcd   '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.21"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcd'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcd'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.22"
 		r = db.Query("SELECT a FROM t1 WHERE c='abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abc'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.23"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcdef    '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcdef    '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.24"
 		r = db.Query("SELECT a FROM t1 WHERE c=''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c=''")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.25"
 		r = db.Query("SELECT a FROM t1 WHERE c=' '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c=' '")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-2.26"
 		r = db.Query("SELECT a FROM t1 WHERE c='                    '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='                    '")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.1"
@@ -347,54 +641,110 @@ func Test_collateA(t *testing.T) {
 		r = db.Query("SELECT a FROM t1 WHERE b='abcde     '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b='abcde     '")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.3"
 		r = db.Query("SELECT a FROM t1 WHERE c='abcde     '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='abcde     '")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.4"
 		r = db.Query("SELECT a FROM t1 WHERE b='xyzzy'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE b='xyzzy'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.5"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy'")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.6"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.7"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy  '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.8"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy   '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy   '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.9"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy    '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy    '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collateA-3.10"
 		r = db.Query("SELECT a FROM t1 WHERE c='xyzzy                                  '")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1 WHERE c='xyzzy                                  '")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

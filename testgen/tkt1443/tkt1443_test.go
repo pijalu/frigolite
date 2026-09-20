@@ -72,12 +72,24 @@ func Test_tkt1443(t *testing.T) {
 		r = db.Query("\n    select distinct\n        Items.Item as trove, UP.pattern as pattern\n    from\n       ( select\n           Permissions.labelId as labelId,\n           PerItems.item as pattern\n         from\n           Users, UserGroupMembers, Permissions\n           left outer join Items as PerItems\n                 on Permissions.itemId = PerItems.itemId\n         where\n               Users.user = 'limited'\n           and Users.userId = UserGroupMembers.userId\n           and UserGroupMembers.userGroupId = Permissions.userGroupId\n       ) as UP join LabelMap on ( UP.labelId = 0 or\n                                  UP.labelId = LabelMap.labelId ),\n       Labels, Items\n    where\n        Labels.label = 'localhost@rpl:branch'\n    and Labels.labelId = LabelMap.labelId\n    and LabelMap.itemId = Items.itemId\n    ORDER BY +trove, +pattern\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select distinct\n        Items.Item as trove, UP.pattern as pattern\n    from\n       ( select\n           Permissions.labelId as labelId,\n           PerItems.item as pattern\n         from\n           Users, UserGroupMembers, Permissions\n           left outer join Items as PerItems\n                 on Permissions.itemId = PerItems.itemId\n         where\n               Users.user = 'limited'\n           and Users.userId = UserGroupMembers.userId\n           and UserGroupMembers.userGroupId = Permissions.userGroupId\n       ) as UP join LabelMap on ( UP.labelId = 0 or\n                                  UP.labelId = LabelMap.labelId ),\n       Labels, Items\n    where\n        Labels.label = 'localhost@rpl:branch'\n    and Labels.labelId = LabelMap.labelId\n    and LabelMap.itemId = Items.itemId\n    ORDER BY +trove, +pattern\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "double .*:runtime double:runtime .*:runtime double:source .*:runtime"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1443-1.2"
 		r = db.Query("\n    CREATE UNIQUE INDEX PermissionsIdx\n         ON Permissions(userGroupId, labelId, itemId);\n    select distinct\n        Items.Item as trove, UP.pattern as pattern\n    from\n       ( select\n           Permissions.labelId as labelId,\n           PerItems.item as pattern\n         from\n           Users, UserGroupMembers, Permissions\n           left outer join Items as PerItems\n                 on Permissions.itemId = PerItems.itemId\n         where\n               Users.user = 'limited'\n           and Users.userId = UserGroupMembers.userId\n           and UserGroupMembers.userGroupId = Permissions.userGroupId\n       ) as UP join LabelMap on ( UP.labelId = 0 or\n                                  UP.labelId = LabelMap.labelId ),\n       Labels, Items\n    where\n        Labels.label = 'localhost@rpl:branch'\n    and Labels.labelId = LabelMap.labelId\n    and LabelMap.itemId = Items.itemId\n    ORDER BY +trove, +pattern\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE UNIQUE INDEX PermissionsIdx\n         ON Permissions(userGroupId, labelId, itemId);\n    select distinct\n        Items.Item as trove, UP.pattern as pattern\n    from\n       ( select\n           Permissions.labelId as labelId,\n           PerItems.item as pattern\n         from\n           Users, UserGroupMembers, Permissions\n           left outer join Items as PerItems\n                 on Permissions.itemId = PerItems.itemId\n         where\n               Users.user = 'limited'\n           and Users.userId = UserGroupMembers.userId\n           and UserGroupMembers.userGroupId = Permissions.userGroupId\n       ) as UP join LabelMap on ( UP.labelId = 0 or\n                                  UP.labelId = LabelMap.labelId ),\n       Labels, Items\n    where\n        Labels.label = 'localhost@rpl:branch'\n    and Labels.labelId = LabelMap.labelId\n    and LabelMap.itemId = Items.itemId\n    ORDER BY +trove, +pattern\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "double .*:runtime double:runtime .*:runtime double:source .*:runtime"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

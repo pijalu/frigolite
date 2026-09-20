@@ -218,6 +218,13 @@ func Test_vtabJ(t *testing.T) {
 		r = db.Query("\n  DELETE FROM tclvar WHERE name BETWEEN 'xx' AND 'xx' OR name='xx';\n  SELECT name, value FROM tclvar where name = 'xx';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM tclvar WHERE name BETWEEN 'xx' AND 'xx' OR name='xx';\n  SELECT name, value FROM tclvar where name = 'xx';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "200"

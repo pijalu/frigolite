@@ -61,24 +61,48 @@ func Test_tkt2942(t *testing.T) {
 		r = db.Query("\n    create table t1(num int);\n    insert into t1 values (2);\n    insert into t1 values (1);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY num DESC);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t1(num int);\n    insert into t1 values (2);\n    insert into t1 values (1);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY num DESC);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4,3,2,1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2942.2"
 		r = db.Query("\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY num);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY num);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1,2,3,4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2942.3"
 		r = db.Query("\n    SELECT group_concat(num) FROM (SELECT num FROM t1);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(num) FROM (SELECT num FROM t1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2,1,3,4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2942.4"
 		r = db.Query("\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY rowid DESC);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY rowid DESC);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4,3,1,2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

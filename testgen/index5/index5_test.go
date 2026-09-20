@@ -102,9 +102,8 @@ func Test_index5(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -155,25 +154,22 @@ func Test_index5(t *testing.T) {
 				// incr nForward 1
 				{
 					_n, _err := strconv.Atoi(nForward)
-					if _err == nil {
-						nForward = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nForward = strconv.Itoa(_n + 1)
 				}
 			} else if func() bool { iNext_n, _iNext_e := strconv.Atoi(iNext); if _iNext_e != nil { return false }; iPrev_n, _iPrev_e := strconv.Atoi(iPrev); if _iPrev_e != nil { return false }; return iNext_n == (iPrev_n-1) }() {
 				// incr nBackward 1
 				{
 					_n, _err := strconv.Atoi(nBackward)
-					if _err == nil {
-						nBackward = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nBackward = strconv.Itoa(_n + 1)
 				}
 			} else {
 				// incr nNoncont 1
 				{
 					_n, _err := strconv.Atoi(nNoncont)
-					if _err == nil {
-						nNoncont = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nNoncont = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("iPrev", "", iNext)
@@ -182,9 +178,8 @@ func Test_index5(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		if false {

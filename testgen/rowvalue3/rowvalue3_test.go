@@ -158,6 +158,13 @@ func Test_rowvalue3(t *testing.T) {
 					r = db.Query("\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b||'x' FROM kk)\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b||'x' FROM kk)\n  ")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "2." + tn + ".5"

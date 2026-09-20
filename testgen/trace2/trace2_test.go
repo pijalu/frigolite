@@ -107,6 +107,7 @@ func Test_trace2(t *testing.T) {
 		db.Exec(zSql)
 		return nil, nil
 	}, 2, 2)
+	// db.trace trace (proc body not recognized, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// do_trace_select_test 1.1 {\n  SELECT 1, 2, 3;\n} {\n  "SELECT 1, 2, 3;"\n} (unsupported command, not transpiled)

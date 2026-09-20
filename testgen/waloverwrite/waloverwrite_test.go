@@ -139,9 +139,8 @@ func Test_waloverwrite(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				nPg = "wal_frame_count test.db-wal 1024"
@@ -162,6 +161,7 @@ func Test_waloverwrite(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".4"
 				os.Remove("test.db2")
+				os.Remove("test.db2-wal")
 				tclFileCopy("test.db", "test.db2")
 				db2, err = frigolite.Open("test.db2")
 				tclConnRegister("db2", db2)
@@ -187,6 +187,12 @@ func Test_waloverwrite(t *testing.T) {
 				r = db2.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			if db2 != nil { db2.Close() }
@@ -217,9 +223,8 @@ func Test_waloverwrite(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("\n        WITH cnt(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20)\n        INSERT INTO t2 SELECT i, randomblob(800) FROM cnt;\n      ")
@@ -252,9 +257,8 @@ func Test_waloverwrite(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("ROLLBACK TO abc")
@@ -267,6 +271,7 @@ func Test_waloverwrite(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".8"
 				os.Remove("test.db2")
+				os.Remove("test.db2-wal")
 				tclFileCopy("test.db", "test.db2")
 				db2, err = frigolite.Open("test.db2")
 				tclConnRegister("db2", db2)
@@ -291,6 +296,12 @@ func Test_waloverwrite(t *testing.T) {
 				r = db2.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			if db2 != nil { db2.Close() }

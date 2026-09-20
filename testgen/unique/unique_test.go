@@ -87,6 +87,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-1.5"
@@ -100,6 +106,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-1.7"
@@ -112,6 +124,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -120,6 +138,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE TABLE t2(a int, b int);\n    INSERT INTO t2(a,b) VALUES(1,2);\n    INSERT INTO t2(a,b) VALUES(3,4);\n    SELECT * FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t2(a int, b int);\n    INSERT INTO t2(a,b) VALUES(1,2);\n    INSERT INTO t2(a,b) VALUES(3,4);\n    SELECT * FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-2.1"
@@ -211,6 +235,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t4(a UNIQUE, b, c, UNIQUE(b,c));\n    INSERT INTO t4 VALUES(1,2,3);\n    INSERT INTO t4 VALUES(NULL, 2, NULL);\n    SELECT * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a UNIQUE, b, c, UNIQUE(b,c));\n    INSERT INTO t4 VALUES(1,2,3);\n    INSERT INTO t4 VALUES(NULL, 2, NULL);\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-4.2"
@@ -223,6 +253,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} 2 {} {} 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-4.4"
@@ -235,6 +271,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} 2 {} {} 3 4 2 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-4.6"
@@ -247,6 +289,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("SELECT * FROM t4")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t4")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 {} 2 {} {} 3 4 2 2 {} {} 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-4.8"
@@ -274,6 +322,12 @@ func Test_unique(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(\n      first_column_with_long_name,\n      second_column_with_long_name,\n      third_column_with_long_name,\n      fourth_column_with_long_name,\n      fifth_column_with_long_name,\n      sixth_column_with_long_name,\n      UNIQUE(\n        first_column_with_long_name,\n        second_column_with_long_name,\n        third_column_with_long_name,\n        fourth_column_with_long_name,\n        fifth_column_with_long_name,\n        sixth_column_with_long_name\n      )\n    );\n    INSERT INTO t5 VALUES(1,2,3,4,5,6);\n    SELECT * FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(\n      first_column_with_long_name,\n      second_column_with_long_name,\n      third_column_with_long_name,\n      fourth_column_with_long_name,\n      fifth_column_with_long_name,\n      sixth_column_with_long_name,\n      UNIQUE(\n        first_column_with_long_name,\n        second_column_with_long_name,\n        third_column_with_long_name,\n        fourth_column_with_long_name,\n        fifth_column_with_long_name,\n        sixth_column_with_long_name\n      )\n    );\n    INSERT INTO t5 VALUES(1,2,3,4,5,6);\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "unique-5.2"

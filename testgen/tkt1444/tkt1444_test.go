@@ -59,24 +59,48 @@ func Test_tkt1444(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE DemoTable (x INTEGER, TextKey TEXT, DKey Real);\n    CREATE INDEX DemoTableIdx ON DemoTable (TextKey);\n    INSERT INTO DemoTable VALUES(9,8,7);\n    INSERT INTO DemoTable VALUES(1,2,3);\n    CREATE VIEW DemoView AS SELECT * FROM DemoTable ORDER BY TextKey;\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE DemoTable (x INTEGER, TextKey TEXT, DKey Real);\n    CREATE INDEX DemoTableIdx ON DemoTable (TextKey);\n    INSERT INTO DemoTable VALUES(9,8,7);\n    INSERT INTO DemoTable VALUES(1,2,3);\n    CREATE VIEW DemoView AS SELECT * FROM DemoTable ORDER BY TextKey;\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3.0 1 2 3.0 9 8 7.0 9 8 7.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1444-1.2"
 		r = db.Query("\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 8 7.0 1 2 3.0 1 2 3.0 9 8 7.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1444-1.3"
 		r = db.Query("\n    DROP VIEW DemoView;\n    CREATE VIEW DemoView AS SELECT * FROM DemoTable;\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP VIEW DemoView;\n    CREATE VIEW DemoView AS SELECT * FROM DemoTable;\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3.0 1 2 3.0 9 8 7.0 9 8 7.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1444-1.4"
 		r = db.Query("\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 8 7.0 1 2 3.0 9 8 7.0 1 2 3.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

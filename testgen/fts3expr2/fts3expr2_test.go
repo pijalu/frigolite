@@ -162,9 +162,8 @@ func Test_fts3expr2(t *testing.T) {
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)
-			if _err == nil {
-				iTest = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			iTest = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("sqlite_fts3_enable_parentheses", "", "0")

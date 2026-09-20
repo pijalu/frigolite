@@ -131,9 +131,8 @@ func Test_fts3expr3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("i", "", "1")
@@ -146,9 +145,8 @@ func Test_fts3expr3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("i", "", "1")
@@ -161,9 +159,8 @@ func Test_fts3expr3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("i", "", "2")
@@ -176,9 +173,8 @@ func Test_fts3expr3(t *testing.T) {
 			// incr i 4
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 4)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 4)
 			}
 		}
 		vtab.TclVarSet("i", "", "65")
@@ -200,9 +196,8 @@ func Test_fts3expr3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		{ // "4.1.1" (prepare-step internals; SQL side effects only)
@@ -217,9 +212,8 @@ func Test_fts3expr3(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			_rc := "0"
@@ -245,9 +239,8 @@ func Test_fts3expr3(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			{

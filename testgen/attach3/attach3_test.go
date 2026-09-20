@@ -100,18 +100,38 @@ func Test_attach3(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_master WHERE name = 't3';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master WHERE name = 't3';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-1.4"
 		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 't3';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 't3';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("table t3 t3 " + tclExprWith("$AUTOVACUUM?5:4", map[string]string{"AUTOVACUUM": AUTOVACUUM}) + " {CREATE TABLE t3(e, f)}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-1.5"
 		r = db.Query("\n    INSERT INTO t3 VALUES(1, 2);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(1, 2);\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-2.1"
@@ -124,48 +144,101 @@ func Test_attach3(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_master WHERE name = 'i1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master WHERE name = 'i1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-2.3"
 		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("index i1 t3 " + tclExprWith("$AUTOVACUUM?6:5", map[string]string{"AUTOVACUUM": AUTOVACUUM}) + " {CREATE INDEX i1 on t3(e)}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-3.1"
 		r = db.Query("\n    DROP INDEX aux.i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX aux.i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-3.2"
 		r = db.Query("\n    CREATE INDEX aux.i1 on t3(e);\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX aux.i1 on t3(e);\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("index i1 t3 " + tclExprWith("$AUTOVACUUM?6:5", map[string]string{"AUTOVACUUM": AUTOVACUUM}) + " {CREATE INDEX i1 on t3(e)}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-3.3"
 		r = db.Query("\n    DROP INDEX i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-4.1"
 		r = db.Query("\n    DROP TABLE aux.t1;\n    SELECT name FROM aux.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE aux.t1;\n    SELECT name FROM aux.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2 t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-4.2"
 		r = db.Query("\n    DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2 t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-4.3"
 		r = db.Query("\n    DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-5.1"
@@ -178,12 +251,24 @@ func Test_attach3(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "view v1 v1 0 CREATE VIEW v1 AS SELECT * FROM t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-5.3"
 		r = db.Query("\n    INSERT INTO aux.t3 VALUES('hello', 'world');\n    SELECT * FROM v1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO aux.t3 VALUES('hello', 'world');\n    SELECT * FROM v1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-6.1"
@@ -196,6 +281,13 @@ func Test_attach3(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-7.1"
@@ -208,12 +300,24 @@ func Test_attach3(t *testing.T) {
 		r = db.Query("\n    DELETE FROM t3;\n    INSERT INTO t3 VALUES(10, 20);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3 VALUES(10, 20);\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10 20 20 40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-5.3"
 		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "trigger tr1 t3 0 CREATE TRIGGER tr1 AFTER INSERT ON t3 BEGIN\n      INSERT INTO t3 VALUES(new.e*2, new.f*2);\n    END"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-8.1"
@@ -226,24 +330,49 @@ func Test_attach3(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-9.0"
 		r = db.Query("\n      CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TEMP TRIGGER tst_trigger BEFORE INSERT ON aux.t4 BEGIN \n        SELECT 'hello world';\n      END;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TEMP TRIGGER tst_trigger BEFORE INSERT ON aux.t4 BEGIN \n        SELECT 'hello world';\n      END;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-9.1"
 		r = db.Query("\n      DROP TABLE main.t4;\n      SELECT count(*) FROM sqlite_temp_master;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE main.t4;\n      SELECT count(*) FROM sqlite_temp_master;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-9.2"
 		r = db.Query("\n      DROP TABLE aux.t4;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE aux.t4;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach3-10.0"

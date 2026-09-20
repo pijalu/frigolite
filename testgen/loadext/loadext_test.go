@@ -216,11 +216,13 @@ func Test_loadext(t *testing.T) {
 		fd = "\"./notasharedlib.so\""
 		_ = fd // suppress unused warning
 		tclChannelAppendAt("./notasharedlib.so", "blah"+"\n", fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len("blah"+"\n"))
 		// close $fd
 		_ = os.WriteFile("./notasharedlib.dll", nil, 0644)
 		fd = "\"./notasharedlib.dll\""
 		_ = fd // suppress unused warning
 		tclChannelAppendAt("./notasharedlib.dll", "blah"+"\n", fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len("blah"+"\n"))
 		// close $fd
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -297,7 +299,7 @@ func Test_loadext(t *testing.T) {
 			res = tclRegsub("0x[1234567890abcdefABCDEF]*", res, "XXX")
 			_ = res // suppress unused warning
 		}
-		got := tclListFlatten(res)
+		got := res
 		wantPattern := "" + "1"+" "+tclFormat(dlerror_nosymbol, testextension, "sqlite3_.*_init") + ""
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "loadext-3.2")

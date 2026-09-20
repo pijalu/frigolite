@@ -67,30 +67,61 @@ func Test_tkt2192(t *testing.T) {
 		r = db.Query("\n    select * from summary;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from summary;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2192-2.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    CREATE VIEW v1 AS\n      SELECT * FROM t1 WHERE b%7=0 UNION SELECT * FROM t1 WHERE b%5=0;\n    INSERT INTO t1 VALUES(1,7);\n    INSERT INTO t1 VALUES(2,10);\n    INSERT INTO t1 VALUES(3,14);\n    INSERT INTO t1 VALUES(4,15);\n    INSERT INTO t1 VALUES(1,16);\n    INSERT INTO t1 VALUES(2,17);\n    INSERT INTO t1 VALUES(3,20);\n    INSERT INTO t1 VALUES(4,21);\n    INSERT INTO t1 VALUES(1,22);\n    INSERT INTO t1 VALUES(2,24);\n    INSERT INTO t1 VALUES(3,25);\n    INSERT INTO t1 VALUES(4,26);\n    INSERT INTO t1 VALUES(1,27);\n \n    SELECT b FROM v1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE VIEW v1 AS\n      SELECT * FROM t1 WHERE b%7=0 UNION SELECT * FROM t1 WHERE b%5=0;\n    INSERT INTO t1 VALUES(1,7);\n    INSERT INTO t1 VALUES(2,10);\n    INSERT INTO t1 VALUES(3,14);\n    INSERT INTO t1 VALUES(4,15);\n    INSERT INTO t1 VALUES(1,16);\n    INSERT INTO t1 VALUES(2,17);\n    INSERT INTO t1 VALUES(3,20);\n    INSERT INTO t1 VALUES(4,21);\n    INSERT INTO t1 VALUES(1,22);\n    INSERT INTO t1 VALUES(2,24);\n    INSERT INTO t1 VALUES(3,25);\n    INSERT INTO t1 VALUES(4,26);\n    INSERT INTO t1 VALUES(1,27);\n \n    SELECT b FROM v1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 10 14 15 20 21 25"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2192-2.2"
 		r = db.Query("\n    SELECT * FROM v1 ORDER BY a, b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v1 ORDER BY a, b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 7 2 10 3 14 3 20 3 25 4 15 4 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2192-2.3"
 		r = db.Query("\n    SELECT x.a || '/' || x.b || '/' || y.b\n      FROM v1 AS x JOIN v1 AS y ON x.a=y.a AND x.b<y.b\n     ORDER BY x.a, x.b, y.b\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x.a || '/' || x.b || '/' || y.b\n      FROM v1 AS x JOIN v1 AS y ON x.a=y.a AND x.b<y.b\n     ORDER BY x.a, x.b, y.b\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3/14/20 3/14/25 3/20/25 4/15/21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2192-2.4"
 		r = db.Query("\n    CREATE VIEW v2 AS\n    SELECT x.a || '/' || x.b || '/' || y.b AS z\n      FROM v1 AS x JOIN v1 AS y ON x.a=y.a AND x.b<y.b\n     ORDER BY x.a, x.b, y.b;\n    SELECT * FROM v2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v2 AS\n    SELECT x.a || '/' || x.b || '/' || y.b AS z\n      FROM v1 AS x JOIN v1 AS y ON x.a=y.a AND x.b<y.b\n     ORDER BY x.a, x.b, y.b;\n    SELECT * FROM v2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3/14/20 3/14/25 3/20/25 4/15/21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

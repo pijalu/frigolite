@@ -72,12 +72,24 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n    CREATE TEMP TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_temp_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_temp_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE abc(a, b, c)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.1b"
 		r = db.Query("\n    SELECT sql FROM temp.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM temp.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE abc(a, b, c)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.2"
@@ -94,6 +106,12 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n    SELECT sql FROM temp.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM temp.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE abc(a, b, c, d INTEGER)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.3"
@@ -110,36 +128,72 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n    SELECT sql FROM temp.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM temp.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE abc(a, b, c, d INTEGER, e)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.4"
 		r = db.Query("\n    CREATE TABLE temp.t1(a, b);\n    ALTER TABLE t1 ADD c;\n    SELECT sql FROM sqlite_temp_master WHERE tbl_name = 't1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE temp.t1(a, b);\n    ALTER TABLE t1 ADD c;\n    SELECT sql FROM sqlite_temp_master WHERE tbl_name = 't1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t1(a, b, c)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.4b"
 		r = db.Query("\n    SELECT sql FROM temp.sqlite_master WHERE tbl_name = 't1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM temp.sqlite_master WHERE tbl_name = 't1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t1(a, b, c)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.5"
 		r = db.Query("\n    ALTER TABLE t1 ADD d CHECK (a>d);\n    SELECT sql FROM sqlite_temp_master WHERE tbl_name = 't1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD d CHECK (a>d);\n    SELECT sql FROM sqlite_temp_master WHERE tbl_name = 't1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t1(a, b, c, d CHECK (a>d))"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.6"
 		r = db.Query("\n      CREATE TEMP TABLE t2(a, b, UNIQUE(a, b));\n      ALTER TABLE t2 ADD c REFERENCES t1(c)  ;\n      SELECT sql FROM sqlite_temp_master\n       WHERE tbl_name = 't2' AND type = 'table';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t2(a, b, UNIQUE(a, b));\n      ALTER TABLE t2 ADD c REFERENCES t1(c)  ;\n      SELECT sql FROM sqlite_temp_master\n       WHERE tbl_name = 't2' AND type = 'table';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t2(a, b, c REFERENCES t1(c), UNIQUE(a, b))"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.7"
 		r = db.Query("\n    CREATE TEMPORARY TABLE t3(a, b, UNIQUE(a, b));\n    ALTER TABLE t3 ADD COLUMN c VARCHAR(10, 20);\n    SELECT sql FROM sqlite_temp_master\n     WHERE tbl_name = 't3' AND type = 'table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMPORARY TABLE t3(a, b, UNIQUE(a, b));\n    ALTER TABLE t3 ADD COLUMN c VARCHAR(10, 20);\n    SELECT sql FROM sqlite_temp_master\n     WHERE tbl_name = 't3' AND type = 'table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t3(a, b, c VARCHAR(10, 20), UNIQUE(a, b))"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-1.99"
@@ -212,24 +266,49 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 100 2 300"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-3.1"
 		r = db.Query("\n    PRAGMA schema_version = 10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-3.2"
 		r = db.Query("\n    ALTER TABLE t1 ADD c;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD c;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 100 {} 2 300 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-3.4"
 		r = db.Query("\n      PRAGMA schema_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA schema_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-4.1"
@@ -247,18 +326,37 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n    PRAGMA schema_version = 20;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 20;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-4.2"
 		r = db.Query("\n    ALTER TABLE t1 ADD c DEFAULT 'hello world';\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD c DEFAULT 'hello world';\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 100 hello world 2 300 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-4.4"
 		r = db.Query("\n      PRAGMA schema_version;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA schema_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-4.99"
@@ -279,42 +377,84 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n      ALTER TABLE aux.t1 ADD COLUMN c VARCHAR(128);\n      SELECT sql FROM aux.sqlite_master;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE aux.t1 ADD COLUMN c VARCHAR(128);\n      SELECT sql FROM aux.sqlite_master;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t1(a,b, c VARCHAR(128))"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-5.3"
 		r = db.Query("\n      SELECT * FROM aux.t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM aux.t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one {} 2 two {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-5.4"
 		r = db.Query("\n        PRAGMA aux.schema_version;\n      ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA aux.schema_version;\n      ")
+			return
+		}
+		got := flatten(r)
+		want := "31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-5.6"
 		r = db.Query("\n      ALTER TABLE aux.t1 ADD COLUMN d DEFAULT 1000;\n      SELECT sql FROM aux.sqlite_master;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE aux.t1 ADD COLUMN d DEFAULT 1000;\n      SELECT sql FROM aux.sqlite_master;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t1(a,b, c VARCHAR(128), d DEFAULT 1000)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-5.7"
 		r = db.Query("\n      SELECT * FROM aux.t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM aux.t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one {} 1000 2 two {} 1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-5.8"
 		r = db.Query("\n        PRAGMA aux.schema_version;\n      ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA aux.schema_version;\n      ")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-5.9"
 		r = db.Query("\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one 2 two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-5.99"
@@ -327,12 +467,24 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n      CREATE TEMP TABLE t1(a, b);\n      CREATE TEMP TABLE log(trig, a, b);\n\n      CREATE TRIGGER t1_a AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('a', new.a, new.b);\n      END;\n      CREATE TEMP TRIGGER t1_b AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('b', new.a, new.b);\n      END;\n  \n      INSERT INTO t1 VALUES(1, 2);\n      SELECT * FROM log ORDER BY trig, a, b;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t1(a, b);\n      CREATE TEMP TABLE log(trig, a, b);\n\n      CREATE TRIGGER t1_a AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('a', new.a, new.b);\n      END;\n      CREATE TEMP TRIGGER t1_b AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('b', new.a, new.b);\n      END;\n  \n      INSERT INTO t1 VALUES(1, 2);\n      SELECT * FROM log ORDER BY trig, a, b;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "a 1 2 b 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-6.2"
 		r = db.Query("\n      ALTER TABLE t1 ADD COLUMN c DEFAULT 'c';\n      INSERT INTO t1(a, b) VALUES(3, 4);\n      SELECT * FROM log ORDER BY trig, a, b;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE t1 ADD COLUMN c DEFAULT 'c';\n      INSERT INTO t1(a, b) VALUES(3, 4);\n      SELECT * FROM log ORDER BY trig, a, b;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "a 1 2 a 3 4 b 1 2 b 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter4-8.1"
@@ -360,9 +512,8 @@ func Test_alter4(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("sql", "", "CREATE TABLE t4(" + strings.Join(tclSplitList(cols), ", ") + ")")
@@ -373,9 +524,13 @@ func Test_alter4(t *testing.T) {
 		r = db.Query("\n    SELECT sql FROM sqlite_temp_master WHERE name = 't4';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_temp_master WHERE name = 't4';\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(sql) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(sql), "alter4-8.2")
+		got := flatten(r)
+		want := tclListFlatten(sql)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "alter4-9.1"

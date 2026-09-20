@@ -62,30 +62,62 @@ func Test_vtab8(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2244(a, b);\n    CREATE VIRTUAL TABLE t2244e USING echo(t2244);\n    INSERT INTO t2244 VALUES('AA', 'BB');\n    INSERT INTO t2244 VALUES('CC', 'DD');\n    SELECT rowid, * FROM t2244e;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2244(a, b);\n    CREATE VIRTUAL TABLE t2244e USING echo(t2244);\n    INSERT INTO t2244 VALUES('AA', 'BB');\n    INSERT INTO t2244 VALUES('CC', 'DD');\n    SELECT rowid, * FROM t2244e;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 AA BB 2 CC DD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.2244-2"
 		r = db.Query("\n    SELECT * FROM t2244e WHERE rowid = 10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2244e WHERE rowid = 10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.2244-3"
 		r = db.Query("\n    UPDATE t2244e SET a = 'hello world' WHERE 0;\n    SELECT rowid, * FROM t2244e;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t2244e SET a = 'hello world' WHERE 0;\n    SELECT rowid, * FROM t2244e;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 AA BB 2 CC DD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-2250-2"
 		r = db.Query("\n    CREATE TABLE t2250(a, b);\n    INSERT INTO t2250 VALUES(10, 20);\n    CREATE VIRTUAL TABLE t2250e USING echo(t2250);\n    select max(rowid) from t2250;\n    select max(rowid) from t2250e;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2250(a, b);\n    INSERT INTO t2250 VALUES(10, 20);\n    CREATE VIRTUAL TABLE t2250e USING echo(t2250);\n    select max(rowid) from t2250;\n    select max(rowid) from t2250e;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.2260-1"
 		r = db.Query("\n    CREATE TABLE t2260a_real(a, b);\n    CREATE TABLE t2260b_real(a, b);\n\n    CREATE INDEX i2260 ON t2260a_real(a);\n    CREATE INDEX i2260x ON t2260b_real(a);\n\n    CREATE VIRTUAL TABLE t2260a USING echo(t2260a_real);\n    CREATE VIRTUAL TABLE t2260b USING echo(t2260b_real);\n\n    SELECT * FROM t2260a, t2260b WHERE t2260a.a = t2260b.a AND t2260a.a > 101;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2260a_real(a, b);\n    CREATE TABLE t2260b_real(a, b);\n\n    CREATE INDEX i2260 ON t2260a_real(a);\n    CREATE INDEX i2260x ON t2260b_real(a);\n\n    CREATE VIRTUAL TABLE t2260a USING echo(t2260a_real);\n    CREATE VIRTUAL TABLE t2260b USING echo(t2260b_real);\n\n    SELECT * FROM t2260a, t2260b WHERE t2260a.a = t2260b.a AND t2260a.a > 101;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -68,6 +68,12 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-1.3"
@@ -80,6 +86,12 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-1.5.1"
@@ -98,6 +110,12 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-1.6.2"
@@ -116,6 +134,13 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-1.8"
@@ -128,6 +153,13 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-1.10"
@@ -140,6 +172,13 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_stat1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-1.12"
@@ -152,96 +191,197 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_stat1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-2.1"
 		r = db.Query("\n    CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-2.2"
 		r = db.Query("\n    CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-2.3"
 		r = db.Query("\n    CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1i1 2 2 t1i2 2 1 t1i3 2 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.2"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1i1 4 4 t1i2 4 1 t1i3 4 4 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.3"
 		r = db.Query("\n    INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1i1 5 3 t1i2 5 2 t1i3 5 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.4"
 		r = db.Query("\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1i1 5 3 t1i2 5 2 t1i3 5 3 1 t2i1 5 3 t2i2 5 2 t2i3 5 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.5"
 		r = db.Query("\n    DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1i1 5 3 t1i2 5 2 t1i3 5 3 1 t2i1 5 3 t2i2 5 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.6"
 		r = db.Query("\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1i1 5 3 t1i2 5 2 t1i3 5 3 1 t2i1 5 3 t2i2 5 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.7"
 		r = db.Query("\n    DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1i1 5 3 t1i2 5 2 t1i3 5 3 1 t2i1 5 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.8"
 		r = db.Query("\n    CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.9"
 		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3i1 5 3 t3i2 5 3 1 1 1 t3i3 5 5 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.10"
 		r = db.Query("\n    CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "another foolish ' name 2 1 foolish ' name 2 1 1 t3i1 5 3 t3i2 5 3 1 1 1 t3i3 5 5 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.11"
 		r = db.Query("\n    DROP INDEX \"foolish ' name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX \"foolish ' name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "another foolish ' name 2 1 t3i1 5 3 t3i2 5 3 1 1 1 t3i3 5 5 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-3.11"
 		r = db.Query("\n    DROP TABLE \"silly \"\" name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE \"silly \"\" name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3i1 5 3 t3i2 5 3 1 1 1 t3i3 5 5 2 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-4.0"
@@ -306,18 +446,36 @@ func Test_analyze(t *testing.T) {
 		r = db.Query("\n    DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT INTO t3 SELECT a+64, b+64, c+64, d+64 FROM t3;\n    INSERT INTO t4 SELECT a, b, c FROM t3;\n    ANALYZE;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT INTO t3 SELECT a+64, b+64, c+64, d+64 FROM t3;\n    INSERT INTO t4 SELECT a, b, c FROM t3;\n    ANALYZE;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3i1 t3i2 t3i3 t4i1 t4i2 t3 t4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-5.2"
 		r = db.Query("\n    DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3i1 t3i3 t4i1 t4i2 t3 t4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze-5.4"
 		r = db.Query("\n    DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t4i1 t4i2 t4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "analyze-5.99" (prepare-step internals; SQL side effects only)

@@ -122,14 +122,19 @@ func Test_types(t *testing.T) {
 			r = db.Query("\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclLRange(val, "1", "end")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
-			if _err == nil {
-				tnum = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tnum = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("tnum", "", "1")
@@ -151,14 +156,19 @@ func Test_types(t *testing.T) {
 			r = db.Query("\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclLRange(val, "1", "end")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
-			if _err == nil {
-				tnum = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tnum = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("tnum", "", "1")
@@ -176,14 +186,19 @@ func Test_types(t *testing.T) {
 			r = db.Query("\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclLRange(val, "1", "end")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
-			if _err == nil {
-				tnum = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tnum = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE t1;\n")
@@ -201,6 +216,12 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 120 -120"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "types-2.1.3"
@@ -213,6 +234,12 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 120 -120 30000 -30000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "types-2.1.5"
@@ -225,6 +252,12 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 120 -120 30000 -30000 2100000000 -2100000000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "types-2.1.7"
@@ -237,6 +270,12 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"+" "+"120"+" "+"-120"+" "+"30000"+" "+"-30000"+" "+"2100000000"+" "+"-2100000000"+" "+"9000000000000000000"+" "+"-9000000000000000000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "types-2.1.9"
@@ -255,6 +294,12 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0.0 12345.678 -12345.678"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "types-2.2.3"
@@ -273,6 +318,12 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT a ISNULL FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a ISNULL FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "types-2.3.3"
@@ -298,6 +349,12 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := string10+" "+string500+" "+string500000
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclBool(sqlite_options_utf16 + "==0 || " + tclExecSQL(db, "pragma encoding") + " == \"UTF-8\"") {
@@ -346,6 +403,13 @@ func Test_types(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}"+" "+string10+" "+"4000"+" "+string500+" "+"4000"+" "+"{}"+" "+"4000"+" "+"{}"+" "+string500000)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

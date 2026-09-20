@@ -139,9 +139,8 @@ func Test_tkt2565(t *testing.T) {
 		// incr iFail 1
 		{
 			_n, _err := strconv.Atoi(iFail)
-			if _err == nil {
-				iFail = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			iFail = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // "tkt2565-1.X" — skipped: sqlite_open_file_count is a C-harness open-file counter, not engine-visible (no-side-effects)

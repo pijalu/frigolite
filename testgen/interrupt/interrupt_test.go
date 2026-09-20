@@ -96,6 +96,12 @@ func Test_interrupt(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    SELECT name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    SELECT name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// interrupt_test interrupt-1.2 {DROP TABLE t1} {} (unsupported command, not transpiled)
@@ -103,23 +109,27 @@ func Test_interrupt(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "interrrupt-2.1"
-		// FULL-SUITE-DRIFT.T26-misc fixture fix: TCL interrupt-1.2 is
-		// `DROP TABLE t1` — a plain DDL command the transpiler did not emit
-		// (marked "unsupported command"). Restore it so the re-create below
-		// matches the TCL fixture state (misc1-16.2 proves a same-session
-		// duplicate must error).
-		_res = db.Exec("DROP TABLE IF EXISTS t1")
-		if _res.Error != nil {
-			t.Errorf("fixture drop: %v", _res.Error)
-		}
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(300,400));\n    INSERT INTO t1 SELECT a+1, randstr(300,400) FROM t1;\n    INSERT INTO t1 SELECT a+2, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+4, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+8, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+16, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+32, a || '-' || b FROM t1;\n    COMMIT;\n    UPDATE t1 SET b=substr(b,-5,5);\n    SELECT count(*) from t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(300,400));\n    INSERT INTO t1 SELECT a+1, randstr(300,400) FROM t1;\n    INSERT INTO t1 SELECT a+2, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+4, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+8, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+16, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+32, a || '-' || b FROM t1;\n    COMMIT;\n    UPDATE t1 SET b=substr(b,-5,5);\n    SELECT count(*) from t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	origsize = strconv.Itoa(tclFileSize("test.db"))
@@ -132,9 +142,13 @@ func Test_interrupt(t *testing.T) {
 		r = db.Query("\n    SELECT md5sum(a || b) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(a || b) FROM t1;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(cksum) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(cksum), "interrupt-2.3")
+		got := flatten(r)
+		want := tclListFlatten(cksum)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "interrupt-2.4"
@@ -176,9 +190,8 @@ func Test_interrupt(t *testing.T) {
 				// incr interrupt_count toInt(tclBool01(db.IsInterrupted()))
 				{
 					_n, _err := strconv.Atoi(interrupt_count)
-					if _err == nil {
-						interrupt_count = strconv.Itoa(_n + toInt(tclBool01(db.IsInterrupted())))
-					}
+					if _err != nil { _n = 0 }
+					interrupt_count = strconv.Itoa(_n + toInt(tclBool01(db.IsInterrupted())))
 				}
 				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt4 { _dbevalErr3 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -223,6 +236,12 @@ func Test_interrupt(t *testing.T) {
 			r = db.Query("\n        BEGIN;\n        CREATE TEMP TABLE t2(x,y);\n        SELECT name FROM sqlite_temp_master;\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        BEGIN;\n        CREATE TEMP TABLE t2(x,y);\n        SELECT name FROM sqlite_temp_master;\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "t2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "interrupt-3." + i + ".2"
@@ -237,6 +256,13 @@ func Test_interrupt(t *testing.T) {
 			r = db.Query("\n        SELECT name FROM temp.sqlite_master;\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT name FROM temp.sqlite_master;\n      ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "interrupt-3." + i + ".4"
@@ -256,9 +282,8 @@ func Test_interrupt(t *testing.T) {
 		// incr i 5
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 5)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 5)
 		}
 	}
 	_res = db.Exec("\n  CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 SELECT round(a/10), randstr(50,80), randstr(50,60) FROM t1;\n")
@@ -292,14 +317,14 @@ func Test_interrupt(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	if false {
 		{ // do_test "interrupt-5.1"
 			// proc definition (not transpiled)
+			// db collation_needed fake_interrupt (proc not transpiled)
 			_res = db.Exec("\n    CREATE INDEX fake ON fake1(a COLLATE fake_collation, b, c DESC);\n  ")
 			_ = _res // catchsql
 		}

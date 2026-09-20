@@ -87,9 +87,8 @@ func Test_limit(t *testing.T) {
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("INSERT INTO t1 VALUES(" + tclExprWith("32-$i", map[string]string{"i": i}) + "," + tclExprWith("10-$j", map[string]string{"j": j}) + ")")
@@ -99,9 +98,8 @@ func Test_limit(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("\n  COMMIT;\n")
@@ -112,114 +110,229 @@ func Test_limit(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.1"
 		r = db.Query("SELECT count(*) FROM t1 LIMIT  5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 LIMIT  5")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.2.1"
 		r = db.Query("SELECT x FROM t1 ORDER BY x LIMIT 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x LIMIT 5")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.2.2"
 		r = db.Query("SELECT x FROM t1 ORDER BY x LIMIT 5 OFFSET 2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x LIMIT 5 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.2.3"
 		r = db.Query("SELECT x FROM t1 ORDER BY x+1 LIMIT 5 OFFSET -2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x+1 LIMIT 5 OFFSET -2")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.2.4"
 		r = db.Query("SELECT x FROM t1 ORDER BY x+1 LIMIT 2, -5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x+1 LIMIT 2, -5")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.2.5"
 		r = db.Query("SELECT x FROM t1 ORDER BY x+1 LIMIT -2, 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x+1 LIMIT -2, 5")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.2.6"
 		r = db.Query("SELECT x FROM t1 ORDER BY x+1 LIMIT -2, -5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x+1 LIMIT -2, -5")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.2.7"
 		r = db.Query("SELECT x FROM t1 ORDER BY x LIMIT 2, 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x LIMIT 2, 5")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.3"
 		r = db.Query("SELECT x FROM t1 ORDER BY x LIMIT 5 OFFSET 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x LIMIT 5 OFFSET 5")
+			return
+		}
+		got := flatten(r)
+		want := "5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.4.1"
 		r = db.Query("SELECT x FROM t1 ORDER BY x LIMIT 50 OFFSET 30")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x LIMIT 50 OFFSET 30")
+			return
+		}
+		got := flatten(r)
+		want := "30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.4.2"
 		r = db.Query("SELECT x FROM t1 ORDER BY x LIMIT 30, 50")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x LIMIT 30, 50")
+			return
+		}
+		got := flatten(r)
+		want := "30 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.5"
 		r = db.Query("SELECT x FROM t1 ORDER BY x LIMIT 50 OFFSET 50")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 ORDER BY x LIMIT 50 OFFSET 50")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.6"
 		r = db.Query("SELECT * FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5")
+			return
+		}
+		got := flatten(r)
+		want := "0 5 0 5 0 5 1 5 0 5 2 5 0 5 3 5 0 5 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-1.7"
 		r = db.Query("SELECT * FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5 OFFSET 32")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5 OFFSET 32")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 0 5 1 5 1 5 1 5 2 5 1 5 3 5 1 5 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-2.1"
 		r = db.Query("\n      CREATE VIEW v1 AS SELECT * FROM t1 LIMIT 2;\n      SELECT count(*) FROM (SELECT * FROM v1);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIEW v1 AS SELECT * FROM t1 LIMIT 2;\n      SELECT count(*) FROM (SELECT * FROM v1);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-2.2"
 		r = db.Query("\n    CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 2;\n    SELECT count(*) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 2;\n    SELECT count(*) FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-2.3"
 		r = db.Query("\n      SELECT count(*) FROM t1 WHERE rowid IN (SELECT rowid FROM t1 LIMIT 2);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM t1 WHERE rowid IN (SELECT rowid FROM t1 LIMIT 2);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-3.1"
 		r = db.Query("\n      SELECT z FROM (SELECT y*10+x AS z FROM t1 ORDER BY x LIMIT 10)\n      ORDER BY z LIMIT 5;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT z FROM (SELECT y*10+x AS z FROM t1 ORDER BY x LIMIT 10)\n      ORDER BY z LIMIT 5;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "50 51 52 53 54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-4.1"
@@ -232,90 +345,182 @@ func Test_limit(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM t3 LIMIT 2 OFFSET 10000\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t3 LIMIT 2 OFFSET 10000\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10001 10002"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-4.3"
 		r = db.Query("\n    CREATE TABLE t4 AS SELECT x,\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x AS y\n    FROM t3 LIMIT 1000;\n    SELECT x FROM t4 ORDER BY y DESC LIMIT 1 OFFSET 999;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4 AS SELECT x,\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x AS y\n    FROM t3 LIMIT 1000;\n    SELECT x FROM t4 ORDER BY y DESC LIMIT 1 OFFSET 999;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-5.1"
 		r = db.Query("\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 15 6 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-5.2"
 		r = db.Query("\n    DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x DESC LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x DESC LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 19 10 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-5.3"
 		r = db.Query("\n    DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x ORDER BY x DESC LIMIT 31;\n    SELECT * FROM t5 ORDER BY x LIMIT 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x ORDER BY x DESC LIMIT 31;\n    SELECT * FROM t5 ORDER BY x LIMIT 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-4 6 -3 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-5.4"
 		r = db.Query("\n    SELECT * FROM t5 ORDER BY x DESC, y DESC LIMIT 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t5 ORDER BY x DESC, y DESC LIMIT 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "21 41 21 39"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-5.5"
 		r = db.Query("\n    DELETE FROM t5;\n    INSERT INTO t5 SELECT a.x*100+b.x, a.y*100+b.y FROM t1 AS a, t1 AS b\n                   ORDER BY 1, 2 LIMIT 1000;\n    SELECT count(*), sum(x), sum(y), min(x), max(x), min(y), max(y) FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t5;\n    INSERT INTO t5 SELECT a.x*100+b.x, a.y*100+b.y FROM t1 AS a, t1 AS b\n                   ORDER BY 1, 2 LIMIT 1000;\n    SELECT count(*), sum(x), sum(y), min(x), max(x), min(y), max(y) FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1000 1528204 593161 0 3107 505 1005"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t6(a);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 SELECT a+2 FROM t6;\n    COMMIT;\n    SELECT * FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t6(a);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 SELECT a+2 FROM t6;\n    COMMIT;\n    SELECT * FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.2"
 		r = db.Query("\n    SELECT * FROM t6 LIMIT -1 OFFSET -1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT -1 OFFSET -1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.3"
 		r = db.Query("\n    SELECT * FROM t6 LIMIT 2 OFFSET -123;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT 2 OFFSET -123;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.4"
 		r = db.Query("\n    SELECT * FROM t6 LIMIT -432 OFFSET 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT -432 OFFSET 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.5"
 		r = db.Query("\n    SELECT * FROM t6 LIMIT -1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT -1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.6"
 		r = db.Query("\n    SELECT * FROM t6 LIMIT -1 OFFSET 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT -1 OFFSET 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.7"
 		r = db.Query("\n    SELECT * FROM t6 LIMIT 0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT 0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-6.8"
 		r = db.Query("\n    SELECT * FROM t6 LIMIT 0 OFFSET 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT 0 OFFSET 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.1.1"
@@ -346,90 +551,180 @@ func Test_limit(t *testing.T) {
 		r = db.Query("\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31 30 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.3"
 		r = db.Query("\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 3 OFFSET 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 3 OFFSET 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "30 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.4"
 		r = db.Query("\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 ORDER BY 1 LIMIT 3 OFFSET 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 ORDER BY 1 LIMIT 3 OFFSET 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.5"
 		r = db.Query("\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 LIMIT 2 OFFSET 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 LIMIT 2 OFFSET 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.6"
 		r = db.Query("\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 ORDER BY 1 DESC LIMIT 2 OFFSET 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 ORDER BY 1 DESC LIMIT 2 OFFSET 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.7"
 		r = db.Query("\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 LIMIT 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 LIMIT 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.8"
 		r = db.Query("\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 ORDER BY 1 DESC LIMIT 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 ORDER BY 1 DESC LIMIT 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "13 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.9"
 		r = db.Query("\n    SELECT a+26 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+26 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "30"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.10"
 		r = db.Query("\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "30"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.11"
 		r = db.Query("\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1 OFFSET 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1 OFFSET 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-7.12"
 		r = db.Query("\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 \n       ORDER BY 1 DESC LIMIT 1 OFFSET 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 \n       ORDER BY 1 DESC LIMIT 1 OFFSET 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "30"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-8.1"
 		r = db.Query("\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-8.2"
 		r = db.Query("\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5 OFFSET 5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5 OFFSET 5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-8.3"
 		r = db.Query("\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5 OFFSET 25;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5 OFFSET 25;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "25 26 27 28 29"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-9.1"
 		r = db.Query("\n      SELECT * FROM (SELECT * FROM t6 LIMIT 3);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t6 LIMIT 3);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-9.2.1"
@@ -442,18 +737,36 @@ func Test_limit(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM (SELECT * FROM t7 LIMIT 3);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t7 LIMIT 3);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-9.3"
 		r = db.Query("\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n      ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n      ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-9.4"
 		r = db.Query("\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n        LIMIT 2\n      ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n        LIMIT 2\n      ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-9.5"
@@ -531,6 +844,12 @@ func Test_limit(t *testing.T) {
 		r = db.Query("\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-12.1"
@@ -1095,6 +1414,12 @@ func Test_limit(t *testing.T) {
 		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 8")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 8")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "limit-14.1"
@@ -1113,18 +1438,39 @@ func Test_limit(t *testing.T) {
 		r = db.Query("\n  SELECT 123 LIMIT 1 OFFSET 1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 LIMIT 1 OFFSET 1\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "limit-14.3"
 		r = db.Query("\n  SELECT 123 LIMIT 0 OFFSET 0\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 LIMIT 0 OFFSET 0\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "limit-14.4"
 		r = db.Query("\n  SELECT 123 LIMIT 0 OFFSET 1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 LIMIT 0 OFFSET 1\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "limit-14.6"
@@ -1143,6 +1489,13 @@ func Test_limit(t *testing.T) {
 		r = db.Query("\n  SELECT 123 LIMIT -1 OFFSET 1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 LIMIT -1 OFFSET 1\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

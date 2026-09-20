@@ -111,6 +111,7 @@ func Test_memdb1(t *testing.T) {
 	fd = "db1.db"
 	_ = fd // suppress unused warning
 	tclChannelAppendAt("db1.db", db1Blob, fileChannelSeek["fd"])
+	fileChannelSeek["fd"] += int64(len(db1Blob))
 	// close $fd
 	db.Close()
 	db, err = frigolite.Open("")
@@ -134,6 +135,13 @@ func Test_memdb1(t *testing.T) {
 		r = db.Query("\n  PRAGMA auto_vacuum = off;\n  VACUUM;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = off;\n  VACUUM;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "130"
@@ -572,9 +580,8 @@ func Test_memdb1(t *testing.T) {
 				// incr seen 1
 				{
 					_n, _err := strconv.Atoi(seen)
-					if _err == nil {
-						seen = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					seen = strconv.Itoa(_n + 1)
 				}
 				if func() bool { seen_n, _seen_e := strconv.Atoi(seen); if _seen_e != nil { return false }; return seen_n == 1 }() {
 					if derr := db.Deserialize("main", []byte(blob), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }

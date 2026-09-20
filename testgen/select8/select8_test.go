@@ -69,18 +69,36 @@ func Test_select8(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT artist,sum(timesplayed) AS total      \n    FROM songs      \n    GROUP BY LOWER(artist)      \n    LIMIT 1 OFFSET 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT artist,sum(timesplayed) AS total      \n    FROM songs      \n    GROUP BY LOWER(artist)      \n    LIMIT 1 OFFSET 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclLRange(result, "2", "3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select8-1.2"
 		r = db.Query("\n    SELECT DISTINCT artist,sum(timesplayed) AS total      \n    FROM songs      \n    GROUP BY LOWER(artist)      \n    LIMIT 2 OFFSET 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT artist,sum(timesplayed) AS total      \n    FROM songs      \n    GROUP BY LOWER(artist)      \n    LIMIT 2 OFFSET 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclLRange(result, "2", "5")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select8-1.3"
 		r = db.Query("\n    SELECT DISTINCT artist,sum(timesplayed) AS total      \n    FROM songs      \n    GROUP BY LOWER(artist)      \n    LIMIT -1 OFFSET 2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT artist,sum(timesplayed) AS total      \n    FROM songs      \n    GROUP BY LOWER(artist)      \n    LIMIT -1 OFFSET 2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclLRange(result, "4", "end")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

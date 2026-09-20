@@ -90,9 +90,8 @@ func Test_securedel2(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	// proc definition (not transpiled)
@@ -127,9 +126,8 @@ func Test_securedel2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -202,16 +200,14 @@ func Test_securedel2(t *testing.T) {
 			// incr n 0
 			{
 				_n, _err := strconv.Atoi(n)
-				if _err == nil {
-					n = strconv.Itoa(_n + 0)
-				}
+				if _err != nil { _n = 0 }
+				n = strconv.Itoa(_n + 0)
 			}
 			// incr i 5
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 5)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 5)
 			}
 		}
 		got := tclListFlatten(n)
@@ -240,9 +236,8 @@ func Test_securedel2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" DELETE FROM t1 ")
@@ -262,16 +257,14 @@ func Test_securedel2(t *testing.T) {
 			// incr n 0
 			{
 				_n, _err := strconv.Atoi(n)
-				if _err == nil {
-					n = strconv.Itoa(_n + 0)
-				}
+				if _err != nil { _n = 0 }
+				n = strconv.Itoa(_n + 0)
 			}
 			// incr i 5
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 5)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 5)
 			}
 		}
 		got := tclListFlatten(n)

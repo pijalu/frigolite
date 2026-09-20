@@ -79,9 +79,8 @@ func Test_select4(t *testing.T) {
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("INSERT INTO t1 VALUES(" + i + "," + j + ")")
@@ -91,9 +90,8 @@ func Test_select4(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("\n  COMMIT;\n")
@@ -104,6 +102,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("SELECT DISTINCT log FROM t1 ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT DISTINCT log FROM t1 ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-1.1a"
@@ -116,12 +120,24 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-1.1d"
 		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE t2")
@@ -132,6 +148,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 7 6 5 5 4 3 2 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE t2")
@@ -142,12 +164,24 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-1.1g"
 		r = db.Query("\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=2;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=2;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE t2")
@@ -158,6 +192,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION ALL\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION ALL\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 2 3 3 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-1.3"
@@ -192,12 +232,24 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-2.2"
 		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 2 3 3 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-2.3"
@@ -260,12 +312,24 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    EXCEPT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    EXCEPT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-3.1.2"
 		r = db.Query("\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE t2")
@@ -276,6 +340,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 3 2 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE t2")
@@ -286,6 +356,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 EXCEPT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 EXCEPT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-3.3"
@@ -314,18 +390,36 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-4.1.2"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT 6\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY t1.log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT 6\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY t1.log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-4.1.3"
 		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE t2")
@@ -336,6 +430,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE t2")
@@ -346,6 +446,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 INTERSECT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 INTERSECT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-4.3"
@@ -598,54 +704,109 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT log, count(*) as cnt FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY cnt, log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*) as cnt FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY cnt, log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 1 2 2 3 4 3 7 4 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-6.2"
 		r = db.Query("\n    SELECT log, count(*) FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY count(*), log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*) FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY count(*), log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 1 2 2 3 4 3 7 4 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-6.3"
 		r = db.Query("\n    SELECT NULL UNION SELECT NULL UNION\n    SELECT 1 UNION SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT NULL UNION SELECT NULL UNION\n    SELECT 1 UNION SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-6.3.1"
 		r = db.Query("\n    SELECT NULL UNION ALL SELECT NULL UNION ALL\n    SELECT 1 UNION ALL SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT NULL UNION ALL SELECT NULL UNION ALL\n    SELECT 1 UNION ALL SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-6.4"
 		r = db.Query("\n      SELECT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 {} 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-6.5"
 		r = db.Query("\n      SELECT DISTINCT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-6.6"
 		r = db.Query("\n      SELECT DISTINCT * FROM (\n         SELECT 1,2  UNION ALL SELECT 1,2\n      );\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT * FROM (\n         SELECT 1,2  UNION ALL SELECT 1,2\n      );\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-6.7"
 		r = db.Query("\n    SELECT NULL EXCEPT SELECT NULL\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT NULL EXCEPT SELECT NULL\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-7.1"
 		r = db.Query("\n    CREATE TABLE t2 AS SELECT log AS 'x', count(*) AS 'y' FROM t1 GROUP BY log;\n    SELECT * FROM t2 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT log AS 'x', count(*) AS 'y' FROM t1 GROUP BY log;\n    SELECT * FROM t2 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 1 2 2 3 4 4 8 5 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-7.2"
@@ -680,6 +841,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT c FROM t3 ORDER BY c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT c FROM t3 ORDER BY c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1.1 1.10 1.2 1.3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-9.1"
@@ -728,6 +895,12 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT 0 AS x, 1 AS y\n    UNION\n    SELECT 2 AS y, -3 AS x\n    ORDER BY x LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 0 AS x, 1 AS y\n    UNION\n    SELECT 2 AS y, -3 AS x\n    ORDER BY x LIMIT 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-9.9.1"
@@ -764,54 +937,111 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.2"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.3"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.4"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.5"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1 OFFSET 2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1 OFFSET 2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.6"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 3 OFFSET 2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 3 OFFSET 2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.7"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY +log LIMIT 3 OFFSET 20\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY +log LIMIT 3 OFFSET 20\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.8"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0 OFFSET 3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0 OFFSET 3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-10.9"
 		r = db.Query("\n    SELECT DISTINCT max(n), log FROM t1 ORDER BY +log; -- LIMIT 2 OFFSET 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT max(n), log FROM t1 ORDER BY +log; -- LIMIT 2 OFFSET 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "select4-11.1"
@@ -973,6 +1203,13 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t14 EXCEPT VALUES(1,2,3) EXCEPT VALUES(4,5,6)\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t14 EXCEPT VALUES(1,2,3) EXCEPT VALUES(4,5,6)\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select4-14.8"
@@ -1184,6 +1421,13 @@ func Test_select4(t *testing.T) {
 		r = db.Query("\n  CREATE VIEW v0(v0) AS WITH v0 AS(SELECT 0 v0) SELECT(SELECT min(v0) OVER()) FROM v0 GROUP BY v0;\n  SELECT *FROM v0 v1 JOIN v0 USING(v0) WHERE datetime(v0) = (v0.v0)AND v0 = 10;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIEW v0(v0) AS WITH v0 AS(SELECT 0 v0) SELECT(SELECT min(v0) OVER()) FROM v0 GROUP BY v0;\n  SELECT *FROM v0 v1 JOIN v0 USING(v0) WHERE datetime(v0) = (v0.v0)AND v0 = 10;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select4-18.2"
@@ -1224,8 +1468,7 @@ func Test_select4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -907,6 +907,13 @@ func Test_rowvalue(t *testing.T) {
 												r = db.Query("\n  SELECT * FROM b2 CROSS JOIN b1 \n  WHERE b2.x=b1.a AND (b1.a, 2) \n  IN (VALUES(1, 2));\n")
 												if r.Error != nil {
 													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM b2 CROSS JOIN b1 \n  WHERE b2.x=b1.a AND (b1.a, 2) \n  IN (VALUES(1, 2));\n")
+													return
+												}
+												got := flatten(r)
+												want := tclListFlatten("{}")
+												got = tclListFlattenCollapse(got)
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
 											{ // "18.0"
@@ -1636,24 +1643,52 @@ func Test_rowvalue(t *testing.T) {
 												r = db.Query("\n  CREATE TABLE a(a1 PRIMARY KEY,a2);\n  INSERT INTO a VALUES(1,5);\n  CREATE TABLE b(b1 UNIQUE,b2);\n  SELECT * FROM a LEFT JOIN b ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');\n")
 												if r.Error != nil {
 													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE a(a1 PRIMARY KEY,a2);\n  INSERT INTO a VALUES(1,5);\n  CREATE TABLE b(b1 UNIQUE,b2);\n  SELECT * FROM a LEFT JOIN b ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');\n")
+													return
+												}
+												got := flatten(r)
+												want := tclListFlatten("{}")
+												got = tclListFlattenCollapse(got)
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
 											{ // "31.1b"
 												r = db.Query("\n  SELECT * FROM b RIGHT JOIN a ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');\n")
 												if r.Error != nil {
 													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM b RIGHT JOIN a ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');\n")
+													return
+												}
+												got := flatten(r)
+												want := tclListFlatten("{}")
+												got = tclListFlattenCollapse(got)
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
 											{ // "31.2"
 												r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b,c,d);\n  INSERT INTO t2 VALUES(NULL,123,456);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);\n")
 												if r.Error != nil {
 													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b,c,d);\n  INSERT INTO t2 VALUES(NULL,123,456);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);\n")
+													return
+												}
+												got := flatten(r)
+												want := tclListFlatten("{}")
+												got = tclListFlattenCollapse(got)
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
 											{ // "31.2b"
 												r = db.Query("\n  SELECT * FROM t2 RIGHT JOIN t1 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);\n")
 												if r.Error != nil {
 													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 RIGHT JOIN t1 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);\n")
+													return
+												}
+												got := flatten(r)
+												want := tclListFlatten("{}")
+												got = tclListFlattenCollapse(got)
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
 											db.Close()
@@ -1728,6 +1763,13 @@ func Test_rowvalue(t *testing.T) {
 												r = db.Query("\n  SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,2);\n")
 												if r.Error != nil {
 													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,2);\n")
+													return
+												}
+												got := flatten(r)
+												want := tclListFlatten("{}")
+												got = tclListFlattenCollapse(got)
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
 											{ // "33.3"
@@ -1814,6 +1856,13 @@ func Test_rowvalue(t *testing.T) {
 												r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE INDEX t1a ON t1(a,id);  -- index includes PRIMARY KEY\n  CREATE TABLE t2(id INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(id,a) SELECT n, 777 FROM c;\n  INSERT INTO t2 SELECT id FROM t1;\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id>999\n   ORDER BY t1.id;\n")
 												if r.Error != nil {
 													t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE INDEX t1a ON t1(a,id);  -- index includes PRIMARY KEY\n  CREATE TABLE t2(id INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(id,a) SELECT n, 777 FROM c;\n  INSERT INTO t2 SELECT id FROM t1;\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id>999\n   ORDER BY t1.id;\n")
+													return
+												}
+												got := flatten(r)
+												want := tclListFlatten("{}")
+												got = tclListFlattenCollapse(got)
+												if got != want {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
 											{ // "34.5"

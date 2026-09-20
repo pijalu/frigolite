@@ -242,6 +242,13 @@ func Test_istrue(t *testing.T) {
 		r = db.Query("\n  SELECT x FROM t1 WHERE false;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE false;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "istrue-500"

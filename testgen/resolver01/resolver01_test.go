@@ -222,12 +222,26 @@ func Test_resolver01(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t61(name);\n  SELECT min(name) FROM t61 GROUP BY lower(name);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t61(name);\n  SELECT min(name) FROM t61 GROUP BY lower(name);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "resolver01-6.2"
 		r = db.Query("\n  SELECT min(name) AS name FROM t61 GROUP BY lower(name); \n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min(name) AS name FROM t61 GROUP BY lower(name); \n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "resolver01-6.3"
@@ -258,6 +272,13 @@ func Test_resolver01(t *testing.T) {
 		r = db.Query("\n  SELECT 2 AS x WHERE (SELECT x AS y WHERE 1>y);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 2 AS x WHERE (SELECT x AS y WHERE 1>y);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -249,9 +249,8 @@ func Test_cost(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    ANALYZE;\n    CREATE INDEX i2 ON t1(a,b,c,d,e,f,g,h,i,j);\n  ")

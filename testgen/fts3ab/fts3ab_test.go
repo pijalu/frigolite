@@ -123,16 +123,14 @@ func Test_fts3ab(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 				// incr k k
 				{
 					_n, _err := strconv.Atoi(k)
-					if _err == nil {
-						k = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(k); return _v }())
-					}
+					if _err != nil { _n = 0 }
+					k = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(k); return _v }())
 				}
 			}
 			vset = tclListAppend(vset, "'" + words + "'")
@@ -144,57 +142,107 @@ func Test_fts3ab(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "fts3ab-1.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE english MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE english MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-1.2"
 		r = db.Query("SELECT rowid FROM t1 WHERE spanish MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE spanish MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-1.3"
 		r = db.Query("SELECT rowid FROM t1 WHERE german MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE german MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-1.4"
 		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-1.5"
 		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one dos drei'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH 'one dos drei'")
+			return
+		}
+		got := flatten(r)
+		want := "7 15 23 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-1.6"
 		r = db.Query("SELECT english, spanish, german FROM t1 WHERE rowid=1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT english, spanish, german FROM t1 WHERE rowid=1")
+			return
+		}
+		got := flatten(r)
+		want := "one un eine"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-1.7"
 		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"one un\"'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"one un\"'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-2.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t2 USING fts3(from,to);\n    INSERT INTO t2([from],[to]) VALUES ('one two three', 'four five six');\n    SELECT [from], [to] FROM t2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t2 USING fts3(from,to);\n    INSERT INTO t2([from],[to]) VALUES ('one two three', 'four five six');\n    SELECT [from], [to] FROM t2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one two three four five six"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -212,63 +260,116 @@ func Test_fts3ab(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "fts3ab-4.1"
 		r = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'norm:one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE t4 MATCH 'norm:one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.2"
 		r = db.Query("SELECT rowid FROM t4 WHERE norm MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE norm MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.3"
 		r = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE t4 MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.4"
 		r = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'plusone:one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE t4 MATCH 'plusone:one'")
+			return
+		}
+		got := flatten(r)
+		want := "2 4 6 8 10 12 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.5"
 		r = db.Query("SELECT rowid FROM t4 WHERE plusone MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE plusone MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "2 4 6 8 10 12 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.6"
 		r = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'norm:one plusone:two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE t4 MATCH 'norm:one plusone:two'")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 9 13"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.7"
 		r = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'norm:one two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE t4 MATCH 'norm:one two'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.8"
 		r = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'plusone:two norm:one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE t4 MATCH 'plusone:two norm:one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 9 13"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ab-4.9"
 		r = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'two norm:one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE t4 MATCH 'two norm:one'")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11 13 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

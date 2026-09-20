@@ -136,6 +136,12 @@ func Test_trace(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trace-1.4"
@@ -214,7 +220,7 @@ func Test_trace(t *testing.T) {
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		got := tclListFlatten(TRACE_OUT)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-2.2")
 		}
@@ -303,6 +309,12 @@ func Test_trace(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trace-3.4"
@@ -355,7 +367,7 @@ func Test_trace(t *testing.T) {
 		tclResetPrepared("STMT")
 		// sqlite3_reset $STMT
 		got := tclListFlatten(TRACE_OUT)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-4.2")
 		}

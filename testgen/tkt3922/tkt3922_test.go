@@ -62,6 +62,12 @@ func Test_tkt3922(t *testing.T) {
 			r = db.Query("\n      CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-9223372036854775808');\n      SELECT a, typeof(a) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-9223372036854775808');\n      SELECT a, typeof(a) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "-9223372036854775808 integer"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	} else {
@@ -69,6 +75,12 @@ func Test_tkt3922(t *testing.T) {
 			r = db.Query("\n      CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-1');\n      SELECT a, typeof(a) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-1');\n      SELECT a, typeof(a) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "-1 integer"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -80,6 +92,12 @@ func Test_tkt3922(t *testing.T) {
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854775807 integer"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	} else {
@@ -87,6 +105,12 @@ func Test_tkt3922(t *testing.T) {
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES('1');\n      SELECT a, typeof(a) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES('1');\n      SELECT a, typeof(a) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "1 integer"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

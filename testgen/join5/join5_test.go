@@ -71,24 +71,48 @@ func Test_join5(t *testing.T) {
 		r = db.Query("\n    select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 0 {} {} 2 11 2 {} {} 3 12 1 12 t2-12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-1.3"
 		r = db.Query("\n    select * from t1 left join t2 on t1.b=t2.x where t1.c=1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left join t2 on t1.b=t2.x where t1.c=1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 12 1 12 t2-12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-1.4"
 		r = db.Query("\n    select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n                     left join t3 on t1.b=t3.p and t1.c=2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n                     left join t3 on t1.b=t3.p and t1.c=2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 0 {} {} {} {} 2 11 2 {} {} 11 t3-11 3 12 1 12 t2-12 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-1.5"
 		r = db.Query("\n    select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n                     left join t3 on t1.b=t3.p where t1.c=2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n                     left join t3 on t1.b=t3.p where t1.c=2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 11 2 {} {} 11 t3-11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.1"
@@ -105,66 +129,138 @@ func Test_join5(t *testing.T) {
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 1 2 2 3 3 {} {} 1 1 2 {} 1 3 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.3"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON NULL")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON NULL")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 {} {} {} 1 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.4"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON 0 WHERE 0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON 0 WHERE 0")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.5"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON 1 WHERE 0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON 1 WHERE 0")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.6"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON NULL WHERE 0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON NULL WHERE 0")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.7"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON 0 WHERE 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON 0 WHERE 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 {} {} {} 1 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.8"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON 1 WHERE 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON 1 WHERE 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 1 2 2 3 3 {} {} 1 1 2 {} 1 3 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.9"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON NULL WHERE 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON NULL WHERE 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 {} {} {} 1 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.10"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON 0 WHERE NULL")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON 0 WHERE NULL")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.11"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON 1 WHERE NULL")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON 1 WHERE NULL")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join5-2.12"
 		r = db.Query("SELECT * FROM xy LEFT JOIN ab ON NULL WHERE NULL")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM xy LEFT JOIN ab ON NULL WHERE NULL")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join5-3.1"
@@ -195,6 +291,13 @@ func Test_join5(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS x3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 JOIN x3 WHERE x3.d = x2.b;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS x3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 JOIN x3 WHERE x3.d = x2.b;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join5-4.1"
@@ -304,6 +407,13 @@ func Test_join5(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t2 ON a=2 OR b=3 WHERE y IS NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON a=2 OR b=3 WHERE y IS NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.3.1"

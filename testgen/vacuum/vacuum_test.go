@@ -222,12 +222,24 @@ func Test_vacuum(t *testing.T) {
 		r = db3.Query("\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1234567890 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum-2.8"
 		r = db.Query("\n    INSERT INTO t7 SELECT * FROM t6;\n    SELECT count(*) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 SELECT * FROM t6;\n    SELECT count(*) FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "513"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -236,6 +248,12 @@ func Test_vacuum(t *testing.T) {
 		r = db3.Query("\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -295,6 +313,12 @@ func Test_vacuum(t *testing.T) {
 		r = db.Query("\n    select * from \"abc abc\";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from \"abc abc\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum-6.3"
@@ -307,6 +331,12 @@ func Test_vacuum(t *testing.T) {
 		r = db.Query("\n      select count(*) from \"abc abc\" WHERE a = X'00112233';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select count(*) from \"abc abc\" WHERE a = X'00112233';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	os.Remove(":memory:")
@@ -320,21 +350,51 @@ func Test_vacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum-7.1"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n    CREATE TABLE t2(t);\n    CREATE TABLE t3(t);\n    DROP TABLE t2;\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(t);\n    CREATE TABLE t3(t);\n    DROP TABLE t2;\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "vacuum-7.2"
 		r = db2.Query("\n    VACUUM;\n    pragma integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    VACUUM;\n    pragma integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum-7.3"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db2.Query(" PRAGMA freelist_count; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA freelist_count; ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "vacuum-7.4"
 		r = db2.Query(" PRAGMA auto_vacuum ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum-7.5"

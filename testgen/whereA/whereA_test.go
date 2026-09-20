@@ -134,6 +134,13 @@ func Test_whereA(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 WHERE b=2 AND a IS NULL;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE b=2 AND a IS NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "whereA-1.9"

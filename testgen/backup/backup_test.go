@@ -307,9 +307,8 @@ func Test_backup(t *testing.T) {
 										// incr ii 1
 										{
 											_n, _err := strconv.Atoi(ii)
-											if _err == nil {
-												ii = strconv.Itoa(_n + 1)
-											}
+											if _err != nil { _n = 0 }
+											ii = strconv.Itoa(_n + 1)
 										}
 									}
 									_res = db2.Exec("COMMIT")
@@ -337,6 +336,12 @@ func Test_backup(t *testing.T) {
 									r = db2.Query("PRAGMA " + file_dest + ".integrity_check")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA " + file_dest + ".integrity_check")
+										return
+									}
+									got := flatten(r)
+									want := "ok"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								// test_contents backup-2.$iTest.3 db main $db_dest $file_dest (unsupported command, not transpiled)
@@ -351,9 +356,8 @@ func Test_backup(t *testing.T) {
 							// incr iTest 1
 							{
 								_n, _err := strconv.Atoi(iTest)
-								if _err == nil {
-									iTest = strconv.Itoa(_n + 1)
-								}
+								if _err != nil { _n = 0 }
+								iTest = strconv.Itoa(_n + 1)
 							}
 						}
 					}
@@ -420,9 +424,8 @@ func Test_backup(t *testing.T) {
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)
-						if _err == nil {
-							ii = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						ii = strconv.Itoa(_n + 1)
 					}
 				}
 				{ // do_test "backup-3." + iTest + ".1"
@@ -445,6 +448,12 @@ func Test_backup(t *testing.T) {
 					r = db2.Query("PRAGMA integrity_check")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+						return
+					}
+					got := flatten(r)
+					want := "ok"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				// test_contents backup-3.$iTest.3 db main db2 main (unsupported command, not transpiled)
@@ -453,9 +462,8 @@ func Test_backup(t *testing.T) {
 				// incr iTest 1
 				{
 					_n, _err := strconv.Atoi(iTest)
-					if _err == nil {
-						iTest = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					iTest = strconv.Itoa(_n + 1)
 				}
 			}
 		}
@@ -485,9 +493,8 @@ func Test_backup(t *testing.T) {
 			// incr iTab 1
 			{
 				_n, _err := strconv.Atoi(iTab)
-				if _err == nil {
-					iTab = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				iTab = strconv.Itoa(_n + 1)
 			}
 		}
 		db2, err = frigolite.Open("test2.db")
@@ -501,9 +508,8 @@ func Test_backup(t *testing.T) {
 			// incr iTab 1
 			{
 				_n, _err := strconv.Atoi(iTab)
-				if _err == nil {
-					iTab = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				iTab = strconv.Itoa(_n + 1)
 			}
 		}
 		B, _berr = tclBackupInit(db2, "main", db, "main")
@@ -751,9 +757,8 @@ func Test_backup(t *testing.T) {
 			// incr iTest 1
 			{
 				_n, _err := strconv.Atoi(iTest)
-				if _err == nil {
-					iTest = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				iTest = strconv.Itoa(_n + 1)
 			}
 			{
 				var _catchErr error
@@ -821,6 +826,13 @@ func Test_backup(t *testing.T) {
 				r = db.Query("\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".2.2"
@@ -977,6 +989,13 @@ func Test_backup(t *testing.T) {
 				r = db.Query("\n      PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".5.2"
@@ -1375,6 +1394,12 @@ func Test_backup(t *testing.T) {
 			r = db.Query(" PRAGMA lock_status ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
+				return
+			}
+			got := flatten(r)
+			want := "main shared temp closed"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "backup-8.10"
@@ -1455,6 +1480,7 @@ func Test_backup(t *testing.T) {
 		}
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		// foreach {tn file rc} "1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK"
 		_items8 := tclSplitList("1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK")
 		for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
@@ -1482,6 +1508,7 @@ func Test_backup(t *testing.T) {
 				}
 				{ // do_test "backup-10." + tn + ".3"
 					os.Remove("bak.db")
+					os.Remove("bak.db-journal")
 					db2, err = frigolite.Open("bak.db")
 					tclConnRegister("db2", db2)
 					if err != nil { t.Fatal(err) }

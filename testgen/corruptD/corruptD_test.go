@@ -79,9 +79,8 @@ func Test_corruptD(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    DELETE FROM t1 WHERE a = 10;\n    DELETE FROM t1 WHERE a = 20;\n    DELETE FROM t1 WHERE a = 30;\n    DELETE FROM t1 WHERE a = 40;\n  ")

@@ -61,18 +61,36 @@ func Test_tkt2141(t *testing.T) {
 		r = db.Query("\n      CREATE TABLE tab1 (t1_id integer PRIMARY KEY, t1_desc);\n      INSERT INTO tab1 VALUES(1,'rec 1 tab 1');\n      CREATE TABLE tab2 (t2_id integer PRIMARY KEY, t2_id_t1, t2_desc);\n      INSERT INTO tab2 VALUES(1,1,'rec 1 tab 2');\n      CREATE TABLE tab3 (t3_id integer PRIMARY KEY, t3_id_t2, t3_desc);\n      INSERT INTO tab3 VALUES(1,1,'aa');\n      SELECT *\n      FROM tab1 t1 LEFT JOIN tab2 t2 ON t1.t1_id = t2.t2_id_t1\n      WHERE t2.t2_id IN\n           (SELECT t2_id FROM tab2, tab3 ON t2_id = t3_id_t2\n             WHERE t3_id IN (1,2) GROUP BY t2_id);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE tab1 (t1_id integer PRIMARY KEY, t1_desc);\n      INSERT INTO tab1 VALUES(1,'rec 1 tab 1');\n      CREATE TABLE tab2 (t2_id integer PRIMARY KEY, t2_id_t1, t2_desc);\n      INSERT INTO tab2 VALUES(1,1,'rec 1 tab 2');\n      CREATE TABLE tab3 (t3_id integer PRIMARY KEY, t3_id_t2, t3_desc);\n      INSERT INTO tab3 VALUES(1,1,'aa');\n      SELECT *\n      FROM tab1 t1 LEFT JOIN tab2 t2 ON t1.t1_id = t2.t2_id_t1\n      WHERE t2.t2_id IN\n           (SELECT t2_id FROM tab2, tab3 ON t2_id = t3_id_t2\n             WHERE t3_id IN (1,2) GROUP BY t2_id);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 rec 1 tab 1 1 1 rec 1 tab 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2141-1.2"
 		r = db.Query("\n      SELECT *\n      FROM tab1 t1 LEFT JOIN tab2 t2 ON t1.t1_id = t2.t2_id_t1\n      WHERE t2.t2_id IN\n           (SELECT t2_id FROM tab2, tab3 ON t2_id = t3_id_t2\n             WHERE t3_id IN (1,2));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *\n      FROM tab1 t1 LEFT JOIN tab2 t2 ON t1.t1_id = t2.t2_id_t1\n      WHERE t2.t2_id IN\n           (SELECT t2_id FROM tab2, tab3 ON t2_id = t3_id_t2\n             WHERE t3_id IN (1,2));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 rec 1 tab 1 1 1 rec 1 tab 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2141-1.3"
 		r = db.Query("\n      SELECT *\n      FROM tab1 t1 LEFT JOIN tab2 t2\n      WHERE t2.t2_id IN\n           (SELECT t2_id FROM tab2, tab3 ON t2_id = t3_id_t2\n             WHERE t3_id IN (1,2));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *\n      FROM tab1 t1 LEFT JOIN tab2 t2\n      WHERE t2.t2_id IN\n           (SELECT t2_id FROM tab2, tab3 ON t2_id = t3_id_t2\n             WHERE t3_id IN (1,2));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 rec 1 tab 1 1 1 rec 1 tab 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

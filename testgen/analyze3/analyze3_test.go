@@ -119,9 +119,8 @@ func Test_analyze3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    COMMIT;\n    ANALYZE;\n  ")
@@ -403,9 +402,8 @@ func Test_analyze3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -503,9 +501,8 @@ func Test_analyze3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -716,9 +713,8 @@ func Test_analyze3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -759,7 +755,9 @@ func Test_analyze3(t *testing.T) {
 		tclFinalizePrepared("S")
 		// sqlite3_finalize $S
 	}
-	{ // "analyze3-5.1.1" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
+	{ // "analyze3-5.1.1" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable (SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "analyze3-5.1.2" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
 	}
@@ -795,9 +793,8 @@ func Test_analyze3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n  ")
@@ -829,6 +826,13 @@ func Test_analyze3(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1,1,'0000');\n  CREATE INDEX t0b ON t1(b);\n  ANALYZE;\n  SELECT c FROM t1 WHERE b=3 AND a BETWEEN 30 AND hex(1);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1,1,'0000');\n  CREATE INDEX t0b ON t1(b);\n  ANALYZE;\n  SELECT c FROM t1 WHERE b=3 AND a BETWEEN 30 AND hex(1);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

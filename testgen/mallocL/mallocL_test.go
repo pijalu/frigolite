@@ -83,9 +83,8 @@ func Test_mallocL(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("CREATE TABLE t1(" + strings.Join(tclSplitList(cols), ",") + ")")
@@ -112,9 +111,8 @@ func Test_mallocL(t *testing.T) {
 		// incr j 1
 		{
 			_n, _err := strconv.Atoi(j)
-			if _err == nil {
-				j = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			j = strconv.Itoa(_n + 1)
 		}
 	}
 }

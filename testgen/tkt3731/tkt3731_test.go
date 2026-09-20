@@ -69,12 +69,24 @@ func Test_tkt3731(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t1 VALUES('c', 'd');\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t1 VALUES('c', 'd');\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b a+ b+ c d c+ d+"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3731-1.3"
 		r = db.Query("\n    DELETE FROM t1;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('e', 'f');\n    INSERT INTO t2 VALUES('g', 'h');\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('e', 'f');\n    INSERT INTO t2 VALUES('g', 'h');\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "e f e+ f+ g h g+ h+"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

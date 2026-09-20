@@ -185,9 +185,8 @@ func Test_dbstatus(t *testing.T) {
 				// incr nAlloc1 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc1)
-					if _err == nil {
-						nAlloc1 = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nAlloc1 = strconv.Itoa(_n + 1)
 				}
 				nSchema1 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_SCHEMA_USED"), "1")
 				_ = nSchema1 // suppress unused warning
@@ -214,9 +213,8 @@ func Test_dbstatus(t *testing.T) {
 				// incr nAlloc2 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc2)
-					if _err == nil {
-						nAlloc2 = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nAlloc2 = strconv.Itoa(_n + 1)
 				}
 				nSchema2 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_SCHEMA_USED"), "1")
 				_ = nSchema2 // suppress unused warning
@@ -229,9 +227,8 @@ func Test_dbstatus(t *testing.T) {
 				// incr nAlloc3 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc3)
-					if _err == nil {
-						nAlloc3 = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nAlloc3 = strconv.Itoa(_n + 1)
 				}
 				nSchema3 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_SCHEMA_USED"), "1")
 				_ = nSchema3 // suppress unused warning
@@ -258,9 +255,8 @@ func Test_dbstatus(t *testing.T) {
 				// incr nAlloc4 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc4)
-					if _err == nil {
-						nAlloc4 = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					nAlloc4 = strconv.Itoa(_n + 1)
 				}
 				nSchema4 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_SCHEMA_USED"), "1")
 				_ = nSchema4 // suppress unused warning
@@ -327,9 +323,8 @@ func Test_dbstatus(t *testing.T) {
 					// incr nAlloc1 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc1)
-						if _err == nil {
-							nAlloc1 = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						nAlloc1 = strconv.Itoa(_n + 1)
 					}
 					nStmt1 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_STMT_USED"), "1")
 					_ = nStmt1 // suppress unused warning
@@ -342,9 +337,8 @@ func Test_dbstatus(t *testing.T) {
 					// incr nAlloc2 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc2)
-						if _err == nil {
-							nAlloc2 = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						nAlloc2 = strconv.Itoa(_n + 1)
 					}
 					nStmt2 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_STMT_USED"), "1")
 					_ = nStmt2 // suppress unused warning
@@ -357,9 +351,8 @@ func Test_dbstatus(t *testing.T) {
 					// incr nAlloc3 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc3)
-						if _err == nil {
-							nAlloc3 = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						nAlloc3 = strconv.Itoa(_n + 1)
 					}
 					nStmt3 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_STMT_USED"), "1")
 					_ = nStmt3 // suppress unused warning
@@ -372,9 +365,8 @@ func Test_dbstatus(t *testing.T) {
 					// incr nAlloc4 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc4)
-						if _err == nil {
-							nAlloc4 = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						nAlloc4 = strconv.Itoa(_n + 1)
 					}
 					nStmt4 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_STMT_USED"), "1")
 					_ = nStmt4 // suppress unused warning

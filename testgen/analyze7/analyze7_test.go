@@ -66,12 +66,24 @@ func Test_analyze7(t *testing.T) {
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1b (b=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-1.2"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1cd (c=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-2.0"
@@ -88,18 +100,36 @@ func Test_analyze7(t *testing.T) {
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1b (b=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-2.2"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1cd (c=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-2.3"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1a (a=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-3.0"
@@ -116,36 +146,72 @@ func Test_analyze7(t *testing.T) {
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1b (b=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-3.2.1"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1cd (c=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-3.3"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1a (a=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-3.4"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1b (b=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-3.5"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1a (a=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 	{ // do_test "analyze7-3.6"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND d=123 AND b=123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND d=123 AND b=123")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*SEARCH t1 USING INDEX t1cd (c=? AND d=?)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
 		}
 	}
 }

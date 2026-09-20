@@ -70,6 +70,13 @@ func Test_rtree7(t *testing.T) {
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, y1, y2);\n    INSERT INTO rt VALUES(1, 1, 2, 3, 4);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, y1, y2);\n    INSERT INTO rt VALUES(1, 1, 2, 3, 4);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree7-1.2"
@@ -96,9 +103,8 @@ func Test_rtree7(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query(" SELECT sum(x1), sum(x2), sum(y1), sum(y2) FROM rt ")

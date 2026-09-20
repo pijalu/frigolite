@@ -1839,6 +1839,12 @@ func tclBool01(b bool) string {
 	return "0"
 }
 
+// tclAutocommit mirrors sqlite3_get_autocommit(db): true when the connection
+// is in autocommit mode (no transaction is open).
+func tclAutocommit(db *frigolite.DB) bool {
+	return !db.InTransaction()
+}
+
 // tclDbStatus renders a sqlite3_db_status result as the TCL list
 // "{current highwater 0}" (reset flag cleared).
 func tclDbStatus(db *frigolite.DB, name string) string {
@@ -4531,11 +4537,11 @@ func tclSqlTail(sql string) string {
 // whitespace runs (including newlines) to single spaces, then trims. Used for
 // set-var comparisons where the value may be SQL text / prepare TAIL content
 // whose leading/trailing whitespace differs between the C-API tail pointer
-// and the TCL braced expected value.
+// and the TCL braced expected value. An empty value follows tclListFlatten's
+// "{}" convention (TCL renders an empty list/element as {}), so the empty
+// TAIL of a single-statement prepare (capi3-1.1) compares equal to the {}
+// expected value — "" and "{}" must not normalize to different strings.
 func tclListFlattenCollapse(s string) string {
-	if strings.TrimSpace(s) == "" {
-		return ""
-	}
 	return strings.Join(strings.Fields(tclListFlatten(s)), " ")
 }
 var tclClosedConns = map[*frigolite.DB]bool{}

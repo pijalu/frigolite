@@ -57,7 +57,7 @@ func Test_orderby9(t *testing.T) {
 	_ = testprefix // pre-declared from TCL source
 	var x string
 	_ = x // pre-declared from TCL source
-	var l1 string
+	var l1 *tclListBuilder
 	_ = l1 // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
@@ -81,7 +81,7 @@ func Test_orderby9(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
 		vtab.TclVarSet("l1", "", "")
-		l1 = ""
+		l1 = &tclListBuilder{}
 		_ = l1 // suppress unused warning
 		_dbevalRows0 := db.Query("SELECT random() AS y FROM t1 ORDER BY 1;")
 		var _dbevalRb1 bool
@@ -96,7 +96,7 @@ func Test_orderby9(t *testing.T) {
 						y = tclStr(_dbevalRows0.Rows[_ri][_ci])
 				}
 			}
-			l1 = tclListAppend(l1, y)
+			l1.Append(y)
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
@@ -108,7 +108,7 @@ func Test_orderby9(t *testing.T) {
 	}
 	{ // do_test "1.1"
 		vtab.TclVarSet("l1", "", "")
-		l1 = ""
+		l1 = &tclListBuilder{}
 		_ = l1 // suppress unused warning
 		_dbevalRows4 := db.Query("SELECT random() AS y FROM t1 ORDER BY random();")
 		var _dbevalRb5 bool
@@ -123,7 +123,7 @@ func Test_orderby9(t *testing.T) {
 						y = tclStr(_dbevalRows4.Rows[_ri][_ci])
 				}
 			}
-			l1 = tclListAppend(l1, y)
+			l1.Append(y)
 			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
@@ -135,7 +135,7 @@ func Test_orderby9(t *testing.T) {
 	}
 	{ // do_test "1.2"
 		vtab.TclVarSet("l1", "", "")
-		l1 = ""
+		l1 = &tclListBuilder{}
 		_ = l1 // suppress unused warning
 		_dbevalRows8 := db.Query("SELECT random() AS y FROM t1 ORDER BY +random();")
 		var _dbevalRb9 bool
@@ -150,7 +150,7 @@ func Test_orderby9(t *testing.T) {
 						y = tclStr(_dbevalRows8.Rows[_ri][_ci])
 				}
 			}
-			l1 = tclListAppend(l1, y)
+			l1.Append(y)
 			if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
@@ -160,4 +160,5 @@ func Test_orderby9(t *testing.T) {
 		}
 		// expr $l1==[lsort -command bigintcompare $l1] (not evaluated)
 	}
+
 }

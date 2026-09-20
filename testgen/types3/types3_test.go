@@ -179,30 +179,65 @@ func Test_types3(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x TEXT PRIMARY KEY);\n  INSERT INTO t1 VALUES('1');\n  SELECT * FROM t1 WHERE NOT x=upper(1);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x TEXT PRIMARY KEY);\n  INSERT INTO t1 VALUES('1');\n  SELECT * FROM t1 WHERE NOT x=upper(1);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "types3-3.2"
 		r = db.Query("\n  SELECT * FROM t1 WHERE NOT x=add_text_type(1);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE NOT x=add_text_type(1);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "types3-3.3"
 		r = db.Query("\n  SELECT * FROM t1 WHERE NOT x=add_int_type('1');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE NOT x=add_int_type('1');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "types3-3.4"
 		r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1.25);\n  SELECT * FROM t1 WHERE NOT x=add_real_type('1.25');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1.25);\n  SELECT * FROM t1 WHERE NOT x=add_real_type('1.25');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "types3-3.5"
 		r = db.Query("\n  SELECT * FROM t1 WHERE NOT x=add_text_type(1.25);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE NOT x=add_text_type(1.25);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

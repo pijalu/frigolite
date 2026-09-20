@@ -77,6 +77,7 @@ func Test_tkt3457(t *testing.T) {
 		_ = fd // suppress unused warning
 		fileChannelSeek["fd"] = int64(tclAtoi("0"))
 		tclChannelAppendAt("bak.db-journal", "\xd9\xd5\x05\xf9 \xa1c\xd7", fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len("\xd9\xd5\x05\xf9 \xa1c\xd7"))
 		// close $fd
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {

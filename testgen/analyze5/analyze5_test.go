@@ -143,9 +143,8 @@ func Test_analyze5(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" \n    CREATE INDEX t1t ON t1(t);  -- 0.5, 1.5, 2.5, and 3.5\n    CREATE INDEX t1u ON t1(u);  -- text\n    CREATE INDEX t1v ON t1(v);  -- mixed case text\n    CREATE INDEX t1w ON t1(w);  -- integers 0, 1, 2 and a few NULLs\n    CREATE INDEX t1x ON t1(x);  -- integers 1, 2, 3 and many NULLs\n    CREATE INDEX t1y ON t1(y);  -- integers 0 and very few 1s\n    CREATE INDEX t1z ON t1(z);  -- integers 0, 1, 2, and 3\n    ANALYZE;\n  ")

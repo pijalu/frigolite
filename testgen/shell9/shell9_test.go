@@ -84,6 +84,7 @@ func Test_shell9(t *testing.T) {
 	out = "testdump.txt"
 	_ = out // suppress unused warning
 	tclChannelAppendAt("testdump.txt", tclLIndex("catchcmd test.db .dump", "1")+"\n", fileChannelSeek["out"])
+	fileChannelSeek["out"] += int64(len(tclLIndex("catchcmd test.db .dump", "1")+"\n"))
 	// close $out
 	{ // "1.1.1" (CLI shell subprocess harness, not transpiled)
 		// forcedelete test.db
@@ -189,6 +190,7 @@ func Test_shell9(t *testing.T) {
 	out = "testdump.txt"
 	_ = out // suppress unused warning
 	tclChannelAppendAt("testdump.txt", tclLIndex("catchcmd test.db .dump", "1")+"\n", fileChannelSeek["out"])
+	fileChannelSeek["out"] += int64(len(tclLIndex("catchcmd test.db .dump", "1")+"\n"))
 	// close $out
 	{ // "3.1.1" (CLI shell subprocess harness, not transpiled)
 		// forcedelete test.db

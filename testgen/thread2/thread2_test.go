@@ -68,6 +68,12 @@ func Test_thread2(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abcdefgh');\n    INSERT INTO t1 SELECT a+1, b||b FROM t1;\n    INSERT INTO t1 SELECT a+2, b||b FROM t1;\n    INSERT INTO t1 SELECT a+4, b||b FROM t1;\n    SELECT count(*), max(length(b)) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abcdefgh');\n    INSERT INTO t1 SELECT a+1, b||b FROM t1;\n    INSERT INTO t1 SELECT a+2, b||b FROM t1;\n    INSERT INTO t1 SELECT a+4, b||b FROM t1;\n    SELECT count(*), max(length(b)) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "thread2-1.2"

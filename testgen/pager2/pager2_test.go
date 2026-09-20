@@ -84,9 +84,8 @@ func Test_pager2(t *testing.T) {
 		// incr otn 1
 		{
 			_n, _err := strconv.Atoi(otn)
-			if _err == nil {
-				otn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			otn = strconv.Itoa(_n + 1)
 		}
 		vtab.TclVarSet("sql", "", "")
 		sql = ""
@@ -169,9 +168,8 @@ func Test_pager2(t *testing.T) {
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
-				if _err == nil {
-					tn = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				tn = strconv.Itoa(_n + 1)
 			}
 			_dbone0 := tclExecSQL(db, "{SELECT count(i) FROM t1}")
 			now = _dbone0
@@ -226,9 +224,8 @@ func Test_pager2(t *testing.T) {
 						// incr k 1
 						{
 							_n, _err := strconv.Atoi(k)
-							if _err == nil {
-								k = strconv.Itoa(_n + 1)
-							}
+							if _err != nil { _n = 0 }
+							k = strconv.Itoa(_n + 1)
 						}
 					}
 				}

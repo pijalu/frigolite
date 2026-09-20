@@ -78,12 +78,24 @@ func Test_fts3d(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-1.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3d-1.1 {a is test this} (unsupported command, not transpiled)
@@ -101,12 +113,24 @@ func Test_fts3d(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-2.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3d-2.1 {a test that was} (unsupported command, not transpiled)
@@ -124,12 +148,24 @@ func Test_fts3d(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-3.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3d-3.1 {a test that was} (unsupported command, not transpiled)
@@ -147,12 +183,25 @@ func Test_fts3d(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 1 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-4.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4} {0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4} {0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("SELECT c FROM t1 ")
@@ -188,12 +237,25 @@ func Test_fts3d(t *testing.T) {
 		r = db.Query("\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Index optimized 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-4.5.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4} {0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4} {0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3d-4.5.1 {a is test that this was} (unsupported command, not transpiled)
@@ -214,6 +276,12 @@ func Test_fts3d(t *testing.T) {
 		r = db.Query("\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Index already optimal 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.SetDefensive(false)
@@ -221,6 +289,12 @@ func Test_fts3d(t *testing.T) {
 		r = db.Query("\n    UPDATE t1_segdir SET level = 2 WHERE level = 1 AND idx = 0;\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1_segdir SET level = 2 WHERE level = 1 AND idx = 0;\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Index already optimal 2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-6.0"

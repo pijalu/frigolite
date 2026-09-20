@@ -5,6 +5,7 @@
 package func_pkg
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -90,7 +91,7 @@ func Test_func(t *testing.T) {
 	_ = rep // pre-declared from TCL source
 	var midargs string
 	_ = midargs // pre-declared from TCL source
-	var midres string
+	var midres strings.Builder
 	_ = midres // pre-declared from TCL source
 	var limit string
 	_ = limit // pre-declared from TCL source
@@ -132,12 +133,24 @@ func Test_func(t *testing.T) {
 		r = db.Query("\n     CREATE TABLE t2(a);\n     INSERT INTO t2 VALUES(1);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(345);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(67890);\n     SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE TABLE t2(a);\n     INSERT INTO t2 VALUES(1);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(345);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(67890);\n     SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 345 {} 67890"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-1.0"
 		r = db.Query("SELECT length(t1) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT length(t1) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "4 2 7 8 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	isutf16 = "0" // capability regexp "16" not matched (engine default)
@@ -202,12 +215,24 @@ func Test_func(t *testing.T) {
 		r = db.Query("SELECT length(t1), count(*) FROM tbl1 GROUP BY length(t1)\n           ORDER BY length(t1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT length(t1), count(*) FROM tbl1 GROUP BY length(t1)\n           ORDER BY length(t1)")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 4 2 7 1 8 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-1.4"
 		r = db.Query("SELECT coalesce(length(a),-1) FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(length(a),-1) FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 -1 3 -1 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "func-1.5"
@@ -278,84 +303,168 @@ func Test_func(t *testing.T) {
 		r = db.Query("SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "fr is pr so th"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.1"
 		r = db.Query("SELECT substr(t1,2,1) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,2,1) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "r s r o h"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.2"
 		r = db.Query("SELECT substr(t1,3,3) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,3,3) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "ee {} ogr ftw is"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.3"
 		r = db.Query("SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "e s m e s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.4"
 		r = db.Query("SELECT substr(t1,-1,2) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-1,2) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "e s m e s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.5"
 		r = db.Query("SELECT substr(t1,-2,1) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-2,1) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "e i a r i"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.6"
 		r = db.Query("SELECT substr(t1,-2,2) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-2,2) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "ee is am re is"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.7"
 		r = db.Query("SELECT substr(t1,-4,2) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-4,2) FROM tbl1 ORDER BY t1")
+			return
+		}
+		got := flatten(r)
+		want := "fr {} gr wa th"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.8"
 		r = db.Query("SELECT t1 FROM tbl1 ORDER BY substr(t1,2,20)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t1 FROM tbl1 ORDER BY substr(t1,2,20)")
+			return
+		}
+		got := flatten(r)
+		want := "this software free program is"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.9"
 		r = db.Query("SELECT substr(a,1,1) FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(a,1,1) FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 3 {} 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.10"
 		r = db.Query("SELECT substr(a,2,2) FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(a,2,2) FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 45 {} 78"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.11"
 		r = db.Query("SELECT substr('abcdefg',0x100000001,2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr('abcdefg',0x100000001,2)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.12"
 		r = db.Query("SELECT substr('abcdefg',1,0x100000002)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr('abcdefg',1,0x100000002)")
+			return
+		}
+		got := flatten(r)
+		want := "abcdefg"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-2.13"
 		r = db.Query("SELECT quote(substr(x'313233343536373839',0x7ffffffffffffffe,5))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT quote(substr(x'313233343536373839',0x7ffffffffffffffe,5))")
+			return
+		}
+		got := flatten(r)
+		want := "X''"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if "\u1234" != "u1234" {
@@ -380,60 +489,120 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT length(t1) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT length(t1) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "5 10 8 5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.2"
 			r = db.Query("SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "UT ch co hi"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.3"
 			r = db.Query("SELECT substr(t1,1,3) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,1,3) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "UTF cha con hiሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.4"
 			r = db.Query("SELECT substr(t1,2,2) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,2,2) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "TF ha on iሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.5"
 			r = db.Query("SELECT substr(t1,2,3) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,2,3) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "TF- har ont iሴh"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.6"
 			r = db.Query("SELECT substr(t1,3,2) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,3,2) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "F- ar nt ሴh"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.7"
 			r = db.Query("SELECT substr(t1,4,2) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,4,2) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "-8 ra ta ho"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.8"
 			r = db.Query("SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "8 s s o"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.9"
 			r = db.Query("SELECT substr(t1,-3,2) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-3,2) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "F- er in ሴh"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.10"
 			r = db.Query("SELECT substr(t1,-4,3) FROM tbl1 ORDER BY t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT substr(t1,-4,3) FROM tbl1 ORDER BY t1")
+				return
+			}
+			got := flatten(r)
+			want := "TF- ter ain iሴh"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-3.99"
@@ -484,12 +653,24 @@ func Test_func(t *testing.T) {
 		r = db.Query("SELECT abs(a) FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT abs(a) FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 345 {} 67890"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.4.2"
 		r = db.Query("SELECT abs(t1) FROM tbl1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT abs(t1) FROM tbl1")
+			return
+		}
+		got := flatten(r)
+		want := "0.0 0.0 0.0 0.0 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.5"
@@ -538,24 +719,48 @@ func Test_func(t *testing.T) {
 		r = db.Query("SELECT coalesce(round(a,2),'nil') FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(round(a,2),'nil') FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1.0 nil 345.0 nil 67890.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.13"
 		r = db.Query("SELECT round(t1,2) FROM tbl1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(t1,2) FROM tbl1")
+			return
+		}
+		got := flatten(r)
+		want := "0.0 0.0 0.0 0.0 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.14"
 		r = db.Query("SELECT typeof(round(5.1,1));")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(round(5.1,1));")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.15"
 		r = db.Query("SELECT typeof(round(5.1));")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(round(5.1));")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.16"
@@ -576,17 +781,20 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT round(" + sqlLiteral(x1) + ");")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ");")
+				return
 			}
-			if flatten(r) != tclListFlatten(x2) {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(x2), "func-4.17." + i)
+			got := flatten(r)
+			want := tclListFlatten(x2)
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("i", "", "1")
@@ -601,35 +809,56 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT round(" + sqlLiteral(x1) + ",1);")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ",1);")
+				return
 			}
-			if flatten(r) != tclListFlatten(x2) {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(x2), "func-4.18." + i)
+			got := flatten(r)
+			want := tclListFlatten(x2)
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "func-4.20"
 		r = db.Query("SELECT round(40223.4999999999);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999);")
+			return
+		}
+		got := flatten(r)
+		want := "40223.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.21"
 		r = db.Query("SELECT round(40224.4999999999);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999);")
+			return
+		}
+		got := flatten(r)
+		want := "40224.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.22"
 		r = db.Query("SELECT round(40225.4999999999);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999);")
+			return
+		}
+		got := flatten(r)
+		want := "40225.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("i", "", "1")
@@ -640,26 +869,43 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
+				return
+			}
+			got := flatten(r)
+			want := "40223.5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-4.24." + i
 			r = db.Query("SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
+				return
+			}
+			got := flatten(r)
+			want := "40224.5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-4.25." + i
 			r = db.Query("SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
+				return
+			}
+			got := flatten(r)
+			want := "40225.5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("i", "", "10")
@@ -670,86 +916,163 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
+				return
+			}
+			got := flatten(r)
+			want := "40223.4999999999"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-4.27." + i
 			r = db.Query("SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
+				return
+			}
+			got := flatten(r)
+			want := "40224.4999999999"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-4.28." + i
 			r = db.Query("SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
+				return
+			}
+			got := flatten(r)
+			want := "40225.4999999999"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "func-4.29"
 		r = db.Query("SELECT round(1234567890.5);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(1234567890.5);")
+			return
+		}
+		got := flatten(r)
+		want := "1234567891.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.30"
 		r = db.Query("SELECT round(12345678901.5);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(12345678901.5);")
+			return
+		}
+		got := flatten(r)
+		want := "12345678902.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.31"
 		r = db.Query("SELECT round(123456789012.5);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(123456789012.5);")
+			return
+		}
+		got := flatten(r)
+		want := "123456789013.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.32"
 		r = db.Query("SELECT round(1234567890123.5);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(1234567890123.5);")
+			return
+		}
+		got := flatten(r)
+		want := "1234567890124.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.33"
 		r = db.Query("SELECT round(12345678901234.5);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(12345678901234.5);")
+			return
+		}
+		got := flatten(r)
+		want := "12345678901235.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.34"
 		r = db.Query("SELECT round(1234567890123.35,1);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(1234567890123.35,1);")
+			return
+		}
+		got := flatten(r)
+		want := "1234567890123.4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.35"
 		r = db.Query("SELECT round(1234567890123.445,2);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(1234567890123.445,2);")
+			return
+		}
+		got := flatten(r)
+		want := "1234567890123.45"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.36"
 		r = db.Query("SELECT round(99999999999994.5);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(99999999999994.5);")
+			return
+		}
+		got := flatten(r)
+		want := "99999999999995.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.37"
 		r = db.Query("SELECT round(9999999999999.55,1);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(9999999999999.55,1);")
+			return
+		}
+		got := flatten(r)
+		want := "9999999999999.6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.38"
 		r = db.Query("SELECT round(9999999999999.556,2);")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(9999999999999.556,2);")
+			return
+		}
+		got := flatten(r)
+		want := "9999999999999.56"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-4.39"
@@ -771,18 +1094,36 @@ func Test_func(t *testing.T) {
 		r = db.Query("SELECT upper(t1) FROM tbl1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT upper(t1) FROM tbl1")
+			return
+		}
+		got := flatten(r)
+		want := "THIS PROGRAM IS FREE SOFTWARE"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-5.2"
 		r = db.Query("SELECT lower(upper(t1)) FROM tbl1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT lower(upper(t1)) FROM tbl1")
+			return
+		}
+		got := flatten(r)
+		want := "this program is free software"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-5.3"
 		r = db.Query("SELECT upper(a), lower(a) FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT upper(a), lower(a) FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 {} {} 345 345 {} {} 67890 67890"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-5.4"
@@ -801,36 +1142,72 @@ func Test_func(t *testing.T) {
 		r = db.Query("SELECT coalesce(a,'xyz') FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(a,'xyz') FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 xyz 345 xyz 67890"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-6.2"
 		r = db.Query("SELECT coalesce(upper(a),'nil') FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(upper(a),'nil') FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 nil 345 nil 67890"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-6.3"
 		r = db.Query("SELECT coalesce(nullif(1,1),'nil')")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(nullif(1,1),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-6.4"
 		r = db.Query("SELECT coalesce(nullif(1,2),'nil')")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(nullif(1,2),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-6.5"
 		r = db.Query("SELECT coalesce(nullif(1,NULL),'nil')")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(nullif(1,NULL),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-7.1"
 		r = db.Query("SELECT last_insert_rowid()")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT last_insert_rowid()")
+			return
+		}
+		got := flatten(r)
+		want := tclDbOne(db, "db last_insert_rowid")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-8.1"
@@ -847,78 +1224,156 @@ func Test_func(t *testing.T) {
 		r = db.Query("\n    SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "z+67890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-8.3"
 		r = db.Query("\n      CREATE TEMP TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "z+1abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-8.4"
 		r = db.Query("\n    SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "z+67890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-8.5"
 		r = db.Query("\n      SELECT sum(x) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(x) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-8.6"
 		r = db.Query("\n      SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-8.7"
 		r = db.Query("\n      SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036854775807)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036854775807)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-8.8"
 		r = db.Query("\n      SELECT sum(x)>0.0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(x)>0.0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-9.1"
 		r = db.Query("\n    SELECT random() is not null;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT random() is not null;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-9.2"
 		r = db.Query("\n    SELECT typeof(random());\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(random());\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-9.3"
 		r = db.Query("\n    SELECT randomblob(32) is not null;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT randomblob(32) is not null;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-9.4"
 		r = db.Query("\n    SELECT typeof(randomblob(32));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(randomblob(32));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-9.5"
 		r = db.Query("\n    SELECT length(randomblob(32)), length(randomblob(-5)),\n           length(randomblob(2000))\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(randomblob(32)), length(randomblob(-5)),\n           length(randomblob(2000))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 1 2000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-9.10"
 		r = db.Query("SELECT hex(x'00112233445566778899aAbBcCdDeEfF')")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(x'00112233445566778899aAbBcCdDeEfF')")
+			return
+		}
+		got := flatten(r)
+		want := "00112233445566778899AABBCCDDEEFF"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_dbone0 := tclExecSQL(db, "{PRAGMA encoding}")
@@ -929,18 +1384,36 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT hex(replace('abcdefg','ef','12'))")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(replace('abcdefg','ef','12'))")
+				return
+			}
+			got := flatten(r)
+			want := "6100620063006400310032006700"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-9.12-utf16le"
 			r = db.Query("SELECT hex(replace('abcdefg','','12'))")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(replace('abcdefg','','12'))")
+				return
+			}
+			got := flatten(r)
+			want := "6100620063006400650066006700"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-9.13-utf16le"
 			r = db.Query("SELECT hex(replace('aabcdefg','a','aaa'))")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(replace('aabcdefg','a','aaa'))")
+				return
+			}
+			got := flatten(r)
+			want := "610061006100610061006100620063006400650066006700"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	} else if encoding == "UTF-8" {
@@ -948,18 +1421,36 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT hex(replace('abcdefg','ef','12'))")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(replace('abcdefg','ef','12'))")
+				return
+			}
+			got := flatten(r)
+			want := "61626364313267"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-9.12-utf8"
 			r = db.Query("SELECT hex(replace('abcdefg','','12'))")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(replace('abcdefg','','12'))")
+				return
+			}
+			got := flatten(r)
+			want := "61626364656667"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-9.13-utf8"
 			r = db.Query("SELECT hex(replace('aabcdefg','a','aaa'))")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(replace('aabcdefg','a','aaa'))")
+				return
+			}
+			got := flatten(r)
+			want := "616161616161626364656667"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -981,44 +1472,80 @@ func Test_func(t *testing.T) {
 	// sqlite_register_test_function $::DB testfunc (unsupported command, not transpiled)
 	{ // "func-10.1" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A
 	}
-	{ // "func-10.2" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A
+	{ // "func-10.2" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT testfunc(\n     'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n     'int', 1234\n    );\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-10.3" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A
+	{ // "func-10.3" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT testfunc(\n     'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n     'string', NULL\n    );\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-10.4" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A
+	{ // "func-10.4" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A (SQL side effects only)
+		_res = db.Exec("\n      SELECT testfunc(\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234\n      );\n    ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-10.5" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A
+	{ // "func-10.5" — skipped: C test-harness testfunc() not registered (sqlite_register_test_function) N-A (SQL side effects only)
+		_res = db.Exec("\n      SELECT testfunc(\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'int', 1234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'string', NULL,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'int', 1234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'string', NULL,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234\n      );\n    ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-11.1" — skipped: C test-harness functions (sqlite_version(*)) not registered N-A
+	{ // "func-11.1" — skipped: C test-harness functions (sqlite_version(*)) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT sqlite_version(*);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	if tclExecSQL(db, "PRAGMA encoding") == "UTF-8" {
-		{ // "func-12.1-utf8" — skipped: C test-harness functions (test_destructor*) not registered N-A
+		{ // "func-12.1-utf8" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL side effects only)
+			_res = db.Exec("\n      SELECT test_destructor('hello world'), test_destructor_count();\n    ")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 	} else {
 	}
-	{ // "func-12.2" — skipped: C test-harness functions (test_destructor*) not registered N-A
+	{ // "func-12.2" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_destructor_count();\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-12.3" — skipped: C test-harness functions (test_destructor*) not registered N-A
+	{ // "func-12.3" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_destructor('hello')||' world'\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-12.4" — skipped: C test-harness functions (test_destructor*) not registered N-A
+	{ // "func-12.4" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_destructor_count();\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-12.5" — skipped: C test-harness functions (test_destructor*) not registered N-A
+	{ // "func-12.5" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(test_destructor('hello'));\n    INSERT INTO t4 VALUES(test_destructor('world'));\n    SELECT min(test_destructor(x)), max(test_destructor(x)) FROM t4;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-12.6" — skipped: C test-harness functions (test_destructor*) not registered N-A
+	{ // "func-12.6" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_destructor_count();\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-12.7" — skipped: C test-harness functions (test_destructor*) not registered N-A
+	{ // "func-12.7" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    DROP TABLE t4;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-13.1" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A
+	{ // "func-13.1" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_auxdata('hello world');\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-13.2" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A
+	{ // "func-13.2" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('abc', 'def');\n    INSERT INTO t4 VALUES('ghi', 'jkl');\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-13.3" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A
+	{ // "func-13.3" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_auxdata('hello world') FROM t4;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-13.4" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A
+	{ // "func-13.4" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_auxdata('hello world', 123) FROM t4;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-13.5" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A
+	{ // "func-13.5" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_auxdata('hello world', a) FROM t4;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "func-13.6" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A
+	{ // "func-13.6" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL side effects only)
+		_res = db.Exec("\n    SELECT test_auxdata('hello'||'world', a) FROM t4;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "func-13.7" — skipped: C-API prepared-statement bind/step loop (sqlite3_step + test_auxdata) N-A (no-side-effects)
 	}
@@ -1059,11 +1586,23 @@ func Test_func(t *testing.T) {
 			db.RegisterFunction("[string repeat X 256]", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		}
 	}
-{ // "func-15.1" — skipped: FULL-SUITE-DRIFT.T26-misc N-A C-test-harness function test_error (test1.c sqlite3CreateFunction) is not part of the engine; the engine-visible contract (a registered UDF returning an error propagates its message) is pinned natively in frigolite_miscudf_pin_test.go (NA_EVIDENCE func_pkg)
+	{ // do_test "func-15.1"
+		_res = db.Exec("select test_error(NULL)")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "select test_error(NULL)")
+		}
 	}
-	{ // "func-15.2" — skipped: same test_error N-A (NA_EVIDENCE func_pkg)
+	{ // do_test "func-15.2"
+		_res = db.Exec("select test_error('this is the error message')")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "this is the error message") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", resErrString(_res), "select test_error('this is the error message')")
+		}
 	}
-	{ // "func-15.3" — skipped: same test_error N-A (NA_EVIDENCE func_pkg)
+	{ // do_test "func-15.3"
+		_res = db.Exec("select test_error('this is the error message',12)")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "this is the error message") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "this is the error message", resErrString(_res), "select test_error('this is the error message',12)")
+		}
 	}
 	{ // do_test "func-15.4"
 	}
@@ -1107,48 +1646,96 @@ func Test_func(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(-99);\n    INSERT INTO t5 VALUES(10000);\n    SELECT sum(x) FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(-99);\n    INSERT INTO t5 VALUES(10000);\n    SELECT sum(x) FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9902"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-18.2"
 		r = db.Query("\n      INSERT INTO t5 VALUES(0.0);\n      SELECT sum(x) FROM t5;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t5 VALUES(0.0);\n      SELECT sum(x) FROM t5;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "9902.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-18.3"
 		r = db.Query("\n    DELETE FROM t5;\n    SELECT sum(x), total(x) FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t5;\n    SELECT sum(x), total(x) FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-18.4"
 		r = db.Query("\n    INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-18.5"
 		r = db.Query("\n    INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-18.6"
 		r = db.Query("\n    INSERT INTO t5 VALUES(123);\n    SELECT sum(x), total(x) FROM t5\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t5 VALUES(123);\n    SELECT sum(x), total(x) FROM t5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 123.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-18.10"
 		r = db.Query("\n    CREATE TABLE t6(x INTEGER);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)+1) from t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x INTEGER);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)+1) from t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-18.11"
 		r = db.Query("\n    SELECT typeof(sum(x)) FROM t6\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(sum(x)) FROM t6\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "func-18.12"
@@ -1168,6 +1755,12 @@ func Test_func(t *testing.T) {
 			r = db.Query("\n      SELECT sum(-9223372036854775805);\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(-9223372036854775805);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "-9223372036854775805"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -1239,6 +1832,13 @@ func Test_func(t *testing.T) {
 		r = db.Query("\n    SELECT match(a,b) FROM t1 WHERE 0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT match(a,b) FROM t1 WHERE 0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func-19.2"
@@ -1274,17 +1874,20 @@ func Test_func(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 				{ // do_test "func-20." + i
 					r = db.Query("SELECT soundex(" + sqlLiteral(name) + ")")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex(" + sqlLiteral(name) + ")")
+						return
 					}
-					if flatten(r) != tclListFlatten(sdx) {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(sdx), "func-20." + i)
+					got := flatten(r)
+					want := tclListFlatten(sdx)
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}
@@ -1305,36 +1908,72 @@ func Test_func(t *testing.T) {
 			r = db.Query("\n    SELECT typeof(replace('This is the main test string', NULL, 'ALT'));\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace('This is the main test string', NULL, 'ALT'));\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-21.4"
 			r = db.Query("\n    SELECT typeof(replace(NULL, 'main', 'ALT'));\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace(NULL, 'main', 'ALT'));\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-21.5"
 			r = db.Query("\n    SELECT typeof(replace('This is the main test string', 'main', NULL));\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace('This is the main test string', 'main', NULL));\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-21.6"
 			r = db.Query("\n    SELECT replace('This is the main test string', 'main', 'ALT');\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('This is the main test string', 'main', 'ALT');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "This is the ALT test string"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-21.7"
 			r = db.Query("\n    SELECT replace('This is the main test string', 'main', 'larger-main');\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('This is the main test string', 'main', 'larger-main');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "This is the larger-main test string"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-21.8"
 			r = db.Query("\n    SELECT replace('aaaaaaa', 'a', '0123456789');\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('aaaaaaa', 'a', '0123456789');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "0123456789012345678901234567890123456789012345678901234567890123456789"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "func-21.9"
@@ -1383,60 +2022,120 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT trim('  hi  ');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ');")
+				return
+			}
+			got := flatten(r)
+			want := "hi"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.5"
 			r = db.Query("SELECT ltrim('  hi  ');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('  hi  ');")
+				return
+			}
+			got := flatten(r)
+			want := "hi  "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.6"
 			r = db.Query("SELECT rtrim('  hi  ');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('  hi  ');")
+				return
+			}
+			got := flatten(r)
+			want := "  hi"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.7"
 			r = db.Query("SELECT trim('  hi  ','xyz');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ','xyz');")
+				return
+			}
+			got := flatten(r)
+			want := "  hi  "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.8"
 			r = db.Query("SELECT ltrim('  hi  ','xyz');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('  hi  ','xyz');")
+				return
+			}
+			got := flatten(r)
+			want := "  hi  "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.9"
 			r = db.Query("SELECT rtrim('  hi  ','xyz');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('  hi  ','xyz');")
+				return
+			}
+			got := flatten(r)
+			want := "  hi  "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.10"
 			r = db.Query("SELECT trim('xyxzy  hi  zzzy','xyz');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('xyxzy  hi  zzzy','xyz');")
+				return
+			}
+			got := flatten(r)
+			want := "  hi  "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.11"
 			r = db.Query("SELECT ltrim('xyxzy  hi  zzzy','xyz');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('xyxzy  hi  zzzy','xyz');")
+				return
+			}
+			got := flatten(r)
+			want := "  hi  zzzy"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.12"
 			r = db.Query("SELECT rtrim('xyxzy  hi  zzzy','xyz');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('xyxzy  hi  zzzy','xyz');")
+				return
+			}
+			got := flatten(r)
+			want := "xyxzy  hi  "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.13"
 			r = db.Query("SELECT trim('  hi  ','');")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ','');")
+				return
+			}
+			got := flatten(r)
+			want := "  hi  "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		if func() bool { r := db.Query("PRAGMA encoding"); if r.Error != nil || len(r.Rows) == 0 || len(r.Rows[0]) == 0 { return false }; l, err := strconv.ParseFloat(tclRenderCell(r.Rows[0][0]), 64); if err != nil { return false }; rr, rerr := strconv.ParseFloat("\"UTF-8\"", 64); if rerr != nil { return false }; return l == rr }() {
@@ -1444,18 +2143,36 @@ func Test_func(t *testing.T) {
 				r = db.Query("SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))")
+					return
+				}
+				got := flatten(r)
+				want := "F48FBFBF6869"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "func-22.15"
 				r = db.Query("SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))")
+					return
+				}
+				got := flatten(r)
+				want := "6869"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "func-22.16"
 				r = db.Query("SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));")
+					return
+				}
+				got := flatten(r)
+				want := "CEB2CEB3"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
@@ -1463,18 +2180,36 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT typeof(trim(NULL));")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim(NULL));")
+				return
+			}
+			got := flatten(r)
+			want := "null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.21"
 			r = db.Query("SELECT typeof(trim(NULL,'xyz'));")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim(NULL,'xyz'));")
+				return
+			}
+			got := flatten(r)
+			want := "null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-22.22"
 			r = db.Query("SELECT typeof(trim('hello',NULL));")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim('hello',NULL));")
+				return
+			}
+			got := flatten(r)
+			want := "null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "func-22.23"
@@ -1489,49 +2224,112 @@ func Test_func(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "func-23.1" — skipped: FULL-SUITE-DRIFT.T26-misc N-A deprecated sqlite3_create_aggregate/legacy_count C-test-harness API (test1.c), not an engine function; count() contract pinned natively (NA_EVIDENCE func_pkg)
+		{ // do_test "func-23.1"
+			// sqlite3_create_aggregate db — register the x_count test aggregate
+				db.RegisterAggregate("x_count", func() frigolite.AggregateFunction {
+					state := struct{ n int }{}
+					return &frigolite.AggregateFuncs{
+						StepFn: func(args []interface{}) error {
+							if len(args) == 0 || args[0] != nil {
+								state.n++
+							}
+							if len(args) > 0 {
+								if v, ok := args[0].(int64); ok && (v == 40 || v == 41) {
+									return fmt.Errorf("value of %d handed to x_count", v)
+								}
+							}
+							return nil
+						},
+						FinalFn: func() (interface{}, error) {
+							if state.n == 42 {
+								return nil, fmt.Errorf("x_count totals to 42")
+							}
+							return state.n, nil
+						},
+					}
+				}, 0, 1)
+			r = db.Query("\n      SELECT legacy_count() FROM t6;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT legacy_count() FROM t6;\n    ")
+			}
 		}
 		{ // do_test "func-24.1"
 			r = db.Query("\n    SELECT group_concat(t1), string_agg(t1,',') FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1), string_agg(t1,',') FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "this,program,is,free,software this,program,is,free,software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.2"
 			r = db.Query("\n    SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "this program is free software this program is free software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.3"
 			r = db.Query("\n    SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "this 2 program 3 is 4 free 5 software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.4"
 			r = db.Query("\n    SELECT group_concat(NULL,t1) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(NULL,t1) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.5"
 			r = db.Query("\n    SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "thisprogramisfreesoftware thisprogramisfreesoftware"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.6"
 			r = db.Query("\n    SELECT 'BEGIN-'||group_concat(t1) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 'BEGIN-'||group_concat(t1) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "BEGIN-this,program,is,free,software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		vtab.TclVarSet("midargs", "", "")
 		midargs = ""
 		_ = midargs // suppress unused warning
 		vtab.TclVarSet("midres", "", "")
-		midres = ""
+		midres.Reset()
 		_ = midres // suppress unused warning
 		limit = strconv.Itoa(db.Limit("SQLITE_LIMIT_FUNCTION_ARG"))
 		_ = limit // suppress unused warning
@@ -1545,71 +2343,127 @@ func Test_func(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			midargs += ",'/" + i + "'"
-			midres += "/" + i
+			midres.WriteString("/" + i)
 			result = "md5  \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
 			_ = result // suppress unused warning
 			vtab.TclVarSet("sql", "", "SELECT md5sum(t1" + midargs + ") FROM tbl1")
 			sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
 			_ = sql // suppress unused warning
-			{ // do_test "func-24.7." + i — FULL-SUITE-DRIFT.T26-misc: the want is the un-transpiled TCL `md5` command text (md5.c test extension), never computable at test runtime; only the query is exercised (NA_EVIDENCE func_pkg)
+			{ // do_test "func-24.7." + i
 				r = db.Query(sql)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 					return
 				}
-				_ = r // expected value comes from the C md5 extension; skipped
+				got := flatten(r)
+				want := tclListFlattenCollapse(result)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		{ // do_test "func-24.8"
 			r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := ",program,is,free,software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.9"
 			r = db.Query("\n    SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := ",,,,software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.10"
 			r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "program,is,free,software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.11"
 			r = db.Query("\n   SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.12"
 			r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := ",is,free,software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.13"
 			r = db.Query("\n    SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "text"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func-24.14"
 			r = db.Query("\n    SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "text"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // do_test "func-25.1" — skipped: FULL-SUITE-DRIFT.T26-misc N-A C-test-harness function test_isolation (test1.c) not part of the engine; per-argument type conversion contract pinned natively (NA_EVIDENCE func_pkg)
+		{ // do_test "func-25.1"
+			r = db.Query("SELECT test_isolation(t1,t1) FROM tbl1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT test_isolation(t1,t1) FROM tbl1")
+				return
+			}
+			got := flatten(r)
+			want := "this program is free software"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
 		{ // "func-26.1" — skipped: C test-harness nullx_() not registered N-A (no-side-effects)
 		}
@@ -1750,11 +2604,11 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // "func-30.2" — skipped: TCL \uXXXX escape inside [subst {SQL}] unescaped to literal text by tokenizer (transpiler edge case) (SQL side effects only)
-			_res = db.Exec("SELECT unicode('u00A2');")
+			_res = db.Exec("SELECT unicode('¢');")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "func-30.3" — skipped: TCL \uXXXX escape inside [subst {SQL}] unescaped to literal text by tokenizer (transpiler edge case) (SQL side effects only)
-			_res = db.Exec("SELECT unicode('u20AC');")
+			_res = db.Exec("SELECT unicode('€');")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "func-30.4"
@@ -1789,9 +2643,8 @@ func Test_func(t *testing.T) {
 			// incr i 13
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 13)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 13)
 			}
 		}
 		vtab.TclVarSet("i", "", "57344")
@@ -1802,9 +2655,8 @@ func Test_func(t *testing.T) {
 				// incr i 17
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 17)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 17)
 				}
 				continue
 			}
@@ -1824,9 +2676,8 @@ func Test_func(t *testing.T) {
 			// incr i 17
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 17)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 17)
 			}
 		}
 		vtab.TclVarSet("i", "", "65536")
@@ -1849,9 +2700,8 @@ func Test_func(t *testing.T) {
 			// incr i 139
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 139)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 139)
 			}
 		}
 		{ // "func-31.1"
@@ -1925,12 +2775,26 @@ func Test_func(t *testing.T) {
 			r = db.Query("\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "func-35.110"
 			r = db.Query("\n  SELECT coalesce(x, 'xyz' LIKE printf('%.1000000c','y')) FROM t1;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT coalesce(x, 'xyz' LIKE printf('%.1000000c','y')) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "func-35.200"
@@ -2021,9 +2885,9 @@ func Test_func(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
+
 }

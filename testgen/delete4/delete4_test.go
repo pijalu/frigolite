@@ -247,6 +247,13 @@ func Test_delete4(t *testing.T) {
 		r = db.Query("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1 ON t1(b, c);\n  INSERT INTO t1(a,b,c) VALUES(1, 1, zeroblob(80));\n  INSERT INTO t1(a,b,c) SELECT a+1, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+2, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+10, 2, c FROM t1 WHERE b=1;\n  INSERT INTO t1(a,b,c) SELECT a+20, 3, c FROM t1 WHERE b=1;\n  PRAGMA reverse_unordered_selects = ON;\n  DELETE FROM t1 WHERE b=2;\n  SELECT a FROM t1 WHERE b=2;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1 ON t1(b, c);\n  INSERT INTO t1(a,b,c) VALUES(1, 1, zeroblob(80));\n  INSERT INTO t1(a,b,c) SELECT a+1, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+2, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+10, 2, c FROM t1 WHERE b=1;\n  INSERT INTO t1(a,b,c) SELECT a+20, 3, c FROM t1 WHERE b=1;\n  PRAGMA reverse_unordered_selects = ON;\n  DELETE FROM t1 WHERE b=2;\n  SELECT a FROM t1 WHERE b=2;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -335,6 +342,13 @@ func Test_delete4(t *testing.T) {
 		r = db.Query("\n  DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "7.3.2"
@@ -347,6 +361,13 @@ func Test_delete4(t *testing.T) {
 		r = db.Query("\n  DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

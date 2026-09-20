@@ -94,42 +94,84 @@ func Test_exclusive(t *testing.T) {
 		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "normal"+" "+"normal"+" "+"exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.1"
 		r = db.Query("\n    pragma locking_mode = exclusive;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode = exclusive;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.2"
 		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive"+" "+"exclusive"+" "+"exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.3"
 		r = db.Query("\n    pragma locking_mode = normal;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode = normal;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "normal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.4"
 		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "normal"+" "+"normal"+" "+"exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.5"
 		r = db.Query("\n    pragma locking_mode = invalid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode = invalid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "normal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.6"
 		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "normal"+" "+"normal"+" "+"exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.7"
@@ -156,6 +198,12 @@ func Test_exclusive(t *testing.T) {
 		r = db.Query("\n      pragma locking_mode;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma locking_mode;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-1.10"
@@ -208,6 +256,12 @@ func Test_exclusive(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    PRAGMA locking_mode = exclusive;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    PRAGMA locking_mode = exclusive;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-2.1"
@@ -223,12 +277,24 @@ func Test_exclusive(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-2.4"
 		r = db2.Query("\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "exclusive-2.5"
@@ -309,12 +375,24 @@ func Test_exclusive(t *testing.T) {
 			r = db.Query("\n      INSERT INTO abc VALUES('A', 'B', 'C');\n      SELECT * FROM abc;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO abc VALUES('A', 'B', 'C');\n      SELECT * FROM abc;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "A B C"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "exclusive-3.4"
 			r = db.Query("\n      BEGIN;\n      UPDATE abc SET a = 1, b = 2, c = 3;\n      ROLLBACK;\n      SELECT * FROM abc;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      UPDATE abc SET a = 1, b = 2, c = 3;\n      ROLLBACK;\n      SELECT * FROM abc;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "A B C"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "exclusive-3.5"
@@ -390,6 +468,12 @@ func Test_exclusive(t *testing.T) {
 		r = db.Query("\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "normal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
@@ -461,6 +545,12 @@ func Test_exclusive(t *testing.T) {
 				r = db.Query("\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "normal 1 2 3 2 3 4 5 6 7 11 12 13 12 13 14 15 16 17"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "exclusive-5.7"
@@ -474,6 +564,7 @@ func Test_exclusive(t *testing.T) {
 			}
 			{ // do_test "exclusive-6.2"
 				os.Remove("test2.db")
+				os.Remove("test2.db-journal")
 				tclFileCopy("test.db", "test2.db")
 				tclFileCopy("test.db-journal", "test2.db-journal")
 				db, err = frigolite.Open("test2.db")
@@ -495,10 +586,12 @@ func Test_exclusive(t *testing.T) {
 			{ // do_test "exclusive-6.4"
 				db.Close()
 				os.Remove("test.db")
+				os.Remove("test.db-journal")
 				_ = os.WriteFile("test.db-journal", nil, 0644)
 				fd = "test.db-journal"
 				_ = fd // suppress unused warning
 				tclChannelAppendAt("test.db-journal", "x"+"\n", fileChannelSeek["fd"])
+				fileChannelSeek["fd"] += int64(len("x"+"\n"))
 				// close $fd
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
@@ -520,6 +613,8 @@ func Test_exclusive(t *testing.T) {
 				{ // do_test "exclusive-7.1"
 					db.Close()
 					os.Remove("test.db")
+					os.Remove("test.db-journal")
+					os.Remove("test.db-wal")
 					db, err = frigolite.Open("test.db")
 					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }

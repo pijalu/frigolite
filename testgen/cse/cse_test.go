@@ -62,7 +62,7 @@ func Test_cse(t *testing.T) {
 	_ = n // pre-declared from TCL source
 	var colset string
 	_ = colset // pre-declared from TCL source
-	var answer string
+	var answer *tclListBuilder
 	_ = answer // pre-declared from TCL source
 	var j string
 	_ = j // pre-declared from TCL source
@@ -91,108 +91,216 @@ func Test_cse(t *testing.T) {
 		r = db.Query("\n    SELECT b, b%b, b==b, b!=b, b<b, b<=b, b IS NULL, b NOT NULL, b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, b%b, b==b, b!=b, b<b, b<=b, b IS NULL, b NOT NULL, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 0 1 0 0 1 0 1 11 21 0 1 0 0 1 0 1 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.3"
 		r = db.Query("\n    SELECT b, abs(b), coalesce(b,-b,NOT b,c,NOT c), c, -c FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, abs(b), coalesce(b,-b,NOT b,c,NOT c), c, -c FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 11 11 12 -12 21 21 21 22 -22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.4"
 		r = db.Query("\n    SELECT CASE WHEN a==1 THEN b ELSE c END, b, c FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CASE WHEN a==1 THEN b ELSE c END, b, c FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 11 12 22 21 22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.5"
 		r = db.Query("\n    SELECT CASE a WHEN 1 THEN b WHEN 2 THEN c ELSE d END, b, c, d FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CASE a WHEN 1 THEN b WHEN 2 THEN c ELSE d END, b, c, d FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 11 12 13 22 21 22 23"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.6.1"
 		r = db.Query("\n    SELECT CASE b WHEN 11 THEN -b WHEN 21 THEN -c ELSE -d END, b, c, d FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CASE b WHEN 11 THEN -b WHEN 21 THEN -c ELSE -d END, b, c, d FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-11 11 12 13 -22 21 22 23"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.6.2"
 		r = db.Query("\n    SELECT CASE b+1 WHEN c THEN d WHEN e THEN f ELSE 999 END, b, c, d FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CASE b+1 WHEN c THEN d WHEN e THEN f ELSE 999 END, b, c, d FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "13 11 12 13 23 21 22 23"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.6.3"
 		r = db.Query("\n    SELECT CASE WHEN b THEN d WHEN e THEN f ELSE 999 END, b, c, d FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CASE WHEN b THEN d WHEN e THEN f ELSE 999 END, b, c, d FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "13 11 12 13 23 21 22 23"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.6.4"
 		r = db.Query("\n    SELECT b, c, d, CASE WHEN b THEN d WHEN e THEN f ELSE 999 END FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, c, d, CASE WHEN b THEN d WHEN e THEN f ELSE 999 END FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 13 13 21 22 23 23"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.6.5"
 		r = db.Query("\n    SELECT b, c, d, CASE WHEN 0 THEN d WHEN e THEN f ELSE 999 END FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, c, d, CASE WHEN 0 THEN d WHEN e THEN f ELSE 999 END FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 13 15 21 22 23 25"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.7"
 		r = db.Query("\n    SELECT a, -a, ~a, NOT a, NOT NOT a, a-a, a+a, a*a, a/a, a FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, -a, ~a, NOT a, NOT NOT a, a-a, a+a, a*a, a/a, a FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 -1 -2 0 1 0 2 1 1 1 2 -2 -3 0 1 0 4 4 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.8"
 		r = db.Query("\n    SELECT a, a%a, a==a, a!=a, a<a, a<=a, a IS NULL, a NOT NULL, a FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, a%a, a==a, a!=a, a<a, a<=a, a IS NULL, a NOT NULL, a FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 1 0 0 1 0 1 1 2 0 1 0 0 1 0 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.9"
 		r = db.Query("\n    SELECT NOT b, ~b, NOT NOT b, b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT NOT b, ~b, NOT NOT b, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 -12 1 11 0 -22 1 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.10"
 		r = db.Query("\n    SELECT CAST(b AS integer), typeof(b), CAST(b AS text), typeof(b) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST(b AS integer), typeof(b), CAST(b AS text), typeof(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 integer 11 integer 21 integer 21 integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.11"
 		r = db.Query("\n      SELECT *,* FROM t1 WHERE a=2\n      UNION ALL\n      SELECT *,* FROM t1 WHERE a=1\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *,* FROM t1 WHERE a=2\n      UNION ALL\n      SELECT *,* FROM t1 WHERE a=1\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 21 22 23 24 25 2 21 22 23 24 25 1 11 12 13 14 15 1 11 12 13 14 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.12"
 		r = db.Query("\n      SELECT coalesce(b,c,d,e), a, b, c, d, e FROM t1 WHERE a=2\n      UNION ALL\n      SELECT coalesce(e,d,c,b), e, d, c, b, a FROM t1 WHERE a=1\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT coalesce(b,c,d,e), a, b, c, d, e FROM t1 WHERE a=2\n      UNION ALL\n      SELECT coalesce(e,d,c,b), e, d, c, b, a FROM t1 WHERE a=1\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "21 2 21 22 23 24 14 14 13 12 11 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.13"
 		r = db.Query("\n     SELECT upper(b), typeof(b), b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT upper(b), typeof(b), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 integer 11 21 integer 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-1.14"
 		r = db.Query("\n     SELECT b, typeof(b), upper(b), typeof(b), b FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT b, typeof(b), upper(b), typeof(b), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 integer 11 integer 11 21 integer 21 integer 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "cse-2.1"
 		r = db.Query("\n    CREATE TABLE t2(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,\n                    a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,\n                    a20,a21,a22,a23,a24,a25,a26,a27,a28,a29,\n                    a30,a31,a32,a33,a34,a35,a36,a37,a38,a39,\n                    a40,a41,a42,a43,a44,a45,a46,a47,a48,a49);\n    INSERT INTO t2 VALUES(0,1,2,3,4,5,6,7,8,9,\n                    10,11,12,13,14,15,16,17,18,19,\n                    20,21,22,23,24,25,26,27,28,29,\n                    30,31,32,33,34,35,36,37,38,39,\n                    40,41,42,43,44,45,46,47,48,49);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,\n                    a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,\n                    a20,a21,a22,a23,a24,a25,a26,a27,a28,a29,\n                    a30,a31,a32,a33,a34,a35,a36,a37,a38,a39,\n                    a40,a41,a42,a43,a44,a45,a46,a47,a48,a49);\n    INSERT INTO t2 VALUES(0,1,2,3,4,5,6,7,8,9,\n                    10,11,12,13,14,15,16,17,18,19,\n                    20,21,22,23,24,25,26,27,28,29,\n                    30,31,32,33,34,35,36,37,38,39,\n                    40,41,42,43,44,45,46,47,48,49);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("i", "", "1")
@@ -205,7 +313,7 @@ func Test_cse(t *testing.T) {
 		colset = ""
 		_ = colset // suppress unused warning
 		vtab.TclVarSet("answer", "", "")
-		answer = ""
+		answer = &tclListBuilder{}
 		_ = answer // suppress unused warning
 		vtab.TclVarSet("j", "", "0")
 		j = "0"
@@ -218,26 +326,26 @@ func Test_cse(t *testing.T) {
 				_ = _r // suppress unused warning
 			}
 			colset = tclListAppend(colset, "a" + j, "a" + _r)
-			answer = tclListAppend(answer, j, _r)
+			answer.Append(j, _r)
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("sql", "", "SELECT " + strings.Join(tclSplitList(colset), ",") + " FROM t2")
 		sql = "SELECT " + strings.Join(tclSplitList(colset), ",") + " FROM t2"
 		_ = sql // suppress unused warning
-		{ // "cse-2.2." + i — skipped: randomized column-order query (TCL rand) not reproducible
+		{ // "cse-2.2." + i — skipped: randomized column-order query (TCL rand) not reproducible (SQL side effects only)
+			_res = db.Exec(sql)
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	db.Close()
@@ -313,4 +421,5 @@ func Test_cse(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+
 }

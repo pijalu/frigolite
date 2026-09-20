@@ -282,6 +282,13 @@ func Test_altertab(t *testing.T) {
 		r = db.Query(" SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("squish {\n  CREATE TRIGGER tr1 AFTER INSERT ON \"t11\" BEGIN\n    SELECT \"t11\".x, * FROM \"t11\", \"t22\";\n    INSERT INTO \"t22\" VALUES(new.x, new.y);\n  END\n}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -1081,8 +1088,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("CREATE VIEW v3 AS \n    WITH RECURSIVE t3(x,y,z) AS (\n        SELECT b,c,NULL FROM t4\n        UNION\n        SELECT x,y,NULL FROM t3, \"t5\"\n    )\n  SELECT * FROM t3 AS xyz")
-		got = tclListFlattenCollapse(got)
+		want := "CREATE VIEW v3 AS \n    WITH RECURSIVE t3(x,y,z) AS (\n        SELECT b,c,NULL FROM t4\n        UNION\n        SELECT x,y,NULL FROM t3, \"t5\"\n    )\n  SELECT * FROM t3 AS xyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

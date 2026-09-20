@@ -78,9 +78,8 @@ func Test_tkt3871(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -96,6 +95,12 @@ func Test_tkt3871(t *testing.T) {
 		r = db.Query(" SELECT * FROM e WHERE a = 1 OR a = 2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM e WHERE a = 1 OR a = 2 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tkt3871-1.3" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -111,6 +116,12 @@ func Test_tkt3871(t *testing.T) {
 		r = db.Query(" SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 4 3 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tkt3871-1.5" (echo module callback log is C test-module ABI; SQL side effects only)

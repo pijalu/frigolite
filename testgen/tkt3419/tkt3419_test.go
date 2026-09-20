@@ -61,36 +61,72 @@ func Test_tkt3419(t *testing.T) {
 		r = db.Query("\n    create table a(id integer primary key);\n    create table b(id integer primary key, a_id integer);\n    create table c(id integer primary key, b_id integer);\n  \n    insert into a values (1);\n    insert into a values (2);\n  \n    insert into b values (3, 1);\n    insert into b values (4, 1);\n    insert into b values (5, 1);\n    insert into b values (6, 1);\n    insert into b values (9, 2);\n  \n    insert into c values (4, 3);\n    insert into c values (5, 5);\n    insert into c values (6, 4);\n    insert into c values (7, 6);\n    insert into c values (8, 9);\n  \n    select * FROM a, b, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table a(id integer primary key);\n    create table b(id integer primary key, a_id integer);\n    create table c(id integer primary key, b_id integer);\n  \n    insert into a values (1);\n    insert into a values (2);\n  \n    insert into b values (3, 1);\n    insert into b values (4, 1);\n    insert into b values (5, 1);\n    insert into b values (6, 1);\n    insert into b values (9, 2);\n  \n    insert into c values (4, 3);\n    insert into c values (5, 5);\n    insert into c values (6, 4);\n    insert into c values (7, 6);\n    insert into c values (8, 9);\n  \n    select * FROM a, b, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 9 2 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3419-1.2"
 		r = db.Query("\n    select * FROM a, c, b WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * FROM a, c, b WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 8 9 9 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3419-1.3"
 		r = db.Query("\n    select * FROM b, a, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * FROM b, a, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 2 2 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3419-1.4"
 		r = db.Query("\n    select * FROM b, c, a WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * FROM b, c, a WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 2 8 9 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3419-1.5"
 		r = db.Query("\n    select * FROM c, a, b WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * FROM c, a, b WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 9 2 9 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3419-1.6"
 		r = db.Query("\n    select * FROM c, b, a WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * FROM c, b, a WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 9 9 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

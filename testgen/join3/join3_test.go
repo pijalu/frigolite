@@ -102,9 +102,8 @@ func Test_join3(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			r = db.Query(sql)
@@ -118,9 +117,8 @@ func Test_join3(t *testing.T) {
 		// incr N 1
 		{
 			_n, _err := strconv.Atoi(N)
-			if _err == nil {
-				N = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			N = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("result", "", "")
@@ -143,9 +141,8 @@ func Test_join3(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("sep", "", "WHERE")
@@ -162,9 +159,8 @@ func Test_join3(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			r = db.Query(sql)
@@ -178,9 +174,8 @@ func Test_join3(t *testing.T) {
 		// incr N 1
 		{
 			_n, _err := strconv.Atoi(N)
-			if _err == nil {
-				N = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			N = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "join3-3.1"
@@ -195,9 +190,8 @@ func Test_join3(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(sql)

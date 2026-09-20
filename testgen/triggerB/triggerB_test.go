@@ -66,12 +66,24 @@ func Test_triggerB(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE x(x INTEGER PRIMARY KEY, y INT NOT NULL);\n    INSERT INTO x(y) VALUES(1);\n    INSERT INTO x(y) VALUES(1);\n    CREATE TEMP VIEW vx AS SELECT x, y, 0 AS yy FROM x;\n    CREATE TEMP TRIGGER tx INSTEAD OF UPDATE OF y ON vx\n    BEGIN\n      UPDATE x SET y = new.y WHERE x = new.x;\n    END;\n    SELECT * FROM vx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE x(x INTEGER PRIMARY KEY, y INT NOT NULL);\n    INSERT INTO x(y) VALUES(1);\n    INSERT INTO x(y) VALUES(1);\n    CREATE TEMP VIEW vx AS SELECT x, y, 0 AS yy FROM x;\n    CREATE TEMP TRIGGER tx INSTEAD OF UPDATE OF y ON vx\n    BEGIN\n      UPDATE x SET y = new.y WHERE x = new.x;\n    END;\n    SELECT * FROM vx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 0 2 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerB-1.2"
 		r = db.Query("\n    UPDATE vx SET y = yy;\n    SELECT * FROM vx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE vx SET y = yy;\n    SELECT * FROM vx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 0 2 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerB-2.1"
@@ -119,9 +131,8 @@ func Test_triggerB(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("\n    SELECT * FROM t3_changes\n  ")
@@ -154,9 +165,8 @@ func Test_triggerB(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 }

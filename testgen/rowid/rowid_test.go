@@ -424,9 +424,8 @@ func Test_rowid(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("INSERT INTO t2 SELECT _rowid_, x*y, y*y FROM t1")
@@ -681,9 +680,8 @@ func Test_rowid(t *testing.T) {
 			// incr norow 1
 			{
 				_n, _err := strconv.Atoi(norow)
-				if _err == nil {
-					norow = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				norow = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("DELETE FROM t1 WHERE rowid=" + norow)
@@ -1729,9 +1727,8 @@ func Test_rowid(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "rowid-12.4"

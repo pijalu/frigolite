@@ -81,6 +81,12 @@ func Test_index7(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b,c PRIMARY KEY) WITHOUT rowid;\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c PRIMARY KEY) WITHOUT rowid;\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "14 20 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "index7-1.1a" — skipped: capture_pragma test helper not transpiled (no 'out' table) (SQL side effects only)
@@ -155,60 +161,120 @@ func Test_index7(t *testing.T) {
 		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 20 1 t1a 14 1 t1b 10 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-1.11"
 		r = db.Query("\n    UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 20 1 t1a 20 1 t1b 10 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-1.11b"
 		r = db.Query("\n    UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 20 1 t1a 6 1 t1b 20 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-1.12"
 		r = db.Query("\n    UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 20 1 t1a 13 1 t1b 10 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-1.13"
 		r = db.Query("\n    DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 15 1 t1a 10 1 t1b 8 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-1.14"
 		r = db.Query("\n    REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 15 1 t1a 10 1 t1b 8 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-1.15"
 		r = db.Query("\n    CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 15 1 t1a 10 1 t1b 8 1 t1c 15 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-2.1"
 		r = db.Query("\n    CREATE TABLE t2(a,b PRIMARY KEY) without rowid;\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%5==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a,b PRIMARY KEY) without rowid;\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%5==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "800"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index7-2.2"
 		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "(SCAN|SEARCH) t2 USING COVERING INDEX t2a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "index7-2.4"
 		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "INDEX t2a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "index7-2.101"

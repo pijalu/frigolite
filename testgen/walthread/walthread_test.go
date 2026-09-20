@@ -204,5 +204,9 @@ func Test_walthread(t *testing.T) {
 		db.Close()
 	}
 	os.Remove(DBNAME)
+	os.Remove(DBNAME + "-journal")
+	os.Remove(DBNAME + "-wal")
+	os.Remove(DBNAME + "-shm")
 	os.Remove(DBNAME + "-bak.db-wal")
+	os.Remove(DBNAME + "-bak.db")
 }

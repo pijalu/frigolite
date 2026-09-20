@@ -181,9 +181,8 @@ func Test_enc2(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "enc2-4.1"
@@ -400,7 +399,7 @@ func Test_enc2(t *testing.T) {
 		// add_test_collate_needed $::DB (unsupported command, not transpiled)
 		_ = sqlite_last_needed_collation // TCL namespace variable (query)
 		got := tclListFlatten(sqlite_last_needed_collation)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.15")
 		}
@@ -599,12 +598,25 @@ func Test_enc2(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("table abc abc " + tclExprWith("$AUTOVACUUM?3:2", map[string]string{"AUTOVACUUM": AUTOVACUUM}) + " {CREATE TABLE abc(a, b, c)}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "enc2-7.5"
 		r = db.Query("\n    PRAGMA encoding;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "UTF-8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -673,6 +685,7 @@ func Test_enc2(t *testing.T) {
 	{ // do_test "enc2-10.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

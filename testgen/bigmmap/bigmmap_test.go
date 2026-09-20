@@ -133,9 +133,8 @@ func Test_bigmmap(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("i", "", "0")
@@ -181,6 +180,13 @@ func Test_bigmmap(t *testing.T) {
 				r = db.Query("\n      SELECT * FROM t" + _t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + _t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t" + _t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + _t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "2." + i + "." + _t + ".3"
@@ -192,17 +198,15 @@ func Test_bigmmap(t *testing.T) {
 			// incr _t 1
 			{
 				_n, _err := strconv.Atoi(_t)
-				if _err == nil {
-					_t = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				_t = strconv.Itoa(_n + 1)
 			}
 		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 }

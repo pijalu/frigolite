@@ -104,7 +104,16 @@ func Test_corrupt4(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt4-1.2"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("PRAGMA freelist_count")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA freelist_count")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
 	_ = trunkpgno // suppress unused warning
@@ -157,9 +166,8 @@ func Test_corrupt4(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -206,9 +214,8 @@ func Test_corrupt4(t *testing.T) {
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)
-						if _err == nil {
-							ii = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						ii = strconv.Itoa(_n + 1)
 					}
 				}
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }

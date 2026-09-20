@@ -77,6 +77,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.3"
@@ -89,6 +95,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.5"
@@ -101,6 +113,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.7"
@@ -113,6 +131,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4.0 {} 6.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.9"
@@ -125,12 +149,24 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4.0 {} 6.0 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.11"
 		r = db.Query("\n    DELETE FROM t1 WHERE x IS NULL OR x!=3;\n    UPDATE t1 SET x=2 WHERE x==3;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE x IS NULL OR x!=3;\n    UPDATE t1 SET x=2 WHERE x==3;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 4.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.12"
@@ -143,6 +179,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 4.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.14"
@@ -155,6 +197,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 4.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-1.16"
@@ -167,18 +215,37 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-2.1"
 		r = db.Query("\n    PRAGMA writable_schema = 1;\n    CREATE TABLE t2(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y REAL CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    CREATE TABLE t2n(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y NUMERIC CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    PRAGMA writable_schema = 0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema = 1;\n    CREATE TABLE t2(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y REAL CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    CREATE TABLE t2n(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y NUMERIC CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    PRAGMA writable_schema = 0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-2.2"
 		r = db.Query("\n    INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2.2 three"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -191,6 +258,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2.2 three {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-2.4"
@@ -257,6 +330,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY name\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY name\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-3.3"
@@ -269,6 +348,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY name\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY name\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-3.5"
@@ -281,6 +366,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY name\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY name\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-3.7"
@@ -293,6 +384,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t3 VALUES(1,2,3);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(1,2,3);\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-3.9"
@@ -311,24 +408,48 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t4 VALUES(1,10);\n    SELECT * FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t4 VALUES(1,10);\n    SELECT * FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-4.3"
 		r = db.Query("\n    UPDATE t4 SET x=4, y=3;\n    SELECT * FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t4 SET x=4, y=3;\n    SELECT * FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-4.4"
 		r = db.Query("\n    UPDATE t4 SET x=12, y=2;\n    SELECT * FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t4 SET x=12, y=2;\n    SELECT * FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-4.5"
 		r = db.Query("\n    UPDATE t4 SET x=12, y=-22;\n    SELECT * FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t4 SET x=12, y=-22;\n    SELECT * FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-4.6"
@@ -341,12 +462,24 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-4.8"
 		r = db.Query("\n    PRAGMA ignore_check_constraints=ON;\n    UPDATE t4 SET x=0, y=1;\n    SELECT * FROM t4;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA ignore_check_constraints=ON;\n    UPDATE t4 SET x=0, y=1;\n    SELECT * FROM t4;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "check-4.8.1"
@@ -389,24 +522,48 @@ func Test_check(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "4 11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.2"
 		r = db.Query("\n    UPDATE OR IGNORE t1 SET x=5;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR IGNORE t1 SET x=5;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.3"
 		r = db.Query("\n    INSERT OR IGNORE INTO t1 VALUES(5,4.0);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(5,4.0);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 11.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.4"
 		r = db.Query("\n    INSERT OR IGNORE INTO t1 VALUES(2,20.0);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(2,20.0);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 11.0 2 20.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.5"
@@ -419,6 +576,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 12.0 2 20.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.7"
@@ -437,12 +600,24 @@ func Test_check(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 12.0 2 20.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.11"
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "3 12.0 2 20.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.12"
@@ -455,6 +630,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "3 12.0 2 20.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "check-6.14"
@@ -467,6 +648,12 @@ func Test_check(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "3 12.0 2 20.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

@@ -70,6 +70,13 @@ func Test_whereF(t *testing.T) {
 		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// foreach {tn sql} "1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\""
@@ -87,7 +94,7 @@ func Test_whereF(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				wantPattern := ".*SCAN t2\\b.*SEARCH t1\\b.*"
+				wantPattern := ".*SCAN t2y.*SEARCH t1y.*"
 				if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 				}
@@ -114,7 +121,7 @@ func Test_whereF(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					wantPattern := ".*SCAN t2\\b.*SEARCH t1\\b.*"
+					wantPattern := ".*SCAN t2y.*SEARCH t1y.*"
 					if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 					}

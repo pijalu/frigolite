@@ -55,7 +55,7 @@ func Test_filter2(t *testing.T) {
 	_ = testdir // pre-declared from TCL source
 	var testprefix string
 	_ = testprefix // pre-declared from TCL source
-	var myres string
+	var myres *tclListBuilder
 	_ = myres // pre-declared from TCL source
 	var res2 string
 	_ = res2 // pre-declared from TCL source
@@ -165,8 +165,7 @@ func Test_filter2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -233,7 +232,7 @@ func Test_filter2(t *testing.T) {
 	}
 	{ // do_test "1.14"
 		vtab.TclVarSet("myres", "", "")
-		myres = ""
+		myres = &tclListBuilder{}
 		_ = myres // suppress unused warning
 		_rows0 := db.Query("SELECT \n    avg(b) FILTER (WHERE b>a),\n    avg(b) FILTER (WHERE b<a)\n  FROM t1 GROUP BY (a%2) ORDER BY 1,2;")
 		if _rows0.Error != nil {
@@ -244,7 +243,7 @@ func Test_filter2(t *testing.T) {
 		for _, _cell1 := range _row0 {
 		_r := fmt.Sprint(_cell1)
 		_ = _r // suppress unused warning
-				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres.Append(tclFormat("%.4f", _r))
 			}
 		}
 		vtab.TclVarSet("res2", "", "30.8333 13.7273 31.4167 13.0000")
@@ -268,4 +267,5 @@ func Test_filter2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+
 }

@@ -133,7 +133,7 @@ func Test_bind(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-1.1")
 		}
@@ -157,6 +157,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-1.4"
@@ -168,6 +174,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} 2 test value 1 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-1.6"
@@ -179,6 +191,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} 2 test value 1 {} {} 3 test value 1 {} 'test value 2'"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-1.8"
@@ -270,7 +288,7 @@ func Test_bind(t *testing.T) {
 		_ = TX // suppress unused warning
 		_ = VM // prepared statement handle
 		got := tclListFlatten(TX)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-2.1")
 		}
@@ -342,6 +360,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "integer integer integer integer integer integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-2.5"
@@ -365,6 +389,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "integer integer integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-3.3"
@@ -393,6 +423,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "real real real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-4.3"
@@ -421,6 +457,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "null real real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-4.6"
@@ -444,6 +486,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "null null null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-5.3"
@@ -467,6 +515,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "text text text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-6.3"
@@ -495,6 +549,12 @@ func Test_bind(t *testing.T) {
 			r = db.Query("SELECT  hex(a), hex(b), hex(c) FROM t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT  hex(a), hex(b), hex(c) FROM t1")
+				return
+			}
+			got := flatten(r)
+			want := "68656C6C6F00746865726500 68656C6C6F007468657265 68656C6C6F"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	} else if enc == "UTF-16le" {
@@ -502,6 +562,12 @@ func Test_bind(t *testing.T) {
 			r = db.Query("SELECT  hex(a), hex(b), hex(c) FROM t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT  hex(a), hex(b), hex(c) FROM t1")
+				return
+			}
+			got := flatten(r)
+			want := "680065006C006C006F000000740068006500720065000000 680065006C006C006F00000074006800650072006500 680065006C006C006F00"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	} else if enc == "UTF-16be" {
@@ -509,12 +575,18 @@ func Test_bind(t *testing.T) {
 			r = db.Query("SELECT  hex(a), hex(b), hex(c) FROM t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT  hex(a), hex(b), hex(c) FROM t1")
+				return
+			}
+			got := flatten(r)
+			want := "00680065006C006C006F0000007400680065007200650000 00680065006C006C006F000000740068006500720065 00680065006C006C006F"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	} else {
 		{ // do_test "bind-6.5"
 			got := tclListFlatten(Unknown_database_encoding___enc)
-			want := tclListFlatten("")
+			want := tclListFlatten("{}")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-6.5")
 			}
@@ -524,6 +596,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "text text text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-6.7"
@@ -543,7 +621,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 0, "null", "", -1)
+			if _r = tclBindStmt(db, "VM", 0, "null", "", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.2"
@@ -564,7 +642,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 4, "null", "", -1)
+			if _r = tclBindStmt(db, "VM", 4, "null", "", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.6"
@@ -578,7 +656,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 0, "blob", "abc", -1)
+			if _r = tclBindStmt(db, "VM", 0, "blob", "abc", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.9"
@@ -586,7 +664,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 4, "blob", "abc", -1)
+			if _r = tclBindStmt(db, "VM", 4, "blob", "abc", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.10"
@@ -594,7 +672,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 0, "text", "abc", 3)
+			if _r = tclBindStmt(db, "VM", 0, "text", "abc", 3); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.12"
@@ -602,7 +680,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 0, "int", "5", -1)
+			if _r = tclBindStmt(db, "VM", 0, "int", "5", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.13"
@@ -610,7 +688,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 4, "int", "5", -1)
+			if _r = tclBindStmt(db, "VM", 4, "int", "5", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.14"
@@ -618,7 +696,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 0, "double", "5.0", -1)
+			if _r = tclBindStmt(db, "VM", 0, "double", "5.0", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.15"
@@ -626,7 +704,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			_r = tclBindStmt(db, "VM", 4, "double", "6.0", -1)
+			if _r = tclBindStmt(db, "VM", 4, "double", "6.0", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 		}
 	}
 	{ // do_test "bind-8.99"
@@ -746,6 +824,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 999 1000 1001 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-10.1"
@@ -806,13 +890,7 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_bind_* raises a TCL error (empty message) when the C
-			// API call does not return SQLITE_OK — here the post-step
-			// SQLITE_MISUSE (bind-10.8.1; test1.c test_bind). Mirrors the
-			// fixed tcl2go catch-mode processBind emission.
-			if _r = tclBindStmt(db, "VM", 1, "int", "1", -1); _r != "SQLITE_OK" && _r != "" {
-				_catchErr = fmt.Errorf("")
-			}
+			if _r = tclBindStmt(db, "VM", 1, "int", "1", -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -835,6 +913,12 @@ func Test_bind(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 999 1000 1001 {} {} 1 2 1 3 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bind-10.11"

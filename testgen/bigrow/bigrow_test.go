@@ -89,9 +89,8 @@ func Test_bigrow(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_r = strconv.Itoa(len(bigstr)) // string length result
@@ -100,6 +99,12 @@ func Test_bigrow(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a text, b text, c text);\n    SELECT name FROM sqlite_master\n      WHERE type='table' OR type='index'\n      ORDER BY name\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a text, b text, c text);\n    SELECT name FROM sqlite_master\n      WHERE type='table' OR type='index'\n      ORDER BY name\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.2"
@@ -123,9 +128,13 @@ func Test_bigrow(t *testing.T) {
 		r = db.Query("SELECT b FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1")
+			return
 		}
-		if flatten(r) != tclListFlatten(big1) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(big1), "bigrow-1.3")
+		got := flatten(r)
+		want := tclListFlatten(big1)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.4"
@@ -161,12 +170,24 @@ func Test_bigrow(t *testing.T) {
 		r = db.Query("SELECT b FROM t1 ORDER BY c")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 ORDER BY c")
+			return
+		}
+		got := flatten(r)
+		want := big1+" "+big2
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.4.2"
 		r = db.Query("SELECT c FROM t1 ORDER BY c")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT c FROM t1 ORDER BY c")
+			return
+		}
+		got := flatten(r)
+		want := "xyz xyz2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.4.3"
@@ -183,30 +204,60 @@ func Test_bigrow(t *testing.T) {
 		r = db.Query("\n    UPDATE t1 SET a=b, b=a;\n    SELECT b,c FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=b, b=a;\n    SELECT b,c FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc xyz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.6"
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := big1+" "+"abc"+" "+"xyz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.7"
 		r = db.Query("\n    INSERT INTO t1 VALUES('1','2','3');\n    INSERT INTO t1 VALUES('A','B','C');\n    SELECT b FROM t1 WHERE a=='1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('1','2','3');\n    INSERT INTO t1 VALUES('A','B','C');\n    SELECT b FROM t1 WHERE a=='1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.8"
 		r = db.Query("SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + big1 + "'")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-1.9"
 		r = db.Query("SELECT b FROM t1 WHERE a!='" + big1 + "' ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a!='" + big1 + "' ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "2 B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-2.1"
@@ -294,9 +345,8 @@ func Test_bigrow(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "bigrow-4.1"
@@ -346,9 +396,8 @@ func Test_bigrow(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "bigrow-5.1"
@@ -372,21 +421,25 @@ func Test_bigrow(t *testing.T) {
 			r = db.Query("\n      UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "one " + sz + " hi"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 		// incr sz sz
 		{
 			_n, _err := strconv.Atoi(sz)
-			if _err == nil {
-				sz = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(sz); return _v }())
-			}
+			if _err != nil { _n = 0 }
+			sz = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(sz); return _v }())
 		}
 	}
 	{ // do_test "bigrow-5.3"
@@ -399,6 +452,12 @@ func Test_bigrow(t *testing.T) {
 		r = db.Query("SELECT length(b) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT length(b) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1966080"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-5.5"
@@ -411,6 +470,12 @@ func Test_bigrow(t *testing.T) {
 		r = db.Query("SELECT length(b) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT length(b) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "3932160"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigrow-5.99"

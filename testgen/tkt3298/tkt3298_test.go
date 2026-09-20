@@ -61,36 +61,72 @@ func Test_tkt3298(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE VIEW v1 AS SELECT a AS x, b+1 AS y FROM t1;\n    CREATE TRIGGER r1 INSTEAD OF UPDATE ON v1\n      BEGIN\n        UPDATE t1 SET b=new.y-1 WHERE a=new.x;\n      END;\n    CREATE TRIGGER r2 INSTEAD OF DELETE ON v1\n      BEGIN\n        DELETE FROM t1 WHERE a=old.x;\n      END;\n    SELECT * FROM v1 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE VIEW v1 AS SELECT a AS x, b+1 AS y FROM t1;\n    CREATE TRIGGER r1 INSTEAD OF UPDATE ON v1\n      BEGIN\n        UPDATE t1 SET b=new.y-1 WHERE a=new.x;\n      END;\n    CREATE TRIGGER r2 INSTEAD OF DELETE ON v1\n      BEGIN\n        DELETE FROM t1 WHERE a=old.x;\n      END;\n    SELECT * FROM v1 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 2 1 2 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3298-1.2"
 		r = db.Query("\n    UPDATE v1 SET y=3 WHERE x=0;\n    SELECT * FROM v1 ORDER by x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE v1 SET y=3 WHERE x=0;\n    SELECT * FROM v1 ORDER by x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 3 1 2 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3298-1.3"
 		r = db.Query("\n    UPDATE v1 SET y=4 WHERE v1.x=2;\n    SELECT * FROM v1 ORDER by x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE v1 SET y=4 WHERE v1.x=2;\n    SELECT * FROM v1 ORDER by x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 3 1 2 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3298-1.4"
 		r = db.Query("\n    DELETE FROM v1 WHERE x=1;\n    SELECT * FROM v1 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM v1 WHERE x=1;\n    SELECT * FROM v1 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 3 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3298-1.5"
 		r = db.Query("\n    DELETE FROM v1 WHERE v1.x=2;\n    SELECT * FROM v1 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM v1 WHERE v1.x=2;\n    SELECT * FROM v1 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3298-2.1"
 		r = db.Query("\n    CREATE TABLE t2(p,q);\n    INSERT INTO t2 VALUES(1,11);\n    INSERT INTO t2 VALUES(2,22);\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,'one');\n\n    SELECT *, (SELECT z FROM (SELECT y AS z FROM t3 WHERE x=t1.a+1) ) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(p,q);\n    INSERT INTO t2 VALUES(1,11);\n    INSERT INTO t2 VALUES(2,22);\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,'one');\n\n    SELECT *, (SELECT z FROM (SELECT y AS z FROM t3 WHERE x=t1.a+1) ) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 2 one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

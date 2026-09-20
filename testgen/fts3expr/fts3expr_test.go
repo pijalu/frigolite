@@ -430,9 +430,8 @@ func Test_fts3expr(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'five four one' ORDER BY rowid")
@@ -454,9 +453,13 @@ func Test_fts3expr(t *testing.T) {
 				r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
+					return
 				}
-				if flatten(r) != tclListFlatten(res) {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3expr-6.1." + id)
+				got := flatten(r)
+				want := tclListFlatten(res)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
@@ -477,9 +480,13 @@ func Test_fts3expr(t *testing.T) {
 					r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
+						return
 					}
-					if flatten(r) != tclListFlatten(res) {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3expr-6.2." + id)
+					got := flatten(r)
+					want := tclListFlatten(res)
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}
@@ -490,6 +497,13 @@ func Test_fts3expr(t *testing.T) {
 				r = db.Query("\n    CREATE VIRTUAL TABLE test USING fts3 (keyword);\n    INSERT INTO test VALUES ('abc');\n    SELECT * FROM test WHERE keyword MATCH '\"\"';\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE test USING fts3 (keyword);\n    INSERT INTO test VALUES ('abc');\n    SELECT * FROM test WHERE keyword MATCH '\"\"';\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "fts3expr-8.0" (prepare-step internals; SQL side effects only)

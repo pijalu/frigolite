@@ -141,9 +141,8 @@ func Test_fts3corrupt2(t *testing.T) {
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tn = strconv.Itoa(_n + 1)
 		}
 		c = tclExprWith("(($c+255)%256)", map[string]string{"c": c})
 		_ = c // suppress unused warning
@@ -165,9 +164,8 @@ func Test_fts3corrupt2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec(" UPDATE t2_segments SET block = " + sqlLiteral(blob) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
@@ -192,9 +190,8 @@ func Test_fts3corrupt2(t *testing.T) {
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
-				if _err == nil {
-					tn = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				tn = strconv.Itoa(_n + 1)
 			}
 			vtab.TclVarSet("i", "", "0")
 			i = "0"
@@ -214,9 +211,8 @@ func Test_fts3corrupt2(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec(" UPDATE t2_segdir SET root = " + sqlLiteral(blob) + " WHERE rowid = " + sqlLiteral(rowid) + " ")

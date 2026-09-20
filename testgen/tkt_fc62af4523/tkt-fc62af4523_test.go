@@ -94,6 +94,12 @@ func Test_tkt_fc62af4523(t *testing.T) {
 		r = db.Query(" PRAGMA journal_mode = DELETE ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = DELETE ")
+			return
+		}
+		got := flatten(r)
+		want := "delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-fc62af4523.4"
@@ -106,6 +112,12 @@ func Test_tkt_fc62af4523(t *testing.T) {
 		r = db.Query("\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ok 64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{

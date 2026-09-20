@@ -4253,6 +4253,13 @@ func Test_window8(t *testing.T) {
 		r = db.Query("\n  SELECT (\n    SELECT max(a) OVER ( ORDER BY (SELECT sum(a) FROM t1) )\n         + min(a) OVER() \n  )\n  FROM t1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n    SELECT max(a) OVER ( ORDER BY (SELECT sum(a) FROM t1) )\n         + min(a) OVER() \n  )\n  FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "10.0"

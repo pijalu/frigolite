@@ -135,18 +135,36 @@ func Test_thread001(t *testing.T) {
 				r = db.Query("\n      CREATE TABLE ab(a INTEGER PRIMARY KEY, b);\n      CREATE INDEX ab_i ON ab(b);\n      INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab;\n      SELECT count(*) FROM ab;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE ab(a INTEGER PRIMARY KEY, b);\n      CREATE INDEX ab_i ON ab(b);\n      INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab;\n      SELECT count(*) FROM ab;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "thread001." + tn + ".2"
 				r = db.Query("\n      SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))\n    ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "thread001." + tn + ".3"
 				r = db.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			vtab.TclVarSet("thread_program", "", "\n    #sqlthread parent {puts STARTING..}\n    set needToClose 0\n    if {![info exists ::DB]} {\n      set ::DB [sqlthread open test.db xyzzy]\n      #sqlthread parent \"puts \\\"OPEN $::DB\\\"\"\n      set needToClose 1\n    }\n  \n    for {set i 0} {$i < 100} {incr i} {\n      # Test that the invariant is true.\n      do_test t1 {\n        execsql {\n          SELECT \n            (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n            (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))\n        }\n      } {1}\n  \n      # Add another row to the database.\n      execsql { INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab }\n    }\n  \n    if {$needToClose} {\n      #sqlthread parent \"puts \\\"CLOSE $::DB\\\"\"\n      sqlite3_close $::DB\n    }\n    #sqlthread parent \"puts \\\"DONE\\\"\"\n  \n    list OK\n  ")
@@ -161,9 +179,8 @@ func Test_thread001(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("i", "", "0")
@@ -183,27 +200,45 @@ func Test_thread001(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			{ // do_test "thread001." + tn + ".5"
 				r = db.Query(" SELECT count(*) FROM ab; ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM ab; ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten(tclExprWith("1 + $::NTHREAD*100", map[string]string{"::NTHREAD": NTHREAD}))
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "thread001." + tn + ".6"
 				r = db.Query("\n      SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))\n    ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "thread001." + tn + ".7"
 				r = db.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}

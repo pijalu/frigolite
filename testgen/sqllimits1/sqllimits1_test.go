@@ -5,6 +5,7 @@
 package sqllimits1
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -681,7 +682,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			_r = tclBindStmt(db, "STMT", 1, "text", str1, -1)
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
@@ -703,7 +704,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			_r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(np1))
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(np1)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
@@ -727,7 +728,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			_r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n))
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
@@ -737,7 +738,7 @@ func Test_sqllimits1(t *testing.T) {
 			}
 		}
 		got := tclListFlatten(res)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-5.14.8")
 		}
@@ -749,7 +750,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			_r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n))
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
@@ -759,7 +760,7 @@ func Test_sqllimits1(t *testing.T) {
 			}
 		}
 		got := tclListFlatten(res)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-5.14.9")
 		}
@@ -889,6 +890,12 @@ func Test_sqllimits1(t *testing.T) {
 		r = db.Query("\n    PRAGMA max_page_count = 1000;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA max_page_count = 1000;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sqllimits1-7.2"
@@ -911,6 +918,12 @@ func Test_sqllimits1(t *testing.T) {
 		r = db.Query("\n    SELECT COUNT(*) FROM trig;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT COUNT(*) FROM trig;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "sqllimits1-7.5"
@@ -955,7 +968,9 @@ func Test_sqllimits1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master;\n  ")
 		}
 	}
-	{ // "sqllimits1-7.7.3" — skipped: stale corpus constant: reference 3.51.0 build measures 1690 pages (census-identical to frigolite: leaf=699 interior=7 overflow=984); hardcoded 1691 does not match the reference tree (NA_EVIDENCE sqllimits1-7.7.3)
+	{ // "sqllimits1-7.7.3" — skipped: stale corpus constant: reference 3.51.0 build measures 1690 pages (census-identical to frigolite: leaf=699 interior=7 overflow=984); hardcoded 1691 does not match the reference tree (NA_EVIDENCE sqllimits1-7.7.3) (SQL side effects only)
+		_res = db.Exec("\n    PRAGMA max_page_count;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "sqllimits1-7.7.4"
 		_res = db.Exec("\n    DROP TABLE abc;\n  ")
@@ -978,9 +993,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("CREATE TABLE t(" + strings.Join(tclSplitList(cols), ",") + ")")
@@ -997,9 +1011,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("SELECT " + strings.Join(tclSplitList(cols), ",") + " FROM sqlite_master")
@@ -1016,9 +1029,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("SELECT sql4 FROM (SELECT " + strings.Join(tclSplitList(cols), ",") + " FROM sqlite_master)")
@@ -1035,9 +1047,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("sql1", "", "CREATE TABLE t1(c);")
@@ -1072,9 +1083,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("UPDATE t1 SET " + strings.Join(tclSplitList(cols), ",") + ";")
@@ -1091,9 +1101,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("CREATE VIEW v1 AS SELECT " + strings.Join(tclSplitList(cols), ",") + " FROM t1;")
@@ -1114,9 +1123,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("DROP VIEW IF EXISTS v1")
@@ -1141,9 +1149,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("sql", "", "SELECT c FROM t1 ORDER BY " + strings.Join(tclSplitList(cols), ","))
@@ -1163,9 +1170,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("sql", "", "SELECT c, c+1, c+2 FROM t1 UNION SELECT c-1, c-2, c-3 FROM t1")
@@ -1209,9 +1215,8 @@ func Test_sqllimits1(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec(expr)
@@ -1236,9 +1241,8 @@ func Test_sqllimits1(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -1265,9 +1269,8 @@ func Test_sqllimits1(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("SELECT max(" + strings.Join(tclSplitList(vals), ",") + ")")
@@ -1284,9 +1287,8 @@ func Test_sqllimits1(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("SELECT max(" + strings.Join(tclSplitList(vals), ",") + ")")
@@ -1305,9 +1307,8 @@ func Test_sqllimits1(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("SELECT myfunc(" + strings.Join(tclSplitList(vals), ",") + ")")
@@ -1316,9 +1317,8 @@ func Test_sqllimits1(t *testing.T) {
 		// incr max 1
 		{
 			_n, _err := strconv.Atoi(max)
-			if _err == nil {
-				max = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			max = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "sqllimits1-12.1"
@@ -1330,12 +1330,12 @@ func Test_sqllimits1(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return i_n < (max_n) }() {
 			os.Remove("test" + i + ".db")
+			os.Remove("test" + i + ".db-journal")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("i", "", "0")
@@ -1349,9 +1349,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("ATTACH 'test" + i + ".db' AS aux" + i)
@@ -1372,9 +1371,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -1399,9 +1397,8 @@ func Test_sqllimits1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("SELECT " + strings.Join(tclSplitList(vals), ",") + " FROM t1")

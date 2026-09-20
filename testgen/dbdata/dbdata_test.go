@@ -141,6 +141,12 @@ func Test_dbdata(t *testing.T) {
 		r = db.Query("\n    SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclDbOne(db, "SELECT quote(b) FROM t1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

@@ -65,6 +65,12 @@ func Test_pagesize(t *testing.T) {
 		r = db.Query("PRAGMA page_size")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			return
+		}
+		got := flatten(r)
+		want := "1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pagesize-1.2"
@@ -80,6 +86,12 @@ func Test_pagesize(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pagesize-1.4"
@@ -97,6 +109,12 @@ func Test_pagesize(t *testing.T) {
 		r = db.Query("\n    PRAGMA page_size=512;\n    PRAGMA page_size;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=512;\n    PRAGMA page_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "512"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclBool("!" + tclBool01(vtab.TclVarExists("SQLITE_MAX_PAGE_SIZE", "")) + " || " + SQLITE_MAX_PAGE_SIZE + ">=8192") {
@@ -104,18 +122,36 @@ func Test_pagesize(t *testing.T) {
 			r = db.Query("\n      PRAGMA page_size=8192;\n      PRAGMA page_size;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=8192;\n      PRAGMA page_size;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "8192"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pagesize-1.7"
 			r = db.Query("\n      PRAGMA page_size=65537;\n      PRAGMA page_size;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=65537;\n      PRAGMA page_size;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "8192"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pagesize-1.8"
 			r = db.Query("\n      PRAGMA page_size=1234;\n      PRAGMA page_size\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=1234;\n      PRAGMA page_size\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "8192"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -158,6 +194,12 @@ func Test_pagesize(t *testing.T) {
 			r = db.Query("\n        INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 2 3 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".1"
@@ -222,12 +264,24 @@ func Test_pagesize(t *testing.T) {
 			r = db.Query("\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "48"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".8"
 			r = db.Query("\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -249,18 +303,36 @@ func Test_pagesize(t *testing.T) {
 			r = db.Query("\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "192"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".12"
 			r = db.Query("\n      BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "38"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".13"
 			r = db.Query("\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "192"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -300,6 +372,12 @@ func Test_pagesize(t *testing.T) {
 			r = db.Query("\n      CREATE TABLE t1(x);\n      PRAGMA temp.page_size=" + PGSZ + ";\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      PRAGMA temp.page_size=" + PGSZ + ";\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "1024"+" "+PGSZ
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
@@ -311,6 +389,12 @@ func Test_pagesize(t *testing.T) {
 			r = db.Query("\n      PRAGMA page_size=" + PGSZ + ";\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=" + PGSZ + ";\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := PGSZ+" "+PGSZ
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

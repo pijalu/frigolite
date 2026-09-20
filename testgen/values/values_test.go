@@ -636,6 +636,13 @@ func Test_values(t *testing.T) {
 				r = db.Query("\n  PRAGMA encoding = utf16;\n  CREATE TABLE t1(a, b);\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding = utf16;\n  CREATE TABLE t1(a, b);\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			db.Close()
@@ -804,6 +811,13 @@ func Test_values(t *testing.T) {
 				r = db.Query("\n  SELECT * FROM t1;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "18.4.1"
@@ -816,6 +830,13 @@ func Test_values(t *testing.T) {
 				r = db.Query("\n  SELECT * FROM t1;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "18.5.1"

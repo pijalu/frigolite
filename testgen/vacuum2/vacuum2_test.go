@@ -156,12 +156,24 @@ func Test_vacuum2(t *testing.T) {
 		r = db2.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum2-3.7"
 		r = db.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum2-3.13"
@@ -187,12 +199,24 @@ func Test_vacuum2(t *testing.T) {
 		r = db2.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum2-3.17"
 		r = db.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if db2 != nil { db2.Close() }
@@ -211,12 +235,24 @@ func Test_vacuum2(t *testing.T) {
 		r = db.Query("\n      pragma auto_vacuum=1;\n      vacuum;\n      pragma auto_vacuum;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum=1;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum2-4.3"
 		r = db.Query("\n      pragma integrity_check\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma integrity_check\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum2-4.4"
@@ -233,12 +269,24 @@ func Test_vacuum2(t *testing.T) {
 		r = db.Query("\n      pragma auto_vacuum=2;\n      vacuum;\n      pragma auto_vacuum;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum=2;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum2-4.6"
 		r = db.Query("\n      pragma integrity_check\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma integrity_check\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vacuum2-4.7"
@@ -362,7 +410,7 @@ func Test_vacuum2(t *testing.T) {
 		}
 		res2 = tclListAppend(res2, res)
 		got := tclListFlatten(res2)
-		want := tclListFlatten("1 2 3 4 5 6 7 8 9 10 1 {cannot VACUUM - SQL statements in progress}")
+		want := tclListFlatten("1 2 3 4 5 6 7 8 9 10 {1 {cannot VACUUM - SQL statements in progress}}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "vacuum2-5.4")
 		}

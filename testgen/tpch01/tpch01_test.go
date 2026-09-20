@@ -75,14 +75,14 @@ func Test_tpch01(t *testing.T) {
 		eqpres = tclExecSQL(db, "EXPLAIN QUERY PLAN\n       select\n               o_year,\n               sum(case\n                       when nation = 'EGYPT' then volume\n                       else 0\n               end) / sum(volume) as mkt_share\n       from\n               (\n                       select\n                               strftime('%Y', o_orderdate) as o_year,\n                               l_extendedprice * (1 - l_discount) as volume,\n                               n2.n_name as nation\n                       from\n                               part,\n                               supplier,\n                               lineitem,\n                               orders,\n                               customer,\n                               nation n1,\n                               nation n2,\n                               region\n                       where\n                               p_partkey = l_partkey\n                               and s_suppkey = l_suppkey\n                               and l_orderkey = o_orderkey\n                               and o_custkey = c_custkey\n                               and c_nationkey = n1.n_nationkey\n                               and n1.n_regionkey = r_regionkey\n                               and r_name = 'MIDDLE EAST'\n                               and s_nationkey = n2.n_nationkey\n                               and o_orderdate between  '1995-01-01' and '1996-12-31'\n                               and p_type = 'LARGE PLATED STEEL'\n               ) as all_nations\n       group by\n               o_year\n       order by\n               o_year;") // TCL namespace variable
 		_ = eqpres // suppress unused warning
 		_ = eqpres // TCL namespace variable (query)
-		got := tclListFlatten(eqpres)
+		got := eqpres
 		if !globMatch(got, "*SEARCH part USING INDEX bootleg_pti *SEARCH lineitem USING INDEX lpki2*") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]\n  body: do_test %s", got, "*SEARCH part USING INDEX bootleg_pti *SEARCH lineitem USING INDEX lpki2*", "tpch01-1.1")
 		}
 	}
 	{ // do_test "tpch01-1.1b"
 		_ = eqpres // TCL namespace variable (query)
-		got := tclListFlatten(eqpres)
+		got := eqpres
 		wantPattern := ".* customer .* n1 .*"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "tpch01-1.1b")
@@ -90,7 +90,7 @@ func Test_tpch01(t *testing.T) {
 	}
 	{ // do_test "tpch01-1.1c"
 		_ = eqpres // TCL namespace variable (query)
-		got := tclListFlatten(eqpres)
+		got := eqpres
 		wantPattern := ".* supplier .* n2 .*"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "tpch01-1.1c")

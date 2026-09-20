@@ -67,6 +67,12 @@ func Test_tkt3201(t *testing.T) {
 		r = db.Query("\n    SELECT l.a, r.a FROM t1 AS l, t1 AS r WHERE l.a < r.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT l.a, r.a FROM t1 AS l, t1 AS r WHERE l.a < r.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3201-3"
@@ -113,6 +119,12 @@ func Test_tkt3201(t *testing.T) {
 		r = db.Query(" SELECT a, b, c, d FROM t1, t3 WHERE a < c ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b, c, d FROM t1, t3 WHERE a < c ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one 2 two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3201-4.0"

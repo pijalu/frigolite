@@ -60,6 +60,8 @@ func Test_t_8_3_names(t *testing.T) {
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	{ // do_test "8_3_names-1.0"
 		os.Remove("test.db")
+		os.Remove("test.nal")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -84,6 +86,8 @@ func Test_t_8_3_names(t *testing.T) {
 	db.Close()
 	{ // do_test "8_3_names-2.0"
 		os.Remove("test.db")
+		os.Remove("test.nal")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("file:./test.db?8_3_names=1")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -94,6 +98,8 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.nal"
 	}
 	os.Remove("test2.db")
+	os.Remove("test2.nal")
+	os.Remove("test2.db-journal")
 	tclFileCopy("test.db", "test2.db")
 	tclFileCopy("test.nal", "test2.nal")
 	{ // do_test "8_3_names-2.2"
@@ -118,6 +124,8 @@ func Test_t_8_3_names(t *testing.T) {
 	db.Close()
 	{ // do_test "8_3_names-3.0"
 		os.Remove("test.db")
+		os.Remove("test.nal")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("file:./test.db?8_3_names=0")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -128,6 +136,8 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.nal"
 	}
 	os.Remove("test2.db")
+	os.Remove("test2.nal")
+	os.Remove("test2.db-journal")
 	tclFileCopy("test.db", "test2.db")
 	tclFileCopy("test.db-journal", "test2.db-journal")
 	{ // do_test "8_3_names-3.2"
@@ -151,6 +161,7 @@ func Test_t_8_3_names(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test2.db")
 	{ // do_test "8_3_names-4.0"
 		db, err = frigolite.Open("file:./test.db?8_3_names=1")
 		tclConnRegister("db", db)

@@ -64,6 +64,13 @@ func Test_tkt35xx(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt35xx-1.1"
@@ -87,6 +94,13 @@ func Test_tkt35xx(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt35xx-1.2.2"
@@ -105,6 +119,12 @@ func Test_tkt35xx(t *testing.T) {
 		r = db.Query(" SELECT count(*) FROM t3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t3 ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt35xx-1.2.5"
@@ -117,6 +137,12 @@ func Test_tkt35xx(t *testing.T) {
 		r = db.Query(" SELECT count(*) FROM t3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t3 ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

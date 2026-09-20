@@ -381,12 +381,26 @@ func Test_pragma4(t *testing.T) {
 				r = db.Query(" SELECT * FROM pragma_index_list('t1') ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_list('t1') ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "4.4.6"
 				r = db.Query(" SELECT * FROM pragma_index_list('t2') ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_list('t2') ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			r = db.Query("SELECT * FROM main.sqlite_master, aux.sqlite_master")
@@ -558,6 +572,13 @@ func Test_pragma4(t *testing.T) {
 				r = db.Query("\n    CREATE VIEW v1 AS SELECT abs(a) FROM t1;\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_schema\n       SET sql=replace(sql,'abs(a)','nosuchfunc(a)')\n     WHERE name='v1';\n    PRAGMA writable_schema=RESET;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v1 AS SELECT abs(a) FROM t1;\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_schema\n       SET sql=replace(sql,'abs(a)','nosuchfunc(a)')\n     WHERE name='v1';\n    PRAGMA writable_schema=RESET;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "6.2"
@@ -575,7 +596,7 @@ func Test_pragma4(t *testing.T) {
 			{ // do_test "6.3"
 				_ = log // TCL namespace variable (query)
 				got := tclListFlatten(log)
-				want := tclListFlatten("")
+				want := tclListFlatten("{}")
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "6.3")
 				}

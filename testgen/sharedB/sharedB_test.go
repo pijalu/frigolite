@@ -101,9 +101,8 @@ func Test_sharedB(t *testing.T) {
 		// incr j 1
 		{
 			_n, _err := strconv.Atoi(j)
-			if _err == nil {
-				j = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			j = strconv.Itoa(_n + 1)
 		}
 	}
 	if db1 != nil { db1.Close() }

@@ -164,7 +164,7 @@ func Test_capi3(t *testing.T) {
 		_ = STMT // prepared statement handle
 		_r = tclFinalizeStmt(db, "STMT")
 		got := tclListFlattenCollapse(TAIL)
-		want := tclListFlattenCollapse("")
+		want := tclListFlattenCollapse("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi3-1.1")
 		}
@@ -485,6 +485,7 @@ func Test_capi3(t *testing.T) {
 	if tclBool("!" + "") {
 		{ // do_test "capi3-8.1"
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
@@ -525,6 +526,7 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-8.4"
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
@@ -578,9 +580,8 @@ func Test_capi3(t *testing.T) {
 			// incr test_number 1
 			{
 				_n, _err := strconv.Atoi(test_number)
-				if _err == nil {
-					test_number = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				test_number = strconv.Itoa(_n + 1)
 			}
 		}
 		if "" != "nofaultsim" {
@@ -709,6 +710,12 @@ func Test_capi3(t *testing.T) {
 			r = db.Query("\n    SELECT a FROM t2;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "capi3-11.14.1" (prepare-step internals; SQL side effects only)
@@ -727,6 +734,12 @@ func Test_capi3(t *testing.T) {
 			r = db.Query("\n    SELECT a FROM t2;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "capi3-11.17"
@@ -803,6 +816,12 @@ func Test_capi3(t *testing.T) {
 			r = db.Query("\n    COMMIT;\n    SELECT a FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT a FROM t1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info commands sqlite3_clear_bindings"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {

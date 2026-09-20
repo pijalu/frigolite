@@ -87,9 +87,8 @@ func Test_analyzeD(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3001, 3001, 3001);\n    INSERT INTO t1 VALUES(3001, 3001, 3002);\n    INSERT INTO t1 VALUES(3001, 3001, 3003);\n    INSERT INTO t1 VALUES(3001, 3001, 3004);\n    INSERT INTO t1 VALUES(3001, 3001, 3005);\n    INSERT INTO t1 VALUES(3001, 3001, 3006);\n    INSERT INTO t1 VALUES(3001, 3001, 3007);\n\n    CREATE INDEX t1_ab ON t1(a, b);\n    CREATE INDEX t1_c ON t1(c);\n\n    ANALYZE;\n  ")

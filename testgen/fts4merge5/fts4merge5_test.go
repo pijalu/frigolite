@@ -123,9 +123,8 @@ func Test_fts4merge5(t *testing.T) {
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tn = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // "1.5"

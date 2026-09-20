@@ -100,7 +100,7 @@ func Test_filectrl(t *testing.T) {
 		db.ResetChangesCounters()
 		fn = tclFileControlTempFileName(db)
 		_ = fn // suppress unused warning
-		got := tclListFlatten(fn)
+		got := fn
 		wantPattern := "etilqs_"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "filectrl-1.6")
@@ -108,7 +108,9 @@ func Test_filectrl(t *testing.T) {
 	}
 	db.Close()
 	os.Remove(".test_control_lockproxy.db-conch")
+	os.Remove("test.proxy")
 	os.Remove("test.db")
+	os.Remove("test2.db")
 	if tcl_platform_platform == "windows" {
 		{ // do_test "filectrl-2.1"
 			db, err = frigolite.Open("test2.db")

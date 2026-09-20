@@ -65,6 +65,13 @@ func Test_rowvalue6(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1x1 ON t1(a,b);\n  INSERT INTO t1 VALUES(1,NULL,200);\n\n  CREATE TABLE t2(x,y,z);\n  INSERT INTO t2 VALUES(1,NULL,55);\n\n  SELECT c FROM t1 WHERE (a,b) IN (SELECT x,y FROM t2 WHERE z==55);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1x1 ON t1(a,b);\n  INSERT INTO t1 VALUES(1,NULL,200);\n\n  CREATE TABLE t2(x,y,z);\n  INSERT INTO t2 VALUES(1,NULL,55);\n\n  SELECT c FROM t1 WHERE (a,b) IN (SELECT x,y FROM t2 WHERE z==55);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.2"

@@ -110,6 +110,7 @@ func Test_incrvacuum2(t *testing.T) {
 	}
 	{ // do_test "incrvacuum2-2.1"
 		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
 		r = db.Query("\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
@@ -167,12 +168,26 @@ func Test_incrvacuum2(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "incrvacuum2-3.2"
 		r = db.Query("\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -193,6 +208,12 @@ func Test_incrvacuum2(t *testing.T) {
 			r = db.Query(" \n      PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "wal"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "4.2.1"

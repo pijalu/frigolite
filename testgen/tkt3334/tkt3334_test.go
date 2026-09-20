@@ -61,66 +61,133 @@ func Test_tkt3334(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,934);\n    INSERT INTO t1 VALUES(2,221);\n    INSERT INTO t1 VALUES(1,372);\n    INSERT INTO t1 VALUES(3,552);\n    INSERT INTO t1 VALUES(1,719);\n    INSERT INTO t1 VALUES(4,102);\n    SELECT * FROM t1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,934);\n    INSERT INTO t1 VALUES(2,221);\n    INSERT INTO t1 VALUES(1,372);\n    INSERT INTO t1 VALUES(3,552);\n    INSERT INTO t1 VALUES(1,719);\n    INSERT INTO t1 VALUES(4,102);\n    SELECT * FROM t1 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 102 2 221 1 372 3 552 1 719 1 934"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.1"
 		r = db.Query("\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.2"
 		r = db.Query("\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.3"
 		r = db.Query("\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.4"
 		r = db.Query("\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.5"
 		r = db.Query("\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.6"
 		r = db.Query("\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.7"
 		r = db.Query("\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.8"
 		r = db.Query("\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.9"
 		r = db.Query("\n    SELECT a FROM (SELECT a FROM t1) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM (SELECT a FROM t1) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3334-1.10"
 		r = db.Query("\n    SELECT count(*) FROM (SELECT a FROM t1) WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM (SELECT a FROM t1) WHERE a=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

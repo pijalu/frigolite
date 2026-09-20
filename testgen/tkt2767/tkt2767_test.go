@@ -61,24 +61,48 @@ func Test_tkt2767(t *testing.T) {
 		r = db.Query("\n    -- Construct a table with many rows of data\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n\n    -- BEFORE triggers that invoke raise(ignore).  The effect of\n    -- these triggers should be to make INSERTs, UPDATEs, and DELETEs\n    -- into no-ops.\n    CREATE TRIGGER r1 BEFORE UPDATE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r2 BEFORE DELETE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r3 BEFORE INSERT ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n\n    -- Verify the table content\n    SELECT count(*), sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    -- Construct a table with many rows of data\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n\n    -- BEFORE triggers that invoke raise(ignore).  The effect of\n    -- these triggers should be to make INSERTs, UPDATEs, and DELETEs\n    -- into no-ops.\n    CREATE TRIGGER r1 BEFORE UPDATE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r2 BEFORE DELETE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r3 BEFORE INSERT ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n\n    -- Verify the table content\n    SELECT count(*), sum(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 528"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2767-1.2"
 		r = db.Query("\n    DELETE FROM t1 WHERE x>0;\n    SELECT count(*), sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE x>0;\n    SELECT count(*), sum(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 528"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2767-1.3"
 		r = db.Query("\n    UPDATE t1 SET x=x+1;\n    SELECT count(*), sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET x=x+1;\n    SELECT count(*), sum(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 528"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2767-1.4"
 		r = db.Query("\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    SELECT count(*), sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    SELECT count(*), sum(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 528"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

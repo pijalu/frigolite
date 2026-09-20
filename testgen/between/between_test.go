@@ -120,9 +120,8 @@ func Test_between(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("\n    CREATE UNIQUE INDEX i1w ON t1(w);\n    CREATE INDEX i1xy ON t1(x,y);\n    CREATE INDEX i1zyx ON t1(z,y,x);\n    COMMIT;\n  ")
@@ -132,34 +131,34 @@ func Test_between(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "between-1.1.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORD...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORDER BY +w")
 	}
 	{ // do_test "between-1.1.2"
-		// queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 OR...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 ORDER BY +w")
 	}
 	{ // do_test "between-1.2.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y ORDER BY +w")
 	}
 	{ // do_test "between-1.2.2"
-		// queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y ORDER BY +w")
 	}
 	{ // do_test "between-1.3.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 ...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 ORDER BY +w")
 	}
 	{ // do_test "between-1.3.2"
-		// queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6 ORDER BY +w")
 	}
 	{ // do_test "between-1.4"
-		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65-y ORDER BY +w")
 	}
 	{ // do_test "between-1.5.1"
-		// queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND z OR...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE 26 BETWEEN y AND z ORDER BY +w")
 	}
 	{ // do_test "between-1.5.2"
-		// queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN +y AND z O...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE 26 BETWEEN +y AND z ORDER BY +w")
 	}
 	{ // do_test "between-1.5.3"
-		// queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z O...} (test infra, not transpiled)
+		_ = db.Query("SELECT * FROM t1 WHERE 26 BETWEEN y AND +z ORDER BY +w")
 	}
 	db.Close()
 	os.Remove("test.db")

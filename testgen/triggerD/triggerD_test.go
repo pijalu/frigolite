@@ -166,6 +166,7 @@ func Test_triggerD(t *testing.T) {
 	{ // do_test "triggerD-4.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test2.db")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

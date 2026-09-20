@@ -135,6 +135,13 @@ func Test_without_rowid7(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t3(a, b, PRIMARY KEY(a COLLATE nocase, a));\n  PRAGMA index_info(t3);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(a, b, PRIMARY KEY(a COLLATE nocase, a));\n  PRAGMA index_info(t3);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

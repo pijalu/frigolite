@@ -280,6 +280,13 @@ func Test_alterlegacy(t *testing.T) {
 		r = db.Query(" SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("squish {\n  CREATE TRIGGER tr1 AFTER INSERT ON \"t1\" BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END\n}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

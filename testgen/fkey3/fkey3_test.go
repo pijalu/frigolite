@@ -66,6 +66,12 @@ func Test_fkey3(t *testing.T) {
 		r = db.Query("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 100 1 101 2 100 2 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey3-1.2"

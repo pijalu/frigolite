@@ -79,18 +79,51 @@ func Test_pragma2(t *testing.T) {
 	_ = DB // suppress unused warning
 	_res = db.Exec("PRAGMA auto_vacuum=0")
 	{ // do_test "pragma2-1.1"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "pragma2-1.2"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "pragma2-1.3"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n    DROP TABLE abc;\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE abc;\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "pragma2-1.4"
 		r = db.Query("\n    PRAGMA main.freelist_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	os.Remove("test2.db")
@@ -99,12 +132,24 @@ func Test_pragma2(t *testing.T) {
 		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma2-2.2"
 		r = db.Query("\n      CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma2-2.3"
@@ -123,18 +168,48 @@ func Test_pragma2(t *testing.T) {
 		r = db.Query("\n      DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma2-3.1"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n      PRAGMA aux.freelist_count;\n      PRAGMA main.freelist_count;\n      PRAGMA freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.freelist_count;\n      PRAGMA main.freelist_count;\n      PRAGMA freelist_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "9 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "pragma2-3.2"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n      PRAGMA freelist_count = 500;\n      PRAGMA freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA freelist_count = 500;\n      PRAGMA freelist_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "pragma2-3.3"
 		r = db.Query("\n      PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "9 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -173,6 +248,13 @@ func Test_pragma2(t *testing.T) {
 		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400), a+2, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+4, randomblob(400), a+4, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+8, randomblob(400), a+8, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+16, randomblob(400), a+16, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+32, randomblob(400), a+32, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+64, randomblob(400), a+64, randomblob(400) FROM t1;\n  COMMIT;\n  ATTACH 'test2.db' AS aux1;\n  CREATE TABLE aux1.t2(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t2 SELECT * FROM t1;\n  DETACH aux1;\n  PRAGMA cache_spill=ON;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400), a+2, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+4, randomblob(400), a+4, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+8, randomblob(400), a+8, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+16, randomblob(400), a+16, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+32, randomblob(400), a+32, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+64, randomblob(400), a+64, randomblob(400) FROM t1;\n  COMMIT;\n  ATTACH 'test2.db' AS aux1;\n  CREATE TABLE aux1.t2(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t2 SELECT * FROM t1;\n  DETACH aux1;\n  PRAGMA cache_spill=ON;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// sqlite3_release_memory (unsupported command, not transpiled)

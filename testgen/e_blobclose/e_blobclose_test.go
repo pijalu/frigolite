@@ -363,12 +363,22 @@ func Test_e_blobclose(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
-	{ // "e_blobclose-2.3.2" — skipped: lock_status transition after autocommit write with open blob N-A (DEFERRED locking)
+	{ // "e_blobclose-2.3.2" — skipped: lock_status transition after autocommit write with open blob N-A (DEFERRED locking) (SQL side effects only)
+		_res = db.Exec(" INSERT INTO x1 VALUES(15, val()) ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec(" PRAGMA lock_status ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "2.3.3"
 		r = db.Query(" SELECT * FROM x1 WHERE a = 15 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 WHERE a = 15 ")
+			return
+		}
+		got := flatten(r)
+		want := "15 main reserved temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.3.4"
@@ -389,6 +399,12 @@ func Test_e_blobclose(t *testing.T) {
 		r = db.Query(" SELECT a, val() FROM x1 LIMIT 1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, val() FROM x1 LIMIT 1 ")
+			return
+		}
+		got := flatten(r)
+		want := "-10000 main shared temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.1"

@@ -462,6 +462,13 @@ func Test_zipfile(t *testing.T) {
 		r = db.Query("\n  DELETE FROM zz;\n  SELECT * FROM zz;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM zz;\n  SELECT * FROM zz;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -702,6 +709,7 @@ func Test_zipfile(t *testing.T) {
 			}
 			if tclBool(tclBool01(vtab.TclVarExists("UNZIP", ""))) {
 				os.Remove("test1.zip")
+				os.Remove("test2.zip")
 				{ // do_test "6.0"
 					r = db.Query("\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
 					if r.Error != nil {
@@ -936,6 +944,7 @@ func Test_zipfile(t *testing.T) {
 				db.Close()
 			}
 			os.Remove("test.zip")
+			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
@@ -1011,6 +1020,13 @@ func Test_zipfile(t *testing.T) {
 				r = db.Query("\n  SELECT name, data FROM z;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, data FROM z;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "11.3"
@@ -1131,6 +1147,7 @@ func Test_zipfile(t *testing.T) {
 							fd = path
 							_ = fd // suppress unused warning
 							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek["fd"])
+							fileChannelSeek["fd"] += int64(len(tclStringRepeat("1", sz)))
 							// close $fd
 						}
 					}
@@ -1307,13 +1324,7 @@ func Test_zipfile(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// load_static_extension db zipfile (unsupported command, not transpiled)
-				// TCL guard: if {[catch {db one {SELECT length(zeroblob(1200000000))}}]==0}
-				// — test 23.0 only runs when the engine allows zeroblob past
-				// SQLITE_LIMIT_LENGTH (non-default MAX_LENGTH). sqlite3_result_zeroblob64
-				// enforces the limit (TOOBIG), so under default limits the probe
-				// fails and stock SQLite skips the test; evaluate the probe at
-				// runtime instead of folding it to a constant.
-				if func() bool { _r := db.Query("SELECT length(zeroblob(1200000000))"); return _r.Error == nil }() {
+				if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 					{ // "23.0"
 						_res = db.Exec("\n    SELECT length(zipfile(name,0,0,data,0)) FROM (\n        SELECT 'a' AS name, zeroblob(1000000000) AS data\n        UNION ALL SELECT 'b', zeroblob(1200000000)\n    );\n  ")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "out of memory") {

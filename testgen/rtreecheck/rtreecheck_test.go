@@ -138,8 +138,7 @@ func Test_rtreecheck(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("Dimension 0 of cell 0 on node 1 is corrupt\nDimension 1 of cell 3 on node 1 is corrupt")
-		got = tclListFlattenCollapse(got)
+		want := "Dimension 0 of cell 0 on node 1 is corrupt\nDimension 1 of cell 3 on node 1 is corrupt"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -151,8 +150,7 @@ func Test_rtreecheck(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("In RTree main.r1:\nDimension 0 of cell 0 on node 1 is corrupt\nDimension 1 of cell 3 on node 1 is corrupt")
-		got = tclListFlattenCollapse(got)
+		want := "In RTree main.r1:\nDimension 0 of cell 0 on node 1 is corrupt\nDimension 1 of cell 3 on node 1 is corrupt"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -182,8 +180,7 @@ func Test_rtreecheck(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("Mapping (3 -> 1) missing from %_rowid table\nWrong number of entries in %_rowid table - expected 5, actual 4")
-		got = tclListFlattenCollapse(got)
+		want := "Mapping (3 -> 1) missing from %_rowid table\nWrong number of entries in %_rowid table - expected 5, actual 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -195,8 +192,7 @@ func Test_rtreecheck(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("In RTree main.r1:\nMapping (3 -> 1) missing from %_rowid table\nWrong number of entries in %_rowid table - expected 5, actual 4")
-		got = tclListFlattenCollapse(got)
+		want := "In RTree main.r1:\nMapping (3 -> 1) missing from %_rowid table\nWrong number of entries in %_rowid table - expected 5, actual 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -238,8 +234,7 @@ func Test_rtreecheck(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("In RTree main.r1:\nFound (3 -> 2) in %_rowid table, expected (3 -> 1)")
-		got = tclListFlattenCollapse(got)
+		want := "In RTree main.r1:\nFound (3 -> 2) in %_rowid table, expected (3 -> 1)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -307,8 +302,7 @@ func Test_rtreecheck(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("In RTree main.r2:\nNode 1 is too small for cell count of 4660 (4 bytes)\nWrong number of entries in %_rowid table - expected 0, actual 1")
-		got = tclListFlattenCollapse(got)
+		want := "In RTree main.r2:\nNode 1 is too small for cell count of 4660 (4 bytes)\nWrong number of entries in %_rowid table - expected 0, actual 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

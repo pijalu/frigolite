@@ -61,12 +61,24 @@ func Test_tkt2339(t *testing.T) {
 		r = db.Query("\n    create table t1(num int);\n    insert into t1 values (1);\n    insert into t1 values (2);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    \n    create table t2(num int);\n    insert into t2 values (11);\n    insert into t2 values (12);\n    insert into t2 values (13);\n    insert into t2 values (14);\n    \n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t1(num int);\n    insert into t1 values (1);\n    insert into t1 values (2);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    \n    create table t2(num int);\n    insert into t2 values (11);\n    insert into t2 values (12);\n    insert into t2 values (13);\n    insert into t2 values (14);\n    \n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 13 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2339.2"
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 3 14 13"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2339.3"
@@ -76,36 +88,72 @@ func Test_tkt2339(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 3 14 13 12 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2339.5"
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 11 12 13 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2339.6"
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    EXCEPT\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    EXCEPT\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2339.7"
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT * FROM t1 LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 13 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2339.8"
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 LIMIT 2)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT * FROM t1 LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 LIMIT 2)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2339.9"
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 LIMIT 2)\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 LIMIT 2)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -104,6 +104,12 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query(" SELECT * FROM tt1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tt1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptrigger-1.2.3"
@@ -120,6 +126,12 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query(" SELECT * FROM tt1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tt1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptrigger-1.3"
@@ -165,6 +177,12 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(10, 20);\n    SELECT * FROM tt1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(10, 20);\n    SELECT * FROM tt1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptrigger-2.3"
@@ -177,6 +195,12 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(30, 40);\n    SELECT * FROM tt1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(30, 40);\n    SELECT * FROM tt1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10 20 30 40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "temptrigger-2.5" (comment-only body)
@@ -200,12 +224,14 @@ func Test_temptrigger(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			_r = ""
 			os.Remove("test2.db")
+			os.Remove("test2.db-journal")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
 		}
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
@@ -226,12 +252,24 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query(" \n    INSERT INTO aux.t2 VALUES(1, 2);\n    SELECT * FROM aux.t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO aux.t2 VALUES(1, 2);\n    SELECT * FROM aux.t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptrigger-3.2.2"
 		r = db.Query(" SELECT * FROM tt2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tt2 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptrigger-3.3.1"
@@ -248,6 +286,12 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query(" SELECT * FROM tt2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tt2 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "temptrigger-3.4" (comment-only body)
@@ -448,6 +492,7 @@ func Test_temptrigger(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("*")
+	os.Remove(tclGlob("*mj*"))
 	os.Remove("test.db2")
 	{ // "8.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE aux.t1(e, f);\n  CREATE TABLE aux.t2(g, h);\n")
@@ -477,6 +522,13 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.2.1"
@@ -501,6 +553,13 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query(" SELECT * FROM aux.t2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM aux.t2 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.3.1"
@@ -513,6 +572,13 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query("\n  INSERT INTO main.t1 VALUES('a', 'b');\n  CREATE TEMP TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;\n\n  DELETE FROM main.t2;\n  SELECT * FROM aux.t1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO main.t1 VALUES('a', 'b');\n  CREATE TEMP TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;\n\n  DELETE FROM main.t2;\n  SELECT * FROM aux.t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.3.3"
@@ -547,9 +613,8 @@ func Test_temptrigger(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("ii", "", "0")
@@ -562,9 +627,8 @@ func Test_temptrigger(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -681,9 +745,8 @@ func Test_temptrigger(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -800,9 +863,8 @@ func Test_temptrigger(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -816,48 +878,104 @@ func Test_temptrigger(t *testing.T) {
 		r = db.Query(" SELECT * FROM db0.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db0.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.5.2"
 		r = db.Query(" SELECT * FROM db1.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db1.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.5.3"
 		r = db.Query(" SELECT * FROM db2.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db2.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.5.1"
 		r = db.Query(" SELECT * FROM db3.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db3.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.5.2"
 		r = db.Query(" SELECT * FROM db4.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db4.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.5.3"
 		r = db.Query(" SELECT * FROM db5.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db5.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.5.1"
 		r = db.Query(" SELECT * FROM db6.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db6.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.5.2"
 		r = db.Query(" SELECT * FROM db7.tbl ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM db7.tbl ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

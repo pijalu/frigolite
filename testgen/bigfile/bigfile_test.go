@@ -132,9 +132,13 @@ func Test_bigfile(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(MAGIC_SUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.3")
+		got := flatten(r)
+		want := tclListFlatten(MAGIC_SUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigfile-1.4"
@@ -187,9 +191,13 @@ func Test_bigfile(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(MAGIC_SUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.7")
+		got := flatten(r)
+		want := tclListFlatten(MAGIC_SUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigfile-1.8"
@@ -209,9 +217,13 @@ func Test_bigfile(t *testing.T) {
 		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(MAGIC_SUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.9")
+		got := flatten(r)
+		want := tclListFlatten(MAGIC_SUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -265,9 +277,13 @@ func Test_bigfile(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(MAGIC_SUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.13")
+		got := flatten(r)
+		want := tclListFlatten(MAGIC_SUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigfile-1.14"
@@ -287,18 +303,26 @@ func Test_bigfile(t *testing.T) {
 		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(MAGIC_SUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.15")
+		got := flatten(r)
+		want := tclListFlatten(MAGIC_SUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "bigfile-1.16"
 		r = db.Query("\n    SELECT md5sum(x) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t3;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(MAGIC_SUM) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.16")
+		got := flatten(r)
+		want := tclListFlatten(MAGIC_SUM)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

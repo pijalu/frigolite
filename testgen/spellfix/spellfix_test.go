@@ -437,6 +437,7 @@ func Test_spellfix(t *testing.T) {
 					}
 					// proc definition (not transpiled)
 					// proc definition (not transpiled)
+					// db.trace trace_callback (proc body not recognized, not transpiled)
 					// do_tracesql_test 6.2.1 {\n    SELECT word FROM t3 WHERE rowid = 10;\n  } {keener\n    {SELECT wor... (unsupported command, not transpiled)
 					// do_tracesql_test 6.2.2 {\n    SELECT word, distance FROM t3 WHERE rowid = ...} {keener {}\n    {S... (unsupported command, not transpiled)
 					// do_tracesql_test 6.2.3 {\n    SELECT word, distance FROM t3 WHERE rowid = ...} {keener 300\n    {... (unsupported command, not transpiled)

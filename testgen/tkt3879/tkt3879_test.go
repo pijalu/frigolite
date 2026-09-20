@@ -67,12 +67,24 @@ func Test_tkt3879(t *testing.T) {
 		r = db.Query("\n    SELECT 111, t1.b*123\n    FROM t3, t2 AS j0, t2 AS j1, t1\n    WHERE j0.m=t3.m AND t1.a=j0.a AND j1.n=j0.m;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 111, t1.b*123\n    FROM t3, t2 AS j0, t2 AS j1, t1\n    WHERE j0.m=t3.m AND t1.a=j0.a AND j1.n=j0.m;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "111 123 111 123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3879.1.3"
 		r = db.Query("\n    SELECT 222, t1.b*123\n    FROM t3, t2 AS j0, t2 AS j1, t1\n    WHERE j0.m=t3.m AND t1.a=j0.a AND j1.n=j0.m\n    ORDER BY t1.b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 222, t1.b*123\n    FROM t3, t2 AS j0, t2 AS j1, t1\n    WHERE j0.m=t3.m AND t1.a=j0.a AND j1.n=j0.m\n    ORDER BY t1.b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "222 123 222 123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

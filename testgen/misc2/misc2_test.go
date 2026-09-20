@@ -126,42 +126,85 @@ func Test_misc2(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(4000000000,'a','b');\n    SELECT a FROM t1 WHERE a>1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(4000000000,'a','b');\n    SELECT a FROM t1 WHERE a>1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4000000000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-4.2"
 		r = db.Query("\n    INSERT INTO t1 VALUES(2147483648,'b2','c2');\n    INSERT INTO t1 VALUES(2147483647,'b3','c3');\n    SELECT a FROM t1 WHERE a>2147483647;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2147483648,'b2','c2');\n    INSERT INTO t1 VALUES(2147483647,'b3','c3');\n    SELECT a FROM t1 WHERE a>2147483647;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4000000000 2147483648"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-4.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a<2147483648;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a<2147483648;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2147483647"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-4.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a<=2147483648;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a<=2147483648;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2147483648 2147483647"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-4.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a<10000000000;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a<10000000000;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4000000000 2147483648 2147483647"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-4.6"
 		r = db.Query("\n    SELECT a FROM t1 WHERE a<1000000000000 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a<1000000000000 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2147483647 2147483648 4000000000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-5.1"
 		r = db.Query("\n    CREATE TABLE x(a,b);\n    CREATE VIEW y AS \n      SELECT x1.b AS p, x2.b AS q FROM x AS x1, x AS x2 WHERE x1.a=x2.a;\n    CREATE VIEW z AS\n      SELECT y1.p, y2.p FROM y AS y1, y AS y2 WHERE y1.q=y2.q;\n    SELECT * from z;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE x(a,b);\n    CREATE VIEW y AS \n      SELECT x1.b AS p, x2.b AS q FROM x AS x1, x AS x2 WHERE x1.a=x2.a;\n    CREATE VIEW z AS\n      SELECT y1.p, y2.p FROM y AS y1, y AS y2 WHERE y1.q=y2.q;\n    SELECT * from z;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-6.1"
@@ -227,6 +270,13 @@ func Test_misc2(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-7.4"
@@ -453,6 +503,13 @@ func Test_misc2(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-7.14"
@@ -643,18 +700,36 @@ func Test_misc2(t *testing.T) {
 		r = db.Query("\n      BEGIN;\n      CREATE TABLE counts(n INTEGER PRIMARY KEY);\n      INSERT INTO counts VALUES(0);\n      INSERT INTO counts VALUES(1);\n      INSERT INTO counts SELECT n+2 FROM counts;\n      INSERT INTO counts SELECT n+4 FROM counts;\n      INSERT INTO counts SELECT n+8 FROM counts;\n      COMMIT;\n  \n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n<10 AND dim2.n<10 AND dim3.n<10;\n  \n      SELECT count(*) FROM x;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TABLE counts(n INTEGER PRIMARY KEY);\n      INSERT INTO counts VALUES(0);\n      INSERT INTO counts VALUES(1);\n      INSERT INTO counts SELECT n+2 FROM counts;\n      INSERT INTO counts SELECT n+4 FROM counts;\n      INSERT INTO counts SELECT n+8 FROM counts;\n      COMMIT;\n  \n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n<10 AND dim2.n<10 AND dim3.n<10;\n  \n      SELECT count(*) FROM x;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-9.2"
 		r = db.Query("\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n>=6 AND dim2.n>=6 AND dim3.n>=6;\n  \n      SELECT count(*) FROM x;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n>=6 AND dim2.n>=6 AND dim3.n>=6;\n  \n      SELECT count(*) FROM x;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-9.3"
 		r = db.Query("\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n, dim4.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3, counts AS dim4\n      WHERE dim1.n<5 AND dim2.n<5 AND dim3.n<5 AND dim4.n<5;\n  \n      SELECT count(*) FROM x;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n, dim4.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3, counts AS dim4\n      WHERE dim1.n<5 AND dim2.n<5 AND dim3.n<5 AND dim4.n<5;\n  \n      SELECT count(*) FROM x;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "625"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc2-10.1"

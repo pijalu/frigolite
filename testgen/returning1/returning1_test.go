@@ -281,6 +281,13 @@ func Test_returning1(t *testing.T) {
 		r = db.Query("\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.2"
@@ -296,8 +303,7 @@ func Test_returning1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -570,6 +576,13 @@ func Test_returning1(t *testing.T) {
 		r = db.Query("\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN SELECT 1; END;\n  DELETE FROM t1 RETURNING *;\n  DROP TRIGGER r1;\n  INSERT INTO t1 VALUES(5,30);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN SELECT 1; END;\n  DELETE FROM t1 RETURNING *;\n  DROP TRIGGER r1;\n  INSERT INTO t1 VALUES(5,30);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.12"
@@ -692,8 +705,7 @@ func Test_returning1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -709,6 +721,13 @@ func Test_returning1(t *testing.T) {
 		r = db.Query("\n  PRAGMA foreign_keys(1);\n  CREATE TABLE Parent(id INTEGER PRIMARY KEY);\n  CREATE TABLE Child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES Parent(id));\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys(1);\n  CREATE TABLE Parent(id INTEGER PRIMARY KEY);\n  CREATE TABLE Child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES Parent(id));\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "14.1"
@@ -926,8 +945,7 @@ func Test_returning1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -939,8 +957,7 @@ func Test_returning1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "{}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

@@ -171,6 +171,13 @@ func Test_countofview(t *testing.T) {
 		r = db.Query("\n  SELECT count(*) FROM t3 HAVING count(*)>5;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t3 HAVING count(*)>5;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.3"
@@ -189,6 +196,13 @@ func Test_countofview(t *testing.T) {
 		r = db.Query("\n  SELECT count(*) FROM t3 HAVING min(b)>'mmm';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t3 HAVING min(b)>'mmm';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.5"

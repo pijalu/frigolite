@@ -61,12 +61,24 @@ func Test_tkt3630(t *testing.T) {
 		r = db.Query("\n    CREATE TEMP TABLE temp1(a,b,c);\n    SELECT * FROM temp.sqlite_master WHERE sql GLOB '*TEMP*';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE temp1(a,b,c);\n    SELECT * FROM temp.sqlite_master WHERE sql GLOB '*TEMP*';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3630-2"
 		r = db.Query("\n    CREATE TABLE main1(a,b,c);\n    CREATE TEMP TABLE temp2 AS SELECT * FROM main1;\n    SELECT * FROM sqlite_temp_master WHERE sql GLOB '*TEMP*';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE main1(a,b,c);\n    CREATE TEMP TABLE temp2 AS SELECT * FROM main1;\n    SELECT * FROM sqlite_temp_master WHERE sql GLOB '*TEMP*';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3630-3"

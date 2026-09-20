@@ -78,6 +78,7 @@ func Test_securedel(t *testing.T) {
 		}
 	}
 	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
 	{ // do_test "securedel-1.1"
 		r = db.Query("\n    ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
 		if r.Error != nil {

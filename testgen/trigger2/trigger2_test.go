@@ -128,9 +128,8 @@ func Test_trigger2(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 		_res = db.Exec(" DROP INDEX tbl_idx; ")
 		_ = _res // catchsql
@@ -200,6 +199,12 @@ func Test_trigger2(t *testing.T) {
 			r = db.Query("\n  \n        CREATE TABLE other_tbl(a, b);\n        INSERT INTO other_tbl VALUES(1, 2);\n        INSERT INTO other_tbl VALUES(3, 4);\n        -- INSERT INTO tbl SELECT * FROM other_tbl;\n        INSERT INTO tbl VALUES(5, 6);\n        DROP TABLE other_tbl;\n  \n        SELECT * FROM rlog;\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  \n        CREATE TABLE other_tbl(a, b);\n        INSERT INTO other_tbl VALUES(1, 2);\n        INSERT INTO other_tbl VALUES(3, 4);\n        -- INSERT INTO tbl SELECT * FROM other_tbl;\n        INSERT INTO tbl VALUES(5, 6);\n        DROP TABLE other_tbl;\n  \n        SELECT * FROM rlog;\n      ")
+				return
+			}
+			got := flatten(r)
+			want := "1"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"5"+" "+"6"+" "+"2"+" "+"0"+" "+"0"+" "+"5"+" "+"6"+" "+"5"+" "+"6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -264,9 +269,8 @@ func Test_trigger2(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 			if test_varset.statementSet {
 				statement = test_varset.statement
@@ -399,6 +403,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n    UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tbl;\n  DROP TABLE log;\n")
@@ -429,9 +439,13 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query(" \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(t232) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(t232), "trigger2-3.2")
+		got := flatten(r)
+		want := tclListFlatten(t232)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tbl;\n  DROP TABLE log;\n")
@@ -448,6 +462,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n    INSERT INTO tblA values(1, 2);\n    SELECT * FROM tblA;\n    SELECT * FROM tblB;\n    SELECT * FROM tblC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO tblA values(1, 2);\n    SELECT * FROM tblA;\n    SELECT * FROM tblB;\n    SELECT * FROM tblC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1 2 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tblA;\n  DROP TABLE tblB;\n  DROP TABLE tblC;\n")
@@ -462,6 +482,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n    INSERT INTO tbl VALUES (1, 2, 3);\n    select * from tbl;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO tbl VALUES (1, 2, 3);\n    select * from tbl;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tbl;\n")
@@ -491,6 +517,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      BEGIN;\n      INSERT INTO tbl values (1, 2, 3);\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      INSERT INTO tbl values (1, 2, 3);\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.1b"
@@ -503,6 +535,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.1d"
@@ -515,12 +553,24 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.1f"
 		r = db.Query("\n      INSERT OR REPLACE INTO tbl values (2, 2, 3);\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT OR REPLACE INTO tbl values (2, 2, 3);\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.1g"
@@ -533,6 +583,13 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DELETE FROM tbl")
@@ -547,6 +604,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      BEGIN;\n      UPDATE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      UPDATE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 10 6 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.2b"
@@ -559,6 +622,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 10 6 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.2d"
@@ -571,18 +640,36 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "4 2 10 6 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.2f.1"
 		r = db.Query("\n      UPDATE OR REPLACE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE OR REPLACE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.2f.2"
 		r = db.Query("\n      INSERT INTO tbl VALUES (2, 3, 4);\n      SELECT * FROM tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO tbl VALUES (2, 3, 4);\n      SELECT * FROM tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 10 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-6.2g"
@@ -595,6 +682,12 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n      SELECT * from tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "4 2 3 6 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n    DROP TABLE tbl;\n  ")
@@ -611,54 +704,109 @@ func Test_trigger2(t *testing.T) {
 		r = db.Query("\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    SELECT * FROM tlog;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    SELECT * FROM tlog;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"2"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"3"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"4"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"5"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"6"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-7.3"
 		r = db.Query("\n    DELETE FROM tlog;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM tlog;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"2"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"3"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"4"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"5"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"6"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-7.4"
 		r = db.Query("\n    DELETE FROM tlog;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM tlog;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"2"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"3"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"5"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"6"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-8.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    CREATE VIEW v1 AS\n      SELECT a+b AS x, b+c AS y, a+c AS z FROM t1;\n    SELECT * FROM v1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    CREATE VIEW v1 AS\n      SELECT a+b AS x, b+c AS y, a+c AS z FROM t1;\n    SELECT * FROM v1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 5 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-8.2"
 		r = db.Query("\n    CREATE TABLE v1log(a,b,c,d,e,f);\n    CREATE TRIGGER r1 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NULL,OLD.y,NULL,OLD.z,NULL);\n    END;\n    DELETE FROM v1 WHERE x=1;\n    SELECT * FROM v1log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE v1log(a,b,c,d,e,f);\n    CREATE TRIGGER r1 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NULL,OLD.y,NULL,OLD.z,NULL);\n    END;\n    DELETE FROM v1 WHERE x=1;\n    SELECT * FROM v1log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-8.3"
 		r = db.Query("\n    DELETE FROM v1 WHERE x=3;\n    SELECT * FROM v1log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM v1 WHERE x=3;\n    SELECT * FROM v1log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 {} 5 {} 4 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-8.4"
 		r = db.Query("\n    INSERT INTO t1 VALUES(4,5,6);\n    DELETE FROM v1log;\n    DELETE FROM v1 WHERE y=11;\n    SELECT * FROM v1log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(4,5,6);\n    DELETE FROM v1log;\n    DELETE FROM v1 WHERE y=11;\n    SELECT * FROM v1log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 {} 11 {} 10 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-8.5"
 		r = db.Query("\n    CREATE TRIGGER r2 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO v1log VALUES(NULL,NEW.x,NULL,NEW.y,NULL,NEW.z);\n    END;\n    DELETE FROM v1log;\n    INSERT INTO v1 VALUES(1,2,3);\n    SELECT * FROM v1log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER r2 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO v1log VALUES(NULL,NEW.x,NULL,NEW.y,NULL,NEW.z);\n    END;\n    DELETE FROM v1log;\n    INSERT INTO v1 VALUES(1,2,3);\n    SELECT * FROM v1log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 {} 2 {} 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-8.6"
 		r = db.Query("\n    CREATE TRIGGER r3 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NEW.x,OLD.y,NEW.y,OLD.z,NEW.z);\n    END;\n    DELETE FROM v1log;\n    UPDATE v1 SET x=x+100, y=y+200, z=z+300;\n    SELECT * FROM v1log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER r3 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NEW.x,OLD.y,NEW.y,OLD.z,NEW.z);\n    END;\n    DELETE FROM v1log;\n    UPDATE v1 SET x=x+100, y=y+200, z=z+300;\n    SELECT * FROM v1log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 103 5 205 4 304 9 109 11 211 10 310"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger2-9.1"

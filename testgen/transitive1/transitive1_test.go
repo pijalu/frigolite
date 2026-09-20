@@ -335,6 +335,13 @@ func Test_transitive1(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t3(i INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t3 VALUES(10, '10');\n  SELECT * FROM t3 WHERE i=t AND t = '10 ';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(i INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t3 VALUES(10, '10');\n  SELECT * FROM t3 WHERE i=t AND t = '10 ';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-530"
@@ -401,6 +408,13 @@ func Test_transitive1(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM c1 WHERE x=y AND z=y AND z='abc';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM c1 WHERE x=y AND z=y AND z='abc';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-570eqp"
@@ -432,18 +446,39 @@ func Test_transitive1(t *testing.T) {
 		r = db.Query("\n  SELECT ALL * FROM t0,t1 WHERE b1=z3 AND a0=z3;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT ALL * FROM t0,t1 WHERE b1=z3 AND a0=z3;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-620"
 		r = db.Query("\n  SELECT ALL * FROM t0,t1 WHERE likely(b1=z3) AND a0=z3;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT ALL * FROM t0,t1 WHERE likely(b1=z3) AND a0=z3;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-630"
 		r = db.Query("\n  DROP TABLE t0;\n  DROP TABLE t1;\n  CREATE TABLE t0(c0 INT, c1 INT UNIQUE);\n  CREATE TABLE t1(c0 INT);\n  INSERT INTO t0(c0, c1) VALUES (0, 1);\n  INSERT INTO t1(c0) VALUES (1);\n  SELECT ALL * FROM t1 NATURAL JOIN t0 WHERE (t1.c0=t0.c1);\n  SELECT ALL * FROM t1 NATURAL JOIN t0 WHERE (likely(t1.c0=t0.c1));\n  SELECT ALL * FROM t1,t0 WHERE (likely(t1.c0=t0.c1) AND t1.c0=t0.c0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t0;\n  DROP TABLE t1;\n  CREATE TABLE t0(c0 INT, c1 INT UNIQUE);\n  CREATE TABLE t1(c0 INT);\n  INSERT INTO t0(c0, c1) VALUES (0, 1);\n  INSERT INTO t1(c0) VALUES (1);\n  SELECT ALL * FROM t1 NATURAL JOIN t0 WHERE (t1.c0=t0.c1);\n  SELECT ALL * FROM t1 NATURAL JOIN t0 WHERE (likely(t1.c0=t0.c1));\n  SELECT ALL * FROM t1,t0 WHERE (likely(t1.c0=t0.c1) AND t1.c0=t0.c0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -463,12 +498,26 @@ func Test_transitive1(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 CROSS JOIN t2 WHERE t2.y=t1.a AND t1.a=t2.x\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 CROSS JOIN t2 WHERE t2.y=t1.a AND t1.a=t2.x\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-720"
 		r = db.Query("\n  SELECT * FROM t1 CROSS JOIN t2 WHERE likely(t2.y=t1.a) AND unlikely(t1.a=t2.x)\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 CROSS JOIN t2 WHERE likely(t2.y=t1.a) AND unlikely(t1.a=t2.x)\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -482,6 +531,13 @@ func Test_transitive1(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(0),(3);\n  CREATE TABLE t2(b INT UNIQUE, c INT);\n  INSERT INTO t2 VALUES(1,4)\t,(0,5);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a AND b IS a);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE a=c AND a IS b);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE a=c AND b IS a);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a AND a IS b);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(0),(3);\n  CREATE TABLE t2(b INT UNIQUE, c INT);\n  INSERT INTO t2 VALUES(1,4)\t,(0,5);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a AND b IS a);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE a=c AND a IS b);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE a=c AND b IS a);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a AND a IS b);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-810"
@@ -500,18 +556,39 @@ func Test_transitive1(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t3 WHERE a=b AND a='4';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3 WHERE a=b AND a='4';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-812"
 		r = db.Query("\n  SELECT * FROM t3 WHERE a=b AND a='7';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3 WHERE a=b AND a='7';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "transitive1-813"
 		r = db.Query("\n  SELECT * FROM t3 WHERE a=b AND a='5x';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3 WHERE a=b AND a='5x';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -589,6 +666,13 @@ func Test_transitive1(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 CROSS JOIN t2 \n  WHERE (t1.x COLLATE nocase) = (t2.y COLLATE nocase) \n    AND (t2.y = 'ABC')\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 CROSS JOIN t2 \n  WHERE (t1.x COLLATE nocase) = (t2.y COLLATE nocase) \n    AND (t2.y = 'ABC')\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

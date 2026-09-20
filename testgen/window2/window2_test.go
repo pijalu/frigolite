@@ -55,7 +55,7 @@ func Test_window2(t *testing.T) {
 	_ = testdir // pre-declared from TCL source
 	var testprefix string
 	_ = testprefix // pre-declared from TCL source
-	var myres string
+	var myres *tclListBuilder
 	_ = myres // pre-declared from TCL source
 	var res2 string
 	_ = res2 // pre-declared from TCL source
@@ -718,7 +718,7 @@ func Test_window2(t *testing.T) {
 	}
 	{ // do_test "4.9"
 		vtab.TclVarSet("myres", "", "")
-		myres = ""
+		myres = &tclListBuilder{}
 		_ = myres // suppress unused warning
 		_rows0 := db.Query("SELECT \n    rank() OVER win AS rank,\n    cume_dist() OVER win AS cume_dist FROM t1\n  WINDOW win AS (ORDER BY 1);")
 		if _rows0.Error != nil {
@@ -729,7 +729,7 @@ func Test_window2(t *testing.T) {
 		for _, _cell1 := range _row0 {
 		_r := fmt.Sprint(_cell1)
 		_ = _r // suppress unused warning
-				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres.Append(tclFormat("%.4f", _r))
 			}
 		}
 		vtab.TclVarSet("res2", "", "1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000")
@@ -773,7 +773,7 @@ func Test_window2(t *testing.T) {
 	}
 	{ // do_test "5.1"
 		vtab.TclVarSet("myres", "", "")
-		myres = ""
+		myres = &tclListBuilder{}
 		_ = myres // suppress unused warning
 		_rows2 := db.Query("SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;")
 		if _rows2.Error != nil {
@@ -784,7 +784,7 @@ func Test_window2(t *testing.T) {
 		for _, _cell3 := range _row2 {
 		_r := fmt.Sprint(_cell3)
 		_ = _r // suppress unused warning
-				myres = tclListAppend(myres, tclFormat("%.4f", _r))
+				myres.Append(tclFormat("%.4f", _r))
 			}
 		}
 		vtab.TclVarSet("res2", "", "7.2000 8.7500 10.0000 11.0000 15.0000")
@@ -818,6 +818,13 @@ func Test_window2(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t0 WHERE \n      (0, t0.c0) IN (SELECT DENSE_RANK() OVER(), LAG(0) OVER() FROM t0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE \n      (0, t0.c0) IN (SELECT DENSE_RANK() OVER(), LAG(0) OVER() FROM t0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "7.0"
@@ -862,4 +869,5 @@ func Test_window2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+
 }

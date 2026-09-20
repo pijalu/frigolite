@@ -151,6 +151,13 @@ func Test_vtabK(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "210"

@@ -78,12 +78,25 @@ func Test_fts3c(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 1 0 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3c-1.0.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4} {0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4} {0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3c-1.0.1 {a is test that this was} (unsupported command, not transpiled)
@@ -113,12 +126,24 @@ func Test_fts3c(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 1 0 2 0 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3c-1.1.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4 0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3c-1.1.1 {a is test that this was} (unsupported command, not transpiled)
@@ -153,12 +178,24 @@ func Test_fts3c(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 1 0 2 0 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3c-1.2.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3c-1.2.1 {a is test that this was} (unsupported command, not transpiled)
@@ -193,12 +230,24 @@ func Test_fts3c(t *testing.T) {
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3c-1.3.matches"
 		r = db.Query("\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// check_terms_all fts3c-1.3.1 {a test that was} (unsupported command, not transpiled)

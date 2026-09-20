@@ -88,6 +88,13 @@ func Test_conflict(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// foreach {i cmd t0 t1 t2 t3} "1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0"
@@ -153,6 +160,13 @@ func Test_conflict(t *testing.T) {
 			r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// foreach {i cmd t0 t1 t2} "1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}"
@@ -210,6 +224,13 @@ func Test_conflict(t *testing.T) {
 				r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// foreach {i cmd t0 t1 t2} "1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}"
@@ -267,6 +288,13 @@ func Test_conflict(t *testing.T) {
 					r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				// foreach {i conf1 cmd t0 t1 t2} "1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1"
@@ -331,6 +359,13 @@ func Test_conflict(t *testing.T) {
 						r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
+							return
+						}
+						got := flatten(r)
+						want := tclListFlatten("{}")
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					// foreach {i conf1 cmd t0 t1 t2} "1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}"
@@ -396,6 +431,12 @@ func Test_conflict(t *testing.T) {
 							r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 2 1 4"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						// foreach {i conf1 cmd t0 t1 t2 t3 t4} "1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0"
@@ -496,9 +537,8 @@ func Test_conflict(t *testing.T) {
 									// incr i 1
 									{
 										_n, _err := strconv.Atoi(i)
-										if _err == nil {
-											i = strconv.Itoa(_n + 1)
-										}
+										if _err != nil { _n = 0 }
+										i = strconv.Itoa(_n + 1)
 									}
 								}
 								r = db.Query("\n    SELECT count(*), min(a), max(b) FROM t1;\n  ")
@@ -510,6 +550,12 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-7.2.1"
@@ -519,18 +565,36 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n    SELECT b FROM t1 WHERE a=1000;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=1000;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "2"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-7.4"
 								r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "50"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-7.5"
 								r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "50"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-7.5.1"
@@ -540,12 +604,24 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n    SELECT b FROM t1 WHERE a=1001;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=1001;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "51"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-7.7"
 								r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-7.7.1"
@@ -615,6 +691,12 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n    PRAGMA count_changes=0;\n    CREATE TABLE t2(\n      a INTEGER UNIQUE ON CONFLICT IGNORE,\n      b INTEGER UNIQUE ON CONFLICT FAIL,\n      c INTEGER UNIQUE ON CONFLICT REPLACE,\n      d INTEGER UNIQUE ON CONFLICT ABORT,\n      e INTEGER UNIQUE ON CONFLICT ROLLBACK\n    );\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n    SELECT * FROM t3;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=0;\n    CREATE TABLE t2(\n      a INTEGER UNIQUE ON CONFLICT IGNORE,\n      b INTEGER UNIQUE ON CONFLICT FAIL,\n      c INTEGER UNIQUE ON CONFLICT REPLACE,\n      d INTEGER UNIQUE ON CONFLICT ABORT,\n      e INTEGER UNIQUE ON CONFLICT ROLLBACK\n    );\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n    SELECT * FROM t3;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-9.2"
@@ -874,12 +956,24 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b text);\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b text);\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "1 one 2 two"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-12.2"
 								r = db.Query("\n    UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "1 one 2 two"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-12.3"
@@ -893,6 +987,12 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "2 one"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "conflict-12.5"
@@ -915,6 +1015,12 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "1 3"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // "conflict-14.1"
@@ -989,6 +1095,13 @@ func Test_conflict(t *testing.T) {
 								r = db.Query("\n  SELECT a FROM t1 ORDER BY a;\n")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a FROM t1 ORDER BY a;\n")
+									return
+								}
+								got := flatten(r)
+								want := tclListFlatten("{}")
+								got = tclListFlattenCollapse(got)
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // "conflict-16.5"

@@ -77,12 +77,24 @@ func Test_lock7(t *testing.T) {
 		r = db1.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
+			return
+		}
+		got := flatten(r)
+		want := "main unlocked temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock7-1.3"
 		r = db2.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
+			return
+		}
+		got := flatten(r)
+		want := "main unlocked temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock7-1.4"
@@ -101,12 +113,24 @@ func Test_lock7(t *testing.T) {
 		r = db1.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
+			return
+		}
+		got := flatten(r)
+		want := "main reserved temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock7-1.7"
 		r = db2.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
+			return
+		}
+		got := flatten(r)
+		want := "main unlocked temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "lock7-1.8"

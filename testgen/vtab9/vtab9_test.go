@@ -68,6 +68,12 @@ func Test_vtab9(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2(a,b,c);\n    CREATE VIRTUAL TABLE t3 USING echo(t2);\n    CREATE TABLE d1(a,b,c);\n    INSERT INTO d1 VALUES(1,2,3);\n    INSERT INTO d1 VALUES('a','b','c');\n    INSERT INTO d1 VALUES(NULL,'x',123.456);\n    INSERT INTO d1 VALUES(x'6869',123456789,-12345);\n    INSERT INTO t3(a,b,c) SELECT * FROM d1;\n    SELECT rowid, * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a,b,c);\n    CREATE VIRTUAL TABLE t3 USING echo(t2);\n    CREATE TABLE d1(a,b,c);\n    INSERT INTO d1 VALUES(1,2,3);\n    INSERT INTO d1 VALUES('a','b','c');\n    INSERT INTO d1 VALUES(NULL,'x',123.456);\n    INSERT INTO d1 VALUES(x'6869',123456789,-12345);\n    INSERT INTO t3(a,b,c) SELECT * FROM d1;\n    SELECT rowid, * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 3 2 a b c 3 {} x 123.456 4 hi 123456789 -12345"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

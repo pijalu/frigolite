@@ -206,7 +206,7 @@ func Test_permutations(t *testing.T) {
 	_ = options__lindex_o_0_ // pre-declared from TCL source
 	var testspec_name string
 	_ = testspec_name // pre-declared from TCL source
-	var testsuitelist string
+	var testsuitelist *tclListBuilder
 	_ = testsuitelist // pre-declared from TCL source
 	var isExclude string
 	_ = isExclude // pre-declared from TCL source
@@ -216,7 +216,7 @@ func Test_permutations(t *testing.T) {
 	_ = f // pre-declared from TCL source
 	var t_f string
 	_ = t_f // pre-declared from TCL source
-	var alltests string
+	var alltests *tclListBuilder
 	_ = alltests // pre-declared from TCL source
 	var allquicktests string
 	_ = allquicktests // pre-declared from TCL source
@@ -335,25 +335,25 @@ func Test_permutations(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	alltests = ""
+	alltests = &tclListBuilder{}
 	_ = alltests // suppress unused warning
 	for _, f := range tclSplitList(tclGlob(testdir + "/*.test")) {
 	_ = f // suppress unused warning
-		alltests = tclListAppend(alltests, filepath.Base(f))
+		alltests.Append(filepath.Base(f))
 	}
 	for _, f := range tclSplitList(tclGlob(testdir + "/../ext/rtree/*.test") + " " + tclGlob(testdir + "/../ext/fts5/test/*.test") + " " + tclGlob(testdir + "/../ext/expert/*.test") + " " + tclGlob(testdir + "/../ext/lsm1/test/*.test") + " " + tclGlob(testdir + "/../ext/recover/*.test") + " " + tclGlob(testdir + "/../ext/rbu/*.test") + " " + tclGlob(testdir + "/../ext/intck/*.test") + " " + tclGlob("\\")) {
 	_ = f // suppress unused warning
-		alltests = tclListAppend(alltests, f)
+		alltests.Append(f)
 	}
 	for _, f := range tclSplitList(tclGlob(testdir + "/../ext/session/*.test")) {
 	_ = f // suppress unused warning
-		alltests = tclListAppend(alltests, f)
+		alltests.Append(f)
 	}
 	if tcl_platform_platform != "unix" {
-		alltests = "test_set $alltests -exclude crash.test crash2.test"
+		_ = "test_set $alltests -exclude crash.test crash2.test"
 		_ = alltests // suppress unused warning
 	}
-	alltests = "test_set $alltests -exclude {\n  all.test        quick.test  veryquick.test\n  memleak.test    permutations.test  soak.test   fts3.test\n  mallocAll.test  rtree.test         full.test   extraquick.test\n  session.test    rbu.test\n}"
+	_ = "test_set $alltests -exclude {\n  all.test        quick.test  veryquick.test\n  memleak.test    permutations.test  soak.test   fts3.test\n  mallocAll.test  rtree.test         full.test   extraquick.test\n  session.test    rbu.test\n}"
 	_ = alltests // suppress unused warning
 	allquicktests = "test_set $alltests -exclude {\n  backup_ioerr.test corrupt.test\n  corruptC.test crash.test crash2.test crash3.test crash4.test crash5.test\n  crash6.test crash7.test delete3.test e_fts3.test fts3rnd.test\n  fkey_malloc.test fuzz.test fuzz3.test fuzz_malloc.test in2.test loadext.test\n  misc7.test mutex2.test onefile.test pagerfault2.test \n  savepoint4.test savepoint6.test select9.test \n  speed1.test speed1p.test speed2.test speed3.test speed4.test \n  speed4p.test sqllimits1.test tkt2686.test thread001.test thread002.test\n  thread003.test thread004.test thread005.test trans2.test vacuum3.test \n  incrvacuum_ioerr.test autovacuum_crash.test btree8.test shared_err.test\n  vtab_err.test walslow.test walcrash.test walcrash3.test\n  walthread.test rtree3.test indexfault.test securedel2.test\n  sort3.test sort4.test fts4growth.test fts4growth2.test\n  bigsort.test walprotocol.test mmap4.test fuzzer2.test\n  walcrash2.test e_fkey.test backup.test\n\n  fts4merge.test fts4merge2.test fts4merge4.test fts4check.test\n  fts4merge5.test\n  fts3cov.test fts3snippet.test fts3corrupt2.test fts3an.test\n  fts3defer.test fts4langid.test fts3sort.test fts5unicode.test\n  recovercorrupt.test\n\n  rtree4.test\n  sessionbig.test\n  sessionbig2.test\n\n  writecrash.test view3.test \n  fts5dlidx.test fts5ac.test fts4merge3.test fts5prefix.test\n  fts5bigtok2.test fts5secure7.test\n  sessionB.test\n}"
 	_ = allquicktests // suppress unused warning
@@ -391,7 +391,7 @@ func Test_permutations(t *testing.T) {
 		allquicktests = "main.test"
 		_ = allquicktests // suppress unused warning
 	}
-	testsuitelist = tclListAppend(testsuitelist, "xxx")
+	testsuitelist.Append("xxx")
 	// test_suite veryquick -prefix  -description {\n  "Very" quick test suite. Runs in minutes on... (unsupported command, not transpiled)
 	// test_suite shell -prefix  -description {\n  Run tests of the command-line shell\n} -files [... (unsupported command, not transpiled)
 	// test_suite extraquick -prefix  -description {\n  "Extra" quick test suite. Runs in a few mi... (unsupported command, not transpiled)
@@ -410,12 +410,12 @@ func Test_permutations(t *testing.T) {
 	// test_suite queryplanner -prefix  -description {\n  Tests of the query planner and query opt... (unsupported command, not transpiled)
 	// test_suite vfslog -prefix  -description {\n  "Vfslog" quick test suite. Like "veryquick" ex... (unsupported command, not transpiled)
 	// test_suite atomic-batch-write -prefix  -description {\n  Like veryquick.test, but must be r... (unsupported command, not transpiled)
-	testsuitelist = tclListAppend(testsuitelist, "xxx")
+	testsuitelist.Append("xxx")
 	// test_suite coverage-wal -description {\n  Coverage tests for file wal.c.\n} -files {\n  wal... (unsupported command, not transpiled)
 	// test_suite coverage-pager -description {\n  Coverage tests for file pager.c.\n} -files {\n ... (unsupported command, not transpiled)
 	// test_suite coverage-analyze -description {\n  Coverage tests for file analyze.c.\n} -files ... (unsupported command, not transpiled)
 	// test_suite coverage-sorter -description {\n  Coverage tests for file vdbesort.c.\n} -files ... (unsupported command, not transpiled)
-	testsuitelist = tclListAppend(testsuitelist, "xxx")
+	testsuitelist.Append("xxx")
 	// test_suite memsubsys1 -description {\n  Tests using pre-allocated page blocks\n} -files [\n... (unsupported command, not transpiled)
 	// test_suite memsubsys2 -description {\n  Tests using small pre-allocated page blocks\n} -fil... (unsupported command, not transpiled)
 	// test_suite nolookaside -description {\n  OOM tests with lookaside disabled\n} -initialize {... (unsupported command, not transpiled)
@@ -472,4 +472,5 @@ func Test_permutations(t *testing.T) {
 		var argv = ""
 		_ = argv // suppress unused warning
 	}
+
 }

@@ -67,6 +67,12 @@ func Test_tkt3424(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM \n    names LEFT OUTER JOIN orig\n    ON names.data = orig.data AND names.code = orig.code;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM \n    names LEFT OUTER JOIN orig\n    ON names.data = orig.data AND names.code = orig.code;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 E1 AAA AAA E1 2 {} BBB {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3424-1.3"
@@ -79,6 +85,12 @@ func Test_tkt3424(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM \n    names LEFT OUTER JOIN orig\n    ON names.data = orig.data AND names.code = orig.code;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM \n    names LEFT OUTER JOIN orig\n    ON names.data = orig.data AND names.code = orig.code;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 E1 AAA AAA E1 2 {} BBB {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

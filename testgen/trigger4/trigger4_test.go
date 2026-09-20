@@ -60,12 +60,24 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("\n    create table test1(id integer primary key,a);\n    create table test2(id integer,b);\n    create view test as\n      select test1.id as id,a as a,b as b\n      from test1 join test2 on test2.id =  test1.id;\n    create trigger I_test instead of insert on test\n      begin\n        insert into test1 (id,a) values (NEW.id,NEW.a);\n        insert into test2 (id,b) values (NEW.id,NEW.b);\n      end;\n    insert into test values(1,2,3);\n    select * from test1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table test1(id integer primary key,a);\n    create table test2(id integer,b);\n    create view test as\n      select test1.id as id,a as a,b as b\n      from test1 join test2 on test2.id =  test1.id;\n    create trigger I_test instead of insert on test\n      begin\n        insert into test1 (id,a) values (NEW.id,NEW.a);\n        insert into test2 (id,b) values (NEW.id,NEW.b);\n      end;\n    insert into test values(1,2,3);\n    select * from test1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-1.2"
 		r = db.Query("\n    select * from test2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from test2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-1.3"
@@ -82,18 +94,36 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("\n    select * from test2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from test2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-2.1"
 		r = db.Query("\n    create trigger U_test instead of update on test\n      begin\n        update test1 set a=NEW.a where id=NEW.id;\n        update test2 set b=NEW.b where id=NEW.id;\n      end;\n    update test set a=22 where id=1;\n    select * from test1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create trigger U_test instead of update on test\n      begin\n        update test1 set a=NEW.a where id=NEW.id;\n        update test2 set b=NEW.b where id=NEW.id;\n      end;\n    update test set a=22 where id=1;\n    select * from test1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 22 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-2.2"
 		r = db.Query("\n    select * from test2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from test2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-2.3"
@@ -110,6 +140,12 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("\n    select * from test2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from test2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4 66"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-3.1"
@@ -136,18 +172,36 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("\n    select * from test1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from test1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 22 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-3.5"
 		r = db.Query("\n    create table test2(id,b);\n    insert into test values(7,8,9);\n    select * from test1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table test2(id,b);\n    insert into test values(7,8,9);\n    select * from test1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 22 4 5 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-3.6"
 		r = db.Query("\n    select * from test2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from test2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-3.7"
@@ -178,6 +232,12 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("select a, b from vw where a<103 or a>226 order by a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select a, b from vw where a<103 or a>226 order by a")
+			return
+		}
+		got := flatten(r)
+		want := "101 1001 102 1002 227 1127 228 1128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-5.1"
@@ -190,6 +250,12 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("select * from vw")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select * from vw")
+			return
+		}
+		got := flatten(r)
+		want := "101 1001"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-6.1"
@@ -202,6 +268,12 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("select count(*) from vw")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select count(*) from vw")
+			return
+		}
+		got := flatten(r)
+		want := "128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger4-7.1"
@@ -214,10 +286,17 @@ func Test_trigger4(t *testing.T) {
 		r = db.Query("select a, b from vw where a<=102 or a>=227 order by a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select a, b from vw where a<=102 or a>=227 order by a")
+			return
+		}
+		got := flatten(r)
+		want := "101 1001 102 2002 227 2127 228 2128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	db.Close()
 	os.Remove("trigtest.db")
+	os.Remove("trigtest.db-journal")
 }

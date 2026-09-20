@@ -73,6 +73,12 @@ func Test_where4(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(w, x, y);\n    CREATE INDEX i1wxy ON t1(w,x,y);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,NULL,3);\n    INSERT INTO t1 VALUES('a','b','c');\n    INSERT INTO t1 VALUES('a',NULL,'c');\n    INSERT INTO t1 VALUES(X'78',x'79',x'7a');\n    INSERT INTO t1 VALUES(X'78',NULL,X'7A');\n    INSERT INTO t1 VALUES(NULL,NULL,NULL);\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(w, x, y);\n    CREATE INDEX i1wxy ON t1(w,x,y);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,NULL,3);\n    INSERT INTO t1 VALUES('a','b','c');\n    INSERT INTO t1 VALUES('a',NULL,'c');\n    INSERT INTO t1 VALUES(X'78',x'79',x'7a');\n    INSERT INTO t1 VALUES(X'78',NULL,X'7A');\n    INSERT INTO t1 VALUES(NULL,NULL,NULL);\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -131,36 +137,72 @@ func Test_where4(t *testing.T) {
 		r = db.Query("SELECT rowid FROM t1 ORDER BY w, x, y")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 ORDER BY w, x, y")
+			return
+		}
+		got := flatten(r)
+		want := "7 2 1 4 3 6 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-2.2"
 		r = db.Query("SELECT rowid FROM t1 ORDER BY w DESC, x, y")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 ORDER BY w DESC, x, y")
+			return
+		}
+		got := flatten(r)
+		want := "6 5 4 3 2 1 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-2.3"
 		r = db.Query("SELECT rowid FROM t1 ORDER BY w, x DESC, y")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 ORDER BY w, x DESC, y")
+			return
+		}
+		got := flatten(r)
+		want := "7 1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-3.1"
 		r = db.Query("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 VALUES(3);\n    CREATE TABLE t3(x,y,UNIQUE(\"x\",'y' ASC)); -- Goofy syntax allowed\n    INSERT INTO t3 VALUES(1,11);\n    INSERT INTO t3 VALUES(2,NULL);\n \n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE +y IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 VALUES(3);\n    CREATE TABLE t3(x,y,UNIQUE(\"x\",'y' ASC)); -- Goofy syntax allowed\n    INSERT INTO t3 VALUES(1,11);\n    INSERT INTO t3 VALUES(2,NULL);\n \n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE +y IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 {} 3 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-3.2"
 		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 {} 3 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-3.3"
 		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE NULL is y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE NULL is y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 {} 3 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-3.4"
@@ -173,24 +215,52 @@ func Test_where4(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE test(col1 TEXT PRIMARY KEY);\n    INSERT INTO test(col1) values('a');\n    INSERT INTO test(col1) values('b');\n    INSERT INTO test(col1) values('c');\n    CREATE TABLE test2(col1 TEXT PRIMARY KEY);\n    INSERT INTO test2(col1) values('a');\n    INSERT INTO test2(col1) values('b');\n    INSERT INTO test2(col1) values('c');\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE +t2.col1 IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE test(col1 TEXT PRIMARY KEY);\n    INSERT INTO test(col1) values('a');\n    INSERT INTO test(col1) values('b');\n    INSERT INTO test(col1) values('c');\n    CREATE TABLE test2(col1 TEXT PRIMARY KEY);\n    INSERT INTO test2(col1) values('a');\n    INSERT INTO test2(col1) values('b');\n    INSERT INTO test2(col1) values('c');\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE +t2.col1 IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-4.2"
 		r = db.Query("\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE t2.col1 IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE t2.col1 IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-4.3"
 		r = db.Query("\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE +t1.col1 IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE +t1.col1 IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-4.4"
 		r = db.Query("\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE t1.col1 IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE t1.col1 IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-5.1"
@@ -207,17 +277,35 @@ func Test_where4(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t4 VALUES(1,1,11);\n    INSERT INTO t4 VALUES(1,2,12);\n    INSERT INTO t4 VALUES(1,3,13);\n    INSERT INTO t4 VALUES(2,2,22);\n    SELECT rowid FROM t4 WHERE x IN (1,9,2,5) AND y IN (1,3,NULL,2) AND z!=13;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t4 VALUES(1,1,11);\n    INSERT INTO t4 VALUES(1,2,12);\n    INSERT INTO t4 VALUES(1,3,13);\n    INSERT INTO t4 VALUES(2,2,22);\n    SELECT rowid FROM t4 WHERE x IN (1,9,2,5) AND y IN (1,3,NULL,2) AND z!=13;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where4-5.3"
 		r = db.Query("\n    SELECT rowid FROM t4 WHERE x IN (1,9,NULL,2) AND y IN (1,3,2) AND z!=13;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t4 WHERE x IN (1,9,NULL,2) AND y IN (1,3,2) AND z!=13;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "where4-6.1" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs
+	{ // "where4-6.1" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs (SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE t5(a,b,c,d,e,f,UNIQUE(a,b,c,d,e,f));\n    INSERT INTO t5 VALUES(1,1,1,1,1,11111);\n    INSERT INTO t5 VALUES(2,2,2,2,2,22222);\n    INSERT INTO t5 VALUES(1,2,3,4,5,12345);\n    INSERT INTO t5 VALUES(2,3,4,5,6,23456);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("\n    SELECT rowid FROM t5\n     WHERE a IN (1,9,2) AND b=2 AND c IN (1,2,3,4) AND d>0\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "where4-6.2" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs
+	{ // "where4-6.2" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs (SQL side effects only)
+		_res = db.Exec("\n    SELECT rowid FROM t5\n     WHERE a IN (1,NULL,2) AND b=2 AND c IN (1,2,3,4) AND d>0\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "where4-7.1"
 		_res = db.Exec("\n    CREATE TABLE t6(y,z,PRIMARY KEY(y,z));\n  ")
@@ -241,6 +329,12 @@ func Test_where4(t *testing.T) {
 		r = db.Query("\n    SELECT sum((\n      SELECT d FROM t8 WHERE a = i AND b = i AND c < NULL\n    )) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum((\n      SELECT d FROM t8 WHERE a = i AND b = i AND c < NULL\n    )) FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.1"

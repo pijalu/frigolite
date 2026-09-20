@@ -66,6 +66,13 @@ func Test_rtreeI(t *testing.T) {
 		r = db.Query("\n  SELECT 123 FROM t1, t2 WHERE (a,0)>(x0,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 FROM t1, t2 WHERE (a,0)>(x0,0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeI-1.21"
@@ -108,12 +115,26 @@ func Test_rtreeI(t *testing.T) {
 		r = db.Query("\n  SELECT 123 FROM t1, t2 WHERE (a,0)<(x0,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 FROM t1, t2 WHERE (a,0)<(x0,0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeI-1.30"
 		r = db.Query("\n  SELECT 123 FROM t1, t2 WHERE (x0,0)<(a,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 FROM t1, t2 WHERE (x0,0)<(a,0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeI-1.31"
@@ -132,6 +153,13 @@ func Test_rtreeI(t *testing.T) {
 		r = db.Query("\n  SELECT 123 FROM t1, t2 WHERE x1<5 AND id<99 AND (a,0)>(x0,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 FROM t1, t2 WHERE x1<5 AND id<99 AND (a,0)>(x0,0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeI-1.41"
@@ -162,12 +190,26 @@ func Test_rtreeI(t *testing.T) {
 		r = db.Query("\n  SELECT 123 FROM t1, t2 WHERE x1<5 AND id<99 AND (a,0)<(x0,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 FROM t1, t2 WHERE x1<5 AND id<99 AND (a,0)<(x0,0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeI-1.50"
 		r = db.Query("\n  SELECT 123 FROM t1, t2 WHERE 5>x1 AND 99>id AND (x0,0)<(a,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 FROM t1, t2 WHERE 5>x1 AND 99>id AND (x0,0)<(a,0);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtreeI-1.51"

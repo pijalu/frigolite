@@ -163,9 +163,8 @@ func Test_rtree2(t *testing.T) {
 						// incr jj 1
 						{
 							_n, _err := strconv.Atoi(jj)
-							if _err == nil {
-								jj = strconv.Itoa(_n + 1)
-							}
+							if _err != nil { _n = 0 }
+							jj = strconv.Itoa(_n + 1)
 						}
 					}
 					values = strings.Join(tclSplitList(values), ",")
@@ -189,9 +188,8 @@ func Test_rtree2(t *testing.T) {
 						// incr ii -1
 						{
 							_n, _err := strconv.Atoi(ii)
-							if _err == nil {
-								ii = strconv.Itoa(_n + -1)
-							}
+							if _err != nil { _n = 0 }
+							ii = strconv.Itoa(_n + -1)
 						}
 					} else {
 						_res = db.Exec("INSERT INTO t2 VALUES(" + ii + ", " + values + ")")
@@ -199,9 +197,8 @@ func Test_rtree2(t *testing.T) {
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)
-						if _err == nil {
-							ii = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						ii = strconv.Itoa(_n + 1)
 					}
 				}
 				t1 = tclExecSQL(db, "SELECT * FROM t1 ORDER BY ii")
@@ -277,9 +274,8 @@ func Test_rtree2(t *testing.T) {
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
-					if _err == nil {
-						ii = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("ii", "", "0")
@@ -317,9 +313,8 @@ func Test_rtree2(t *testing.T) {
 				// incr ii NDEL
 				{
 					_n, _err := strconv.Atoi(ii)
-					if _err == nil {
-						ii = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(NDEL); return _v }())
-					}
+					if _err != nil { _n = 0 }
+					ii = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(NDEL); return _v }())
 				}
 			}
 			{ // do_test "rtree2-" + module + "." + nDim + ".6"
@@ -331,9 +326,8 @@ func Test_rtree2(t *testing.T) {
 			// incr nDim 1
 			{
 				_n, _err := strconv.Atoi(nDim)
-				if _err == nil {
-					nDim = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				nDim = strconv.Itoa(_n + 1)
 			}
 		}
 	}

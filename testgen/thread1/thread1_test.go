@@ -68,6 +68,12 @@ func Test_thread1(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abcdefgh');\n    INSERT INTO t1 SELECT a+1, b||b FROM t1;\n    INSERT INTO t1 SELECT a+2, b||b FROM t1;\n    INSERT INTO t1 SELECT a+4, b||b FROM t1;\n    SELECT count(*), max(length(b)) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abcdefgh');\n    INSERT INTO t1 SELECT a+1, b||b FROM t1;\n    INSERT INTO t1 SELECT a+2, b||b FROM t1;\n    INSERT INTO t1 SELECT a+4, b||b FROM t1;\n    SELECT count(*), max(length(b)) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "thread1-1.2"
@@ -145,6 +151,13 @@ func Test_thread1(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "thread1-2.5"
@@ -162,6 +175,13 @@ func Test_thread1(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "thread1-2.8"
@@ -181,6 +201,12 @@ func Test_thread1(t *testing.T) {
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "98 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// thread_halt * (unsupported command, not transpiled)

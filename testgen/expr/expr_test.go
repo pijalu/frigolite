@@ -653,9 +653,8 @@ func Test_expr(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("INSERT INTO test1 VALUES(NULL,0)")
@@ -666,6 +665,12 @@ func Test_expr(t *testing.T) {
 		r = db.Query("SELECT * FROM test1 ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test1 ORDER BY a")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0 1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 256 9 512 10 1024 11 2048 12 4096 13 8192 14 16384 15 32768 16 65536 17 131072 18 262144 19 524288 20 1048576"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -748,36 +753,72 @@ func Test_expr(t *testing.T) {
 		r = db.Query("SELECT CURRENT_TIME")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIME")
+			return
+		}
+		got := flatten(r)
+		want := "15:34:09"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-8.2"
 		r = db.Query("SELECT CURRENT_DATE")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_DATE")
+			return
+		}
+		got := flatten(r)
+		want := "2006-09-01"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-8.3"
 		r = db.Query("SELECT CURRENT_TIMESTAMP")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIMESTAMP")
+			return
+		}
+		got := flatten(r)
+		want := "2006-09-01 15:34:09"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-8.4"
 		r = db.Query("SELECT CURRENT_TIME==time('now');")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIME==time('now');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-8.5"
 		r = db.Query("SELECT CURRENT_DATE==date('now');")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_DATE==date('now');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-8.6"
 		r = db.Query("SELECT CURRENT_TIMESTAMP==datetime('now');")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIMESTAMP==datetime('now');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	function.SetNowFunc(func() time.Time { return time.Unix(0, 0) })
@@ -785,6 +826,12 @@ func Test_expr(t *testing.T) {
 		r = db.Query("SELECT round(-('-'||'123'))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(-('-'||'123'))")
+			return
+		}
+		got := flatten(r)
+		want := "123.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-10.1"
@@ -803,72 +850,144 @@ func Test_expr(t *testing.T) {
 		r = db.Query("SELECT typeof(9223372036854775807)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(9223372036854775807)")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.2"
 		r = db.Query("SELECT typeof(00000009223372036854775807)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(00000009223372036854775807)")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.3"
 		r = db.Query("SELECT typeof(+9223372036854775807)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(+9223372036854775807)")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.4"
 		r = db.Query("SELECT typeof(+000000009223372036854775807)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(+000000009223372036854775807)")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.5"
 		r = db.Query("SELECT typeof(9223372036854775808)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(9223372036854775808)")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.6"
 		r = db.Query("SELECT typeof(00000009223372036854775808)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(00000009223372036854775808)")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.7"
 		r = db.Query("SELECT typeof(+9223372036854775808)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(+9223372036854775808)")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.8"
 		r = db.Query("SELECT typeof(+0000009223372036854775808)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(+0000009223372036854775808)")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.11"
 		r = db.Query("SELECT typeof(-9223372036854775808)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(-9223372036854775808)")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.12"
 		r = db.Query("SELECT typeof(-00000009223372036854775808)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(-00000009223372036854775808)")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.13"
 		r = db.Query("SELECT typeof(-9223372036854775809)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(-9223372036854775809)")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-11.14"
 		r = db.Query("SELECT typeof(-00000009223372036854775809)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(-00000009223372036854775809)")
+			return
+		}
+		got := flatten(r)
+		want := "real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "expr-12.1"
@@ -889,12 +1008,24 @@ func Test_expr(t *testing.T) {
 			r = db.Query("\n      SELECT 0+'9223372036854775807'\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0+'9223372036854775807'\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854775807"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "expr-13.3"
 			r = db.Query("\n      SELECT '9223372036854775807'+0\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT '9223372036854775807'+0\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854775807"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

@@ -5290,30 +5290,60 @@ func Test_boundary3(t *testing.T) {
 		r = db.Query("\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 9223372036854775807 ORDER BY t2.a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 9223372036854775807 ORDER BY t2.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.16.gt.2"
 		r = db.Query("\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid > 9223372036854775807 ORDER BY t1.a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid > 9223372036854775807 ORDER BY t1.a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.16.gt.3"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=3\n     ORDER BY t1.rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=3\n     ORDER BY t1.rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.16.gt.4"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=3\n     ORDER BY t1.rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=3\n     ORDER BY t1.rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.16.gt.5"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=3\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=3\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.16.ge.1"
@@ -16156,30 +16186,60 @@ func Test_boundary3(t *testing.T) {
 		r = db.Query("\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -9223372036854775808 ORDER BY t2.a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -9223372036854775808 ORDER BY t2.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.46.lt.2"
 		r = db.Query("\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -9223372036854775808 ORDER BY t1.a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -9223372036854775808 ORDER BY t1.a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.46.lt.3"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=55\n     ORDER BY t1.rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=55\n     ORDER BY t1.rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.46.lt.4"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=55\n     ORDER BY t1.rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=55\n     ORDER BY t1.rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.46.lt.5"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=55\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=55\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.46.le.1"
@@ -22270,60 +22330,120 @@ func Test_boundary3(t *testing.T) {
 		r = db.Query("\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 9.22337303685477580800e+18 ORDER BY t2.a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 9.22337303685477580800e+18 ORDER BY t2.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.gt.2"
 		r = db.Query("\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid > 9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid > 9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.gt.3"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.gt.4"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.gt.5"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=65\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=65\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.ge.1"
 		r = db.Query("\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 9.22337303685477580800e+18 ORDER BY t2.a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 9.22337303685477580800e+18 ORDER BY t2.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.ge.2"
 		r = db.Query("\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.ge.3"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.ge.4"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= t2.r\n     WHERE t2.a=65\n     ORDER BY t1.rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.ge.5"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= t2.r\n     WHERE t2.a=65\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= t2.r\n     WHERE t2.a=65\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.65.lt.1"
@@ -22570,60 +22690,120 @@ func Test_boundary3(t *testing.T) {
 		r = db.Query("\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -9.22337303685477580800e+18 ORDER BY t2.a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -9.22337303685477580800e+18 ORDER BY t2.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.lt.2"
 		r = db.Query("\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.lt.3"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.lt.4"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.lt.5"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=66\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=66\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.le.1"
 		r = db.Query("\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -9.22337303685477580800e+18 ORDER BY t2.a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -9.22337303685477580800e+18 ORDER BY t2.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.le.2"
 		r = db.Query("\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid <= -9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid <= -9.22337303685477580800e+18 ORDER BY t1.a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.le.3"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid <= t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid <= t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.le.4"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid <= t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid <= t2.r\n     WHERE t2.a=66\n     ORDER BY t1.rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary3-2.66.le.5"
 		r = db.Query("\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid <= t2.r\n     WHERE t2.a=66\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.a FROM t1 JOIN t2 ON t1.rowid <= t2.r\n     WHERE t2.a=66\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

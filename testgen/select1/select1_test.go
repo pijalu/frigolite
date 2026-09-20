@@ -1589,7 +1589,7 @@ func Test_select1(t *testing.T) {
 		}
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
-		want := tclListFlatten("0 {xyzzy } 11 {xyzzy } 33")
+		want := tclListFlatten("0 {{xyzzy } 11 {xyzzy } 33}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.3.1")
 		}

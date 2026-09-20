@@ -142,6 +142,7 @@ func Test_shell4(t *testing.T) {
 		fd = "t1.txt"
 		_ = fd // suppress unused warning
 		tclChannelAppendAt("t1.txt", ".mode list\nSELECT 'squirrel';"+"\n", fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len(".mode list\nSELECT 'squirrel';"+"\n"))
 		// close $fd
 		// exec $::CLI_ONLY --noinit :memory: --interactive .read t1.txt (unsupported command, not transpiled)
 	}

@@ -68,12 +68,25 @@ func Test_trigger9(t *testing.T) {
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-1.2.1"
 		r = db.Query("\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-1.2.3"
@@ -89,6 +102,12 @@ func Test_trigger9(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-1.3.2"
@@ -104,6 +123,12 @@ func Test_trigger9(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 WHEN old.x='1' BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 WHEN old.x='1' BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-1.4.2"
@@ -119,6 +144,12 @@ func Test_trigger9(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-1.5.2"
@@ -134,6 +165,12 @@ func Test_trigger9(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-1.6.2"
@@ -149,6 +186,12 @@ func Test_trigger9(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 WHEN old.x>='2' BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 WHEN old.x>='2' BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-1.7.2"
@@ -170,30 +213,60 @@ func Test_trigger9(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n      CREATE VIEW v1 AS SELECT * FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE VIEW v1 AS SELECT * FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-3.3"
 		r = db.Query("\n    BEGIN;\n      CREATE VIEW v1 AS SELECT a, b AS c FROM t3 WHERE c > 'one';\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET c = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE VIEW v1 AS SELECT a, b AS c FROM t3 WHERE c > 'one';\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET c = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-3.4"
 		r = db.Query("\n    BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-3.5"
 		r = db.Query("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger9-3.6"
 		r = db.Query("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

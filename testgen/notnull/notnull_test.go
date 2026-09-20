@@ -70,6 +70,13 @@ func Test_notnull(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1 (\n      a NOT NULL,\n      b NOT NULL DEFAULT 5,\n      c NOT NULL ON CONFLICT REPLACE DEFAULT 6,\n      d NOT NULL ON CONFLICT IGNORE DEFAULT 7,\n      e NOT NULL ON CONFLICT ABORT DEFAULT 8\n    );\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1 (\n      a NOT NULL,\n      b NOT NULL DEFAULT 5,\n      c NOT NULL ON CONFLICT REPLACE DEFAULT 6,\n      d NOT NULL ON CONFLICT IGNORE DEFAULT 7,\n      e NOT NULL ON CONFLICT ABORT DEFAULT 8\n    );\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "notnull-1.1"
@@ -491,6 +498,12 @@ func Test_notnull(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "notnull-5.4"
@@ -504,6 +517,12 @@ func Test_notnull(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)

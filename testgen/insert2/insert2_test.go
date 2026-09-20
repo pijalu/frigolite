@@ -86,9 +86,8 @@ func Test_insert2(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("INSERT INTO d1 VALUES(" + i + "," + j + ")")
@@ -98,9 +97,8 @@ func Test_insert2(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("SELECT * FROM d1 ORDER BY n")
@@ -129,6 +127,12 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("SELECT * FROM t1 ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 ORDER BY log")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 1 2 2 3 4 4 8 5 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-1.2.1"
@@ -148,6 +152,12 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 3 4 4 8 5 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-1.3.1"
@@ -167,6 +177,12 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 ORDER BY log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	r = db.Query("PRAGMA count_changes=off;")
@@ -195,24 +211,48 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3(a,b,c);\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,2);\n    SELECT * FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a,b,c);\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,2);\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-2.1"
 		r = db.Query("\n    INSERT INTO t3(a,c) SELECT * FROM t4;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3(a,c) SELECT * FROM t4;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-2.2"
 		r = db.Query("\n    DELETE FROM t3;\n    INSERT INTO t3(c,b) SELECT * FROM t4;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3(c,b) SELECT * FROM t4;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-2.3"
 		r = db.Query("\n    DELETE FROM t3;\n    INSERT INTO t3(c,a,b) SELECT x, 'hi', y FROM t4;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3(c,a,b) SELECT x, 'hi', y FROM t4;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hi 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -221,6 +261,12 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    SELECT * from t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * from t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-3.2"
@@ -236,6 +282,12 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-3.3"
@@ -248,6 +300,12 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    UPDATE t4 SET y='lots of data for the row where x=' || x\n                     || ' and y=' || y || ' - even more data to fill space';\n    COMMIT;\n    SELECT count(*) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    UPDATE t4 SET y='lots of data for the row where x=' || x\n                     || ' and y=' || y || ' - even more data to fill space';\n    COMMIT;\n    SELECT count(*) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "160"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-3.5"
@@ -260,12 +318,24 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "160"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-3.7"
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t4 WHERE x!=123;\n    SELECT count(*) FROM t4;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t4 WHERE x!=123;\n    SELECT count(*) FROM t4;\n    ROLLBACK;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-3.8"
@@ -283,12 +353,24 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE INDEX t2i1 ON t2(a);\n    INSERT INTO t2 SELECT a, 3 FROM t2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE INDEX t2i1 ON t2(a);\n    INSERT INTO t2 SELECT a, 3 FROM t2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert2-5.2"
 		r = db.Query("\n      INSERT INTO t2 SELECT (SELECT a FROM t2), 4;\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t2 SELECT (SELECT a FROM t2), 4;\n      SELECT * FROM t2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1 3 1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.0"

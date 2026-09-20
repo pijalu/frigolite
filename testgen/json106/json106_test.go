@@ -152,20 +152,33 @@ func Test_json106(t *testing.T) {
 			r = db.Query("\n    SELECT j0 FROM t1 WHERE json(j0)!=json(json_pretty(j0));\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT j0 FROM t1 WHERE json(j0)!=json(json_pretty(j0));\n  ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // ii + ".9"
 			r = db.Query("\n    SELECT j5 FROM t1 WHERE json(j5)!=json(json_pretty(j5));\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT j5 FROM t1 WHERE json(j5)!=json(json_pretty(j5));\n  ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 }

@@ -61,12 +61,24 @@ func Test_tkt3522(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE tab4(\n       col0 INTEGER,\n       col1 INTEGER,\n       col2 INTEGER,\n       col3 INTEGER,\n       col4 INTEGER\n    );\n    SELECT cor1.*\n      FROM tab4 AS cor0\n      JOIN tab4 AS cor1 USING ( col4, col3, col2, col1, col0 );\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tab4(\n       col0 INTEGER,\n       col1 INTEGER,\n       col2 INTEGER,\n       col3 INTEGER,\n       col4 INTEGER\n    );\n    SELECT cor1.*\n      FROM tab4 AS cor0\n      JOIN tab4 AS cor1 USING ( col4, col3, col2, col1, col0 );\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3522-1.2"
 		r = db.Query("\n    CREATE TABLE tab1(col0 INTEGER);\n    CREATE TABLE tab2(col0 INTEGER);\n    SELECT cor0.* FROM tab1 NATURAL JOIN tab2 AS cor0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tab1(col0 INTEGER);\n    CREATE TABLE tab2(col0 INTEGER);\n    SELECT cor0.* FROM tab1 NATURAL JOIN tab2 AS cor0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

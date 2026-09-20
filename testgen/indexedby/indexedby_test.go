@@ -93,30 +93,65 @@ func Test_indexedby(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 NOT INDEXED WHERE a = 'one' AND b = 'two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 NOT INDEXED WHERE a = 'one' AND b = 'two'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "indexedby-2.1b"
 		r = db.Query(" SELECT * FROM main.t1 NOT INDEXED WHERE a = 'one' AND b = 'two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM main.t1 NOT INDEXED WHERE a = 'one' AND b = 'two'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "indexedby-2.2"
 		r = db.Query(" SELECT * FROM t1 INDEXED BY i1 WHERE a = 'one' AND b = 'two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 INDEXED BY i1 WHERE a = 'one' AND b = 'two'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "indexedby-2.2b"
 		r = db.Query(" SELECT * FROM main.t1 INDEXED BY i1 WHERE a = 'one' AND b = 'two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM main.t1 INDEXED BY i1 WHERE a = 'one' AND b = 'two'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "indexedby-2.3"
 		r = db.Query(" SELECT * FROM t1 INDEXED BY i2 WHERE a = 'one' AND b = 'two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 INDEXED BY i2 WHERE a = 'one' AND b = 'two'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "indexedby-2.4"
@@ -389,18 +424,36 @@ func Test_indexedby(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE indexed(x,y);\n    INSERT INTO indexed VALUES(1,2);\n    SELECT * FROM indexed;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE indexed(x,y);\n    INSERT INTO indexed VALUES(1,2);\n    SELECT * FROM indexed;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "indexedby-10.2"
 		r = db.Query("\n    CREATE INDEX i10 ON indexed(x);\n    SELECT * FROM indexed indexed by i10 where x>0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i10 ON indexed(x);\n    SELECT * FROM indexed indexed by i10 where x>0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "indexedby-10.3"
 		r = db.Query("\n    DROP TABLE indexed;\n    CREATE TABLE t10(indexed INTEGER);\n    INSERT INTO t10 VALUES(1);\n    CREATE INDEX indexed ON t10(indexed);\n    SELECT * FROM t10 indexed by indexed WHERE indexed>0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE indexed;\n    CREATE TABLE t10(indexed INTEGER);\n    INSERT INTO t10 VALUES(1);\n    CREATE INDEX indexed ON t10(indexed);\n    SELECT * FROM t10 indexed by indexed WHERE indexed>0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.1"

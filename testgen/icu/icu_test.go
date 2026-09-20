@@ -108,6 +108,12 @@ func Test_icu(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM fruit ORDER BY name COLLATE Lithuanian ASC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM fruit ORDER BY name COLLATE Lithuanian ASC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "apricot cherry chokecherry yamot peach plum"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "icu-6.0"
@@ -188,12 +194,26 @@ func Test_icu(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t1 WHERE x LIKE CAST(x'C0A5' AS TEXT);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE x LIKE CAST(x'C0A5' AS TEXT);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "icu-8.3"
 		r = db.Query("\n  SELECT * FROM t1 WHERE x LIKE CAST(x'C19F' AS TEXT) || 'bcdefg';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE x LIKE CAST(x'C19F' AS TEXT) || 'bcdefg';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

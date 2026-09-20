@@ -643,6 +643,13 @@ func Test_tabfunc01(t *testing.T) {
 		r = db.Query("\n  SELECT value FROM generate_series(1,10) WHERE value==5.5;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,10) WHERE value==5.5;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-6.18"
@@ -885,12 +892,26 @@ func Test_tabfunc01(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 2;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 2;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-933"
 		r = db.Query("\n  SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 9223372036854775807;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 9223372036854775807;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-940"
@@ -933,18 +954,39 @@ func Test_tabfunc01(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 6;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 6;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-944"
 		r = db.Query("\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 7;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 7;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-945"
 		r = db.Query("\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 9223372036854775807;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 9223372036854775807;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-950"
@@ -963,6 +1005,13 @@ func Test_tabfunc01(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 9223372036854775807;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 9223372036854775807;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-952"
@@ -981,6 +1030,13 @@ func Test_tabfunc01(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM generate_series(11,1,-1) LIMIT 100 OFFSET 9223372036854775807;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(11,1,-1) LIMIT 100 OFFSET 9223372036854775807;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "tabfunc01-954"
@@ -1143,6 +1199,13 @@ func Test_tabfunc01(t *testing.T) {
 			r = db.Query("\n  SELECT value FROM generate_series(1,10) WHERE step IS NULL;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,10) WHERE step IS NULL;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1314"
@@ -1161,30 +1224,65 @@ func Test_tabfunc01(t *testing.T) {
 			r = db.Query("\n  SELECT value FROM generate_series(4,3,1);\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(4,3,1);\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1316"
 			r = db.Query("\n  SELECT value FROM generate_series(3,4,-1);\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(3,4,-1);\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1320"
 			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=9.2234e18;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=9.2234e18;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1321"
 			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=-9.2234e18;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=-9.2234e18;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1322"
 			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1323"
@@ -1215,6 +1313,13 @@ func Test_tabfunc01(t *testing.T) {
 			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1331"
@@ -1245,6 +1350,13 @@ func Test_tabfunc01(t *testing.T) {
 			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value BETWEEN 4 AND 1;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value BETWEEN 4 AND 1;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1340"
@@ -1299,6 +1411,13 @@ func Test_tabfunc01(t *testing.T) {
 			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1345"
@@ -1317,18 +1436,39 @@ func Test_tabfunc01(t *testing.T) {
 			r = db.Query("\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1350"
 			r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 38;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 38;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1351"
 			r = db.Query("\n  SELECT value FROM generate_series(0,100,+10)\n   WHERE value BETWEEN 33 AND 38;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0,100,+10)\n   WHERE value BETWEEN 33 AND 38;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1360"
@@ -1383,12 +1523,26 @@ func Test_tabfunc01(t *testing.T) {
 			r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "1370"
 			r = db.Query("\n  SELECT * FROM generate_series(0,0,0);\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,0,0);\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		vtab.TclVarSet("subtest", "", "1")
@@ -1413,14 +1567,20 @@ func Test_tabfunc01(t *testing.T) {
 							r = db.Query("\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						// incr subtest 1
 						{
 							_n, _err := strconv.Atoi(subtest)
-							if _err == nil {
-								subtest = strconv.Itoa(_n + 1)
-							}
+							if _err != nil { _n = 0 }
+							subtest = strconv.Itoa(_n + 1)
 						}
 					}
 				}
@@ -1455,24 +1615,52 @@ func Test_tabfunc01(t *testing.T) {
 				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1501"
 				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1502"
 				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1503"
 				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1504"
@@ -1491,6 +1679,13 @@ func Test_tabfunc01(t *testing.T) {
 				r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1506"
@@ -1569,6 +1764,13 @@ func Test_tabfunc01(t *testing.T) {
 				r = db.Query("\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1522"

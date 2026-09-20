@@ -63,12 +63,24 @@ func Test_softheap1(t *testing.T) {
 		r = db.Query("PRAGMA soft_heap_limit")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit")
+			return
+		}
+		got := flatten(r)
+		want := "sqlite3_soft_heap_limit -1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "softheap1-1.1"
 		r = db.Query("PRAGMA soft_heap_limit=123456; PRAGMA soft_heap_limit;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit=123456; PRAGMA soft_heap_limit;")
+			return
+		}
+		got := flatten(r)
+		want := "123456 123456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "softheap1-1.2"
@@ -78,12 +90,24 @@ func Test_softheap1(t *testing.T) {
 		r = db.Query("PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;")
+			return
+		}
+		got := flatten(r)
+		want := "123456 123456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "softheap1-1.4"
 		r = db.Query("PRAGMA soft_heap_limit(0); PRAGMA soft_heap_limit;")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit(0); PRAGMA soft_heap_limit;")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// sqlite3_soft_heap_limit 5000 (unsupported command, not transpiled)
@@ -91,6 +115,12 @@ func Test_softheap1(t *testing.T) {
 		r = db.Query("PRAGMA soft_heap_limit")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit")
+			return
+		}
+		got := flatten(r)
+		want := "5000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "softheap1-2.1"

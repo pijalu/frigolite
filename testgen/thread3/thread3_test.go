@@ -111,16 +111,14 @@ func Test_thread3(t *testing.T) {
 			// incr nTotalBusy X
 			{
 				_n, _err := strconv.Atoi(nTotalBusy)
-				if _err == nil {
-					nTotalBusy = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(X); return _v }())
-				}
+				if _err != nil { _n = 0 }
+				nTotalBusy = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(X); return _v }())
 			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query(" SELECT count(*) FROM t1 ")

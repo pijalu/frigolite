@@ -76,6 +76,7 @@ func Test_createtab(t *testing.T) {
 	for func() bool { av_n, _av_e := strconv.Atoi(av); if _av_e != nil { return false }; upperBound_n, _upperBound_e := strconv.Atoi(upperBound); if _upperBound_e != nil { return false }; return av_n <= upperBound_n }() {
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -109,6 +110,12 @@ func Test_createtab(t *testing.T) {
 			r = db.Query("\n      CREATE TABLE t2(a,b);\n      INSERT INTO t2 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t2(a,b);\n      INSERT INTO t2 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "createtab-" + av + ".6"
@@ -124,6 +131,12 @@ func Test_createtab(t *testing.T) {
 			r = db.Query("\n      CREATE TABLE t3(a,b);\n      INSERT INTO t3 VALUES(4,5);\n      SELECT * FROM t3;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t3(a,b);\n      INSERT INTO t3 VALUES(4,5);\n      SELECT * FROM t3;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "4 5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "createtab-" + av + ".12"
@@ -139,6 +152,12 @@ func Test_createtab(t *testing.T) {
 			r = db.Query("\n      CREATE TABLE t4(a,b);\n      INSERT INTO t4 VALUES('abc','xyz');\n      SELECT * FROM t4;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(a,b);\n      INSERT INTO t4 VALUES('abc','xyz');\n      SELECT * FROM t4;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "abc xyz"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "createtab-" + av + ".22"
@@ -161,6 +180,12 @@ func Test_createtab(t *testing.T) {
 			r = db.Query("\n      SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "t1 t2 t3 t4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -168,9 +193,8 @@ func Test_createtab(t *testing.T) {
 		// incr av 1
 		{
 			_n, _err := strconv.Atoi(av)
-			if _err == nil {
-				av = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			av = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "createtab-3.1"

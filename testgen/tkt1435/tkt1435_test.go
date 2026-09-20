@@ -70,12 +70,24 @@ func Test_tkt1435(t *testing.T) {
 		r = db.Query("\n    select row, pinned from tlList, Instances, Versions, Flavors\n        where\n            Instances.troveName = tlList.name\n        and Versions.version = tlList.version\n        and Instances.versionId = Versions.versionId\n        and (    Flavors.flavor = tlList.flavor or Flavors.flavor is NULL\n             and tlList.flavor = '')\n        and Instances.flavorId = Flavors.flavorId\n    order by row asc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select row, pinned from tlList, Instances, Versions, Flavors\n        where\n            Instances.troveName = tlList.name\n        and Versions.version = tlList.version\n        and Instances.versionId = Versions.versionId\n        and (    Flavors.flavor = tlList.flavor or Flavors.flavor is NULL\n             and tlList.flavor = '')\n        and Instances.flavorId = Flavors.flavorId\n    order by row asc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 2 0 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1435-1.2"
 		r = db.Query("\n    CREATE INDEX InstancesNameIdx ON Instances(troveName);\n    CREATE UNIQUE INDEX InstancesIdx \n      ON Instances(troveName, versionId, flavorId);\n    ANALYZE;\n    select row, pinned from tlList, Instances, Versions, Flavors\n        where\n            Instances.troveName = tlList.name\n        and Versions.version = tlList.version\n        and Instances.versionId = Versions.versionId\n        and (    Flavors.flavor = tlList.flavor or Flavors.flavor is NULL\n             and tlList.flavor = '')\n        and Instances.flavorId = Flavors.flavorId\n    order by row asc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX InstancesNameIdx ON Instances(troveName);\n    CREATE UNIQUE INDEX InstancesIdx \n      ON Instances(troveName, versionId, flavorId);\n    ANALYZE;\n    select row, pinned from tlList, Instances, Versions, Flavors\n        where\n            Instances.troveName = tlList.name\n        and Versions.version = tlList.version\n        and Instances.versionId = Versions.versionId\n        and (    Flavors.flavor = tlList.flavor or Flavors.flavor is NULL\n             and tlList.flavor = '')\n        and Instances.flavorId = Flavors.flavorId\n    order by row asc;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 2 0 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -364,6 +364,12 @@ func Test_cacheflush(t *testing.T) {
 		r = db.Query(" \n    ROLLBACK;\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    ROLLBACK;\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// test_restore_config_pagecache (unsupported command, not transpiled)

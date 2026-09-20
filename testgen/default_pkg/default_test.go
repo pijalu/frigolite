@@ -62,12 +62,24 @@ func Test_default(t *testing.T) {
 		r = db.Query("\n      CREATE TABLE t1(\n        a INTEGER,\n        b BLOB DEFAULT x'6869'\n      );\n      INSERT INTO t1(a) VALUES(1);\n      SELECT * from t1;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(\n        a INTEGER,\n        b BLOB DEFAULT x'6869'\n      );\n      INSERT INTO t1(a) VALUES(1);\n      SELECT * from t1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 hi"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "default-1.2"
 		r = db.Query("\n    CREATE TABLE t2(\n      x INTEGER,\n      y INTEGER DEFAULT NULL\n    );\n    INSERT INTO t2(x) VALUES(1);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(\n      x INTEGER,\n      y INTEGER DEFAULT NULL\n    );\n    INSERT INTO t2(x) VALUES(1);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "default-1.3"
@@ -80,12 +92,24 @@ func Test_default(t *testing.T) {
 		r = db.Query("\n      CREATE TABLE t4(c DEFAULT 'abc');\n      PRAGMA table_info(t4);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(c DEFAULT 'abc');\n      PRAGMA table_info(t4);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 c {} 0 'abc' 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "default-2.2"
 		r = db.Query("\n      INSERT INTO t4 DEFAULT VALUES;\n      PRAGMA table_info(t4);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 DEFAULT VALUES;\n      PRAGMA table_info(t4);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 c {} 0 'abc' 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "default-3.1"
@@ -134,6 +158,13 @@ func Test_default(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

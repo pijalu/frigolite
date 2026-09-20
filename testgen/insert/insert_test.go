@@ -361,6 +361,13 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n    DELETE FROM test2;\n    CREATE INDEX index9 ON test2(f1,f2);\n    CREATE INDEX indext ON test2(f4,f5);\n    SELECT * from test2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM test2;\n    CREATE INDEX index9 ON test2(f1,f2);\n    CREATE INDEX indext ON test2(f4,f5);\n    SELECT * from test2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-3.2"
@@ -387,6 +394,12 @@ func Test_insert(t *testing.T) {
 		r = db.Query("SELECT * FROM test2 WHERE f1=22 AND f2=-4.44")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test2 WHERE f1=22 AND f2=-4.44")
+			return
+		}
+		got := flatten(r)
+		want := "22 -4.44 hi abc-123 wham"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-3.5"
@@ -401,6 +414,12 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3(a,b,c);\n    INSERT INTO t3 VALUES(1+2+3,4,5);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a,b,c);\n    INSERT INTO t3 VALUES(1+2+3,4,5);\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-4.2"
@@ -433,6 +452,12 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n    SELECT b,c FROM t3 WHERE a IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b,c FROM t3 WHERE a IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-4.6"
@@ -445,18 +470,36 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t3 VALUES(min(1,2,3),max(1,2,3),99);\n    SELECT * FROM t3 WHERE c=99;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(min(1,2,3),max(1,2,3),99);\n    SELECT * FROM t3 WHERE c=99;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-5.1"
 		r = db.Query("\n      CREATE TEMP TABLE t4(x);\n      INSERT INTO t4 VALUES(1);\n      SELECT * FROM t4;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t4(x);\n      INSERT INTO t4 VALUES(1);\n      SELECT * FROM t4;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-5.2"
 		r = db.Query("\n      INSERT INTO t4 SELECT x+1 FROM t4;\n      SELECT * FROM t4;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 SELECT x+1 FROM t4;\n      SELECT * FROM t4;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-5.3"
@@ -469,18 +512,37 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n      SELECT rootpage FROM sqlite_master WHERE name='test1';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rootpage FROM sqlite_master WHERE name='test1';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(tclExprWith("$AUTOVACUUM?3:2", map[string]string{"AUTOVACUUM": AUTOVACUUM}))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-5.5"
 		r = db.Query("\n      SELECT rootpage FROM sqlite_temp_master WHERE name='t4';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rootpage FROM sqlite_temp_master WHERE name='t4';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-5.6"
 		r = db.Query("\n      INSERT INTO t4 SELECT one FROM test1 WHERE three=7;\n      SELECT * FROM t4\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 SELECT one FROM test1 WHERE three=7;\n      SELECT * FROM t4\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-5.7"
@@ -493,24 +555,50 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t1 VALUES(2,3);\n      SELECT b FROM t1 WHERE b=2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t1 VALUES(2,3);\n      SELECT b FROM t1 WHERE b=2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-6.2"
 		r = db.Query("\n      REPLACE INTO t1 VALUES(1,4);\n      SELECT b FROM t1 WHERE b=2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      REPLACE INTO t1 VALUES(1,4);\n      SELECT b FROM t1 WHERE b=2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-6.3"
 		r = db.Query("\n      UPDATE OR REPLACE t1 SET a=2 WHERE b=4;\n      SELECT * FROM t1 WHERE b=4;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE OR REPLACE t1 SET a=2 WHERE b=4;\n      SELECT * FROM t1 WHERE b=4;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-6.4"
 		r = db.Query("\n      SELECT * FROM t1 WHERE b=3;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE b=3;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-6.5"
@@ -541,6 +629,12 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-8.1"
@@ -553,18 +647,36 @@ func Test_insert(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(2);\n    INSERT INTO t5 VALUES(3);\n    INSERT INTO t5(rowid, x) SELECT nullif(x*2+10,14), x+100 FROM t5;\n    SELECT rowid, x FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(2);\n    INSERT INTO t5 VALUES(3);\n    INSERT INTO t5(rowid, x) SELECT nullif(x*2+10,14), x+100 FROM t5;\n    SELECT rowid, x FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 12 101 13 102 16 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-9.2"
 		r = db.Query("\n    CREATE TABLE t6(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,2);\n    INSERT INTO t6 VALUES(3,3);\n    INSERT INTO t6 SELECT nullif(y*2+10,14), y+100 FROM t6;\n    SELECT x, y FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,2);\n    INSERT INTO t6 VALUES(3,3);\n    INSERT INTO t6 SELECT nullif(y*2+10,14), y+100 FROM t6;\n    SELECT x, y FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2 3 3 12 101 13 102 16 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-10.1"
 		r = db.Query("\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,2,3), (4,5,6), (7,8,9);\n      SELECT * FROM t10;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,2,3), (4,5,6), (7,8,9);\n      SELECT * FROM t10;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert-10.2"

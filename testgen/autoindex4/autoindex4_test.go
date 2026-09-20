@@ -80,6 +80,13 @@ func Test_autoindex4(t *testing.T) {
 		r = db.Query("\n  SELECT *, '|' FROM t1, t2 WHERE a=234 AND x=555;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, '|' FROM t1, t2 WHERE a=234 AND x=555;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "autoindex4-1.2"
@@ -134,12 +141,26 @@ func Test_autoindex4(t *testing.T) {
 		r = db.Query("\n  SELECT *, '|' FROM t1 LEFT JOIN t2 WHERE a=234 AND x=555;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, '|' FROM t1 LEFT JOIN t2 WHERE a=234 AND x=555;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "autoindex4-1.4-rj"
 		r = db.Query("\n  SELECT t1.*, t2.*, '|' FROM t2 RIGHT JOIN t1 WHERE a=234 AND x=555;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.*, t2.*, '|' FROM t2 RIGHT JOIN t1 WHERE a=234 AND x=555;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "autoindex4-2.0"

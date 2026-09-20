@@ -95,18 +95,32 @@ func Test_vtab_alter(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), " SELECT * FROM new ")
 		}
 	}
-	{ // "vtab_alter-2.1" — skipped: echo pattern rename (*_base) is C test-module behavior
+	{ // "vtab_alter-2.1" — skipped: echo pattern rename (*_base) is C test-module behavior (SQL side effects only)
+		_res = db.Exec(" \n    DROP TABLE new;\n    DROP TABLE t1;\n    CREATE TABLE t1_base(a, b, c);\n    CREATE VIRTUAL TABLE t1 USING echo('*_base');\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab_alter-2.2" — skipped: echo pattern rename (*_base) is C test-module behavior
+	{ // "vtab_alter-2.2" — skipped: echo pattern rename (*_base) is C test-module behavior (SQL side effects only)
+		_res = db.Exec(" \n    INSERT INTO t1_base VALUES(1, 2, 3);\n    SELECT * FROM t1;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab_alter-2.3" — skipped: echo pattern rename (*_base) is C test-module behavior
+	{ // "vtab_alter-2.3" — skipped: echo pattern rename (*_base) is C test-module behavior (SQL side effects only)
+		_res = db.Exec(" ALTER TABLE t1 RENAME TO x ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab_alter-2.4" — skipped: echo pattern rename (*_base) is C test-module behavior
+	{ // "vtab_alter-2.4" — skipped: echo pattern rename (*_base) is C test-module behavior (SQL side effects only)
+		_res = db.Exec(" SELECT * FROM x; ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab_alter-2.5" — skipped: echo pattern rename (*_base) is C test-module behavior
+	{ // "vtab_alter-2.5" — skipped: echo pattern rename (*_base) is C test-module behavior (SQL side effects only)
+		_res = db.Exec(" SELECT * FROM x_base; ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab_alter-3.1" — skipped: echo pattern rename (*_base) is C test-module behavior
+	{ // "vtab_alter-3.1" — skipped: echo pattern rename (*_base) is C test-module behavior (SQL side effects only)
+		_res = db.Exec(" CREATE TABLE y_base(a, b, c) ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab_alter-3.2" — skipped: echo pattern rename (*_base) is C test-module behavior
+	{ // "vtab_alter-3.2" — skipped: echo pattern rename (*_base) is C test-module behavior (SQL side effects only)
+		_res = db.Exec(" SELECT * FROM x ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 }

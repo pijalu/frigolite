@@ -152,9 +152,8 @@ func Test_nulls1(t *testing.T) {
 			// incr a 1
 			{
 				_n, _err := strconv.Atoi(a)
-				if _err == nil {
-					a = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				a = strconv.Itoa(_n + 1)
 			}
 		}
 		db.Close()
@@ -432,8 +431,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := tclListFlatten("{}")
-				got = tclListFlattenCollapse(got)
+				want := "{}"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

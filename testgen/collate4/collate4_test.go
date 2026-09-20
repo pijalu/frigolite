@@ -278,6 +278,13 @@ func Test_collate4(t *testing.T) {
 		r = db.Query("\n    PRAGMA automatic_index=OFF;\n    CREATE TABLE collate4t1(a COLLATE NOCASE);\n    CREATE TABLE collate4t2(b COLLATE TEXT);\n\n    INSERT INTO collate4t1 VALUES('a');\n    INSERT INTO collate4t1 VALUES('A');\n    INSERT INTO collate4t1 VALUES('b');\n    INSERT INTO collate4t1 VALUES('B');\n    INSERT INTO collate4t1 VALUES('c');\n    INSERT INTO collate4t1 VALUES('C');\n    INSERT INTO collate4t1 VALUES('d');\n    INSERT INTO collate4t1 VALUES('D');\n    INSERT INTO collate4t1 VALUES('e');\n    INSERT INTO collate4t1 VALUES('D');\n\n    INSERT INTO collate4t2 VALUES('A');\n    INSERT INTO collate4t2 VALUES('Z');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA automatic_index=OFF;\n    CREATE TABLE collate4t1(a COLLATE NOCASE);\n    CREATE TABLE collate4t2(b COLLATE TEXT);\n\n    INSERT INTO collate4t1 VALUES('a');\n    INSERT INTO collate4t1 VALUES('A');\n    INSERT INTO collate4t1 VALUES('b');\n    INSERT INTO collate4t1 VALUES('B');\n    INSERT INTO collate4t1 VALUES('c');\n    INSERT INTO collate4t1 VALUES('C');\n    INSERT INTO collate4t1 VALUES('d');\n    INSERT INTO collate4t1 VALUES('D');\n    INSERT INTO collate4t1 VALUES('e');\n    INSERT INTO collate4t1 VALUES('D');\n\n    INSERT INTO collate4t2 VALUES('A');\n    INSERT INTO collate4t2 VALUES('Z');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-2.1.1"
@@ -374,6 +381,12 @@ func Test_collate4(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-3.3"
@@ -404,6 +417,12 @@ func Test_collate4(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-3.8"
@@ -434,6 +453,12 @@ func Test_collate4(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-3.13"
@@ -523,36 +548,72 @@ func Test_collate4(t *testing.T) {
 		r = db.Query("\n    SELECT max(a, b) FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(a, b) FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-4.10"
 		r = db.Query("\n    SELECT max(b, a) FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(b, a) FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "101 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-4.11"
 		r = db.Query("\n    SELECT max(a, '101') FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(a, '101') FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-4.12"
 		r = db.Query("\n    SELECT max('101', a) FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max('101', a) FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-4.13"
 		r = db.Query("\n    SELECT max(b, '101') FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(b, '101') FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "101 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-4.14"
 		r = db.Query("\n    SELECT max('101', b) FROM collate4t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max('101', b) FROM collate4t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "101 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate4-4.15"

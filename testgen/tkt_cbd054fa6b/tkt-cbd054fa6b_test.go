@@ -88,6 +88,12 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 		r = db.Query(" \n    SELECT tbl,idx,string_agg(s(sample),' ') \n    FROM vvv \n    WHERE idx = 't1_x' \n    GROUP BY tbl,idx\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT tbl,idx,string_agg(s(sample),' ') \n    FROM vvv \n    WHERE idx = 't1_x' \n    GROUP BY tbl,idx\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t1_x  A B C D E F G H I"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-cbd05-2.1"
@@ -112,6 +118,12 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 		r = db.Query(" \n    SELECT tbl,idx,group_concat(s(sample),' ') \n    FROM vvv \n    WHERE idx = 't1_x' \n    GROUP BY tbl,idx\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT tbl,idx,group_concat(s(sample),' ') \n    FROM vvv \n    WHERE idx = 't1_x' \n    GROUP BY tbl,idx\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t1_x  A B C D E F G H I"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

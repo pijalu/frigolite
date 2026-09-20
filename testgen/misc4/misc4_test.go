@@ -74,7 +74,9 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
 	}
-	{ // "misc4-1.2" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A
+	{ // "misc4-1.2" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL side effects only)
+		_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;\n    ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "misc4-1.2.1" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A
 	}
@@ -82,9 +84,13 @@ func Test_misc4(t *testing.T) {
 	}
 	{ // "misc4-1.3" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A
 	}
-	{ // "misc4-1.4" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A
+	{ // "misc4-1.4" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL side effects only)
+		_res = db.Exec("\n      SELECT * FROM temp.t2;\n    ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "misc4-1.5" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A
+	{ // "misc4-1.5" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL side effects only)
+		_res = db.Exec("DROP TABLE t2")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "misc4-1.6" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A
 	}
@@ -121,6 +127,12 @@ func Test_misc4(t *testing.T) {
 		r = db.Query("\n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1\n      ORDER BY 1, 2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1\n      ORDER BY 1, 2;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 x 1 z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc4-3.3"
@@ -139,6 +151,12 @@ func Test_misc4(t *testing.T) {
 		r = db.Query("\n      create table a(key varchar, data varchar);\n      create table b(key varchar, period integer);\n      insert into a values('01','data01');\n      insert into a values('+1','data+1');\n      \n      insert into b values ('01',1);\n      insert into b values ('01',2);\n      insert into b values ('+1',3);\n      insert into b values ('+1',4);\n      \n      select a.*, x.*\n        from a, (select key,sum(period) from b group by key) as x\n        where a.key=x.key order by 1 desc;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create table a(key varchar, data varchar);\n      create table b(key varchar, period integer);\n      insert into a values('01','data01');\n      insert into a values('+1','data+1');\n      \n      insert into b values ('01',1);\n      insert into b values ('01',2);\n      insert into b values ('+1',3);\n      insert into b values ('+1',4);\n      \n      select a.*, x.*\n        from a, (select key,sum(period) from b group by key) as x\n        where a.key=x.key order by 1 desc;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "01 data01 01 3 +1 data+1 +1 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc4-4.2"
@@ -177,6 +195,12 @@ func Test_misc4(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM abc LEFT JOIN def ON (abc.a=def.d);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM abc LEFT JOIN def ON (abc.a=def.d);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

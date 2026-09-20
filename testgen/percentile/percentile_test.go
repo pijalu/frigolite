@@ -96,27 +96,39 @@ func Test_percentile(t *testing.T) {
 				r = db.Query("SELECT percentile(x," + sqlLiteral(in) + ") FROM t1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + sqlLiteral(in) + ") FROM t1")
+					return
 				}
-				if flatten(r) != tclListFlatten(out) {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.1." + in + ".1")
+				got := flatten(r)
+				want := tclListFlatten(out)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".2"
 				r = db.Query("SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
+					return
 				}
-				if flatten(r) != tclListFlatten(out) {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.1." + in + ".2")
+				got := flatten(r)
+				want := tclListFlatten(out)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".3"
 				r = db.Query("SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
+					return
 				}
-				if flatten(r) != tclListFlatten(disc) {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(disc), "percentile-1.1." + in + ".3")
+				got := flatten(r)
+				want := tclListFlatten(disc)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -124,9 +136,13 @@ func Test_percentile(t *testing.T) {
 					r = db.Query("SELECT median(x) FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median(x) FROM t1")
+						return
 					}
-					if flatten(r) != tclListFlatten(out) {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.1." + in + ".4")
+					got := flatten(r)
+					want := tclListFlatten(out)
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}
@@ -163,27 +179,39 @@ func Test_percentile(t *testing.T) {
 					r = db.Query("SELECT percentile(x," + sqlLiteral(in) + ") FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + sqlLiteral(in) + ") FROM t1")
+						return
 					}
-					if flatten(r) != tclListFlatten(out) {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.3." + in + ".1")
+					got := flatten(r)
+					want := tclListFlatten(out)
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".2"
 					r = db.Query("SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
+						return
 					}
-					if flatten(r) != tclListFlatten(out) {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.3." + in + ".2")
+					got := flatten(r)
+					want := tclListFlatten(out)
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".3"
 					r = db.Query("SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
+						return
 					}
-					if flatten(r) != tclListFlatten(disc) {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(disc), "percentile-1.3." + in + ".3")
+					got := flatten(r)
+					want := tclListFlatten(disc)
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -191,9 +219,13 @@ func Test_percentile(t *testing.T) {
 						r = db.Query("SELECT median(x) FROM t1")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median(x) FROM t1")
+							return
 						}
-						if flatten(r) != tclListFlatten(out) {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.3." + in + ".4")
+						got := flatten(r)
+						want := tclListFlatten(out)
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 				}
@@ -254,27 +286,39 @@ func Test_percentile(t *testing.T) {
 						r = db.Query("SELECT percentile(x," + sqlLiteral(in) + ") FROM t2")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + sqlLiteral(in) + ") FROM t2")
+							return
 						}
-						if flatten(r) != tclListFlatten(out) {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.7." + in + ".1")
+						got := flatten(r)
+						want := tclListFlatten(out)
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".2"
 						r = db.Query("SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t2")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t2")
+							return
 						}
-						if flatten(r) != tclListFlatten(out) {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.7." + in + ".2")
+						got := flatten(r)
+						want := tclListFlatten(out)
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".3"
 						r = db.Query("SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t2")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t2")
+							return
 						}
-						if flatten(r) != tclListFlatten(disc) {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(disc), "percentile-1.7." + in + ".3")
+						got := flatten(r)
+						want := tclListFlatten(disc)
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -282,9 +326,13 @@ func Test_percentile(t *testing.T) {
 							r = db.Query("SELECT median(x) FROM t2")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median(x) FROM t2")
+								return
 							}
-							if flatten(r) != tclListFlatten(out) {
-								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-1.7." + in + ".4")
+							got := flatten(r)
+							want := tclListFlatten(out)
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 					}
@@ -419,12 +467,24 @@ func Test_percentile(t *testing.T) {
 					r = db.Query("\n    UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "NULL"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "percentile-1.19"
 					r = db.Query("\n    UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "12345.0 12345.0 12345.0"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "percentile-1.20.1"
@@ -476,9 +536,13 @@ func Test_percentile(t *testing.T) {
 							r = db.Query("\n        SELECT round(percentile(x, " + sqlLiteral(in) + "),1) from t3;\n      ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT round(percentile(x, " + sqlLiteral(in) + "),1) from t3;\n      ")
+								return
 							}
-							if flatten(r) != tclListFlatten(out) {
-								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(out), "percentile-2.1." + in)
+							got := flatten(r)
+							want := tclListFlatten(out)
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 					}

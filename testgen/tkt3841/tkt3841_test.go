@@ -60,6 +60,12 @@ func Test_tkt3841(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE table2 (key TEXT, x TEXT);\n    CREATE TABLE list (key TEXT, value TEXT);\n  \n    INSERT INTO table2 VALUES (\"a\", \"alist\");\n    INSERT INTO table2 VALUES (\"b\", \"blist\");\n    INSERT INTO list VALUES (\"a\", 1);\n    INSERT INTO list VALUES (\"a\", 2);\n    INSERT INTO list VALUES (\"a\", 3);\n    INSERT INTO list VALUES (\"b\", 4);\n    INSERT INTO list VALUES (\"b\", 5);\n    INSERT INTO list VALUES (\"b\", 6);\n\n    SELECT\n      table2.x,\n      (SELECT group_concat(list.value)\n        FROM list\n        WHERE list.key = table2.key)\n    FROM table2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE table2 (key TEXT, x TEXT);\n    CREATE TABLE list (key TEXT, value TEXT);\n  \n    INSERT INTO table2 VALUES (\"a\", \"alist\");\n    INSERT INTO table2 VALUES (\"b\", \"blist\");\n    INSERT INTO list VALUES (\"a\", 1);\n    INSERT INTO list VALUES (\"a\", 2);\n    INSERT INTO list VALUES (\"a\", 3);\n    INSERT INTO list VALUES (\"b\", 4);\n    INSERT INTO list VALUES (\"b\", 5);\n    INSERT INTO list VALUES (\"b\", 6);\n\n    SELECT\n      table2.x,\n      (SELECT group_concat(list.value)\n        FROM list\n        WHERE list.key = table2.key)\n    FROM table2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "alist 1,2,3 blist 4,5,6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

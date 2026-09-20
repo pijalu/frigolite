@@ -72,66 +72,132 @@ func Test_selectC(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1,'aaa','bbb');\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 VALUES(2,'ccc','ddd');\n\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y IN ('aaabbb','xxx');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1,'aaa','bbb');\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 VALUES(2,'ccc','ddd');\n\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y IN ('aaabbb','xxx');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.2"
 		r = db.Query("\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c IN ('aaabbb','xxx');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c IN ('aaabbb','xxx');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.3"
 		r = db.Query("\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.4"
 		r = db.Query("\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.5"
 		r = db.Query("\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE x=2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE x=2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 cccddd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.6"
 		r = db.Query("\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE a=2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE a=2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 cccddd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.7"
 		r = db.Query("\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE +y='aaabbb'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE +y='aaabbb'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.8"
 		r = db.Query("\n    SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING y='aaabbb'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING y='aaabbb'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.9"
 		r = db.Query("\n    SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING b||c='aaabbb'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING b||c='aaabbb'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.10"
 		r = db.Query("\n    SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'\n     GROUP BY x, y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'\n     GROUP BY x, y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.11"
 		r = db.Query("\n    SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'\n     GROUP BY x, y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'\n     GROUP BY x, y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 aaabbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -140,36 +206,72 @@ func Test_selectC(t *testing.T) {
 		r = db.Query("\n    SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "AAA CCC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.12.2"
 		r = db.Query("\n    SELECT DISTINCT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "AAA CCC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.13.1"
 		r = db.Query("\n    SELECT upper(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT upper(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "AAA CCC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.13.2"
 		r = db.Query("\n    SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "AAA CCC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.14.1"
 		r = db.Query("\n    SELECT upper(b) AS x\n      FROM t1\n     ORDER BY x DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT upper(b) AS x\n      FROM t1\n     ORDER BY x DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CCC AAA AAA"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-1.14.2"
 		r = db.Query("\n    SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "CCC AAA AAA"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-2.1"
@@ -182,18 +284,36 @@ func Test_selectC(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE person (\n        org_id          TEXT NOT NULL,\n        nickname        TEXT NOT NULL,\n        license         TEXT,\n        CONSTRAINT person_pk PRIMARY KEY (org_id, nickname),\n        CONSTRAINT person_license_uk UNIQUE (license)\n    );\n    INSERT INTO person VALUES('meyers', 'jack', '2GAT123');\n    INSERT INTO person VALUES('meyers', 'hill', 'V345FMP');\n    INSERT INTO person VALUES('meyers', 'jim', '2GAT138');\n    INSERT INTO person VALUES('smith', 'maggy', '');\n    INSERT INTO person VALUES('smith', 'jose', 'JJZ109');\n    INSERT INTO person VALUES('smith', 'jack', 'THX138');\n    INSERT INTO person VALUES('lakeside', 'dave', '953OKG');\n    INSERT INTO person VALUES('lakeside', 'amy', NULL);\n    INSERT INTO person VALUES('lake-apts', 'tom', NULL);\n    INSERT INTO person VALUES('acorn', 'hideo', 'CQB421');\n    \n    SELECT \n      org_id, \n      count((NOT (org_id IS NULL)) AND (NOT (nickname IS NULL)))\n    FROM person \n    WHERE (CASE WHEN license != '' THEN 1 ELSE 0 END)\n    GROUP BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE person (\n        org_id          TEXT NOT NULL,\n        nickname        TEXT NOT NULL,\n        license         TEXT,\n        CONSTRAINT person_pk PRIMARY KEY (org_id, nickname),\n        CONSTRAINT person_license_uk UNIQUE (license)\n    );\n    INSERT INTO person VALUES('meyers', 'jack', '2GAT123');\n    INSERT INTO person VALUES('meyers', 'hill', 'V345FMP');\n    INSERT INTO person VALUES('meyers', 'jim', '2GAT138');\n    INSERT INTO person VALUES('smith', 'maggy', '');\n    INSERT INTO person VALUES('smith', 'jose', 'JJZ109');\n    INSERT INTO person VALUES('smith', 'jack', 'THX138');\n    INSERT INTO person VALUES('lakeside', 'dave', '953OKG');\n    INSERT INTO person VALUES('lakeside', 'amy', NULL);\n    INSERT INTO person VALUES('lake-apts', 'tom', NULL);\n    INSERT INTO person VALUES('acorn', 'hideo', 'CQB421');\n    \n    SELECT \n      org_id, \n      count((NOT (org_id IS NULL)) AND (NOT (nickname IS NULL)))\n    FROM person \n    WHERE (CASE WHEN license != '' THEN 1 ELSE 0 END)\n    GROUP BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "acorn 1 lakeside 1 meyers 3 smith 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-3.2"
 		r = db.Query("\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t2 VALUES('abc', 'xxx');\n    INSERT INTO t2 VALUES('def', 'yyy');\n    SELECT a, max(b || a) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t2 VALUES('abc', 'xxx');\n    INSERT INTO t2 VALUES('def', 'yyy');\n    SELECT a, max(b || a) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc xxxabc def yyydef"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectC-3.3"
 		r = db.Query("\n    SELECT b, max(a || b) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, max(a || b) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "xxx abcxxx yyy defyyy"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc udf increments counter var udf (registered via db func)

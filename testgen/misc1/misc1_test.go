@@ -106,9 +106,8 @@ func Test_misc1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		cmd += ")"
@@ -127,9 +126,8 @@ func Test_misc1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		cmd += ")"
@@ -146,6 +144,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT x0, x10, x25, x50, x75 FROM manycol")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x0, x10, x25, x50, x75 FROM manycol")
+			return
+		}
+		got := flatten(r)
+		want := "0 10 25 50 75"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-1.3.1"
@@ -164,9 +168,8 @@ func Test_misc1(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			cmd += ")"
@@ -177,9 +180,8 @@ func Test_misc1(t *testing.T) {
 			// incr j 100
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 100)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 100)
 			}
 		}
 		r = db.Query("SELECT x50 FROM manycol ORDER BY x80+0")
@@ -191,18 +193,36 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT x50 FROM manycol ORDER BY x80")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x50 FROM manycol ORDER BY x80")
+			return
+		}
+		got := flatten(r)
+		want := "1050 150 250 350 450 550 650 750 50 850 950"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-1.4"
 		r = db.Query("SELECT x75 FROM manycol WHERE x50=350")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x75 FROM manycol WHERE x50=350")
+			return
+		}
+		got := flatten(r)
+		want := "375"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-1.5"
 		r = db.Query("SELECT x50 FROM manycol WHERE x99=599")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x50 FROM manycol WHERE x99=599")
+			return
+		}
+		got := flatten(r)
+		want := "550"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-1.6"
@@ -219,6 +239,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM manycol")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM manycol")
+			return
+		}
+		got := flatten(r)
+		want := "11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-1.8"
@@ -275,12 +301,24 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT sum(one), two, four FROM agger\n           GROUP BY two, four ORDER BY sum(one) desc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT sum(one), two, four FROM agger\n           GROUP BY two, four ORDER BY sum(one) desc")
+			return
+		}
+		got := flatten(r)
+		want := "8 two no 6 one yes 4 two yes 3 thr yes"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-2.3"
 		r = db.Query("SELECT sum((one)), (two), (four) FROM agger\n           GROUP BY (two), (four) ORDER BY sum(one) desc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT sum((one)), (two), (four) FROM agger\n           GROUP BY (two), (four) ORDER BY sum(one) desc")
+			return
+		}
+		got := flatten(r)
+		want := "8 two no 6 one yes 4 two yes 3 thr yes"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-3.1"
@@ -295,6 +333,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '4 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '5 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '6 - ' || a FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '4 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '5 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '6 - ' || a FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-5.1"
@@ -307,6 +351,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t3 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-6.1"
@@ -325,12 +375,24 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-6.4"
 		r = db.Query("\n    SELECT abort+asc,max(key,pragma,temp) FROM t4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abort+asc,max(key,pragma,temp) FROM t4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 17"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-7.1"
@@ -349,6 +411,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(a,b,c,PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES(1,2,3);\n    SELECT * FROM t5 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a,b,c,PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES(1,2,3);\n    SELECT * FROM t5 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-7.4"
@@ -367,6 +435,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t5 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t5 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 2 4 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-8.1"
@@ -395,6 +469,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM manycol")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM manycol")
+			return
+		}
+		got := flatten(r)
+		want := "9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-10.1"
@@ -409,9 +489,8 @@ func Test_misc1(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("SELECT count(*) FROM manycol " + where)
@@ -433,6 +512,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT count(*) FROM manycol")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM manycol")
+			return
+		}
+		got := flatten(r)
+		want := "8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-10.5"
@@ -445,6 +530,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT x1 FROM manycol WHERE x0=100")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x1 FROM manycol WHERE x0=100")
+			return
+		}
+		got := flatten(r)
+		want := "101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-10.7"
@@ -457,6 +548,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT x1 FROM manycol WHERE x0=100")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x1 FROM manycol WHERE x0=100")
+			return
+		}
+		got := flatten(r)
+		want := "102"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-10.9"
@@ -469,6 +566,12 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT x1 FROM manycol WHERE x0=100")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x1 FROM manycol WHERE x0=100")
+			return
+		}
+		got := flatten(r)
+		want := "103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-11.1"
@@ -535,78 +638,156 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("SELECT '0'=='0.0'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '0'=='0.0'")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.2"
 		r = db.Query("SELECT '0'==0.0")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '0'==0.0")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.3"
 		r = db.Query("SELECT '12345678901234567890'=='12345678901234567891'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '12345678901234567890'=='12345678901234567891'")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.4"
 		r = db.Query("\n    CREATE TABLE t6(a INT UNIQUE, b TEXT UNIQUE);\n    INSERT INTO t6 VALUES('0','0.0');\n    SELECT * FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(a INT UNIQUE, b TEXT UNIQUE);\n    INSERT INTO t6 VALUES('0','0.0');\n    SELECT * FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.5"
 		r = db.Query("\n      INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.6"
 		r = db.Query("\n      INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0.0 y 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.7"
 		r = db.Query("\n    CREATE TABLE t7(x INTEGER, y TEXT, z);\n    INSERT INTO t7 VALUES(0,0,1);\n    INSERT INTO t7 VALUES(0.0,0,2);\n    INSERT INTO t7 VALUES(0,0.0,3);\n    INSERT INTO t7 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t7 ORDER BY z;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7(x INTEGER, y TEXT, z);\n    INSERT INTO t7 VALUES(0,0,1);\n    INSERT INTO t7 VALUES(0.0,0,2);\n    INSERT INTO t7 VALUES(0,0.0,3);\n    INSERT INTO t7 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t7 ORDER BY z;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.8"
 		r = db.Query("\n    SELECT min(z), max(z), count(z) FROM t7 GROUP BY x ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(z), max(z), count(z) FROM t7 GROUP BY x ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.9"
 		r = db.Query("\n    SELECT min(z), max(z), count(z) FROM t7 GROUP BY y ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(z), max(z), count(z) FROM t7 GROUP BY y ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2 3 4 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.11"
 		r = db.Query("\n    CREATE TABLE t8(x TEXT COLLATE numeric, y INTEGER COLLATE text, z);\n    INSERT INTO t8 VALUES(0,0,1);\n    INSERT INTO t8 VALUES(0.0,0,2);\n    INSERT INTO t8 VALUES(0,0.0,3);\n    INSERT INTO t8 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t8 ORDER BY z;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t8(x TEXT COLLATE numeric, y INTEGER COLLATE text, z);\n    INSERT INTO t8 VALUES(0,0,1);\n    INSERT INTO t8 VALUES(0.0,0,2);\n    INSERT INTO t8 VALUES(0,0.0,3);\n    INSERT INTO t8 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t8 ORDER BY z;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0.0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.12"
 		r = db.Query("\n    SELECT min(z), max(z), count(z) FROM t8 GROUP BY x ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(z), max(z), count(z) FROM t8 GROUP BY x ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 2 2 4 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-12.13"
 		r = db.Query("\n    SELECT min(z), max(z), count(z) FROM t8 GROUP BY y ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(z), max(z), count(z) FROM t8 GROUP BY y ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-13.1"
 		r = db.Query("\n       CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('seven',7);\n       INSERT INTO t9 VALUES('eight',8);\n       INSERT INTO t9 VALUES('nine',9);\n       INSERT INTO t9 VALUES('ten',10);\n       INSERT INTO t9 VALUES('eleven',11);\n       SELECT y FROM t9\n       WHERE x=(SELECT x FROM t9 WHERE y=1)\n          OR x=(SELECT x FROM t9 WHERE y=2)\n          OR x=(SELECT x FROM t9 WHERE y=3)\n          OR x=(SELECT x FROM t9 WHERE y=4)\n          OR x=(SELECT x FROM t9 WHERE y=5)\n          OR x=(SELECT x FROM t9 WHERE y=6)\n          OR x=(SELECT x FROM t9 WHERE y=7)\n          OR x=(SELECT x FROM t9 WHERE y=8)\n          OR x=(SELECT x FROM t9 WHERE y=9)\n          OR x=(SELECT x FROM t9 WHERE y=10)\n          OR x=(SELECT x FROM t9 WHERE y=11)\n          OR x=(SELECT x FROM t9 WHERE y=12)\n          OR x=(SELECT x FROM t9 WHERE y=13)\n          OR x=(SELECT x FROM t9 WHERE y=14)\n       ;\n     ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n       CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('seven',7);\n       INSERT INTO t9 VALUES('eight',8);\n       INSERT INTO t9 VALUES('nine',9);\n       INSERT INTO t9 VALUES('ten',10);\n       INSERT INTO t9 VALUES('eleven',11);\n       SELECT y FROM t9\n       WHERE x=(SELECT x FROM t9 WHERE y=1)\n          OR x=(SELECT x FROM t9 WHERE y=2)\n          OR x=(SELECT x FROM t9 WHERE y=3)\n          OR x=(SELECT x FROM t9 WHERE y=4)\n          OR x=(SELECT x FROM t9 WHERE y=5)\n          OR x=(SELECT x FROM t9 WHERE y=6)\n          OR x=(SELECT x FROM t9 WHERE y=7)\n          OR x=(SELECT x FROM t9 WHERE y=8)\n          OR x=(SELECT x FROM t9 WHERE y=9)\n          OR x=(SELECT x FROM t9 WHERE y=10)\n          OR x=(SELECT x FROM t9 WHERE y=11)\n          OR x=(SELECT x FROM t9 WHERE y=12)\n          OR x=(SELECT x FROM t9 WHERE y=13)\n          OR x=(SELECT x FROM t9 WHERE y=14)\n       ;\n     ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
@@ -689,24 +870,48 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n    INSERT INTO test VALUES(1);\n    SELECT rowid, a FROM test;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO test VALUES(1);\n    SELECT rowid, a FROM test;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-16.5"
 		r = db.Query("\n    INSERT INTO test VALUES(5);\n    SELECT rowid, a FROM test;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO test VALUES(5);\n    SELECT rowid, a FROM test;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 5 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-16.6"
 		r = db.Query("\n    INSERT INTO test VALUES(NULL);\n    SELECT rowid, a FROM test;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO test VALUES(NULL);\n    SELECT rowid, a FROM test;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 5 5 6 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-17.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestString FROM TempTable LIMIT 1;\n    END;\n    INSERT INTO TempTable(TestString) VALUES ('1');\n    INSERT INTO TempTable(TestString) VALUES ('2');\n    UPDATE TempTable SET TestString = TestString + 1 WHERE TestID=1 OR TestId=2;\n    COMMIT;\n    SELECT TestString FROM RealTable ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestString FROM TempTable LIMIT 1;\n    END;\n    INSERT INTO TempTable(TestString) VALUES ('1');\n    INSERT INTO TempTable(TestString) VALUES ('2');\n    UPDATE TempTable SET TestString = TestString + 1 WHERE TestID=1 OR TestId=2;\n    COMMIT;\n    SELECT TestString FROM RealTable ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc1-18.1"
@@ -759,7 +964,7 @@ func Test_misc1(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // "misc1-19.11" — skipped: FULL-SUITE-DRIFT.T26-misc N-A sqlite3_test_control_fault_install is a C-core test-control API (test1.c), not SQL surface; the callback counter cannot exist in a pure-Go engine (NA_EVIDENCE misc1)
 	}
-	{ // "misc1-19.12" — skipped: same sqlite3_test_control_fault_install N-A (NA_EVIDENCE misc1)
+	{ // "misc1-19.12" — skipped: FULL-SUITE-DRIFT.T26-misc N-A sqlite3_test_control_fault_install is a C-core test-control API (test1.c), not SQL surface; the callback counter cannot exist in a pure-Go engine (NA_EVIDENCE misc1)
 	}
 	{ // "misc1-20.1"
 		r = db.Query("\n  CREATE TABLE t0(x INTEGER DEFAULT(0==0) NOT NULL);\n  REPLACE INTO t0(x) VALUES('');\n  SELECT rowid, quote(x) FROM t0;\n")
@@ -806,6 +1011,13 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -852,6 +1064,13 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS abc;\n  CREATE TABLE abc(a, b, c);\n  SELECT randomblob(min(max(coalesce(EXISTS (SELECT 1 FROM ( SELECT (SELECT 2147483647) NOT IN (SELECT 2147483649 UNION ALL SELECT DISTINCT -1) IN (SELECT 2147483649), 'fault', (SELECT ALL -1 INTERSECT SELECT 'experiments') IN (SELECT ALL 56.1 ORDER BY 'experiments' DESC) FROM (SELECT DISTINCT 2147483648, 'hardware' UNION ALL SELECT -2147483648, 'experiments' ORDER BY 2147483648 LIMIT 1 OFFSET 123456789.1234567899) GROUP BY (SELECT ALL 0 INTERSECT SELECT 'in') IN (SELECT DISTINCT 'experiments' ORDER BY zeroblob(1000) LIMIT 56.1 OFFSET -456) HAVING EXISTS (SELECT 'fault' EXCEPT    SELECT DISTINCT 56.1) UNION SELECT 'The', 'The', 2147483649 UNION ALL SELECT DISTINCT 'hardware', 'first', 'experiments' ORDER BY 'hardware' LIMIT 123456789.1234567899 OFFSET -2147483647)) NOT IN (SELECT (SELECT DISTINCT (SELECT 'The') FROM abc ORDER BY EXISTS (SELECT -1 INTERSECT SELECT ALL NULL) ASC) IN (SELECT DISTINCT EXISTS (SELECT ALL 123456789.1234567899 ORDER BY 1 ASC, NULL DESC) FROM sqlite_master INTERSECT SELECT 456)), (SELECT ALL 'injection' UNION ALL SELECT ALL (SELECT DISTINCT 'first' UNION     SELECT DISTINCT 'The') FROM (SELECT 456, 'in', 2147483649))),1), 500)), 'first', EXISTS (SELECT DISTINCT 456 FROM abc ORDER BY 'experiments' DESC) FROM abc;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS abc;\n  CREATE TABLE abc(a, b, c);\n  SELECT randomblob(min(max(coalesce(EXISTS (SELECT 1 FROM ( SELECT (SELECT 2147483647) NOT IN (SELECT 2147483649 UNION ALL SELECT DISTINCT -1) IN (SELECT 2147483649), 'fault', (SELECT ALL -1 INTERSECT SELECT 'experiments') IN (SELECT ALL 56.1 ORDER BY 'experiments' DESC) FROM (SELECT DISTINCT 2147483648, 'hardware' UNION ALL SELECT -2147483648, 'experiments' ORDER BY 2147483648 LIMIT 1 OFFSET 123456789.1234567899) GROUP BY (SELECT ALL 0 INTERSECT SELECT 'in') IN (SELECT DISTINCT 'experiments' ORDER BY zeroblob(1000) LIMIT 56.1 OFFSET -456) HAVING EXISTS (SELECT 'fault' EXCEPT    SELECT DISTINCT 56.1) UNION SELECT 'The', 'The', 2147483649 UNION ALL SELECT DISTINCT 'hardware', 'first', 'experiments' ORDER BY 'hardware' LIMIT 123456789.1234567899 OFFSET -2147483647)) NOT IN (SELECT (SELECT DISTINCT (SELECT 'The') FROM abc ORDER BY EXISTS (SELECT -1 INTERSECT SELECT ALL NULL) ASC) IN (SELECT DISTINCT EXISTS (SELECT ALL 123456789.1234567899 ORDER BY 1 ASC, NULL DESC) FROM sqlite_master INTERSECT SELECT 456)), (SELECT ALL 'injection' UNION ALL SELECT ALL (SELECT DISTINCT 'first' UNION     SELECT DISTINCT 'The') FROM (SELECT 456, 'in', 2147483649))),1), 500)), 'first', EXISTS (SELECT DISTINCT 456 FROM abc ORDER BY 'experiments' DESC) FROM abc;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "misc1-27.0"

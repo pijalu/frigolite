@@ -349,6 +349,7 @@ func Test_e_droptrigger(t *testing.T) {
 					event = "INSERT"
 					db.Close()
 					os.Remove("test.db")
+					os.Remove("test.db2")
 					db, err = frigolite.Open("test.db")
 					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
@@ -370,6 +371,7 @@ func Test_e_droptrigger(t *testing.T) {
 					event = "INSERT"
 					db.Close()
 					os.Remove("test.db")
+					os.Remove("test.db2")
 					db, err = frigolite.Open("test.db")
 					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
@@ -391,6 +393,7 @@ func Test_e_droptrigger(t *testing.T) {
 					event = "INSERT"
 					db.Close()
 					os.Remove("test.db")
+					os.Remove("test.db2")
 					db, err = frigolite.Open("test.db")
 					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }

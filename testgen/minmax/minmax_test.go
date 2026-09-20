@@ -83,6 +83,12 @@ func Test_minmax(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4);\n    INSERT INTO t1 VALUES(9,4);\n    INSERT INTO t1 VALUES(10,4);\n    INSERT INTO t1 VALUES(11,4);\n    INSERT INTO t1 VALUES(12,4);\n    INSERT INTO t1 VALUES(13,4);\n    INSERT INTO t1 VALUES(14,4);\n    INSERT INTO t1 VALUES(15,4);\n    INSERT INTO t1 VALUES(16,5);\n    INSERT INTO t1 VALUES(17,5);\n    INSERT INTO t1 VALUES(18,5);\n    INSERT INTO t1 VALUES(19,5);\n    INSERT INTO t1 VALUES(20,5);\n    COMMIT;\n    SELECT DISTINCT y FROM t1 ORDER BY y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4);\n    INSERT INTO t1 VALUES(9,4);\n    INSERT INTO t1 VALUES(10,4);\n    INSERT INTO t1 VALUES(11,4);\n    INSERT INTO t1 VALUES(12,4);\n    INSERT INTO t1 VALUES(13,4);\n    INSERT INTO t1 VALUES(14,4);\n    INSERT INTO t1 VALUES(15,4);\n    INSERT INTO t1 VALUES(16,5);\n    INSERT INTO t1 VALUES(17,5);\n    INSERT INTO t1 VALUES(18,5);\n    INSERT INTO t1 VALUES(19,5);\n    INSERT INTO t1 VALUES(20,5);\n    COMMIT;\n    SELECT DISTINCT y FROM t1 ORDER BY y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-1.1"
@@ -153,24 +159,48 @@ func Test_minmax(t *testing.T) {
 		r = db.Query("SELECT min(x) FROM t1 WHERE x=5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT min(x) FROM t1 WHERE x=5")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-1.22"
 		r = db.Query("SELECT min(x) FROM t1 WHERE x>=5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT min(x) FROM t1 WHERE x>=5")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-1.23"
 		r = db.Query("SELECT min(x) FROM t1 WHERE x>=4.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT min(x) FROM t1 WHERE x>=4.5")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-1.24"
 		r = db.Query("SELECT min(x) FROM t1 WHERE x<4.5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT min(x) FROM t1 WHERE x<4.5")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-2.0"
@@ -253,378 +283,759 @@ func Test_minmax(t *testing.T) {
 		r = db.Query("\n      SELECT coalesce(min(x+0),-1), coalesce(max(x+0),-1) FROM\n        (SELECT * FROM t1 UNION SELECT NULL as 'x', NULL as 'y')\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT coalesce(min(x+0),-1), coalesce(max(x+0),-1) FROM\n        (SELECT * FROM t1 UNION SELECT NULL as 'x', NULL as 'y')\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-4.2"
 		r = db.Query("\n      SELECT y, coalesce(sum(x),0) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT y, coalesce(sum(x),0) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 5 3 22 4 92 5 90 6 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-4.3"
 		r = db.Query("\n      SELECT y, count(x), count(*) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT y, count(x), count(*) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1 2 2 3 3 4 5 4 8 9 5 5 6 6 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-5.1"
 		r = db.Query("\n    CREATE TABLE t3(x INTEGER UNIQUE NOT NULL);\n    SELECT coalesce(min(x),999) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x INTEGER UNIQUE NOT NULL);\n    SELECT coalesce(min(x),999) FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-5.2"
 		r = db.Query("\n    SELECT coalesce(min(rowid),999) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT coalesce(min(rowid),999) FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-5.3"
 		r = db.Query("\n    SELECT coalesce(max(x),999) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT coalesce(max(x),999) FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-5.4"
 		r = db.Query("\n    SELECT coalesce(max(rowid),999) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT coalesce(max(rowid),999) FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-5.5"
 		r = db.Query("\n    SELECT coalesce(max(rowid),999) FROM t3 WHERE rowid<25;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT coalesce(max(rowid),999) FROM t3 WHERE rowid<25;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-6.1"
 		r = db.Query("\n    SELECT min(a) FROM t2 LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a) FROM t2 LIMIT 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-6.2"
 		r = db.Query("\n    SELECT max(a) FROM t2 LIMIT 3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(a) FROM t2 LIMIT 3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-6.3"
 		r = db.Query("\n    SELECT min(a) FROM t2 LIMIT 0,100\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a) FROM t2 LIMIT 0,100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-6.4"
 		r = db.Query("\n    SELECT max(a) FROM t2 LIMIT 1,100\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(a) FROM t2 LIMIT 1,100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-6.5"
 		r = db.Query("\n    SELECT min(x) FROM t3 LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t3 LIMIT 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-6.6"
 		r = db.Query("\n    SELECT max(x) FROM t3 LIMIT 0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t3 LIMIT 0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-6.7"
 		r = db.Query("\n    SELECT max(a) FROM t2 LIMIT 0\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(a) FROM t2 LIMIT 0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-7.1"
 		r = db.Query("\n    SELECT max(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-7.2"
 		r = db.Query("\n      SELECT * FROM (SELECT max(x) FROM t1);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT max(x) FROM t1);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-7.3"
 		r = db.Query("\n    SELECT min(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-7.4"
 		r = db.Query("\n      SELECT * FROM (SELECT min(x) FROM t1);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT min(x) FROM t1);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-8.1"
 		r = db.Query("\n    CREATE TABLE t4(a TEXT);\n    INSERT INTO t4 VALUES('1234');\n    INSERT INTO t4 VALUES('234');\n    INSERT INTO t4 VALUES('34');\n    SELECT min(a), max(a) FROM t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a TEXT);\n    INSERT INTO t4 VALUES('1234');\n    INSERT INTO t4 VALUES('234');\n    INSERT INTO t4 VALUES('34');\n    SELECT min(a), max(a) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1234 34"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-8.2"
 		r = db.Query("\n    CREATE TABLE t5(a INTEGER);\n    INSERT INTO t5 VALUES('1234');\n    INSERT INTO t5 VALUES('234');\n    INSERT INTO t5 VALUES('34');\n    SELECT min(a), max(a) FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a INTEGER);\n    INSERT INTO t5 VALUES('1234');\n    INSERT INTO t5 VALUES('234');\n    INSERT INTO t5 VALUES('34');\n    SELECT min(a), max(a) FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "34 1234"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-9.0"
 		r = db.Query("\n      SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-9.1"
 		r = db.Query("\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5\n      )\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5\n      )\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-9.2"
 		r = db.Query("\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 EXCEPT SELECT max(rowid) FROM t5\n      )\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 EXCEPT SELECT max(rowid) FROM t5\n      )\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.1"
 		r = db.Query("\n    CREATE TABLE t6(x);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 VALUES(NULL);\n    SELECT coalesce(min(x),-1) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 VALUES(NULL);\n    SELECT coalesce(min(x),-1) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.2"
 		r = db.Query("\n    SELECT max(x) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.3"
 		r = db.Query("\n    CREATE INDEX i6 ON t6(x);\n    SELECT coalesce(min(x),-1) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i6 ON t6(x);\n    SELECT coalesce(min(x),-1) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.4"
 		r = db.Query("\n    SELECT max(x) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.5"
 		r = db.Query("\n    DELETE FROM t6 WHERE x NOT NULL;\n    SELECT count(*) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t6 WHERE x NOT NULL;\n    SELECT count(*) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.6"
 		r = db.Query("\n    SELECT count(x) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(x) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.7"
 		r = db.Query("\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.8"
 		r = db.Query("\n    SELECT min(x), max(x) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x), max(x) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.9"
 		r = db.Query("\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    SELECT count(*) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    SELECT count(*) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.10"
 		r = db.Query("\n    SELECT count(x) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(x) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.11"
 		r = db.Query("\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-10.12"
 		r = db.Query("\n    SELECT min(x), max(x) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x), max(x) FROM t6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.1"
 		r = db.Query("\n    CREATE INDEX t1i2 ON t1(y,x);\n    SELECT min(x) FROM t1 WHERE y=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i2 ON t1(y,x);\n    SELECT min(x) FROM t1 WHERE y=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.2"
 		r = db.Query("\n    SELECT max(x) FROM t1 WHERE y=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1 WHERE y=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.3"
 		r = db.Query("\n    SELECT min(x) FROM t1 WHERE y=6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t1 WHERE y=6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.4"
 		r = db.Query("\n    SELECT max(x) FROM t1 WHERE y=6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1 WHERE y=6;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.5"
 		r = db.Query("\n    SELECT min(x) FROM t1 WHERE y=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t1 WHERE y=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.6"
 		r = db.Query("\n    SELECT max(x) FROM t1 WHERE y=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1 WHERE y=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.7"
 		r = db.Query("\n    SELECT min(x) FROM t1 WHERE y=0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t1 WHERE y=0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.8"
 		r = db.Query("\n    SELECT max(x) FROM t1 WHERE y=0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1 WHERE y=0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.9"
 		r = db.Query("\n    SELECT min(x) FROM t1 WHERE y=5 AND x>=17.5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t1 WHERE y=5 AND x>=17.5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "18"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-11.10"
 		r = db.Query("\n    SELECT max(x) FROM t1 WHERE y=5 AND x>=17.5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1 WHERE y=5 AND x>=17.5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.1"
 		r = db.Query("\n    CREATE TABLE t7(a,b,c);\n    INSERT INTO t7 SELECT y, x, x*y FROM t1;\n    INSERT INTO t7 SELECT y, x, x*y+1000 FROM t1;\n    CREATE INDEX t7i1 ON t7(a,b,c);\n    SELECT min(a) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7(a,b,c);\n    INSERT INTO t7 SELECT y, x, x*y FROM t1;\n    INSERT INTO t7 SELECT y, x, x*y+1000 FROM t1;\n    CREATE INDEX t7i1 ON t7(a,b,c);\n    SELECT min(a) FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.2"
 		r = db.Query("\n    SELECT max(a) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(a) FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.3"
 		r = db.Query("\n    SELECT max(a) FROM t7 WHERE a=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(a) FROM t7 WHERE a=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.4"
 		r = db.Query("\n    SELECT min(b) FROM t7 WHERE a=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(b) FROM t7 WHERE a=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.5"
 		r = db.Query("\n    SELECT max(b) FROM t7 WHERE a=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(b) FROM t7 WHERE a=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.6"
 		r = db.Query("\n    SELECT min(b) FROM t7 WHERE a=4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(b) FROM t7 WHERE a=4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.7"
 		r = db.Query("\n    SELECT max(b) FROM t7 WHERE a=4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(b) FROM t7 WHERE a=4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.8"
 		r = db.Query("\n    SELECT min(c) FROM t7 WHERE a=4 AND b=10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(c) FROM t7 WHERE a=4 AND b=10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.9"
 		r = db.Query("\n    SELECT max(c) FROM t7 WHERE a=4 AND b=10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(c) FROM t7 WHERE a=4 AND b=10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1040"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.10"
 		r = db.Query("\n    SELECT min(rowid) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(rowid) FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.11"
 		r = db.Query("\n    SELECT max(rowid) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(rowid) FROM t7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.12"
 		r = db.Query("\n    SELECT min(rowid) FROM t7 WHERE a=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(rowid) FROM t7 WHERE a=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.13"
 		r = db.Query("\n    SELECT max(rowid) FROM t7 WHERE a=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(rowid) FROM t7 WHERE a=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "27"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.14"
 		r = db.Query("\n    SELECT min(rowid) FROM t7 WHERE a=3 AND b=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(rowid) FROM t7 WHERE a=3 AND b=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.15"
 		r = db.Query("\n    SELECT max(rowid) FROM t7 WHERE a=3 AND b=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(rowid) FROM t7 WHERE a=3 AND b=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "25"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.16"
 		r = db.Query("\n    SELECT min(rowid) FROM t7 WHERE a=3 AND b=5 AND c=1015;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(rowid) FROM t7 WHERE a=3 AND b=5 AND c=1015;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "25"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "minmax-12.17"
 		r = db.Query("\n    SELECT max(rowid) FROM t7 WHERE a=3 AND b=5 AND c=15;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(rowid) FROM t7 WHERE a=3 AND b=5 AND c=15;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

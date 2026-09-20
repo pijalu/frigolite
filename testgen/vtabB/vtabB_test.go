@@ -68,36 +68,72 @@ func Test_vtabB(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    CREATE VIRTUAL TABLE echo_t2 USING echo(t2);\n    SELECT * FROM t1 WHERE x IN (SELECT rowid FROM t2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    CREATE VIRTUAL TABLE echo_t2 USING echo(t2);\n    SELECT * FROM t1 WHERE x IN (SELECT rowid FROM t2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab8-2.2"
 		r = db.Query("\n    SELECT rowid FROM echo_t2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM echo_t2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabB-2.3"
 		r = db.Query("\n    SELECT * FROM t1 WHERE x IN (SELECT rowid FROM t2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE x IN (SELECT rowid FROM t2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabB-2.4"
 		r = db.Query("\n    SELECT * FROM t1 WHERE x IN (SELECT rowid FROM echo_t2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE x IN (SELECT rowid FROM echo_t2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabB-2.5"
 		r = db.Query("\n    SELECT * FROM t1 WHERE x IN (SELECT y FROM t2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE x IN (SELECT y FROM t2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabB-2.6"
 		r = db.Query("\n    SELECT * FROM t1 WHERE x IN (SELECT y FROM echo_t2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 WHERE x IN (SELECT y FROM echo_t2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

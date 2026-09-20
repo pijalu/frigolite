@@ -61,24 +61,48 @@ func Test_tkt2450(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2450-2"
 		r = db.Query("\n    SELECT * FROM \"t a\";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM \"t a\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2450-3"
 		r = db.Query("\n    SELECT \"t a\".* FROM \"t a\";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT \"t a\".* FROM \"t a\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2450-3"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM \"t a\", t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM \"t a\", t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

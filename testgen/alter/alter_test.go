@@ -132,6 +132,12 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n    SELECT 't1', * FROM [-t1-];\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 't1', * FROM [-t1-];\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 1 2 t2 3 4 5 6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.5"
@@ -202,30 +208,60 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n      INSERT INTO t4 VALUES('main', 'main', 'main');\n      INSERT INTO aux.t4 VALUES('aux', 'aux', 'aux');\n      SELECT * FROM t4 WHERE a = 'main';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 VALUES('main', 'main', 'main');\n      INSERT INTO aux.t4 VALUES('aux', 'aux', 'aux');\n      SELECT * FROM t4 WHERE a = 'main';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main main main"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.8.4"
 		r = db.Query("\n      ALTER TABLE t4 RENAME TO t5;\n      SELECT * FROM t4 WHERE a = 'aux';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE t4 RENAME TO t5;\n      SELECT * FROM t4 WHERE a = 'aux';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "aux aux aux"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.8.5"
 		r = db.Query("\n      SELECT * FROM t5;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t5;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main main main"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.8.6"
 		r = db.Query("\n      SELECT * FROM t5 WHERE b = 'main';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t5 WHERE b = 'main';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main main main"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.8.7"
 		r = db.Query("\n      ALTER TABLE aux.t4 RENAME TO t5;\n      SELECT * FROM aux.t5 WHERE b = 'aux';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE aux.t4 RENAME TO t5;\n      SELECT * FROM aux.t5 WHERE b = 'aux';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "aux aux aux"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.9.1"
@@ -238,12 +274,24 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM tbl1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tbl1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.9.3"
 		r = db.Query("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-1.9.4"
@@ -528,6 +576,13 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n      SELECT * FROM temp.sqlite_master WHERE type = 'trigger';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM temp.sqlite_master WHERE type = 'trigger';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-4.1"
@@ -540,12 +595,24 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n    INSERT INTO tbl1 VALUES(NULL);\n    SELECT a FROM tbl1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO tbl1 VALUES(NULL);\n    SELECT a FROM tbl1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-4.3"
 		r = db.Query("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    DELETE FROM tbl2;\n    INSERT INTO tbl2 VALUES(NULL);\n    SELECT a FROM tbl2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    DELETE FROM tbl2;\n    INSERT INTO tbl2 VALUES(NULL);\n    SELECT a FROM tbl2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-4.4"
@@ -667,6 +734,12 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n    INSERT INTO " + tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + col_name + ", " + col_name2 + " FROM " + tbl_name + ";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO " + tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + col_name + ", " + col_name2 + " FROM " + tbl_name + ";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_realnum_test alter-7.1 {\n  execsql {\n    CREATE TABLE t1(a TEXT COLLATE ...} {text 1 integer -2 text 5.4e-08 real 5.4e-08} (expr test, not transpiled)
@@ -674,15 +747,29 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2(a INTEGER);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    ALTER TABLE t2 ADD COLUMN b INTEGER DEFAULT 9;\n    SELECT sum(b) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a INTEGER);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    ALTER TABLE t2 ADD COLUMN b INTEGER DEFAULT 9;\n    SELECT sum(b) FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "27"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alter-8.2"
 		r = db.Query("\n    SELECT a, sum(b) FROM t2 GROUP BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, sum(b) FROM t2 GROUP BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 18 2 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "alter-9.1" — skipped: test-only internal function SQLITE_RENAME_COLUMN not implemented
+	{ // "alter-9.1" — skipped: test-only internal function SQLITE_RENAME_COLUMN not implemented (SQL side effects only)
+		_res = db.Exec("SELECT SQLITE_RENAME_COLUMN(0,0,0,0,0,0,0,0,0)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	// foreach {tn sql} "1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }"
 	_items2 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
@@ -719,6 +806,12 @@ func Test_alter(t *testing.T) {
 			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
+				return
+			}
+			got := flatten(r)
+			want := "sqlite_autoindex_xyzሴabc_1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "alter-10.3"
@@ -735,29 +828,47 @@ func Test_alter(t *testing.T) {
 			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
+				return
+			}
+			got := flatten(r)
+			want := "sqlite_autoindex_xyzabc_1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "alter-11.1" — skipped: sqlite3_exec test-harness command not transpiled
+		{ // "alter-11.1" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+			_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		isutf16 = "0" // capability regexp "16" not matched (engine default)
 		if tclBool("!" + isutf16) {
-			{ // "alter-11.2" — skipped: sqlite3_exec test-harness command not transpiled
+			{ // "alter-11.2" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+				_res = db.Exec("INSERT INTO t11 VALUES(1,2)")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 		}
-		{ // "alter-11.3" — skipped: sqlite3_exec test-harness command not transpiled
+		{ // "alter-11.3" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+			_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		if tclBool("!" + isutf16) {
-			{ // "alter-11.4" — skipped: sqlite3_exec test-harness command not transpiled
+			{ // "alter-11.4" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+				_res = db.Exec("INSERT INTO t11b VALUES(3,4)")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 			{ // "alter-11.5" — skipped: sqlite3_exec test-harness command not transpiled
 			}
 			{ // "alter-11.6" — skipped: sqlite3_exec test-harness command not transpiled
 			}
 		}
-		{ // "alter-11.7" — skipped: sqlite3_exec test-harness command not transpiled
+		{ // "alter-11.7" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+			_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		if tclBool("!" + isutf16) {
-			{ // "alter-11.8" — skipped: sqlite3_exec test-harness command not transpiled
+			{ // "alter-11.8" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+				_res = db.Exec("INSERT INTO t11c VALUES(5,6)")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 			{ // "alter-11.9" — skipped: setup uses untranspiled sqlite3_exec harness command (alter-11.7 t11c) (no-side-effects)
 			}
@@ -780,6 +891,13 @@ func Test_alter(t *testing.T) {
 			r = db.Query(" SELECT * FROM v1; ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1; ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "alter-12.4"
@@ -802,18 +920,36 @@ func Test_alter(t *testing.T) {
 			r = db.Query("\n    CREATE TABLE /* hi */ t3102a(x);\n    CREATE TABLE t3102b -- comment\n    (y);\n    CREATE INDEX t3102c ON t3102a(x);\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE /* hi */ t3102a(x);\n    CREATE TABLE t3102b -- comment\n    (y);\n    CREATE INDEX t3102c ON t3102a(x);\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "t3102a t3102b t3102c"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "alter-13.2"
 			r = db.Query("\n    ALTER TABLE t3102a RENAME TO t3102a_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t3102a RENAME TO t3102a_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "t3102a_rename t3102b t3102c"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "alter-13.3"
 			r = db.Query("\n    ALTER TABLE t3102b RENAME TO t3102b_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t3102b RENAME TO t3102b_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "t3102a_rename t3102b_rename t3102c"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "alter-14.1"
@@ -925,6 +1061,13 @@ func Test_alter(t *testing.T) {
 				r = db.Query("\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t2%';\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t2%';\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "alter-19.3"

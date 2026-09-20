@@ -336,6 +336,13 @@ func Test_window1(t *testing.T) {
 				r = db.Query("\n  CREATE TABLE t4(a, b);\n  SELECT ntile(1) OVER (ORDER BY a) FROM t4;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a, b);\n  SELECT ntile(1) OVER (ORDER BY a) FROM t4;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			db.Close()
@@ -828,6 +835,13 @@ func Test_window1(t *testing.T) {
 				r = db.Query("\n  SELECT a, rank() OVER(ORDER BY b) FROM t1\n    INTERSECT \n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, rank() OVER(ORDER BY b) FROM t1\n    INTERSECT \n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			db, err = frigolite.Open("")
@@ -879,6 +893,13 @@ func Test_window1(t *testing.T) {
 				r = db.Query("\n  SELECT(\n    WITH c AS(\n      VALUES(1)\n    ) SELECT '' FROM c,c\n  ) x WHERE x+x;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT(\n    WITH c AS(\n      VALUES(1)\n    ) SELECT '' FROM c,c\n  ) x WHERE x+x;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "16.0"
@@ -1296,8 +1317,7 @@ func Test_window1(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := tclListFlatten("{}")
-							got = tclListFlattenCollapse(got)
+							want := "{}"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -1350,6 +1370,13 @@ func Test_window1(t *testing.T) {
 							r = db.Query("\n  SELECT ( SELECT row_number() OVER () FROM ( SELECT c FROM t1 ) ) FROM t2\n")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT ( SELECT row_number() OVER () FROM ( SELECT c FROM t1 ) ) FROM t2\n")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "26.2"
@@ -1712,12 +1739,26 @@ func Test_window1(t *testing.T) {
 							r = db.Query("\n  CREATE TABLE t0(a UNIQUE, b PRIMARY KEY);\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN 10 AND 20;\n")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(a UNIQUE, b PRIMARY KEY);\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN 10 AND 20;\n")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "37.20"
 							r = db.Query("\n  DROP VIEW v0;\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1234))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN -10 AND 20;\n")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP VIEW v0;\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1234))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN -10 AND 20;\n")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						db.Close()
@@ -1867,6 +1908,13 @@ func Test_window1(t *testing.T) {
 							r = db.Query("\n  SELECT * FROM t1 WHERE (0, 0) IN ( SELECT count(*), 0 FROM t1 )\n")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE (0, 0) IN ( SELECT count(*), 0 FROM t1 )\n")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "42.3"
@@ -2593,6 +2641,13 @@ func Test_window1(t *testing.T) {
 							r = db.Query("\n  SELECT (\n    SELECT count(a) OVER ( ORDER BY (SELECT sum(y) FROM t2) )\n         + total(a) OVER() \n  )\n  FROM t1\n")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n    SELECT count(a) OVER ( ORDER BY (SELECT sum(y) FROM t2) )\n         + total(a) OVER() \n  )\n  FROM t1\n")
+								return
+							}
+							got := flatten(r)
+							want := tclListFlatten("{}")
+							got = tclListFlattenCollapse(got)
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "window1-61.4.2" — skipped: stale expectation: 0.0 row only with query-flattener disabled (optimization_control not transpilable) (SQL side effects only)
@@ -2668,8 +2723,7 @@ func Test_window1(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := tclListFlatten("{}")
-							got = tclListFlattenCollapse(got)
+							want := "{}"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -2681,8 +2735,7 @@ func Test_window1(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := tclListFlatten("{}")
-							got = tclListFlattenCollapse(got)
+							want := "{}"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -2780,8 +2833,7 @@ func Test_window1(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := tclListFlatten("{}")
-							got = tclListFlattenCollapse(got)
+							want := "{}"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -3120,6 +3172,13 @@ func Test_window1(t *testing.T) {
 									r = db.Query("\n  /* Original test case reported in https://sqlite.org/forum/forumpost/bad532820c\n  CREATE TABLE v0 (c1);\n  CREATE INDEX i ON v0 (c1, c1=1);\n  SELECT 0 FROM v0 AS a1\n   WHERE (SELECT count((SELECT(sum(0) OVER(PARTITION BY(c1), (a1.c1=1) ))))\n            FROM v0\n           GROUP BY hex(0))\n     AND a1.c1=0;\n")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  /* Original test case reported in https://sqlite.org/forum/forumpost/bad532820c\n  CREATE TABLE v0 (c1);\n  CREATE INDEX i ON v0 (c1, c1=1);\n  SELECT 0 FROM v0 AS a1\n   WHERE (SELECT count((SELECT(sum(0) OVER(PARTITION BY(c1), (a1.c1=1) ))))\n            FROM v0\n           GROUP BY hex(0))\n     AND a1.c1=0;\n")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "75.0"

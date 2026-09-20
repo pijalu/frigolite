@@ -97,54 +97,108 @@ func Test_misc3(t *testing.T) {
 		r = db.Query("SELECT 2e-25*0.5e25")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 2e-25*0.5e25")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.2"
 		r = db.Query("SELECT 2.0e-25*000000.500000000000000000000000000000e+00025")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 2.0e-25*000000.500000000000000000000000000000e+00025")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.3"
 		r = db.Query("SELECT 000000000002e-0000000025*0.5e25")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 000000000002e-0000000025*0.5e25")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.4"
 		r = db.Query("SELECT 2e-25*0.5e250")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 2e-25*0.5e250")
+			return
+		}
+		got := flatten(r)
+		want := "1e+225"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.5"
 		r = db.Query("SELECT format('%.15e',2.0e-250*0.5e25)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT format('%.15e',2.0e-250*0.5e25)")
+			return
+		}
+		got := flatten(r)
+		want := "1.0000000000000e-225"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.6"
 		r = db.Query("SELECT '-2.0e-127' * '-0.5e27'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '-2.0e-127' * '-0.5e27'")
+			return
+		}
+		got := flatten(r)
+		want := "1e-100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.7"
 		r = db.Query("SELECT '+2.0e-127' * '-0.5e27'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '+2.0e-127' * '-0.5e27'")
+			return
+		}
+		got := flatten(r)
+		want := "-1e-100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.8"
 		r = db.Query("SELECT 2.0e-27 * '+0.5e+127'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 2.0e-27 * '+0.5e+127'")
+			return
+		}
+		got := flatten(r)
+		want := "1e+100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-2.9"
 		r = db.Query("SELECT 2.0e-27 * '+0.000005e+132'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 2.0e-27 * '+0.000005e+132'")
+			return
+		}
+		got := flatten(r)
+		want := "1e+100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -185,84 +239,168 @@ func Test_misc3(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t2 VALUES(+2147483647);\n    INSERT INTO t2 VALUES(-2147483648);\n    INSERT INTO t2 VALUES(-2147483647);\n    INSERT INTO t2 VALUES(2147483646);\n    SELECT * FROM t2 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(+2147483647);\n    INSERT INTO t2 VALUES(-2147483648);\n    INSERT INTO t2 VALUES(-2147483647);\n    INSERT INTO t2 VALUES(2147483646);\n    SELECT * FROM t2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483649 -2147483648 -2147483647 2147483646 2147483647 2147483648 2147483649"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.7"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>=-2147483648 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>=-2147483648 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483648 -2147483647 2147483646 2147483647 2147483648 2147483649"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.8"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>-2147483648 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>-2147483648 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483647 2147483646 2147483647 2147483648 2147483649"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.9"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>-2147483649 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>-2147483649 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483648 -2147483647 2147483646 2147483647 2147483648 2147483649"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.10"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>=0 AND a<2147483649 ORDER BY a DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>=0 AND a<2147483649 ORDER BY a DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483648 2147483647 2147483646"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.11"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>=0 AND a<=2147483648 ORDER BY a DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>=0 AND a<=2147483648 ORDER BY a DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483648 2147483647 2147483646"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.12"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>=0 AND a<2147483648 ORDER BY a DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>=0 AND a<2147483648 ORDER BY a DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483647 2147483646"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.13"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>=0 AND a<=2147483647 ORDER BY a DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>=0 AND a<=2147483647 ORDER BY a DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483647 2147483646"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-3.14"
 		r = db.Query("\n    SELECT * FROM t2 WHERE a>=0 AND a<2147483647 ORDER BY a DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE a>=0 AND a<2147483647 ORDER BY a DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483646"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-4.1"
 		r = db.Query("\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3(b) VALUES('abc');\n    INSERT INTO t3(b) VALUES('xyz');\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) SELECT b||'d' FROM t3;\n    INSERT INTO t3(b) SELECT b||'e' FROM t3;\n    INSERT INTO t3(b) SELECT b||'f' FROM t3;\n    INSERT INTO t3(b) SELECT b||'g' FROM t3;\n    INSERT INTO t3(b) SELECT b||'h' FROM t3;\n    SELECT count(a), count(b) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3(b) VALUES('abc');\n    INSERT INTO t3(b) VALUES('xyz');\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) SELECT b||'d' FROM t3;\n    INSERT INTO t3(b) SELECT b||'e' FROM t3;\n    INSERT INTO t3(b) SELECT b||'f' FROM t3;\n    INSERT INTO t3(b) SELECT b||'g' FROM t3;\n    INSERT INTO t3(b) SELECT b||'h' FROM t3;\n    SELECT count(a), count(b) FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "128 64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-4.2"
 		r = db.Query("\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-4.3"
 		r = db.Query("\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3 ORDER BY a+1);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3 ORDER BY a+1);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-5.1"
 		r = db.Query("\n      CREATE TABLE x1 (b, c);\n      INSERT INTO x1 VALUES('dog',3);\n      INSERT INTO x1 VALUES('cat',1);\n      INSERT INTO x1 VALUES('dog',4);\n      CREATE TABLE x2 (c, e);\n      INSERT INTO x2 VALUES(1,'one');\n      INSERT INTO x2 VALUES(2,'two');\n      INSERT INTO x2 VALUES(3,'three');\n      INSERT INTO x2 VALUES(4,'four');\n      SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n         (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n         USING(c);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE x1 (b, c);\n      INSERT INTO x1 VALUES('dog',3);\n      INSERT INTO x1 VALUES('cat',1);\n      INSERT INTO x1 VALUES('dog',4);\n      CREATE TABLE x2 (c, e);\n      INSERT INTO x2 VALUES(1,'one');\n      INSERT INTO x2 VALUES(2,'two');\n      INSERT INTO x2 VALUES(3,'three');\n      INSERT INTO x2 VALUES(4,'four');\n      SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n         (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n         USING(c);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one cat 2 two {} 3 three {} 4 four dog"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-5.2"
 		r = db.Query("\n      SELECT * FROM (\n        SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n           (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n           USING(c)\n      );\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n           (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n           USING(c)\n      );\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one cat 2 two {} 3 three {} 4 four dog"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-6.1"
@@ -308,38 +446,78 @@ func Test_misc3(t *testing.T) {
 			}
 		}
 	} else {
-		{ // "misc3-6.11-utf8" — skipped: FULL-SUITE-DRIFT.T26-misc N-A. The want's leading "1" is the un-transpiled TCL `regexp { SorterCompare \d+ \d+ \d+ } $x` capability check (hardcoded "0" above, can never pass), and the remaining checks assert VDBE-internal EXPLAIN listing text (Real-constant P4 "4.5678", Column P4 affinity ",-B") that only a full vdbe emulator produces. frigolite's EXPLAIN is a synthetic listing; the ENGINE contract (the query itself returns correct rows) is pinned natively in frigolite_misc_pin_test.go (NA_EVIDENCE misc3).
-			_ = tclExecSQL(db, "\n        EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC\n      ")
+		{ // do_test "misc3-6.11-utf8"
+			x = tclExecSQL(db, "\n        EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC\n      ")
+			_ = x // suppress unused warning
+			y = "0" // capability regexp "{" not matched (engine default)
+			y = tclListAppend(y, tclRegexpMatch("4.5678", x))
+			y = tclListAppend(y, tclRegexpMatch("hello", x))
+			y = tclListAppend(y, tclRegexpMatch(",-B", x))
+			got := tclListFlatten(y)
+			want := tclListFlatten("1 1 1 1")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc3-6.11-utf8")
+			}
 		}
 	}
 	{ // do_test "misc3-7.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE y1(a);\n    CREATE TABLE y2(b);\n    CREATE TABLE y3(c);\n    CREATE TRIGGER r1 AFTER DELETE ON y1 FOR EACH ROW BEGIN\n      INSERT INTO y3(c) SELECT b FROM y2 ORDER BY b LIMIT 1;\n    END;\n    INSERT INTO y1 VALUES(1);\n    INSERT INTO y1 VALUES(2);\n    INSERT INTO y1 SELECT a+2 FROM y1;\n    INSERT INTO y1 SELECT a+4 FROM y1;\n    INSERT INTO y1 SELECT a+8 FROM y1;\n    INSERT INTO y1 SELECT a+16 FROM y1;\n    INSERT INTO y2 SELECT a FROM y1;\n    COMMIT;\n    SELECT count(*) FROM y1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE y1(a);\n    CREATE TABLE y2(b);\n    CREATE TABLE y3(c);\n    CREATE TRIGGER r1 AFTER DELETE ON y1 FOR EACH ROW BEGIN\n      INSERT INTO y3(c) SELECT b FROM y2 ORDER BY b LIMIT 1;\n    END;\n    INSERT INTO y1 VALUES(1);\n    INSERT INTO y1 VALUES(2);\n    INSERT INTO y1 SELECT a+2 FROM y1;\n    INSERT INTO y1 SELECT a+4 FROM y1;\n    INSERT INTO y1 SELECT a+8 FROM y1;\n    INSERT INTO y1 SELECT a+16 FROM y1;\n    INSERT INTO y2 SELECT a FROM y1;\n    COMMIT;\n    SELECT count(*) FROM y1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-7.2"
 		r = db.Query("\n    DELETE FROM y1;\n    SELECT count(*) FROM y1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM y1;\n    SELECT count(*) FROM y1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc3-7.3"
 		r = db.Query("\n    SELECT count(*) FROM y3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM y3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc-8.1"
 		r = db.Query("\n      SELECT count(CASE WHEN b IN ('abc','xyz') THEN 'x' END) FROM t3\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(CASE WHEN b IN ('abc','xyz') THEN 'x' END) FROM t3\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "misc-8.2"
 		r = db.Query("\n      SELECT count(*) FROM t3 WHERE 1+(b IN ('abc','xyz'))==2\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM t3 WHERE 1+(b IN ('abc','xyz'))==2\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

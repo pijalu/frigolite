@@ -67,18 +67,36 @@ func Test_tkt3357(t *testing.T) {
 		r = db.Query("\n    SELECT cc.id, cc.b_id, cc.myvalue, dd.bvalue \n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue FROM a\n      INNER JOIN b ON a.b_id = b.id WHERE b.bvalue = 'btest'\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT cc.id, cc.b_id, cc.myvalue, dd.bvalue \n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue FROM a\n      INNER JOIN b ON a.b_id = b.id WHERE b.bvalue = 'btest'\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 Test btest 2 1 Test2 btest 3 1 Test3 btest"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3357-1.3"
 		r = db.Query("\n    SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 Test 2 1 Test2 3 1 Test3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3357-1.4"
 		r = db.Query("\n    SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 Test 2 1 Test2 3 1 Test3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

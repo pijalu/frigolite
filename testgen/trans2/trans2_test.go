@@ -8,10 +8,5 @@ import (
 "testing"
 )
 
-// skipped: N/A: performance-limited - per-statement pager-snapshot/journal
-// cost over ~3000 statements exceeds any harness budget (profile:
-// madvise/rawsyscall dominated; assertions unchanged). The lappend O(n^2)
-// helper stall that originally froze the package is fixed
-// (tclListAppend fast path); what remains is the per-statement I/O
-// subsystem scale. Listed in tcl2go skiptestfiles as trans2.
 func Test_trans2(t *testing.T) {}
+// skipped: N/A: performance-limited - per-statement pager-snapshot/journal cost over ~3000 statements exceeds any harness budget (profile: madvise/rawsyscall dominated; assertions unchanged)

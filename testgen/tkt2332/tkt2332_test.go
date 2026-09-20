@@ -201,6 +201,13 @@ func Test_tkt2332(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE blobs (k INTEGER PRIMARY KEY, v BLOB);\n    PRAGMA cache_size = 100;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE blobs (k INTEGER PRIMARY KEY, v BLOB);\n    PRAGMA cache_size = 100;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("iKey", "", "1")
@@ -220,9 +227,13 @@ func Test_tkt2332(t *testing.T) {
 			r = db.Query("\n      SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + ";\n    ")
+				return
 			}
-			if flatten(r) != tclListFlatten(Len) {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(Len), "tkt2332." + Len + ".2")
+			got := flatten(r)
+			want := tclListFlatten(Len)
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".3"
@@ -243,9 +254,13 @@ func Test_tkt2332(t *testing.T) {
 			r = db.Query(" SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + "; ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + "; ")
+				return
 			}
-			if flatten(r) != tclListFlatten(Len) {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(Len), "tkt2332." + Len + ".4")
+			got := flatten(r)
+			want := tclListFlatten(Len)
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".5"
@@ -257,9 +272,8 @@ func Test_tkt2332(t *testing.T) {
 		// incr iKey 1
 		{
 			_n, _err := strconv.Atoi(iKey)
-			if _err == nil {
-				iKey = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			iKey = strconv.Itoa(_n + 1)
 		}
 	}
 }

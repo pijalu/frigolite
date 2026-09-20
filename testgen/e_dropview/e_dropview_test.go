@@ -118,6 +118,13 @@ func Test_e_dropview(t *testing.T) {
 		r = db.Query("\n  DROP VIEW \"new view\";\n  SELECT * FROM sqlite_master WHERE name = 'new view';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP VIEW \"new view\";\n  SELECT * FROM sqlite_master WHERE name = 'new view';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.4"

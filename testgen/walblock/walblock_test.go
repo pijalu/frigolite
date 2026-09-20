@@ -135,7 +135,7 @@ func Test_walblock(t *testing.T) {
 		}
 		_ = out // TCL namespace variable (query)
 		got := tclListFlatten(out)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.1.3")
 		}

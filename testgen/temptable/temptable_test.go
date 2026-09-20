@@ -69,7 +69,7 @@ func Test_temptable(t *testing.T) {
 		dummy = ""
 		_ = dummy // suppress unused warning
 		got := tclListFlatten(dummy)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "temptable-1.0")
 		}
@@ -94,6 +94,12 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+			return
+		}
+		got := flatten(r)
+		want := "t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-1.4"
@@ -153,6 +159,12 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("\n    BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-2.2"
@@ -167,6 +179,12 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("\n    BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-2.4"
@@ -183,18 +201,37 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("\n    CREATE INDEX i2 ON t2(x);\n    SELECT name FROM sqlite_master WHERE type='index';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i2 ON t2(x);\n    SELECT name FROM sqlite_master WHERE type='index';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-3.2"
 		r = db.Query("\n    SELECT y FROM t2 WHERE x=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-3.3"
 		r = db.Query("\n    DROP INDEX i2;\n    SELECT y FROM t2 WHERE x=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX i2;\n    SELECT y FROM t2 WHERE x=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-3.4"
@@ -209,12 +246,24 @@ func Test_temptable(t *testing.T) {
 		r = db2.Query("\n    CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-4.2"
 		r = db.Query("\n    CREATE TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(9,8,7);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(9,8,7);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 8 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-4.3"
@@ -287,6 +336,12 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t2(x unique, y);\n    INSERT INTO t2 VALUES(3,4);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x unique, y);\n    INSERT INTO t2 VALUES(3,4);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-4.10.1"
@@ -305,12 +360,24 @@ func Test_temptable(t *testing.T) {
 		r = db2.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-4.12"
 		r = db.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-4.13"
@@ -323,6 +390,12 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-4.15"
@@ -357,36 +430,72 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-5.5"
 		r = db2.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-5.6"
 		r = db2.Query("\n    INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-5.7"
 		r = db2.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-5.8"
 		r = db.Query("\n    SELECT y FROM t2 WHERE x=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "temptable-5.9"
 		r = db.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if db2 != nil { db2.Close() }
@@ -394,6 +503,12 @@ func Test_temptable(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('xyzzy');\n    SELECT * FROM t8;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('xyzzy');\n    SELECT * FROM t8;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "xyzzy"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "temptable-6.2" — skipped: readonly filesystem test requires unprivileged user N-A (no-side-effects)
@@ -429,6 +544,7 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
 	{ // do_test "temptable-7.1"
 		_res = db.Exec("\n      ATTACH 'test2.db' AS two;\n      CREATE TEMP TABLE two.abc(x,y);\n    ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "temporary table name must be unqualified") {

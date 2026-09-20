@@ -106,5 +106,6 @@ func Test_lock6(t *testing.T) {
 	f = "tf_main2.tcl"
 	_ = f // suppress unused warning
 	tclChannelAppendAt("tf_main2.tcl", "\n  set l [open log w]\n  set script \"\"\n  while {![eof stdin]} {\n    flush stdout\n    set line [gets stdin]\n    puts $l \"READ $line\"\n    if { $line == \"OVER\" } {\n      catch {eval $script} result\n      puts $result\n      puts $l \"WRITE $result\"\n      puts OVER\n      puts $l \"WRITE OVER\"\n      flush stdout\n      set script \"\"\n    } else {\n      append script $line\n      append script \" ; \"\n    }\n  }\n  close $l\n"+"\n", fileChannelSeek["f"])
+	fileChannelSeek["f"] += int64(len("\n  set l [open log w]\n  set script \"\"\n  while {![eof stdin]} {\n    flush stdout\n    set line [gets stdin]\n    puts $l \"READ $line\"\n    if { $line == \"OVER\" } {\n      catch {eval $script} result\n      puts $result\n      puts $l \"WRITE $result\"\n      puts OVER\n      puts $l \"WRITE OVER\"\n      flush stdout\n      set script \"\"\n    } else {\n      append script $line\n      append script \" ; \"\n    }\n  }\n  close $l\n"+"\n"))
 	// close $f
 }

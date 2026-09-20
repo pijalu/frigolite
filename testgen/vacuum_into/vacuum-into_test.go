@@ -221,6 +221,13 @@ func Test_vacuum_into(t *testing.T) {
 			r = db.Query("\n    PRAGMA page_size=1024;\n    VACUUM INTO 'test.db2';\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    VACUUM INTO 'test.db2';\n  ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "vacuum-into-630"

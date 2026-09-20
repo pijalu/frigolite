@@ -167,6 +167,8 @@ func Test_notify2(t *testing.T) {
 		_ = xPrepare // suppress unused warning
 		_ = _idx0
 			os.Remove("test.db")
+			os.Remove("test2.db")
+			os.Remove("test3.db")
 			vtab.TclVarSet("ThreadSetup", "", "set xStep " + xStep + ";set xPrepare " + xPrepare + ";set nSecond " + nSecond)
 			ThreadSetup = "set xStep " + xStep + ";set xPrepare " + xPrepare + ";set nSecond " + nSecond
 			_ = ThreadSetup // suppress unused warning
@@ -194,9 +196,8 @@ func Test_notify2(t *testing.T) {
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
-					if _err == nil {
-						ii = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("ii", "", "0")
@@ -223,9 +224,8 @@ func Test_notify2(t *testing.T) {
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
-					if _err == nil {
-						ii = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 			{ // do_test "notify2-" + iTest + ".3.1"

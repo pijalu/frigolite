@@ -129,8 +129,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{{}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -160,7 +159,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"n31\":32.5,\"n33\":33,\"n35\":35,\"n37\":null,\"n39\":\"orange\"}"
+		want := "{{\"n31\":32.5,\"n33\":33,\"n35\":35,\"n37\":null,\"n39\":\"orange\"}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -172,7 +171,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 {\"n3\":3,\"n6\":6} 1 {\"n1\":1,\"n4\":4} 2 {\"n2\":2,\"n5\":5}"
+		want := "0 {{\"n3\":3,\"n6\":6}} 1 {{\"n1\":1,\"n4\":4}} 2 {{\"n2\":2,\"n5\":5}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -184,7 +183,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "[1,\"abc\"] [{\"x\":1},{\"x\":\"abc\"}]"
+		want := "[1,\"abc\"] {[{\"x\":1},{\"x\":\"abc\"}]}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -208,7 +207,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\"1\":1} {\"1\":1,\"2\":\"a,b\"} {\"1\":1,\"2\":\"a,b\",\"3\":3} {\"2\":\"a,b\",\"3\":3,\"4\":\"x\\\"y\"} {\"3\":3,\"4\":\"x\\\"y\",\"5\":5} {\"4\":\"x\\\"y\",\"5\":5,\"6\":6} {\"5\":5,\"6\":6,\"7\":7}"
+		want := "{{\"1\":1}} {{\"1\":1,\"2\":\"a,b\"}} {{\"1\":1,\"2\":\"a,b\",\"3\":3}} {{\"2\":\"a,b\",\"3\":3,\"4\":\"x\\\"y\"}} {{\"3\":3,\"4\":\"x\\\"y\",\"5\":5}} {{\"4\":\"x\\\"y\",\"5\":5,\"6\":6}} {{\"5\":5,\"6\":6,\"7\":7}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

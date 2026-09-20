@@ -133,9 +133,8 @@ func Test_rtree4(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			_res = db.Exec("DROP TABLE IF EXISTS rx")
@@ -163,9 +162,8 @@ func Test_rtree4(t *testing.T) {
 					// incr j 1
 					{
 						_n, _err := strconv.Atoi(j)
-						if _err == nil {
-							j = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						j = strconv.Itoa(_n + 1)
 					}
 				}
 				_res = db.Exec("INSERT INTO rx VALUES(NULL, " + strings.Join(tclSplitList(vlist), ",") + ")")
@@ -186,9 +184,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(where), " AND "))
@@ -214,9 +211,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(where), " AND "))
@@ -238,9 +234,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("j", "", "0")
@@ -255,9 +250,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(where), " AND "))
@@ -279,9 +273,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("j", "", "0")
@@ -296,9 +289,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(where), " AND "))
@@ -324,9 +316,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			j = tclExprWith("$nDim-1", map[string]string{"nDim": nDim})
@@ -336,9 +327,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j -1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + -1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + -1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(where), " AND "))
@@ -363,9 +353,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j -1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + -1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + -1)
 				}
 			}
 			vtab.TclVarSet("j", "", "0")
@@ -376,9 +365,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(where), " AND "))
@@ -408,9 +396,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(tclScramble(where)), " AND "))
@@ -440,9 +427,8 @@ func Test_rtree4(t *testing.T) {
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("where", "", "WHERE " + strings.Join(tclSplitList(tclScramble(where)), " AND "))
@@ -456,18 +442,16 @@ func Test_rtree4(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		// do_rtree_integrity_test rtree4-$nDim.3 rx (unsupported command, not transpiled)
 		// incr nDim 1
 		{
 			_n, _err := strconv.Atoi(nDim)
-			if _err == nil {
-				nDim = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			nDim = strconv.Itoa(_n + 1)
 		}
 	}
 	// expand_all_sql db (unsupported command, not transpiled)

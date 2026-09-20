@@ -60,12 +60,24 @@ func Test_vtabF(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    INSERT INTO t1 VALUES(10,110);\n    INSERT INTO t1 VALUES(11,111);\n    INSERT INTO t1 SELECT a+2, b+2 FROM t1;\n    INSERT INTO t1 SELECT null, b+4 FROM t1;\n    INSERT INTO t1 SELECT null, b+8 FROM t1;\n    INSERT INTO t1 SELECT null, b+16 FROM t1;\n    ANALYZE;\n    CREATE VIRTUAL TABLE tv1 USING echo(t1);\n    SELECT b FROM t1 WHERE a IS NOT NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    INSERT INTO t1 VALUES(10,110);\n    INSERT INTO t1 VALUES(11,111);\n    INSERT INTO t1 SELECT a+2, b+2 FROM t1;\n    INSERT INTO t1 SELECT null, b+4 FROM t1;\n    INSERT INTO t1 SELECT null, b+8 FROM t1;\n    INSERT INTO t1 SELECT null, b+16 FROM t1;\n    ANALYZE;\n    CREATE VIRTUAL TABLE tv1 USING echo(t1);\n    SELECT b FROM t1 WHERE a IS NOT NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "110 111 112 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabF-1.2"
 		r = db.Query("SELECT b FROM tv1 WHERE a IS NOT NULL")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM tv1 WHERE a IS NOT NULL")
+			return
+		}
+		got := flatten(r)
+		want := "110 111 112 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

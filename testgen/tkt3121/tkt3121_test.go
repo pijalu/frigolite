@@ -62,12 +62,25 @@ func Test_tkt3121(t *testing.T) {
 		r = db.Query("\n    PRAGMA encoding = 'utf16';\n\n    CREATE TABLE r1(field);\n    CREATE TABLE r2(col PRIMARY KEY, descr);\n\n    INSERT INTO r1 VALUES('abcd');\n    INSERT INTO r2 VALUES('abcd', 'A nice description');\n    INSERT INTO r2 VALUES('efgh', 'Another description');\n\n    CREATE VIRTUAL TABLE t1 USING echo(r1);\n    CREATE VIRTUAL TABLE t2 USING echo(r2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf16';\n\n    CREATE TABLE r1(field);\n    CREATE TABLE r2(col PRIMARY KEY, descr);\n\n    INSERT INTO r1 VALUES('abcd');\n    INSERT INTO r2 VALUES('abcd', 'A nice description');\n    INSERT INTO r2 VALUES('efgh', 'Another description');\n\n    CREATE VIRTUAL TABLE t1 USING echo(r1);\n    CREATE VIRTUAL TABLE t2 USING echo(r2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabD-1.2"
 		r = db.Query("\n    select\n      t1.field as Field,\n      t2.descr as Descr\n    from t1 inner join t2 on t1.field = t2.col order by t1.field\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select\n      t1.field as Field,\n      t2.descr as Descr\n    from t1 inner join t2 on t1.field = t2.col order by t1.field\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcd A nice description"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

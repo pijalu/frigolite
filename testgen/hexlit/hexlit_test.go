@@ -144,9 +144,8 @@ func Test_hexlit(t *testing.T) {
 		// incr n 1
 		{
 			_n, _err := strconv.Atoi(n)
-			if _err == nil {
-				n = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			n = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // "hexlit-300"

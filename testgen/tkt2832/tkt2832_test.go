@@ -67,6 +67,12 @@ func Test_tkt2832(t *testing.T) {
 		r = db.Query("\n    UPDATE OR REPLACE t1 SET a = 1;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t1 SET a = 1;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2832-2.1"

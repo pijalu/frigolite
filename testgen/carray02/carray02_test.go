@@ -194,24 +194,52 @@ func Test_carray02(t *testing.T) {
 					r = db.Query("\n  SELECT * FROM carray\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM carray\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "3.0.1"
 					r = db.Query("\n  SELECT * FROM carray('0xFFFF', 5)\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM carray('0xFFFF', 5)\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "3.0.2"
 					r = db.Query("\n  SELECT * FROM carray('0xFFFF')\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM carray('0xFFFF')\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "3.0.3"
 					r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('0xFFFF');\n  SELECT * FROM t1, carray WHERE carray.pointer = t1.x;\n")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('0xFFFF');\n  SELECT * FROM t1, carray WHERE carray.pointer = t1.x;\n")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten("{}")
+					got = tclListFlattenCollapse(got)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "3.1"

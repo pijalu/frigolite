@@ -105,7 +105,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 		}
 		_ = HOOKS // TCL namespace variable (query)
 		got := tclListFlatten(HOOKS)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tkt-f7b4edec-2")
 		}

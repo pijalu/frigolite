@@ -143,7 +143,7 @@ func Test_trans3(t *testing.T) {
 	{ // do_test "trans3-1.3"
 		_ = ecode // TCL namespace variable (query)
 		got := tclListFlatten(ecode)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans3-1.3")
 		}
@@ -230,7 +230,7 @@ func Test_trans3(t *testing.T) {
 	{ // do_test "trans3-1.6"
 		_ = ecode // TCL namespace variable (query)
 		got := tclListFlatten(ecode)
-		want := tclListFlatten("")
+		want := tclListFlatten("{}")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans3-1.6")
 		}

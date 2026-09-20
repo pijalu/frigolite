@@ -179,7 +179,7 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_error // TCL namespace variable (query)
 		got := stmtlist_error
-		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		wantPattern := "^{-?d+ {SELECT a, b FROM t1 ORDER BY a;}}$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.2")
 		}
@@ -207,7 +207,7 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := stmtlist_record
-		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		wantPattern := "^{-?d+ {SELECT a, b FROM t1 ORDER BY a;}}$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.3")
 		}
@@ -235,7 +235,7 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := stmtlist_record
-		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		wantPattern := "^{-?d+ {SELECT a, b FROM t1 ORDER BY a;}}$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.4")
 		}
@@ -263,7 +263,7 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := stmtlist_record
-		wantPattern := "^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$"
+		wantPattern := "^{-?d+ {SELECT a, b FROM t1 ORDER BY a;}}$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-3.5")
 		}
@@ -291,7 +291,7 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := stmtlist_record
-		wantPattern := "^\\{-?\\d+ -?\\d+\\}$"
+		wantPattern := "^{-?d+ -?d+}$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-4.1")
 		}
@@ -319,7 +319,7 @@ func Test_trace3(t *testing.T) {
 		}
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := stmtlist_record
-		wantPattern := "^\\{-?\\d+ -?\\d+\\}$"
+		wantPattern := "^{-?d+ -?d+}$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-4.2")
 		}
@@ -386,9 +386,8 @@ func Test_trace3(t *testing.T) {
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)
-					if _err == nil {
-						cnt = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					cnt = strconv.Itoa(_n + 1)
 				}
 				if func() bool { cnt_n, _cnt_e := strconv.Atoi(cnt); if _cnt_e != nil { return false }; return cnt_n > 3 }() {
 					vtab.TclVarSet("res", "", "time out of bounds.  Expected less than 99999999.  Got " + ns)
@@ -508,7 +507,7 @@ func Test_trace3(t *testing.T) {
 		db.Close()
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := stmtlist_record
-		wantPattern := "^-?\\d+$"
+		wantPattern := "^-?d+$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-11.1")
 		}
@@ -540,7 +539,7 @@ func Test_trace3(t *testing.T) {
 		db.Close()
 		_ = stmtlist_record // TCL namespace variable (query)
 		got := stmtlist_record
-		wantPattern := "^-?\\d+$"
+		wantPattern := "^-?d+$"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  body: do_test %s", got, wantPattern, "trace3-11.2")
 		}

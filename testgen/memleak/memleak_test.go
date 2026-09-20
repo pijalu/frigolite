@@ -128,9 +128,8 @@ func Test_memleak(t *testing.T) {
 			// incr COUNTER 1
 			{
 				_n, _err := strconv.Atoi(COUNTER)
-				if _err == nil {
-					COUNTER = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				COUNTER = strconv.Itoa(_n + 1)
 			}
 		}
 		if LeakList != "" {

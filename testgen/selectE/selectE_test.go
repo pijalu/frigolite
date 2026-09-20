@@ -108,12 +108,24 @@ func Test_selectE(t *testing.T) {
 		r = db.Query("\n    DELETE FROM t2;\n    DELETE FROM t3;\n    INSERT INTO t2 VALUES('ABC'),('def'),('GHI'),('jkl');\n    INSERT INTO t3 SELECT lower(a) FROM t2;\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    DELETE FROM t3;\n    INSERT INTO t2 VALUES('ABC'),('def'),('GHI'),('jkl');\n    INSERT INTO t3 SELECT lower(a) FROM t2;\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectE-2.2"
 		r = db.Query("\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "selectE-3.1"

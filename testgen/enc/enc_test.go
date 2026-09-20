@@ -279,6 +279,12 @@ func Test_enc(t *testing.T) {
 		r = db.Query("PRAGMA function_list")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA function_list")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")

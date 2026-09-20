@@ -137,42 +137,84 @@ func Test_collate1(t *testing.T) {
 		r = db.Query("\n    SELECT c2 FROM collate1t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2 FROM collate1t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0x119 0x2D"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-1.2"
 		r = db.Query("\n    SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0x2D 0x119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-1.3"
 		r = db.Query("\n    SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0x119 0x2D {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-1.4"
 		r = db.Query("\n   SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex ASC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex ASC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0x2D 0x119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-1.5"
 		r = db.Query("\n    SELECT c2 COLLATE hex FROM collate1t1 ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2 COLLATE hex FROM collate1t1 ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0x2D 0x119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-1.6"
 		r = db.Query("\n    SELECT c2 COLLATE hex FROM collate1t1 ORDER BY 1 ASC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2 COLLATE hex FROM collate1t1 ORDER BY 1 ASC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 0x2D 0x119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-1.7"
 		r = db.Query("\n    SELECT c2 COLLATE hex FROM collate1t1 ORDER BY 1 DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2 COLLATE hex FROM collate1t1 ORDER BY 1 DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0x119 0x2D {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-1.99"
@@ -191,78 +233,156 @@ func Test_collate1(t *testing.T) {
 		r = db.Query("\n    SELECT c1, c2 FROM collate1t1 ORDER BY 1 COLLATE numeric, 2 COLLATE hex;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1, c2 FROM collate1t1 ORDER BY 1 COLLATE numeric, 2 COLLATE hex;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 5 0xA 5 0x11 7 0xA 11 0x11 11 0x101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.3"
 		r = db.Query("\n    SELECT c1, c2 FROM collate1t1 ORDER BY 1 COLLATE binary, 2 COLLATE hex;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1, c2 FROM collate1t1 ORDER BY 1 COLLATE binary, 2 COLLATE hex;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 11 0x11 11 0x101 5 0xA 5 0x11 7 0xA"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.4"
 		r = db.Query("\n    SELECT c1, c2 FROM collate1t1 ORDER BY 1 COLLATE binary DESC, 2 COLLATE hex;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1, c2 FROM collate1t1 ORDER BY 1 COLLATE binary DESC, 2 COLLATE hex;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 0xA 5 0xA 5 0x11 11 0x11 11 0x101 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.5"
 		r = db.Query("\n    SELECT c1, c2 FROM collate1t1 \n        ORDER BY 1 COLLATE binary DESC, 2 COLLATE hex DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1, c2 FROM collate1t1 \n        ORDER BY 1 COLLATE binary DESC, 2 COLLATE hex DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 0xA 5 0x11 5 0xA 11 0x101 11 0x11 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.6"
 		r = db.Query("\n    SELECT c1, c2 FROM collate1t1 \n        ORDER BY 1 COLLATE binary ASC, 2 COLLATE hex ASC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1, c2 FROM collate1t1 \n        ORDER BY 1 COLLATE binary ASC, 2 COLLATE hex ASC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 11 0x11 11 0x101 5 0xA 5 0x11 7 0xA"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.12.1"
 		r = db.Query("\n    SELECT c1 COLLATE numeric, c2 FROM collate1t1 \n     ORDER BY 1, 2 COLLATE hex;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1 COLLATE numeric, c2 FROM collate1t1 \n     ORDER BY 1, 2 COLLATE hex;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 5 0xA 5 0x11 7 0xA 11 0x11 11 0x101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.12.2"
 		r = db.Query("\n    SELECT c1 COLLATE hex, c2 FROM collate1t1 \n     ORDER BY 1 COLLATE numeric, 2 COLLATE hex;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1 COLLATE hex, c2 FROM collate1t1 \n     ORDER BY 1 COLLATE numeric, 2 COLLATE hex;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 5 0xA 5 0x11 7 0xA 11 0x11 11 0x101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.12.3"
 		r = db.Query("\n    SELECT c1, c2 COLLATE hex FROM collate1t1 \n     ORDER BY 1 COLLATE numeric, 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1, c2 COLLATE hex FROM collate1t1 \n     ORDER BY 1 COLLATE numeric, 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 5 0xA 5 0x11 7 0xA 11 0x11 11 0x101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.12.4"
 		r = db.Query("\n    SELECT c1 COLLATE numeric, c2 COLLATE hex\n      FROM collate1t1 \n     ORDER BY 1, 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1 COLLATE numeric, c2 COLLATE hex\n      FROM collate1t1 \n     ORDER BY 1, 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 5 0xA 5 0x11 7 0xA 11 0x11 11 0x101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.13"
 		r = db.Query("\n    SELECT c1 COLLATE binary, c2 COLLATE hex\n      FROM collate1t1\n     ORDER BY 1, 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1 COLLATE binary, c2 COLLATE hex\n      FROM collate1t1\n     ORDER BY 1, 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 11 0x11 11 0x101 5 0xA 5 0x11 7 0xA"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.14"
 		r = db.Query("\n    SELECT c1, c2\n      FROM collate1t1 ORDER BY 1 COLLATE binary DESC, 2 COLLATE hex;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1, c2\n      FROM collate1t1 ORDER BY 1 COLLATE binary DESC, 2 COLLATE hex;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 0xA 5 0xA 5 0x11 11 0x11 11 0x101 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.15"
 		r = db.Query("\n    SELECT c1 COLLATE binary, c2 COLLATE hex\n      FROM collate1t1 \n     ORDER BY 1 DESC, 2 DESC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1 COLLATE binary, c2 COLLATE hex\n      FROM collate1t1 \n     ORDER BY 1 DESC, 2 DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "7 0xA 5 0x11 5 0xA 11 0x101 11 0x11 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.16"
 		r = db.Query("\n    SELECT c1 COLLATE hex, c2 COLLATE binary\n      FROM collate1t1 \n     ORDER BY 1 COLLATE binary ASC, 2 COLLATE hex ASC;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1 COLLATE hex, c2 COLLATE binary\n      FROM collate1t1 \n     ORDER BY 1 COLLATE binary ASC, 2 COLLATE hex ASC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 11 0x11 11 0x101 5 0xA 5 0x11 7 0xA"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-2.99"
@@ -275,42 +395,84 @@ func Test_collate1(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE collate1t1(a COLLATE hex, b);\n    INSERT INTO collate1t1 VALUES( '0x5', 5 );\n    INSERT INTO collate1t1 VALUES( '1', 1 );\n    INSERT INTO collate1t1 VALUES( '0x45', 69 );\n    INSERT INTO collate1t1 VALUES( NULL, NULL );\n    SELECT * FROM collate1t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE collate1t1(a COLLATE hex, b);\n    INSERT INTO collate1t1 VALUES( '0x5', 5 );\n    INSERT INTO collate1t1 VALUES( '1', 1 );\n    INSERT INTO collate1t1 VALUES( '0x45', 69 );\n    INSERT INTO collate1t1 VALUES( NULL, NULL );\n    SELECT * FROM collate1t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 1 1 0x5 5 0x45 69"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-3.1"
 		r = db.Query("\n    SELECT * FROM collate1t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM collate1t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 1 1 0x5 5 0x45 69"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-3.2"
 		r = db.Query("\n    SELECT * FROM collate1t1 ORDER BY collate1t1.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM collate1t1 ORDER BY collate1t1.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 1 1 0x5 5 0x45 69"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-3.3"
 		r = db.Query("\n    SELECT * FROM collate1t1 ORDER BY main.collate1t1.a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM collate1t1 ORDER BY main.collate1t1.a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 1 1 0x5 5 0x45 69"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-3.4"
 		r = db.Query("\n    SELECT a as c1, b as c2 FROM collate1t1 ORDER BY c1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a as c1, b as c2 FROM collate1t1 ORDER BY c1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 1 1 0x5 5 0x45 69"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-3.5"
 		r = db.Query("\n    SELECT a as c1, b as c2 FROM collate1t1 ORDER BY c1 COLLATE binary;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a as c1, b as c2 FROM collate1t1 ORDER BY c1 COLLATE binary;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 0x45 69 0x5 5 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-3.5.1"
 		r = db.Query("\n    SELECT a COLLATE binary as c1, b as c2\n      FROM collate1t1 ORDER BY c1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a COLLATE binary as c1, b as c2\n      FROM collate1t1 ORDER BY c1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} {} 0x45 69 0x5 5 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-3.6"
@@ -329,30 +491,60 @@ func Test_collate1(t *testing.T) {
 		r = db.Query("\n    SELECT c1 FROM collate1t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1 FROM collate1t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 12 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-4.2"
 		r = db.Query("\n    SELECT c2 FROM collate1t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2 FROM collate1t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 101 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-4.3"
 		r = db.Query("\n    SELECT c2+0 FROM collate1t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c2+0 FROM collate1t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 12 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-4.4"
 		r = db.Query("\n    SELECT c1||'' FROM collate1t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c1||'' FROM collate1t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 101 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-4.4.1"
 		r = db.Query("\n    SELECT (c1||'') COLLATE numeric FROM collate1t1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (c1||'') COLLATE numeric FROM collate1t1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 1 12 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-4.5"
@@ -365,18 +557,36 @@ func Test_collate1(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE c5(\n      id INTEGER PRIMARY KEY,\n      a TEXT COLLATE binary COLLATE nocase COLLATE rtrim,\n      b TEXT COLLATE nocase COLLATE binary,\n      c TEXT COLLATE rtrim COLLATE binary COLLATE rtrim COLLATE nocase\n    );\n    INSERT INTO c5 VALUES(1, 'abc','abc','abc');\n    INSERT INTO c5 VALUES(2, 'abc   ','ABC','ABC');\n    SELECT id FROM c5 WHERE a='abc' ORDER BY id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE c5(\n      id INTEGER PRIMARY KEY,\n      a TEXT COLLATE binary COLLATE nocase COLLATE rtrim,\n      b TEXT COLLATE nocase COLLATE binary,\n      c TEXT COLLATE rtrim COLLATE binary COLLATE rtrim COLLATE nocase\n    );\n    INSERT INTO c5 VALUES(1, 'abc','abc','abc');\n    INSERT INTO c5 VALUES(2, 'abc   ','ABC','ABC');\n    SELECT id FROM c5 WHERE a='abc' ORDER BY id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-5.2"
 		r = db.Query("\n    SELECT id FROM c5 WHERE b='abc' ORDER BY id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id FROM c5 WHERE b='abc' ORDER BY id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate1-5.3"
 		r = db.Query("\n    SELECT id FROM c5 WHERE c='abc' ORDER BY id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id FROM c5 WHERE c='abc' ORDER BY id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.SetDQS(true, true)
@@ -415,6 +625,13 @@ func Test_collate1(t *testing.T) {
 		r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.6"

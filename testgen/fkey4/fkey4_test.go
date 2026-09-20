@@ -68,6 +68,13 @@ func Test_fkey4(t *testing.T) {
 		r = db.Query("\n    PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c REFERENCES t1 DEFERRABLE INITIALLY DEFERRED, d);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c REFERENCES t1 DEFERRABLE INITIALLY DEFERRED, d);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "fkey4-1.2" (prepare-step internals; SQL side effects only)

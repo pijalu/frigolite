@@ -98,6 +98,7 @@ func Test_backup2(t *testing.T) {
 	{ // do_test "backup2-3.1"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -129,6 +130,7 @@ func Test_backup2(t *testing.T) {
 	{ // do_test "backup2-3.2"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -152,6 +154,7 @@ func Test_backup2(t *testing.T) {
 	{ // do_test "backup2-5"
 		if db2 != nil { db2.Close() }
 		os.Remove("bu1.db")
+		os.Remove("bu2.db")
 		var _catchErr error
 		_catchErr = tclDBBackupRestore(db, "backup", "temp", "bu2.db")
 		if _catchErr != nil { _r = "" }
@@ -215,6 +218,7 @@ func Test_backup2(t *testing.T) {
 		out = "bu2.db"
 		_ = out // suppress unused warning
 		tclChannelAppendAt("bu2.db", "This is not a valid database file"+"\n", fileChannelSeek["out"])
+		fileChannelSeek["out"] += int64(len("This is not a valid database file"+"\n"))
 		// close $out
 	_ = rc // suppress unused warning
 	_ = res // suppress unused warning
@@ -411,4 +415,7 @@ func Test_backup2(t *testing.T) {
 		}
 	}
 	os.Remove("bu1.db")
+	os.Remove("bu2.db")
+	os.Remove("bu3.db")
+	os.Remove("bu4.db")
 }

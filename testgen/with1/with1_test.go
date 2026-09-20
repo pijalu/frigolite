@@ -510,8 +510,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("                                    ....#\n                                   ..#*..\n                                 ..+####+.\n                            .......+####....   +\n                           ..##+*##########+.++++\n                          .+.##################+.\n              .............+###################+.+\n              ..++..#.....*#####################+.\n             ...+#######++#######################.\n          ....+*################################.\n #############################################...\n          ....+*################################.\n             ...+#######++#######################.\n              ..++..#.....*#####################+.\n              .............+###################+.+\n                          .+.##################+.\n                           ..##+*##########+.++++\n                            .......+####....   +\n                                 ..+####+.\n                                   ..#*..\n                                    ....#\n                                    +.")
-		got = tclListFlattenCollapse(got)
+		want := "                                    ....#\n                                   ..#*..\n                                 ..+####+.\n                            .......+####....   +\n                           ..##+*##########+.++++\n                          .+.##################+.\n              .............+###################+.+\n              ..++..#.....*#####################+.\n             ...+#######++#######################.\n          ....+*################################.\n #############################################...\n          ....+*################################.\n             ...+#######++#######################.\n              ..++..#.....*#####################+.\n              .............+###################+.+\n                          .+.##################+.\n                           ..##+*##########+.++++\n                            .......+####....   +\n                                 ..+####+.\n                                   ..#*..\n                                    ....#\n                                    +."
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -645,8 +644,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia")
-		got = tclListFlattenCollapse(got)
+		want := "Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -658,8 +656,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("Alice\n...Bob\n......Dave\n.........Harry\n.........Ingrid\n......Emma\n.........Jim\n.........Kate\n...Cindy\n......Fred\n.........Lanny\n.........Mary\n......Gail\n.........Noland\n.........Olivia")
-		got = tclListFlattenCollapse(got)
+		want := "Alice\n...Bob\n......Dave\n.........Harry\n.........Ingrid\n......Emma\n.........Jim\n.........Kate\n...Cindy\n......Fred\n.........Lanny\n.........Mary\n......Gail\n.........Noland\n.........Olivia"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -671,8 +668,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia")
-		got = tclListFlattenCollapse(got)
+		want := "Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -711,6 +707,13 @@ func Test_with1(t *testing.T) {
 		r = db.Query("\n  WITH x AS (SELECT * FROM t) SELECT 0 EXCEPT SELECT 0 ORDER BY 1 COLLATE binary;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH x AS (SELECT * FROM t) SELECT 0 EXCEPT SELECT 0 ORDER BY 1 COLLATE binary;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "15.1"
@@ -941,8 +944,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

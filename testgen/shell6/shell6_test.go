@@ -66,7 +66,7 @@ func Test_shell6(t *testing.T) {
 	_ = schema // pre-declared from TCL source
 	var output string
 	_ = output // pre-declared from TCL source
-	var expected string
+	var expected strings.Builder
 	_ = expected // pre-declared from TCL source
 	var line string
 	_ = line // pre-declared from TCL source
@@ -107,14 +107,14 @@ func Test_shell6(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 			}
 			vtab.TclVarSet("expected", "", "")
-			expected = ""
+			expected.Reset()
 			_ = expected // suppress unused warning
 			for _, line := range strings.Split(output, "\\n") {
 			_ = line // suppress unused warning
 				line = strings.Trim(line, " \t\n\r\v\f")
 				_ = line // suppress unused warning
 				if line != "" {
-					expected += line + "\n"
+					expected.WriteString(line + "\n")
 				}
 			}
 			{ // "1." + tn + ".1" (CLI shell subprocess harness, not transpiled)
@@ -126,4 +126,5 @@ func Test_shell6(t *testing.T) {
 			}
 			db.Close()
 		}
+
 }

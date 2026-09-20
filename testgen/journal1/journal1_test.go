@@ -64,6 +64,12 @@ func Test_journal1(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(10,400));\n    INSERT INTO t1 VALUES(2,randstr(10,400));\n    INSERT INTO t1 SELECT a+2, a||b FROM t1;\n    INSERT INTO t1 SELECT a+4, a||b FROM t1;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(10,400));\n    INSERT INTO t1 VALUES(2,randstr(10,400));\n    INSERT INTO t1 SELECT a+2, a||b FROM t1;\n    INSERT INTO t1 SELECT a+4, a||b FROM t1;\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "journal1-1.2"

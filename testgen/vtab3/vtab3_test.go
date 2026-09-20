@@ -162,6 +162,12 @@ func Test_vtab3(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "elephant"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab3-1.5"
@@ -175,6 +181,12 @@ func Test_vtab3(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "elephant"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab3-1.5"
@@ -188,6 +200,12 @@ func Test_vtab3(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "elephant pachyderm"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	for _, i := range tclSplitList("1 2 3 4") {
@@ -223,6 +241,12 @@ func Test_vtab3(t *testing.T) {
 			r = db.Query("\n      SELECT name FROM sqlite_master WHERE type = 'table';\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT name FROM sqlite_master WHERE type = 'table';\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "elephant pachyderm"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -237,6 +261,12 @@ func Test_vtab3(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "elephant"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

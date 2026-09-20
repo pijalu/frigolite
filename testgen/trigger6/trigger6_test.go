@@ -80,30 +80,60 @@ func Test_trigger6(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger6-1.3"
 		r = db.Query("\n    DELETE FROM t1;\n    DELETE FROM log;\n    INSERT INTO t1 VALUES(2,counter(2,3)+4);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    DELETE FROM log;\n    INSERT INTO t1 VALUES(2,counter(2,3)+4);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger6-1.4"
 		r = db.Query("\n    SELECT * FROM log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger6-1.5"
 		r = db.Query("\n    DELETE FROM log;\n    UPDATE t1 SET y=counter(5);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM log;\n    UPDATE t1 SET y=counter(5);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger6-1.6"
 		r = db.Query("\n    SELECT * FROM log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

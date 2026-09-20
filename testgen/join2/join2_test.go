@@ -66,54 +66,108 @@ func Test_join2(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.2"
 		r = db.Query("\n    CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 111 33 333 44 444"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.3"
 		r = db.Query("\n    CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "111 1111 444 4444 555 5555"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.4"
 		r = db.Query("\n    SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 111 1111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.5"
 		r = db.Query("\n    SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 111 1111 3 33 333 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.6"
 		r = db.Query("\n    SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 111 1111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.6-rj"
 		r = db.Query("\n    SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 111 1 1111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.7"
 		r = db.Query("\n      SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 111 1111 2 22 {} {} 3 33 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "join2-1.7-rj"
 		r = db.Query("\n      SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 111 1111 2 22 {} {} 3 33 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.0"
@@ -301,6 +355,13 @@ func Test_join2(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(x);\n  SELECT a.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(x);\n  SELECT a.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "4.3.1"

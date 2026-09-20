@@ -99,6 +99,12 @@ func Test_rollback(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rollback-1.2"
@@ -162,9 +168,8 @@ func Test_rollback(t *testing.T) {
 			// incr cksum i
 			{
 				_n, _err := strconv.Atoi(cksum)
-				if _err == nil {
-					cksum = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(i); return _v }())
-				}
+				if _err != nil { _n = 0 }
+				cksum = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(i); return _v }())
 			}
 		}
 		mj_pgno = tclExprWith("$sqlite_pending_byte / 1024", map[string]string{"sqlite_pending_byte": sqlite_pending_byte})
@@ -177,8 +182,10 @@ func Test_rollback(t *testing.T) {
 		_ = fd // suppress unused warning
 		fileChannelSeek["fd"] = int64(tclAtoi(iOffset))
 		tclChannelAppendAt("testA.db-journal", zAppend, fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len(zAppend))
 		fileChannelSeek["fd"] = int64(tclAtoi("0"))
 		tclChannelAppendAt("testA.db-journal", "\xd9\xd5\x05\xf9 \xa1c\xd7", fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len("\xd9\xd5\x05\xf9 \xa1c\xd7"))
 		// close $fd
 		{ // do_test "rollback-2.2"
 			db2, err = frigolite.Open("testA.db")
@@ -198,6 +205,12 @@ func Test_rollback(t *testing.T) {
 			r = db2.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "t1 t3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		if db2 != nil { db2.Close() }

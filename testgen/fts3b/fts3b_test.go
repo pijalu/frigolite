@@ -71,6 +71,12 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query("\n    SELECT rowid FROM t1 WHERE c MATCH 'this';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE c MATCH 'this';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("VACUUM")
@@ -78,6 +84,12 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query("\n    SELECT rowid FROM t1 WHERE c MATCH 'this';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE c MATCH 'this';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("text", "", "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n")
@@ -101,9 +113,8 @@ func Test_fts3b(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("COMMIT")
@@ -111,9 +122,13 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query("\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(res) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3b-2.1")
+		got := flatten(r)
+		want := tclListFlatten(res)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("VACUUM")
@@ -121,9 +136,13 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query("\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
+			return
 		}
-		if flatten(r) != tclListFlatten(res) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3b-2.2")
+		got := flatten(r)
+		want := tclListFlatten(res)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n  INSERT INTO t3 (c) VALUES('this is a test');\n  INSERT INTO t3 (c) VALUES('that was a test');\n  INSERT INTO t3 (c) VALUES('this is fun');\n  DELETE FROM t3 WHERE c = 'that was a test';\n")
@@ -131,12 +150,24 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query("\n    SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'test';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'test';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "this is a <b>test</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-3.2"
 		r = db.Query("\n    SELECT * FROM t3 WHERE rowid = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 WHERE rowid = 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "this is a test"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-3.3"
@@ -150,24 +181,49 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query("\n    SELECT rowid FROM t4 WHERE rowid <> docid;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t4 WHERE rowid <> docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.2"
 		r = db.Query("\n    SELECT * FROM t4 WHERE rowid = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4 WHERE rowid = 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "this is a test"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.3"
 		r = db.Query("\n    SELECT docid, * FROM t4 WHERE rowid = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM t4 WHERE rowid = 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 this is a test"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.4"
 		r = db.Query("\n    SELECT docid, * FROM t4 WHERE docid = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM t4 WHERE docid = 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 this is a test"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.5"
@@ -180,12 +236,24 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t4 (docid, c) VALUES (10, 'yet another test');\n    SELECT * FROM t4 WHERE docid = 10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t4 (docid, c) VALUES (10, 'yet another test');\n    SELECT * FROM t4 WHERE docid = 10;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "yet another test"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.7"
 		r = db.Query("\n    INSERT INTO t4 (docid, c) VALUES (12, 'still testing');\n    SELECT * FROM t4 WHERE docid = 12;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t4 (docid, c) VALUES (12, 'still testing');\n    SELECT * FROM t4 WHERE docid = 12;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "still testing"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.8"
@@ -198,30 +266,61 @@ func Test_fts3b(t *testing.T) {
 		r = db.Query(" SELECT docid FROM t4 WHERE t4 MATCH 'testing' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM t4 WHERE t4 MATCH 'testing' ")
+			return
+		}
+		got := flatten(r)
+		want := "12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.10"
 		r = db.Query(" \n    UPDATE t4 SET docid = 14 WHERE docid = 12;\n    SELECT docid FROM t4 WHERE t4 MATCH 'testing';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE t4 SET docid = 14 WHERE docid = 12;\n    SELECT docid FROM t4 WHERE t4 MATCH 'testing';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.11"
 		r = db.Query(" SELECT * FROM t4 WHERE rowid = 14; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 WHERE rowid = 14; ")
+			return
+		}
+		got := flatten(r)
+		want := "still testing"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.12"
 		r = db.Query(" SELECT * FROM t4 WHERE rowid = 12; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 WHERE rowid = 12; ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3b-4.13"
 		r = db.Query(" SELECT docid FROM t4 WHERE t4 MATCH 'still'; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM t4 WHERE t4 MATCH 'still'; ")
+			return
+		}
+		got := flatten(r)
+		want := "14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -199,18 +199,36 @@ func Test_laststmtchanges(t *testing.T) {
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t3;\n    SELECT changes();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t3;\n    SELECT changes();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "laststmtchanges-6.3"
 		r = db.Query("\n    ROLLBACK;\n    BEGIN;\n    DELETE FROM t3 WHERE a IS NOT NULL;\n    SELECT changes();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    BEGIN;\n    DELETE FROM t3 WHERE a IS NOT NULL;\n    SELECT changes();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "laststmtchanges-6.4"
 		r = db.Query("\n    ROLLBACK;\n    CREATE INDEX t3_i1 ON t3(a);\n    BEGIN;\n    DELETE FROM t3;\n    SELECT changes();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    CREATE INDEX t3_i1 ON t3(a);\n    BEGIN;\n    DELETE FROM t3;\n    SELECT changes();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "laststmtchanges-6.5"
@@ -226,6 +244,13 @@ func Test_laststmtchanges(t *testing.T) {
 		r = db.Query("\n    SELECT total_changes();\n    DELETE FROM t3;\n    SELECT total_changes();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT total_changes();\n    DELETE FROM t3;\n    SELECT total_changes();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(nTotalChange+" "+tclExprWith("$nTotalChange+2", map[string]string{"nTotalChange": nTotalChange}))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

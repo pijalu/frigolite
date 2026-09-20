@@ -59,18 +59,36 @@ func Test_tkt_b351d95f9(t *testing.T) {
 		r = db.Query("\n    CREATE table t1(a,b);\n    INSERT INTO t1 VALUES('name1','This is a test');\n    INSERT INTO t1 VALUES('name2','xyz');\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT a, CASE b WHEN 'xyz' THEN null ELSE b END FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE table t1(a,b);\n    INSERT INTO t1 VALUES('name1','This is a test');\n    INSERT INTO t1 VALUES('name2','xyz');\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT a, CASE b WHEN 'xyz' THEN null ELSE b END FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "name1 This is a test name2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-b351d95.2"
 		r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "name1 This is a test name2 xyz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-b351d95.3"
 		r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y BETWEEN 'xy' AND 'xz' FROM t2 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y BETWEEN 'xy' AND 'xz' FROM t2 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "name1 0 name2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

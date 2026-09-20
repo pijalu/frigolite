@@ -303,6 +303,36 @@ var tcl_fp_digits = 15
 
 // tclRenderCell converts a single query-result cell to its TCL string
 // rendering, honoring the nullvalue setting and SQLite's REAL formatting.
+// tclQuoteListElem renders one cell's text as a TCL list element. Text
+// containing braces is quoted with one bracing level — TCL's element
+// rendering wraps special-character content, so the JSON object {"b":9}
+// displays as {{"b":9}} (json102-1600, json501-1.x).
+func tclQuoteListElem(x string) string {
+	if !strings.ContainsAny(x, "{}") || strings.ContainsAny(x, "\n") || !tclBracesBalanced(x) {
+		return x
+	}
+	return "{" + x + "}"
+}
+
+// tclBracesBalanced reports whether s's braces are balanced (every { is
+// closed by a }, never closing below depth 0). Quotes make the scan
+// conservative: tclListAppend's fast path excludes quoted lists up front.
+func tclBracesBalanced(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth < 0 {
+				return false
+			}
+		}
+	}
+	return depth == 0
+}
+
 func tclRenderCell(v interface{}) string {
 	if v == nil {
 		// A NULL renders as the nullvalue string; when that is empty, TCL's
@@ -360,7 +390,7 @@ func tclRenderCell(v interface{}) string {
 		if x == "" {
 			return "{}"
 		}
-		return x
+		return tclQuoteListElem(x)
 	case []byte:
 		// TCL renders a zero-length blob as {} (the empty list element),
 		// same as an empty string / NULL cell.
@@ -369,7 +399,11 @@ func tclRenderCell(v interface{}) string {
 		}
 		return string(x)
 	default:
-		return fmt.Sprint(x)
+		d := fmt.Sprint(x)
+		if d == "" {
+			return "{}"
+		}
+		return tclQuoteListElem(d)
 	}
 }
 
@@ -788,21 +822,26 @@ func tclListAppend(list string, items ...string) string {
 	// 70k "x" appends) and the new items need no bracing, append directly
 	// instead of re-parsing and re-joining the whole list (O(n²) → O(1) per
 	// append). This drops aggorderby-10.1's data-build from ~72s to ~1s.
-	fast := !strings.ContainsAny(list, "{}\"")
-	if fast {
-		for _, it := range items {
-			if tclNeedsBracing(it) {
-				fast = false
-				break
-			}
-		}
-	}
+	// The fast path also covers lists that already contain balanced braced
+	// elements: appending " {" + item + "}" for a braced item is exactly
+	// TCL lappend's string form, so the O(n) split+join round-trip is
+	// avoidable as long as the accumulated list parses unambiguously
+	// (balanced braces, no embedded quotes — trans2-2.x appends braced
+	// schema elements over a 100k-char list, where the round-trip was
+	// minutes of O(n²) copying).
+	fast := !strings.Contains(list, "\"")
 	if fast {
 		var sb strings.Builder
 		sb.WriteString(list)
 		for _, it := range items {
 			sb.WriteString(" ")
-			sb.WriteString(it)
+			if tclNeedsBracing(it) {
+				sb.WriteString("{")
+				sb.WriteString(it)
+				sb.WriteString("}")
+			} else {
+				sb.WriteString(it)
+			}
 		}
 		return sb.String()
 	}
@@ -810,6 +849,38 @@ func tclListAppend(list string, items ...string) string {
 	existing = append(existing, items...)
 	return tclList(existing)
 }
+
+// tclListBuilder amortizes TCL lappend-in-loop accumulation: each Append is
+// O(item) (strings.Builder growth) instead of tclListAppend's copy of the
+// whole accumulated list, so building an N-element list is O(N) total
+// instead of O(N^2) bytes. Append applies the same element encoding as
+// tclListAppend's fast path (space-separated; braced when the item needs
+// bracing), so String() matches the list text tclListAppend would have
+// produced for append-only accumulation starting from an empty list.
+type tclListBuilder struct {
+	sb strings.Builder
+	n  int
+}
+
+// Append appends items to the list (TCL lappend semantics).
+func (b *tclListBuilder) Append(items ...string) {
+	for _, it := range items {
+		if b.n > 0 {
+			b.sb.WriteByte(' ')
+		}
+		if tclNeedsBracing(it) {
+			b.sb.WriteByte('{')
+			b.sb.WriteString(it)
+			b.sb.WriteByte('}')
+		} else {
+			b.sb.WriteString(it)
+		}
+		b.n++
+	}
+}
+
+// String returns the accumulated TCL-format list text.
+func (b *tclListBuilder) String() string { return b.sb.String() }
 
 // tclList joins items into a TCL-format list string.
 func tclList(items []string) string {
@@ -1490,7 +1561,31 @@ func tclRegexp(pattern, str string) string {
 func tclRegsub(pattern, str, replacement string) string {
 	re, err := regexp.Compile(pattern)
 	if err != nil { return str }
-	return re.ReplaceAllString(str, replacement)
+	// TCL replacement syntax differs from Go's: & is the whole match (\&
+	// a literal ampersand), \1..\9 are submatches, and $ has no special
+	// meaning. Convert to Go's $0/${1} form before ReplaceAllString
+	// (fts3an regsub -all {[A-Za-z]+} $bigtext "&$c").
+	var b strings.Builder
+	for i := 0; i < len(replacement); i++ {
+		ch := replacement[i]
+		switch {
+		case ch == '&':
+			b.WriteString("$0")
+		case ch == '\\' && i+1 < len(replacement):
+			i++
+			d := replacement[i]
+			if d >= '0' && d <= '9' {
+				b.WriteString("${" + string(d) + "}")
+			} else {
+				b.WriteByte(d)
+			}
+		case ch == '$':
+			b.WriteString("$$")
+		default:
+			b.WriteByte(ch)
+		}
+	}
+	return re.ReplaceAllString(str, b.String())
 }
 
 func tclRegsubAll(pattern, str, replacement string) string {
@@ -1742,6 +1837,12 @@ func tclBool01(b bool) string {
 		return "1"
 	}
 	return "0"
+}
+
+// tclAutocommit mirrors sqlite3_get_autocommit(db): true when the connection
+// is in autocommit mode (no transaction is open).
+func tclAutocommit(db *frigolite.DB) bool {
+	return !db.InTransaction()
 }
 
 // tclDbStatus renders a sqlite3_db_status result as the TCL list
@@ -2116,6 +2217,28 @@ func tclRowValuesFlat(res *frigolite.Result) string {
 	return strings.Join(cells, " ")
 }
 
+// tclRowNamesValuesFlat renders TCL execsql2 output: for every row, each
+// result column NAME followed by its value, space-joined (tclsqlite.c
+// execsql2 interleaves the column names with the values; the names come
+// from res.Columns and therefore honor short/full_column_names and SELECT
+// aliases the way the engine computes them).
+func tclRowNamesValuesFlat(res *frigolite.Result) string {
+	if res == nil {
+		return ""
+	}
+	parts := make([]string, 0, len(res.Rows)*len(res.Columns)*2)
+	for _, row := range res.Rows {
+		for i, c := range row {
+			name := ""
+			if i < len(res.Columns) {
+				name = res.Columns[i]
+			}
+			parts = append(parts, name, catchsqlCell(c))
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
 // tclExprWith evaluates a TCL expression with $var values supplied at runtime.
 // The expr string may contain $name references; vars maps each name to its
 // current Go string value. Used by [expr $var + ...] calls where the variable
@@ -2215,6 +2338,11 @@ func tclExprWith(expr string, vars map[string]string) string {
 			return coerced
 		}
 	}
+	// Fold known TCL math functions (log(2), int(x), pow(a,b), ...) BEFORE
+	// resolveParens: the paren resolver glues a function call to its argument
+	// ("log(1)" -> "log1"), destroying the call before tclEvalFuncs can see
+	// it (where.test's int(log($i)/log(2)) table seeding).
+	s = tclEvalFuncs(s)
 	s = resolveBracketCommands(s)
 	s = resolveParens(s)
 	s = resolveLogicalOperators(resolveStringComparisons(s))
@@ -4409,11 +4537,11 @@ func tclSqlTail(sql string) string {
 // whitespace runs (including newlines) to single spaces, then trims. Used for
 // set-var comparisons where the value may be SQL text / prepare TAIL content
 // whose leading/trailing whitespace differs between the C-API tail pointer
-// and the TCL braced expected value.
+// and the TCL braced expected value. An empty value follows tclListFlatten's
+// "{}" convention (TCL renders an empty list/element as {}), so the empty
+// TAIL of a single-statement prepare (capi3-1.1) compares equal to the {}
+// expected value — "" and "{}" must not normalize to different strings.
 func tclListFlattenCollapse(s string) string {
-	if strings.TrimSpace(s) == "" {
-		return ""
-	}
 	return strings.Join(strings.Fields(tclListFlatten(s)), " ")
 }
 var tclClosedConns = map[*frigolite.DB]bool{}

@@ -58,10 +58,28 @@ func Test_shortread1(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "shortread1-1.1"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n    CREATE TABLE t1(a TEXT);\n    BEGIN;\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    INSERT INTO t1 VALUES(hex(randomblob(100)));\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a TEXT);\n    BEGIN;\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    INSERT INTO t1 VALUES(hex(randomblob(100)));\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "shortread1-1.2"
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		r = db.Query("\n    DELETE FROM t1 WHERE rowid=1;\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE rowid=1;\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "shortread1-1.3"
 		// sqlite3_release_memory [expr {1024*9}] (unsupported command, not transpiled)
@@ -71,6 +89,12 @@ func Test_shortread1(t *testing.T) {
 		r = db.Query("\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -98,6 +98,13 @@ func Test_vtabA(t *testing.T) {
 		r = db.Query(" PRAGMA table_info(t1e) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA table_info(t1e) ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("0"+" "+"a"+" "+"{}"+" "+"0"+" "+"{}"+" "+"0"+" "+"1"+" "+"c"+" "+"INTEGER"+" "+"0"+" "+"{}"+" "+"0")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabA-1.4"
@@ -110,12 +117,24 @@ func Test_vtabA(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM t1e;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM t1e;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "value a {} value c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabA-1.6"
 		r = db.Query("\n    SELECT * FROM t1e;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1e;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "value a value c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtabA-1.7"
@@ -152,6 +171,12 @@ func Test_vtabA(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1e ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1e ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc def abc def ghi jkl ghi jkl mno pqr mno pqr stu vwx stu vwx"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabA-1.22"

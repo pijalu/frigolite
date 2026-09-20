@@ -1323,8 +1323,7 @@ func Test_join(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1373,8 +1372,7 @@ func Test_join(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1979,6 +1977,56 @@ func Test_join(t *testing.T) {
 		want := "NULL NULL 123 NULL"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	tcl_nullvalue = "NULL"
+	{ // "join-33.1"
+		_res = db.Exec("\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1);\n  CREATE TABLE t2(a2 INTEGER PRIMARY KEY, b2);\n  CREATE TABLE t3(a3 INTEGER PRIMARY KEY, b3);\n  CREATE TABLE t4(a4 INTEGER PRIMARY KEY, b4);\n  INSERT INTO t1 VALUES(1,11),(2,12),(3,13),       (5,15);\n  INSERT INTO t2 VALUES(1,21),       (3,23),(4,24),(5,25);\n  INSERT INTO t3 VALUES       (2,32),(3,33),       (5,35);\n  INSERT INTO t4 VALUES(1,41),(2,42),       (4,44),(5,45);\n  CREATE VIEW vchain AS\n    SELECT a1, b1, b2, b3, b4\n      FROM t1 LEFT JOIN t2 ON a1=a2\n              LEFT JOIN t3 ON a2=a3\n              LEFT JOIN t4 ON a3=a4;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1);\n  CREATE TABLE t2(a2 INTEGER PRIMARY KEY, b2);\n  CREATE TABLE t3(a3 INTEGER PRIMARY KEY, b3);\n  CREATE TABLE t4(a4 INTEGER PRIMARY KEY, b4);\n  INSERT INTO t1 VALUES(1,11),(2,12),(3,13),       (5,15);\n  INSERT INTO t2 VALUES(1,21),       (3,23),(4,24),(5,25);\n  INSERT INTO t3 VALUES       (2,32),(3,33),       (5,35);\n  INSERT INTO t4 VALUES(1,41),(2,42),       (4,44),(5,45);\n  CREATE VIEW vchain AS\n    SELECT a1, b1, b2, b3, b4\n      FROM t1 LEFT JOIN t2 ON a1=a2\n              LEFT JOIN t3 ON a2=a3\n              LEFT JOIN t4 ON a3=a4;\n")
+		}
+	}
+	{ // "join-33.2"
+		r = db.Query("\n  SELECT a1 FROM vchain ORDER BY a1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a1 FROM vchain ORDER BY a1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-33.2-eqp"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT a1 FROM vchain ORDER BY a1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT a1 FROM vchain ORDER BY a1;\n")
+		}
+	}
+	{ // "join-33.3"
+		r = db.Query("\n  SELECT a1, b2 FROM vchain ORDER BY a1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a1, b2 FROM vchain ORDER BY a1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 21 2 NULL 3 23 5 25"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-33.3-eqp"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT a1, b2 FROM vchain ORDER BY a1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT a1, b2 FROM vchain ORDER BY a1;\n")
 		}
 	}
 }

@@ -62,6 +62,12 @@ func Test_index6(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "14 20 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "index6-1.1.1"
@@ -116,60 +122,120 @@ func Test_index6(t *testing.T) {
 		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 20 t1a 14 1 t1b 10 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-1.11"
 		r = db.Query("\n    UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 20 t1a 20 1 t1b 10 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-1.11"
 		r = db.Query("\n    UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 20 t1a 6 1 t1b 20 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-1.12"
 		r = db.Query("\n    UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 20 t1a 13 1 t1b 10 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-1.13"
 		r = db.Query("\n    DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 15 t1a 10 1 t1b 8 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-1.14"
 		r = db.Query("\n    REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 15 t1a 10 1 t1b 8 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-1.15"
 		r = db.Query("\n    CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a 10 1 t1b 8 1 t1c 15 1 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-2.1"
 		r = db.Query("\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%2==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%2==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "500"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "index6-2.2"
 		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "(SEARCH|SCAN) t2 USING INDEX t2a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "index6-2.4"
 		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "INDEX t2a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "index6-2.101"
@@ -356,6 +422,13 @@ func Test_index6(t *testing.T) {
 		r = db.Query("\n  INSERT INTO t7b(y) VALUES(2);\n  SELECT * FROM t7a JOIN t7b ON (x=99) ORDER BY x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t7b(y) VALUES(2);\n  SELECT * FROM t7a JOIN t7b ON (x=99) ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "index6-7.2"
@@ -518,6 +591,13 @@ func Test_index6(t *testing.T) {
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(1);\n  INSERT INTO t2 VALUES(2);\n  SELECT 'one', * FROM t2 WHERE x NOT IN (SELECT a FROM t1);\n  CREATE INDEX t1a ON t1(a) WHERE b=1;\n  SELECT 'two', * FROM t2 WHERE x NOT IN (SELECT a FROM t1);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(1);\n  INSERT INTO t2 VALUES(2);\n  SELECT 'one', * FROM t2 WHERE x NOT IN (SELECT a FROM t1);\n  CREATE INDEX t1a ON t1(a) WHERE b=1;\n  SELECT 'two', * FROM t2 WHERE x NOT IN (SELECT a FROM t1);\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "index6-12.2"
@@ -539,8 +619,7 @@ func Test_index6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlatten("{}")
-		got = tclListFlattenCollapse(got)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -652,6 +731,13 @@ func Test_index6(t *testing.T) {
 		r = db.Query("\n  SELECT 2 FROM t0 WHERE c0 >= c1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 2 FROM t0 WHERE c0 >= c1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "index6-16.3"
@@ -742,6 +828,13 @@ func Test_index6(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t2 RIGHT JOIN t3 ON d<>0 LEFT JOIN t1 ON c=3 WHERE t1.a<>0;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 RIGHT JOIN t3 ON d<>0 LEFT JOIN t1 ON c=3 WHERE t1.a<>0;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

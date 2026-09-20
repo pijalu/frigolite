@@ -79,9 +79,8 @@ func Test_sidedelete(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query("SELECT count(*) FROM sequence")
@@ -93,6 +92,12 @@ func Test_sidedelete(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("i", "", "2")
@@ -105,6 +110,13 @@ func Test_sidedelete(t *testing.T) {
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a<=" + sqlLiteral(i) + ";\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a<=" + sqlLiteral(i) + "/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a<=" + sqlLiteral(i) + ";\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a<=" + sqlLiteral(i) + "/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(n+" "+tclExprWith("$n*$n-1", map[string]string{"n": n}))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -112,15 +124,21 @@ func Test_sidedelete(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "sidedelete-3.0"
 		r = db.Query("\n     DROP TABLE t1;\n     CREATE TABLE t1(a PRIMARY KEY);\n     SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DROP TABLE t1;\n     CREATE TABLE t1(a PRIMARY KEY);\n     SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("i", "", "1")
@@ -133,6 +151,13 @@ func Test_sidedelete(t *testing.T) {
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a<=" + sqlLiteral(i) + ";\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a<=" + sqlLiteral(i) + ";\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(n+" "+tclExprWith("$n*($n+1)", map[string]string{"n": n}))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -140,9 +165,8 @@ func Test_sidedelete(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 }

@@ -140,7 +140,11 @@ func Test_vtabdrop(t *testing.T) {
 		}
 	}
 	{ // "vtabdrop-2.1" — skipped: vtab drop vs open cursor needs table locking N-A (P7) (SQL side effects only)
+		_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n    ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec(" SELECT * FROM t1 ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("COMMIT")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtabdrop-2.2" — skipped: depends on vtabdrop-2.1 drop semantics N-A (P7) (SQL side effects only)
@@ -169,7 +173,11 @@ func Test_vtabdrop(t *testing.T) {
 		}
 	}
 	{ // "vtabdrop-2.1" — skipped: vtab drop vs open cursor needs table locking N-A (P7) (SQL side effects only)
+		_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n    ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec(" SELECT * FROM t1 ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("COMMIT")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtabdrop-2.2" — skipped: depends on vtabdrop-2.1 drop semantics N-A (P7) (SQL side effects only)

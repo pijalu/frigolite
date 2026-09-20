@@ -61,66 +61,133 @@ func Test_fts3ad(t *testing.T) {
 		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-1.2"
 		r = db.Query("\n    SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'run jump';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'run jump';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "<b>running</b> and <b>jumping</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-1.3"
 		r = db.Query("\n    INSERT INTO t1(rowid, content) \n          VALUES(2, 'abcdefghijklmnopqrstuvwyxz');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijqrstuvwyxz'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(rowid, content) \n          VALUES(2, 'abcdefghijklmnopqrstuvwyxz');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijqrstuvwyxz'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 <b>abcdefghijklmnopqrstuvwyxz</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-1.4"
 		r = db.Query("\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijXXXXqrstuvwyxz'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijXXXXqrstuvwyxz'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 <b>abcdefghijklmnopqrstuvwyxz</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-1.5"
 		r = db.Query("\n    INSERT INTO t1(rowid, content) \n          VALUES(3, 'The value is 123456789');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123789'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(rowid, content) \n          VALUES(3, 'The value is 123456789');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123789'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 The value is <b>123456789</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-1.6"
 		r = db.Query("\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123000000789'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123000000789'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 The value is <b>123456789</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-2.1"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize    porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize    porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-2.2"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-2.3"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   simple);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   simple);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-2.4"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,   tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,   tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ad-2.5"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,\t   tokenize =   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,\t   tokenize =   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -117,6 +117,12 @@ func Test_e_fkey(t *testing.T) {
 		r = db.Query("\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -162,12 +168,24 @@ func Test_e_fkey(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE p(i PRIMARY KEY);\n    CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p(i PRIMARY KEY);\n    CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-4.2"
 		r = db.Query("\n    DELETE FROM c;\n    DELETE FROM p;\n    PRAGMA foreign_keys = ON;\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c;\n    DELETE FROM p;\n    PRAGMA foreign_keys = ON;\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -181,18 +199,36 @@ func Test_e_fkey(t *testing.T) {
 		r = db.Query(" PRAGMA foreign_keys ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-5.2"
 		r = db.Query(" \n    PRAGMA foreign_keys = ON;\n    PRAGMA foreign_keys;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA foreign_keys = ON;\n    PRAGMA foreign_keys;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-5.3"
 		r = db.Query(" \n    PRAGMA foreign_keys = OFF;\n    PRAGMA foreign_keys;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA foreign_keys = OFF;\n    PRAGMA foreign_keys;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -214,12 +250,24 @@ func Test_e_fkey(t *testing.T) {
 		r = db.Query(" PRAGMA foreign_keys ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-6.3"
 		r = db.Query("\n    COMMIT;\n    PRAGMA foreign_keys = OFF;\n    BEGIN;\n      PRAGMA foreign_keys = ON;\n      DELETE FROM t1;\n      PRAGMA foreign_keys;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    PRAGMA foreign_keys = OFF;\n    BEGIN;\n      PRAGMA foreign_keys = ON;\n      DELETE FROM t1;\n      PRAGMA foreign_keys;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-6.4"
@@ -280,6 +328,13 @@ func Test_e_fkey(t *testing.T) {
 		r = db.Query(" SELECT * FROM artist ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM artist ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-10.3"
@@ -322,9 +377,8 @@ func Test_e_fkey(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -451,6 +505,12 @@ func Test_e_fkey(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE par(p PRIMARY KEY);\n    CREATE TABLE chi(c REFERENCES par);\n\n    INSERT INTO par VALUES(1);\n    INSERT INTO par VALUES('1');\n    INSERT INTO par VALUES(X'31');\n    SELECT typeof(p) FROM par;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE par(p PRIMARY KEY);\n    CREATE TABLE chi(c REFERENCES par);\n\n    INSERT INTO par VALUES(1);\n    INSERT INTO par VALUES('1');\n    INSERT INTO par VALUES(X'31');\n    SELECT typeof(p) FROM par;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "integer text blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -533,12 +593,24 @@ func Test_e_fkey(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES('three');\n    INSERT INTO t2 VALUES('2.0');\n    SELECT b, typeof(b) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES('three');\n    INSERT INTO t2 VALUES('2.0');\n    SELECT b, typeof(b) FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2.0 text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-17.3"
 		r = db.Query(" SELECT typeof(a) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(a) FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "integer integer text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "e_fkey-17.4"
@@ -1146,6 +1218,12 @@ func Test_e_fkey(t *testing.T) {
 							r = db.Query("\n    COMMIT;\n    SELECT * FROM king;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT * FROM king;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 {} 2 {}"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						// proc definition (not transpiled)
@@ -1390,12 +1468,24 @@ func Test_e_fkey(t *testing.T) {
 							r = db.Query("\n    DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 1 2 2 3 3"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // do_test "e_fkey-38.2"
 							r = db.Query("\n    BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 1 2 2 3 3 4 4 5 6"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // do_test "e_fkey-38.3"
@@ -1408,6 +1498,12 @@ func Test_e_fkey(t *testing.T) {
 							r = db.Query("\n    ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 1 2 2 3 3 4 4"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // do_test "e_fkey-38.5"
@@ -1434,6 +1530,12 @@ func Test_e_fkey(t *testing.T) {
 							r = db.Query("\n    ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 1 2 2 3 3 4 4 5 5"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // do_test "e_fkey-39.1"
@@ -1446,18 +1548,36 @@ func Test_e_fkey(t *testing.T) {
 							r = db.Query("\n    UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 xx k0 2 xx k2 3 xx k3"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // do_test "e_fkey-39.3"
 							r = db.Query("\n    DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 xx k0 2 xx {} 3 xx k3"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // do_test "e_fkey-39.4"
 							r = db.Query("\n    CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;\n  ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "1 xx k0 2 xx {} 3 xx {}"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1494,7 +1614,9 @@ func Test_e_fkey(t *testing.T) {
 							lRes := _items5[_idx5+2]
 							_ = lRes // suppress unused warning
 							_ = _idx5
-								{ // "e_fkey-40." + tn — skipped: PRAGMA foreign_key_list multi-word action cell bracing not modeled in flatten harness N-A
+								{ // "e_fkey-40." + tn — skipped: PRAGMA foreign_key_list multi-word action cell bracing not modeled in flatten harness N-A (SQL side effects only)
+									_res = db.Exec("PRAGMA foreign_key_list(" + zTab + ")")
+									_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1525,6 +1647,12 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "j k l m"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-41.3"
@@ -1615,6 +1743,12 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query(" \n    UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "key two"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1651,6 +1785,12 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query(" \n    DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "{}"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1687,6 +1827,12 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query(" \n    REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "key2"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1813,24 +1959,48 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "X'1234'"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-44.3"
 								r = db.Query("\n    SELECT quote(c) FROM cA;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(c) FROM cA;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "NULL"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-44.4"
 								r = db.Query("\n    UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "X'8765'"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-44.5"
 								r = db.Query(" SELECT quote(c) FROM cB ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cB ")
+									return
+								}
+								got := flatten(r)
+								want := "NULL"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1861,24 +2031,48 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "X'0000' X'9999' X'1234'"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-45.3"
 								r = db.Query(" SELECT quote(c) FROM cA ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cA ")
+									return
+								}
+								got := flatten(r)
+								want := "X'0000'"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-45.4"
 								r = db.Query("\n    UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "X'0000' X'9999' X'8765'"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-45.5"
 								r = db.Query(" SELECT quote(c) FROM cB ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cB ")
+									return
+								}
+								got := flatten(r)
+								want := "X'9999'"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1903,24 +2097,49 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "3"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-46.2"
 								r = db.Query("\n    DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "{} {} 5 5"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-46.3"
 								r = db.Query("\n    DELETE FROM p1;\n    SELECT d, c FROM c1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p1;\n    SELECT d, c FROM c1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "{} {}"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-46.4"
 								r = db.Query(" SELECT * FROM p1 ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p1 ")
+									return
+								}
+								got := flatten(r)
+								want := tclListFlatten("{}")
+								got = tclListFlattenCollapse(got)
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1945,30 +2164,60 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "3"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-47.2"
 								r = db.Query("\n    UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "{} {} 4 4 5 10"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-47.3"
 								r = db.Query("\n    UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "{} {} 4 11 5 10"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-47.4"
 								r = db.Query(" \n    UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "{} {} 4 11 5 10"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-46.5"
 								r = db.Query(" SELECT * FROM p1 ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p1 ")
+									return
+								}
+								got := flatten(r)
+								want := "{} 6 4 11 5 10"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2005,12 +2254,24 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query(" SELECT * FROM artist ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM artist ")
+									return
+								}
+								got := flatten(r)
+								want := "2 Frank Sinatra 100 Dean Martin"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-48.4"
 								r = db.Query(" SELECT * FROM track ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM track ")
+									return
+								}
+								got := flatten(r)
+								want := "11 That's Amore 100 12 Christmas Blues 100 13 My Way 2"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2041,12 +2302,24 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "a two c"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-49.3"
 								r = db.Query("\n    ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "ONE two three"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-49.4"
@@ -2095,12 +2368,24 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query(" SELECT * FROM artist ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM artist ")
+									return
+								}
+								got := flatten(r)
+								want := "0 Unknown Artist"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-50.5"
 								r = db.Query(" SELECT * FROM track ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM track ")
+									return
+								}
+								got := flatten(r)
+								want := "14 Mr. Bojangles 0"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2133,12 +2418,24 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "22 21 23 xxx 22"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-51.3"
 								r = db.Query("\n    DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "22 23 21 xxx 23"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2173,30 +2470,60 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "1 1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-52.3"
 								r = db.Query("\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "integer 1 integer 1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-52.4"
 								r = db.Query("\n    UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "integer 1 integer 1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-52.5"
 								r = db.Query("\n    UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "integer 1 text 1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-52.6"
 								r = db.Query("\n    UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "integer 1 null {}"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2227,12 +2554,24 @@ func Test_e_fkey(t *testing.T) {
 								r = db.Query("\n    UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "key"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "e_fkey-53.3"
 								r = db.Query("\n    UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
+									return
+								}
+								got := flatten(r)
+								want := "null"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							// foreach {tn zCreateTbl lRes} "1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}"
@@ -2342,12 +2681,25 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    UPDATE p SET a = 'xxx', b = 'xxx';\n    SELECT * FROM p;\n    SELECT * FROM c1;\n    SELECT * FROM c2;\n    SELECT * FROM c3;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p SET a = 'xxx', b = 'xxx';\n    SELECT * FROM p;\n    SELECT * FROM c1;\n    SELECT * FROM c2;\n    SELECT * FROM c3;\n  ")
+										return
+									}
+									got := flatten(r)
+									want := "xxx xxx 1 xxx 1 xxx 1 xxx"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-56.4"
 									r = db.Query(" SELECT sql FROM sqlite_master WHERE type = 'table'")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sql FROM sqlite_master WHERE type = 'table'")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{CREATE TABLE \"p\"(a REFERENCES \"p\", b, PRIMARY KEY(b))} {CREATE TABLE c1(c, d REFERENCES \"p\" ON UPDATE CASCADE)} {CREATE TABLE c2(e, f, FOREIGN KEY(f) REFERENCES \"p\" ON UPDATE CASCADE)} {CREATE TABLE c3(e, 'f col 2', FOREIGN KEY('f col 2') REFERENCES \"p\" ON UPDATE CASCADE)}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-57.1"
@@ -2378,24 +2730,50 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;\n  ")
+										return
+									}
+									got := flatten(r)
+									want := "{} {}"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-57.3"
 									r = db.Query(" SELECT * FROM c2 ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c2 ")
+										return
+									}
+									got := flatten(r)
+									want := "{} {}"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-57.4"
 									r = db.Query(" SELECT * FROM c3 ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c3 ")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-57.5"
 									r = db.Query(" SELECT * FROM log ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM log ")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-57.6"
@@ -2408,6 +2786,12 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
+										return
+									}
+									got := flatten(r)
+									want := "delete 1"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-58.1"
@@ -2426,6 +2810,12 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query(" SELECT * FROM p ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p ")
+										return
+									}
+									got := flatten(r)
+									want := "a b"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-58.3"
@@ -2438,6 +2828,12 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
+										return
+									}
+									got := flatten(r)
+									want := "a b a b"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-59.1"
@@ -2502,6 +2898,13 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-60.2"
@@ -2516,6 +2919,12 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
+										return
+									}
+									got := flatten(r)
+									want := "{} 2"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-60.4"
@@ -2588,6 +2997,13 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query(" PRAGMA foreign_keys = ON ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-61.2.1"
@@ -2618,6 +3034,12 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    PRAGMA foreign_keys = OFF;\n    PRAGMA legacy_alter_table = ON;\n    ALTER TABLE p RENAME TO parent;\n    SELECT sql FROM sqlite_master WHERE name = 'c';\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = OFF;\n    PRAGMA legacy_alter_table = ON;\n    ALTER TABLE p RENAME TO parent;\n    SELECT sql FROM sqlite_master WHERE name = 'c';\n  ")
+										return
+									}
+									got := flatten(r)
+									want := "CREATE TABLE c(b REFERENCES p(a))"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-61.2.3"
@@ -2658,12 +3080,25 @@ func Test_e_fkey(t *testing.T) {
 									r = db.Query("\n    PRAGMA foreign_keys = OFF;\n    DROP TABLE p;\n    SELECT * FROM c;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = OFF;\n    DROP TABLE p;\n    SELECT * FROM c;\n  ")
+										return
+									}
+									got := flatten(r)
+									want := "x"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "e_fkey-61.3.3"
 									r = db.Query(" PRAGMA foreign_keys = ON ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
+										return
+									}
+									got := flatten(r)
+									want := tclListFlatten("{}")
+									got = tclListFlattenCollapse(got)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								for _, zMatch := range tclSplitList("SIMPLE PARTIAL FULL Simple parTIAL FuLL ") {
@@ -2849,18 +3284,36 @@ func Test_e_fkey(t *testing.T) {
 										r = db.Query("\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1 ON DELETE CASCADE);\n      INSERT INTO t1 VALUES(1, NULL);\n      INSERT INTO t1 VALUES(2, 1);\n      INSERT INTO t1 VALUES(3, 2);\n      INSERT INTO t1 VALUES(4, 3);\n      INSERT INTO t1 VALUES(5, 4);\n      SELECT count(*) FROM t1;\n    ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1 ON DELETE CASCADE);\n      INSERT INTO t1 VALUES(1, NULL);\n      INSERT INTO t1 VALUES(2, 1);\n      INSERT INTO t1 VALUES(3, 2);\n      INSERT INTO t1 VALUES(4, 3);\n      INSERT INTO t1 VALUES(5, 4);\n      SELECT count(*) FROM t1;\n    ")
+											return
+										}
+										got := flatten(r)
+										want := "5"
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
 									{ // do_test "e_fkey-64." + recursive_triggers_setting + ".2"
 										r = db.Query(" SELECT count(*) FROM t1 WHERE a = 1 ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE a = 1 ")
+											return
+										}
+										got := flatten(r)
+										want := "1"
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
 									{ // do_test "e_fkey-64." + recursive_triggers_setting + ".3"
 										r = db.Query(" \n      DELETE FROM t1 WHERE a = 1;\n      SELECT count(*) FROM t1;\n    ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t1 WHERE a = 1;\n      SELECT count(*) FROM t1;\n    ")
+											return
+										}
+										got := flatten(r)
+										want := "0"
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
 								}

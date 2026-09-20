@@ -62,72 +62,144 @@ func Test_ptrchng(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y BLOB);\n    INSERT INTO t1 VALUES(1, 'abc');\n    INSERT INTO t1 VALUES(2, \n       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234356789');\n    INSERT INTO t1 VALUES(3, x'626c6f62');\n    INSERT INTO t1 VALUES(4,\n x'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2021222324'\n    );\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y BLOB);\n    INSERT INTO t1 VALUES(1, 'abc');\n    INSERT INTO t1 VALUES(2, \n       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234356789');\n    INSERT INTO t1 VALUES(3, x'626c6f62');\n    INSERT INTO t1 VALUES(4,\n x'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2021222324'\n    );\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-2.1"
 		r = db.Query("\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-2.2"
 		r = db.Query("\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-2.11"
 		r = db.Query("\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-2.12"
 		r = db.Query("\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=3\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-3.1"
 		r = db.Query("\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-3.2"
 		r = db.Query("\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=2\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-3.11"
 		r = db.Query("\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-3.12"
 		r = db.Query("\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=4\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=4\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-4.1"
 		r = db.Query("\n    SELECT pointer_change(y, 'text', 'bytes', 'text') FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'text', 'bytes', 'text') FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-4.2"
 		r = db.Query("\n    SELECT pointer_change(y, 'blob', 'bytes', 'blob') FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'blob', 'bytes', 'blob') FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ptrchng-5.1"
 		r = db.Query("\n    SELECT pointer_change(y, 'text', 'bytes', 'blob') FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pointer_change(y, 'text', 'bytes', 'blob') FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

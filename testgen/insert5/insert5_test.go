@@ -62,6 +62,7 @@ func Test_insert5(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "insert5-1.0"
 		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
 		_res = db.Exec("\n    CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3); \n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3); \n  ")
@@ -71,6 +72,12 @@ func Test_insert5(t *testing.T) {
 		r = db.Query("\n      INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 2 3 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "insert5-2.1"

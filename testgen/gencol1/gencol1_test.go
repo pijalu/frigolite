@@ -267,6 +267,13 @@ func Test_gencol1(t *testing.T) {
 			r = db.Query("\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "gencol1-4.110" — skipped: REPLACE FK-vs-UNIQUE error ordering not implemented N-A (no-side-effects)
@@ -716,6 +723,13 @@ func Test_gencol1(t *testing.T) {
 			r = db.Query("\n  SELECT * FROM t0 WHERE (1 BETWEEN CAST(t0.c0 AS TEXT) AND t0.c0);\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE (1 BETWEEN CAST(t0.c0 AS TEXT) AND t0.c0);\n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("{}")
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "gencol1-17.40"
@@ -851,9 +865,8 @@ func Test_gencol1(t *testing.T) {
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)
-					if _err == nil {
-						cnt = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					cnt = strconv.Itoa(_n + 1)
 				}
 				_res = db.Exec("\n      DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x " + t1 + ",\n        a " + t2 + " AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');\n    ")
 				x1 = tclSort(tclExecSQL(db, "SELECT typeof(b) FROM t1"))

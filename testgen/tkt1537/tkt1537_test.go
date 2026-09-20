@@ -59,54 +59,108 @@ func Test_tkt1537(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(id, a1, a2);\n    INSERT INTO t1 VALUES(1, NULL, NULL);\n    INSERT INTO t1 VALUES(2, 1, 3);\n    CREATE TABLE t2(id, b);\n    INSERT INTO t2 VALUES(3, 1);\n    INSERT INTO t2 VALUES(4, NULL);\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(id, a1, a2);\n    INSERT INTO t1 VALUES(1, NULL, NULL);\n    INSERT INTO t1 VALUES(2, 1, 3);\n    CREATE TABLE t2(id, b);\n    INSERT INTO t2 VALUES(3, 1);\n    INSERT INTO t2 VALUES(4, NULL);\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} 2 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.2"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} 2 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.3"
 		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t1 ON a1=b OR a2=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t1 ON a1=b OR a2=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 1 2 1 3 4 {} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.4"
 		r = db.Query("\n      SELECT * FROM t1 LEFT JOIN t2 ON b IN (a1,a2);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 LEFT JOIN t2 ON b IN (a1,a2);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} 2 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.5"
 		r = db.Query("\n      SELECT * FROM t2 LEFT JOIN t1 ON b IN (a2,a1);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t2 LEFT JOIN t1 ON b IN (a2,a1);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3 1 2 1 3 4 {} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.6"
 		r = db.Query("\n    CREATE INDEX t1a1 ON t1(a1);\n    CREATE INDEX t1a2 ON t1(a2);\n    CREATE INDEX t2b ON t2(b);\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1a1 ON t1(a1);\n    CREATE INDEX t1a2 ON t1(a2);\n    CREATE INDEX t2b ON t2(b);\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} 2 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.7"
 		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t1 ON a1=b OR a2=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t1 ON a1=b OR a2=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 1 2 1 3 4 {} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.8"
 		r = db.Query("\n      SELECT * FROM t1 LEFT JOIN t2 ON b IN (a1,a2);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 LEFT JOIN t2 ON b IN (a1,a2);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} 2 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-1.9"
 		r = db.Query("\n      SELECT * FROM t2 LEFT JOIN t1 ON b IN (a2,a1);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t2 LEFT JOIN t1 ON b IN (a2,a1);\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "3 1 2 1 3 4 {} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DROP INDEX t1a1;\n  DROP INDEX t1a2;\n  DROP INDEX t2b;\n")
@@ -117,36 +171,72 @@ func Test_tkt1537(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b BETWEEN a1 AND a2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b BETWEEN a1 AND a2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} 2 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-2.2"
 		r = db.Query("\n    CREATE INDEX t2b ON t2(b);\n    SELECT * FROM t1 LEFT JOIN t2 ON b BETWEEN a1 AND a2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t2b ON t2(b);\n    SELECT * FROM t1 LEFT JOIN t2 ON b BETWEEN a1 AND a2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} 2 1 3 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-2.3"
 		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t1 ON b BETWEEN a1 AND a2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t1 ON b BETWEEN a1 AND a2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 1 2 1 3 4 {} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-2.4"
 		r = db.Query("\n    CREATE INDEX t1a1 ON t1(a1);\n    CREATE INDEX t1a2 ON t1(a2);\n    SELECT * FROM t2 LEFT JOIN t1 ON b BETWEEN a1 AND a2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1a1 ON t1(a1);\n    CREATE INDEX t1a2 ON t1(a2);\n    SELECT * FROM t2 LEFT JOIN t1 ON b BETWEEN a1 AND a2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 1 2 1 3 4 {} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-3.1"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b GLOB 'abc*' WHERE t1.id=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b GLOB 'abc*' WHERE t1.id=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1537-3.2"
 		r = db.Query(" \n    SELECT * FROM t2 LEFT JOIN t1 ON a1 GLOB 'abc*' WHERE t2.id=3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t2 LEFT JOIN t1 ON a1 GLOB 'abc*' WHERE t2.id=3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 1 {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

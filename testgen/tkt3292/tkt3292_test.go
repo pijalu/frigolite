@@ -68,18 +68,36 @@ func Test_tkt3292(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(3, 0);\n    INSERT INTO t1 VALUES(4, 2);\n    SELECT * FROM t1 WHERE b>=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(3, 0);\n    INSERT INTO t1 VALUES(4, 2);\n    SELECT * FROM t1 WHERE b>=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 1 1 2 1 4 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3292-2.1"
 		r = db.Query("\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t2 VALUES(0, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(1, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(2, 1, 'hello', x'012345');\n    CREATE INDEX i2 ON t2(b,c,d);\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t2 VALUES(0, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(1, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(2, 1, 'hello', x'012345');\n    CREATE INDEX i2 ON t2(b,c,d);\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3292-2.2"
 		r = db.Query("\n    INSERT INTO t2 VALUES(3, 1, 'hello', x'012344');\n    INSERT INTO t2 VALUES(4, 1, 'hello', x'012346');\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(3, 1, 'hello', x'012344');\n    INSERT INTO t2 VALUES(4, 1, 'hello', x'012346');\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

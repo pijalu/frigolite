@@ -62,36 +62,72 @@ func Test_fts3ae(t *testing.T) {
 		r = db.Query("SELECT COUNT(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT COUNT(*) FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ae-2.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'one'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'one'")
+			return
+		}
+		got := flatten(r)
+		want := "3 5 9 11 15 17 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ae-2.2"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'two'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'two'")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 6 11 14 15 18"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ae-2.3"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'three'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'three'")
+			return
+		}
+		got := flatten(r)
+		want := "5 6 12 14 15 20 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ae-2.4"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'four'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'four'")
+			return
+		}
+		got := flatten(r)
+		want := "8 9 11 12 14 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ae-2.5"
 		r = db.Query("SELECT rowid FROM t1 WHERE content MATCH 'five'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE content MATCH 'five'")
+			return
+		}
+		got := flatten(r)
+		want := "17 18 20 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

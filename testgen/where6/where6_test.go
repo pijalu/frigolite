@@ -61,24 +61,48 @@ func Test_where6(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c);\n    INSERT INTO t1 VALUES(1,3,1);\n    INSERT INTO t1 VALUES(2,4,2);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(3);\n\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c);\n    INSERT INTO t1 VALUES(1,3,1);\n    INSERT INTO t1 VALUES(2,4,2);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(3);\n\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-1.2"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-1.3"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND 1=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND 1=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-1.4"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND 1=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND 1=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-1.5"
@@ -91,42 +115,84 @@ func Test_where6(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-1.12"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-1.13"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE 1=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE 1=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.1"
 		r = db.Query("\n    CREATE INDEX i1 ON t1(c);\n\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1 ON t1(c);\n\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.2"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.3"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND 1=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b AND 1=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.4"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND 1=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND 1=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3 2 4 2 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.5"
@@ -139,24 +205,48 @@ func Test_where6(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.12"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE c=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE c=1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.13"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE 1=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE 1=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-2.14"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE 1=c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE 1=c;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where6-3.1"

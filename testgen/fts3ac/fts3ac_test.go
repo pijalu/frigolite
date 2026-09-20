@@ -67,162 +67,325 @@ func Test_fts3ac(t *testing.T) {
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH 'mark'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH 'mark'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 17 25 38 40 42 73 74"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-1.3"
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH 'susan'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH 'susan'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "24 40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-1.4"
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH 'mark susan'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH 'mark susan'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-1.5"
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH 'susan mark'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH 'susan mark'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-1.6"
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH '\"mark susan\"'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH '\"mark susan\"'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-1.7"
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH 'mark -susan'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH 'mark -susan'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 17 25 38 42 73 74"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-1.8"
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH '-mark susan'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH '-mark susan'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "24"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-1.9"
 		r = db.Query("\n    SELECT rowid FROM email WHERE email MATCH 'mark OR susan'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM email WHERE email MATCH 'mark OR susan'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 17 24 25 38 40 42 73 74"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-2.1"
 		r = db.Query("\n    SELECT rowid, offsets(email) FROM email\n     WHERE email MATCH 'gas reminder'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, offsets(email) FROM email\n     WHERE email MATCH 'gas reminder'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20 2 0 42 3 2 1 54 8 3 0 42 3 3 1 54 8 3 0 129 3 3 0 143 3 3 0 240 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-2.2"
 		r = db.Query("\n    SELECT rowid, offsets(email) FROM email\n     WHERE email MATCH 'subject:gas reminder'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, offsets(email) FROM email\n     WHERE email MATCH 'subject:gas reminder'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20 2 0 42 3 2 1 54 8 3 1 54 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-2.3"
 		r = db.Query("\n    SELECT rowid, offsets(email) FROM email\n     WHERE email MATCH 'body:gas reminder'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, offsets(email) FROM email\n     WHERE email MATCH 'body:gas reminder'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20 2 1 54 8 3 0 42 3 3 1 54 8 3 0 129 3 3 0 143 3 3 0 240 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-2.4"
 		r = db.Query("\n    SELECT rowid, offsets(email) FROM email\n     WHERE subject MATCH 'gas reminder'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, offsets(email) FROM email\n     WHERE subject MATCH 'gas reminder'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20 2 0 42 3 2 1 54 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-2.5"
 		r = db.Query("\n    SELECT rowid, offsets(email) FROM email\n     WHERE body MATCH 'gas reminder'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, offsets(email) FROM email\n     WHERE body MATCH 'gas reminder'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20 3 0 42 3 3 1 54 8 3 0 129 3 3 0 143 3 3 0 240 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-3.1"
 		r = db.Query("\n    SELECT rowid, offsets(email) FROM email\n     WHERE body MATCH 'child product' AND +rowid=32\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, offsets(email) FROM email\n     WHERE body MATCH 'child product' AND +rowid=32\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 3 0 94 5 3 0 114 5 3 0 207 5 3 1 213 7 3 0 245 5 3 1 251 7 3 0 409 5 3 1 415 7 3 1 493 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-3.2"
 		r = db.Query("\n    SELECT rowid, offsets(email) FROM email\n     WHERE body MATCH '\"child product\"'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, offsets(email) FROM email\n     WHERE body MATCH '\"child product\"'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32 3 0 207 5 3 1 213 7 3 0 245 5 3 1 251 7 3 0 409 5 3 1 415 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.1"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'subject:gas reminder'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'subject:gas reminder'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Alert Posted 10:00 AM November 20,2000: E-<b>GAS</b> Request <b>Reminder</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.2"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'christmas candlelight'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'christmas candlelight'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "<b>...</b>here <b>Christmas</b> \neve?? They have an 11:00 a.m. service and a <b>candlelight</b> service<b>...</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.3"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'deal sheet potential reuse'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'deal sheet potential reuse'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "EOL-Accenture <b>Deal</b> <b>Sheet</b><b>...</b>asset base for <b>potential</b> <b>reuse</b>/ licensing\n     Contract negotiations<b>...</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.4"
 		r = db.Query("\n    SELECT snippet(email,'<<<','>>>',' ') FROM email\n     WHERE email MATCH 'deal sheet potential reuse'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email,'<<<','>>>',' ') FROM email\n     WHERE email MATCH 'deal sheet potential reuse'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "EOL-Accenture <<<Deal>>> <<<Sheet>>> asset base for <<<potential>>> <<<reuse>>>/ licensing\n     Contract negotiations "
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.5"
 		r = db.Query("\n    SELECT snippet(email,'<<<','>>>',' ') FROM email\n     WHERE email MATCH 'first things'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email,'<<<','>>>',' ') FROM email\n     WHERE email MATCH 'first things'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Re: <<<First>>> Polish Deal! Congrats!  <<<Things>>> seem to be building rapidly now "
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.6"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'chris is here'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'chris is here'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "<b>...</b><b>chris</b>.germany@enron.com'\" <<b>chris</b><b>...</b>bet this <b>is</b> next to<b>...</b>about going <b>here</b> Christmas \neve<b>...</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.7"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH '\"pursuant to\"'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH '\"pursuant to\"'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Erin:\n\n<b>Pursuant</b> <b>to</b> your request, attached are the Schedule to the ISDA Master Agreement, together<b>...</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-4.8"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'ancillary load davis'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'ancillary load davis'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "pete.<b>davis</b>@enron.com<b>...</b>3;  No <b>ancillary</b> schedules awarded<b>...</b>detected in <b>Load</b> schedule.\n\n    LOG<b>...</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-5.1"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'questar enron OR com'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'questar enron OR com'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "matt.smith@<b>enron</b>.<b>com</b><b>...</b>31 Keystone Receipts\n15 <b>Questar</b> Pipeline\n40 Rockies<b>...</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-5.2"
 		r = db.Query("\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'enron OR com questar'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(email) FROM email\n     WHERE email MATCH 'enron OR com questar'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "matt.smith@<b>enron</b>.<b>com</b><b>...</b>31 Keystone Receipts\n15 <b>Questar</b> Pipeline\n40 Rockies<b>...</b>"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-6.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE ft USING fts3(one, two);\n    INSERT INTO ft VALUES('', 'foo');\n    INSERT INTO ft VALUES('foo', 'foo');\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'foo';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE ft USING fts3(one, two);\n    INSERT INTO ft VALUES('', 'foo');\n    INSERT INTO ft VALUES('foo', 'foo');\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'foo';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 0 3 0 0 0 3 1 0 0 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3ac-6.2"
 		r = db.Query("\n    DELETE FROM ft WHERE one = 'foo';\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'foo';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM ft WHERE one = 'foo';\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'foo';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 0 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -220,6 +220,13 @@ func Test_csv01(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t2 WHERE d=12;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 WHERE d=12;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.4"
@@ -317,7 +324,6 @@ func Test_csv01(t *testing.T) {
 	fd = "csv01.csv"
 	_ = fd // suppress unused warning
 	tclChannelAppendAt("csv01.csv", "a,b,c,d\r\n1,2,3,4\r\none,two,three,four\r\n5,6,7,8"+"\n", fileChannelSeek["fd"])
-
 	fileChannelSeek["fd"] += int64(len("a,b,c,d\r\n1,2,3,4\r\none,two,three,four\r\n5,6,7,8"+"\n"))
 	// close $fd
 	{ // "5.1"
@@ -385,7 +391,6 @@ func Test_csv01(t *testing.T) {
 		fd = "csv.data"
 		_ = fd // suppress unused warning
 		tclChannelAppendAt("csv.data", "a,b"+"\n", fileChannelSeek["fd"])
-
 		fileChannelSeek["fd"] += int64(len("a,b"+"\n"))
 		tclChannelAppendAt("csv.data", "randomtext $ii" + ",abcd"+"\n", fileChannelSeek["fd"])
 		fileChannelSeek["fd"] += int64(len("randomtext $ii" + ",abcd"+"\n"))
@@ -411,9 +416,8 @@ func Test_csv01(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	vtab.TclVarSet("ii", "", "0")
@@ -434,7 +438,6 @@ func Test_csv01(t *testing.T) {
 		fd = "csv.data"
 		_ = fd // suppress unused warning
 		tclChannelAppendAt("csv.data", "a,b"+"\n", fileChannelSeek["fd"])
-
 		fileChannelSeek["fd"] += int64(len("a,b"+"\n"))
 		tclChannelAppendAt("csv.data", "abcd," + T, fileChannelSeek["fd"])
 		fileChannelSeek["fd"] += int64(len("abcd," + T))
@@ -460,9 +463,8 @@ func Test_csv01(t *testing.T) {
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 	db.Close()

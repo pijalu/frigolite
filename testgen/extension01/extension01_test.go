@@ -75,6 +75,7 @@ func Test_extension01(t *testing.T) {
 		out = "./file1.txt"
 		_ = out // suppress unused warning
 		tclChannelAppendAt("./file1.txt", "This is a text file without a line ending", fileChannelSeek["out"])
+		fileChannelSeek["out"] += int64(len("This is a text file without a line ending"))
 		// close $out
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, readfile('./file1.txt'));\n    SELECT * FROM t1;\n  ")
 	}

@@ -71,6 +71,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 4 5 6 7 8 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -80,6 +87,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("9 9 9 9 9 9 9 9 1 2 3 4 5 6 7 8", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -89,6 +103,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -98,6 +119,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -107,6 +135,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -116,6 +151,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -125,6 +167,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("9 9 9 9 9 9 9 9 1 2 3", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -134,6 +183,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 1 2 3", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -143,6 +199,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0 0 0 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -152,6 +215,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 4 5 6 7 8 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -161,6 +231,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 4 5 6 7 8 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -170,6 +247,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("8 8 7 7 6 6 5 5 4 4 3 3 2 2 1 1", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -179,6 +263,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -188,6 +279,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -197,6 +295,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 9 9 9 9 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -206,6 +311,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 4 91 92 93", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -215,6 +327,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 1 2 2 3 4 5", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -224,6 +343,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 1 2 2 3 4 5", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -233,6 +359,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 4 5 11 12", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -242,6 +375,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 4 5 11 12", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -251,6 +391,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -260,6 +407,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("3 4 5", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -269,6 +423,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0 0 0 9 9 9 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -278,6 +439,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0 9", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -287,6 +455,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -296,6 +471,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("0 0 0 9 9 9 9 88 88", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -305,6 +487,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 11 12 13 14 21 22", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -314,6 +503,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("1 2 3 11 12 13 14 21 22", "0", tclExprWith("$ii-1", map[string]string{"ii": ii})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -325,6 +521,13 @@ func Test_tkt_38cb5df375(t *testing.T) {
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT " + sqlLiteral(ii) + ")\n      ORDER BY a DESC\n      LIMIT " + sqlLiteral(jj) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT " + sqlLiteral(ii) + ")\n      ORDER BY a DESC\n      LIMIT " + sqlLiteral(jj) + ";\n    ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(tclLRange("8 7 6 5 4 3 2 1", "0", tclExprWith("$jj-1", map[string]string{"jj": jj})))
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

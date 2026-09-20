@@ -104,36 +104,72 @@ func Test_descidx2(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx2-2.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE b>3 AND b<7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE b>3 AND b<7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx2-2.3"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>=3 AND a<7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>=3 AND a<7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx2-2.4"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>3 AND a<=7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>3 AND a<=7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 5 6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx2-2.5"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a>=3 AND a<=7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a>=3 AND a<=7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "descidx2-2.6"
 		r = db.Query("\n    SELECT a FROM t1 WHERE b>=3 AND b<=7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE b>=3 AND b<=7;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)

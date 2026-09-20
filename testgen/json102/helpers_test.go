@@ -10,6 +10,7 @@ import (
 	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -305,8 +306,7 @@ var tcl_fp_digits = 15
 // tclQuoteListElem renders one cell's text as a TCL list element. Text
 // containing braces is quoted with one bracing level — TCL's element
 // rendering wraps special-character content, so the JSON object {"b":9}
-// displays as {{"b":9}} (json102-1600, json501-1.x). Mirrors the fixed
-// tcl2go helpers template.
+// displays as {{"b":9}} (json102-1600, json501-1.x).
 func tclQuoteListElem(x string) string {
 	if !strings.ContainsAny(x, "{}") || strings.ContainsAny(x, "\n") || !tclBracesBalanced(x) {
 		return x
@@ -315,7 +315,8 @@ func tclQuoteListElem(x string) string {
 }
 
 // tclBracesBalanced reports whether s's braces are balanced (every { is
-// closed by a }, never closing below depth 0).
+// closed by a }, never closing below depth 0). Quotes make the scan
+// conservative: tclListAppend's fast path excludes quoted lists up front.
 func tclBracesBalanced(s string) bool {
 	depth := 0
 	for i := 0; i < len(s); i++ {
@@ -821,21 +822,26 @@ func tclListAppend(list string, items ...string) string {
 	// 70k "x" appends) and the new items need no bracing, append directly
 	// instead of re-parsing and re-joining the whole list (O(n²) → O(1) per
 	// append). This drops aggorderby-10.1's data-build from ~72s to ~1s.
-	fast := !strings.ContainsAny(list, "{}\"")
-	if fast {
-		for _, it := range items {
-			if tclNeedsBracing(it) {
-				fast = false
-				break
-			}
-		}
-	}
+	// The fast path also covers lists that already contain balanced braced
+	// elements: appending " {" + item + "}" for a braced item is exactly
+	// TCL lappend's string form, so the O(n) split+join round-trip is
+	// avoidable as long as the accumulated list parses unambiguously
+	// (balanced braces, no embedded quotes — trans2-2.x appends braced
+	// schema elements over a 100k-char list, where the round-trip was
+	// minutes of O(n²) copying).
+	fast := !strings.Contains(list, "\"")
 	if fast {
 		var sb strings.Builder
 		sb.WriteString(list)
 		for _, it := range items {
 			sb.WriteString(" ")
-			sb.WriteString(it)
+			if tclNeedsBracing(it) {
+				sb.WriteString("{")
+				sb.WriteString(it)
+				sb.WriteString("}")
+			} else {
+				sb.WriteString(it)
+			}
 		}
 		return sb.String()
 	}
@@ -843,6 +849,38 @@ func tclListAppend(list string, items ...string) string {
 	existing = append(existing, items...)
 	return tclList(existing)
 }
+
+// tclListBuilder amortizes TCL lappend-in-loop accumulation: each Append is
+// O(item) (strings.Builder growth) instead of tclListAppend's copy of the
+// whole accumulated list, so building an N-element list is O(N) total
+// instead of O(N^2) bytes. Append applies the same element encoding as
+// tclListAppend's fast path (space-separated; braced when the item needs
+// bracing), so String() matches the list text tclListAppend would have
+// produced for append-only accumulation starting from an empty list.
+type tclListBuilder struct {
+	sb strings.Builder
+	n  int
+}
+
+// Append appends items to the list (TCL lappend semantics).
+func (b *tclListBuilder) Append(items ...string) {
+	for _, it := range items {
+		if b.n > 0 {
+			b.sb.WriteByte(' ')
+		}
+		if tclNeedsBracing(it) {
+			b.sb.WriteByte('{')
+			b.sb.WriteString(it)
+			b.sb.WriteByte('}')
+		} else {
+			b.sb.WriteString(it)
+		}
+		b.n++
+	}
+}
+
+// String returns the accumulated TCL-format list text.
+func (b *tclListBuilder) String() string { return b.sb.String() }
 
 // tclList joins items into a TCL-format list string.
 func tclList(items []string) string {
@@ -1384,6 +1422,17 @@ func tclConcat(args ...string) string {
 	for _, a := range args {
 		out = append(out, tclSplitList(a)...)
 	}
+	// An empty element keeps TCL's {} rendering through concat ([concat
+	// {1 t5 d {} x}] is the list whose 4th element is empty, displayed
+	// as {}): tclSplitList yields "" for it, and joining "" back would
+	// DROP the element after whitespace collapsing (fkey1-3.1's
+	// foreign_key_list "to" column is NULL -> the expected list has {}
+	// there).
+	for i, e := range out {
+		if e == "" {
+			out[i] = "{}"
+		}
+	}
 	return strings.Join(out, " ")
 }
 
@@ -1512,7 +1561,31 @@ func tclRegexp(pattern, str string) string {
 func tclRegsub(pattern, str, replacement string) string {
 	re, err := regexp.Compile(pattern)
 	if err != nil { return str }
-	return re.ReplaceAllString(str, replacement)
+	// TCL replacement syntax differs from Go's: & is the whole match (\&
+	// a literal ampersand), \1..\9 are submatches, and $ has no special
+	// meaning. Convert to Go's $0/${1} form before ReplaceAllString
+	// (fts3an regsub -all {[A-Za-z]+} $bigtext "&$c").
+	var b strings.Builder
+	for i := 0; i < len(replacement); i++ {
+		ch := replacement[i]
+		switch {
+		case ch == '&':
+			b.WriteString("$0")
+		case ch == '\\' && i+1 < len(replacement):
+			i++
+			d := replacement[i]
+			if d >= '0' && d <= '9' {
+				b.WriteString("${" + string(d) + "}")
+			} else {
+				b.WriteByte(d)
+			}
+		case ch == '$':
+			b.WriteString("$$")
+		default:
+			b.WriteByte(ch)
+		}
+	}
+	return re.ReplaceAllString(str, b.String())
 }
 
 func tclRegsubAll(pattern, str, replacement string) string {
@@ -1764,6 +1837,12 @@ func tclBool01(b bool) string {
 		return "1"
 	}
 	return "0"
+}
+
+// tclAutocommit mirrors sqlite3_get_autocommit(db): true when the connection
+// is in autocommit mode (no transaction is open).
+func tclAutocommit(db *frigolite.DB) bool {
+	return !db.InTransaction()
 }
 
 // tclDbStatus renders a sqlite3_db_status result as the TCL list
@@ -2138,6 +2217,28 @@ func tclRowValuesFlat(res *frigolite.Result) string {
 	return strings.Join(cells, " ")
 }
 
+// tclRowNamesValuesFlat renders TCL execsql2 output: for every row, each
+// result column NAME followed by its value, space-joined (tclsqlite.c
+// execsql2 interleaves the column names with the values; the names come
+// from res.Columns and therefore honor short/full_column_names and SELECT
+// aliases the way the engine computes them).
+func tclRowNamesValuesFlat(res *frigolite.Result) string {
+	if res == nil {
+		return ""
+	}
+	parts := make([]string, 0, len(res.Rows)*len(res.Columns)*2)
+	for _, row := range res.Rows {
+		for i, c := range row {
+			name := ""
+			if i < len(res.Columns) {
+				name = res.Columns[i]
+			}
+			parts = append(parts, name, catchsqlCell(c))
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
 // tclExprWith evaluates a TCL expression with $var values supplied at runtime.
 // The expr string may contain $name references; vars maps each name to its
 // current Go string value. Used by [expr $var + ...] calls where the variable
@@ -2187,6 +2288,12 @@ func tclExprWith(expr string, vars map[string]string) string {
 		}
 		s = s[:i] + val + s[j:]
 	}
+	// TCL expr math functions (log, sqrt, pow, ...): fold every function
+	// call with numeric arguments to its value BEFORE the coercion pass, so
+	// int(log($i)/log(2)) evaluates the log() groups first and int() sees a
+	// plain number (in3-2.1's log2 bucketing; without the fold the raw text
+	// leaks into the SQL and the engine reports "no such function: int").
+	s = foldTclMathFuncs(s)
 	// TCL coercions int(X)/wide(X)/double(X)/boolean(X): the argument is
 	// evaluated arithmetically, then coerced (trigger2 accumulates
 	// int($idx) per rlog row). Must run BEFORE resolveParens, which would
@@ -2231,6 +2338,11 @@ func tclExprWith(expr string, vars map[string]string) string {
 			return coerced
 		}
 	}
+	// Fold known TCL math functions (log(2), int(x), pow(a,b), ...) BEFORE
+	// resolveParens: the paren resolver glues a function call to its argument
+	// ("log(1)" -> "log1"), destroying the call before tclEvalFuncs can see
+	// it (where.test's int(log($i)/log(2)) table seeding).
+	s = tclEvalFuncs(s)
 	s = resolveBracketCommands(s)
 	s = resolveParens(s)
 	s = resolveLogicalOperators(resolveStringComparisons(s))
@@ -2243,6 +2355,300 @@ func tclExprWith(expr string, vars map[string]string) string {
 		return res
 	}
 	return s
+}
+
+// tclLikeCount renders the engine's LIKE/GLOB invocation counter (func.c
+// sqlite3_like_count, TCL-linked as the sqlite_like_count variable in
+// tester.tcl) as a TCL string.
+func tclLikeCount(db *frigolite.DB) string {
+	return strconv.FormatInt(db.LikeCallCount(), 10)
+}
+
+// tclExecHex mirrors test1.c's sqlite3_exec_hex: percent-H-H sequences in
+// the SQL decode to raw bytes, the SQL runs, and the result is the
+// two-element list "<rc> <data>" where data holds the column names followed
+// by every row's values (exec_printf_cb prepends the column names before
+// the first row); an error renders as "<rc> <message>". Elements are
+// TCL-list-quoted, so an empty data element keeps its {} rendering.
+func tclExecHex(db *frigolite.DB, sqlStr string) string {
+	decoded, _ := decodePercentHex(sqlStr)
+	res := db.Query(decoded)
+	parts := make([]string, 0, 8)
+	if res.Error != nil {
+		return tclListElem("1") + " " + tclListElem(res.Error.Error())
+	}
+	first := true
+	for _, row := range res.Rows {
+		if first {
+			// exec_printf_cb appends the column names before the first
+			// row's values (not instead of them).
+			for _, col := range res.Columns {
+				parts = append(parts, tclListElem(col))
+			}
+			first = false
+		}
+		for _, c := range row {
+			parts = append(parts, tclListElem(catchsqlCell(c)))
+		}
+	}
+	data := strings.Join(parts, " ")
+	if len(res.Rows) == 0 {
+		data = ""
+	}
+	return tclListElem("0") + " " + tclListElem(data)
+}
+
+// decodePercentHex translates percent-H-H sequences to their byte values,
+// leaving every other character as-is (test1.c test_exec_hex).
+func decodePercentHex(s string) (string, bool) {
+	const pct = byte(37) // the percent character
+	if !strings.ContainsRune(s, rune(pct)) {
+		return s, false
+	}
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == pct && i+2 < len(s) {
+			hi, e1 := strconv.ParseUint(string(s[i+1]), 16, 8)
+			lo, e2 := strconv.ParseUint(string(s[i+2]), 16, 8)
+			if e1 == nil && e2 == nil {
+				b.WriteByte(byte(hi<<4 | lo))
+				i += 2
+				continue
+			}
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String(), true
+}
+
+// tclMathFuncNames are the deterministic math functions of TCL's expr
+// command (TCL 8.6 tclGetExprFuncs / SQLite's TCL harness uses them inside
+// computed values, e.g. in3.test's int(log($i)/log(2))). int/wide/double/
+// boolean are handled by the dedicated coercion pass above; rand/srand are
+// nondeterministic and stay unfolded.
+var tclMathFuncNames = map[string]bool{
+	"abs": true, "acos": true, "asin": true, "atan": true, "atan2": true,
+	"ceil": true, "cos": true, "cosh": true, "entier": true, "exp": true,
+	"floor": true, "fmod": true, "hypot": true, "isqrt": true, "log": true,
+	"log10": true, "max": true, "min": true, "pow": true, "round": true,
+	"sin": true, "sinh": true, "sqrt": true, "tan": true, "tanh": true,
+}
+
+// foldTclMathFuncs repeatedly replaces innermost name(arg, ...) calls
+// whose name is a TCL expr math function and whose arguments evaluate to
+// numbers with the computed value (rendered like TCL's doubles). A call
+// whose arguments are not yet numeric is left for a later round; unknown
+// function names are skipped (scanning continues to their right) and the
+// surrounding evaluators keep their previous fallback behavior.
+func foldTclMathFuncs(s string) string {
+	for round := 0; round < 64; round++ {
+		folded := false
+		pos := 0
+		for pos < len(s) {
+			rel := strings.IndexByte(s[pos:], ')')
+			if rel < 0 {
+				break
+			}
+			closeP := pos + rel
+			open := strings.LastIndex(s[:closeP], "(")
+			if open < 0 {
+				break
+			}
+			// The function name is the identifier directly before "(".
+			nameStart := open
+			for nameStart > 0 && isTclIdent(s[nameStart-1]) {
+				nameStart--
+			}
+			name := strings.ToLower(s[nameStart:open])
+			if nameStart == open || !tclMathFuncNames[name] {
+				// Not a math call: skip this group, keep scanning after it.
+				pos = closeP + 1
+				continue
+			}
+			args := make([]float64, 0, 4)
+			ok := true
+			for _, a := range strings.Split(s[open+1:closeP], ",") {
+				if v, err := evalSimpleArith(strings.TrimSpace(a)); err == nil {
+					if f, perr := strconv.ParseFloat(strings.TrimSpace(v), 64); perr == nil {
+						args = append(args, f)
+						continue
+					}
+				}
+				ok = false
+				break
+			}
+			if !ok || len(args) == 0 {
+				pos = closeP + 1
+				continue
+			}
+			res, rerr := evalTclMathFunc(name, args)
+			if rerr != nil {
+				pos = closeP + 1
+				continue
+			}
+			s = s[:nameStart] + res + s[closeP+1:]
+			folded = true
+			break
+		}
+		if !folded {
+			return s
+		}
+	}
+	return s
+}
+
+// evalTclMathFunc computes one TCL expr math function with numeric
+// arguments, rendering the result the way TCL renders doubles (shortest
+// representation; whole-number float results keep no trailing ".0" because
+// the folded value only feeds further arithmetic or an int() coercion).
+func evalTclMathFunc(name string, args []float64) (string, error) {
+	var v float64
+	switch name {
+	case "abs":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Abs(args[0])
+	case "acos":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Acos(args[0])
+	case "asin":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Asin(args[0])
+	case "atan":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Atan(args[0])
+	case "atan2":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Atan2(args[0], args[1])
+	case "ceil":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Ceil(args[0])
+	case "cos":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Cos(args[0])
+	case "cosh":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Cosh(args[0])
+	case "entier":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Trunc(args[0])
+	case "exp":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Exp(args[0])
+	case "floor":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Floor(args[0])
+	case "fmod":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Mod(args[0], args[1])
+	case "hypot":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Hypot(args[0], args[1])
+	case "isqrt":
+		if len(args) != 1 || args[0] < 0 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Floor(math.Sqrt(args[0]))
+	case "log":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Log(args[0])
+	case "log10":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Log10(args[0])
+	case "max":
+		if len(args) == 0 {
+			return "", errTclMathArity(name)
+		}
+		v = args[0]
+		for _, a := range args[1:] {
+			if a > v {
+				v = a
+			}
+		}
+	case "min":
+		if len(args) == 0 {
+			return "", errTclMathArity(name)
+		}
+		v = args[0]
+		for _, a := range args[1:] {
+			if a < v {
+				v = a
+			}
+		}
+	case "pow":
+		if len(args) != 2 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Pow(args[0], args[1])
+	case "round":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Round(args[0])
+	case "sin":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Sin(args[0])
+	case "sinh":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Sinh(args[0])
+	case "sqrt":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Sqrt(args[0])
+	case "tan":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Tan(args[0])
+	case "tanh":
+		if len(args) != 1 {
+			return "", errTclMathArity(name)
+		}
+		v = math.Tanh(args[0])
+	default:
+		return "", errTclMathArity(name)
+	}
+	return strconv.FormatFloat(v, 'g', -1, 64), nil
+}
+
+// errTclMathArity reports an unsupported call shape so the caller leaves the
+// expression text unchanged.
+func errTclMathArity(name string) error {
+	return errors.New("tcl expr: bad argument count for " + name)
 }
 
 // resolveParens evaluates innermost parenthesized arithmetic groups
@@ -4131,11 +4537,11 @@ func tclSqlTail(sql string) string {
 // whitespace runs (including newlines) to single spaces, then trims. Used for
 // set-var comparisons where the value may be SQL text / prepare TAIL content
 // whose leading/trailing whitespace differs between the C-API tail pointer
-// and the TCL braced expected value.
+// and the TCL braced expected value. An empty value follows tclListFlatten's
+// "{}" convention (TCL renders an empty list/element as {}), so the empty
+// TAIL of a single-statement prepare (capi3-1.1) compares equal to the {}
+// expected value — "" and "{}" must not normalize to different strings.
 func tclListFlattenCollapse(s string) string {
-	if strings.TrimSpace(s) == "" {
-		return ""
-	}
 	return strings.Join(strings.Fields(tclListFlatten(s)), " ")
 }
 var tclClosedConns = map[*frigolite.DB]bool{}
@@ -5731,6 +6137,23 @@ func tclDbOne(db *frigolite.DB, sql string) string {
 	}
 }
 
+// tclDropAllIndexes implements tester.tcl's drop_all_indexes proc: drop
+// every explicitly created index (sqlite_master type='index' whose sql starts
+// with "create" — auto-indexes carry a NULL sql) so a test loop can re-create
+// indexes from the same starting schema (rowvalue3/rowvalue4).
+func tclDropAllIndexes(db *frigolite.DB) {
+	r := db.Query("SELECT name FROM sqlite_master WHERE type='index' AND sql LIKE 'create%'")
+	if r.Error != nil {
+		return
+	}
+	for _, row := range r.Rows {
+		if len(row) == 0 || row[0] == nil {
+			continue
+		}
+		db.Exec("DROP INDEX " + tclStr(row[0]))
+	}
+}
+
 // tclMakeCorruptFile reimplements zipfile2.test's make_corrupt_file proc: it
 // writes a crafted archive whose central directory claims a 60000-byte entry
 // name and a 60000-byte extra field, with the local file header at offset 200
@@ -5907,4 +6330,81 @@ func tclFileControlTempFileName(db *frigolite.DB) string {
 		b[i] = chars[int(b[i])%len(chars)]
 	}
 	return filepath.Join(os.TempDir(), "etilqs_"+string(b))
+}
+
+// ---- sqlite3_trace / sqlite3_profile / sqlite3_trace_v2 harness support
+// ---- (tclsqlite.c DB_TRACE / DB_PROFILE / DB_TRACE_V2).
+
+// tclTraceNames mirrors tclsqlite.c's per-connection zTrace/zProfile/
+// zTraceV2 proc-name registry: the getter form ("db trace" with no args)
+// returns the registered proc name. Keyed by connection plus command kind.
+var tclTraceNames = map[[2]interface{}]string{}
+
+// tclTraceNameSet records (or clears with "") the proc name registered for
+// the connection's trace/profile/trace_v2 command.
+func tclTraceNameSet(db *frigolite.DB, kind, name string) {
+	tclTraceNames[[2]interface{}{db, kind}] = name
+}
+
+// tclTraceName returns the registered proc name ("" when none).
+func tclTraceName(db *frigolite.DB, kind string) string {
+	return tclTraceNames[[2]interface{}{db, kind}]
+}
+
+// tclWrongNumArgs builds tclsqlite.c's Tcl_WrongNumArgs message for the
+// trace-family commands ("catch {db trace 1 2 3}" -> wrong # args).
+func tclWrongNumArgs(what string) error {
+	return fmt.Errorf("wrong # args: should be \"db %s ?CALLBACK?\"", what)
+}
+
+// tclBadTraceType builds the DB_TRACE_V2 mask-parse error
+// (trace3-1.2: catch {db trace_v2 1 bad}).
+func tclBadTraceType(name string) error {
+	return fmt.Errorf("bad trace type \"%s\": must be statement, profile, row, or close", name)
+}
+
+// tclTrimSpace is [string trim] for the trace callbacks' appended text.
+func tclTrimSpace(s string) string {
+	return strings.TrimSpace(s)
+}
+
+// tclTraceArgs renders the trace_v2 callback's argument list the way TCL
+// stringifies a list (each element space-separated, braced when needed) —
+// the trace_v2_record proc appends exactly this rendering.
+func tclTraceArgs(vals ...string) string {
+	out := ""
+	for _, v := range vals {
+		out = tclListAppend(out, v)
+	}
+	return out
+}
+
+// tclTraceImpls / tclProfileImpls resolve a proc NAME to its transpiled
+// callback body at CALL time: TCL redefines procs after they were
+// registered with db trace / db profile (trace.test 2.1 redefines
+// trace_proc to append to TRACE_OUT), so the hook dispatches through the
+// latest definition rather than capturing the body at registration.
+var tclTraceImpls = map[string]func(sqlText string){}
+var tclProfileImpls = map[string]func(sqlText string, ns int64){}
+
+func tclTraceImplSet(name string, fn func(sqlText string)) {
+	tclTraceImpls[name] = fn
+}
+
+func tclTraceImpl(name string) func(sqlText string) {
+	return tclTraceImpls[name]
+}
+
+func tclProfileImplSet(name string, fn func(sqlText string, ns int64)) {
+	tclProfileImpls[name] = fn
+}
+
+func tclProfileImpl(name string) func(sqlText string, ns int64) {
+	return tclProfileImpls[name]
+}
+
+// tclWrongNumArgsMask is the trace_v2 variant of the Tcl_WrongNumArgs
+// message (the mask argument is optional: ?CALLBACK? ?MASK?).
+func tclWrongNumArgsMask(what string) error {
+	return fmt.Errorf("wrong # args: should be \"db %s ?CALLBACK? ?MASK?\"", what)
 }

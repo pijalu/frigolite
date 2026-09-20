@@ -66,18 +66,36 @@ func Test_tkt1644(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES(99);\n    CREATE TEMP VIEW v1 AS SELECT * FROM t1;\n    SELECT * FROM v1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES(99);\n    CREATE TEMP VIEW v1 AS SELECT * FROM t1;\n    SELECT * FROM v1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1644-1.2"
 		r = db.Query("\n    DROP VIEW v1;\n    CREATE TEMP VIEW v1 AS SELECT * FROM t2;\n    SELECT * FROM v1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP VIEW v1;\n    CREATE TEMP VIEW v1 AS SELECT * FROM t2;\n    SELECT * FROM v1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1644-1.3"
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt1644-1.4"

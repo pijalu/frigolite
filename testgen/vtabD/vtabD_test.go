@@ -84,9 +84,8 @@ func Test_vtabD(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -98,30 +97,62 @@ func Test_vtabD(t *testing.T) {
 		r = db.Query(" SELECT * FROM tv1 WHERE a = 1 OR b = 4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tv1 WHERE a = 1 OR b = 4 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabD-1.4"
 		r = db.Query(" SELECT * FROM tv1 WHERE a = 1 OR b = 1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tv1 WHERE a = 1 OR b = 1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabD-1.5"
 		r = db.Query(" SELECT * FROM tv1 WHERE (a > 0 AND a < 5) OR (b > 15 AND b < 65) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tv1 WHERE (a > 0 AND a < 5) OR (b > 15 AND b < 65) ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 4 3 9 4 16 5 25 6 36 7 49 8 64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabD-1.6"
 		r = db.Query(" SELECT * FROM tv1 WHERE a < 500 OR b = 810000 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tv1 WHERE a < 500 OR b = 810000 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlattenCollapse(tclExecSQL(db, "\n  SELECT * FROM t1 WHERE a < 500;\n  SELECT * FROM t1 WHERE b = 810000 AND NOT (a < 500);\n"))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtabD-1.7"
 		r = db.Query(" SELECT * FROM tv1 WHERE a < 90000 OR b = 8100000000 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tv1 WHERE a < 90000 OR b = 8100000000 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlattenCollapse(tclExecSQL(db, "\n  SELECT * FROM t1 WHERE a < 90000;\n  SELECT * FROM t1 WHERE b = 8100000000 AND NOT (a < 90000);\n"))
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if tclBool("working_64bit_int") {
@@ -129,6 +160,12 @@ func Test_vtabD(t *testing.T) {
 			r = db.Query(" SELECT * FROM tv1 WHERE a = 90001 OR b = 810000 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tv1 WHERE a = 90001 OR b = 810000 ")
+				return
+			}
+			got := flatten(r)
+			want := "90001 8100180001 900 810000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

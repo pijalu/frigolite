@@ -4222,30 +4222,60 @@ func Test_boundary1(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.16.gt.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.16.gt.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.16.gt.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.16.gt.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9223372036854775807 ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.16.ge.1"
@@ -12592,30 +12622,60 @@ func Test_boundary1(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.46.lt.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.46.lt.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.46.lt.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.46.lt.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9223372036854775808 ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.46.le.1"
@@ -17650,60 +17710,120 @@ func Test_boundary1(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.gt.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.gt.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.gt.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.gt.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid > 9.22337303685477580800e+18 ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.ge.1"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.ge.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.ge.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.ge.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.ge.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid >= 9.22337303685477580800e+18 ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.65.lt.1"
@@ -17950,60 +18070,120 @@ func Test_boundary1(t *testing.T) {
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.lt.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.lt.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.lt.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.lt.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid < -9.22337303685477580800e+18 ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.le.1"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.le.2"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY a DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY a DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.le.3"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY rowid\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY rowid\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.le.4"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY rowid DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "boundary1-2.66.le.5"
 		r = db.Query("\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE rowid <= -9.22337303685477580800e+18 ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

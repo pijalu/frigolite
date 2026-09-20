@@ -71,6 +71,12 @@ func Test_func2(t *testing.T) {
 		r = db.Query("SELECT 'Supercalifragilisticexpialidocious'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'Supercalifragilisticexpialidocious'")
+			return
+		}
+		got := flatten(r)
+		want := "Supercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.2.1"
@@ -95,342 +101,684 @@ func Test_func2(t *testing.T) {
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0)")
+			return
+		}
+		got := flatten(r)
+		want := "Supercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.4"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1)")
+			return
+		}
+		got := flatten(r)
+		want := "Supercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.5"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2)")
+			return
+		}
+		got := flatten(r)
+		want := "upercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.6"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 30)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30)")
+			return
+		}
+		got := flatten(r)
+		want := "cious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.7"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 34)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34)")
+			return
+		}
+		got := flatten(r)
+		want := "s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.8"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 35)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.9"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 36)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.10"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -0)")
+			return
+		}
+		got := flatten(r)
+		want := "Supercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.11"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1)")
+			return
+		}
+		got := flatten(r)
+		want := "s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.12"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -2)")
+			return
+		}
+		got := flatten(r)
+		want := "us"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.13"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -30)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -30)")
+			return
+		}
+		got := flatten(r)
+		want := "rcalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.14"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -34)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34)")
+			return
+		}
+		got := flatten(r)
+		want := "Supercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.15"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -35)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35)")
+			return
+		}
+		got := flatten(r)
+		want := "Supercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.16"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -36)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36)")
+			return
+		}
+		got := flatten(r)
+		want := "Supercalifragilisticexpialidocious"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.17.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.17.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 2)")
+			return
+		}
+		got := flatten(r)
+		want := "S"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.18"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "S"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.19.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.19.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.19.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 2)")
+			return
+		}
+		got := flatten(r)
+		want := "up"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.20"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.21"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.22"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.23"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.24"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -0, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -0, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.25.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.25.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.25.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 2)")
+			return
+		}
+		got := flatten(r)
+		want := "s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.26"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -2, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -2, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.27"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -30, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -30, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "r"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.28.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.28.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "S"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.28.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 2)")
+			return
+		}
+		got := flatten(r)
+		want := "Su"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.29.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.29.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 2)")
+			return
+		}
+		got := flatten(r)
+		want := "S"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.30.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.30.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.30.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 2)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.30.3"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 3)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 3)")
+			return
+		}
+		got := flatten(r)
+		want := "S"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.31.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.31.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.31.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -2)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.32.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.32.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.33.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.33.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "S"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.33.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -2)")
+			return
+		}
+		got := flatten(r)
+		want := "S"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.34.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.34.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.34.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -2)")
+			return
+		}
+		got := flatten(r)
+		want := "Su"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.35.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "o"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.35.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -2)")
+			return
+		}
+		got := flatten(r)
+		want := "do"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.36"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "u"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.37"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.38.0"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 0)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 0)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.38.1"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -1)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -1)")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func2-1.38.2"
 		r = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -2)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -2)")
+			return
+		}
+		got := flatten(r)
+		want := "s"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if "\u1234" != "u1234" {
@@ -438,6 +786,12 @@ func Test_func2(t *testing.T) {
 			r = db.Query("SELECT 'hiሴho'")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'hiሴho'")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴho"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.1.2"
@@ -462,192 +816,384 @@ func Test_func2(t *testing.T) {
 			r = db.Query("SELECT SUBSTR('hiሴho', 0, 0)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 0, 0)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.2.1"
 			r = db.Query("SELECT SUBSTR('hiሴho', 0, 1)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 0, 1)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.2.2"
 			r = db.Query("SELECT SUBSTR('hiሴho', 0, 2)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 0, 2)")
+				return
+			}
+			got := flatten(r)
+			want := "h"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.2.3"
 			r = db.Query("SELECT SUBSTR('hiሴho', 0, 3)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 0, 3)")
+				return
+			}
+			got := flatten(r)
+			want := "hi"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.2.4"
 			r = db.Query("SELECT SUBSTR('hiሴho', 0, 4)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 0, 4)")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.2.5"
 			r = db.Query("SELECT SUBSTR('hiሴho', 0, 5)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 0, 5)")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴh"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.2.6"
 			r = db.Query("SELECT SUBSTR('hiሴho', 0, 6)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 0, 6)")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴho"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.3.0"
 			r = db.Query("SELECT SUBSTR('hiሴho', 1, 0)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 1, 0)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.3.1"
 			r = db.Query("SELECT SUBSTR('hiሴho', 1, 1)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 1, 1)")
+				return
+			}
+			got := flatten(r)
+			want := "h"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.3.2"
 			r = db.Query("SELECT SUBSTR('hiሴho', 1, 2)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 1, 2)")
+				return
+			}
+			got := flatten(r)
+			want := "hi"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.3.3"
 			r = db.Query("SELECT SUBSTR('hiሴho', 1, 3)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 1, 3)")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.3.4"
 			r = db.Query("SELECT SUBSTR('hiሴho', 1, 4)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 1, 4)")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴh"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.3.5"
 			r = db.Query("SELECT SUBSTR('hiሴho', 1, 5)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 1, 5)")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴho"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.3.6"
 			r = db.Query("SELECT SUBSTR('hiሴho', 1, 6)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 1, 6)")
+				return
+			}
+			got := flatten(r)
+			want := "hiሴho"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.4.0"
 			r = db.Query("SELECT SUBSTR('hiሴho', 3, 0)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 3, 0)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.4.1"
 			r = db.Query("SELECT SUBSTR('hiሴho', 3, 1)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 3, 1)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.4.2"
 			r = db.Query("SELECT SUBSTR('hiሴho', 3, 2)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiሴho', 3, 2)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴh"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.5.0"
 			r = db.Query("SELECT SUBSTR('ሴ', 0, 0)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 0, 0)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.5.1"
 			r = db.Query("SELECT SUBSTR('ሴ', 0, 1)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 0, 1)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.5.2"
 			r = db.Query("SELECT SUBSTR('ሴ', 0, 2)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 0, 2)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.5.3"
 			r = db.Query("SELECT SUBSTR('ሴ', 0, 3)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 0, 3)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.6.0"
 			r = db.Query("SELECT SUBSTR('ሴ', 1, 0)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 1, 0)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.6.1"
 			r = db.Query("SELECT SUBSTR('ሴ', 1, 1)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 1, 1)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.6.2"
 			r = db.Query("SELECT SUBSTR('ሴ', 1, 2)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 1, 2)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.6.3"
 			r = db.Query("SELECT SUBSTR('ሴ', 1, 3)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 1, 3)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.7.0"
 			r = db.Query("SELECT SUBSTR('ሴ', 2, 0)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 2, 0)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.7.1"
 			r = db.Query("SELECT SUBSTR('ሴ', 2, 1)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 2, 1)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.7.2"
 			r = db.Query("SELECT SUBSTR('ሴ', 2, 2)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', 2, 2)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.8.0"
 			r = db.Query("SELECT SUBSTR('ሴ', -1, 0)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', -1, 0)")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.8.1"
 			r = db.Query("SELECT SUBSTR('ሴ', -1, 1)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', -1, 1)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.8.2"
 			r = db.Query("SELECT SUBSTR('ሴ', -1, 2)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', -1, 2)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "func2-2.8.3"
 			r = db.Query("SELECT SUBSTR('ሴ', -1, 3)")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('ሴ', -1, 3)")
+				return
+			}
+			got := flatten(r)
+			want := "ሴ"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

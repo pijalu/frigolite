@@ -152,12 +152,26 @@ func Test_rtree6(t *testing.T) {
 		r = db.Query("\n  SELECT * FROM t3 WHERE x1>0.5 AND x1>0.8 AND x1>1.1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3 WHERE x1>0.5 AND x1>0.8 AND x1>1.1\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtree6-3.5"
 		r = db.Query("\n  SELECT * FROM t3 WHERE \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>1.1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3 WHERE \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND \n    x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>0.5 AND x1>1.1\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

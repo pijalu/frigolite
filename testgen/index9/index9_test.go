@@ -127,14 +127,14 @@ func Test_index9(t *testing.T) {
 	y = "9223372036854775806"
 	_ = y // suppress unused warning
 	// do_sqluses_test 3.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
-	// sqlite3_db_config QPSG (unhandled flag)
+	db.SetQPSG(true)
 	y = "9223372036854775807"
 	_ = y // suppress unused warning
 	// do_sqluses_test 3.4 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
 	// do_sqluses_test 3.5 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
-	// sqlite3_db_config QPSG (unhandled flag)
+	db.SetQPSG(false)
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808\n")
 		if _res.Error != nil {
@@ -153,7 +153,7 @@ func Test_index9(t *testing.T) {
 	y = "-9223372036854775808"
 	_ = y // suppress unused warning
 	// do_sqluses_test 4.4 { SELECT * FROM t1 WHERE $y=y ORDER BY x } {t1 t1x4} (unsupported command, not transpiled)
-	// sqlite3_db_config QPSG (unhandled flag)
+	db.SetQPSG(true)
 	// do_sqluses_test 4.5 { SELECT * FROM t1 WHERE $y=y ORDER BY x } {t1} (unsupported command, not transpiled)
-	// sqlite3_db_config QPSG (unhandled flag)
+	db.SetQPSG(false)
 }

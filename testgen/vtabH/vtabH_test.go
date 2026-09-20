@@ -244,9 +244,13 @@ func Test_vtabH(t *testing.T) {
 						r = db.Query("SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
+							return
 						}
-						if flatten(r) != tclListFlatten(res) {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "2." + tclvar_set_omit + "." + tn + ".1")
+						got := flatten(r)
+						want := tclListFlatten(res)
+						got = tclListFlattenCollapse(got)
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // do_test "2." + tclvar_set_omit + "." + tn + ".2"
@@ -355,6 +359,7 @@ func Test_vtabH(t *testing.T) {
 							fd = path
 							_ = fd // suppress unused warning
 							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek["fd"])
+							fileChannelSeek["fd"] += int64(len(tclStringRepeat("1", sz)))
 							// close $fd
 						}
 					}

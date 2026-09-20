@@ -123,9 +123,8 @@ func Test_memjournal2(t *testing.T) {
 		// incr jj 1
 		{
 			_n, _err := strconv.Atoi(jj)
-			if _err == nil {
-				jj = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			jj = strconv.Itoa(_n + 1)
 		}
 	}
 }

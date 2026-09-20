@@ -150,9 +150,8 @@ func Test_corruptE(t *testing.T) {
 		// incr tc 1
 		{
 			_n, _err := strconv.Atoi(tc)
-			if _err == nil {
-				tc = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tc = strconv.Itoa(_n + 1)
 		}
 	}
 }

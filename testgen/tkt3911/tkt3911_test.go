@@ -61,6 +61,12 @@ func Test_tkt3911(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(11,12);\n\n    CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(2,3);\n    INSERT INTO t2 VALUES(22,23);\n\n    SELECT * FROM t1 JOIN t2 USING(b);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(11,12);\n\n    CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(2,3);\n    INSERT INTO t2 VALUES(22,23);\n\n    SELECT * FROM t1 JOIN t2 USING(b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3911.2"

@@ -65,6 +65,13 @@ func Test_strict2(t *testing.T) {
 		r = db.Query("\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

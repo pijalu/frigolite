@@ -83,12 +83,24 @@ func Test_collate9(t *testing.T) {
 		r = db.Query(" \n    SELECT x FROM xy ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT x FROM xy ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two three one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-1.3"
 		r = db.Query(" \n    SELECT y FROM xy ORDER BY y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT y FROM xy ORDER BY y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one three two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-1.4"
@@ -107,36 +119,72 @@ func Test_collate9(t *testing.T) {
 		r = db.Query(" \n    SELECT x, x < 'seven' FROM xy ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT x, x < 'seven' FROM xy ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two 1 three 1 one 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-2.2"
 		r = db.Query(" \n    SELECT y, y < 'seven' FROM xy ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT y, y < 'seven' FROM xy ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two 0 three 0 one 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-2.3"
 		r = db.Query(" \n    SELECT y, y COLLATE \"reverse sort\" < 'seven' FROM xy ORDER BY x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT y, y COLLATE \"reverse sort\" < 'seven' FROM xy ORDER BY x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two 1 three 1 one 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-2.4"
 		r = db.Query("\n    SELECT y FROM xy ORDER BY y\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM xy ORDER BY y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one three two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-2.5"
 		r = db.Query("\n    SELECT y FROM xy ORDER BY y COLLATE \"reverse sort\"\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM xy ORDER BY y COLLATE \"reverse sort\"\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two three one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-2.6"
 		r = db.Query("\n    SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "two three one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate9-3.1"

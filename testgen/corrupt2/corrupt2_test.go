@@ -145,6 +145,13 @@ func Test_corrupt2(t *testing.T) {
 		r = db.Query("\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "corrupt2-1.2"
@@ -155,6 +162,7 @@ func Test_corrupt2(t *testing.T) {
 		_ = f // suppress unused warning
 		fileChannelSeek["f"] = int64(tclAtoi("8"))
 		tclChannelAppendAt("corrupt.db", "blah"+"\n", fileChannelSeek["f"])
+		fileChannelSeek["f"] += int64(len("blah"+"\n"))
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		tclConnRegister("db2", db2)
@@ -171,6 +179,7 @@ func Test_corrupt2(t *testing.T) {
 		_ = f // suppress unused warning
 		fileChannelSeek["f"] = int64(tclAtoi("16"))
 		tclChannelAppendAt("corrupt.db", "\x00\xff", fileChannelSeek["f"])
+		fileChannelSeek["f"] += int64(len("\x00\xff"))
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		tclConnRegister("db2", db2)
@@ -187,6 +196,7 @@ func Test_corrupt2(t *testing.T) {
 		_ = f // suppress unused warning
 		fileChannelSeek["f"] = int64(tclAtoi("101"))
 		tclChannelAppendAt("corrupt.db", "\xff\xff", fileChannelSeek["f"])
+		fileChannelSeek["f"] += int64(len("\xff\xff"))
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		tclConnRegister("db2", db2)
@@ -203,9 +213,12 @@ func Test_corrupt2(t *testing.T) {
 		_ = f // suppress unused warning
 		fileChannelSeek["f"] = int64(tclAtoi("101"))
 		tclChannelAppendAt("corrupt.db", "\x00\xc8", fileChannelSeek["f"])
+		fileChannelSeek["f"] += int64(len("\x00\xc8"))
 		fileChannelSeek["f"] = int64(tclAtoi("200"))
 		tclChannelAppendAt("corrupt.db", "\x00\x00", fileChannelSeek["f"])
+		fileChannelSeek["f"] += int64(len("\x00\x00"))
 		tclChannelAppendAt("corrupt.db", "\x10\x00", fileChannelSeek["f"])
+		fileChannelSeek["f"] += int64(len("\x10\x00"))
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		tclConnRegister("db2", db2)
@@ -254,6 +267,7 @@ func Test_corrupt2(t *testing.T) {
 		_ = iCelloffset // suppress unused warning
 		fileChannelSeek["fd"] = int64(tclAtoi(tclExprWith("1024*3 + $iCelloffset", map[string]string{"iCelloffset": iCelloffset})))
 		tclChannelAppendAt("corrupt.db", "\x00\x00\x00\x00", fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len("\x00\x00\x00\x00"))
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		tclConnRegister("db2", db2)
@@ -296,6 +310,7 @@ func Test_corrupt2(t *testing.T) {
 		_ = iCelloffset // suppress unused warning
 		fileChannelSeek["fd"] = int64(tclAtoi(tclExprWith("2*1024 + $iCelloffset", map[string]string{"iCelloffset": iCelloffset})))
 		tclChannelAppendAt("corrupt.db", zChildPage, fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len(zChildPage))
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		tclConnRegister("db2", db2)
@@ -381,8 +396,7 @@ func Test_corrupt2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("*** in database main ***\nFreelist: size is 3 but should be 2")
-		got = tclListFlattenCollapse(got)
+		want := "*** in database main ***\nFreelist: size is 3 but should be 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -398,8 +412,7 @@ func Test_corrupt2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclListFlattenCollapse("*** in database main ***\nFreelist: size is 1 but should be 0")
-		got = tclListFlattenCollapse(got)
+		want := "*** in database main ***\nFreelist: size is 1 but should be 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

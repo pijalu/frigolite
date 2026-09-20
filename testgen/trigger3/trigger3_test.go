@@ -75,12 +75,25 @@ func Test_trigger3(t *testing.T) {
 		r = db.Query("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger3-1.3"
 		r = db.Query("SELECT * FROM tbl")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM tbl")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger3-2.1"
@@ -94,6 +107,12 @@ func Test_trigger3(t *testing.T) {
 		r = db.Query("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 6 2 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger3-3.1"
@@ -107,6 +126,13 @@ func Test_trigger3(t *testing.T) {
 		r = db.Query("\n        SELECT * FROM tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger3-3.3"
@@ -120,6 +146,13 @@ func Test_trigger3(t *testing.T) {
 		r = db.Query("SELECT * FROM tbl")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM tbl")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger3-4.1"
@@ -132,6 +165,12 @@ func Test_trigger3(t *testing.T) {
 		r = db.Query("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "5 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("DROP TABLE tbl;")
@@ -158,12 +197,24 @@ func Test_trigger3(t *testing.T) {
 		r = db.Query("\n        UPDATE tbl SET c = 10;\n        SELECT * FROM tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        UPDATE tbl SET c = 10;\n        SELECT * FROM tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trigger3-5.2"
 		r = db.Query("\n        DELETE FROM tbl;\n        SELECT * FROM tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        DELETE FROM tbl;\n        SELECT * FROM tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("CREATE TABLE tbl2(a, b, c)")
@@ -178,6 +229,12 @@ func Test_trigger3(t *testing.T) {
 		r = db.Query("\n        INSERT INTO tbl2 VALUES (1, 2, 3);\n        SELECT * FROM tbl2;\n        SELECT * FROM tbl;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO tbl2 VALUES (1, 2, 3);\n        SELECT * FROM tbl2;\n        SELECT * FROM tbl;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 1 2 3 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("CREATE VIEW tbl_view AS SELECT * FROM tbl")

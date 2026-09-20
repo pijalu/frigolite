@@ -120,9 +120,8 @@ func Test_round1(t *testing.T) {
 			// incr x1 1
 			{
 				_n, _err := strconv.Atoi(x1)
-				if _err == nil {
-					x1 = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				x1 = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("r2", "", x1 + "." + x4)
@@ -148,9 +147,8 @@ func Test_round1(t *testing.T) {
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)
-			if _err == nil {
-				iTest = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			iTest = strconv.Itoa(_n + 1)
 		}
 	}
 }

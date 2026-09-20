@@ -59,7 +59,7 @@ func Test_rowhash(t *testing.T) {
 	_ = i // pre-declared from TCL source
 	var j string
 	_ = j // pre-declared from TCL source
-	var L string
+	var L *tclListBuilder
 	_ = L // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
@@ -89,23 +89,22 @@ func Test_rowhash(t *testing.T) {
 			j = "0"
 			_ = j // suppress unused warning
 			for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 5000 }() {
-				L = tclListAppend(L, "0")
+				L.Append("0")
 				// incr j 1
 				{
 					_n, _err := strconv.Atoi(j)
-					if _err == nil {
-						j = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					j = strconv.Itoa(_n + 1)
 				}
 			}
 			// do_keyset_test rowhash-2.$i $L (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 	}
+
 }

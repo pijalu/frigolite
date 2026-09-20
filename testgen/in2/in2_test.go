@@ -86,9 +86,8 @@ func Test_in2(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 		_res = db.Exec("INSERT INTO a VALUES(4000, '')")
@@ -109,9 +108,8 @@ func Test_in2(t *testing.T) {
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 	}
@@ -123,14 +121,19 @@ func Test_in2(t *testing.T) {
 			r = db.Query("\n      SELECT 1 IN (SELECT a FROM a WHERE (i < " + sqlLiteral(ii) + ") OR (i >= " + sqlLiteral(N) + "))\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1 IN (SELECT a FROM a WHERE (i < " + sqlLiteral(ii) + ") OR (i >= " + sqlLiteral(N) + "))\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
-			if _err == nil {
-				ii = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			ii = strconv.Itoa(_n + 1)
 		}
 	}
 }

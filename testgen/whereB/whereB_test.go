@@ -71,36 +71,72 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-1.3"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-1.4"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-1.100"
 		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-1.101"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-1.102"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-2.1"
@@ -119,36 +155,72 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-2.3"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-2.4"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-2.100"
 		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-2.101"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-2.102"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-3.1"
@@ -167,36 +239,72 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-3.3"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-3.4"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-3.100"
 		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-3.101"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-3.102"
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-4.1"
@@ -239,6 +347,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-4.100"
@@ -269,6 +383,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-5.1"
@@ -311,6 +431,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-5.100"
@@ -341,6 +467,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-6.1"
@@ -383,6 +515,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-6.100"
@@ -413,6 +551,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-7.1"
@@ -455,6 +599,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-7.100"
@@ -485,6 +635,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-8.1"
@@ -527,6 +683,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-8.100"
@@ -557,6 +719,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-9.1"
@@ -599,6 +767,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-9.100"
@@ -629,6 +803,12 @@ func Test_whereB(t *testing.T) {
 		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -59,108 +59,216 @@ func Test_collate8(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t1(a TEXT COLLATE nocase);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('BBB');\n    INSERT INTO t1 VALUES('ccc');\n    INSERT INTO t1 VALUES('DDD');\n    SELECT a FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a TEXT COLLATE nocase);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('BBB');\n    INSERT INTO t1 VALUES('ccc');\n    INSERT INTO t1 VALUES('DDD');\n    SELECT a FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aaa BBB ccc DDD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.2"
 		r = db.Query("\n    SELECT rowid FROM t1 WHERE a<'ccc' ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE a<'ccc' ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.3"
 		r = db.Query("\n    SELECT rowid FROM t1 WHERE a<'ccc' COLLATE binary ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE a<'ccc' COLLATE binary ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.4"
 		r = db.Query("\n    SELECT rowid FROM t1 WHERE +a<'ccc' ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE +a<'ccc' ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.5"
 		r = db.Query("\n    SELECT a FROM t1 ORDER BY +a\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 ORDER BY +a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aaa BBB ccc DDD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.11"
 		r = db.Query("\n    SELECT a AS x FROM t1 ORDER BY \"x\";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t1 ORDER BY \"x\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aaa BBB ccc DDD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.12"
 		r = db.Query("\n    SELECT a AS x FROM t1 WHERE x<'ccc' ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t1 WHERE x<'ccc' ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aaa BBB"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.13"
 		r = db.Query("\n    SELECT a AS x FROM t1 WHERE x<'ccc' COLLATE binary ORDER BY [x]\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t1 WHERE x<'ccc' COLLATE binary ORDER BY [x]\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aaa BBB DDD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.14"
 		r = db.Query("\n    SELECT a AS x FROM t1 WHERE +x<'ccc' ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t1 WHERE +x<'ccc' ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aaa BBB"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-1.15"
 		r = db.Query("\n    SELECT a AS x FROM t1 ORDER BY +x\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t1 ORDER BY +x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aaa BBB ccc DDD"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.1"
 		r = db.Query("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('abc');\n    INSERT INTO t2 VALUES('ABC');\n    SELECT a AS x FROM t2 WHERE x='abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('abc');\n    INSERT INTO t2 VALUES('ABC');\n    SELECT a AS x FROM t2 WHERE x='abc';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.2"
 		r = db.Query("\n    SELECT a AS x FROM t2 WHERE x='abc' COLLATE nocase;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t2 WHERE x='abc' COLLATE nocase;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc ABC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.3"
 		r = db.Query("\n    SELECT a AS x FROM t2 WHERE (x COLLATE nocase)='abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t2 WHERE (x COLLATE nocase)='abc';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc ABC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.4"
 		r = db.Query("\n    SELECT a COLLATE nocase AS x FROM t2 WHERE x='abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a COLLATE nocase AS x FROM t2 WHERE x='abc';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc ABC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.5"
 		r = db.Query("\n    SELECT a COLLATE nocase AS x FROM t2 WHERE (x COLLATE binary)='abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a COLLATE nocase AS x FROM t2 WHERE (x COLLATE binary)='abc';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.6"
 		r = db.Query("\n    SELECT a COLLATE nocase AS x FROM t2 WHERE x='abc' COLLATE binary;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a COLLATE nocase AS x FROM t2 WHERE x='abc' COLLATE binary;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc ABC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.7"
 		r = db.Query("\n    SELECT * FROM t2 WHERE (a COLLATE nocase)='abc' COLLATE binary;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 WHERE (a COLLATE nocase)='abc' COLLATE binary;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc ABC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "collate8-2.8"
 		r = db.Query("\n    SELECT a COLLATE nocase AS x FROM t2 WHERE 'abc'=x COLLATE binary;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a COLLATE nocase AS x FROM t2 WHERE 'abc'=x COLLATE binary;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "collate8-3.1"

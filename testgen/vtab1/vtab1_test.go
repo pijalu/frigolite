@@ -152,6 +152,13 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.RegisterEchoModule()
@@ -171,6 +178,13 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-1.5.1"
@@ -189,6 +203,13 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtab1-1.2152.1" — skipped: C prepare/step internals not representable (echo vtab prepared then stepped after t2152b exists)
@@ -231,9 +252,18 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    DROP TABLE treal;\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE treal;\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "vtab1-1.10" — skipped: echo reopen-unregister lifecycle (C test module; keeps techo/treal state consistent with the skipped 1.16/1.17 teardown)
+	{ // "vtab1-1.10" — skipped: echo reopen-unregister lifecycle (C test module; keeps techo/treal state consistent with the skipped 1.16/1.17 teardown) (SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtab1-1.11" — skipped: echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)
 	}
@@ -247,9 +277,13 @@ func Test_vtab1(t *testing.T) {
 	}
 	db.RegisterEchoModule()
 	db.RegisterEchoModule()
-	{ // "vtab1-1.16" — skipped: echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)
+	{ // "vtab1-1.16" — skipped: echo log-table xCreate behavior and reopen-unregister lifecycle (C test module) (SQL side effects only)
+		_res = db.Exec("\n    DROP TABLE techo;\n    CREATE TABLE logmsg(log);\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab1-1.17" — skipped: echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)
+	{ // "vtab1-1.17" — skipped: echo log-table xCreate behavior and reopen-unregister lifecycle (C test module) (SQL side effects only)
+		_res = db.Exec("\n    DROP TABLE treal;\n    DROP TABLE logmsg;\n    SELECT sql FROM sqlite_master;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "vtab1-2.1"
 		_res = db.Exec("\n    CREATE TABLE template(a, b, c);\n  ")
@@ -294,6 +328,13 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query(" PRAGMA table_info(t1); ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA table_info(t1); ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("0"+" "+"a"+" "+"{}"+" "+"0"+" "+"{}"+" "+"0"+" "+"1"+" "+"b"+" "+"{}"+" "+"0"+" "+"{}"+" "+"0"+" "+"2"+" "+"c"+" "+"{}"+" "+"0"+" "+"{}"+" "+"0")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtab1.2.8" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -311,18 +352,38 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query(" \n    PRAGMA table_info(t1); \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA table_info(t1); \n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-2.7"
 		r = db.Query("\n    SELECT sql FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{CREATE TABLE template(a, b, c)}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-2.8"
 		r = db.Query(" \n    DROP TABLE template;\n    SELECT sql FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DROP TABLE template;\n    SELECT sql FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := ""
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtab1-3.1" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -338,24 +399,49 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT a, b, c FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-3.3"
 		r = db.Query("\n    INSERT INTO treal VALUES(1, 2, 3);\n    INSERT INTO treal VALUES(4, 5, 6);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO treal VALUES(1, 2, 3);\n    INSERT INTO treal VALUES(4, 5, 6);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-3.4"
 		r = db.Query("\n    SELECT a FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-3.5"
 		r = db.Query("\n    SELECT rowid FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-3.6"
@@ -371,12 +457,24 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT rowid, * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 3 2 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-3.8.1"
 		r = db.Query("\n    SELECT a AS d, b AS e, c AS f FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS d, b AS e, c AS f FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtab1-3.8.2" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -533,18 +631,37 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query(" SELECT sql FROM sqlite_master ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sql FROM sqlite_master ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-2"
 		r = db.Query("\n    CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "treal techo"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-3.1.1"
 		r = db.Query("\n    PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-3.1.2"
@@ -554,6 +671,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-4.1"
@@ -567,6 +690,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-4.3"
@@ -580,6 +709,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-5.1"
@@ -593,6 +728,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n   SELECT * FROM techo;\n ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   SELECT * FROM techo;\n ")
+			return
+		}
+		got := flatten(r)
+		want := "523 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-6.1"
@@ -606,6 +747,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT rowid FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM techo;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-7.1.1"
@@ -621,6 +768,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 13 523 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-7.3"
@@ -634,6 +787,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 1012 13 523 1002 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-8.1"
@@ -647,6 +806,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 1012 13 523 1002 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-6-8.3"
@@ -660,6 +825,13 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM techo ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM techo ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	r = db.Query("PRAGMA count_changes=OFF")
@@ -702,78 +874,161 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    INSERT INTO echo_abc VALUES(1, 2, 3);\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO echo_abc VALUES(1, 2, 3);\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-3"
 		r = db.Query("\n    INSERT INTO echo_abc(rowid) VALUES(31427);\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO echo_abc(rowid) VALUES(31427);\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31427"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-4"
 		r = db.Query("\n    INSERT INTO echo_abc SELECT a||'.v2', b, c FROM echo_abc;\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO echo_abc SELECT a||'.v2', b, c FROM echo_abc;\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31429"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-5"
 		r = db.Query("\n    SELECT rowid, a, b, c FROM echo_abc\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, a, b, c FROM echo_abc\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("1"+" "+"1"+" "+"2"+" "+"3"+" "+"31427"+" "+"{}"+" "+"{}"+" "+"{}"+" "+"31428"+" "+"1.v2"+" "+"2"+" "+"3"+" "+"31429"+" "+"{}"+" "+"{}"+" "+"{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-6"
 		r = db.Query("\n    UPDATE echo_abc SET c = 5 WHERE b = 2;\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE echo_abc SET c = 5 WHERE b = 2;\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31429"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-7"
 		r = db.Query("\n    UPDATE echo_abc SET rowid = 5 WHERE rowid = 1;\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE echo_abc SET rowid = 5 WHERE rowid = 1;\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31429"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-8"
 		r = db.Query("\n    DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31429"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-9"
 		r = db.Query("\n    SELECT rowid, a, b, c FROM echo_abc\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, a, b, c FROM echo_abc\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("31427"+" "+"{}"+" "+"{}"+" "+"{}"+" "+"31429"+" "+"{}"+" "+"{}"+" "+"{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-10"
 		r = db.Query("\n    DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31429"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-11"
 		r = db.Query("\n    SELECT rowid, a, b, c FROM real_abc\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, a, b, c FROM real_abc\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("31427"+" "+"{}"+" "+"{}"+" "+"{}"+" "+"31429"+" "+"{}"+" "+"{}"+" "+"{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-12"
 		r = db.Query("\n    DELETE FROM echo_abc;\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM echo_abc;\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "31429"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-13"
 		r = db.Query("\n    SELECT rowid, a, b, c FROM real_abc\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, a, b, c FROM real_abc\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.7-14"
 		r = db.Query("\n    PRAGMA index_info('echo_abc');\n    PRAGMA index_xinfo('echo_abc');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA index_info('echo_abc');\n    PRAGMA index_xinfo('echo_abc');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtab1.8-1" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -806,6 +1061,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    DROP TABLE e;\n    SELECT name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE e;\n    SELECT name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "r"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtab1.9-3" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -900,6 +1161,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    INSERT INTO r(a,b,c) VALUES(1,'?',99);\n    INSERT INTO r(a,b,c) VALUES(2,3,99);\n    SELECT a GLOB b FROM e\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO r(a,b,c) VALUES(1,'?',99);\n    INSERT INTO r(a,b,c) VALUES(2,3,99);\n    SELECT a GLOB b FROM e\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -907,24 +1174,48 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    SELECT a like 'b' FROM e\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a like 'b' FROM e\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.11-3"
 		r = db.Query("\n    SELECT a glob '2' FROM e\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a glob '2' FROM e\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.11-4"
 		r = db.Query("\n    SELECT  glob('2',a) FROM e\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT  glob('2',a) FROM e\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.11-5"
 		r = db.Query("\n    SELECT  glob(a,'2') FROM e\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT  glob(a,'2') FROM e\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.12-1"
@@ -949,6 +1240,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query(" SELECT * FROM c ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c ")
+			return
+		}
+		got := flatten(r)
+		want := "3 G H"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.12-4"
@@ -963,6 +1260,12 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query(" SELECT * FROM c ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c ")
+			return
+		}
+		got := flatten(r)
+		want := "3 G H"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.12-6"
@@ -979,18 +1282,37 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query(" \n    SELECT * FROM echo_c WHERE a IS NULL \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM echo_c WHERE a IS NULL \n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.13-2"
 		r = db.Query(" \n    INSERT INTO c VALUES(NULL, 15, 16);\n    SELECT * FROM echo_c WHERE a IS NULL \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO c VALUES(NULL, 15, 16);\n    SELECT * FROM echo_c WHERE a IS NULL \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 15 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.13-3"
 		r = db.Query(" \n    INSERT INTO c VALUES(15, NULL, 16);\n    SELECT * FROM echo_c WHERE b IS NULL \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO c VALUES(15, NULL, 16);\n    SELECT * FROM echo_c WHERE b IS NULL \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.13-4"
@@ -1003,90 +1325,185 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query(" \n    SELECT * FROM echo_c WHERE b IS NULL AND a = 15;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM echo_c WHERE b IS NULL AND a = 15;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1.13-6"
 		r = db.Query(" \n    SELECT * FROM echo_c WHERE NULL IS b AND a IS 15;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM echo_c WHERE NULL IS b AND a IS 15;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.001"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE +rowid IN (1,2,3)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE +rowid IN (1,2,3)")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 G H 2 {} 15 16 3 15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.002"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE rowid IN (1,2,3)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE rowid IN (1,2,3)")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 G H 2 {} 15 16 3 15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.003"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE +rowid IN (0,1,5,2,'a',3,NULL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE +rowid IN (0,1,5,2,'a',3,NULL)")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 G H 2 {} 15 16 3 15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.004"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE rowid IN (0,1,5,'a',2,3,NULL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE rowid IN (0,1,5,'a',2,3,NULL)")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 G H 2 {} 15 16 3 15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.005"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,1,5,'a',2,3)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,1,5,'a',2,3)")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.006"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3)")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 G H"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.007"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE +rowid NOT IN (0,5,'a',2,3,NULL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE +rowid NOT IN (0,5,'a',2,3,NULL)")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.008"
 		r = db.Query("SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3,NULL)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3,NULL)")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.011"
 		r = db.Query("SELECT * FROM echo_c WHERE +a IN (1,3,8,'x',NULL,15,24)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM echo_c WHERE +a IN (1,3,8,'x',NULL,15,24)")
+			return
+		}
+		got := flatten(r)
+		want := "3 G H 15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.012"
 		r = db.Query("SELECT * FROM echo_c WHERE a IN (1,3,8,'x',NULL,15,24)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM echo_c WHERE a IN (1,3,8,'x',NULL,15,24)")
+			return
+		}
+		got := flatten(r)
+		want := "3 G H 15 {} 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.013"
 		r = db.Query("SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',15,24)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',15,24)")
+			return
+		}
+		got := flatten(r)
+		want := "3 G H"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.014"
 		r = db.Query("SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',NULL,15,24)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',NULL,15,24)")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-14.015"
 		r = db.Query("SELECT * FROM echo_c WHERE +a NOT IN (1,8,'x',NULL,15,24)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM echo_c WHERE +a NOT IN (1,8,'x',NULL,15,24)")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "vtab1-14.2" (echo module callback log is C test-module ABI; SQL side effects only)
@@ -1117,12 +1534,24 @@ func Test_vtab1(t *testing.T) {
 		r = db.Query("\n    INSERT INTO echo_t1(rowid) VALUES(45);\n    SELECT rowid, * FROM echo_t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO echo_t1(rowid) VALUES(45);\n    SELECT rowid, * FROM echo_t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "45 {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-15.3"
 		r = db.Query("\n    INSERT INTO echo_t1(rowid) VALUES(NULL);\n    SELECT rowid, * FROM echo_t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO echo_t1(rowid) VALUES(NULL);\n    SELECT rowid, * FROM echo_t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "45 {} {} {} 46 {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "vtab1-15.4"
@@ -1150,9 +1579,8 @@ func Test_vtab1(t *testing.T) {
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tn = strconv.Itoa(_n + 1)
 		}
 	}
 	for _, method := range tclSplitList(" xUpdate             xBegin              xSync               ") {
@@ -1165,9 +1593,8 @@ func Test_vtab1(t *testing.T) {
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			tn = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "vtab1-16." + tn
@@ -1181,15 +1608,20 @@ func Test_vtab1(t *testing.T) {
 	// incr tn 1
 	{
 		_n, _err := strconv.Atoi(tn)
-		if _err == nil {
-			tn = strconv.Itoa(_n + 1)
-		}
+		if _err != nil { _n = 0 }
+		tn = strconv.Itoa(_n + 1)
 	}
-	{ // "vtab1-17.1" — skipped: echo_v2 test module (C test module, src/test8.c) not implemented
+	{ // "vtab1-17.1" — skipped: echo_v2 test module (C test module, src/test8.c) not implemented (SQL side effects only)
+		_res = db.Exec(" \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab1-17.1" — skipped: echo_v2 test module (C test module, src/test8.c) not implemented
+	{ // "vtab1-17.1" — skipped: echo_v2 test module (C test module, src/test8.c) not implemented (SQL side effects only)
+		_res = db.Exec(" \n    CREATE TABLE t5(a, b);\n    CREATE VIRTUAL TABLE e5 USING echo_v2(t5);\n    BEGIN;\n      INSERT INTO e5 VALUES(1, 2);\n      DROP TABLE e5;\n      SAVEPOINT one;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "vtab1-17.2" — skipped: writable_schema cleanup test (depends on the skipped 17.1 writable_schema insert)
+	{ // "vtab1-17.2" — skipped: writable_schema cleanup test (depends on the skipped 17.1 writable_schema insert) (SQL side effects only)
+		_res = db.Exec(" DELETE FROM sqlite_master WHERE sql LIKE 'insert%' ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "18.1.0"
 		_res = db.Exec("\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  INSERT INTO t6 VALUES(1, 'Peter');\n  INSERT INTO t6 VALUES(2, 'Andrew');\n  INSERT INTO t6 VALUES(3, '8James');\n  INSERT INTO t6 VALUES(4, '8John');\n  INSERT INTO t6 VALUES(5, 'Phillip');\n  INSERT INTO t6 VALUES(6, 'Bartholomew');\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
@@ -1281,9 +1713,8 @@ func Test_vtab1(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -1456,7 +1887,11 @@ func Test_vtab1(t *testing.T) {
 				_ = _list8
 				_r = _list8
 			}
-			{ // "vtab1-23.3.1" — skipped: eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)
+			{ // "vtab1-23.3.1" — skipped: eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn) (SQL side effects only)
+				_res = db.Exec(" CREATE VIRTUAL TABLE t1e USING echo(t2) ")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec(" INSERT INTO t1e SELECT 4 ")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 			{ // "vtab1-23.3.2" — skipped: eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn) (SQL side effects only)
 				_res = db.Exec(" SELECT * FROM t1e ")
@@ -1466,12 +1901,26 @@ func Test_vtab1(t *testing.T) {
 				r = db.Query("\n    CREATE VIRTUAL TABLE t4 USING fts3();\n    SAVEPOINT a;\n    INSERT INTO t4 VALUES('a b c');\n    ROLLBACK TO a;\n    RELEASE a;\n    SELECT * FROM t4;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t4 USING fts3();\n    SAVEPOINT a;\n    INSERT INTO t4 VALUES('a b c');\n    ROLLBACK TO a;\n    RELEASE a;\n    SELECT * FROM t4;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "24.1"
 				r = db.Query(" SELECT * FROM t4 WHERE t4 MATCH 'b' ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 WHERE t4 MATCH 'b' ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "24.2"

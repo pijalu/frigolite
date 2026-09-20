@@ -77,6 +77,7 @@ func Test_vtabC(t *testing.T) {
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return N_n <= 20 }() {
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -101,9 +102,8 @@ func Test_vtabC(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			r = db.Query("SELECT count(*) FROM sqlite_master")
@@ -115,9 +115,13 @@ func Test_vtabC(t *testing.T) {
 			r = db.Query("SELECT name FROM sqlite_master")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+				return
 			}
-			if flatten(r) != tclListFlatten(tablist) {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(tablist), "vtabC-1." + N + ".2")
+			got := flatten(r)
+			want := tclListFlatten(tablist)
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "vtabC-1." + N + ".3"
@@ -136,9 +140,8 @@ func Test_vtabC(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			sql += "END;"
@@ -155,6 +158,12 @@ func Test_vtabC(t *testing.T) {
 			r = db.Query("\n      INSERT INTO m VALUES(1000);\n      SELECT * FROM m;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO m VALUES(1000);\n      SELECT * FROM m;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "1000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		vtab.TclVarSet("j", "", "1")
@@ -165,20 +174,33 @@ func Test_vtabC(t *testing.T) {
 				r = db.Query("SELECT * FROM t" + j)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + j)
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten(tclExprWith("$j+1000", map[string]string{"j": j}))
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "vtabC-1." + N + ".6." + j
 				r = db.Query("SELECT * FROM vt" + j)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + j)
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten(tclExprWith("$j+1000", map[string]string{"j": j}))
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 1)
 			}
 		}
 		{ // do_test "vtabC-1." + N + ".7"
@@ -193,9 +215,8 @@ func Test_vtabC(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			vtab.TclVarSet("i", "", "1")
@@ -206,9 +227,8 @@ func Test_vtabC(t *testing.T) {
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+					if _err != nil { _n = 0 }
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 			sql += "END;"
@@ -225,6 +245,12 @@ func Test_vtabC(t *testing.T) {
 			r = db.Query("\n      INSERT INTO m VALUES(9000000);\n      SELECT * FROM m;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO m VALUES(9000000);\n      SELECT * FROM m;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "1000 9000000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		vtab.TclVarSet("j", "", "1")
@@ -240,34 +266,40 @@ func Test_vtabC(t *testing.T) {
 				r = db.Query("SELECT * FROM t" + j)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + j)
+					return
 				}
-				if flatten(r) != tclListFlatten(res) {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "vtabC-1." + N + ".9." + j)
+				got := flatten(r)
+				want := tclListFlatten(res)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "vtabC-1." + N + ".10." + j
 				r = db.Query("SELECT * FROM vt" + j)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + j)
+					return
 				}
-				if flatten(r) != tclListFlatten(res) {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "vtabC-1." + N + ".10." + j)
+				got := flatten(r)
+				want := tclListFlatten(res)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
-				if _err == nil {
-					j = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				j = strconv.Itoa(_n + 1)
 			}
 		}
 		// incr N 1
 		{
 			_n, _err := strconv.Atoi(N)
-			if _err == nil {
-				N = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			N = strconv.Itoa(_n + 1)
 		}
 	}
 }

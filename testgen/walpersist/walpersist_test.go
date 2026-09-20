@@ -113,6 +113,8 @@ func Test_walpersist(t *testing.T) {
 		_r = _list2
 	}
 	os.Remove("test.db")
+	os.Remove("test.db-shm")
+	os.Remove("test.db-wal")
 	{ // do_test "walpersist-2.1"
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
@@ -147,6 +149,8 @@ func Test_walpersist(t *testing.T) {
 			db.Close()
 		}
 		os.Remove("test.db")
+		os.Remove("test.db-shm")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -167,9 +171,8 @@ func Test_walpersist(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		// file_control_persist_wal db 1 (unsupported command, not transpiled)

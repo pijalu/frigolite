@@ -85,7 +85,7 @@ func Test_fts4unicode(t *testing.T) {
 	_ = map_x // pre-declared from TCL source
 	var k string
 	_ = k // pre-declared from TCL source
-	var mappings string
+	var mappings *tclListBuilder
 	_ = mappings // pre-declared from TCL source
 	var doc string
 	_ = doc // pre-declared from TCL source
@@ -214,8 +214,8 @@ func Test_fts4unicode(t *testing.T) {
 	_ = map_x // suppress unused warning
 	for _, k := range tclSplitList("array names map") {
 	_ = k // suppress unused warning
-		mappings = tclListAppend(mappings, strings.ToUpper(k), tclLIndex((func() string { switch k { case "a": return map_a; case "e": return map_e; case "i": return map_i; case "o": return map_o; case "u": return map_u; case "y": return map_y; case "h": return map_h; case "w": return map_w; case "x": return map_x; default: return "" } }()), "0"))
-		mappings = tclListAppend(mappings, k, tclLIndex((func() string { switch k { case "a": return map_a; case "e": return map_e; case "i": return map_i; case "o": return map_o; case "u": return map_u; case "y": return map_y; case "h": return map_h; case "w": return map_w; case "x": return map_x; default: return "" } }()), "1"))
+		mappings.Append(strings.ToUpper(k), tclLIndex((func() string { switch k { case "a": return map_a; case "e": return map_e; case "i": return map_i; case "o": return map_o; case "u": return map_u; case "y": return map_y; case "h": return map_h; case "w": return map_w; case "x": return map_x; default: return "" } }()), "0"))
+		mappings.Append(k, tclLIndex((func() string { switch k { case "a": return map_a; case "e": return map_e; case "i": return map_i; case "o": return map_o; case "u": return map_u; case "y": return map_y; case "h": return map_h; case "w": return map_w; case "x": return map_x; default: return "" } }()), "1"))
 	}
 	// proc definition (not transpiled)
 	{ // do_test "2.0"
@@ -630,4 +630,5 @@ func Test_fts4unicode(t *testing.T) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
+
 }

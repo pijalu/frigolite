@@ -63,6 +63,12 @@ func Test_jrnlmode2(t *testing.T) {
 		r = db.Query("\n    PRAGMA journal_mode = persist;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = persist;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "persist"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode2-1.2"

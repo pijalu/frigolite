@@ -72,54 +72,108 @@ func Test_rtree5(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 5 10 4 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.3"
 		r = db.Query(" SELECT typeof(x1) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(x1) FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.4"
 		r = db.Query(" SELECT x1==5 FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x1==5 FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.5"
 		r = db.Query(" SELECT x1==5.2 FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x1==5.2 FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.6"
 		r = db.Query(" SELECT x1==5.0 FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x1==5.0 FROM t1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.7"
 		r = db.Query(" SELECT count(*) FROM t1 WHERE x1==5 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE x1==5 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.8"
 		r = db.Query(" SELECT count(*) FROM t1 WHERE x1==5.2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE x1==5.2 ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.9"
 		r = db.Query(" SELECT count(*) FROM t1 WHERE x1==5.0 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE x1==5.0 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.10"
 		r = db.Query(" SELECT (1<<31)-5, (1<<31)-1, -1*(1<<31), -1*(1<<31)+5 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT (1<<31)-5, (1<<31)-1, -1*(1<<31), -1*(1<<31)+5 ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483643 2147483647 -2147483648 -2147483643"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.11"
@@ -132,12 +186,24 @@ func Test_rtree5(t *testing.T) {
 		r = db.Query(" SELECT * FROM t1 WHERE id=2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 WHERE id=2 ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2147483643 2147483647 -2147483648 -2147483643"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree5-1.13"
 		r = db.Query(" \n    SELECT * FROM t1 WHERE \n        x1=2147483643 AND x2=2147483647 AND \n        y1=-2147483648 AND y2=-2147483643\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t1 WHERE \n        x1=2147483643 AND x2=2147483647 AND \n        y1=-2147483648 AND y2=-2147483643\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2147483643 2147483647 -2147483648 -2147483643"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_rtree_integrity_test rtree5-1.14 t1 (unsupported command, not transpiled)

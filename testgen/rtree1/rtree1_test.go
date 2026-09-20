@@ -113,6 +113,12 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" SELECT name FROM sqlite_master ORDER BY name ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name FROM sqlite_master ORDER BY name ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t1_node t1_parent t1_rowid"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "rtree-1.1.2b"
@@ -131,6 +137,13 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" \n    DROP TABLE t1; \n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DROP TABLE t1; \n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-1.2.1"
@@ -144,18 +157,38 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" SELECT name FROM sqlite_master ORDER BY name ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name FROM sqlite_master ORDER BY name ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-1.2.3"
 		r = db.Query(" SELECT name FROM aux.sqlite_master ORDER BY name ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name FROM aux.sqlite_master ORDER BY name ")
+			return
+		}
+		got := flatten(r)
+		want := "a\" \"b a\" \"b_node a\" \"b_parent a\" \"b_rowid"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-1.2.4"
 		r = db.Query(" \n    DROP TABLE aux.'a\" \"b'; \n    SELECT name FROM aux.sqlite_master ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DROP TABLE aux.'a\" \"b'; \n    SELECT name FROM aux.sqlite_master ORDER BY name;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_list0 := tclList([]string{"i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "iA", "iB", "iC", "iD", "iE", "iF", "iG", "iH", "iI", "iJ", "iK"})
@@ -198,9 +231,8 @@ func Test_rtree1(t *testing.T) {
 		// incr nCol 1
 		{
 			_n, _err := strconv.Atoi(nCol)
-			if _err == nil {
-				nCol = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			nCol = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // "rtree-1.3.1000"
@@ -274,6 +306,13 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" \n    CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2, y1, y2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2, y1, y2);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-2.1.2"
@@ -328,6 +367,12 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" SELECT ii FROM t1 ORDER BY ii ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t1 ORDER BY ii ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-2.X"
@@ -340,6 +385,13 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" \n    CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2, y1, y2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2, y1, y2);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-3.1.2"
@@ -394,12 +446,26 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" \n    DELETE FROM t2 WHERE ii=3;\n    SELECT * FROM t2 ORDER BY ii;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t2 WHERE ii=3;\n    SELECT * FROM t2 ORDER BY ii;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-5.1.6"
 		r = db.Query(" SELECT * FROM t2_rowid ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2_rowid ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-6.1.1"
@@ -542,216 +608,450 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>2 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.1.3"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>3 ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.1.4"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>4 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.1.5"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>5 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>5 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.1.6"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>''")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.1.7"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>null")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>null")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.1.8"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>'2'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>'2'")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.1.9"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>'3'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>'3'")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.2"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>=2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>=2 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.3"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>=3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>=3 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.4"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>=4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>=4 ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.5"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>=5 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>=5 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.6"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>=''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>=''")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.7"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>=null")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>=null")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.8"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>='4'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>='4'")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.2.9"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1>='5'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1>='5'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.2"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<2 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.3"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<3 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.4"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<4 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.5"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<5 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<5 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.6"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<''")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.7"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<null")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<null")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.8"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<'3'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<'3'")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.3.9"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<'4'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<'4'")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.4.2"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<=2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<=2 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.4.3"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<=3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<=3 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.4.4"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<=4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<=4 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.4.5"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<=5 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<=5 ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.4.6"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<=''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<=''")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.4.7"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1<=null")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1<=null")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.5.2"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1=2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1=2 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.5.3"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1=3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1=3 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.5.4"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1=4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1=4 ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.5.5"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1=5 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1=5 ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.5.6"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1=''")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1=''")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-8.5.7"
 		r = db.Query(" SELECT ii FROM t6 WHERE x1=null")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT ii FROM t6 WHERE x1=null")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-9.1"
@@ -764,12 +1064,24 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query("\n    SELECT count(*) FROM bar b1, bar b2, foo s1 WHERE s1.id = b1.id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM bar b1, bar b2, foo s1 WHERE s1.id = b1.id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1600"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-9.3"
 		r = db.Query("\n    SELECT count(*) FROM bar b1, bar b2, foo s1 \n    WHERE b1.minX <= b2.maxX AND s1.id = b1.id;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM bar b1, bar b2, foo s1 \n    WHERE b1.minX <= b2.maxX AND s1.id = b1.id;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1600"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-10.1"
@@ -782,12 +1094,24 @@ func Test_rtree1(t *testing.T) {
 		r = db.Query("\n    CREATE VIRTUAL TABLE t8 USING rtree(idx, x1, x2, y1, y2);\n    INSERT INTO t8 VALUES(1, 1.0, 1.0, 2.0, 2.0);\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t8 USING rtree(idx, x1, x2, y1, y2);\n    INSERT INTO t8 VALUES(1, 1.0, 1.0, 2.0, 2.0);\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "rtree-11.2"
 		r = db.Query("\n    INSERT INTO t8 VALUES(NULL, 1.0, 1.0, 2.0, 2.0);\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t8 VALUES(NULL, 1.0, 1.0, 2.0, 2.0);\n    SELECT last_insert_rowid();\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// db_delete_and_reopen: delete test.db* and reopen
@@ -974,12 +1298,26 @@ func Test_rtree1(t *testing.T) {
 				r = db.Query("\n  INSERT INTO t10 VALUES(0,10,20);\n  SELECT * FROM t10 WHERE ii=NULL;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t10 VALUES(0,10,20);\n  SELECT * FROM t10 WHERE ii=NULL;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "14.7"
 				r = db.Query("\n  SELECT * FROM t10 WHERE ii='xyz';\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t10 WHERE ii='xyz';\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "14.8"
@@ -1060,9 +1398,8 @@ func Test_rtree1(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				sql += ");"
@@ -1083,9 +1420,8 @@ func Test_rtree1(t *testing.T) {
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
-						}
+						if _err != nil { _n = 0 }
+						i = strconv.Itoa(_n + 1)
 					}
 				}
 				sql += ");"
@@ -1335,6 +1671,13 @@ func Test_rtree1(t *testing.T) {
 				r = db.Query("\n  DELETE FROM rt1;\n  INSERT INTO rt1(rid, c1, c2) VALUES(1,2,3);\n  SELECT * FROM rt1 WHERE rid=1.005;\n")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM rt1;\n  INSERT INTO rt1(rid, c1, c2) VALUES(1,2,3);\n  SELECT * FROM rt1 WHERE rid=1.005;\n")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten("{}")
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 }

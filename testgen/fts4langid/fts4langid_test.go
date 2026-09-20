@@ -262,12 +262,26 @@ func Test_fts4langid(t *testing.T) {
 		r = db.Query("SELECT docid FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.4"
 		r = db.Query("SELECT lang_id FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT lang_id FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.5"
@@ -394,6 +408,13 @@ func Test_fts4langid(t *testing.T) {
 		r = db.Query("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(languageid=lang_id);\n  INSERT INTO t1(content, lang_id) VALUES('A', 13);\n  INSERT INTO t1(content, lang_id) VALUES('B', 13);\n  INSERT INTO t1(content, lang_id) VALUES('C', 13);\n  INSERT INTO t1(content, lang_id) VALUES('D', 13);\n  INSERT INTO t1(content, lang_id) VALUES('E', 13);\n  INSERT INTO t1(content, lang_id) VALUES('F', 13);\n  INSERT INTO t1(content, lang_id) VALUES('G', 13);\n  INSERT INTO t1(content, lang_id) VALUES('H', 13);\n  INSERT INTO t1(content, lang_id) VALUES('I', 13);\n  INSERT INTO t1(content, lang_id) VALUES('J', 13);\n  INSERT INTO t1(content, lang_id) VALUES('K', 13);\n  INSERT INTO t1(content, lang_id) VALUES('L', 13);\n  INSERT INTO t1(content, lang_id) VALUES('M', 13);\n  INSERT INTO t1(content, lang_id) VALUES('N', 13);\n  INSERT INTO t1(content, lang_id) VALUES('O', 13);\n  INSERT INTO t1(content, lang_id) VALUES('P', 13);\n  INSERT INTO t1(content, lang_id) VALUES('Q', 13);\n  INSERT INTO t1(content, lang_id) VALUES('R', 13);\n  INSERT INTO t1(content, lang_id) VALUES('S', 13);\n  SELECT rowid FROM t1 WHERE t1 MATCH 'A';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(languageid=lang_id);\n  INSERT INTO t1(content, lang_id) VALUES('A', 13);\n  INSERT INTO t1(content, lang_id) VALUES('B', 13);\n  INSERT INTO t1(content, lang_id) VALUES('C', 13);\n  INSERT INTO t1(content, lang_id) VALUES('D', 13);\n  INSERT INTO t1(content, lang_id) VALUES('E', 13);\n  INSERT INTO t1(content, lang_id) VALUES('F', 13);\n  INSERT INTO t1(content, lang_id) VALUES('G', 13);\n  INSERT INTO t1(content, lang_id) VALUES('H', 13);\n  INSERT INTO t1(content, lang_id) VALUES('I', 13);\n  INSERT INTO t1(content, lang_id) VALUES('J', 13);\n  INSERT INTO t1(content, lang_id) VALUES('K', 13);\n  INSERT INTO t1(content, lang_id) VALUES('L', 13);\n  INSERT INTO t1(content, lang_id) VALUES('M', 13);\n  INSERT INTO t1(content, lang_id) VALUES('N', 13);\n  INSERT INTO t1(content, lang_id) VALUES('O', 13);\n  INSERT INTO t1(content, lang_id) VALUES('P', 13);\n  INSERT INTO t1(content, lang_id) VALUES('Q', 13);\n  INSERT INTO t1(content, lang_id) VALUES('R', 13);\n  INSERT INTO t1(content, lang_id) VALUES('S', 13);\n  SELECT rowid FROM t1 WHERE t1 MATCH 'A';\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -545,6 +566,13 @@ func Test_fts4langid(t *testing.T) {
 		r = db.Query("\n  SELECT docid FROM t4 WHERE t4 MATCH 'quick' AND lid=1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM t4 WHERE t4 MATCH 'quick' AND lid=1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "4.1.3"
@@ -579,9 +607,8 @@ func Test_fts4langid(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // "4.1.5"
@@ -661,9 +688,8 @@ func Test_fts4langid(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		r = db.Query(" SELECT docid FROM t6 WHERE t6 MATCH 'belong' ")
@@ -675,6 +701,12 @@ func Test_fts4langid(t *testing.T) {
 		r = db.Query(" SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + sqlLiteral(lid))
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + sqlLiteral(lid))
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.3.4"

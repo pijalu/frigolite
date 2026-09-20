@@ -85,15 +85,20 @@ func Test_attach(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	{ // do_test "attach-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-1.2"
@@ -109,6 +114,12 @@ func Test_attach(t *testing.T) {
 		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS two;\n    SELECT * FROM two.t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n    SELECT * FROM two.t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 x 2 y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-1.3.1"
@@ -130,12 +141,24 @@ func Test_attach(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 x 2 y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-1.5"
 		r = db.Query("\n    DETACH DATABASE two;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH DATABASE two;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-1.6"
@@ -306,18 +329,38 @@ func Test_attach(t *testing.T) {
 		r = db2.Query("\n    CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.2"
 		r = db2.Query("\n    UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 x x 2 12 y y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.3"
 		r = db.Query("\n    CREATE TABLE tx(x1,x2,y1,y2);\n    SELECT * FROM tx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(x1,x2,y1,y2);\n    SELECT * FROM tx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.4"
@@ -330,18 +373,37 @@ func Test_attach(t *testing.T) {
 		r = db.Query("\n    UPDATE db2.t2 SET x=x+10;\n    SELECT * FROM db2.tx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE db2.t2 SET x=x+10;\n    SELECT * FROM db2.tx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 x x 2 12 y y 11 21 x x 12 22 y y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.6"
 		r = db.Query("\n    SELECT * FROM main.tx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM main.tx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.7"
 		r = db.Query("\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "table t2 t2 table tx tx trigger r1 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.8"
@@ -354,12 +416,24 @@ func Test_attach(t *testing.T) {
 		r = db2.Query("\n    CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "21 x 22 y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.10"
 		r = db2.Query("\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "table t2 t2 table tx tx trigger r1 t2 index i2 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.12"
@@ -375,12 +449,24 @@ func Test_attach(t *testing.T) {
 		r = db.Query("\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "table t1 t1 table tx tx"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.15"
 		r = db.Query("\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "table t2 t2 table tx tx trigger r1 t2 index i2 t2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-2.16"
@@ -479,6 +565,12 @@ func Test_attach(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-3.11"
@@ -491,6 +583,12 @@ func Test_attach(t *testing.T) {
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 4 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-3.13"
@@ -537,24 +635,48 @@ func Test_attach(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3(a,b);\n    CREATE UNIQUE INDEX t3i1b ON t3(a);\n    INSERT INTO t3 VALUES(9,10);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a,b);\n    CREATE UNIQUE INDEX t3i1b ON t3(a);\n    INSERT INTO t3 VALUES(9,10);\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.3"
 		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.4"
 		r = db.Query("\n    SELECT * FROM main.t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM main.t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.5"
 		r = db.Query("\n    INSERT INTO db2.t3 VALUES(9,10);\n    SELECT * FROM db2.t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO db2.t3 VALUES(9,10);\n    SELECT * FROM db2.t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  DETACH db2;\n")
@@ -565,18 +687,36 @@ func Test_attach(t *testing.T) {
 		r = db2.Query("\n      CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "db2.6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.7"
 		r = db.Query("\n      CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "main.11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.8"
 		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "db2.6 db2.13 main.11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.9"
@@ -599,18 +739,36 @@ func Test_attach(t *testing.T) {
 		r = db.Query("\n    CREATE VIEW v3 AS SELECT a*100+b FROM t3;\n    SELECT * FROM v3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v3 AS SELECT a*100+b FROM t3;\n    SELECT * FROM v3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "910 1112 1516"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.12"
 		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.v3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.v3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "102 910 607 1314"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-4.13"
 		r = db.Query("\n    SELECT * FROM main.v3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM main.v3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "910 1112 1516"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-5.1"
@@ -726,9 +884,8 @@ func Test_attach(t *testing.T) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
+			if _err != nil { _n = 0 }
+			i = strconv.Itoa(_n + 1)
 		}
 	}
 	db.Close()
@@ -736,6 +893,7 @@ func Test_attach(t *testing.T) {
 	os.Remove("no-such-file")
 	{ // do_test "attach-7.1"
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
@@ -747,6 +905,7 @@ func Test_attach(t *testing.T) {
 		fd = "test2.db"
 		_ = fd // suppress unused warning
 		tclChannelAppendAt("test2.db", "This file is not a valid SQLite database"+"\n", fileChannelSeek["fd"])
+		fileChannelSeek["fd"] += int64(len("This file is not a valid SQLite database"+"\n"))
 		// close $fd
 		_res = db.Exec("\n    ATTACH 'test2.db' AS t2;\n  ")
 		_ = _res // catchsql
@@ -784,12 +943,24 @@ func Test_attach(t *testing.T) {
 		r = db.Query("\n    COMMIT;\n    SELECT * FROM aux2.t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT * FROM aux2.t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-10.1"
 		r = db.Query("\n    ATTACH '' AS noname;\n    ATTACH ':memory:' AS inmem;\n    BEGIN;\n    CREATE TABLE noname.noname(x);\n    CREATE TABLE inmem.inmem(y);\n    CREATE TABLE main.main(z);\n    COMMIT;\n    SELECT name FROM noname.sqlite_master;\n    SELECT name FROM inmem.sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH '' AS noname;\n    ATTACH ':memory:' AS inmem;\n    BEGIN;\n    CREATE TABLE noname.noname(x);\n    CREATE TABLE inmem.inmem(y);\n    CREATE TABLE main.main(z);\n    COMMIT;\n    SELECT name FROM noname.sqlite_master;\n    SELECT name FROM inmem.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "noname inmem"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "attach-10.2"
@@ -847,9 +1018,8 @@ func Test_attach(t *testing.T) {
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				if _err != nil { _n = 0 }
+				i = strconv.Itoa(_n + 1)
 			}
 		}
 		vtab.TclVarSet("m", "", "a" + tclExprWith("$SQLITE_MAX_ATTACHED-1", map[string]string{"SQLITE_MAX_ATTACHED": SQLITE_MAX_ATTACHED}))

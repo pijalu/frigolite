@@ -76,12 +76,24 @@ func Test_tkt3997(t *testing.T) {
 		r = db.Query(" \n    SELECT name \n    FROM mytext \n    ORDER BY name COLLATE reverse \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT name \n    FROM mytext \n    ORDER BY name COLLATE reverse \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "afe acd abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3997-1.3"
 		r = db.Query(" \n    SELECT name \n    FROM (SELECT name FROM mytext)  \n    ORDER BY name COLLATE reverse \n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT name \n    FROM (SELECT name FROM mytext)  \n    ORDER BY name COLLATE reverse \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "afe acd abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3997-2.1"
@@ -94,12 +106,24 @@ func Test_tkt3997(t *testing.T) {
 		r = db.Query(" \n    SELECT name \n    FROM (SELECT name FROM mytext2)  \n    ORDER BY name\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT name \n    FROM (SELECT name FROM mytext2)  \n    ORDER BY name\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "afe acd abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3997-2.3"
 		r = db.Query(" \n    SELECT name \n    FROM (SELECT name FROM mytext2)\n    ORDER BY name COLLATE usual\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT name \n    FROM (SELECT name FROM mytext2)\n    ORDER BY name COLLATE usual\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc acd afe"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }
