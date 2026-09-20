@@ -45,21 +45,7 @@ func (e *DMLExecutor) fireTriggers(tableName, event, timing string, newRow, oldR
 	if e.ctx.TriggersSuppressed() {
 		return &Result{}
 	}
-	// Resolve the table's context first (the trigger lookup needs it).
-	tableCtx := e.triggerTableContext(tableName)
-
-	// Search for triggers on the table. SQLite scopes triggers to their
-	// database, but TEMP triggers fire on any table they reference (a TEMP
-	// trigger on a main table fires when the main table changes). So include
-	// triggers from the table's own context PLUS the TEMP context. A main
-	// trigger does NOT fire for a temp-table event (temp shadows main).
-	var triggers []*schema.Entry
-	// Triggers in the table's own context.
-	if t, err := tableCtx.Schema.FindTriggersForTable(tableName); err == nil {
-		triggers = append(triggers, t...)
-	}
-	triggers = e.appendTempTriggers(tableCtx, tableName, triggers)
-
+	tableCtx, triggers := e.collectTableTriggers(tableName)
 	if len(triggers) == 0 {
 		return &Result{}
 	}
@@ -86,6 +72,23 @@ func (e *DMLExecutor) fireTriggers(tableName, event, timing string, newRow, oldR
 		}
 	}
 	return &Result{}
+}
+
+// collectTableTriggers returns the database context owning the named table
+// and the triggers bound to it: the table's own-schema triggers plus the
+// TEMP triggers that target it, in registration order (trigger.c
+// sqlite3TriggerList: pTab->pTrigger with the TEMP triggers on pTabSchema).
+func (e *DMLExecutor) collectTableTriggers(tableName string) (*DatabaseContext, []*schema.Entry) {
+	tableCtx := e.triggerTableContext(tableName)
+	var triggers []*schema.Entry
+	if ts, err := tableCtx.Schema.FindTriggersForTable(tableName); err == nil {
+		for _, t := range ts {
+			if e.triggerTargetsCtx(t, tableCtx) {
+				triggers = append(triggers, t)
+			}
+		}
+	}
+	return tableCtx, e.appendTempTriggers(tableCtx, tableName, triggers)
 }
 
 // triggerTableContext resolves the database context for a table's triggers:

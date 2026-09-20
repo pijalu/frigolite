@@ -7,6 +7,7 @@ import (
 	"hash"
 	"io"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/util"
@@ -93,33 +94,87 @@ func absF(f float64) float64 {
 	return f
 }
 
+// sumNumericArg ports vdbeapi.c sqlite3_value_numeric_type as called by
+// func.c sumStep: only TEXT values are converted, to the numeric type their
+// text denotes — integer-looking, lossless int64 text becomes INTEGER;
+// other numeric text (decimal point, exponent, or beyond int64 range)
+// becomes REAL (applyNumericAffinity with bTryForInt=0 never folds a whole
+// float back to integer). Everything else passes through unchanged.
+func sumNumericArg(v interface{}) interface{} {
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
+	s, ok := v.(string)
+	if !ok {
+		return v
+	}
+	t := strings.TrimSpace(s)
+	if t == "" || !numericTextRunes(t) {
+		return v // non-numeric text stays TEXT
+	}
+	if i, err := strconv.ParseInt(t, 10, 64); err == nil {
+		return i
+	}
+	if f, err := strconv.ParseFloat(t, 64); err == nil {
+		return f
+	}
+	return v
+}
+
+// numericTextRunes reports whether s only holds the characters sqlite3AtoF
+// accepts for a numeric literal (digits, sign, dot, exponent marker). This
+// rejects the Go-only spellings strconv would otherwise take ("inf", "nan",
+// "1_000"), which SQLite's text-to-double conversion leaves as TEXT.
+func numericTextRunes(s string) bool {
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case c >= '0' && c <= '9', c == '+', c == '-', c == '.', c == 'e', c == 'E':
+		default:
+			return false
+		}
+	}
+	return true
+}
+
 func (s *sumAgg) Step(args []interface{}) error {
 	if len(args) == 0 || args[0] == nil {
 		return nil
 	}
-	s.count++
-	if !s.isFloat {
-		return s.stepExact(args[0])
+	// func.c sumStep classifies every input with
+	// sqlite3_value_numeric_type before accumulating: a TEXT column holding
+	// numeric text feeds the exact integer path (misc1-2.2: sum(one) over
+	// '1','2',... stays INTEGER), while BLOBs and non-numeric text count as
+	// 0.0 on the approx path.
+	arg := sumNumericArg(args[0])
+	if arg == nil {
+		return nil
 	}
-	if _, ok := args[0].(int64); !ok {
-		// A non-integer input while already in float mode absorbs any
-		// earlier overflow (sumStep clears ovrfl in this branch).
+	s.count++
+	if i, ok := arg.(int64); ok {
+		if !s.isFloat {
+			return s.stepExact(i)
+		}
+		s.kahanBabuskaNeumaierStepInt64(i)
+		return nil
+	}
+	if !s.isFloat {
+		// First non-integer input: seed the compensated sum from the int64
+		// accumulator (sumStep's kahanBabuskaNeumaierInit branch). ovrfl
+		// cannot be set while approx==0.
+		s.kahanBabuskaNeumaierInit(s.intSum)
+		s.isFloat = true
+	} else {
+		// A later non-integer input absorbs an earlier overflow (sumStep
+		// clears ovrfl in the approx/non-integer branch).
 		s.ovrfl = false
 	}
-	return s.stepApprox(args[0])
+	return s.stepApprox(arg)
 }
 
 // stepExact accumulates an exact int64 input, promoting to the compensated
 // double sum on int64 overflow (sumStep's sqlite3AddInt64 failure branch).
-func (s *sumAgg) stepExact(arg interface{}) error {
-	v, ok := arg.(int64)
-	if !ok {
-		// Non-integer input: switch to the compensated sum seeded from the
-		// int64 accumulator (sumStep's kahanBabuskaNeumaierInit branch).
-		s.kahanBabuskaNeumaierInit(s.intSum)
-		s.isFloat = true
-		return s.stepApprox(arg)
-	}
+func (s *sumAgg) stepExact(v int64) error {
 	newSum := s.intSum + v
 	if (v > 0 && newSum < s.intSum) || (v < 0 && newSum > s.intSum) {
 		// Overflow: promote to the compensated double sum, flag ovrfl.
@@ -133,22 +188,19 @@ func (s *sumAgg) stepExact(arg interface{}) error {
 	return nil
 }
 
-// stepApprox accumulates one input into the compensated double sum. A BLOB
-// input ([]byte) is ignored entirely (SQLite sum()/total() skip non-numeric
-// BLOBs without contributing), and a non-numeric string contributes 0.
+// stepApprox accumulates one input into the compensated double sum. BLOB and
+// non-numeric TEXT inputs convert to 0.0 (sqlite3_value_double on a value
+// with no numeric representation) but are still counted by Step: sum over
+// x'4142' is 0.0 real, and avg's denominator includes them.
 func (s *sumAgg) stepApprox(arg interface{}) error {
-	if _, isBlob := arg.([]byte); isBlob {
-		return nil
-	}
-	if v, ok := arg.(int64); ok {
+	switch v := arg.(type) {
+	case int64:
 		s.kahanBabuskaNeumaierStepInt64(v)
-		return nil
+	case float64:
+		s.kahanBabuskaNeumaierStep(v)
+	default:
+		s.kahanBabuskaNeumaierStep(0)
 	}
-	f, err := toFloat64(arg)
-	if err != nil {
-		return err
-	}
-	s.kahanBabuskaNeumaierStep(f)
 	return nil
 }
 
@@ -185,84 +237,54 @@ type totalAgg struct {
 	sumAgg
 }
 
-// Step for TOTAL: promotes to float on int64 overflow (no error), matching
-// SQLite's total() which always returns a float and never raises overflow.
+// Step for TOTAL: func.c's total() shares sumStep with sum() (same
+// classification and Kahan-Babuška-Neumaier accumulation); only the
+// finalizer differs — totalFinalize always yields a double and never raises
+// the integer-overflow error.
 func (t *totalAgg) Step(args []interface{}) error {
-	if len(args) == 0 || args[0] == nil {
-		return nil
-	}
-	t.count++
-	if !t.isFloat {
-		if v, ok := args[0].(int64); ok {
-			newSum := t.intSum + v
-			if (v > 0 && newSum < t.intSum) || (v < 0 && newSum > t.intSum) {
-				t.isFloat = true
-				t.floatSum = float64(t.intSum) + float64(v)
-			} else {
-				t.intSum = newSum
-			}
-			return nil
-		}
-		t.isFloat = true
-		t.floatSum = float64(t.intSum)
-	}
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return err
-	}
-	t.floatSum += f
-	return nil
+	return t.sumAgg.Step(args)
 }
 
 func (t *totalAgg) Final() (interface{}, error) {
 	// TOTAL returns 0.0 for empty sets (unlike SUM which returns NULL)
-	if t.isFloat {
-		return t.floatSum, nil
+	// (func.c totalFinalize).
+	if !t.isFloat {
+		return float64(t.intSum), nil
 	}
-	return float64(t.intSum), nil
+	r := t.floatSum
+	if !isOverflowDouble(t.rErr) {
+		r += t.rErr
+	}
+	return r, nil
 }
 
 type avgAgg struct {
 	sumAgg
 }
 
-// Step for AVG: promotes to float on int64 overflow (avg of large ints is
-// fractional anyway; SQLite's avg() never raises integer overflow).
+// Step for AVG: func.c's avg() shares sumStep with sum() (the classification
+// and accumulation are identical, including BLOB / non-numeric text counting
+// as 0.0 in the denominator); only the finalizer differs — avgFinalize
+// divides by the count and never raises the integer-overflow error.
 func (a *avgAgg) Step(args []interface{}) error {
-	if len(args) == 0 || args[0] == nil {
-		return nil
-	}
-	a.count++
-	if !a.isFloat {
-		if v, ok := args[0].(int64); ok {
-			newSum := a.intSum + v
-			if (v > 0 && newSum < a.intSum) || (v < 0 && newSum > a.intSum) {
-				a.isFloat = true
-				a.floatSum = float64(a.intSum) + float64(v)
-			} else {
-				a.intSum = newSum
-			}
-			return nil
-		}
-		a.isFloat = true
-		a.floatSum = float64(a.intSum)
-	}
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return err
-	}
-	a.floatSum += f
-	return nil
+	return a.sumAgg.Step(args)
 }
 
 func (a *avgAgg) Final() (interface{}, error) {
 	if a.count == 0 {
 		return nil, nil
 	}
+	// avgFinalize: r = approx ? (rSum + rErr when finite) : (double)iSum.
+	var r float64
 	if a.isFloat {
-		return a.floatSum / float64(a.count), nil
+		r = a.floatSum
+		if !isOverflowDouble(a.rErr) {
+			r += a.rErr
+		}
+	} else {
+		r = float64(a.intSum)
 	}
-	return float64(a.intSum) / float64(a.count), nil
+	return r / float64(a.count), nil
 }
 
 type minAgg struct {

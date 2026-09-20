@@ -552,16 +552,57 @@ func (e *DDLExecutor) dropTableFKChecks(entry *schema.Entry, ctx *DatabaseContex
 	return e.ctx.CheckDropTableFK(entry, ctx)
 }
 
+// tempTriggerTargetsCtx reports whether a TEMP trigger entry targets a table
+// in ctx (the dropped table's schema). A schema-qualified ON table targets
+// that schema literally; an unqualified ON table targets temp when a temp
+// table of the name exists (temp shadows main), else main — the same
+// resolution the firing path applies, so a trigger dropped with a table is
+// one that would have fired for it (trigger.c Trigger.pTabSchema).
+func tempTriggerTargetsCtx(t *schema.Entry, ctx, tempCtx *DatabaseContext) bool {
+	onSchema := execdml.TriggerOnTableSchema(t.SQL)
+	if onSchema != "" {
+		return strings.EqualFold(onSchema, ctx.Name)
+	}
+	if _, err := tempCtx.Schema.FindTable(t.TblName); err == nil {
+		return ctx == tempCtx
+	}
+	return ctx.Name == "main"
+}
+
 // dropTableCascade drops all triggers and indexes associated with a table
 // (SQLite semantics: DROP TABLE removes all associated indexes). It also
 // removes the dropped table's rows from sqlite_stat1 (SQLite src/build.c
 // sqlite3ClearStatTables), which the ANALYZE step recorded earlier.
 func (e *DDLExecutor) dropTableCascade(ctx *DatabaseContext, entry *schema.Entry) {
 	triggers, _ := ctx.Schema.FindTriggersForTable(entry.Name)
+	droppedTriggers := false
 	for _, t := range triggers {
-		_ = ctx.Schema.RemoveEntry(t.Name)
+		// A trigger is bound to the specific table (and schema) it names in
+		// its ON clause (trigger.c Trigger.pTabSchema): a schema-qualified
+		// ON table for another schema must not drop with this one (dropping
+		// temp.t4 keeps a trigger ON main.t4 that shares the TblName).
+		if !execdml.TriggerTargetsSchema(t, ctx.Name) {
+			continue
+		}
+		_ = ctx.Schema.RemoveEntryOfType(t.Name, schema.TypeTrigger)
+		droppedTriggers = true
 	}
-	if len(triggers) > 0 {
+	// TEMP triggers ON the dropped table live in the TEMP schema (trigger.c
+	// stores them there while their pTabSchema points at this table), so
+	// build.c's sqlite3CodeDropTable walks sqlite3TriggerList — which
+	// includes the TEMP triggers — and drops each from its OWNING schema
+	// (alter-3.3.8: DROP TABLE tbl3 clears temp.sqlite_master's trig1/trig2).
+	if tempCtx := e.ctx.GetDB("temp"); tempCtx != nil && tempCtx != ctx {
+		tempTriggers, _ := tempCtx.Schema.FindTriggersForTable(entry.Name)
+		for _, t := range tempTriggers {
+			if !tempTriggerTargetsCtx(t, ctx, tempCtx) {
+				continue
+			}
+			_ = tempCtx.Schema.RemoveEntryOfType(t.Name, schema.TypeTrigger)
+			droppedTriggers = true
+		}
+	}
+	if droppedTriggers {
 		// Dropping a table drops its triggers (src/build.c sqlite3DropTable
 		// destroys the associated triggers). The cached has-triggers flag for
 		// the name must be recomputed: a stale "true" routes later DML on a

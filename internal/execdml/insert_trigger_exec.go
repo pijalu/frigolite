@@ -42,18 +42,59 @@ func (e *DMLExecutor) triggerInChain(schemaName, triggerName string) bool {
 	return false
 }
 
-// appendTempTriggers adds the TEMP triggers that fire for a table event.
+// TriggerOnTableSchema extracts the schema prefix of a trigger's ON table
+// from its stored CREATE TRIGGER SQL ("CREATE TRIGGER ... ON aux.t1 ..." →
+// "aux"). Returns "" for an unqualified ON table. Exported for the DDL
+// layer's DROP TABLE trigger cascade, which resolves the same binding.
+func TriggerOnTableSchema(triggerSQL string) string {
+	upper := strings.ToUpper(triggerSQL)
+	onIdx := strings.Index(upper, " ON ")
+	if onIdx < 0 {
+		return ""
+	}
+	table := strings.TrimSpace(triggerSQL[onIdx+4:])
+	// Stop at the first whitespace or '(' (WHEN/INSTEAD/BEGIN clauses follow).
+	end := len(table)
+	for i := 0; i < len(table); i++ {
+		if table[i] == ' ' || table[i] == '\t' || table[i] == '\n' || table[i] == '\r' || table[i] == '(' {
+			end = i
+			break
+		}
+	}
+	table = strings.TrimSpace(table[:end])
+	schema, _ := parseSchemaName(table)
+	return schema
+}
+
+// TriggerTargetsSchema reports whether a trigger entry fires for an event on
+// a table in the named schema: trigger.c binds every trigger to the specific
+// table (and schema) it names in its ON clause (Trigger.pTabSchema, fixed at
+// CREATE time), so a schema-qualified ON table ("ON main.t4" vs "ON temp.t4")
+// fires only when the event table lives in that schema — even though the
+// TEMP schema stores all of them side by side under the same TblName. An
+// unqualified ON table passed the name match, so it stays. Exported for the
+// DDL layer's DROP TABLE trigger cascade (build.c sqlite3CodeDropTable drops
+// sqlite3TriggerList, the triggers bound to the dropped table).
+func TriggerTargetsSchema(t *schema.Entry, tableSchemaName string) bool {
+	if onSchema := TriggerOnTableSchema(t.SQL); onSchema != "" {
+		return strings.EqualFold(onSchema, tableSchemaName)
+	}
+	return true
+}
+
+// triggerTargetsCtx reports whether a trigger stored in tableCtx's own schema
+// fires for an event on tableCtx's table.
+func (e *DMLExecutor) triggerTargetsCtx(t *schema.Entry, tableCtx *DatabaseContext) bool {
+	return TriggerTargetsSchema(t, tableCtx.Name)
+}
 
 // appendTempTriggers adds the TEMP triggers that fire for a table event.
-
-// appendTempTriggers adds the TEMP triggers that fire for a table event.
-// appendTempTriggers adds the TEMP triggers that fire for a table event.
+// TEMP triggers fire on the table they were created ON. The stored
+// TblName carries the ON-table resolution: a schema-qualified ON table
+// (aux.t1) fires only for that schema's events; an unqualified ON table
+// fires for the table it resolved to at CREATE time (temp shadows main:
+// if a temp table of that name exists, the ON table is the temp one).
 func (e *DMLExecutor) appendTempTriggers(tableCtx *DatabaseContext, tableName string, triggers []*schema.Entry) []*schema.Entry {
-	// TEMP triggers fire on the table they were created ON. The stored
-	// TblName carries the ON-table resolution: a schema-qualified ON table
-	// (aux.t1) fires only for that schema's events; an unqualified ON table
-	// fires for the table it resolved to at CREATE time (temp shadows main:
-	// if a temp table of that name exists, the ON table is the temp one).
 	tc := e.ctx.GetDB("temp")
 	if tc == nil || tc == tableCtx || tableCtx == nil {
 		return triggers
@@ -81,7 +122,7 @@ func (e *DMLExecutor) appendTempTriggers(tableCtx *DatabaseContext, tableName st
 // shouldAppendTempTrigger decides whether one TEMP trigger fires for an event
 // on the given table context.
 func (e *DMLExecutor) shouldAppendTempTrigger(tt *schema.Entry, tableCtx, tc *DatabaseContext, tableName string) bool {
-	onSchema := triggerOnTableSchema(tt.SQL)
+	onSchema := TriggerOnTableSchema(tt.SQL)
 	if onSchema != "" {
 		// Schema-qualified ON table: fire only when the event table is
 		// in that schema.
@@ -104,26 +145,6 @@ func (e *DMLExecutor) shouldAppendTempTrigger(tt *schema.Entry, tableCtx, tc *Da
 // triggerOnTableSchema extracts the schema prefix of a trigger's ON table from
 // its stored CREATE TRIGGER SQL ("CREATE TRIGGER ... ON aux.t1 ..." → "aux").
 // Returns "" for an unqualified ON table.
-func triggerOnTableSchema(triggerSQL string) string {
-	upper := strings.ToUpper(triggerSQL)
-	onIdx := strings.Index(upper, " ON ")
-	if onIdx < 0 {
-		return ""
-	}
-	table := strings.TrimSpace(triggerSQL[onIdx+4:])
-	// Stop at the first whitespace or '(' (WHEN/INSTEAD/BEGIN clauses follow).
-	end := len(table)
-	for i := 0; i < len(table); i++ {
-		if table[i] == ' ' || table[i] == '\t' || table[i] == '\n' || table[i] == '\r' || table[i] == '(' {
-			end = i
-			break
-		}
-	}
-	table = strings.TrimSpace(table[:end])
-	schema, _ := parseSchemaName(table)
-	return schema
-}
-
 // maxTriggerDepth is SQLite's SQLITE_MAX_TRIGGER_DEPTH default: recursive
 // trigger programs abort with "too many levels of trigger recursion" once
 // the nesting exceeds this limit.
@@ -325,23 +346,9 @@ func (e *DMLExecutor) prepareUpdateTriggers(tableEntry *schema.Entry) *Result {
 	if e.ctx.TriggersSuppressed() || !e.hasTriggersForTable(tableEntry.Name) {
 		return nil
 	}
-	tableCtx := e.triggerTableContext(tableEntry.Name)
-	var triggers []*schema.Entry
-	if ts, err := tableCtx.Schema.FindTriggersForTable(tableEntry.Name); err == nil {
-		triggers = append(triggers, ts...)
-	}
-	triggers = e.appendTempTriggers(tableCtx, tableEntry.Name, triggers)
+	_, triggers := e.collectTableTriggers(tableEntry.Name)
 	for _, t := range triggers {
-		declTiming, declEvent := parseTriggerHeader(t.SQL)
-		if declTiming == "" {
-			declTiming = "BEFORE"
-		}
-		if declEvent != "UPDATE" {
-			continue
-		}
-		// OF-column selectivity is a code-time decision too: a trigger whose
-		// OF list misses the statement's SET columns is not coded.
-		if !e.triggerMatchesUpdateOf(t) {
+		if !e.isCodedUpdateTrigger(t) {
 			continue
 		}
 		if err := e.resolveTriggerWhenColumns(t); err != nil {
@@ -349,6 +356,18 @@ func (e *DMLExecutor) prepareUpdateTriggers(tableEntry *schema.Entry) *Result {
 		}
 	}
 	return nil
+}
+
+// isCodedUpdateTrigger reports whether t is an UPDATE trigger whose OF column
+// list intersects the statement's SET columns. OF-column selectivity is a
+// code-time decision (sqlite3CodeRowTriggerProgram): a trigger that is not
+// coded for the statement never compiles its WHEN.
+func (e *DMLExecutor) isCodedUpdateTrigger(t *schema.Entry) bool {
+	_, declEvent := parseTriggerHeader(t.SQL)
+	if declEvent != "UPDATE" {
+		return false
+	}
+	return e.triggerMatchesUpdateOf(t)
 }
 
 // parseTriggerBody extracts and parses the statements between a trigger's BEGIN
